@@ -1,0 +1,16 @@
+{
+    "recommendations": [
+       "pwabuilder.pwa-studio",
+       "a-h.templ",
+       "michelemelluso.code-beautifier",
+       "golang.go",
+       "jinliming2.vscode-go-template",
+       "yzhang.markdown-all-in-one",
+       "esbenp.prettier-vscode",
+       "1yib.svelte-bundle",
+       "pivaszbs.svelte-autoimport",
+       "svelte.svelte-vscode",
+       "fivethree.vscode-svelte-snippets",
+       "bradlc.vscode-tailwindcss"
+    ]
+}

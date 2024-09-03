@@ -1,0 +1,21 @@
+package components
+
+import (
+	"github.com/mikestefanello/pagoda/pkg/controller"
+)
+
+templ Sidebar(page *controller.Page) {
+	<aside
+		id="logo-sidebar"
+		class="fixed left-5 z-40 w-64 bg-white border-r border-gray-200 
+        dark:bg-gray-800 dark:border-gray-700 rounded-lg"
+		style="top: 50%; transform: translateY(-50%);"
+		aria-label="Sidebar"
+	>
+		<div class="h-full p-4 px-6 overflow-y-auto">
+			<ul class="space-y-2 font-medium">
+				@SidebarSharedFields(page)
+			</ul>
+		</div>
+	</aside>
+}

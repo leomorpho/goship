@@ -1,0 +1,33 @@
+services:
+  cache:
+    image: "redis:alpine"
+    container_name: goship_cache
+    ports:
+      - "127.0.0.1:${HOST_CACHE_PORT-6379}:6379"
+
+  db:
+    # PG 16 is currenly not supported by Ent ORM: https://github.com/ent/ent/issues/3750
+    image: ankane/pgvector:v0.5.1
+    container_name: goship_db
+    ports:
+      - "127.0.0.1:${HOST_DB_PORT-5432}:5432"
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+      - POSTGRES_DB=goship_db
+      
+  mailpit:
+    image: axllent/mailpit
+    container_name: goship_mailpit
+    restart: always
+    volumes:
+      - ./data:/data
+    ports:
+      - "${HOST_MAILPIT_HTTP_PORT-8025}:8025"
+      - "${HOST_MAILPIT_SMTP_PORT-1025}:1025"
+    environment:
+      MP_MAX_MESSAGES: 5000
+      MP_DATA_FILE: /data/mailpit.db
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+

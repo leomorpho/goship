@@ -1,0 +1,156 @@
+# https://www.erikminkel.com/2023/09/29/using-kamal-to-host-multiple-apps-on-a-single-server/
+
+# Name of your application. Used to uniquely configure containers.
+service: goship
+
+# Name of the container image.
+image: leomorpho/goship
+
+# ssh:
+#   log_level: debug
+
+# Deploy to these servers.
+servers:
+  web:
+    hosts:
+      - 111.000.000.00
+    labels:
+      traefik.http.routers.cherie.entrypoints: websecure
+      traefik.http.routers.cherie.rule: Host(`cherie.chatbond.app`)
+      traefik.http.routers.cherie.tls: true
+      traefik.http.routers.cherie.tls.certresolver: letsencrypt
+
+  worker:
+    hosts:
+      - 100.000.000.00
+    cmd: worker
+
+# Credentials for your image host.
+registry:
+  # Specify the registry server, if you're not using Docker Hub
+  server: ghcr.io
+  username:
+    - KAMAL_REGISTRY_USERNAME
+  # Always use an access token rather than real password when possible.
+  password:
+    - KAMAL_REGISTRY_PASSWORD
+
+# Inject ENV variables into containers (secrets come from .env).
+# Remember to run `kamal env push` after making changes!
+env:
+  clear:
+    PAGODA_APP_PAGESIZE: 15
+    PAGODA_HTTP_PORT: 8000
+    PAGODA_HTTP_DOMAIN: "https://cherie.chatbond.app"
+    PAGODA_APP_ENVIRONMENT: "prod"
+    PAGODA_APP_OPERATIONALCONSTANTS_USERSIGNUPENABLED: "true"
+    PAGODA_APP_OPERATIONALCONSTANTS_PAYMENTSENABLED: "false" 
+    PAGODA_APP_OPERATIONALCONSTANTS_PRODUCTPROCODE: "price_..."
+    PAGODA_HTTP_HOSTNAME: "0.0.0.0"
+    PAGODA_CACHE_HOSTNAME: "FILL"
+    PAGODA_CACHE_PORT: 6379
+    PAGODA_CACHE_DATABASE: "0" # Sharing with eclair, which uses 1
+    PAGODA_DATABASE_PORT: 5432
+    PAGODA_MAIL_SMTPPORT: 1025
+    PAGODA_STORAGE_APPBUCKETNAME: "FILL"
+    PAGODA_CACHE_EXPIRATIONPAGE: "2h"
+    PAGODA_CACHE_EXPIRATIONSTATICFILE: "4380h"
+    PAGODA_MAIL_FROMADDRESS: "cherie@chatbond.app"
+    PAGODA_APP_SUPPORTEMAIL: "cherie@chatbond.app"
+
+  secret:
+    - PAGODA_APP_ENCRYPTIONKEY
+    - PAGODA_DATABASE_USER
+    - PAGODA_DATABASE_PASSWORD
+    - PAGODA_DATABASE_DATABASE
+    - PAGODA_STORAGE_S3ACCESSKEY
+    - PAGODA_STORAGE_S3SECRETKEY
+    - PAGODA_MAIL_RESENDAPIKEY
+    - PAGODA_APP_SENTRYDSN
+    - PAGODA_APP_VAPIDPUBLICKEY
+    - PAGODA_APP_VAPIDPRIVATEKEY
+    - PAGODA_APP_PUBLICSTRIPEKEY
+    - PAGODA_APP_PRIVATESTRIPEKEY
+    - PAGODA_APP_STRIPEWEBHOOKSECRET
+    - PAGODA_APP_APPENCRYPTIONKEY
+    - PAGODA_APP_FIREBASEBASE64ACCESSKEYS
+
+# Configure builder setup.
+builder:
+  multiarch: true
+  cache:
+    type: gha
+
+# Define a custom network
+# TODO: run this on the VPS: `docker network create my-network`
+# networks:
+#   my-network:
+  
+# Use accessory services (secrets come from .env).
+accessories:
+  redis:
+    image: redis:alpine
+    host: cherie-redis
+    host: 164.00.00.000
+    port: 6379
+    directories:
+      - data:/data
+
+  asynqmon:
+    image: hibiken/asynqmon
+    host: cherie-asynqmon
+    host: 164.00.00.000
+    port: 8080
+    env:
+      clear:
+        REDIS_ADDR: "cherie-redis:6379"
+        REDIS_DB: 0
+
+# NOTE: for TLS setup, see https://github.com/basecamp/kamal/discussions/112
+# Create acme file on server: https://github.com/basecamp/kamal/discussions/112
+# `mkdir -p /letsencrypt && touch /letsencrypt/acme.json && chmod 600 /letsencrypt/acme.json`
+# Make sure to run `kamal deploy` and then `kamal traefik reboot` after.
+# Configure custom arguments for Traefik
+traefik:
+  options:
+    publish:
+      - 443:443
+    volume:
+      - "/letsencrypt/acme.json:/letsencrypt/acme.json"
+  args:
+    entryPoints.web.address: ":80"
+    entryPoints.websecure.address: ":443"
+    entryPoints.web.http.redirections.entryPoint.to: websecure
+    entryPoints.web.http.redirections.entryPoint.scheme: https
+    entryPoints.web.http.redirections.entrypoint.permanent: true
+    certificatesResolvers.letsencrypt.acme.email: "cherie@chatbond.app"
+    certificatesResolvers.letsencrypt.acme.storage: "/letsencrypt/acme.json"
+    certificatesResolvers.letsencrypt.acme.httpchallenge: true
+    certificatesResolvers.letsencrypt.acme.httpchallenge.entrypoint: web
+
+# Configure a custom healthcheck (default is /up on port 3000)
+healthcheck:
+  path: /up
+  port: 8000
+  
+# Bridge fingerprinted assets, like JS and CSS, between versions to avoid
+# hitting 404 on in-flight requests. Combines all files from new and old
+# version inside the asset_path.
+# asset_path: /static
+# Configure rolling deploys by setting a wait time between batches of restarts.
+# boot:
+#   limit: 10 # Can also specify as a percentage of total hosts, such as "25%"
+#   wait: 2
+
+# Configure the role used to determine the primary_host. This host takes
+# deploy locks, runs health checks during the deploy, and follow logs, etc.
+#
+# Caution: there's no support for role renaming yet, so be careful to cleanup
+#          the previous role on the deployed hosts.
+# primary_role: web
+
+# Controls if we abort when see a role with no hosts. Disabling this may be
+# useful for more complex deploy configurations.
+#
+# allow_empty_roles: false
+

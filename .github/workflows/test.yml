@@ -1,0 +1,86 @@
+name: Test
+
+# TODO: Earthly (which I've used before) can be used to create platform-agnostic CI tests,
+# in case we want to move away from Github seamlessly.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.22.2
+
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Start containers
+        run: |
+          docker compose up -d
+          sleep 3
+
+      - name: Test
+        run: go test -p 1 ./...
+
+  # TODO: these were never set up in the CI
+  # e2e_tests:
+  #   needs: backend_tests
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v3
+
+  #     - name: Set up Node.js
+  #       uses: actions/setup-node@v3
+  #       with:
+  #         node-version: 18
+
+  #     - name: Set up Go
+  #       uses: actions/setup-go@v3
+  #       with:
+  #         go-version: 1.21.3
+
+  #     - name: Check if app is running
+  #       run: |
+  #         until curl --output /dev/null --silent --head --fail http://localhost:8000; do
+  #           echo "Waiting for app to be up..."
+  #           sleep 5
+  #         done
+
+  #     - name: Install dependencies
+  #       run: npm ci
+  #       working-directory: ./e2e_tests
+
+  #     - name: Install Playwright Browsers
+  #       run: npx playwright install --with-deps
+  #       working-directory: ./e2e_tests
+
+  #     - name: Seed Database
+  #       run: make seed
+
+  #     - name: Run app
+  #       run: make watch
+
+  #     - name: Run Playwright tests
+  #       run: npx playwright test
+  #       working-directory: ./e2e_tests
+
+  #     - uses: actions/upload-artifact@v3
+  #       if: always()
+  #       with:
+  #         name: playwright-report
+  #         path: playwright-report/
+  #         retention-days: 1

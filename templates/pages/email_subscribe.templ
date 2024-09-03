@@ -1,0 +1,249 @@
+package pages
+
+import (
+	"github.com/mikestefanello/pagoda/pkg/controller"
+	"github.com/mikestefanello/pagoda/pkg/types"
+	"github.com/mikestefanello/pagoda/templates/components"
+)
+
+templ EmailSubscribe(page *controller.Page) {
+	if data, ok := page.Data.(types.EmailSubscriptionData); ok {
+		<div hx-swap="innerHTML" hx-target="this">
+			<div class="md:flex md:items-stretch min-h-fit">
+				<div class="md:w-1/2 w-full min-h-min p-5 pl-10">
+					<div
+						class="font-black text-3xl md:text-5xl mb-5 lg:mt-5
+						bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500
+						inline-block text-transparent bg-clip-text
+						"
+					>
+						Be the First to Know
+					</div>
+					<div class="flex items-center">
+						<div>
+							<button
+								onclick="getLocation()"
+								class="bg-blue-500 hover:bg-blue-700 transition-colors duration-200 
+									text-white py-3 px-5 rounded-full inline-flex items-center min-w-full"
+								aria-label="Locate my position"
+							>
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									fill="none"
+									viewBox="0 0 24 24"
+									stroke-width="1.5"
+									stroke="currentColor"
+									class="w-4 h-4 mr-1"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"
+									></path>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"
+									></path>
+								</svg>
+								<span class="text-sm whitespace-nowrap">Locate Me</span>
+							</button>
+						</div>
+						<p class="flex  py-3 px-5 items-center text-white">
+							A rough idea of your city is enough. We'll notify you when we're ready close by. Just the essentials, no spam.
+						</p>
+					</div>
+					<div id="message" class="text-white mt-4"></div> <!-- Dynamic placeholder -->
+					@subscribeForm(page)
+				</div>
+				<!-- Map with button overlay -->
+				<div
+					class="relative md:w-1/2 w-full overflow-hidden md:rounded-l-3xl h-64 md:h-96 min-h-full md:min-h-max flex-shrink-0"
+				>
+					<div id="map" style="height: 100%;" class="z-10"></div>
+					<!-- Overlay Button -->
+					<div
+						id="map-loading-indicator"
+						class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-40 opacity-0 transition-opacity duration-300"
+					>
+						<!-- Dynamic placeholder -->
+						<svg width="100" height="100" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+							<style>.spinner_aj0A{transform-origin:center;animation:spinner_KYSC .75s infinite linear}@keyframes spinner_KYSC{100%{transform:rotate(360deg)}}</style>
+							<path
+								d="M12,4a8,8,0,0,1,7.89,6.7A1.53,1.53,0,0,0,21.38,12h0a1.5,1.5,0,0,0,1.48-1.75,11,11,0,0,0-21.72,0A1.5,1.5,0,0,0,2.62,12h0a1.53,1.53,0,0,0,1.49-1.3A8,8,0,0,1,12,4Z"
+								class="spinner_aj0A"
+							></path>
+						</svg>
+					</div>
+				</div>
+			</div>
+		</div>
+		@emailSubscribeCSS()
+		@emailSubscribeJS(data.Latitude, data.Longitude)
+	}
+}
+
+templ subscribeForm(page *controller.Page) {
+	if form, ok := page.Form.(*types.EmailSubscriptionForm); ok {
+		<form
+			class="flex"
+			hx-post={ page.ToURL("emailSubscribe.post") }
+			hx-vals="js:{latitude: getLat(), longitude: getLon()}"
+			hx-validate="true"
+		>
+			<input
+				type="email"
+				name="email"
+				value={ form.Email }
+				placeholder="Enter email"
+				class={ "bg-gray-50 border border-gray-300 text-gray-900 text-sm md:text-base rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full md:ps-5 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500", form.Submission.GetFieldStatusClass("Email") }
+				required
+			/>
+			<button
+				disabled
+				id="subscribe-form-submit"
+				class="ml-2 btn text-black bg-amber-400 hover:bg-amber-600 transition-colors duration-200"
+				hx-trigger="click"
+				hx-indicator="#spinner"
+			>
+				<svg class="send-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M11.25 4.5l7.5 7.5-7.5 7.5m-6-15l7.5 7.5-7.5 7.5"></path>
+				</svg>
+				<svg id="spinner" class="my-indicator" width="26" height="26" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+					<style>.spinner_aj0A{transform-origin:center;animation:spinner_KYSC .75s infinite linear}@keyframes spinner_KYSC{100%{transform:rotate(360deg)}}</style>
+					<path d="M12,4a8,8,0,0,1,7.89,6.7A1.53,1.53,0,0,0,21.38,12h0a1.5,1.5,0,0,0,1.48-1.75,11,11,0,0,0-21.72,0A1.5,1.5,0,0,0,2.62,12h0a1.53,1.53,0,0,0,1.49-1.3A8,8,0,0,1,12,4Z" class="spinner_aj0A"></path>
+				</svg>
+			</button>
+		</form>
+		<div class="mt-2">
+			@components.FormFieldErrors(form.Submission.GetFieldErrors("Email"))
+		</div>
+	}
+}
+
+templ emailSubscribeCSS() {
+	<style type="text/css">
+		.send-icon { 
+			display: inline;
+			width: 28px;
+			height: 28px;
+		}
+		.my-indicator { 
+			display: none;
+		}
+		.htmx-request .send-icon { 
+			display: none;
+		}
+		.htmx-request .my-indicator { 
+			display: inline;
+		}
+	</style>
+}
+
+script emailSubscribeJS(latitude, longitude float64) {
+	var message = message | '';
+	var map = map | null;
+	var crosshair = crosshair | null;
+
+	var prevLat = latitude;
+	var prevLon = longitude;
+
+	function initMap() {
+		map = L.map('map', {
+			minZoom: 2,  // Set the minimum zoom level here
+			center: [latitude || 0, longitude || 0],
+			zoom: latitude ? 9 : 2
+		});
+		L.tileLayer.provider('Stadia.AlidadeSmoothDark').addTo(map);
+
+		// Using a native Leaflet marker as the crosshair
+		crosshair = L.marker(map.getCenter(), {clickable: false}).addTo(map);
+
+		map.on('move', function() {
+			updateCrosshairPosition();
+		});
+
+		map.on('zoom', function() {
+			updateCrosshairPosition();
+		});
+
+		var currentCenter = map.getCenter();
+		map.panTo(currentCenter);
+	}
+
+	function updateCrosshairPosition() {
+		const center = map.getCenter();
+		crosshair.setLatLng(center);
+		latitude = center.lat;
+		longitude = center.lng;
+		document.getElementById('subscribe-form-submit').disabled = false;
+	}
+
+	function getLocation() {
+		if (!navigator.geolocation) {
+			message = "Geolocation is not supported by your browser 😰.";
+			document.getElementById('message').innerText = message;
+			return;
+		}
+		document.getElementById('map-loading-indicator').style.opacity = 1; // Make indicator visible
+		navigator.geolocation.getCurrentPosition(success, error);
+	}
+
+	function error() {
+		message = "Unable to retrieve your location 😢.";
+		document.getElementById('message').innerText = message;
+		document.getElementById('map-loading-indicator').style.opacity = 0; // Hide indicator
+	}
+
+	function success(position) {
+		latitude = position.coords.latitude;
+		longitude = position.coords.longitude;
+		map.setView([latitude, longitude], 9);
+		document.getElementById('map-loading-indicator').style.opacity = 0; // Hide indicator
+	}
+
+	// Initialize the map when the script runs
+	initMap();
+
+	function getLat() {return latitude}
+	function getLon() {return longitude}
+
+	// Function to validate email
+	function isValidEmail(email) {
+		var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // Simple email validation regex
+		return emailRegex.test(email);
+	}
+
+	// Event listener for the email input field
+	document.querySelector('input[type="email"]').addEventListener('input', function(event) {
+		var email = event.target.value;
+		var submitButton = document.getElementById('subscribe-form-submit');
+		submitButton.disabled = !isValidEmail(email);
+	});
+
+	// Modify the success function to trigger htmx submission after location is fetched
+	function success(position) {
+		latitude = position.coords.latitude;
+		longitude = position.coords.longitude;
+		map.setView([latitude, longitude], 9);
+		document.getElementById('map-loading-indicator').style.opacity = 0; // Hide indicator
+
+		// Check if email is valid before submitting
+		if (isValidEmail(document.querySelector('input[type="email"]').value)) {
+			// Manually trigger htmx request
+			document.querySelector('form').dispatchEvent(new Event('submit', {bubbles: true}));
+		}
+	}
+
+	// Event listener for the submit button
+	document.getElementById('subscribe-form-submit').addEventListener('click', function(event) {
+		if (latitude === repo.NewQuestionUnansweredByFriends && longitude === repo.NewQuestionUnansweredByFriends) {
+			// Prevent htmx from submitting the form
+			event.preventDefault();
+			// Try to get the location
+			getLocation();
+		}
+		// If the location is already set, allow htmx to handle the form submission
+	});
+
+}

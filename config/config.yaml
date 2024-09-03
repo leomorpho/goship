@@ -1,0 +1,99 @@
+http:
+  hostname: "localhost"
+  port: 8000
+  domain: "http://localhost:8002"
+  readTimeout: "5s"
+  writeTimeout: "10s"
+  idleTimeout: "2m"
+  sseKeepAlive: "20s"
+  tls:
+    enabled: false
+    certificate: ""
+    key: ""
+
+app:
+  name: "GoShip"
+  supportEmail: "info@goship.app"
+  environment: "local"
+  # Change this on any live environments
+  encryptionKey: "?E(G+KbPeShVmYq3t6w9z$C&F)J@McQf"
+  timeout: "20s"
+  passwordToken:
+    expiration: "60m"
+    length: 64
+  emailVerificationTokenExpiration: "12h"
+  pageSize: 3
+  operationalConstants:
+    newsletterSignupEnabled: true
+    userSignupEnabled: true
+    userSignupEnabledOnLandingPage: true
+    questionInteractionValidLifetimeInDays: 7
+    numMinSharedAnswersForPrivateMessages: 3
+    notifEmojiDebounceTime: "10m"
+    notifyNewAnswerFromUnansweredQuestionDebounceTime: "12h"
+    minAnswerLen: 3
+    paymentsEnabled: false
+    proTrialTimespanInDays: 15
+    productProCode: "price_..."
+    productProPrice: 1.49
+    paymentFailedGracePeriodInDays: 3
+    deleteStaleNotificationAfterDays: 15
+    maxLikedQuestionHistoryFreePlan: 3
+  publicStripeKey: "pk_..."
+  privateStripeKey: "sk_..."
+  stripeWebhookSecret: "whsec_..."
+  vapidPublicKey: ""
+  vapidPrivateKey: ""
+  sentryDsn: "my-sentry-dsn-in-config"
+  testSentryUrl: "jmGg9OAe2dhR8SpUpgvXXgnB81AD1KUjqyVmCGQIMHoWCIHzQ5"
+  appEncryptionKey: "="
+  firebaseBase64AccessKeys: ""
+
+cache:
+  hostname: "localhost"
+  port: 6379
+  password: ""
+  database: 0
+  testDatabase: 1
+  expiration:
+    # Set these in .env files as we don't want them for dev
+    staticFile: "0h"
+    page: "0h"
+
+database:
+  hostname: "localhost"
+  port: 5432
+  user: "admin"
+  password: "admin"
+  databaseNameLocal: "goship_db"
+  testDatabase: "goship_testdb"
+  sslCertPath: "prod-ca-2021.cer"
+  sslMode: "require"
+
+mail:
+  hostname: "localhost"
+  httpPort: 8025
+  smtpPort: 1025
+  user: "admin"
+  password: "admin"
+  fromAddress: "info@goship.app"
+  resendAPIKey: ""
+
+phone:
+  senderID: ""
+  region: ""
+  validationCodeExpirationMinutes: 15
+
+recommender:
+  numProfilesToMatchAtOnce: 100
+
+storage:
+  appBucketName: "goship-dev"
+  staticFilesBucketName: "goship-static"
+  s3Endpoint: "s3.us-west-002.backblazeb2.com"
+  # Below is for chatbond dev
+  s3AccessKey: "0072..."
+  s3SecretKey: "K001..."
+  s3UseSSL: true
+  profilePhotoMaxFileSizeMB: 2
+  photosMaxFileSizeMB: 5

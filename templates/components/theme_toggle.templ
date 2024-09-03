@@ -1,0 +1,12 @@
+package components
+
+templ ThemeToggle(id string) {
+	<div
+		id={ id }
+	></div>
+	@initThemeToggle(id)
+}
+
+script initThemeToggle(id string ) {
+	renderSvelteComponent('ThemeToggle', id, {});
+}

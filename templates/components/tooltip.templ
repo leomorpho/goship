@@ -1,0 +1,10 @@
+package components
+
+import "fmt"
+
+templ ToolTip(toolTipIndicatorText, bubbleText string) {
+	<div
+		x-data={ fmt.Sprintf("{ tooltip: '%s' }", bubbleText) }
+		class="px-2 py-0.5 md:py-1 text-xs rounded-full cursor-pointer text-neutral-500 dark:text-neutral-100 bg-neutral-100 flex flex-row flex-wrap dark:bg-neutral-900"
+	><span x-tooltip="tooltip">{ toolTipIndicatorText }</span></div>
+}

@@ -1,0 +1,12 @@
+package components
+
+import ()
+
+templ EmptyPageMessage(message, styleClasses string) {
+	<div
+		class={ templ.KV("flex flex-col justify-center items-center mt-10 px-2 max-h-screen", styleClasses == ""),
+				templ.KV(styleClasses, styleClasses!="") }
+	>
+		{ message }
+	</div>
+}

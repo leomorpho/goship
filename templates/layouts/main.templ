@@ -1,0 +1,61 @@
+package layouts
+
+import (
+	"github.com/mikestefanello/pagoda/pkg/controller"
+	"github.com/mikestefanello/pagoda/templates/components"
+)
+
+templ Main(content templ.Component, page *controller.Page) {
+	<!DOCTYPE html>
+	<html lang="en" class="min-h-screen">
+		<head>
+			@components.Metatags(page)
+			@components.CSS()
+			@components.JS()
+		</head>
+		<body id="body">
+			<!-- This is the mobile view drawer -->
+			<div class="lg:hidden block">
+				// @components.Drawer(page)
+			</div>
+			<!-- Navbar only visible on desktop -->
+			<div class="hidden lg:block sticky top-0 z-10">
+				@components.Navbar(page)
+			</div>
+			<!-- Mobile PWA install button -->
+			// @components.PWAMobileInstallButton(page)
+			<div
+				class="flex"
+			>
+				// NOTE: to get below working, add "lg:ml-64" to the parent div
+				// <div class="hidden lg:block z-10 min-h-screen justify-center items-center">
+				// 	@components.Sidebar(page)
+				// </div>
+				<!-- Main content -->
+				<div
+					id="main-content"
+					class="bg-primary  max-w-screen w-screen overflow-x-hidden flex-grow mx-auto items-center justify-center base-100 text-base-content min-h-screen"
+				>
+					<div class="flex-grow mt-5 container mx-auto px-3 lg:px-36 xl:px-60">
+						<div id="bottomNavbarContent">
+							if len(page.Title) > 0 {
+								<h1 class="text-5xl font-bold mb-4 pt-10 md:pt-0">{ page.Title }</h1>
+							}
+							@components.Messages(page)
+							@content
+						</div>
+						if page.ShowBottomNavbar {
+							<div class="h-16"></div>
+							<div class="lg:hidden block">
+								@components.BottomNav(page)
+							</div>
+						}
+					</div>
+				</div>
+			</div>
+			@components.PageLoadingIndicator()
+			// @components.TextFooter(page)
+			@components.JSFooter(page)
+		</body>
+	</html>
+}

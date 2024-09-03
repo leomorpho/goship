@@ -1,0 +1,75 @@
+package helpers
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"github.com/labstack/gommon/random"
+	"github.com/mikestefanello/pagoda/config"
+	"html/template"
+	"io"
+	"strings"
+)
+
+var (
+	// CacheBuster stores a random string used as a cache buster for static files.
+	CacheBuster = random.String(10)
+)
+
+// File appends a cache buster to a given filepath so it can remain cached until the app is restarted
+func ServiceWorkerFile(filepath string) string {
+	return fmt.Sprintf("/%s?v=%s", filepath, CacheBuster)
+}
+
+// File appends a cache buster to a given filepath so it can remain cached until the app is restarted
+func File(filepath string) string {
+	return fmt.Sprintf("/%s/%s?v=%s", config.StaticPrefix, filepath, CacheBuster)
+}
+
+// Link outputs HTML for a link element, providing the ability to dynamically set the active class
+templ Link(url, text, currentPath string, classes ...string) {
+	<a class={ classes, isEqualValue(currentPath, url, "is-active") } href={ templ.URL(url) }>{ text }</a>
+}
+
+func isEqualValue(item, expected, val string) string {
+	if item == expected {
+		return val
+	}
+	return ""
+}
+
+func UnsafeHTML(s template.HTML) templ.Component {
+	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) (err error) {
+		io.WriteString(w, string(s))
+		return nil
+	})
+}
+
+type Fn string
+
+func ToJSON(v any) string {
+	b, _ := json.Marshal(v)
+	return string(b)
+}
+
+func ToJS(data any, functions map[string]Fn) string {
+	var pairs []string
+	for k, v := range toMap(data) {
+		pairs = append(pairs, fmt.Sprintf("%s: %s", jsonString(k), jsonString(v)))
+	}
+	for k, fn := range functions {
+		pairs = append(pairs, fmt.Sprintf("%s: %s", jsonString(k), fn))
+	}
+	return "{" + strings.Join(pairs, ",") + "}"
+}
+
+func toMap(data any) (m map[string]any) {
+	jb, _ := json.Marshal(data)
+	json.Unmarshal(jb, &m)
+	return m
+}
+
+func jsonString(s any) string {
+	ss, _ := json.Marshal(s)
+	return string(ss)
+}

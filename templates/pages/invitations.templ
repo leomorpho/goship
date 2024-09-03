@@ -1,0 +1,63 @@
+package pages
+
+import (
+	"github.com/mikestefanello/pagoda/pkg/controller"
+	"github.com/mikestefanello/pagoda/pkg/types"
+)
+
+templ InvitationsComponent(page *controller.Page) {
+	<div
+		id="replacing"
+		class="invite-person-to-dating w-full flex justify-center items-center"
+		hx-swap="this"
+		hx-trigger="click"
+		hx-select="#replacing"
+		hx-get={ page.ToURL("invitations") }
+	>
+		if data, ok := page.Data.(types.InvitationsData); ok {
+			<button
+				id="share-invitation"
+				type="button"
+				class="flex flex-row items-center text-sm sm:text-base cursor-pointer focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-full px-10 py-2.5 my-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900"
+			>
+				Invite someone directly
+				<span class="ml-1">
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-copy"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M7 7m0 2.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667z"></path><path d="M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1"></path></svg>
+				</span>
+			</button>
+			@initInvitationToastNotifications("share-invitation", data.InvitationText)
+		}
+	</div>
+	<wc-toast></wc-toast>
+}
+
+script initInvitationToastNotifications(id, textToCopy string) {
+
+
+	// Function to copy text to clipboard
+    async function copyToClipboard(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch (err) {
+        throw new Error("Failed to copy text: " + err);
+      }
+    }
+	
+	function initClickListener() {
+		// Retrieve the button from the DOM. The button is hidden for now.
+		const button = document.getElementById(id);
+
+		button.addEventListener("click", () => {
+			copyToClipboard(textToCopy)
+			.then(() => {
+				successToast("Invitation copied to clipboard, share it through any messaging app with at most 1 person. It's valid for 15 days.", 6000);
+			})
+			.catch((err) => {
+				console.error("Failed to copy text: ", err);
+			});
+		});
+	}	
+
+	// Initialize the click listener on page load
+	initClickListener();
+}

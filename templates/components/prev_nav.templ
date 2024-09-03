@@ -1,0 +1,43 @@
+package components
+
+templ PrevNavBarWithTitle(prevURL, avatarURL, title string) {
+	// NOTE: the following is a spacer for mobile view, so that the hamburger icon is not shadowed when at the top of the screen.
+	<div class="pt-7 md:pt-0"></div>
+	<div
+		class="w-full flex items-center bg-gray-200 dark:bg-gray-700 p-1 rounded-lg shadow-xl mb-2 sm:mb-5"
+	>
+		<div class="flex-1">
+			<button
+				class="flex items-center space-x-2 hover:bg-gray-300 hover:dark:bg-gray-600 rounded-lg p-2 m-1"
+				if len(prevURL) > 0 {
+					hx-get={ prevURL }
+					hx-target="#main-content"
+					hx-select="#main-content"
+					hx-indicator="next #page-loading"
+					hx-swap="outerHTML show:window:top"
+					hx-push-url="false"
+				} else {
+					onclick="history.back()"
+				}
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"></path>
+				</svg>
+				// <span class="hidden sm:inline">Previous</span>
+			</button>
+		</div>
+		<div class="flex flex-row items-center justify-center">
+			if len(avatarURL) != 0 {
+				<div class="flex items-center mx-1 sm:mx-2">
+					<img src={ avatarURL } alt="Avatar" class="w-10 h-10 rounded-full"/>
+				</div>
+			}
+			<h1 class="text-xl font-semibold flex-grow text-center text-ellipsis overflow-hidden whitespace-nowrap overflow-ellipsis max-w-full block">
+				{ title }
+			</h1>
+		</div>
+		<div class="flex-1">
+			<!-- Placeholder on the right to balance the button on the left -->
+		</div>
+	</div>
+}

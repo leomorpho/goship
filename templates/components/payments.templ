@@ -1,0 +1,43 @@
+package components
+
+import (
+	"github.com/mikestefanello/pagoda/pkg/controller"
+	"github.com/mikestefanello/pagoda/pkg/domain"
+)
+
+templ ManageSubscriptionButton(page *controller.Page, subscription domain.ProductType, isTrial bool) {
+	if subscription == domain.ProductTypeFree || (subscription == domain.ProductTypePro && isTrial) {
+		@PricingPage(page)
+	} else {
+		// This is an existing customer
+		@StripePortal(page)
+	}
+}
+
+templ PricingPage(page *controller.Page) {
+	<button
+		hx-get={ page.ToURL("pricing_page") }
+		hx-target="#main-content"
+		hx-select="#main-content"
+		hx-indicator="next #page-loading"
+		hx-swap="outerHTML show:window:top"
+		hx-push-url="true"
+		type="button"
+		class="focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900"
+	>
+		Upgrade subscription
+	</button>
+}
+
+templ StripePortal(page *controller.Page) {
+	<form method="POST" action={ templ.SafeURL(page.ToURL("stripe.create_portal_session")) }>
+		@FormCSRF(page.CSRF)
+		<button
+			type="submit"
+			type="submit"
+			class="text-white bg-purple-600 hover:bg-primary-700 focus:ring-4 focus:ring-primary-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:text-white  dark:focus:ring-primary-900"
+		>
+			Manage billing
+		</button>
+	</form>
+}

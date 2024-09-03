@@ -1,0 +1,14 @@
+.env*
+.air*
+.gitignore
+*.md
+Dockerfile
+LICENSE
+Makefile
+tailwind*
+*.csv
+.github
+.kamal
+schemaspy*
+testdata
+tmp

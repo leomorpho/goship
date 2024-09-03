@@ -1,0 +1,544 @@
+package pages
+
+import (
+	"fmt"
+	"github.com/mikestefanello/pagoda/pkg/controller"
+	"github.com/mikestefanello/pagoda/pkg/domain"
+	"github.com/mikestefanello/pagoda/pkg/types"
+	"github.com/mikestefanello/pagoda/templates/components"
+	"time"
+)
+
+templ Settings(page *controller.Page) {
+	if data, ok := page.Data.(*types.PreferencesData); ok {
+		<div class="sm:mt-0 mb-10 mx-2 sm:mx-4 md:mx-6 lg:mx-14 xl:mx-24 space-y-4" id="preferences">
+			if !data.IsProfileFullyOnboarded {
+				@firstWelcome()
+			}
+			<div
+				hx-get={ page.ToURL("display_name.get") }
+				hx-swap="this"
+				hx-swap="outerHTML"
+				hx-trigger="once,load"
+			>
+				@DisplayName(page)
+			</div>
+			@NotificationPermissions(page, data.NotificationPermissionsData)
+			if data.IsPaymentsEnabled {
+				@subscription(page, data.IsProfileFullyOnboarded, data.ActiveSubscriptionPlan, data.MonthlySybscriptionExpiration, data.IsTrial)
+			}
+			// TODO: not allowing this new phone flow for now
+			if data.IsProfileFullyOnboarded {
+				@deleteAccountAndData(page)
+			}
+			if !data.IsProfileFullyOnboarded {
+				@finishOnboarding(page)
+			} else {
+				@savePrefs(page)
+			}
+		</div>
+	}
+}
+
+templ firstWelcome() {
+	<h1
+		class="bg-gradient-to-r from-blue-600 via-green-500 to-indigo-400 inline-block 
+		text-transparent bg-clip-text text-3xl md:text-4xl font-semibold mb-4"
+	>
+		Welcome! Let's onboard you!
+	</h1>
+}
+
+templ DisplayName(page *controller.Page) {
+	<div
+		id="displayName"
+	>
+		<h1 class="text-3xl md:text-4xl font-semibold mb-4 pt-10 md:pt-14 lg:pt-16 mb-4">
+			👤 Display Name 
+		</h1>
+		if form, ok := page.Form.(*types.DisplayNameForm); ok {
+			<div
+				class="space-y-4"
+				hx-target="#displayName"
+				hx-swap="outerHTML"
+			>
+				<input
+					hx-post={ page.ToURL("display_name.save") + "?csrf=" + page.CSRF }
+					hx-trigger="keyup delay:500ms changed consume"
+					type="text"
+					id="displayNameInput"
+					name="name"
+					placeholder="JohnWatts123"
+					class={ "bg-gray-50 border border-gray-300 text-gray-900 text-sm md:text-base rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full md:ps-5 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500", form.Submission.GetFieldStatusClass("Name") }
+					value={ form.DisplayName }
+				/>
+				@components.FormFieldErrors(form.Submission.GetFieldErrors("DisplayName"))
+			</div>
+		} else {
+			<div>
+				<input
+					type="text"
+					id="name"
+					name="name"
+					class="animate-pulse bg-gray-50 border border-gray-300 text-gray-900 text-sm md:text-base rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full md:ps-5 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+				/>
+			</div>
+		}
+	</div>
+}
+
+templ NotificationPermissions(page *controller.Page, data types.NotificationPermissionsData) {
+	<h1 class="text-3xl md:text-4xl font-semibold mb-4 pt-10 md:pt-14 lg:pt-16 mb-4">
+		🔔 Notifications 
+	</h1>
+	<div class="text-base my-3">
+		We will only notify you about the essential, no spamming. This can be turned on or off at any time.
+	</div>
+	<div id="notification-permissions-toggles" class="mt-2"></div>
+	@initPermissions("notification-permissions-toggles", data)
+	<div
+		class="collapsible mt-2 bg-slate-300 dark:bg-slate-800 text-slate-800 dark:text-white rounded-xl"
+		x-data="{ expanded: false }"
+	>
+		<button
+			@click="expanded = ! expanded"
+			class="w-full p-2 text-xs md:text-sm flex items-center justify-center"
+		>{ "What we'll notify you about" }</button>
+		<div
+			x-show="expanded"
+			x-collapse
+			class="bg-slate-200 dark:bg-slate-900 text-slate-800 dark:text-white rounded-b-xl"
+		>
+			<div
+				class="p-3 md:p-4"
+			>
+				<ul class="w-full space-y-1 text-gray-500 list-disc list-inside dark:text-gray-400">
+					<li>
+						Your partner answered a new question 
+					</li>
+					<li>
+						Your partner reacted to one of your answers
+					</li>
+					<li>
+						Important platform updates
+					</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+}
+
+script initPermissions(componentID string, d types.NotificationPermissionsData) {
+	console.log(d)
+	renderSvelteComponent("NotificationPermissions", componentID, {
+		"permissionDailyNotif": d.PermissionDailyNotif,
+		"permissionPartnerActivity": d.PermissionPartnerActivity,
+		"vapidPublicKey": d.VapidPublicKey,
+		
+		"addPushSubscriptionEndpoint": d.AddPushSubscriptionEndpoint,
+		"deletePushSubscriptionEndpoint": d.DeletePushSubscriptionEndpoint,
+
+		"addFCMPushSubscriptionEndpoint": d.AddFCMPushSubscriptionEndpoint,
+		"deleteFCMPushSubscriptionEndpoint": d.DeleteFCMPushSubscriptionEndpoint,
+
+		"addEmailSubscriptionEndpoint": d.AddEmailSubscriptionEndpoint,
+		"deleteEmailSubscriptionEndpoint": d.DeleteEmailSubscriptionEndpoint,
+		
+		"addSmsSubscriptionEndpoint": d.AddSmsSubscriptionEndpoint,
+		"deleteSmsSubscriptionEndpoint": d.DeleteSmsSubscriptionEndpoint,
+		
+		"subscribedEndpoints": d.SubscribedEndpoints,
+		"notificationTypeQueryParamKey" : d.NotificationTypeQueryParamKey,
+		"phoneSubscriptionEnabled": d.PhoneSubscriptionEnabled,
+		// "createPermissionEndpoint": d.CreatePermissionEndpoint,
+		// "deletePermissionEndpoint": d.DeletePermissionEndpoint,
+	});
+}
+
+templ subscription(page *controller.Page, fullyOnboarded bool, plan domain.ProductType, expiryTimestap *time.Time, isTrial bool) {
+	<h1 class="text-3xl md:text-4xl font-semibold mb-4 pt-10 md:pt-14 lg:pt-16 mb-4">
+		💳 Subscription
+	</h1>
+	<div class="text-base my-3">
+		You are currently on the 
+		<span
+			class="font-bold bg-gradient-to-r dark:from-green-300 dark:to-yellow-300 
+		from-fuchsia-500 to-cyan-500 inline-block text-transparent bg-clip-text"
+		>
+			if isTrial {
+				<span class="mr-1">15 days free</span>
+			}
+			{ plan.Value }
+		</span> plan.
+	</div>
+	if expiryTimestap != nil {
+		<div class="flex items-center p-4 mb-4 text-sm text-blue-800 rounded-lg bg-blue-50 dark:bg-gray-800 dark:text-blue-400" role="alert">
+			<svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+				<path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"></path>
+			</svg>
+			<span class="sr-only">Info</span>
+			<div class="flex flex-row">
+				{ "Expiring on " }
+				<span class="ml-1" id="subscription-expiry-date"></span>
+				@setSubscriptionExpiryDate("subscription-expiry-date", fmt.Sprintf("%s", *expiryTimestap))
+			</div>
+		</div>
+	}
+	if fullyOnboarded {
+		if  !(plan == domain.ProductTypePro && isTrial) {
+			<div class="flex justify-center">
+				@components.ManageSubscriptionButton(page, plan, isTrial)
+			</div>
+		} else {
+			<div class="my-2">
+				🎈 You can update your plan once your trial expires.
+			</div>
+		}
+	} else {
+		<div class="my-2">
+			🎈 You can update your plan once you're fully onboarded.
+		</div>
+	}
+}
+
+script setSubscriptionExpiryDate(elementID, isoString string) {
+	function formatDate(isoString) {
+		// Parse the ISO string manually
+		const dateParts = isoString.match(/\d+/g);
+		const year = dateParts[0];
+		const month = dateParts[1] - 1; // Month is zero-based
+		const day = dateParts[2];
+		const hours = dateParts[3];
+		const minutes = dateParts[4];
+		const seconds = dateParts[5];
+
+		const date = new Date(Date.UTC(year, month, day, hours, minutes, seconds));
+
+		// Format the date
+		const formattedDay = String(date.getDate()).padStart(2, '0');
+		const formattedMonth = String(date.getMonth() + 1).padStart(2, '0');
+		const formattedYear = date.getFullYear();
+		const formattedHours = String(date.getHours()).padStart(2, '0');
+		const formattedMinutes = String(date.getMinutes()).padStart(2, '0');
+
+		return `${formattedDay}/${formattedMonth}/${formattedYear} at ${formattedHours}:${formattedMinutes}`;
+	}
+	document.getElementById(elementID).textContent = formatDate(isoString);
+}
+
+templ pricing() {
+	<section class="bg-white dark:bg-gray-900">
+		<div class="py-8 px-4 mx-auto max-w-screen-xl lg:py-16 lg:px-6">
+			<div class="space-y-8 lg:grid lg:grid-cols-3 sm:gap-6 xl:gap-10 lg:space-y-0">
+				<!-- Pricing Card -->
+				<div class="flex flex-col p-6 mx-auto max-w-lg text-center text-gray-900 bg-white rounded-lg border border-gray-100 shadow dark:border-gray-600 xl:p-8 dark:bg-gray-800 dark:text-white">
+					<h3 class="mb-4 text-2xl font-semibold">Starter</h3>
+					<p class="font-light text-gray-500 sm:text-lg dark:text-gray-400">Best option for personal use & for your next project.</p>
+					<div class="flex justify-center items-baseline my-8">
+						<span class="mr-2 text-5xl font-extrabold">$29</span>
+						<span class="text-gray-500 dark:text-gray-400">/month</span>
+					</div>
+					<!-- List -->
+					<ul role="list" class="mb-8 space-y-4 text-left">
+						<li class="flex items-center space-x-3">
+							<!-- Icon -->
+							<svg class="flex-shrink-0 w-5 h-5 text-green-500 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+							<span>Individual configuration</span>
+						</li>
+						<li class="flex items-center space-x-3">
+							<!-- Icon -->
+							<svg class="flex-shrink-0 w-5 h-5 text-green-500 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+							<span>No setup, or hidden fees</span>
+						</li>
+						<li class="flex items-center space-x-3">
+							<!-- Icon -->
+							<svg class="flex-shrink-0 w-5 h-5 text-green-500 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+							<span>Team size: <span class="font-semibold">1 developer</span></span>
+						</li>
+						<li class="flex items-center space-x-3">
+							<!-- Icon -->
+							<svg class="flex-shrink-0 w-5 h-5 text-green-500 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+							<span>Premium support: <span class="font-semibold">6 months</span></span>
+						</li>
+						<li class="flex items-center space-x-3">
+							<!-- Icon -->
+							<svg class="flex-shrink-0 w-5 h-5 text-green-500 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+							<span>Free updates: <span class="font-semibold">6 months</span></span>
+						</li>
+					</ul>
+					<a href="#" class="text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:ring-primary-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:text-white  dark:focus:ring-primary-900">Get started</a>
+				</div>
+				<!-- Pricing Card -->
+				<div class="flex flex-col p-6 mx-auto max-w-lg text-center text-gray-900 bg-white rounded-lg border border-gray-100 shadow dark:border-gray-600 xl:p-8 dark:bg-gray-800 dark:text-white">
+					<h3 class="mb-4 text-2xl font-semibold">Company</h3>
+					<p class="font-light text-gray-500 sm:text-lg dark:text-gray-400">Relevant for multiple users, extended & premium support.</p>
+					<div class="flex justify-center items-baseline my-8">
+						<span class="mr-2 text-5xl font-extrabold">$99</span>
+						<span class="text-gray-500 dark:text-gray-400">/month</span>
+					</div>
+					<!-- List -->
+					<ul role="list" class="mb-8 space-y-4 text-left">
+						<li class="flex items-center space-x-3">
+							<!-- Icon -->
+							<svg class="flex-shrink-0 w-5 h-5 text-green-500 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+							<span>Individual configuration</span>
+						</li>
+						<li class="flex items-center space-x-3">
+							<!-- Icon -->
+							<svg class="flex-shrink-0 w-5 h-5 text-green-500 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+							<span>No setup, or hidden fees</span>
+						</li>
+						<li class="flex items-center space-x-3">
+							<!-- Icon -->
+							<svg class="flex-shrink-0 w-5 h-5 text-green-500 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+							<span>Team size: <span class="font-semibold">10 developers</span></span>
+						</li>
+						<li class="flex items-center space-x-3">
+							<!-- Icon -->
+							<svg class="flex-shrink-0 w-5 h-5 text-green-500 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+							<span>Premium support: <span class="font-semibold">24 months</span></span>
+						</li>
+						<li class="flex items-center space-x-3">
+							<!-- Icon -->
+							<svg class="flex-shrink-0 w-5 h-5 text-green-500 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+							<span>Free updates: <span class="font-semibold">24 months</span></span>
+						</li>
+					</ul>
+					<a href="#" class="text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:ring-primary-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:text-white  dark:focus:ring-primary-900">Get started</a>
+				</div>
+				<!-- Pricing Card -->
+				<div class="flex flex-col p-6 mx-auto max-w-lg text-center text-gray-900 bg-white rounded-lg border border-gray-100 shadow dark:border-gray-600 xl:p-8 dark:bg-gray-800 dark:text-white">
+					<h3 class="mb-4 text-2xl font-semibold">Enterprise</h3>
+					<p class="font-light text-gray-500 sm:text-lg dark:text-gray-400">Best for large scale uses and extended redistribution rights.</p>
+					<div class="flex justify-center items-baseline my-8">
+						<span class="mr-2 text-5xl font-extrabold">$499</span>
+						<span class="text-gray-500 dark:text-gray-400">/month</span>
+					</div>
+					<!-- List -->
+					<ul role="list" class="mb-8 space-y-4 text-left">
+						<li class="flex items-center space-x-3">
+							<!-- Icon -->
+							<svg class="flex-shrink-0 w-5 h-5 text-green-500 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+							<span>Individual configuration</span>
+						</li>
+						<li class="flex items-center space-x-3">
+							<!-- Icon -->
+							<svg class="flex-shrink-0 w-5 h-5 text-green-500 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+							<span>No setup, or hidden fees</span>
+						</li>
+						<li class="flex items-center space-x-3">
+							<!-- Icon -->
+							<svg class="flex-shrink-0 w-5 h-5 text-green-500 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+							<span>Team size: <span class="font-semibold">100+ developers</span></span>
+						</li>
+						<li class="flex items-center space-x-3">
+							<!-- Icon -->
+							<svg class="flex-shrink-0 w-5 h-5 text-green-500 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+							<span>Premium support: <span class="font-semibold">36 months</span></span>
+						</li>
+						<li class="flex items-center space-x-3">
+							<!-- Icon -->
+							<svg class="flex-shrink-0 w-5 h-5 text-green-500 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
+							<span>Free updates: <span class="font-semibold">36 months</span></span>
+						</li>
+					</ul>
+					<a href="#" class="text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:ring-primary-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:text-white  dark:focus:ring-primary-900">Get started</a>
+				</div>
+			</div>
+		</div>
+	</section>
+}
+
+script initNotificationPermissions(componentID, vapidPublicKey, addSubscriptionEndpoint, deleteSubscriptionEndpoint, createPermissionEndpoint, deletePermissionEndpoint, csrf string, subscribedEndpoints []string, permissions []domain.NotificationPermission) {
+	renderSvelteComponent('PwaSubscribePush', componentID, {
+		"vapidPublicKey": vapidPublicKey,
+		"addSubscriptionEndpoint": addSubscriptionEndpoint,
+		"deleteSubscriptionEndpoint": deleteSubscriptionEndpoint,
+		"subscribedEndpoints": subscribedEndpoints,
+		"createPermissionEndpoint": createPermissionEndpoint,
+		"deletePermissionEndpoint": deletePermissionEndpoint,
+		"pushPermissions": permissions,
+		"csrfToken": csrf,
+	});
+}
+
+templ deleteAccountAndData(page *controller.Page) {
+	<h1 class="text-3xl md:text-4xl font-semibold mb-4 pt-10 md:pt-14 lg:pt-16 mb-4">
+		🦈 Dangerous Section 
+	</h1>
+	<div
+		class="flex flex-col space-y-4"
+	>
+		<button
+			hx-get={ page.ToURL("delete_account.page") }
+			hx-target="#main-content"
+			hx-select="#main-content"
+			hx-indicator="next #page-loading"
+			hx-swap="outerHTML show:window:top"
+			hx-push-url="true"
+			type="button"
+			class="w-full focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900"
+		>Delete my account and data</button>
+	</div>
+}
+
+templ AboutMe(page *controller.Page) {
+	<div id="aboutMe">
+		<h1 class="text-3xl md:text-4xl font-semibold mb-4 pt-10 md:pt-14 lg:pt-16">🙋 About Me</h1>
+		<div id="bioTextInput">
+			if form, ok := page.Form.(*types.ProfileBioFormData); ok {
+				<!-- Biography -->
+				<div
+					hx-target="#aboutMe"
+					hx-swap="outerHTML"
+					class="flex flex-col space-y-4"
+				>
+					<label for="bio" class="block text-sm md:text-base font-medium">Biography</label>
+					<textarea
+						id="bio"
+						name="bio"
+						rows="4"
+						class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 
+				dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 resize-none"
+						placeholder="Share something interesting about yourself...for example, what’s one thing you’re passionate about and why?"
+						hx-post={ page.ToURL("profileBio.post") + "?csrf=" + page.CSRF }
+						hx-trigger="keyup delay:500ms changed consume"
+					>{ form.Bio } </textarea>
+					@components.FormFieldErrors(form.Submission.GetFieldErrors("Bio"))
+				</div>
+			} else {
+				<div
+					class="flex flex-col space-y-4 animate-pulse"
+				>
+					<label for="bio" class="block text-sm md:text-base font-medium">Biography</label>
+					<textarea
+						id="bio"
+						name="bio"
+						rows="4"
+						class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 
+				dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 resize-none"
+						placeholder="Share something interesting about yourself...for example, what’s one thing you’re passionate about and why?"
+					></textarea>
+				</div>
+			}
+		</div>
+	</div>
+}
+
+templ birthdate(page *controller.Page) {
+	if data, ok := page.Data.(*types.PreferencesData); ok {
+		<div class="flex items-center">
+			<label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white w-1/3 md:w-1/2">My birthday</label>
+			<input
+				type="date"
+				id="birthdate"
+				name="birthdate"
+				class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 
+				block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 
+				dark:focus:border-blue-500 w-full cursor-not-allowed"
+				placeholder="Select Date.."
+				value={ data.SelfBirthdate }
+				disabled
+			/>
+		</div>
+		<input type="hidden" name="birthdate" value={ data.SelfBirthdate }/>
+	}
+}
+
+
+
+templ saveAndReloadPrefsPage(page *controller.Page) {
+	<div class="flex justify-center">
+		<button
+			type="button"
+			class="w-fit text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-8 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+			hx-target="#main-content"
+			hx-select="#main-content"
+			hx-swap="outerHTML"
+			hx-indicator="next #page-loading"
+			hx-push-url="false"
+			hx-get={ page.ToURL("preferences") }
+		>Save</button>
+	</div>
+}
+
+templ phoneNumberField(phoneNumberInE164Format, countryCode string) {
+	<div id="phone-number-placeholder" class="w-full"></div>
+	@components.InitPhoneNumberPicker("phone-number-placeholder", phoneNumberInE164Format, countryCode, "savePhoneNumber", "phone_number_e164", "country_code", false, false)
+}
+
+templ finishOnboarding(page *controller.Page) {
+	<div class="h-4"></div> <!-- This creates an empty div with a height of 2rem (32px) -->
+	<div class="flex justify-center mt-4 m-10">
+		<!-- We need to load the full page because menu options will change once the profile is fully onboarded-->
+		<a href={ templ.URL(page.ToURL("finish_onboarding")) }>
+			<button
+				class="bg-gradient-to-r from-fuchsia-500 via-red-600 to-orange-400 
+			hover:animate-pulse text-white py-2 px-4 rounded-lg inline-flex items-center"
+				aria-label="Finish onboarding"
+			>
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					viewBox="0 0 24 24"
+					fill="currentColor"
+					class="w-6 h-6"
+				>
+					<path
+						fill-rule="evenodd"
+						d="M10.5 3.798v5.02a3 3 0 0 1-.879 2.121l-2.377 2.377a9.845 9.845 0 0 1 5.091 1.013 8.315 8.315 0 0 0 5.713.636l.285-.071-3.954-3.955a3 3 0 0 1-.879-2.121v-5.02a23.614 23.614 0 0 0-3 0Zm4.5.138a.75.75 0 0 0 .093-1.495A24.837 24.837 0 0 0 12 2.25a25.048 25.048 0 0 0-3.093.191A.75.75 0 0 0 9 3.936v4.882a1.5 1.5 0 0 1-.44 1.06l-6.293 6.294c-1.62 1.621-.903 4.475 1.471 4.88 2.686.46 5.447.698 8.262.698 2.816 0 5.576-.239 8.262-.697 2.373-.406 3.092-3.26 1.47-4.881L15.44 9.879A1.5 1.5 0 0 1 15 8.818V3.936Z"
+						clip-rule="evenodd"
+					></path>
+				</svg>
+				<span class="m-5 font-semibold">Finish onboarding!</span>
+			</button>
+		</a>
+	</div>
+}
+
+templ savePrefs(page *controller.Page) {
+	<div class="h-4"></div> <!-- This creates an empty div with a height of 2rem (32px) -->
+	<div class="flex justify-center mt-4 m-10">
+		<button
+			hx-get={ page.ToURL("profile") }
+			hx-target="#main-content"
+			hx-select="#main-content"
+			hx-indicator="next #page-loading"
+			hx-swap="outerHTML show:window:top"
+			hx-push-url="true"
+			class="bg-blue-500 text-white py-1 px-4 rounded-lg inline-flex items-center"
+			aria-label="Finish onboarding"
+		>
+			<span class="m-2 font-semibold">Save</span>
+		</button>
+	</div>
+}
+
+templ phoneNumber(page *controller.Page, phone string) {
+	<h1 class="text-3xl md:text-4xl font-semibold mb-4 pt-10 md:pt-14 lg:pt-16">📱 Phone Number</h1>
+	<div
+		class="flex flex-col space-y-4"
+	>
+		<div class="flex flex-col space-y-2 m-5">
+			<div class="control">
+				<input
+					type="text"
+					class="bg-gray-50 border border-gray-300 text-gray-900 text-sm md:text-base rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full md:ps-5 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+					value={ phone }
+					disabled
+				/>
+			</div>
+		</div>
+		<div class="flex justify-center">
+			<button
+				type="button"
+				hx-target="#main-content"
+				hx-select="#main-content"
+				hx-swap="outerHTML show:window:top"
+				hx-indicator="next #page-loading"
+				hx-push-url="true"
+				class="w-fit text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-8 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+				hx-get={ page.ToURL("phone.get") }
+			>Edit Phone</button>
+		</div>
+	</div>
+}

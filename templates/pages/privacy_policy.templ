@@ -1,0 +1,97 @@
+package pages
+
+import (
+	"github.com/mikestefanello/pagoda/pkg/controller"
+	"github.com/mikestefanello/pagoda/pkg/types"
+	"github.com/mikestefanello/pagoda/templates/components"
+)
+
+templ PrivacyPolicy(page *controller.Page) {
+	@components.PrevNavBarWithTitle("", "", "🔐 Privacy")
+	if data, ok := page.Data.(types.AboutData); ok {
+		@privacyPolicy(data)
+	}
+}
+
+templ privacyPolicy(data types.AboutData) {
+	<div class="max-w-3xl mx-auto p-6 space-y-6">
+		<div class="space-y-4">
+			<h2 class="text-xl font-semibold">Privacy Policy</h2>
+			<p class="text-base">
+				{ "Championing trust and authentic connections." }
+			</p>
+			<p class="text-base">
+				{ "We're not a faceless conglomerate. We're a dedicated small team, committed to safeguarding your privacy and fostering real relationships. Your data is encrypted, not up for sale, and can be deleted at any time." }
+			</p>
+			<p class="text-base">
+				{ "We are committed to ensuring that your privacy is protected. Should we ask you to provide certain information by which you can be identified when using this app, then you can be assured that it will only be used in accordance with this privacy statement." }
+			</p>
+			<h3 class="text-lg font-semibold">Information We Collect</h3>
+			<p class="text-base">
+				{ "For committed mode, we collect the following information:" }
+			</p>
+			<ul class="list-disc list-inside text-base pl-4">
+				<li>{ "Username and email" }</li>
+				<li>{ "Encrypted answers" }</li>
+				<li>{ "The times you use the app" }</li>
+			</ul>
+			<p class="text-base">
+				{ "For dating mode, we collect the following information:" }
+			</p>
+			<ul class="list-disc list-inside text-base pl-4">
+				<li>{ "Username and email" }</li>
+				<li>{ "Relationship preferences" }</li>
+				<li>{ "Location" }</li>
+				<li>{ "Encrypted answers" }</li>
+				<li>{ "The times you use the app" }</li>
+			</ul>
+			<h3 class="text-lg font-semibold">What We Do with the Information We Gather</h3>
+			<ul class="list-disc list-inside text-base pl-4">
+				<li>{ "Your information solely lives on our servers in an encrypted form" }</li>
+				<li>{ "We will never share any of your private data with a third party" }</li>
+				<li>{ "We may use the information to improve our products and services" }</li>
+				<li>{ "We may periodically send promotional emails about new products, special offers, or other information which we think you may find interesting using the email address which you have provided" }</li>
+				<li>{ "From time to time, we may also use your information to contact you for market research purposes. We may contact you by email or phone. We may use the information to customize the app according to your interests" }</li>
+			</ul>
+			<h3 class="text-lg font-semibold">Security</h3>
+			<p class="text-base">
+				{ "We are committed to ensuring that your information is secure. In order to prevent unauthorized access or disclosure, we have put in place suitable physical, electronic, and managerial procedures to safeguard and secure the information we collect online." }
+			</p>
+			<h3 class="text-lg font-semibold">Data Retention</h3>
+			<p class="text-base">
+				{ "We will retain your personal information only for as long as necessary to fulfill the purposes for which it was collected, or as required by law." }
+			</p>
+			<h3 class="text-lg font-semibold">Your Rights</h3>
+			<p class="text-base">
+				{ "You have the right to request access to your personal data, to request correction or deletion of your personal data, to object to the processing of your personal data, and to request the restriction of processing of your personal data. If you wish to exercise any of these rights, please contact us at the provided email address." }
+			</p>
+			<h3 class="text-lg font-semibold">Cookies and Tracking</h3>
+			<p class="text-base">
+				{ "We may use cookies and similar tracking technologies to track activity on our app and hold certain information. Cookies are files with a small amount of data which may include an anonymous unique identifier. You can instruct your browser to refuse all cookies or to indicate when a cookie is being sent." }
+			</p>
+			<h3 class="text-lg font-semibold">Changes to Privacy Policy</h3>
+			<p class="text-base">
+				{ "We may update our privacy policy from time to time. We will notify you of any changes by posting the new privacy policy on this page. You are advised to review this privacy policy periodically for any changes." }
+			</p>
+			<h3 class="text-lg font-semibold">Contact Us</h3>
+			<p class="text-base">
+				{ "If you believe that any information we are holding on you is incorrect or incomplete, please write to or email us as soon as possible at the above address. We will promptly correct any information found to be incorrect." }
+			</p>
+			<p class="text-base">
+				{ "If you have any bug reports, feature requests, or suggestions, please reach out to us. 🙏😃❤️" }
+			</p>
+			<p class="text-base">
+				{ "You can send us an email by clicking on the following:" }
+			</p>
+			<div class="flex justify-center w-full items-center">
+				<a
+					href={ "mailto:" + templ.SafeURL(data.SupportEmail) }
+					type="button"
+					class="justify-center items-center focus:outline-none text-white bg-purple-700 hover:bg-purple-800 focus:ring-4 focus:ring-purple-300 font-medium rounded-lg text-sm px-5 py-2.5 mb-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-900"
+				>
+					{ data.SupportEmail }
+				</a>
+			</div>
+		</div>
+	</div>
+}

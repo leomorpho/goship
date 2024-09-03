@@ -1,0 +1,292 @@
+package components
+
+import "github.com/mikestefanello/pagoda/pkg/controller"
+
+templ Drawer(page *controller.Page, showTopBar bool) {
+	<div
+		x-data="{ 
+			isOpen: window.innerWidth >= 1024,
+			conditionalToggle() {
+				if (window.innerWidth < 1024) {
+					this.isOpen = false;
+				}
+			},
+			handleEscape() {
+				if (window.innerWidth < 1024) {
+					this.isOpen = false;
+				}
+			}
+		}"
+		@keydown.escape.window="handleEscape()"
+		x-cloak
+		@resize.window="isOpen = window.innerWidth >= 1024"
+		class="w-full"
+		if page.IsAuth && page.IsFullyOnboarded {
+			hx-ext="sse"
+			sse-connect={ page.ToURL("realtime") }
+		}
+	>
+		@drawerButtonToggle(page)
+		@drawerPanel(page, showTopBar)
+		@overlay()
+	</div>
+}
+
+templ drawerButtonToggle(page *controller.Page) {
+	<div
+		id="hamburger-btn"
+		class="fixed top-0 left-0 z-40 p-4 lg:hidden"
+		style="border-radius: 50%;"
+		@click="isOpen = true"
+	>
+		<button
+			class="text-white hover:text-blue-700 focus:outline-none"
+			type="button"
+			aria-controls="drawer"
+			style="background: radial-gradient(circle, rgba(0, 0, 0, 0.75) 20%, transparent 70%); 
+			padding: 5px; border-radius: 50%; display: flex; justify-content: center; align-items: center;"
+		>
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				fill="none"
+				viewBox="0 0 24 24"
+				stroke="currentColor"
+				class="w-7 h-7"
+			>
+				<path
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					stroke-width="3"
+					d="M4 6h16M4 12h16m-16 6h16"
+				></path>
+			</svg>
+			<span hx-disinherit="*">
+				<span
+					hx-get={ page.ToURL("normalNotificationsCount") }
+					if page.IsFullyOnboarded {
+						hx-trigger="sse:update_num_notifs,load"
+					}
+					hx-swap="innerHTML"
+					hx-target="this"
+					hx-select="span"
+					hx-push-url="false"
+					id="hamburger-notification-count"
+					class="absolute inline-flex items-center justify-center px-2 ms-3 text-sm font-medium rounded-full bg-red-600 text-white top-3 -end-0.5"
+				>0</span>
+			</span>
+		</button>
+	</div>
+}
+
+templ drawerPanel(page *controller.Page, showTopBar bool) {
+	<div
+		id="drawer"
+		class="fixed top-0 lg:top-auto left-0 lg:left-auto z-50 h-screen p-4 overflow-y-auto 
+    	-translate-x-full lg:translate-x-0 transform transition duration-150 
+		bg-primary text-primary-content w-64"
+		:class="{'-translate-x-full opacity-0':isOpen === false, 'translate-x-0 opacity-100': isOpen === true}"
+		aria-labelledby="drawer-label"
+		hx-target="#main-content"
+		hx-select="#main-content"
+		hx-indicator="next #page-loading"
+		hx-swap="outerHTML show:window:top"
+		hx-push-url="true"
+	>
+		if showTopBar {
+			@drawerTopBar(page)
+		}
+		@drawerMenu(page)
+	</div>
+}
+
+templ drawerMenu(page *controller.Page) {
+	<div class="py-4 overflow-y-auto">
+		<ul class="space-y-2 font-medium cursor-pointer">
+			<li>
+				<a
+					href={ templ.URL(page.ToURL("landing_page")) }
+					@click="conditionalToggle()"
+					class="flex items-center p-2 rounded-lg hover-brightness hover:dark:bg-gray-700 group cursor-pointer"
+				>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="24"
+						height="24"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						class="w-5 h-5"
+					><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M7 4v16l13 -8z"></path></svg>
+					<span class="ms-3">Introduction</span>
+				</a>
+			</li>
+			<li>
+				<button
+					type="button"
+					class="flex items-center w-full p-2 text-base transition duration-75 rounded-lg hover-brightness group"
+					aria-controls="dropdown-quickstart"
+					_="on click 
+						toggle .hidden on the next <ul/>
+						then toggle .rotate-90 on .arrow-icon in me"
+				>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="24"
+						height="24"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						class="w-5 h-5"
+					><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3.5 17.5c5.667 4.667 11.333 4.667 17 0"></path><path d="M19 18.5l-2 -8.5l1 -2l2 1l1.5 -1.5l-2.5 -4.5c-5.052 .218 -5.99 3.133 -7 6h-6a3 3 0 0 0 -3 3"></path><path d="M5 18.5l2 -9.5"></path><path d="M8 20l2 -5h4l2 5"></path></svg>
+					<span class="flex-1 ms-3 text-left rtl:text-right whitespace-nowrap">
+						Quickstart
+					</span>
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						width="24"
+						height="24"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						class="arrow-icon w-5 h-5"
+					><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M9 6l6 6l-6 6"></path></svg>
+				</button>
+				<ul class="hidden py-2 space-y-2">
+					<li>
+						<a
+							href="#"
+							class="flex items-center w-full p-2 rounded-lg pl-11 hover-brightness"
+						>Installation</a>
+					</li>
+					<li>
+						<a
+							href="#"
+							class="flex items-center w-full p-2 rounded-lg pl-11 hover-brightness"
+						>SEO Services</a>
+					</li>
+					<li>
+						<a
+							href="#"
+							class="flex items-center w-full p-2 rounded-lg pl-11 hover-brightness"
+						>Digital Marketing</a>
+					</li>
+				</ul>
+			</li>
+		</ul>
+		<div class="flex items-center justify-center mt-3">
+			@ThemeToggle("drawer-theme-toggle")
+		</div>
+	</div>
+	<style>
+		.rotate-90 {
+			transform: rotate(90deg);
+			transition: transform 0.2s ease;
+		}
+	</style>
+}
+
+templ drawerTopBar(page *controller.Page) {
+	<a
+		if page.IsAuth {
+			hx-swap="outerHTML show:window:top"
+			href={ templ.URL(page.ToURL("home_feed")) }
+		} else {
+			href={ templ.URL(page.ToURL("landing_page")) }
+		}
+		@click="conditionalToggle()"
+		class="text-xl md:text-2xl font-semibold"
+	>
+		<div class="flex items-center">
+			<img
+				loading="lazy"
+				src="/files/favicon.png"
+				class="h-8 sm:h-10 md:h-12 m-3"
+				alt="Icon"
+			/>
+			{ page.AppName }
+		</div>
+	</a>
+	<button
+		type="button"
+		aria-controls="drawer"
+		class="hover-brightness bg-transparent rounded-lg text-sm 
+        w-8 h-8 absolute top-2.5 end-2.5 inline-flex items-center justify-center lg:hidden
+        transition duration-200"
+		@click="conditionalToggle()"
+	>
+		<svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+			<path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"></path>
+		</svg>
+		<span class="sr-only">Close menu</span>
+	</button>
+}
+
+templ profile(page *controller.Page) {
+	if page.IsAuth {
+		if page.AuthUserProfilePicURL != "" {
+			<img class="w-10 h-10 rounded-full" src={ page.AuthUserProfilePicURL } alt="User photo"/>
+		}
+		<div class="px-4 py-3">
+			<span class="text-sm">{ page.AuthUser.Name }</span>
+			<span class="text-sm">{ page.AuthUser.Email }</span>
+		</div>
+	}
+}
+
+templ overlay() {
+	<div
+		class="fixed inset-0 z-40 bg-black bg-opacity-50 transition-opacity lg:hidden"
+		:class="{ 'opacity-0 pointer-events-none': !isOpen, 'opacity-100': isOpen }"
+		@click="conditionalToggle()"
+	></div>
+}
+
+templ SidebarSharedFields(page *controller.Page) {
+	<li>
+		<a
+			hx-get={ page.ToURL("home_feed") }
+			@click="conditionalToggle()"
+			class="flex items-center p-2 rounded-lg hover-brightness hover:dark:bg-gray-700 group cursor-pointer"
+		>
+			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
+				<path fill-rule="evenodd" d="M9.293 2.293a1 1 0 0 1 1.414 0l7 7A1 1 0 0 1 17 11h-1v6a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-6H3a1 1 0 0 1-.707-1.707l7-7Z" clip-rule="evenodd"></path>
+			</svg>
+			<span class="ms-3">Feed</span>
+		</a>
+	</li>
+	<li>
+		<a
+			hx-get={ page.ToURL("normalNotifications") }
+			@click="conditionalToggle()"
+			class="flex items-center p-2 rounded-lg hover-brightness hover:dark:bg-gray-700 group cursor-pointer"
+		>
+			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
+				<path fill-rule="evenodd" d="M10 2a6 6 0 0 0-6 6c0 1.887-.454 3.665-1.257 5.234a.75.75 0 0 0 .515 1.076 32.91 32.91 0 0 0 3.256.508 3.5 3.5 0 0 0 6.972 0 32.903 32.903 0 0 0 3.256-.508.75.75 0 0 0 .515-1.076A11.448 11.448 0 0 1 16 8a6 6 0 0 0-6-6ZM8.05 14.943a33.54 33.54 0 0 0 3.9 0 2 2 0 0 1-3.9 0Z" clip-rule="evenodd"></path>
+			</svg>
+			<span class="flex-1 ms-3 whitespace-nowrap">Notifications</span>
+			<span hx-disinherit="*">
+				<span
+					hx-get={ page.ToURL("normalNotificationsCount") }
+					if page.IsFullyOnboarded {
+						hx-trigger="sse:update_num_notifs,load"
+					}
+					hx-swap="innerHTML"
+					hx-target="this"
+					hx-select="span"
+					hx-push-url="false"
+					id="normal-notifications-count-drawer"
+					class="inline-flex items-center justify-center px-2 ms-3 text-sm font-medium text-white bg-red-600 rounded-full"
+				>0</span>
+			</span>
+		</a>
+	</li>
+}

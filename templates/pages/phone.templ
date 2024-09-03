@@ -1,0 +1,106 @@
+package pages
+
+import (
+	"github.com/mikestefanello/pagoda/pkg/controller"
+	"github.com/mikestefanello/pagoda/pkg/types"
+	"github.com/mikestefanello/pagoda/templates/components"
+	"fmt"
+)
+
+var showVerificationComponentHandle = templ.NewOnceHandle()
+
+templ EditPhonePage(page *controller.Page) {
+	@components.PrevNavBarWithTitle(page.ToURL("preferences"), "", "Edit Phone")
+	<div id="phone-number-section">
+		if data, ok := page.Data.(*types.PhoneNumber); ok {
+			<h1 class="text-3xl md:text-4xl font-semibold mb-4 pt-10 md:pt-14 lg:pt-16">📱 Phone Number</h1>
+			<!-- Phone number -->
+			<div
+				class="flex flex-col space-y-4"
+			>
+				<form
+					class="flex items-center"
+					hx-post={ page.ToURL("phone.save") + "?csrf=" + page.CSRF }
+					hx-trigger="savePhoneNumber from:#phone-number-placeholder"
+					hx-swap="none"
+					hx-push-url="false"
+				>
+					@phoneNumberField(data.PhoneNumberE164, data.CountryCode)
+				</form>
+				<div
+					id="phone-verification"
+					class="flex justify-center hidden"
+				>
+					<button
+						type="button"
+						class="w-fit text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-8 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+						hx-trigger="click"
+						hx-select="#phone-verification-section"
+						hx-target="#phone-verification"
+						hx-swap="outerHTML"
+						hx-push-url="false"
+						hx-get={ page.ToURL("phone.verification") }
+					>Get Code</button>
+				</div>
+			</div>
+		}
+	</div>
+	@showVerificationComponentHandle.Once() {
+		<script type="text/javascript">
+            (function myFunc(){
+                document.getElementById('phone-number-placeholder').addEventListener('savePhoneNumber', (event) => {
+                    // Show the code validation section
+                    document.getElementById('phone-verification').classList.remove('hidden');
+                });
+            })();
+        </script>
+	}
+}
+
+templ PhoneVerificationField(page *controller.Page) {
+	<div id="phone-verification-section">
+		if form, ok := page.Form.(*types.PhoneNumberVerification); ok {
+			<form
+				class="flex items-center flex-col"
+				hx-post={ page.ToURL("phone.save") + "?csrf=" + page.CSRF }
+				hx-trigger="savePhoneNumber from:#phone-number-placeholder"
+				hx-swap="none"
+				hx-push-url="false"
+			>
+				if data, ok := page.Data.(*types.SmsVerificationCodeInfo); ok {
+					<span>{ fmt.Sprintf("A verification code was sent to you, please input it below to confirm your phone number. It expires in %d minutes.", data.ExpirationInMinutes) }</span>
+				}
+				<div class="flex flex-col space-y-2 m-5">
+					<label
+						for="email"
+						class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+					>
+						Verification code
+					</label>
+					<div class="control">
+						<input
+							id="text"
+							type="text"
+							name="verification_code"
+							placeholder="123456"
+							class={ "bg-gray-50 border border-gray-300 text-gray-900 text-sm md:text-base rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full md:ps-5 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500", form.Submission.GetFieldStatusClass("VerificationCode") }
+							value={ form.VerificationCode }
+						/>
+						@components.FormFieldErrors(form.Submission.GetFieldErrors("VerificationCode"))
+					</div>
+				</div>
+				@components.Messages(page)
+				<button
+					type="button"
+					class="w-fit text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-8 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+					hx-trigger="click"
+					hx-select="#phone-verification-section"
+					hx-target="#phone-verification-section"
+					hx-swap="outerHTML"
+					hx-push-url="false"
+					hx-post={ page.ToURL("phone.verification.submit") }
+				>Submit</button>
+			</form>
+		}
+	</div>
+}

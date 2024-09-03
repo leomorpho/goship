@@ -1,0 +1,14 @@
+package pages
+
+import (
+	"github.com/mikestefanello/pagoda/pkg/controller"
+	"github.com/mikestefanello/pagoda/pkg/types"
+	"github.com/mikestefanello/pagoda/templates/components"
+)
+
+templ ProfilePage(page *controller.Page) {
+	if data, ok := page.Data.(types.ProfilePageData); ok {
+		@components.PrevNavBarWithTitle(page.ToURL("convo", data.Profile.ID), "", "❤️ Your Partner")
+		@components.Profile(page, data.Profile, data.IsSelf, false, data.UploadGalleryPicUrl, data.UploadProfilePicUrl, data.GalleryPicsMaxCount)
+	}
+}

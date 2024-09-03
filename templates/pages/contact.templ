@@ -1,0 +1,51 @@
+package pages
+
+import (
+	"github.com/mikestefanello/pagoda/pkg/controller"
+	"github.com/mikestefanello/pagoda/pkg/types"
+	"github.com/mikestefanello/pagoda/templates/components"
+)
+
+templ Contact(page *controller.Page) {
+	if page.HTMX.Request.Target != "contact" {
+		<article class="message is-link">
+			<div class="message-body">
+				<p>This is an example of a form with inline, server-side validation and HTMX-powered AJAX submissions without writing a single line of JavaScript.</p>
+				<p>Only the form below will update async upon submission.</p>
+			</div>
+		</article>
+	}
+	@contactForm(page)
+}
+
+templ contactForm(page *controller.Page) {
+	if form, ok := page.Form.(*types.ContactForm); ok {
+		if form.Submission.IsDone() {
+			<div class="max-w-md mx-auto mt-5">
+				<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
+					<strong class="font-bold">Thank you!</strong>
+					<span class="block sm:inline">No email was actually sent but this entire operation was handled server-side and degrades without JavaScript enabled.</span>
+				</div>
+			</div>
+		} else {
+			<form id="contact" method="post" class="max-w-md mx-auto mt-5" hx-post={ page.ToURL("contact.post") }>
+				<div class="mb-4">
+					<label for="email" class="block text-gray-700 text-sm font-bold mb-2">Email address</label>
+					<input id="email" name="email" type="email" class={ "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline " + form.Submission.GetFieldStatusClass("Email") } value={ form.Email }/>
+					@components.FormFieldErrors(form.Submission.GetFieldErrors("Email"))
+				</div>
+				<div class="mb-6">
+					<label for="message" class="block text-gray-700 text-sm font-bold mb-2">Message</label>
+					<textarea id="message" name="message" class={ "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline " + form.Submission.GetFieldStatusClass("Message") }>{ form.Message }</textarea>
+					@components.FormFieldErrors(form.Submission.GetFieldErrors("Message"))
+				</div>
+				<div class="flex items-center justify-between">
+					<button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
+						Submit
+					</button>
+				</div>
+				@components.FormCSRF(page.CSRF)
+			</form>
+		}
+	}
+}

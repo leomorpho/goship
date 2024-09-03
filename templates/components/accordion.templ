@@ -1,0 +1,27 @@
+package components
+
+import "fmt"
+
+templ AccordionItem(title string, expanded bool) {
+	<div
+		class="collapsible mt-4 bg-slate-300 dark:bg-slate-700 text-slate-800 dark:text-white rounded-xl"
+		x-data={ fmt.Sprintf("{ expanded: %v }", expanded) }
+		x-cloak
+	>
+		<button
+			@click="expanded = ! expanded"
+			class="w-full p-2 flex items-center justify-center"
+		>{ title }</button>
+		<div
+			x-show="expanded"
+			x-collapse
+			class="bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-white rounded-b-xl"
+		>
+			<div
+				class="p-3 md:p-4"
+			>
+				{ children... }
+			</div>
+		</div>
+	</div>
+}

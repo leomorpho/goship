@@ -1,0 +1,23 @@
+package pages
+
+import (
+	"github.com/mikestefanello/pagoda/pkg/controller"
+	"github.com/mikestefanello/pagoda/pkg/types"
+	// "github.com/mikestefanello/pagoda/templates/helpers"
+)
+
+templ GeolocationPage(page *controller.Page) {
+	if data, ok := page.Data.(types.LocalizationPageData); ok {
+		<div id="select_prefs_map"></div>
+		@initMap(data.Latitude, data.Longitude, data.Radius, data.PostGeoDataURL)
+	}
+}
+
+script initMap(lat, lon float64, rad int, postGeoDataURL string) {
+	renderSvelteComponent('SelectLocationPrefsMap', 'select_prefs_map', {
+		"lat": lat,
+		"lon": lon,
+		"rad": rad,
+		"postGeoDataURL": postGeoDataURL
+	});
+}

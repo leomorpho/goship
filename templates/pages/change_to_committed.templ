@@ -1,0 +1,92 @@
+package pages
+
+import (
+	"fmt"
+	"github.com/mikestefanello/pagoda/pkg/controller"
+	"github.com/mikestefanello/pagoda/pkg/types"
+	"github.com/mikestefanello/pagoda/templates/components"
+)
+
+templ ChangeToCommittedRelationshipPage(page *controller.Page) {
+	@components.PrevNavBarWithTitle(page.ToURL("preferences"), "", "👥 Change to Committed Relationship")
+	// <h1 class="text-2xl md:text-3xl font-bold m-4 pt-10 md:pt-0 items-center">
+	// 	{ "👥 Change to Committed Relationship" }
+	// </h1>
+	if data, ok := page.Data.(types.CommittedModePageData); ok {
+		<div id="change-to-committed-relationship-component">
+			if len(data.Friends) > 0 {
+				<h2 class="text-xl md:text-2xl font-semibold m-4 pt-3 items-center">
+					{ "👌 Choose from matches" }
+				</h2>
+				// Select profile amongst friends
+				@selectAmongstFriends(page, data.Friends)
+				<!-- OR indicator -->
+				<div class="flex items-center justify-center mt-10">
+					<div class="flex-grow border-t border-gray-300"></div>
+					<span class="px-4">OR</span>
+					<div class="flex-grow border-t border-gray-300"></div>
+				</div>
+			}
+			// Invite by text
+			<h2 class="text-xl md:text-2xl font-semibold m-4 pt-1 items-center">
+				🔗 Almost connected with your partner! 💙🎉🤗
+			</h2>
+			@inviteByText(data.InvitationText, data.InvitationLink)
+		</div>
+	}
+}
+
+templ selectAmongstFriends(page *controller.Page, friends []types.DropdownIterable) {
+	if form, ok := page.Form.(*types.UpdateInAppModeForm); ok {
+		<form
+			hx-post={ page.ToURL("change_to_committed_page.submit") + "?csrf=" + page.CSRF }
+			hx-target="#main-content"
+			hx-select="#main-content"
+			hx-indicator="next #page-loading"
+			hx-swap="outerHTML show:window:top"
+			hx-push-url="true"
+		>
+			<div id="choose-friend-for-committed-relationship"></div>
+			@initSvelteSearchableDropdownElement(friends, "Choose person...", "match_id", "choose-friend-for-committed-relationship")
+		</form>
+		@components.FormFieldErrors(form.Submission.GetFieldErrors("MatchProfileID"))
+	}
+}
+
+script initSvelteSearchableDropdownElement(availableItems []types.DropdownIterable, placeholder, fieldName, componentID string) {
+	renderSvelteComponent('SingleSelect', 'choose-friend-for-committed-relationship', {
+		"items": availableItems,
+		"placeholder": placeholder,
+		"formInputName": fieldName,
+		"componentID": componentID,
+		"submitButtonText": "Send Request",
+	});
+}
+
+templ inviteByText(invitationText string, inviteURL string) {
+	<div>
+		Copy and share this text to invite someone. They can connect by clicking the link inside.		
+		<div
+			x-data={ fmt.Sprintf("{ input: '%s' }", invitationText) }
+			class="flex flex-col bg-gradient-to-r from-red-100 to-violet-300 dark:from-red-100/80 dark:to-violet-300/80 
+			text-black p-2 md:p-4 my-2 sm:my-3 md:my-4 md:mx-10 rounded-md flex"
+		>
+			<div class="m-1" id="invitation-text">
+				{ invitationText }
+			</div>
+			<button
+				x-clipboard="input"
+				class="text-white bg-blue-700 hover:bg-blue-800 bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 
+			font-medium rounded-lg text-sm px-5 py-2.5 me-2 m-2 dark:bg-blue-600 dark:hover:bg-blue-700 
+			focus:outline-none dark:focus:ring-blue-800 flex items-center overflow-hidden justify-center"
+			>
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-copy mr-1 md:mr-2 flex-shrink-0">
+					<path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+					<path d="M7 7m0 2.667a2.667 2.667 0 0 1 2.667 -2.667h8.666a2.667 2.667 0 0 1 2.667 2.667v8.666a2.667 2.667 0 0 1 -2.667 2.667h-8.666a2.667 2.667 0 0 1 -2.667 -2.667z"></path>
+					<path d="M4.012 16.737a2.005 2.005 0 0 1 -1.012 -1.737v-10c0 -1.1 .9 -2 2 -2h10c.75 0 1.158 .385 1.5 1"></path>
+				</svg>
+				<span class="whitespace-nowrap overflow-hidden text-ellipsis">{ "Copy to Clipboard" }</span>
+			</button>
+		</div>
+	</div>
+}

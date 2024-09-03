@@ -1,0 +1,37 @@
+package layouts
+
+import (
+	"github.com/mikestefanello/pagoda/pkg/controller"
+	"github.com/mikestefanello/pagoda/templates/components"
+)
+
+templ LandingPage(content templ.Component, page *controller.Page) {
+	<!DOCTYPE html>
+	<html lang="en" class="min-h-screen">
+		<head>
+			@components.Metatags(page)
+			@components.CSS()
+			@components.JS()
+		</head>
+		<body>			
+			<div class="hidden lg:block sticky top-0 z-10">
+				@components.Navbar(page)
+			</div>
+			<!-- Mobile PWA install button -->
+			// @components.PWAMobileInstallButton(page)
+			<div class="flex ">
+				<div
+					id="main-content"
+					class="flex-grow mx-auto items-center justify-center 
+					text-base-content min-h-screen bg-primary text-primary-content"
+				>
+					@content
+				</div>
+			</div>
+			@components.PageLoadingIndicator()
+			// TODO: links not working when using here
+			// @components.TextFooter(page)
+			@components.JSFooter(page)
+		</body>
+	</html>
+}

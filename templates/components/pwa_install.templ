@@ -1,0 +1,73 @@
+package components
+
+import "github.com/mikestefanello/pagoda/pkg/controller"
+
+templ InstallButtonRedirectsToInstallPage(page *controller.Page, classes string) {
+	<button
+		class={ "bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 text-white font-medium rounded-full flex justify-center items-center " + classes }
+		hx-get={ page.ToURL("install_app") }
+		hx-target="#main-content"
+		hx-select="#main-content"
+		hx-swap="outerHTML show:window:top"
+		hx-indicator="next #page-loading"
+		hx-push-url="true"
+	>
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			viewBox="0 0 20 20"
+			fill="currentColor"
+			class="w-5 h-5 mr-1 sm:mr-2"
+		>
+			<path
+				fill-rule="evenodd"
+				d="M5.5 17a4.5 4.5 0 0 1-1.44-8.765 4.5 4.5 0 0 1 8.302-3.046 3.5 3.5 0 0 1 4.504 4.272A4 4 0 0 1 15 17H5.5Zm5.25-9.25a.75.75 0 0 0-1.5 0v4.59l-1.95-2.1a.75.75 0 1 0-1.1 1.02l3.25 3.5a.75.75 0 0 0 1.1 0l3.25-3.5a.75.75 0 1 0-1.1-1.02l-1.95 2.1V7.75Z"
+				clip-rule="evenodd"
+			></path>
+		</svg>
+		<div>Install App</div>
+	</button>
+}
+
+templ NavbarPWAMobileInstallButton(page *controller.Page) {
+	<div id="navbar-install-button-container" class="hidden">
+		@InstallButtonRedirectsToInstallPage(page, "w-32 p-1")
+	</div>
+	@HideIfStandalone("navbar-install-button-container")
+}
+
+templ PWAMobileInstallButton(page *controller.Page) {
+	<div id="mobile-install-button-container" class="hidden">
+		<div class="block lg:hidden sticky top-0 z-10 flex flex-row justify-center items-center m-2">
+			<div class="w-32 sm:w-48 md:w-60">
+				@InstallButtonRedirectsToInstallPage(page, "w-full p-2 text-lg")
+			</div>
+		</div>
+	</div>
+	@HideIfStandalone("mobile-install-button-container")
+}
+
+script InitPwaInstallButton(elemID, position string) {
+	renderSvelteComponent('PwaInstallButton', elemID, {
+		"position": position,
+	});
+}
+
+script HideIfStandalone(elementId string) {
+	function isPwaStandalone() {
+      return (window.matchMedia('(display-mode: standalone)').matches) || (window.navigator.standalone) || (document.referrer.includes('android-app://'));
+    }
+
+	if (!isPwaStandalone()) {
+		document.getElementById(elementId).style.display = 'block';
+	}
+}
+
+script ShowIfStandalone(elementId string) {
+	function isPwaStandalone() {
+      return (window.matchMedia('(display-mode: standalone)').matches) || (window.navigator.standalone) || (document.referrer.includes('android-app://'));
+    }
+
+	if (isPwaStandalone()) {
+		document.getElementById(elementId).style.display = 'block';
+	}
+}
