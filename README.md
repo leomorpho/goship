@@ -9,6 +9,7 @@
 
 <p align="center"><img alt="Logo" src="https://goship-static.s3.us-west-002.backblazeb2.com/assets/goship.png" height="200px"/></p>
 
+https://www.youtube.com/watch?v=Mnti8f-4bp0
 
 This started as a fork of [pagoda](https://github.com/mikestefanello/pagoda), for which I am super grateful! Big shoutout to Mike Stefanello and the maintainers!
 <p align="center"><img alt="Logo" src="https://user-images.githubusercontent.com/552328/147838644-0efac538-a97e-4a46-86a0-41e3abdf9f20.png" height="100px"/></p>
