@@ -51,47 +51,11 @@ templ techStack() {
 templ goshipFeatures() {
 	<h2 class="text-2xl font-semibold">Features</h2>
 	<ul>
-		@listEntry(bellIcon(), "Push Notifications") {
-			<ul class="ps-10 mt-2 space-y-1 list-disc">
-				<li>PWA, iOS, Android</li>
-				<li>Functionality to remind user to turn them on if current device supports them (TODO)</li>
-			</ul>
-		}
-		@listEntry(emailIcon(), "Emailing") {
-			<ul class="ps-10 mt-2 space-y-1 list-disc">
-				<li>Transactional email templates from Postmark</li>
-			</ul>
-		}
-		@listEntry(creditCardIcon(), "Payments") {
-			<ul class="ps-10 mt-2 space-y-1 list-disc">
-				<li>Subscription management, with payments system in Go</li>
-				<li>One-time payments, with payments system in Go (TODO)</li>
-				<li>Admin management</li>
-			</ul>
-		}
-		@listEntry(calendarEventIcon(), "Planned Notifications") {
-			<ul class="ps-10 mt-2 space-y-1 list-disc">
-				<li>Automatically determine best notification times by looking at when user uses app</li>
-				<li>UI to create planned announcements (todo)</li>
-			</ul>
-		}
-		@listEntry(deviceGamepadIcon(), "Gamification") {
-			<ul class="ps-10 mt-2 space-y-1 list-disc">
-				<li>Award points for logging in and doing any arbitrary action</li>
-			</ul>
-		}
-		@listEntry(lockIcon(), "RBAC Permissions") {
-			<ul class="ps-10 mt-2 space-y-1 list-disc">
-				<li>Single binary and distributed support</li>
-				<li>UI to edit permissions by role</li>
-			</ul>
-		}
-		@listEntry(lockIcon(), "Marketing") {
-			<ul class="ps-10 mt-2 space-y-1 list-disc">
-				<li>Post to social media channels on event (TODO). Threads, X, Facebook</li>
-				<li>Integrate social media channels into app panel (TODO)</li>
-			</ul>
-		}
+		@listEntry(bellIcon(), "Send real-time and planned notifications, with push notifications for PWA, iOS and Android")
+		@listEntry(emailIcon(), "Send transactional emails with ready-made templates")
+		@listEntry(creditCardIcon(), "Support payments with Stripe and subscription management")
+		@listEntry(realtimeIcon(), "Realtime events with SSE")
+		@listEntry(stackIcon(), "Offload logic to background tasks. Real-time or planned.")
 	</ul>
 }
 
@@ -127,6 +91,18 @@ templ deviceGamepadIcon() {
 
 templ lockIcon() {
 	<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-lock"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 13a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-6z"></path><path d="M11 16a1 1 0 1 0 2 0a1 1 0 0 0 -2 0"></path><path d="M8 11v-4a4 4 0 1 1 8 0v4"></path></svg>
+}
+
+templ realtimeIcon() {
+	<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-hours-24"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 13c.325 2.532 1.881 4.781 4 6"></path><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2"></path><path d="M4 5v4h4"></path><path d="M12 15h2a1 1 0 0 1 1 1v1a1 1 0 0 1 -1 1h-1a1 1 0 0 0 -1 1v1a1 1 0 0 0 1 1h2"></path><path d="M18 15v2a1 1 0 0 0 1 1h1"></path><path d="M21 15v6"></path></svg>
+}
+
+templ calendarIcon() {
+	<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-calendar-event"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 5m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z"></path><path d="M16 3l0 4"></path><path d="M8 3l0 4"></path><path d="M4 11l16 0"></path><path d="M8 15h2v2h-2z"></path></svg>
+}
+
+templ stackIcon() {
+	<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-stack-3"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 2l-8 4l8 4l8 -4l-8 -4"></path><path d="M4 10l8 4l8 -4"></path><path d="M4 18l8 4l8 -4"></path><path d="M4 14l8 4l8 -4"></path></svg>
 }
 
 templ echoLogo() {

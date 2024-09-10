@@ -1,4 +1,4 @@
-## GoShip: Ship in Record Time ⛵️
+## GoShip: Ship in Record Time ⛵️🛟⚓️📦
 
 ### A Go + HTMX boilerplate with all the essentials for your SaaS, AI tools, or web apps. Start earning online quickly without the hassle.
 

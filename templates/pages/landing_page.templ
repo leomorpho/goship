@@ -32,7 +32,7 @@ templ LandingPage(page *controller.Page) {
 				@quote1(data.Quote1)
 			</div>
 			@verticalSpacer("h-10")
-			@mockupsCarrousel()
+			// @mockupsCarrousel()
 			if data.IsPaymentEnabled {
 				@verticalSpacer("h-10")
 				<div class="bg-primary text-primary-content flex justify-center">
@@ -788,7 +788,7 @@ templ QASection(questions []types.QAItem) {
 
 templ QAIndividualSection(qa types.QAItem) {
 	<div
-		class="collapsible mt-4 bg-slate-300 dark:bg-slate-800 text-slate-800 dark:text-white rounded-xl"
+		class="collapsible mt-4 bg-slate-300 dark:bg-slate-800 text-slate-800 dark:text-white rounded-xl mouse-pointer"
 		x-data="{ expanded: false }"
 		x-cloak
 	>
@@ -814,13 +814,13 @@ templ madeWithLove(d types.LandingPage) {
 	<div class="w-full h-auto flex flex-col items-center justify-center md:flex-row md:items-center">
 		<picture class="m-2">
 			<!-- Images for larger screens -->
-			<source media="(min-width: 768px)" srcset="https://chatbond-static.s3.us-west-002.backblazeb2.com/cherie/pwa/v2/icons/logo-animated-md-350px.gif"/>
+			<source media="(min-width: 768px)" srcset="https://goship-static.s3.us-west-002.backblazeb2.com/assets/goship.png"/>
 			<!-- Images for medium screens -->
-			<source media="(min-width: 640px)" srcset="https://chatbond-static.s3.us-west-002.backblazeb2.com/cherie/pwa/v2/icons/logo-animated-md-350px.gif"/>
+			<source media="(min-width: 640px)" srcset="https://goship-static.s3.us-west-002.backblazeb2.com/assets/goship.png"/>
 			<!-- Default image for smaller screens -->
 			<img
 				loading="lazy"
-				src="https://chatbond-static.s3.us-west-002.backblazeb2.com/cherie/pwa/v2/icons/logo-animated-md-250px.gif"
+				src="https://goship-static.s3.us-west-002.backblazeb2.com/assets/goship.png"
 				class="w-24 h-auto sm:w-32 md:w-40 my-5 md:mx-5"
 				alt="Icon"
 			/>
