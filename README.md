@@ -12,8 +12,7 @@
 <p align="center"><img alt="Logo" src="https://goship-static.s3.us-west-002.backblazeb2.com/assets/goship.png" height="200px"/></p>
 
 <p align="center">
-  <a href="http://www.youtube.com/watch?feature=player_embedded&v=Mnti8f-4bp0
-  " target="_blank"><img src="https://goship-static.s3.us-west-002.backblazeb2.com/assets/git-repo-video-overview-frame.jpg" 
+  <a href="http://www.youtube.com/watch?feature=player_embedded&v=Mnti8f-4bp0" target="_blank"><img src="https://goship-static.s3.us-west-002.backblazeb2.com/assets/git-repo-video-overview-frame.jpg" 
   alt="Rapid walktrough of project" style="max-width: 100%; height: auto; border: 10px;" /></a>
 </p>
 

@@ -7639,6 +7639,11 @@ details.collapse summary::-webkit-details-marker{
     margin-bottom: 0.75rem;
   }
 
+  .sm\:my-16{
+    margin-top: 4rem;
+    margin-bottom: 4rem;
+  }
+
   .sm\:mb-4{
     margin-bottom: 1rem;
   }

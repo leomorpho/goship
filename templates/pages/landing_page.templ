@@ -22,17 +22,10 @@ templ LandingPage(page *controller.Page) {
 		<div id="homePage">
 			@AnimateOnScrollLibrary()
 			@welcomeScreen(page, data)
-			<div class="bg-secondary text-secondary-content">
-				@introComponent(data)
-			</div>
+			@builtAndShipsWith()
 			@verticalSpacer("h-10")
 			@features()
 			@verticalSpacer("h-10")
-			<div class="bg-primary text-primary-content">
-				@quote1(data.Quote1)
-			</div>
-			@verticalSpacer("h-10")
-			// @mockupsCarrousel()
 			if data.IsPaymentEnabled {
 				@verticalSpacer("h-10")
 				<div class="bg-primary text-primary-content flex justify-center">
@@ -80,89 +73,6 @@ templ AnimateOnScrollLibrary() {
 	<script>
         AOS.init();
     </script>
-}
-
-templ mockupsCarrousel() {
-	<!-- Slider main container -->
-	<div class="swiper w-[100%]">
-		<!-- Additional required wrapper -->
-		<div class="swiper-wrapper">
-			<!-- Slides -->
-			<div class="swiper-slide max-w-[80%] sm:max-w-80 h-auto items-center justify-center p-1">
-				<img
-					class="w-min object-contain rounded-3xl max-h-[800px] object-contain"
-					src="https://chatbond-static.s3.us-west-002.backblazeb2.com/cherie/screenshots/v1.1/jpeg/Apple+iPhone+11+Pro+Max+Screenshot+0.jpg"
-					alt="Deepen Connections"
-					width="1242"
-					height="2688"
-				/>
-			</div>
-			<div class="swiper-slide max-w-[80%] sm:max-w-80 h-auto items-center justify-center p-1">
-				<img
-					class="w-min object-contain rounded-3xl max-h-[800px] object-contain"
-					src="https://chatbond-static.s3.us-west-002.backblazeb2.com/cherie/screenshots/v1.1/jpeg/Apple+iPhone+11+Pro+Max+Screenshot+1.jpg"
-					alt="Boost Your Sex Life"
-					width="1242"
-					height="2688"
-				/>
-			</div>
-			<div class="swiper-slide max-w-[80%] sm:max-w-80 h-auto items-center justify-center p-1">
-				<img
-					class="w-min object-contain rounded-3xl max-h-[800px] object-contain"
-					src="https://chatbond-static.s3.us-west-002.backblazeb2.com/cherie/screenshots/v1.1/jpeg/Apple+iPhone+11+Pro+Max+Screenshot+2.jpg"
-					alt="Dating to Committed"
-					width="1242"
-					height="2688"
-				/>
-			</div>
-			<div class="swiper-slide max-w-[80%] sm:max-w-80 h-auto items-center justify-center p-1">
-				<img
-					class="w-min object-contain rounded-3xl max-h-[800px] object-contain"
-					src="https://chatbond-static.s3.us-west-002.backblazeb2.com/cherie/screenshots/v1.1/jpeg/Apple+iPhone+11+Pro+Max+Screenshot+3.jpg"
-					alt="Enhance Dating"
-					width="1242"
-					height="2688"
-				/>
-			</div>
-			<div class="swiper-slide max-w-[80%] sm:max-w-80 h-auto items-center justify-center p-1">
-				<img
-					class="w-min object-contain rounded-3xl max-h-[800px] object-contain"
-					src="https://chatbond-static.s3.us-west-002.backblazeb2.com/cherie/screenshots/v1.1/jpeg/Apple+iPhone+11+Pro+Max+Screenshot+4.jpg"
-					alt="Skip Small Talk"
-					width="1242"
-					height="2688"
-				/>
-			</div>
-			<div class="swiper-slide max-w-[80%] sm:max-w-80 h-auto items-center justify-center p-1">
-				<img
-					class="w-min object-contain rounded-3xl max-h-[800px] object-contain"
-					src="https://chatbond-static.s3.us-west-002.backblazeb2.com/cherie/screenshots/v1.1/jpeg/Apple+iPhone+11+Pro+Max+Screenshot+5.jpg"
-					alt="Privacy First"
-					width="1242"
-					height="2688"
-				/>
-			</div>
-			<div class="swiper-slide max-w-[80%] sm:max-w-80 h-auto items-center justify-center p-1">
-				<img
-					class="w-min object-contain rounded-3xl max-h-[800px] object-contain"
-					src="https://chatbond-static.s3.us-west-002.backblazeb2.com/cherie/screenshots/v1.1/jpeg/Apple+iPhone+11+Pro+Max+Screenshot+6.jpg"
-					alt="Dark Mode"
-					width="1242"
-					height="2688"
-				/>
-			</div>
-		</div>
-		<div class="swiper-button-prev"></div>
-		<div class="swiper-button-next"></div>
-		<div class="swiper-scrollbar"></div>
-		<div class="swiper-pagination"></div>
-	</div>
-	<style>
-	.swiper-slide {
-		display: flex
-	}
-	</style>
-	@initCarousel()
 }
 
 templ features() {
@@ -511,7 +421,7 @@ script initCarousel() {
 templ welcomeScreen(page *controller.Page, d types.LandingPage) {
 	<div class="max-w-screen-xl px-4 py-8 mx-auto flex justify-center">
 		<div class="flex flex-col justify-center w-full">
-			<div class="block lg:hidden mb-4 sm:mb-8 flex justify-center">
+			<div class="block lg:hidden mb-4 my-10 sm:my-16 flex justify-center">
 				<span class="flex justify-center items-center space-x-3 bg-slate-100 dark:bg-white rounded-full w-fit py-2 px-5">
 					<img src="/files/icon.png" class="h-8 w-8 sm:h-12 sm:w-12" alt="Logo"/>
 					<span class="text-2xl font-semibold text-black">{ d.AppName }</span>
@@ -536,12 +446,21 @@ templ welcomeScreen(page *controller.Page, d types.LandingPage) {
 			<img src="https://goship-static.s3.us-west-002.backblazeb2.com/assets/gopher.png" alt="mockup"/>
 		</div>
 	</div>
-	<iframe
-		class="mx-auto w-full md:w-[85%] aspect-[4/3] shadow-2xl rounded-xl"
-		src="http://www.youtube.com/embed/Mnti8f-4bp0"
-		frameborder="0"
-		allowfullscreen
-	></iframe>
+	<div class="mx-2 w-full flex justify-center">
+		<iframe
+			class="w-full md:w-[85%] aspect-[4/3] shadow-2xl rounded-xl"
+			src="http://www.youtube.com/embed/Mnti8f-4bp0"
+			frameborder="0"
+			allowfullscreen
+		></iframe>
+	</div>
+}
+
+templ builtAndShipsWith() {
+	<div>
+		<div>Built and Ships with</div>
+		<div class="flex flex-wrap"></div>
+	</div>
 }
 
 templ getStartedButton(page *controller.Page) {
@@ -601,153 +520,8 @@ templ viewTheRepo() {
 	</script>
 }
 
-templ introComponent(d types.LandingPage) {
-	<div class="w-full py-2 px-2 md:px-5">
-		<div class="md:items-center md:space-x-4">
-			<div class="m-8" data-aos="zoom-in-up" data-aos-once="true">
-				<div
-					class="pb-1 font-black text-4xl md:text-5xl mb-5
-                bg-gradient-to-r from-purple-600 to-yellow-500 dark:from-purple-400 dark:to-yellow-400
-                inline-block text-transparent bg-clip-text
-                "
-				>
-					{ d.IntroTitle }
-				</div>
-				// <div class="text-xl md:text-2xl">
-				// 	@templ.Raw(d.IntroText)
-				// </div>
-			</div>
-		</div>
-	</div>
-}
-
 templ verticalSpacer(height string) {
 	<div class={ height }></div>
-}
-
-templ questionForHome() {
-	<!-- Create type 1 question -->
-	<div class="flex items-stretch rounded-lg">
-		<!-- Question div -->
-		<div class="bg-gradient-to-r from-violet-300 to-yellow-100 flex-grow p-2 md:p-3 flex flex-col items-center rounded-lg">
-			<div class="pr-2 flex m-3">
-				@components.ToolTip("Waiting on your answer", "You can see their answer as soon as you publish your own! 😊 ⏰️")
-			</div>
-			<span class="text-black md:text-lg">
-				<div
-					x-data="{
-                    text: '',
-                    textArray : ['Question-led conversations for new or existing relationships.', 'Curated daily questions.'],
-                    textIndex: 0,
-					charIndex: 0,
-					typeSpeed: 50,
-					cursorSpeed: 550,
-					pauseEnd: 1500,
-					pauseStart: 20,
-					direction: 'forward',
-                }"
-					x-init="$nextTick(() => {
-                    let typingInterval = setInterval(startTyping, $data.typeSpeed);
-
-                    function startTyping(){
-                        if (!document.getElementById('homePage')) {
-                            // Element not found, exit the function or clear the interval
-                            clearInterval(typingInterval);
-                            return;
-                        }
-                        let current = $data.textArray[ $data.textIndex ];
-
-                        // check to see if we hit the end of the string
-                        if($data.charIndex > current.length){
-                                $data.direction = 'backward';
-                                clearInterval(typingInterval);
-
-                                setTimeout(function(){
-                                    typingInterval = setInterval(startTyping, $data.typeSpeed);
-                                }, $data.pauseEnd);
-                        }
-
-                        $data.text = current.substring(0, $data.charIndex);
-
-                        if($data.direction == 'forward')
-                        {
-                            $data.charIndex += 1;
-                        }
-                        else
-                        {
-							if($data.charIndex == 0)
-                            {
-                                $data.direction = 'forward';
-                                clearInterval(typingInterval);
-                                setTimeout(function(){
-                                    $data.textIndex += 1;
-                                    if($data.textIndex >= $data.textArray.length)
-                                    {
-                                        $data.textIndex = 0;
-                                    }
-                                    typingInterval = setInterval(startTyping, $data.typeSpeed);
-                                }, $data.pauseStart);
-                            }
-                            $data.charIndex -= 1;
-                        }
-                    }
-
-                    setInterval(function() {
-                        if (!document.getElementById('homePage')) {
-                            return; // Not on the home page, don't run the script
-                        }
-                        if ($refs.cursor && $refs.cursor.classList.contains('hidden')) {
-                            $refs.cursor.classList.remove('hidden');
-                        } else if ($refs.cursor) {
-                            $refs.cursor.classList.add('hidden');
-                        }
-                    }, $data.cursorSpeed);
-
-                })"
-					class="flex items-center justify-center mx-auto text-center max-w-7xl"
-				>
-					<div class="relative flex items-center justify-center h-auto m-2 md:m-3">
-						<p class="font-medium leading-tight" x-text="text"></p>
-						<span class="absolute right-0 w-2 -mr-2 bg-black h-3/4" x-ref="cursor"></span>
-					</div>
-				</div>
-			</span>
-		</div>
-	</div>
-}
-
-templ quote1(quote string) {
-	<div class="w-full py-2 px-2 md:px-5">
-		<div class="md:items-center md:space-x-4">
-			<div class="m-8">
-				<div
-					class="pb-1 font-black text-4xl md:text-5xl mb-5
-                bg-gradient-to-r from-blue-500 via-green-500 to-indigo-500 dark:from-blue-400 dark:via-green-500 dark:to-indigo-400
-                inline-block text-transparent bg-clip-text
-                "
-				>
-					{ quote }
-				</div>
-			</div>
-		</div>
-	</div>
-}
-
-templ quote2(quote string) {
-	<div class="w-full py-2 px-2 md:px-5">
-		<div class="md:items-center md:space-x-4">
-			<div class="m-8" data-aos="zoom-in-up" data-aos-once="true">
-				<div
-					class="pb-1 font-black text-4xl md:text-5xl mb-5
-                bg-gradient-to-r from-purple-600 to-yellow-500 dark:from-purple-400 dark:to-yellow-400
-                inline-block text-transparent bg-clip-text
-                "
-				>
-					{ quote }
-				</div>
-			</div>
-		</div>
-	</div>
 }
 
 templ newsletterRegistration(page *controller.Page) {
@@ -756,40 +530,6 @@ templ newsletterRegistration(page *controller.Page) {
 			<div hx-get={ page.ToURL("emailSubscribe") } hx-swap="this" hx-trigger="load once"></div>
 		</div>
 	}
-}
-
-templ callToActionForOtherChatbondApp(d types.LandingPage) {
-	<div class="w-full">
-		<div class="flex flex-col md:flex-row md:items-center md:space-x-4">
-			<!-- Image Content -->
-			<div
-				class="relative w-full md:w-1/2 h-80 bg-cover bg-center md:rounded-r-3xl"
-			>
-				<div class="absolute inset-0 flex items-center justify-center">
-					<a href={ templ.SafeURL(d.OtherAppURL) } target="_blank" rel="noopener noreferrer" class="text-white font-bold text-7xl hover:underline">{ d.OtherAppName }</a>
-				</div>
-				<div class="hero-overlay bg-opacity-30 md:rounded-r-3xl"></div>
-			</div>
-			<!-- Text Content -->
-			<div class="w-full md:w-1/2 flex flex-col p-14" data-aos="fade-up" data-aos-once="true">
-				<div class="font-black text-3xl md:text-4xl mb-5 bg-gradient-to-r from-purple-600 to-yellow-500 dark:from-purple-400 dark:to-yellow-400 inline-block text-transparent bg-clip-text">
-					{ d.OtherAppPitchTitle }
-				</div>
-				<a
-					href={ templ.SafeURL(d.OtherAppURL) }
-					target="_blank"
-					rel="noopener noreferrer"
-					class="bg-amber-600 hover:bg-amber-700 transition-colors duration-200
-                    text-white sm:text-lg md:text-xl font-medium md:font-bold py-3 px-5 rounded-full inline-flex items-center min-w-full"
-				>
-					<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 mr-1 md:mr-3">
-						<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"></path>
-					</svg>
-					<span>{ d.OtherAppPitchText } </span>
-				</a>
-			</div>
-		</div>
-	</div>
 }
 
 templ pricingForLandingPage(page *controller.Page, data types.LandingPage) {
@@ -821,14 +561,14 @@ templ QASection(questions []types.QAItem) {
 			</div>
 			<div id="accordion-collapse" data-accordion="collapse">
 				for _, qa := range questions {
-					@QAIndividualSection(qa)
+					@qaIndividualSection(qa)
 				}
 			</div>
 		</div>
 	</div>
 }
 
-templ QAIndividualSection(qa types.QAItem) {
+templ qaIndividualSection(qa types.QAItem) {
 	<div
 		class="collapsible mt-4 bg-slate-300 dark:bg-slate-800 text-slate-800 dark:text-white rounded-xl mouse-pointer"
 		x-data="{ expanded: false }"
