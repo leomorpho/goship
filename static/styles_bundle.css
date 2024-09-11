@@ -4507,6 +4507,14 @@ details.collapse summary::-webkit-details-marker{
   margin-top: 1.5rem;
 }
 
+.mt-24{
+  margin-top: 6rem;
+}
+
+.mt-20{
+  margin-top: 5rem;
+}
+
 .block{
   display: block;
 }
@@ -4799,6 +4807,14 @@ details.collapse summary::-webkit-details-marker{
 
 .w-3\/4{
   width: 75%;
+}
+
+.w-3\/5{
+  width: 60%;
+}
+
+.w-4\/5{
+  width: 80%;
 }
 
 .min-w-14{

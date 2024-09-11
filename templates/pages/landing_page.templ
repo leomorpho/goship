@@ -457,10 +457,10 @@ templ welcomeScreen(page *controller.Page, d types.LandingPage) {
 }
 
 templ builtAndShipsWith() {
-	<div class="pt-10 w-full">
+	<div class="mt-20 w-full grayscale-container">
 		<div class="flex justify-center font-bold">Built and Ships with</div>
 		<div class="flex justify-center mt-5">
-			<div class="flex flex-wrap justify-center items-center w-1/2">
+			<div class="flex flex-wrap justify-center items-center w-4/5">
 				<div class="p-6 lg:p-12">
 					@components.GoLogo("h-8 lg:h-9")
 				</div>
@@ -485,6 +485,18 @@ templ builtAndShipsWith() {
 			</div>
 		</div>
 	</div>
+	<style>
+	.grayscale-container img,
+	.grayscale-container svg {
+		filter: grayscale(100%);
+		transition: filter 0.1s ease-in-out;
+	}
+
+	.grayscale-container img:hover,
+	.grayscale-container svg:hover {
+		filter: grayscale(0%);
+	}
+	</style>
 }
 
 templ getStartedButton(page *controller.Page) {

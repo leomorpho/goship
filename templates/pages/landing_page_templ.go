@@ -1016,7 +1016,7 @@ func builtAndShipsWith() templ.Component {
 			templ_7745c5c3_Var40 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"pt-10 w-full\"><div class=\"flex justify-center font-bold\">Built and Ships with</div><div class=\"flex justify-center mt-5\"><div class=\"flex flex-wrap justify-center items-center w-1/2\"><div class=\"p-6 lg:p-12\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"mt-20 w-full grayscale-container\"><div class=\"flex justify-center font-bold\">Built and Ships with</div><div class=\"flex justify-center mt-5\"><div class=\"flex flex-wrap justify-center items-center w-4/5\"><div class=\"p-6 lg:p-12\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1072,7 +1072,7 @@ func builtAndShipsWith() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div></div></div></div>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</div></div></div></div><style>\n\t.grayscale-container img,\n\t.grayscale-container svg {\n\t\tfilter: grayscale(100%);\n\t\ttransition: filter 0.1s ease-in-out;\n\t}\n\n\t.grayscale-container img:hover,\n\t.grayscale-container svg:hover {\n\t\tfilter: grayscale(0%);\n\t}\n\t</style>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1211,7 +1211,7 @@ func newsletterRegistration(page *controller.Page) templ.Component {
 			var templ_7745c5c3_Var48 string
 			templ_7745c5c3_Var48, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL("emailSubscribe"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/landing_page.templ`, Line: 554, Col: 45}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/landing_page.templ`, Line: 566, Col: 45}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var48))
 			if templ_7745c5c3_Err != nil {
@@ -1321,7 +1321,7 @@ func qaIndividualSection(qa types.QAItem) templ.Component {
 		var templ_7745c5c3_Var52 string
 		templ_7745c5c3_Var52, templ_7745c5c3_Err = templ.JoinStringErrs(qa.Question)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/landing_page.templ`, Line: 604, Col: 16}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/landing_page.templ`, Line: 616, Col: 16}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var52))
 		if templ_7745c5c3_Err != nil {
@@ -1334,7 +1334,7 @@ func qaIndividualSection(qa types.QAItem) templ.Component {
 		var templ_7745c5c3_Var53 string
 		templ_7745c5c3_Var53, templ_7745c5c3_Err = templ.JoinStringErrs(qa.Answer)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/landing_page.templ`, Line: 613, Col: 15}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/landing_page.templ`, Line: 625, Col: 15}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var53))
 		if templ_7745c5c3_Err != nil {
@@ -1373,7 +1373,7 @@ func madeWithLove(d types.LandingPage) templ.Component {
 		var templ_7745c5c3_Var55 string
 		templ_7745c5c3_Var55, templ_7745c5c3_Err = templ.JoinStringErrs("Made with sprinkles of love and tears of frustration.")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/landing_page.templ`, Line: 640, Col: 60}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/landing_page.templ`, Line: 652, Col: 60}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var55))
 		if templ_7745c5c3_Err != nil {
@@ -1506,7 +1506,7 @@ func questionExample(questionType, prompt string) templ.Component {
 		var templ_7745c5c3_Var63 string
 		templ_7745c5c3_Var63, templ_7745c5c3_Err = templ.JoinStringErrs(prompt)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/landing_page.templ`, Line: 781, Col: 47}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/landing_page.templ`, Line: 793, Col: 47}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var63))
 		if templ_7745c5c3_Err != nil {
