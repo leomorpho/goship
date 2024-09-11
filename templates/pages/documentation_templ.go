@@ -117,7 +117,7 @@ func techStack() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = listEntry(components.EntOrmLogo(), "simple yet powerful ORM for modeling and querying data").Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = listEntry(components.EntOrmLogo("h-4"), "simple yet powerful ORM for modeling and querying data").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -125,7 +125,7 @@ func techStack() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = listEntry(components.StripeLogo(), "payments solution").Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = listEntry(components.StripeLogo("h-5"), "payments solution").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -155,19 +155,19 @@ func techStack() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = listEntry(components.HtmxLogo(), "build modern user interfaces with minimal javascript").Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = listEntry(components.HtmxLogo("h-4"), "build modern user interfaces with minimal javascript").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = listEntry(components.TemplLogo(), "a powerful type-safe Go templating language").Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = listEntry(components.TemplLogo("h-3"), "a powerful type-safe Go templating language").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = listEntry(components.TailwindLogo(), "a utility-first CSS framework for rapid implementation").Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = listEntry(components.TailwindLogo("h-3"), "a utility-first CSS framework for rapid implementation").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = listEntry(components.AlpineLogo(), "a lightweight javascript framework to sprinkle localized logic and state").Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = listEntry(components.AlpineLogo("h-3"), "a lightweight javascript framework to sprinkle localized logic and state").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -227,7 +227,7 @@ func techStack() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = listEntry(components.S3Logo(), "host files and images on any S3 compatible service (e.g. Backblaze)").Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = listEntry(components.S3Logo("h-5"), "host files and images on any S3 compatible service (e.g. Backblaze)").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

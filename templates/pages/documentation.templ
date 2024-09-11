@@ -23,17 +23,17 @@ templ techStack() {
 		<ul>
 			// Find icons in SVG at https://icon-sets.iconify.design/logos/postgresql/
 			@listEntry(components.EchoLogo(), "high performance, extensible, minimalist Go web framework")
-			@listEntry(components.EntOrmLogo(), "simple yet powerful ORM for modeling and querying data")
+			@listEntry(components.EntOrmLogo("h-4"), "simple yet powerful ORM for modeling and querying data")
 			@listEntry(components.AsynqLogo(), "simple, reliable & efficient distributed task queue in Go")
-			@listEntry(components.StripeLogo(), "payments solution")
+			@listEntry(components.StripeLogo("h-5"), "payments solution")
 		</ul>
 	}
 	@components.AccordionItem("Frontend", true) {
 		<ul>
-			@listEntry(components.HtmxLogo(), "build modern user interfaces with minimal javascript")
-			@listEntry(components.TemplLogo(), "a powerful type-safe Go templating language")
-			@listEntry(components.TailwindLogo(), "a utility-first CSS framework for rapid implementation")
-			@listEntry(components.AlpineLogo(), "a lightweight javascript framework to sprinkle localized logic and state")
+			@listEntry(components.HtmxLogo("h-4"), "build modern user interfaces with minimal javascript")
+			@listEntry(components.TemplLogo("h-3"), "a powerful type-safe Go templating language")
+			@listEntry(components.TailwindLogo("h-3"), "a utility-first CSS framework for rapid implementation")
+			@listEntry(components.AlpineLogo("h-3"), "a lightweight javascript framework to sprinkle localized logic and state")
 		</ul>
 	}
 	@components.AccordionItem("Storage", true) {
@@ -43,7 +43,7 @@ templ techStack() {
 					@listEntry(components.SupabaseLogo(), "host your DB on Supabase on any other hosting platform compatible with Postgres")
 				</ul>
 			}
-			@listEntry(components.S3Logo(), "host files and images on any S3 compatible service (e.g. Backblaze)")
+			@listEntry(components.S3Logo("h-5"), "host files and images on any S3 compatible service (e.g. Backblaze)")
 			@listEntry(components.RedisLogo(), "for task queueuing, caching and sse events")
 		</ul>
 	}

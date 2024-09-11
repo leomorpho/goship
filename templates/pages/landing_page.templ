@@ -8,7 +8,7 @@ import (
 )
 
 templ LandingPage(page *controller.Page) {
-	<div class="top-0 z-50 flex flex-row justify-center items-center flex-wrap">
+	<div class="top-0 z-50 flex flex-row justify-center items-center flex-wrap ">
 		if !page.IsIosDevice {
 			@components.PWAMobileInstallButton(page)
 		}
@@ -19,7 +19,7 @@ templ LandingPage(page *controller.Page) {
 		@mobileDarkModeButton()
 	</div>
 	if data, ok := page.Data.(types.LandingPage); ok {
-		<div id="homePage">
+		<div id="homePage" class="font-mono">
 			@AnimateOnScrollLibrary()
 			@welcomeScreen(page, data)
 			@builtAndShipsWith()
@@ -428,7 +428,7 @@ templ welcomeScreen(page *controller.Page, d types.LandingPage) {
 				</span>
 			</div>
 			<h1
-				class="w-full flex justify-center mb-4 text-4xl font-extrabold tracking-tight leading-none md:text-5xl xl:text-6xl
+				class="w-full flex justify-center mb-4 text-4xl font-extrabold tracking-tight leading-none md:text-5xl xl:text-6xl text-center
 					bg-gradient-to-r from-blue-300 via-green-400 to-indigo-400
 					inline-block text-transparent bg-clip-text strong-black-shadow"
 			>
@@ -442,13 +442,13 @@ templ welcomeScreen(page *controller.Page, d types.LandingPage) {
 				@viewTheRepo()
 			</span>
 		</div>
-		<div class="hidden lg:mt-0 lg:col-span-5 lg:flex">
+		<div class="hidden lg:mt-0 lg:col-span-5 lg:flex w-1/3">
 			<img src="https://goship-static.s3.us-west-002.backblazeb2.com/assets/gopher.png" alt="mockup"/>
 		</div>
 	</div>
-	<div class="mx-2 w-full flex justify-center">
+	<div class="w-full flex justify-center">
 		<iframe
-			class="w-full md:w-[85%] aspect-[4/3] shadow-2xl rounded-xl"
+			class="w-full md:w-[85%] lg:w-[75%] xl:w-[60%] aspect-video shadow-2xl rounded-xl"
 			src="http://www.youtube.com/embed/Mnti8f-4bp0"
 			frameborder="0"
 			allowfullscreen
@@ -457,9 +457,33 @@ templ welcomeScreen(page *controller.Page, d types.LandingPage) {
 }
 
 templ builtAndShipsWith() {
-	<div>
-		<div>Built and Ships with</div>
-		<div class="flex flex-wrap"></div>
+	<div class="pt-10 w-full">
+		<div class="flex justify-center font-bold">Built and Ships with</div>
+		<div class="flex justify-center mt-5">
+			<div class="flex flex-wrap justify-center items-center w-1/2">
+				<div class="p-6 lg:p-12">
+					@components.GoLogo("h-8 lg:h-9")
+				</div>
+				<div class="p-6 lg:p-12">
+					@components.HtmxLogo("h-11 lg:h-13")
+				</div>
+				<div class="p-6 lg:p-12">
+					@components.TemplLogo("h-7 lg:h-9")
+				</div>
+				<div class="p-6 lg:p-12">
+					@components.EntOrmLogo("h-9 lg:h-10")
+				</div>
+				<div class="p-6 lg:p-12">
+					@components.TailwindLogo("h-9 lg:h-10")
+				</div>
+				<div class="p-6 lg:p-12">
+					@components.S3Logo("h-9 lg:h-10")
+				</div>
+				<div class="p-6 lg:p-12">
+					@components.StripeLogo("h-9 lg:h-10")
+				</div>
+			</div>
+		</div>
 	</div>
 }
 

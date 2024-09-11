@@ -26,7 +26,7 @@ func TechIcon(styleClasses, websiteUrl, iconUrl, altText string) templ.Component
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		var templ_7745c5c3_Var2 = []any{"items-center", styleClasses}
+		var templ_7745c5c3_Var2 = []any{"flex items-center justify-center w-auto", styleClasses}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var2...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -57,7 +57,7 @@ func TechIcon(styleClasses, websiteUrl, iconUrl, altText string) templ.Component
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var5 = []any{"h-full object-contain block cursor-pointer", styleClasses}
+		var templ_7745c5c3_Var5 = []any{"h-full w-auto object-contain cursor-pointer", styleClasses}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var5...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -127,7 +127,7 @@ func TechIconWithDarkAndLightModes(styleClasses, websiteUrl, lightModeIconUrl, d
 			templ_7745c5c3_Var9 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		var templ_7745c5c3_Var10 = []any{"items-center", styleClasses}
+		var templ_7745c5c3_Var10 = []any{"flex items-center justify-center w-auto", styleClasses}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var10...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -158,7 +158,7 @@ func TechIconWithDarkAndLightModes(styleClasses, websiteUrl, lightModeIconUrl, d
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var13 = []any{"h-full object-contain block dark:hidden cursor-pointer", styleClasses}
+		var templ_7745c5c3_Var13 = []any{"h-full w-auto object-contain block dark:hidden cursor-pointer", styleClasses}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var13...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -206,7 +206,7 @@ func TechIconWithDarkAndLightModes(styleClasses, websiteUrl, lightModeIconUrl, d
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var17 = []any{"h-full object-contain hidden dark:block cursor-pointer", styleClasses}
+		var templ_7745c5c3_Var17 = []any{"h-full w-auto object-contain hidden dark:block cursor-pointer", styleClasses}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var17...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err

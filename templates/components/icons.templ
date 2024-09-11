@@ -1,9 +1,9 @@
 package components
 
 templ TechIcon(styleClasses, websiteUrl, iconUrl, altText string) {
-	<a href={ templ.SafeURL(websiteUrl) } target="_blank" class={ "items-center", styleClasses }>
+	<a href={ templ.SafeURL(websiteUrl) } target="_blank" class={ "flex items-center justify-center w-auto", styleClasses }>
 		<img
-			class={ "h-full object-contain block cursor-pointer", styleClasses }
+			class={ "h-full w-auto object-contain cursor-pointer", styleClasses }
 			src={ iconUrl }
 			alt={ altText }
 			loading="lazy"
@@ -12,15 +12,15 @@ templ TechIcon(styleClasses, websiteUrl, iconUrl, altText string) {
 }
 
 templ TechIconWithDarkAndLightModes(styleClasses, websiteUrl, lightModeIconUrl, darkModeIconUrl, altText string) {
-	<a href={ templ.SafeURL(websiteUrl) } target="_blank" class={ "items-center", styleClasses }>
+	<a href={ templ.SafeURL(websiteUrl) } target="_blank" class={ "flex items-center justify-center w-auto", styleClasses }>
 		<img
-			class={ "h-full object-contain block dark:hidden cursor-pointer", styleClasses }
+			class={ "h-full w-auto object-contain block dark:hidden cursor-pointer", styleClasses }
 			src={ lightModeIconUrl }
 			alt={ altText }
 			loading="lazy"
 		/>
 		<img
-			class={ "h-full object-contain hidden dark:block cursor-pointer",styleClasses }
+			class={ "h-full w-auto object-contain hidden dark:block cursor-pointer", styleClasses }
 			src={ darkModeIconUrl }
 			alt={ altText }
 			loading="lazy"
