@@ -99,7 +99,10 @@ const (
 	routeNamePricingPage                  = "pricing_page"
 	routeNamePaymentProcessorSuccess      = "stripe.success"
 
-	routeNameDocs = "docs"
+	routeNameDocs               = "docs"
+	routeNameDocsGettingStarted = "docs.getting_started"
+	routeNameDocsGuidedTour     = "docs.guided_tour"
+	routeNameDocsArchitecture   = "docs.architecture"
 )
 
 func sseSkipper(c echo.Context) bool {
@@ -271,6 +274,9 @@ func BuildRouter(c *services.Container) {
 func documentationRoutes(c *services.Container, g *echo.Group, ctr controller.Controller) {
 	docsRoute := NewDocsRoute(ctr)
 	g.GET("/docs", docsRoute.GetDocsHome).Name = routeNameDocs
+	g.GET("/docs/gettingStarted", docsRoute.GetDocsGettingStarted).Name = routeNameDocsGettingStarted
+	g.GET("/docs/guidedTour", docsRoute.GetDocsGuidedTour).Name = routeNameDocsGuidedTour
+	g.GET("/docs/architecture", docsRoute.GetDocsArchitecture).Name = routeNameDocsArchitecture
 }
 
 func externalRoutes(c *services.Container, g *echo.Group, ctr controller.Controller) {

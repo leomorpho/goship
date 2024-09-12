@@ -17,7 +17,7 @@ templ Navbar(page *controller.Page) {
 		hx-push-url="true"
 	>
 		<div class="container mx-auto px-4 py-2 flex justify-between items-center">
-			<a id="navbar-logo-with-brand" href={ templ.URL(page.ToURL("landing_page")) } class="flex items-center space-x-3">
+			<a id="navbar-logo-with-brand" href={ templ.URL(page.ToURL("landing_page")) } class="flex items-center space-x-3 font-mono">
 				<img src="/files/favicon.png" class="h-8" alt="Logo"/>
 				<span class="text-2xl font-semibold">{ page.AppName }</span>
 			</a>

@@ -108,6 +108,7 @@ templ drawerMenu(page *controller.Page) {
 				@dropdownListEntry("", "Guided Tour")
 			}
 			@dropdownEntry(bookIcon(), "Guides") {
+				@dropdownListEntry(page.ToURL("docs.architecture"), "Architecture")
 				@dropdownListEntry("", "Authentication")
 				@dropdownListEntry("", "Authorization")
 				@dropdownListEntry("", "Payments")
@@ -147,7 +148,7 @@ templ drawerTopBar(page *controller.Page) {
 		@click="conditionalToggle()"
 		class="text-xl md:text-2xl font-semibold"
 	>
-		<div class="flex items-center">
+		<div class="flex items-center font-mono">
 			<img
 				loading="lazy"
 				src="/files/favicon.png"

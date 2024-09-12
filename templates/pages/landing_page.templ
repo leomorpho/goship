@@ -22,9 +22,12 @@ templ LandingPage(page *controller.Page) {
 		<div id="homePage" class="font-mono">
 			@AnimateOnScrollLibrary()
 			@welcomeScreen(page, data)
+			@verticalSpacer("h-32")
 			@builtAndShipsWith()
 			@verticalSpacer("h-10")
 			@features()
+			@verticalSpacer("h-10")
+			@builtWithGoShip()
 			@verticalSpacer("h-10")
 			if data.IsPaymentEnabled {
 				@verticalSpacer("h-10")
@@ -75,349 +78,6 @@ templ AnimateOnScrollLibrary() {
     </script>
 }
 
-templ features() {
-	<div x-data="{ currentTab: 1 }">
-		<ul class="flex flex-wrap -mb-px text-sm font-medium text-center">
-			<li class="me-2" @click={ fmt.Sprintf("currentTab = 1") }>
-				<button
-					:class={ fmt.Sprintf("{ 'border-b-2 text-blue-600': currentTab === 1, 'hover:text-gray-600 hover:border-gray-300': currentTab !== 1 }") }
-					class="flex items-center justify-center inline-block p-4 rounded-t-lg"
-					href="#"
-				>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						width="24"
-						height="24"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						class="mr-1 icon icon-tabler icons-tabler-outline icon-tabler-at"
-					><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"></path><path d="M16 12v1.5a2.5 2.5 0 0 0 5 0v-1.5a9 9 0 1 0 -5.5 8.28"></path></svg>
-					{ "Emails" }
-				</button>
-			</li>
-			<li class="me-2" @click={ fmt.Sprintf("currentTab = 2") }>
-				<button
-					:class={ fmt.Sprintf("{ 'border-b-2 text-blue-600': currentTab === 2, 'hover:text-gray-600 hover:border-gray-300': currentTab !== 2 }") }
-					class="flex items-center justify-center inline-block p-4 rounded-t-lg"
-					href="#"
-				>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						width="24"
-						height="24"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						class="mr-1 icon icon-tabler icons-tabler-outline icon-tabler-credit-card"
-					><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 5m0 3a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3z"></path><path d="M3 10l18 0"></path><path d="M7 15l.01 0"></path><path d="M11 15l2 0"></path></svg>
-					{ "Payments" }
-				</button>
-			</li>
-			<li class="me-2" @click={ fmt.Sprintf("currentTab = 3") }>
-				<button
-					:class={ fmt.Sprintf("{ 'border-b-2 text-blue-600': currentTab === 3, 'hover:text-gray-600 hover:border-gray-300': currentTab !== 3 }") }
-					class="flex items-center justify-center inline-block p-4 rounded-t-lg"
-					href="#"
-				>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						width="24"
-						height="24"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						class="mr-1 icon icon-tabler icons-tabler-outline icon-tabler-credit-card"
-					><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path><path d="M12 10m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path><path d="M6.168 18.849a4 4 0 0 1 3.832 -2.849h4a4 4 0 0 1 3.834 2.855"></path></svg>
-					{ "Login" }
-				</button>
-			</li>
-			<li class="me-2" @click={ fmt.Sprintf("currentTab = 4") }>
-				<button
-					:class={ fmt.Sprintf("{ 'border-b-2 text-blue-600': currentTab === 4, 'hover:text-gray-600 hover:border-gray-300': currentTab !== 4 }") }
-					class="flex items-center justify-center inline-block p-4 rounded-t-lg"
-					href="#"
-				>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						width="24"
-						height="24"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						class="mr-1 icon icon-tabler icons-tabler-outline icon-tabler-credit-card"
-					><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 6m-8 0a8 3 0 1 0 16 0a8 3 0 1 0 -16 0"></path><path d="M4 6v6a8 3 0 0 0 16 0v-6"></path><path d="M4 12v6a8 3 0 0 0 16 0v-6"></path></svg>
-					{ "Database" }
-				</button>
-			</li>
-			<li class="me-2" @click={ fmt.Sprintf("currentTab = 5") }>
-				<button
-					:class={ fmt.Sprintf("{ 'border-b-2 text-blue-600': currentTab === 5, 'hover:text-gray-600 hover:border-gray-300': currentTab !== 5 }") }
-					class="flex items-center justify-center inline-block p-4 rounded-t-lg"
-					href="#"
-				>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						width="24"
-						height="24"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						class="mr-1 icon icon-tabler icons-tabler-outline icon-tabler-credit-card"
-					><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 21v-4a4 4 0 1 1 4 4h-4"></path><path d="M21 3a16 16 0 0 0 -12.8 10.2"></path><path d="M21 3a16 16 0 0 1 -10.2 12.8"></path><path d="M10.6 9a9 9 0 0 1 4.4 4.4"></path></svg>
-					{ "Style" }
-				</button>
-			</li>
-			<li class="me-2" @click={ fmt.Sprintf("currentTab = 6") }>
-				<button
-					:class={ fmt.Sprintf("{ 'border-b-2 text-blue-600': currentTab === 6, 'hover:text-gray-600 hover:border-gray-300': currentTab !== 6 }") }
-					class="flex items-center justify-center inline-block p-4 rounded-t-lg"
-					href="#"
-				>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						width="24"
-						height="24"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						class="mr-1 icon icon-tabler icons-tabler-outline icon-tabler-credit-card"
-					><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M6 5a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v14a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2v-14z"></path><path d="M11 4h2"></path><path d="M12 17v.01"></path></svg>
-					{ "Mobile Ready" }
-				</button>
-			</li>
-			<li class="me-2" @click={ fmt.Sprintf("currentTab = 7") }>
-				<button
-					:class={ fmt.Sprintf("{ 'border-b-2 text-blue-600': currentTab === 7, 'hover:text-gray-600 hover:border-gray-300': currentTab !== 7 }") }
-					class="flex items-center justify-center inline-block p-4 rounded-t-lg"
-					href="#"
-				>
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						width="24"
-						height="24"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						class="mr-1 icon icon-tabler icons-tabler-outline icon-tabler-credit-card"
-					><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M4 13a8 8 0 0 1 7 7a6 6 0 0 0 3 -5a9 9 0 0 0 6 -8a3 3 0 0 0 -3 -3a9 9 0 0 0 -8 6a6 6 0 0 0 -5 3"></path><path d="M7 14a6 6 0 0 0 -3 6a6 6 0 0 0 6 -3"></path><path d="M15 9m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path></svg>
-					{ "Deployments" }
-				</button>
-			</li>
-		</ul>
-		<div>
-			<div
-				class="p-4 rounded-lg bg-gray-100 dark:bg-gray-800"
-				x-show={ fmt.Sprintf("currentTab === 1") }
-			>
-				<h1 class="text-lg font-semibold" text-lg>Emails</h1>
-				<ul class="p-2 md:p-4">
-					<li>
-						@featurePoint("Send transactional emails")
-					</li>
-					<li>
-						@featurePoint("Templates for account activation, password reset, newsletter.")
-					</li>
-					<li class="text-green-500">
-						@featurePoint("Timed saved: 5h")
-					</li>
-				</ul>
-			</div>
-			<div
-				class="p-4 rounded-lg bg-gray-100 dark:bg-gray-800"
-				x-show={ fmt.Sprintf("currentTab === 2") }
-			>
-				<h1 class="text-lg font-semibold" text-lg>Payments</h1>
-				<ul class="p-2 md:p-4">
-					<li>
-						@featurePoint("Create Stripe checkout sessions")
-					</li>
-					<li>
-						@featurePoint("Monthly subscriptions")
-					</li>
-					<li>
-						@featurePoint("Handle webhook payments")
-					</li>
-					<li>
-						@featurePoint("TODO: add one-time payments")
-					</li>
-					<li class="text-green-500">
-						@featurePoint("Timed saved: 5h")
-					</li>
-				</ul>
-			</div>
-			<div
-				class="p-4 rounded-lg bg-gray-100 dark:bg-gray-800"
-				x-show={ fmt.Sprintf("currentTab === 3") }
-			>
-				<h1 class="text-lg font-semibold" text-lg>Login</h1>
-				<ul class="p-2 md:p-4">
-					<li>
-						@featurePoint("Login with username + password")
-					</li>
-					<li>
-						@featurePoint("TODO: magic link flow")
-					</li>
-					<li>
-						@featurePoint("Private user area")
-					</li>
-					<li class="text-green-500">
-						@featurePoint("Timed saved: 5h")
-					</li>
-				</ul>
-			</div>
-			<div
-				class="p-4 rounded-lg bg-gray-100 dark:bg-gray-800"
-				x-show={ fmt.Sprintf("currentTab === 4") }
-			>
-				<h1 class="text-lg font-semibold" text-lg>Database</h1>
-				<ul class="p-2 md:p-4">
-					<li>
-						@featurePoint("Postgres support (i.e. Supabase, Neon etc)")
-					</li>
-					<li>
-						@featurePoint("Vector-ready (PGVector integrated)")
-					</li>
-					<li class="text-green-500">
-						@featurePoint("Timed saved: 10h")
-					</li>
-				</ul>
-			</div>
-			<div
-				class="p-4 rounded-lg bg-gray-100 dark:bg-gray-800"
-				x-show={ fmt.Sprintf("currentTab === 5") }
-			>
-				<h1 class="text-lg font-semibold" text-lg>Style</h1>
-				<ul class="p-2 md:p-4">
-					<li>
-						@featurePoint("Components available (HTMX, AlpineJS, Hyperscript)")
-					</li>
-					<li>
-						@featurePoint("20+ themes with DaisyUI")
-					</li>
-					<li>
-						@featurePoint("Light + Dark mode")
-					</li>
-					<li class="text-green-500">
-						@featurePoint("Timed saved: 8h")
-					</li>
-				</ul>
-			</div>
-			<div
-				class="p-4 rounded-lg bg-gray-100 dark:bg-gray-800"
-				x-show={ fmt.Sprintf("currentTab === 6") }
-			>
-				<h1 class="text-lg font-semibold" text-lg>Mobile</h1>
-				<ul class="p-2 md:p-4">
-					<li>
-						@featurePoint("Fully PWA-ready")
-					</li>
-					<li>
-						@featurePoint("IOS native wrapper with push notifications and payments")
-					</li>
-					<li class="text-green-500">
-						@featurePoint("Timed saved: 15h")
-					</li>
-				</ul>
-			</div>
-			<div
-				class="p-4 rounded-lg bg-gray-100 dark:bg-gray-800"
-				x-show={ fmt.Sprintf("currentTab === 7") }
-			>
-				<h1 class="text-lg font-semibold" text-lg>Deployments</h1>
-				<ul class="p-2 md:p-4">
-					<li>
-						@featurePoint("Deploy from bare metal to Cloud VMs with Kamal")
-					</li>
-					<li class="text-green-500">
-						@featurePoint("Timed saved: 4h")
-					</li>
-				</ul>
-			</div>
-		</div>
-	</div>
-}
-
-templ featurePoint(point string) {
-	<span class="flex">
-		<svg
-			xmlns="http://www.w3.org/2000/svg"
-			width="24"
-			height="24"
-			viewBox="0 0 24 24"
-			fill="none"
-			stroke="currentColor"
-			stroke-width="2"
-			stroke-linecap="round"
-			stroke-linejoin="round"
-			class="mr-1 icon icon-tabler icons-tabler-outline icon-tabler-check"
-		><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M5 12l5 5l10 -10"></path></svg>
-		<span>{ point }</span>
-	</span>
-}
-
-script initCarousel() {
-	// Function to initialize Swiper
-	function initializeSwiper() {
-		if (typeof Swiper !== 'undefined') {
-			const swiper = new Swiper('.swiper', {
-				slidesPerView: "auto",
-				spaceBetween: 10,
-
-				// Navigation arrows
-				navigation: {
-					nextEl: '.swiper-button-next',
-					prevEl: '.swiper-button-prev',
-				},
-			
-				scrollbar: {
-					el: ".swiper-scrollbar",
-					hide: true,
-				},
-			});
-		} else {
-			console.error('Swiper library is not available.');
-		}
-	}
-
-	// Check if Swiper is loaded and initialize it
-	document.addEventListener('DOMContentLoaded', () => {
-	// Wait for Swiper to be loaded if necessary
-	if (typeof Swiper === 'undefined') {
-		// Optionally, load Swiper dynamically if not loaded
-		// Example of dynamically loading Swiper:
-		const script = document.createElement('script');
-		script.src = 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js'; 
-		script.onload = initializeSwiper;
-		document.head.appendChild(script);
-	} else {
-		initializeSwiper();
-	}
-	});
-
-}
-
 templ welcomeScreen(page *controller.Page, d types.LandingPage) {
 	<div class="max-w-screen-xl px-4 py-8 mx-auto flex justify-center">
 		<div class="flex flex-col justify-center w-full">
@@ -446,7 +106,7 @@ templ welcomeScreen(page *controller.Page, d types.LandingPage) {
 			<img src="https://goship-static.s3.us-west-002.backblazeb2.com/assets/gopher.png" alt="mockup"/>
 		</div>
 	</div>
-	<div class="w-full flex justify-center">
+	<div class="w-full flex justify-center p-3">
 		<iframe
 			class="w-full md:w-[85%] lg:w-[75%] xl:w-[60%] aspect-video shadow-2xl rounded-xl"
 			src="http://www.youtube.com/embed/Mnti8f-4bp0"
@@ -457,7 +117,7 @@ templ welcomeScreen(page *controller.Page, d types.LandingPage) {
 }
 
 templ builtAndShipsWith() {
-	<div class="mt-20 w-full grayscale-container">
+	<div class="w-full grayscale-container">
 		<div class="flex justify-center font-bold">Built and Ships with</div>
 		<div class="flex justify-center mt-5">
 			<div class="flex flex-wrap justify-center items-center w-4/5">
@@ -501,7 +161,7 @@ templ builtAndShipsWith() {
 
 templ getStartedButton(page *controller.Page) {
 	<a
-		href={ templ.URL(page.ToURL("documentation")) }
+		href={ templ.URL(page.ToURL("docs")) }
 		target="_blank"
 		class="m-3 group relative flex w-fit items-center items-center justify-center px-5 py-3 text-sm font-semibold text-center text-gray-900 border border-gray-300 rounded-lg hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 dark:text-white dark:border-gray-700 dark:hover:bg-gray-700 dark:focus:ring-gray-800"
 	>
@@ -554,6 +214,46 @@ templ viewTheRepo() {
 		// Call the function when the page loads
 		updateRepoStars();
 	</script>
+}
+
+templ features() {
+	<div class="w-full py-8 px-4 md:px-6">
+		<div class="max-w-3xl mx-auto">
+			<div data-aos="fade-up" data-aos-once="true">
+				<div
+					class="pb-1 flex justify-center w-full font-black text-5xl md:text-6xl
+                bg-gradient-to-r from-red-500 to-purple-500
+                inline-block text-transparent bg-clip-text
+                "
+				>Features</div>
+			</div>
+			@GoshipFeatures()
+		</div>
+	</div>
+}
+
+templ builtWithGoShip() {
+	<div class="w-full py-8 px-4 md:px-6">
+		<div class="max-w-3xl mx-auto">
+			<div data-aos="fade-up" data-aos-once="true">
+				<div
+					class="pb-1 flex justify-center w-full font-black text-5xl md:text-6xl
+                bg-gradient-to-r from-red-500 to-purple-500
+                inline-block text-transparent bg-clip-text
+                "
+				>Built With GoShip</div>
+			</div>
+			<a href="https://cherie.chatbond.app/" target="_blank" class="flex border-2 rounded-xl p-2 m-2 mouse-pointer">
+				<picture class="m-2 flex justify-center items-center">
+					<!-- Images for larger screens -->
+					<source media="(min-width: 768px)" srcset="https://chatbond-static.s3.us-west-002.backblazeb2.com/cherie/pwa/v2/icons/logo-animated-md-350px.gif"/><!-- Images for medium screens -->
+					<source media="(min-width: 640px)" srcset="https://chatbond-static.s3.us-west-002.backblazeb2.com/cherie/pwa/v2/icons/logo-animated-md-350px.gif"/><!-- Default image for smaller screens -->
+					<img loading="lazy" src="https://chatbond-static.s3.us-west-002.backblazeb2.com/cherie/pwa/v2/icons/logo-animated-md-250px.gif" class="w-24 h-auto sm:w-32 md:w-40 my-5 md:mx-5" alt="Icon"/>
+				</picture>
+				<span class="hover:underline text-2xl md:text-3xl flex items-center"><span>Chérie: Your Relationship App</span></span>
+			</a>
+		</div>
+	</div>
 }
 
 templ verticalSpacer(height string) {
@@ -649,7 +349,7 @@ templ madeWithLove(d types.LandingPage) {
         inline-block text-transparent bg-clip-text
         "
 		>
-			{ "Made with sprinkles of love and tears of frustration." }
+			{ "Made With Sprinkles of Love and Tears of Frustration." }
 		</div>
 	</div>
 }

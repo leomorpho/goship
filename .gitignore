@@ -15,6 +15,13 @@ data/mailpit.db-shm
 data/mailpit.db-wal
 data/mailpit.db
 
+# Ignore all JavaScript and CSS files in the static folder and its subdirectories
+/static/**/*.js
+/static/**/*.js.map
+/static/**/*.css
+/static/**/*.css.map
+
+
 # Python ------------------------------------------------------------------------------------------
 .venv
 venv
@@ -180,3 +187,5 @@ fastlane/test_output
 pwabuilder-android-wrapper/signing-key-info.txt
 pwabuilder-android-wrapper/signing.keystore
 bubblewrap
+
+

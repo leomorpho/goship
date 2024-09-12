@@ -230,7 +230,7 @@ func SeedUsers(cfg *config.Config, client *ent.Client, useS3 bool) error {
 	c := services.NewContainer()
 	for i := 0; i < 500; i++ {
 		c.Notifier.PublishNotification(ctx, domain.Notification{
-			Type:      domain.NotificationTypeBreakup,
+			Type:      domain.NotificationTypePlatformUpdate,
 			Title:     "Yay! You're a user who'll get a ton of notifications for later visual testing!",
 			Text:      "Now, go get some therapy",
 			ProfileID: aliceProfile.ID,

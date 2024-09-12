@@ -78,7 +78,7 @@ func (c *outgoingNotifications) RegisterSubscription(ctx echo.Context) error {
 
 	platform := domain.NotificationPlatforms.Parse(plaftormStr)
 
-	notificationType := ctx.QueryParam(domain.NOTIFICATION_TYPE)
+	notificationType := ctx.QueryParam(domain.PermissionNotificationType)
 	var notifPermission *domain.NotificationPermissionType
 
 	if notificationType != "" {
@@ -168,7 +168,7 @@ func (c *outgoingNotifications) DeleteSubscription(ctx echo.Context) error {
 	}
 
 	platform := domain.NotificationPlatforms.Parse(plaftormStr)
-	notificationType := ctx.QueryParam(domain.NOTIFICATION_TYPE)
+	notificationType := ctx.QueryParam(domain.PermissionNotificationType)
 
 	var notifPermission *domain.NotificationPermissionType
 
@@ -261,7 +261,7 @@ func (c *outgoingNotifications) DeleteEmailSubscription(ctx echo.Context) error 
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid token")
 	}
 
-	notificationType := ctx.Param(domain.NOTIFICATION_TYPE)
+	notificationType := ctx.Param(domain.PermissionNotificationType)
 	if notificationType == "" {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid notification type")
 	}
@@ -279,7 +279,7 @@ func (c *outgoingNotifications) DeleteEmailSubscription(ctx echo.Context) error 
 
 	if *notifPermission == domain.NotificationPermissionDailyReminder {
 		notifName = "daily updates"
-	} else if *notifPermission == domain.NotificationPermissionPartnerActivity {
+	} else if *notifPermission == domain.NotificationPermissionNewFriendActivity {
 		notifName = "partner activity"
 	} else {
 		log.Error().
@@ -359,10 +359,10 @@ func (c *outgoingNotifications) createNotificationsPage(ctx echo.Context, profil
 	notificationPermissions := types.NotificationPermissionsData{
 		VapidPublicKey:                c.ctr.Container.Config.App.VapidPublicKey,
 		PermissionDailyNotif:          permissions[domain.NotificationPermissionDailyReminder],
-		PermissionPartnerActivity:     permissions[domain.NotificationPermissionPartnerActivity],
+		PermissionPartnerActivity:     permissions[domain.NotificationPermissionNewFriendActivity],
 		SubscribedEndpoints:           subscribedEndpoints,
 		PhoneSubscriptionEnabled:      profileEnt.PhoneNumberE164 != "" && profileEnt.PhoneVerified,
-		NotificationTypeQueryParamKey: domain.NOTIFICATION_TYPE,
+		NotificationTypeQueryParamKey: domain.PermissionNotificationType,
 
 		AddPushSubscriptionEndpoint:     addPushSubscriptionEndpoint,
 		DeletePushSubscriptionEndpoint:  deletePushSubscriptionEndpoint,

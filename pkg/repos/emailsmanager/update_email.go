@@ -80,7 +80,7 @@ func (e *UpdateEmailSender) GetAudience(ctx context.Context) ([]int, error) {
 	profilesWithOnlyPartnerUpdates, err := e.orm.Profile.Query().
 		Where(
 			profile.HasNotificationPermissionsWith(
-				notificationpermission.PermissionEQ(notificationpermission.Permission(domain.NotificationPermissionPartnerActivity.Value)),
+				notificationpermission.PermissionEQ(notificationpermission.Permission(domain.NotificationPermissionNewFriendActivity.Value)),
 			),
 			// No need to get those with daily permissions, as they will fall under the profilesWithDailyUpdatesQuery catchment.
 			profile.Not(
@@ -92,11 +92,7 @@ func (e *UpdateEmailSender) GetAudience(ctx context.Context) ([]int, error) {
 			profile.HasNotificationsWith(
 				notification.ReadEQ(false),
 				notification.TypeIn(
-					notification.Type(domain.NotificationTypeCommittedRelationshipRequest.Value),
-					notification.Type(domain.NotificationTypeConnectionReactedToAnswer.Value),
-					notification.Type(domain.NotificationTypeConnectionRequestAccepted.Value),
 					notification.Type(domain.NotificationTypeConnectionEngagedWithQuestion.Value),
-					notification.Type(domain.NotificationTypeMutualQuestionAnswered.Value),
 				),
 			),
 			alreadySentEmailFilter,
@@ -227,7 +223,7 @@ func (e *UpdateEmailSender) SendUpdateEmail(
 	unsubscribeDailyUpdatesLink := fmt.Sprintf("%s%s", e.container.Config.HTTP.Domain, url)
 
 	url = e.container.Web.Reverse("email_subscriptions.delete_with_token",
-		domain.NotificationPermissionPartnerActivity.Value, partnerUpdatePermissionToken)
+		domain.NotificationPermissionNewFriendActivity.Value, partnerUpdatePermissionToken)
 	unsubscribePartnerActivityLink := fmt.Sprintf("%s%s", e.container.Config.HTTP.Domain, url)
 
 	page := controller.NewPage(echoCtx)
@@ -260,7 +256,7 @@ func (e *UpdateEmailSender) SendUpdateEmail(
 
 	emailType := domain.NotificationPermissionDailyReminder
 	if len(questionsAnswered) > 0 {
-		emailType = domain.NotificationPermissionPartnerActivity
+		emailType = domain.NotificationPermissionNewFriendActivity
 	}
 	_, err = e.orm.SentEmail.Create().
 		SetProfileID(profileID).

@@ -60,7 +60,7 @@ func Navbar(page *controller.Page) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" class=\"flex items-center space-x-3\"><img src=\"/files/favicon.png\" class=\"h-8\" alt=\"Logo\"> <span class=\"text-2xl font-semibold\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" class=\"flex items-center space-x-3 font-mono\"><img src=\"/files/favicon.png\" class=\"h-8\" alt=\"Logo\"> <span class=\"text-2xl font-semibold\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

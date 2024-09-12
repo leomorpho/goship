@@ -75,10 +75,10 @@ func TestGetPermissions(t *testing.T) {
 			},
 		},
 	}
-	notifMap[domain.NotificationPermissionPartnerActivity] = domain.NotificationPermission{
+	notifMap[domain.NotificationPermissionNewFriendActivity] = domain.NotificationPermission{
 		Title:      "Partner activity",
 		Subtitle:   "Answers you missed, sent at most once a day.",
-		Permission: domain.NotificationPermissionPartnerActivity.Value,
+		Permission: domain.NotificationPermissionNewFriendActivity.Value,
 		PlatformsList: []domain.NotificationPermissionPlatform{
 			{
 				Platform: domain.NotificationPlatformPush.Value, Granted: false,
@@ -99,10 +99,10 @@ func TestGetPermissions(t *testing.T) {
 	assert.Equal(t, notifMap[domain.NotificationPermissionDailyReminder].Permission, permissions[domain.NotificationPermissionDailyReminder].Permission)
 	assert.Equal(t, 4, len(notifMap[domain.NotificationPermissionDailyReminder].PlatformsList))
 
-	assert.Equal(t, notifMap[domain.NotificationPermissionPartnerActivity].Title, permissions[domain.NotificationPermissionPartnerActivity].Title)
-	assert.Equal(t, notifMap[domain.NotificationPermissionPartnerActivity].Subtitle, permissions[domain.NotificationPermissionPartnerActivity].Subtitle)
-	assert.Equal(t, notifMap[domain.NotificationPermissionPartnerActivity].Permission, permissions[domain.NotificationPermissionPartnerActivity].Permission)
-	assert.Equal(t, 4, len(notifMap[domain.NotificationPermissionPartnerActivity].PlatformsList))
+	assert.Equal(t, notifMap[domain.NotificationPermissionNewFriendActivity].Title, permissions[domain.NotificationPermissionNewFriendActivity].Title)
+	assert.Equal(t, notifMap[domain.NotificationPermissionNewFriendActivity].Subtitle, permissions[domain.NotificationPermissionNewFriendActivity].Subtitle)
+	assert.Equal(t, notifMap[domain.NotificationPermissionNewFriendActivity].Permission, permissions[domain.NotificationPermissionNewFriendActivity].Permission)
+	assert.Equal(t, 4, len(notifMap[domain.NotificationPermissionNewFriendActivity].PlatformsList))
 
 	expectedMap := convertToMap(notifMap[domain.NotificationPermissionDailyReminder].PlatformsList)
 	actualMap := convertToMap(permissions[domain.NotificationPermissionDailyReminder].PlatformsList)
@@ -153,7 +153,7 @@ func TestCreatePermission(t *testing.T) {
 			},
 		},
 	}
-	notifMap[domain.NotificationPermissionPartnerActivity] = domain.NotificationPermission{
+	notifMap[domain.NotificationPermissionNewFriendActivity] = domain.NotificationPermission{
 		PlatformsList: []domain.NotificationPermissionPlatform{
 			{
 				Platform: domain.NotificationPlatformPush.Value, Granted: false,
@@ -228,7 +228,7 @@ func TestDeletePermission(t *testing.T) {
 			},
 		},
 	}
-	notifMap[domain.NotificationPermissionPartnerActivity] = domain.NotificationPermission{
+	notifMap[domain.NotificationPermissionNewFriendActivity] = domain.NotificationPermission{
 		PlatformsList: []domain.NotificationPermissionPlatform{
 			{
 				Platform: domain.NotificationPlatformPush.Value, Granted: false,
@@ -277,7 +277,7 @@ func TestDeletePermission(t *testing.T) {
 			},
 		},
 	}
-	notifMap[domain.NotificationPermissionPartnerActivity] = domain.NotificationPermission{
+	notifMap[domain.NotificationPermissionNewFriendActivity] = domain.NotificationPermission{
 		PlatformsList: []domain.NotificationPermissionPlatform{
 			{
 				Platform: domain.NotificationPlatformPush.Value, Granted: false,

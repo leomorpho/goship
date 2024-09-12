@@ -174,10 +174,10 @@ func (g *preferences) Get(ctx echo.Context) error {
 	notificationPermissions := types.NotificationPermissionsData{
 		VapidPublicKey:                g.ctr.Container.Config.App.VapidPublicKey,
 		PermissionDailyNotif:          permissions[domain.NotificationPermissionDailyReminder],
-		PermissionPartnerActivity:     permissions[domain.NotificationPermissionPartnerActivity],
+		PermissionPartnerActivity:     permissions[domain.NotificationPermissionNewFriendActivity],
 		SubscribedEndpoints:           subscribedEndpoints,
 		PhoneSubscriptionEnabled:      profile.PhoneNumberE164 != "" && profile.PhoneVerified,
-		NotificationTypeQueryParamKey: domain.NOTIFICATION_TYPE,
+		NotificationTypeQueryParamKey: domain.PermissionNotificationType,
 
 		AddPushSubscriptionEndpoint:    addPushSubscriptionEndpoint,
 		DeletePushSubscriptionEndpoint: deletePushSubscriptionEndpoint,

@@ -1,13 +1,9 @@
 import { toast } from "wc-toast";
-import AnswerWriter from "./components/AnswerWriter.svelte";
-import EmojiPicker from "./components/EmojiPicker.svelte";
 import MultiSelectComponent from "./components/MultiSelectComponent.svelte";
 import NotificationPermissions from "./components/NotificationPermissions.svelte";
 import PhoneNumberPicker from "./components/PhoneNumberPicker.svelte";
 import PhotoUploader from "./components/PhotoUploader.svelte";
 import PwaInstallButton from "./components/PwaInstallButton.svelte";
-import RateAnswer from "./components/RateAnswer.svelte";
-import SelectLocationPrefsMap from "./components/SelectLocationPrefsMap.svelte";
 import SingleSelect from "./components/SingleSelect.svelte";
 import ThemeToggle from "./components/ThemeToggle.svelte";
 import PwaSubscribePush from "./components/notifications/PwaSubscribePush.svelte";
@@ -17,15 +13,12 @@ const SvelteComponentRegistry = {
   MultiSelectComponent,
   // Mostly from https://github.com/flo-bit/svelte-swiper-cards
   PhotoUploader,
-  SelectLocationPrefsMap,
-  EmojiPicker,
-  AnswerWriter,
+
   SingleSelect,
   PhoneNumberPicker,
   PwaInstallButton,
   PwaSubscribePush,
   ThemeToggle,
-  RateAnswer,
   NotificationPermissions,
 };
 

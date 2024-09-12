@@ -77,14 +77,6 @@ func (c *landingPage) Get(ctx echo.Context) error {
 				Question: "How does GoShip compare to other boilerplates?",
 				Answer:   "GoShip focuses on simplicity and efficiency by minimizing JavaScript, allowing you to build interactive apps with minimal complexity.",
 			},
-			{
-				Question: "Are there any additional costs?",
-				Answer:   "Nope! Once you purchase GoShip, you can use it for unlimited projects with lifetime updates.",
-			},
-			{
-				Question: "Can I get a refund?",
-				Answer:   "Absolutely. If GoShip doesn’t meet your needs, you have 30 days to request a refund.",
-			},
 		},
 
 		BackgroundPhoto2lg: "https://chatbond-static.s3.us-west-002.backblazeb2.com/cherie/home/team-image-lg.jpeg",

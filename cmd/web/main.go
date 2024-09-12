@@ -78,21 +78,6 @@ func main() {
 
 	seeder.RunIdempotentSeeder(c.Config, c.ORM)
 
-	// Start the startup tasks
-	// if err := c.Tasks.
-	// 	New(tasks.TypePopulateAllProfileMatches).
-	// 	Retain(24 * time.Hour).
-	// 	Save(); err != nil {
-	// 	c.Web.Logger.Fatalf("failed to run startup task: %v", err)
-	// }
-
-	// if err := c.Tasks.
-	// 	New(tasks.TypeEmailUpdates).
-	// 	Retain(24 * time.Hour).
-	// 	Save(); err != nil {
-	// 	c.Web.Logger.Fatalf("failed to run startup task: %v", err)
-	// }
-
 	// Start the scheduled tasks
 	if err := c.Tasks.
 		New(tasks.TypeDeactivateExpiredSubscriptions).
@@ -110,10 +95,10 @@ func main() {
 		Save(); err != nil {
 		c.Web.Logger.Fatalf("failed to register scheduler task: %v", err)
 	}
+	// NOTE: we run the following task every 30 minutes, but it will check if the same notif type has
+	// not already been sent to profiles.
 	if err := c.Tasks.
 		New(tasks.TypeAllDailyConvoNotifications).
-		// NOTE: we run this task every 30 minutes, but it will check if the same notif type has
-		// not already been sent to profiles.
 		Periodic("@every 30m").
 		Timeout(120 * time.Second).
 		Retain(24 * time.Hour).
