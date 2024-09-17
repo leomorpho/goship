@@ -9,6 +9,7 @@ import (
 
 	"github.com/mikestefanello/pagoda/config"
 	"github.com/mikestefanello/pagoda/ent"
+	"github.com/mikestefanello/pagoda/ent/user"
 	"github.com/mikestefanello/pagoda/pkg/domain"
 	"github.com/mikestefanello/pagoda/pkg/repos/emailsmanager"
 	"github.com/mikestefanello/pagoda/pkg/repos/notifierrepo"
@@ -65,6 +66,17 @@ func SeedUsers(cfg *config.Config, client *ent.Client, useS3 bool) error {
 
 	// Wrapper function to create a user and ignore if exists
 	createUser := func(name, email, password string) *ent.User {
+		// Check if the user already exists
+		_, err := client.User.
+			Query().
+			Where(user.EmailEQ(email)).
+			Only(ctx)
+
+		if err == nil {
+			// User already exists
+			log.Printf("User with email %s already exists. Skipping.", email)
+			return nil
+		}
 
 		user, err := client.User.
 			Create().
@@ -125,6 +137,13 @@ func SeedUsers(cfg *config.Config, client *ent.Client, useS3 bool) error {
 	// TODO: for prod, use passwords set in env var
 	// Create users
 	alice := createUser("Alice Bonjovi", "alice@test.com", hashPassword("password"))
+	if alice == nil {
+		// createUser returns nil if user already exists
+		// NOTE: to clean up later, but right now it's the mechanism to make this seeder idempotent (yes, it's ugly, to rework)
+
+		return nil
+	}
+
 	bob := createUser("Bob Lupin", "bob@test.com", hashPassword("password"))
 	sandrine := createUser("Sandrine Bonnaire", "sandrine@test.com", hashPassword("password"))
 	luca := createUser("Luca George", "luca@test.com", hashPassword("password"))

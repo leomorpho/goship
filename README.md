@@ -24,11 +24,15 @@ This started as a fork of [pagoda](https://github.com/mikestefanello/pagoda), fo
 
 To get up and running with GoShip:
 ```bash
-make up
-make seed
+# The below command will:
+# - set up the postgres/redis/mailer containers
+# - build the JS/CSS assets 
+# - seed the DB with test users
+# - start the project in watch mode
+make init
 
-# NOTE: the static assets (JS/CSS) are only generated on first run, so if you go to `localhost:8000` after only
-# running `make watch`, you will
+# Running init will fully scrap your state and start with fresh new containers. 
+# After running `make init` the first time, just use the below for everyday work.
 make watch
 ```
 
