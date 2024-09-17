@@ -26,6 +26,9 @@ To get up and running with GoShip:
 ```bash
 make up
 make seed
+
+# NOTE: the static assets (JS/CSS) are only generated on first run, so if you go to `localhost:8000` after only
+# running `make watch`, you will
 make watch
 ```
 

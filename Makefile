@@ -162,6 +162,14 @@ reset: ## Rebuild Docker containers to wipe all data
 	
 
 
+.PHONY: init 
+init: ## Set up the repo and run a fully working version of GoShip
+	make reset
+	make build-js 
+	make build-css 
+	make seed 
+	make watch
+
 .PHONY: build-js
 build-js: ## Build JS/Svelte assets
 	npm run build
@@ -171,6 +179,9 @@ build-js: ## Build JS/Svelte assets
 watch-js: ## Build JS/Svelte assets (auto reload changes)
 	npm install
 	npm run watch 
+
+build-css: ## Build CSS assets (auto reload changes)
+	npx tailwindcss -i ./styles/styles.css -o ./static/styles_bundle.css
 
 watch-css: ## Build CSS assets (auto reload changes)
 	npx tailwindcss -i ./styles/styles.css -o ./static/styles_bundle.css --watch
