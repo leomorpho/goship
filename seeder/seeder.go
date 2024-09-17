@@ -7,7 +7,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/mikestefanello/pagoda/config"
 	"github.com/mikestefanello/pagoda/ent"
 	"github.com/mikestefanello/pagoda/pkg/domain"
@@ -59,6 +58,7 @@ func seedProdDemoData() {
 func SeedUsers(cfg *config.Config, client *ent.Client, useS3 bool) error {
 	// NOTE: DO NOT RUN THIS SEEDER AS AN IDEMPOTENT SEEDER AS IT IS NOT IDEMPOTENT
 	// RUN WITH: `make seed` in CLI
+	// TODO: make idempotent (not that hard, just check for user existence)
 	log.Printf("Start seeding database...")
 	ctx := context.Background()
 	// fake := faker.New()
@@ -125,7 +125,6 @@ func SeedUsers(cfg *config.Config, client *ent.Client, useS3 bool) error {
 	// TODO: for prod, use passwords set in env var
 	// Create users
 	alice := createUser("Alice Bonjovi", "alice@test.com", hashPassword("password"))
-	spew.Dump(alice)
 	bob := createUser("Bob Lupin", "bob@test.com", hashPassword("password"))
 	sandrine := createUser("Sandrine Bonnaire", "sandrine@test.com", hashPassword("password"))
 	luca := createUser("Luca George", "luca@test.com", hashPassword("password"))
