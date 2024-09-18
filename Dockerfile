@@ -49,8 +49,10 @@ RUN chmod +x /entrypoint.sh
 
 COPY config/config.yaml .
 COPY service-worker.js /service-worker.js
-RUN mkdir pwabuilder-android-wrapper
-COPY pwabuilder-android-wrapper/assetlinks.json pwabuilder-android-wrapper/assetlinks.json 
 COPY static /static
+
+# Below is only used if you need to use PWABuilder to make a native Android app
+# RUN mkdir pwabuilder-android-wrapper
+# COPY pwabuilder-android-wrapper/assetlinks.json pwabuilder-android-wrapper/assetlinks.json 
 
 ENTRYPOINT ["/entrypoint.sh"]
