@@ -4,6 +4,13 @@ FROM golang:1.22.2-bullseye AS builder
 # Set the working directory inside the container
 WORKDIR /app
 
+# NOTE: Install necessary libraries for SQLite
+RUN apt-get update && apt-get install -y \
+    gcc \
+    musl-dev \
+    sqlite3 \
+    libsqlite3-dev
+
 # Copy Go modules and download dependencies
 COPY go.mod go.sum ./
 RUN go mod download
@@ -12,9 +19,9 @@ RUN go mod download
 COPY . .
 
 # Build the application
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -gcflags=all=-l -o /app/goship-web ./cmd/web/main.go
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -gcflags=all=-l -o /app/goship-worker ./cmd/worker/main.go
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -gcflags=all=-l -o /app/goship-seed ./cmd/seed/main.go
+RUN CGO_ENABLED=1 GOOS=linux go build -ldflags="-s -w" -gcflags=all=-l -o /app/goship-web ./cmd/web/main.go
+RUN CGO_ENABLED=1 GOOS=linux go build -ldflags="-s -w" -gcflags=all=-l -o /app/goship-worker ./cmd/worker/main.go
+RUN CGO_ENABLED=1 GOOS=linux go build -ldflags="-s -w" -gcflags=all=-l -o /app/goship-seed ./cmd/seed/main.go
 
 # Install asynq tools
 RUN go install github.com/hibiken/asynq/tools/asynq@latest
@@ -49,8 +56,13 @@ RUN chmod +x /entrypoint.sh
 
 COPY config/config.yaml .
 COPY service-worker.js /service-worker.js
-RUN mkdir pwabuilder-android-wrapper
-COPY pwabuilder-android-wrapper/assetlinks.json pwabuilder-android-wrapper/assetlinks.json 
 COPY static /static
 
+# Below is only used if you need to use PWABuilder to make a native Android app
+# RUN mkdir pwabuilder-android-wrapper
+# COPY pwabuilder-android-wrapper/assetlinks.json pwabuilder-android-wrapper/assetlinks.json 
+
 ENTRYPOINT ["/entrypoint.sh"]
+
+# Clean up any unnecessary files
+RUN apt-get purge -y gcc musl-dev libsqlite3-dev && apt-get autoremove -y && apt-get clean

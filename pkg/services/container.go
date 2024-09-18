@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 
 	"os"
 
@@ -13,10 +14,10 @@ import (
 	"entgo.io/ent/dialect/sql/schema"
 
 	atlas "ariga.io/atlas/sql/schema"
-
 	"github.com/getsentry/sentry-go"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/labstack/echo/v4"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/stripe/stripe-go/v78"
@@ -73,9 +74,6 @@ type Container struct {
 
 	// ORM stores a client to the ORM
 	ORM *ent.Client
-
-	// ML contains the machine learning and AI logic independent of internal logic
-	ML *MLClient
 
 	// Mail stores an email sending client
 	Mail *mailer.MailClient
@@ -151,38 +149,38 @@ func (c *Container) initWeb() {
 
 	c.Web = echo.New()
 	if c.Config.App.Environment == config.EnvProduction {
-		// TODO: below could be centralized in GetConfig?
-		sentryDsn := c.Config.App.SentryDsn
-		if len(sentryDsn) == 0 {
-			log.Fatal().Str("app", string(c.Config.App.Name)).Msg("sentry initialization failed due to empty DSN")
-		}
-		// To initialize Sentry's handler, you need to initialize Sentry itself beforehand
-		if err := sentry.Init(sentry.ClientOptions{
-			Dsn: sentryDsn,
-			BeforeSend: func(event *sentry.Event, hint *sentry.EventHint) *sentry.Event {
-				if event.Level == sentry.LevelError {
-					for _, exception := range event.Exception {
-						if exception.Type == "sentry.usageError" {
-							return nil // Ignore this error
-						}
-					}
-				}
+		// TODO: Haven't set up sentry for GoShip yet
+		// sentryDsn := c.Config.App.SentryDsn
+		// if len(sentryDsn) == 0 {
+		// 	log.Fatal().Str("app", string(c.Config.App.Name)).Msg("sentry initialization failed due to empty DSN")
+		// }
+		// // To initialize Sentry's handler, you need to initialize Sentry itself beforehand
+		// if err := sentry.Init(sentry.ClientOptions{
+		// 	Dsn: sentryDsn,
+		// 	BeforeSend: func(event *sentry.Event, hint *sentry.EventHint) *sentry.Event {
+		// 		if event.Level == sentry.LevelError {
+		// 			for _, exception := range event.Exception {
+		// 				if exception.Type == "sentry.usageError" {
+		// 					return nil // Ignore this error
+		// 				}
+		// 			}
+		// 		}
 
-				if event.Message == "CaptureMessage called with empty message" {
-					return nil // Ignore this error
-				}
+		// 		if event.Message == "CaptureMessage called with empty message" {
+		// 			return nil // Ignore this error
+		// 		}
 
-				return event
-			},
-			// Set TracesSampleRate to 1.0 to capture 100%
-			// of transactions for performance monitoring.
-			// We recommend adjusting this value in production,
-			TracesSampleRate: 0.05, // For dev, because otherwise I use all my sentry errors in days
-			EnableTracing:    true,
-			Release:          "v0.1",
-		}); err != nil {
-			log.Fatal().Err(err).Msg("sentry initialization failed")
-		}
+		// 		return event
+		// 	},
+		// 	// Set TracesSampleRate to 1.0 to capture 100%
+		// 	// of transactions for performance monitoring.
+		// 	// We recommend adjusting this value in production,
+		// 	TracesSampleRate: 0.05, // For dev, because otherwise I use all my sentry errors in days
+		// 	EnableTracing:    true,
+		// 	Release:          "v0.1",
+		// }); err != nil {
+		// 	log.Fatal().Err(err).Msg("sentry initialization failed")
+		// }
 	}
 
 	// Create a zerolog logger instance
@@ -240,49 +238,92 @@ func (c *Container) getProdDBAddr(dbName string) string {
 // initDatabase initializes the database
 // If the environment is set to test, the test database will be used and will be dropped, recreated and migrated
 func (c *Container) initDatabase() {
+	var connection string
 	var err error
 
-	if c.Config.App.Environment == config.EnvProduction {
-		c.Database, err = sql.Open("pgx", c.getProdDBAddr(c.Config.Database.DatabaseNameProd))
+	if c.Config.Database.DbMode == config.DBModeEmbedded {
+		switch c.Config.App.Environment {
+		case config.EnvTest:
+			// TODO: Drop/recreate the DB, if this isn't in memory?
+			connection = c.Config.Database.EmbeddedTestConnection
+		default:
+			connection = c.Config.Database.EmbeddedConnection
+		}
+
+		c.Database, err = openEmbeddedDB(c.Config.Database.EmbeddedDriver, connection)
 		if err != nil {
-			panic(fmt.Sprintf("failed to connect to database: %v", err))
+			panic(err)
 		}
 	} else {
-		c.Database, err = sql.Open("pgx", c.getDBAddr(c.Config.Database.DatabaseNameLocal))
+
+		if c.Config.App.Environment == config.EnvProduction {
+			c.Database, err = sql.Open("pgx", c.getProdDBAddr(c.Config.Database.DatabaseNameProd))
+			if err != nil {
+				panic(fmt.Sprintf("failed to connect to database: %v", err))
+			}
+		} else {
+			c.Database, err = sql.Open("pgx", c.getDBAddr(c.Config.Database.DatabaseNameLocal))
+			if err != nil {
+				panic(fmt.Sprintf("failed to connect to database: %v", err))
+			}
+		}
+
+		// Check if this is a test environment
+		if c.Config.App.Environment == config.EnvTest {
+			// Drop the test database, ignoring errors in case it doesn't yet exist
+			_, _ = c.Database.Exec("DROP DATABASE " + c.Config.Database.TestDatabase)
+
+			// Create the test database
+			if _, err = c.Database.Exec("CREATE DATABASE " + c.Config.Database.TestDatabase); err != nil {
+				panic(fmt.Sprintf("failed to create test database: %v", err))
+			}
+
+			// Connect to the test database
+			if err = c.Database.Close(); err != nil {
+				panic(fmt.Sprintf("failed to close database connection: %v", err))
+			}
+			c.Database, err = sql.Open("pgx", c.getDBAddr(c.Config.Database.TestDatabase))
+			if err != nil {
+				panic(fmt.Sprintf("failed to connect to database: %v", err))
+			}
+		}
+		// Create the pgvector extension
+		_, err = c.Database.Exec("CREATE EXTENSION IF NOT EXISTS vector")
 		if err != nil {
-			panic(fmt.Sprintf("failed to connect to database: %v", err))
+			panic(fmt.Sprintf("failed to enable pgvector: %v", err))
+		}
+	}
+}
+
+// openEmbeddedDB opens a database connection
+func openEmbeddedDB(driver, connection string) (*sql.DB, error) {
+	// Helper to automatically create the directories that the specified sqlite file
+	// should reside in, if one
+	if driver == "sqlite3" {
+		d := strings.Split(connection, "/")
+
+		if len(d) > 1 {
+			path := strings.Join(d[:len(d)-1], "/")
+
+			if err := os.MkdirAll(path, 0755); err != nil {
+				return nil, err
+			}
 		}
 	}
 
-	// Check if this is a test environment
-	if c.Config.App.Environment == config.EnvTest {
-		// Drop the test database, ignoring errors in case it doesn't yet exist
-		_, _ = c.Database.Exec("DROP DATABASE " + c.Config.Database.TestDatabase)
-
-		// Create the test database
-		if _, err = c.Database.Exec("CREATE DATABASE " + c.Config.Database.TestDatabase); err != nil {
-			panic(fmt.Sprintf("failed to create test database: %v", err))
-		}
-
-		// Connect to the test database
-		if err = c.Database.Close(); err != nil {
-			panic(fmt.Sprintf("failed to close database connection: %v", err))
-		}
-		c.Database, err = sql.Open("pgx", c.getDBAddr(c.Config.Database.TestDatabase))
-		if err != nil {
-			panic(fmt.Sprintf("failed to connect to database: %v", err))
-		}
-	}
-	// Create the pgvector extension
-	_, err = c.Database.Exec("CREATE EXTENSION IF NOT EXISTS vector")
-	if err != nil {
-		panic(fmt.Sprintf("failed to enable pgvector: %v", err))
-	}
+	return sql.Open(driver, connection)
 }
 
 // initORM initializes the ORM
 func (c *Container) initORM() {
-	drv := entsql.OpenDB(dialect.Postgres, c.Database)
+	var activeDialect string
+	if c.Config.Database.DbMode == config.DBModeEmbedded {
+		activeDialect = c.Config.Database.EmbeddedDriver
+	} else {
+		activeDialect = dialect.Postgres
+	}
+
+	drv := entsql.OpenDB(activeDialect, c.Database)
 	c.ORM = ent.NewClient(ent.Driver(drv))
 	if err := c.ORM.Schema.Create(
 		context.Background(),
@@ -292,13 +333,9 @@ func (c *Container) initORM() {
 	); err != nil {
 		panic(fmt.Sprintf("failed to create database schema: %v", err))
 	}
-
-	// _, err := c.ORM.ExecContext(context.Background(), "CREATE EXTENSION IF NOT EXISTS vector")
-	// if err != nil {
-	// 	panic(fmt.Sprintf("failed to enable pgvector: %v", err))
-	// }
 }
 
+// TODO: not quite sure why I added the below ent hook. Might be removable for streamlining.
 func renameColumnHook(next schema.Differ) schema.Differ {
 	return schema.DiffFunc(func(current, desired *atlas.Schema) ([]atlas.Change, error) {
 		changes, err := next.Diff(current, desired)

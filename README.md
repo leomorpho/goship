@@ -129,3 +129,8 @@ If you'd like a no-nonesense (or not too much?) starter kit to get your next pro
 - **[S3](https://aws.amazon.com/s3/)** - Host files and images on any S3-compatible service (e.g., Backblaze). 
 - **Redis** - used for task queuing, caching, and SSE events.
   - Currently making optional for single binary deployments
+>>>>>>> main
+
+## WIP Documentation
+ 
+See [goship.run](http://goship.run). NOTE: it's currently being actively developed! Feel free to help ❤️.
