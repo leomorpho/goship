@@ -37,3 +37,8 @@ make watch
 ```
 
 For in-depth info on the architecture of the project, please see the [mikestefanello/pagoda](https://github.com/mikestefanello/pagoda) repo. There are some key differences, but since this was originally a fork, 99% of it still applies. I am working on creating clear and actionable documentation, but that is quite time-consuming, so don't hold your socks.
+
+
+## WIP Documentation
+ 
+See [goship.run](http://goship.run). NOTE: it's currently being actively developed! Feel free to help ❤️.
