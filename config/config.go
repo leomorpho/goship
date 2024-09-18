@@ -23,6 +23,7 @@ const (
 
 type app string
 type environment string
+type dbmode string
 
 const (
 	// EnvLocal represents the local environment
@@ -42,6 +43,12 @@ const (
 
 	// EnvProduction represents the production environment
 	EnvProduction environment = "prod"
+
+	// DBModeEmbedded represents an embedded DB being used as a storage backend
+	DBModeEmbedded dbmode = "embedded"
+
+	// DBModeStandalone represents a standalone DB as being used as a storage backend
+	DBModeStandalone dbmode = "standalone"
 )
 
 // SwitchEnvironment sets the environment variable used to dictate which environment the application is
@@ -62,7 +69,6 @@ type (
 		Database    DatabaseConfig
 		Mail        MailConfig
 		Phone       PhoneConfig
-		ML          MLConfig
 		Recommender RecommenderConfig
 		Storage     StorageConfig
 	}
@@ -96,7 +102,6 @@ type (
 		}
 		EmailVerificationTokenExpiration time.Duration
 		OperationalConstants             OperationalConstants
-		E3Kit                            E3Kit
 		PageSize                         int
 		VapidPublicKey                   string
 		VapidPrivateKey                  string
@@ -128,12 +133,6 @@ type (
 		MaxLikedQuestionHistoryFreePlan                   int
 	}
 
-	E3Kit struct {
-		AppId    string
-		AppKeyId string
-		AppKey   string
-	}
-
 	// CacheConfig stores the cache configuration
 	CacheConfig struct {
 		Hostname     string
@@ -149,6 +148,11 @@ type (
 
 	// DatabaseConfig stores the database configuration
 	DatabaseConfig struct {
+		DbMode                 dbmode
+		EmbeddedDriver         string
+		EmbeddedConnection     string
+		EmbeddedTestConnection string
+		// TODO: eventually separate in-memory (SQLite) and standalone DB configs
 		Hostname          string
 		Port              uint16
 		User              string
@@ -175,11 +179,6 @@ type (
 		SenderID                        string
 		Region                          string
 		ValidationCodeExpirationMinutes int
-	}
-
-	MLConfig struct {
-		WeaviateHost   string
-		WeaviateScheme string
 	}
 
 	RecommenderConfig struct {

@@ -140,7 +140,6 @@ func SeedUsers(cfg *config.Config, client *ent.Client, useS3 bool) error {
 	if alice == nil {
 		// createUser returns nil if user already exists
 		// NOTE: to clean up later, but right now it's the mechanism to make this seeder idempotent (yes, it's ugly, to rework)
-
 		return nil
 	}
 

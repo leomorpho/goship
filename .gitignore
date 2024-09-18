@@ -14,6 +14,7 @@ e2e_tests/test-results
 data/mailpit.db-shm
 data/mailpit.db-wal
 data/mailpit.db
+dbs
 
 # Ignore all JavaScript and CSS files in the static folder and its subdirectories
 /static/**/*.js
