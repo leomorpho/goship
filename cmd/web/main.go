@@ -12,8 +12,6 @@ import (
 
 	"github.com/mikestefanello/pagoda/pkg/routes"
 	"github.com/mikestefanello/pagoda/pkg/services"
-	"github.com/mikestefanello/pagoda/pkg/tasks"
-	"github.com/mikestefanello/pagoda/seeder"
 )
 
 func timeoutMiddleware(next http.Handler, writeTimeout time.Duration) http.Handler {
@@ -69,51 +67,50 @@ func main() {
 		}
 	}()
 
-	// TODO: is it ensured that there is only ever a single scheduler at a time?
-	// Start the scheduler service to queue periodic tasks
-	go func() {
-		if err := c.Tasks.StartScheduler(); err != nil {
-			c.Web.Logger.Fatalf("scheduler shutdown: %v", err)
-		}
-	}()
+	// // Start the scheduler service to queue periodic tasks
+	// go func() {
+	// 	if err := c.Tasks.StartScheduler(); err != nil {
+	// 		c.Web.Logger.Fatalf("scheduler shutdown: %v", err)
+	// 	}
+	// }()
 
-	seeder.RunIdempotentSeeder(c.Config, c.ORM)
+	// seeder.RunIdempotentSeeder(c.Config, c.ORM)
 
-	// Start the scheduled tasks
-	if err := c.Tasks.
-		New(tasks.TypeDeactivateExpiredSubscriptions).
-		Periodic("@every 6h").
-		Timeout(120 * time.Second).
-		Retain(24 * time.Hour).
-		Save(); err != nil {
-		c.Web.Logger.Fatalf("failed to register scheduler task: %v", err)
-	}
-	if err := c.Tasks.
-		New(tasks.TypeDeleteStaleNotifications).
-		Periodic("@every 12h").
-		Timeout(120 * time.Second).
-		Retain(24 * time.Hour).
-		Save(); err != nil {
-		c.Web.Logger.Fatalf("failed to register scheduler task: %v", err)
-	}
-	// NOTE: we run the following task every 30 minutes, but it will check if the same notif type has
-	// not already been sent to profiles.
-	if err := c.Tasks.
-		New(tasks.TypeAllDailyConvoNotifications).
-		Periodic("@every 30m").
-		Timeout(120 * time.Second).
-		Retain(24 * time.Hour).
-		Save(); err != nil {
-		c.Web.Logger.Fatalf("failed to register scheduler task: %v", err)
-	}
-	if err := c.Tasks.
-		New(tasks.TypeEmailUpdates).
-		Periodic("@every 6h").
-		Timeout(30 * time.Minute).
-		Retain(48 * time.Hour).
-		Save(); err != nil {
-		c.Web.Logger.Fatalf("failed to run startup task: %v", err)
-	}
+	// // Start the scheduled tasks
+	// if err := c.Tasks.
+	// 	New(tasks.TypeDeactivateExpiredSubscriptions).
+	// 	Periodic("@every 6h").
+	// 	Timeout(120 * time.Second).
+	// 	Retain(24 * time.Hour).
+	// 	Save(); err != nil {
+	// 	c.Web.Logger.Fatalf("failed to register scheduler task: %v", err)
+	// }
+	// if err := c.Tasks.
+	// 	New(tasks.TypeDeleteStaleNotifications).
+	// 	Periodic("@every 12h").
+	// 	Timeout(120 * time.Second).
+	// 	Retain(24 * time.Hour).
+	// 	Save(); err != nil {
+	// 	c.Web.Logger.Fatalf("failed to register scheduler task: %v", err)
+	// }
+	// // NOTE: we run the following task every 30 minutes, but it will check if the same notif type has
+	// // not already been sent to profiles.
+	// if err := c.Tasks.
+	// 	New(tasks.TypeAllDailyConvoNotifications).
+	// 	Periodic("@every 30m").
+	// 	Timeout(120 * time.Second).
+	// 	Retain(24 * time.Hour).
+	// 	Save(); err != nil {
+	// 	c.Web.Logger.Fatalf("failed to register scheduler task: %v", err)
+	// }
+	// if err := c.Tasks.
+	// 	New(tasks.TypeEmailUpdates).
+	// 	Periodic("@every 6h").
+	// 	Timeout(30 * time.Minute).
+	// 	Retain(48 * time.Hour).
+	// 	Save(); err != nil {
+	// 	c.Web.Logger.Fatalf("failed to run startup task: %v", err)
+	// }
 
 	// Wait for interrupt signal to gracefully shutdown the server with a timeout of 10 seconds.
 	quit := make(chan os.Signal, 1)
