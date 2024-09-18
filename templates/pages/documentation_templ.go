@@ -419,7 +419,7 @@ func GoshipFeatures() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = singleOpenAccordionEntry("DB", "🧪Go Tests and E2E Tests with Playwright", testingContent()).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = singleOpenAccordionEntry("e2eTests", "🧪 Go Tests and E2E Tests with Playwright", testingContent()).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
