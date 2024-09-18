@@ -1,7 +1,7 @@
 http:
   hostname: "localhost"
   port: 8000
-  domain: "http://localhost:8002"
+  domain: "http://localhost:8000"
   readTimeout: "5s"
   writeTimeout: "10s"
   idleTimeout: "2m"
@@ -13,7 +13,7 @@ http:
 
 app:
   name: "GoShip"
-  supportEmail: "info@goship.app"
+  supportEmail: "info@goship.run"
   environment: "local"
   # Change this on any live environments
   encryptionKey: "?E(G+KbPeShVmYq3t6w9z$C&F)J@McQf"
