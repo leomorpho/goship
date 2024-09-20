@@ -116,7 +116,7 @@ func Metatags(page *controller.Page) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<meta name=\"application-name\" content=\"Chérie\"><meta name=\"msapplication-starturl\" content=\"https://cherie.chatbond.app\"><meta name=\"mobile-web-app-capable\" content=\"yes\"><meta name=\"apple-mobile-web-app-capable\" content=\"yes\"><meta name=\"apple-mobile-web-app-status-bar-style\" content=\"black-translucent\"><meta name=\"apple-mobile-web-app-title\" content=\"Chérie\"><link rel=\"apple-touch-startup-image\" href=\"ios-startup.png\"><meta name=\"color-scheme\" content=\"light dark\"><meta name=\"description\" content=\"Chérie is your relationship conversation assist. We specialize on improving intimate relationships using daily actionable question-answer sessions.\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<meta name=\"application-name\" content=\"Goship\"><meta name=\"msapplication-starturl\" content=\"https://cherie.chatbond.app\"><meta name=\"mobile-web-app-capable\" content=\"yes\"><meta name=\"apple-mobile-web-app-capable\" content=\"yes\"><meta name=\"apple-mobile-web-app-status-bar-style\" content=\"black-translucent\"><meta name=\"apple-mobile-web-app-title\" content=\"Goship\"><link rel=\"apple-touch-startup-image\" href=\"ios-startup.png\"><meta name=\"color-scheme\" content=\"light dark\"><meta name=\"description\" content=\"Goship is a Go/HTMX starter kit here to help you get your idea to market before you can sneeze once.\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

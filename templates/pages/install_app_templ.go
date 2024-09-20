@@ -372,9 +372,9 @@ func iPhone() templ.Component {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var20 string
-		templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs("Open Safari on your device and navigate to the Chérie website:")
+		templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs("Open Safari on your device and navigate to the Goship website:")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/install_app.templ`, Line: 136, Col: 73}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/install_app.templ`, Line: 136, Col: 72}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 		if templ_7745c5c3_Err != nil {
@@ -384,7 +384,7 @@ func iPhone() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = screen("https://chatbond-static.s3.us-west-002.backblazeb2.com/cherie/pwa/pwa-install-steps/ios/1-annotated.jpg", "open the Chérie website on safari").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = screen("https://chatbond-static.s3.us-west-002.backblazeb2.com/cherie/pwa/pwa-install-steps/ios/1-annotated.jpg", "open the Goship website on safari").Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -520,9 +520,9 @@ func android() templ.Component {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var27 string
-		templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs("Open Chrome on your device and navigate to the Chérie website:")
+		templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs("Open Chrome on your device and navigate to the Goship website:")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/install_app.templ`, Line: 153, Col: 73}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/install_app.templ`, Line: 153, Col: 72}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 		if templ_7745c5c3_Err != nil {
@@ -532,7 +532,7 @@ func android() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = screen("https://chatbond-static.s3.us-west-002.backblazeb2.com/cherie/pwa/pwa-install-steps/android/1-annotated.jpeg", "open the Chérie website on chrome").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = screen("https://chatbond-static.s3.us-west-002.backblazeb2.com/cherie/pwa/pwa-install-steps/android/1-annotated.jpeg", "open the Goship website on chrome").Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
