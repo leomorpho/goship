@@ -125,10 +125,6 @@ up: ## Start the Docker containers
 	$(DCO_BIN) up -d --remove-orphans
 	sleep 3
 
-.PHONY: stop
-stop: ## Stop the Docker containers
-	$(DCO_BIN) stop
-
 .PHONY: down
 down: ## Stop the Docker containers
 	$(DCO_BIN) down
@@ -137,23 +133,9 @@ down: ## Stop the Docker containers
 down-volume: ## Stop the Docker containers
 	$(DCO_BIN) down --volumes
 
-.PHONY: reseed
-cycle: ## kill and restart entire system
-	make down-volume
-	make up
-	sleep 3
-	make watch
-
 .PHONY: seed
 seed: ## Seed with data (must be clean to begin with or will die)
 	go run cmd/seed/main.go
-
-.PHONY: reseed
-reseed: ## kill everything and reseed
-	make down-volume
-	make up
-	make seed
-	make watch
 
 .PHONY: reset
 reset: ## Rebuild Docker containers to wipe all data
@@ -241,22 +223,6 @@ tailwind-watch: ## Start a Tailwind watcher
 tailwind-compile: ## Compile and minify your CSS for production
 	./tailwindcss -i input.css -o static/output.css --minify
 
-.PHONY: docker-build
-docker-build: ## Build docker container
-	go mod tidy
-	docker build --tag docker-cherie .
-
-.PHONY: docker-push
-docker-push: ## Push new image to registry
-	docker build . -t ghcr.io/leomorpho/fireside:0.0.1
-	docker push ghcr.io/leomorpho/fireside
-
-docker-run-web: ## Run web docker container
-	docker run --env-file .env -p 8002:8002 docker-cherie web
-
-docker-run-worker: ## Run worker docker container
-	docker run --env-file .env.local docker-cherie worker
-
 .PHONY: deploy-cherie
 deploy-goship: ## Deploy new Goship version
 	kamal deploy -c deploy.yml
@@ -288,11 +254,6 @@ endif
 js-reinstall: ## Reinstall all JS dependencies
 	rm -rf node_modules package-lock.json
 	npm install
-
-.PHONY: update
-update: ## Pull latest changes from my improved Pagoda repo
-	git pull pragmatic pragmatic
-	git merge pragmatic/pragmatic
 
 .PHONY: doc
 pkgsite: ## Create pkgsite docs
