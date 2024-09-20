@@ -17,32 +17,29 @@ async function build() {
       .filter((file) => path.extname(file) === ".js")
       .map((file) => path.join(svelteEntrypointsDir, file));
 
-    // Bundle each entry point separately
-    await Promise.all(
-      entryPoints.map(async (entryPoint) => {
-        const fileName = path.basename(entryPoint, path.extname(entryPoint));
-        const svelteResult = await esbuild.build({
-          entryPoints: [entryPoint],
-          mainFields: ["svelte", "browser", "module", "main"],
-          conditions: ["svelte", "browser"],
-          bundle: true,
-          outfile: path.join(outputDir, `${fileName}.js`),
-          minify: true,
-          sourcemap: true,
-          format: "esm",
-          plugins: [
-            sveltePlugin({
-              preprocess: sveltePreprocess({ typescript: true }),
-            }),
-          ],
-          metafile: true,
-        });
-        // Write the metafile to disk and open with https://esbuild.github.io/analyze/
-        await fs.writeFile(
-          path.join(outputDir, `meta_${fileName}.json`),
-          JSON.stringify(svelteResult.metafile)
-        );
-      })
+    console.log("Svelte entry points:", entryPoints);
+    // Bundle all Svelte components into a single file
+    const svelteResult = await esbuild.build({
+      entryPoints: entryPoints,
+      mainFields: ["svelte", "browser", "module", "main"],
+      conditions: ["svelte", "browser"],
+      bundle: true,
+      outfile: path.join(outputDir, "svelte_bundle.js"),
+      minify: true,
+      sourcemap: true,
+      format: "esm",
+      plugins: [
+        sveltePlugin({
+          preprocess: sveltePreprocess({ typescript: true }),
+        }),
+      ],
+      metafile: true,
+    });
+
+    // Write the metafile for Svelte bundle
+    await fs.writeFile(
+      "meta_svelte_bundle.json",
+      JSON.stringify(svelteResult.metafile)
     );
 
     // Bundle vanilla JS or other assets as needed
@@ -57,7 +54,7 @@ async function build() {
 
     // Write the metafile to disk and open with https://esbuild.github.io/analyze/
     await fs.writeFile(
-      "meta_vanilla.json",
+      "meta_vanilla_bundle.json",
       JSON.stringify(vanillaResult.metafile)
     );
 
