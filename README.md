@@ -187,6 +187,30 @@ make help # Shows all the commands you can run
 
 Create a new file in `routes/` and add your route. A route is a standard Echo handler with some added goodies. Once you've added handlers for your route, you can hook it up to the router in `routes/routes.go`, where the route should be registered to be reachable from the web.
 
+
+## Realtime
+
+There is a `realtime` route that is setup to handle SSE connections to any client desiring real-time data. Realtime data is sent in "notifications" which are just custom events with a notification type, some data, and a profile id. The `NotifierRepo` handles subscribing the client to the right channels and pushing new notifications to the client. Notifications can be stored in the DB in case the client is offline and needs to be picked up later when they reconnect - these will be shown in the notification center UI.
+
+Methods for interacting with notifications:
+
+- `PublishNotification` to send a notification to a user. This can optionally store the notification in the DB.
+- `MarkNotificationUnread` to mark a notification as unread.
+- `MarkNotificationRead` to mark a notification as read.
+- `DeleteNotification` to delete a notification.
+- `GetNotifications` to get all notifications for a user.
+
+## PWA Notifications
+
+There are 2 push notification repos for different use cases: 
+- `PwaPushNotificationsRepo`: for sending push notifications to PWAs.
+- `FcmPushNotificationsRepo`: for sending push notifications to native Android and iOS apps.
+
+Both have similar interfaces:
+- `AddPushSubscription`: to add a new push subscription, triggered when the profile turns on PWA notifications in their profile settings.
+- `SendPushNotifications`: to send a push notification to a user. This is generally handled by the `NotifierRepo` after storing a notification in the DB using the `PublishNotification` method. 
+- `DeletePushSubscriptionByEndpoint`: to delete a push subscription by endpoint.
+
 ## Deployment
 
 First, make sure all your env vars in the Kamal file `deploy.yml` are correct. All your vars should be set either in:
