@@ -81,9 +81,6 @@ type Container struct {
 	// Auth stores an authentication client
 	Auth *AuthClient
 
-	//Geo handles all GIS interactions
-	Geo *GeoClient
-
 	// Notifier handles all notifications to clients
 	Notifier *notifierrepo.NotifierRepo
 
