@@ -140,6 +140,52 @@ See [goship.run](https://goship.run). NOTE: it's currently being actively develo
 
 This documentation will eventually be moved to [goship.run](https://goship.run).
 
+## Makefile
+
+The Makefile is the main entry point for the project. It is used to build the project, run the project, and deploy the project.
+
+The following commands are the most useful ones:
+```bash
+make init # Initializes the project
+make watch # Runs the project in watch mode, rebuilding assets as you go (JS, CSS, Templ, etc)
+make test # Runs the tests
+make e2eui # Runs the interactive e2e tests with Playwright # 
+make cover # Shows a Go coverage report of the tests
+
+# DB specific commands
+make ent-new name=YourModelName # Creates a new ent schema file
+make makemigrations # Creates a new migration file
+make ent-gen # Generates the ent code from the schema
+make migrate # Applies migrations
+make inspecterd # Shows you a view of all your tables in a UI
+make schema
+
+# Docker commands
+make up # Starts the docker containers
+make down # Stops the docker containers
+make down-volume # Stops the docker containers and removes the volumes
+make reset # Stops the docker containers and removes the volumes, then rebuilds the docker containers
+
+# Assets
+make build-js # Builds the JS assets
+make watch-js # Watches the JS assets and rebuilds them on change
+make build-css # Builds the CSS assets
+make watch-css # Watches the CSS assets and rebuilds them on change
+
+# Worker commands
+make worker # Starts the worker
+make worker-ui # Will open the terminal to the asynq worker UI
+
+# Stripe (payments)
+make stripe-webhook # Sets up a webhook for stripe for local testing
+
+make help # Shows all the commands you can run
+```
+
+
+## Add a route
+
+Create a new file in `routes/` and add your route. A route is a standard Echo handler with some added goodies. Once you've added handlers for your route, you can hook it up to the router in `routes/routes.go`, where the route should be registered to be reachable from the web.
 
 ## Deployment
 
