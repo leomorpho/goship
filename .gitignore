@@ -17,10 +17,10 @@ data/mailpit.db
 dbs
 
 # Ignore all JavaScript and CSS files in the static folder and its subdirectories
-/static/**/*.js
-/static/**/*.js.map
-/static/**/*.css
-/static/**/*.css.map
+# /static/**/*.js
+# /static/**/*.js.map
+# /static/**/*.css
+# /static/**/*.css.map
 
 
 # Python ------------------------------------------------------------------------------------------
