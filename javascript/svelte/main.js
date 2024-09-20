@@ -13,7 +13,6 @@ const SvelteComponentRegistry = {
   MultiSelectComponent,
   // Mostly from https://github.com/flo-bit/svelte-swiper-cards
   PhotoUploader,
-
   SingleSelect,
   PhoneNumberPicker,
   PwaInstallButton,

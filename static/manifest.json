@@ -1,6 +1,6 @@
 {
-  "name": "Chérie",
-  "short_name": "Chérie",
+  "name": "Goship",
+  "short_name": "Goship",
   "start_url": "/",
   "display": "standalone",
   "description": "Your Relationship Conversation Assist.",
@@ -100,7 +100,7 @@
   "prefer_related_applications": false,
   "shortcuts": [
     {
-      "name": "Chérie",
+      "name": "Goship",
       "url": "/auth/homeFeed",
       "description": "Go to your home feed"
     }
