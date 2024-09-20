@@ -159,8 +159,6 @@ reseed: ## kill everything and reseed
 reset: ## Rebuild Docker containers to wipe all data
 	$(DCO_BIN) down
 	make up
-	
-
 
 .PHONY: init 
 init: ## Set up the repo and run a fully working version of GoShip
@@ -260,13 +258,10 @@ docker-run-worker: ## Run worker docker container
 	docker run --env-file .env.local docker-cherie worker
 
 .PHONY: deploy-cherie
-deploy-cherie: ## Deploy new Chérie version
-	kamal deploy -c config/deploy-cherie.yml
+deploy-goship: ## Deploy new Goship version
+	kamal deploy -c deploy.yml
 
-.PHONY: deploy-amie
-deploy-amie: ## Deploy new Amie version
-	kamal deploy -c config/deploy-amie.yml
-
+# TODO: below is not working, only interactive mode is
 .PHONY: test-e2e
 e2e: ## Run Playwright tests
 	@echo "Running end-to-end tests..."

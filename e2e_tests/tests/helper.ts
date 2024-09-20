@@ -197,15 +197,15 @@ export async function acceptInvitationByLink(
       await pageReceiver.locator("#bottom-navbar-settings-button").click();
       await pageSender.locator("#bottom-navbar-settings-button").click();
     } else {
-      await pageReceiver.getByRole("link", { name: "Logo Chérie" }).click();
+      await pageReceiver.getByRole("link", { name: "Logo Goship" }).click();
 
-      await pageSender.getByRole("link", { name: "Logo Chérie" }).click();
+      await pageSender.getByRole("link", { name: "Logo Goship" }).click();
     }
   }
 }
 
 export async function seeSelfConvo(page) {
-  await page.getByRole("link", { name: "Logo Chérie" }).click();
+  await page.getByRole("link", { name: "Logo Goship" }).click();
 
   await page.getByRole("button", { name: "All Conversations" }).click();
   await expect(page.locator("a").filter({ hasText: "You" })).toBeVisible();
@@ -216,7 +216,7 @@ export async function createDraftAndVerifyExists(
   questionID: number
 ): Promise<string> {
   // Check that user has no drafts right now
-  await page.getByRole("link", { name: "Logo Chérie" }).click();
+  await page.getByRole("link", { name: "Logo Goship" }).click();
 
   await page
     .getByRole("button", { name: "Drafts" })
@@ -242,7 +242,7 @@ export async function createDraftAndVerifyExists(
 
   // Go check out draft in drafts window
   // Check that user has the new draft
-  await page.getByRole("link", { name: "Logo Chérie" }).click();
+  await page.getByRole("link", { name: "Logo Goship" }).click();
 
   await page.getByRole("button", { name: "Drafts" }).click();
   await expect(page.getByText(draftText)).toBeVisible();
@@ -284,7 +284,7 @@ export async function publishQuizAnswers(page, questionID?: number) {
   if (questionID) {
     await page.goto(`${WEBSITE_URL}/auth/questions/${questionID}/quiz-draft`);
   } else {
-    await page.getByRole("link", { name: "Logo Chérie" }).click();
+    await page.getByRole("link", { name: "Logo Goship" }).click();
     await page.locator(".quizQuestion").first().click();
   }
 

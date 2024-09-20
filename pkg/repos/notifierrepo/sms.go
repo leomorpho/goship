@@ -62,7 +62,7 @@ func (s *SMSSender) CreateConfirmationCode(
 		Exec(ctx)
 
 	_, err = s.SendSms(ctx, phoneNumber,
-		fmt.Sprintf("Please confirm your phone number for Chérie, your code is %d", code))
+		fmt.Sprintf("Please confirm your phone number for Goship, your code is %d", code))
 	if err != nil {
 		log.Error().Err(err)
 		return "", err

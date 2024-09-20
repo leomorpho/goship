@@ -50,7 +50,7 @@ Well, I noticed that there were none for Go. Now, I know most Go folks like to b
 
 If you'd like a no-nonesense (or not too much?) starter kit to get your next project to production ASAP, while also using awesome technologies like Go, you've found a suitable starting point!
 
-> **Warning alert!** this project is in active development as I am adding things after first trying them out in prod for [Chérie](https://cherie.chatbond.app/), a relationship app to grow your couple. Note that I would welcome any help to develop this boilerplate ❤️.
+> **Warning alert!** this project is in active development as I am adding things after first trying them out in prod for [Goship](https://cherie.chatbond.app/), a relationship app to grow your couple. Note that I would welcome any help to develop this boilerplate ❤️.
 
 ### Features
 
@@ -129,8 +129,52 @@ If you'd like a no-nonesense (or not too much?) starter kit to get your next pro
 - **[S3](https://aws.amazon.com/s3/)** - Host files and images on any S3-compatible service (e.g., Backblaze). 
 - **Redis** - used for task queuing, caching, and SSE events.
   - Currently making optional for single binary deployments
->>>>>>> main
 
 ## WIP Documentation
  
-See [goship.run](http://goship.run). NOTE: it's currently being actively developed! Feel free to help ❤️.
+See [goship.run](https://goship.run). NOTE: it's currently being actively developed! Feel free to help ❤️.
+
+---
+
+# Temporary Documentation
+
+This documentation will eventually be moved to [goship.run](https://goship.run).
+
+
+## Deployment
+
+First, make sure all your env vars in the Kamal file `deploy.yml` are correct. All your vars should be set either in:
+ 
+- `config/config.yml`: only non-secret ones
+- `deploy.yml`: only non-secret ones
+- `.env`: all secret vars
+
+Then, set the IP of the server host in `deploy.yml`, as well as your image and registry details. Read up on the [kamal documentation](https://kamal-deploy.org) if you get stuck anywhere here. 
+
+### Set up live server
+
+The below command will install docker, build your image, push it to your registry, and then pull it on your remote VPS. If you set up any accessory (cache, standalone DB that is not hosted etc), these will also be deployed.
+
+```bash
+kamal setup -c deploy.yml
+``` 
+
+At this point, your project should be live, and if `128.0.0.1111` is the IP of your VPS, entering that IP in the search bar on your browser should bring up your site.
+
+### HTTPS
+
+Hop into your VPS console.
+
+```bash
+mkdir -p /letsencrypt && touch /letsencrypt/acme.json && chmod 600 /letsencrypt/acme.json
+```
+
+Then locally, run
+
+```bash
+kamal traefik reboot
+```
+
+Your site should now have TLS enabled and you should see the lock icon the search bar.
+
+For reference, the above procedure was taken from [this Kamal issue](https://github.com/basecamp/kamal/discussions/112).
