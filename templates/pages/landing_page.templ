@@ -13,9 +13,10 @@ templ LandingPage(page *controller.Page) {
 			@components.PWAMobileInstallButton(page)
 		}
 		@nativeMobileLoginButton(page)
-		<div class="block lg:hidden">
-			@components.DocsButton(page)
-		</div>
+		// TODO: only show this once documentation is ready
+		// <div class="block lg:hidden">
+		// 	@components.DocsButton(page)
+		// </div>
 		@mobileDarkModeButton()
 	</div>
 	if data, ok := page.Data.(types.LandingPage); ok {

@@ -26,7 +26,8 @@ templ Navbar(page *controller.Page) {
 				if !page.IsIosDevice {
 					@NavbarPWAMobileInstallButton(page)
 				}
-				@DocsButton(page)
+				// TODO: only show this once documentation is ready
+				// @DocsButton(page)
 				if page.IsAuth && page.IsFullyOnboarded {
 					<a
 						hx-get={ page.ToURL("home_feed") }

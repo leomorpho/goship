@@ -24,6 +24,8 @@ This started as a fork of [pagoda](https://github.com/mikestefanello/pagoda), fo
 
 ### Getting Started
 
+Make sure you have `make` and Golang installed on your machine.
+
 To get up and running with GoShip:
 ```bash
 # The below command will:
@@ -130,13 +132,13 @@ If you'd like a no-nonesense (or not too much?) starter kit to get your next pro
 - **Redis** - used for task queuing, caching, and SSE events.
   - Currently making optional for single binary deployments
 
-## WIP Documentation
+<!-- ## WIP Documentation
  
-See [goship.run](https://goship.run). NOTE: it's currently being actively developed! Feel free to help ❤️.
+See [goship.run](https://goship.run). NOTE: it's currently being actively developed! Feel free to help ❤️. -->
 
 ---
 
-# Temporary Documentation
+# Documentation (WIP)
 
 This documentation will eventually be moved to [goship.run](https://goship.run).
 
@@ -182,6 +184,14 @@ make stripe-webhook # Sets up a webhook for stripe for local testing
 make help # Shows all the commands you can run
 ```
 
+## Database
+
+The current options are:
+- Standalone Postgres DB (which you can host anywhere, including locally with Docker)
+  - For free deployments, see [Supabase](https://supabase.com/pricing) or [Neon](https://neon.tech/pricing). There are also other free options available, and if you host each one of your projects on a different DB, you can use the free tier for all your projects!
+- Embedded SQLite DB (which is great for small projects and local development)
+  
+
 ## Starting DB State
 
 To get a look at what tables are available to start off, you can run 
@@ -208,6 +218,7 @@ make ent-gen
 ```
 
 To apply the migrations, either run `make migrate` or do a `make reset` to start from scratch (often times easier, and your test DB should be treated as disposable).
+
 
 ## Add a route
 
@@ -315,6 +326,35 @@ pip install -r requirements.txt
 
 python3 scripts/regen_logo_images.py
 ```
+
+## Drop in any JS App
+
+While the project primarily uses HTMX, it also supports integrating JavaScript applications. The current build process creates two separate bundles:
+1. A single Vanilla JavaScript bundle
+2. A single Svelte bundle
+This approach allows you to incorporate JavaScript functionality alongside the HTMX-driven parts of your application. Here's how it works:
+- The build.mjs script handles the bundling process for both Vanilla JS and Svelte components.
+-Each framework (Vanilla JS and Svelte) is compiled into its own single file bundle.
+-These bundles can be served to the frontend and used where needed in your application.
+
+**Note:** While this method allows for easy integration, it does come with the trade-off of potentially large bundle sizes. Future improvements could involve optimizing the build process to create smaller, component-specific bundles for more efficient loading.
+
+This setup provides flexibility to use JavaScript frameworks alongside HTMX, leveraging the strengths of both approaches in different parts of your application.
+
+Note that any JS framework could be used.
+
+**Note:** Svelte is used for highly interactive components, although I've come to regret this as it is a large framework to bundle and slow down the initial page load. In the future, I plan to remove Svelte and only use HTMX for all components. This would not impact the ability to drop in any JS app, however.
+
+## Playwright E2E Tests
+
+TODO: the test file can be found at `e2e_tests/tests/goship.spec.ts` and is currently still the one from [chérie](https://cherie.chatbond.app/)...I will update it soon!
+
+You can run the Playwright tests with:
+```bash
+make e2eui
+```
+
+NOTE: on older/slower machines, the tests may time out. If so, you can increase the timeout in the test file. I was facing that issue when testing locally on a 2014 Macbook Pro, though have not faced it since running the tests on my M2 Mac. I am no playwright expert too, so perhaps I am missing something.
 
 ## Deployment
 

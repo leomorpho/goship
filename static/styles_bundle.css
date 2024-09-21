@@ -5398,12 +5398,6 @@ details.collapse summary::-webkit-details-marker{
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
 }
 
-.from-red-100{
-  --tw-gradient-from: #FDE8E8 var(--tw-gradient-from-position);
-  --tw-gradient-to: rgb(253 232 232 / 0) var(--tw-gradient-to-position);
-  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
-}
-
 .from-red-200{
   --tw-gradient-from: #FBD5D5 var(--tw-gradient-from-position);
   --tw-gradient-to: rgb(251 213 213 / 0) var(--tw-gradient-to-position);
@@ -5478,10 +5472,6 @@ details.collapse summary::-webkit-details-marker{
 
 .to-purple-900{
   --tw-gradient-to: #4A1D96 var(--tw-gradient-to-position);
-}
-
-.to-violet-300{
-  --tw-gradient-to: #c4b5fd var(--tw-gradient-to-position);
 }
 
 .to-yellow-100{
@@ -5723,20 +5713,12 @@ details.collapse summary::-webkit-details-marker{
   padding-inline-start: 1.25rem;
 }
 
-.pt-1{
-  padding-top: 0.25rem;
-}
-
 .pt-10{
   padding-top: 2.5rem;
 }
 
 .pt-2{
   padding-top: 0.5rem;
-}
-
-.pt-3{
-  padding-top: 0.75rem;
 }
 
 .pt-5{
@@ -6805,12 +6787,6 @@ details.collapse summary::-webkit-details-marker{
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
 }
 
-:is(.dark .dark\:from-red-100\/80){
-  --tw-gradient-from: rgb(253 232 232 / 0.8) var(--tw-gradient-from-position);
-  --tw-gradient-to: rgb(253 232 232 / 0) var(--tw-gradient-to-position);
-  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
-}
-
 :is(.dark .dark\:via-green-200\/80){
   --tw-gradient-to: rgb(188 240 218 / 0)  var(--tw-gradient-to-position);
   --tw-gradient-stops: var(--tw-gradient-from), rgb(188 240 218 / 0.8) var(--tw-gradient-via-position), var(--tw-gradient-to);
@@ -6823,10 +6799,6 @@ details.collapse summary::-webkit-details-marker{
 
 :is(.dark .dark\:to-indigo-400){
   --tw-gradient-to: #8DA2FB var(--tw-gradient-to-position);
-}
-
-:is(.dark .dark\:to-violet-300\/80){
-  --tw-gradient-to: rgb(196 181 253 / 0.8) var(--tw-gradient-to-position);
 }
 
 :is(.dark .dark\:to-yellow-100\/80){
@@ -7091,11 +7063,6 @@ details.collapse summary::-webkit-details-marker{
     margin-bottom: 4rem;
   }
 
-  .sm\:my-3{
-    margin-top: 0.75rem;
-    margin-bottom: 0.75rem;
-  }
-
   .sm\:mb-4{
     margin-bottom: 1rem;
   }
@@ -7241,11 +7208,6 @@ details.collapse summary::-webkit-details-marker{
     margin: 0.5rem;
   }
 
-  .md\:mx-10{
-    margin-left: 2.5rem;
-    margin-right: 2.5rem;
-  }
-
   .md\:mx-5{
     margin-left: 1.25rem;
     margin-right: 1.25rem;
@@ -7254,11 +7216,6 @@ details.collapse summary::-webkit-details-marker{
   .md\:mx-6{
     margin-left: 1.5rem;
     margin-right: 1.5rem;
-  }
-
-  .md\:my-4{
-    margin-top: 1rem;
-    margin-bottom: 1rem;
   }
 
   .md\:me-6{
