@@ -27,7 +27,6 @@ import (
 	"github.com/mikestefanello/pagoda/ent"
 	"github.com/mikestefanello/pagoda/pkg/repos/mailer"
 	"github.com/mikestefanello/pagoda/pkg/repos/notifierrepo"
-	"github.com/mikestefanello/pagoda/pkg/repos/permissions"
 	"github.com/mikestefanello/pagoda/pkg/repos/profilerepo"
 	"github.com/mikestefanello/pagoda/pkg/repos/pubsub"
 	storagerepo "github.com/mikestefanello/pagoda/pkg/repos/storage"
@@ -84,9 +83,6 @@ type Container struct {
 	// Notifier handles all notifications to clients
 	Notifier *notifierrepo.NotifierRepo
 
-	// Permission stores a permission client
-	Permission *permissions.PermissionClient
-
 	// Tasks stores the task client
 	Tasks *TaskClient
 }
@@ -104,7 +100,6 @@ func NewContainer() *Container {
 	c.initNotifier()
 	c.initMail()
 	c.initPaymentProcessor()
-	// c.initPermissions()
 	c.initTasks()
 	return c
 }
@@ -387,36 +382,6 @@ func (c *Container) initNotifier() {
 		pubsubRepo, notificationStorageRepo, pwaPushNotificationsRepo, fcmPushNotificationsRepo, profileRepo.GetCountOfUnseenNotifications)
 }
 
-// initPermissions initializes the permission client
-func (c *Container) initPermissions() {
-
-	adapter, err := permissions.NewPostgresCasbinAdapter(c.databaseDSN)
-	if err != nil {
-		panic(fmt.Sprintf("failed to create adapter: %v", err))
-	}
-	modelText := `
-	[request_definition]
-	r = sub, dom, obj, act
-
-	[policy_definition]
-	p = sub, dom, obj, act
-
-	[role_definition]
-	g = _, _, _
-
-	[policy_effect]
-	e = some(where (p.eft == allow))
-
-	[matchers]
-	m = g(r.sub, p.sub, r.dom) && r.dom == p.dom && r.obj == p.obj && r.act == p.act
-	`
-	p, err := permissions.NewPermissionClient(modelText, adapter, true)
-	if err != nil {
-		panic(fmt.Sprintf("failed to create permission client: %v", err))
-	}
-	c.Permission = p
-}
-
 // initMail initialize the mail client
 func (c *Container) initMail() {
 	var err error
@@ -435,18 +400,6 @@ func (c *Container) initMail() {
 
 func (c *Container) initPaymentProcessor() {
 	stripe.Key = c.Config.App.PrivateStripeKey
-	// TODO
-	// if c.Config.App.Environment == config.EnvProduction {
-	// 	params := &stripe.WebhookEndpointParams{
-	// 		URL: stripe.String("https://example.com/my/webhook/endpoint"),
-	// 		EnabledEvents: stripe.StringSlice([]string{
-	// 			"payment_intent.payment_failed",
-	// 			"payment_intent.succeeded",
-	// 		}),
-	// 	}
-	// 	endpoint, _ := webhookendpoint.New(params)
-
-	// }
 }
 
 // initTasks initializes the task client

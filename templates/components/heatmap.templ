@@ -4,6 +4,10 @@ import (
 	"github.com/mikestefanello/pagoda/pkg/types"
 )
 
+/*
+HeatmapComponent is a component that displays a heatmap of the number of interactions per day. It is used in Chérie Companion App
+but not in Goship. Left here for reference. It needs to consume the countsByDay slice of types.CountByDay.
+*/
 templ HeatmapComponent(countsByDay []types.CountByDay) {
 	<div class=" w-screen md:w-full md:overflow-hidden">
 		<div

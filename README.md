@@ -182,13 +182,39 @@ make stripe-webhook # Sets up a webhook for stripe for local testing
 make help # Shows all the commands you can run
 ```
 
+## Starting DB State
+
+To get a look at what tables are available to start off, you can run 
+
+```bash
+make schema
+```
+
+or go to `ent/schema` and see the declared schemas. Note that ent generates a lot of code. Do not remove it from git. In fact, make sure to keep it there. 
+
+To create a new schema, do:
+```bash
+make ent-new name=YourSchemaName
+```
+
+Then generate the migrations
+```bash
+make makemigrations
+```
+
+Then generate the ent generated code to interact with your new schema in Go:
+```bash
+make ent-gen
+```
+
+To apply the migrations, either run `make migrate` or do a `make reset` to start from scratch (often times easier, and your test DB should be treated as disposable).
 
 ## Add a route
 
 Create a new file in `routes/` and add your route. A route is a standard Echo handler with some added goodies. Once you've added handlers for your route, you can hook it up to the router in `routes/routes.go`, where the route should be registered to be reachable from the web.
 
 
-## Realtime
+## Realtime and Notifications
 
 There is a `realtime` route that is setup to handle SSE connections to any client desiring real-time data. Realtime data is sent in "notifications" which are just custom events with a notification type, some data, and a profile id. The `NotifierRepo` handles subscribing the client to the right channels and pushing new notifications to the client. Notifications can be stored in the DB in case the client is offline and needs to be picked up later when they reconnect - these will be shown in the notification center UI.
 
@@ -200,6 +226,19 @@ Methods for interacting with notifications:
 - `DeleteNotification` to delete a notification.
 - `GetNotifications` to get all notifications for a user.
 
+Note that actual storage of notifications in the DB is handled by `NotificationStorageRepo`.
+
+## Notification Permissions
+
+The `NotificationSendPermissionRepo` handles the permission logic for sending notifications to a user. It is used to determine if a user has granted permission to send notifications to them and lives at `pkg/repos/notifierrepo/permissions.go`.
+You can mostly leave this alone, but if you need to add a new permission platform (e.g. a new push notification service), you may need to add a new permission here.
+
+## Planned Notifications
+
+The `PlannedNotificationsRepo` handles the logic for sending notifications at a planned time and lives at `pkg/repos/notifierrepo/planned_notifications.go`. The repo does not send any notifications, but rather sets up the DB storage for scheduled notifications. It also contains a method to clean up old notifications. But both the sending and deletion methods need to be called as tasks. Two examples are the `TypeAllDailyConvoNotifications` and `TypeEmailUpdates` tasks, as well as the `TypeDeleteStaleNotifications` task, which are commented out in the `cmd/web/main.go` file.
+
+The algorithm used to determine best time to send notifications is very primitive. Feel free to improve it! (or I will eventually, though it's low priority)
+
 ## PWA Notifications
 
 There are 2 push notification repos for different use cases: 
@@ -210,6 +249,72 @@ Both have similar interfaces:
 - `AddPushSubscription`: to add a new push subscription, triggered when the profile turns on PWA notifications in their profile settings.
 - `SendPushNotifications`: to send a push notification to a user. This is generally handled by the `NotifierRepo` after storing a notification in the DB using the `PublishNotification` method. 
 - `DeletePushSubscriptionByEndpoint`: to delete a push subscription by endpoint.
+
+## Profile Repo
+
+The `ProfileRepo` handles all the profile logic and lives at `pkg/repos/profilerepo/profilerepo.go`. It contains basic CRUD methods for profiles, as well as some helper methods for getting friends, updating profile info, etc.
+
+There is extensive "friendship" logic in the repo, which is currently not used in the app. It is left over from [Chérie](https://cherie.chatbond.app/) as a demo. Feel free to delete these methods if you don't need them!
+
+- `GetFriends`: to get all friends for a profile. This is a demo as there is no friends feature in the app.
+- `AreProfilesFriends`: to check if two profiles are friends. This is a demo as there is no friends feature in the app.
+- `LinkProfilesAsFriends`: to link two profiles as friends. This is a demo as there is no friends feature in the app.
+- `UnlinkProfilesAsFriends`: to unlink two profiles as friends. This is a demo as there is no friends feature in the app.
+- `GetProfileByID`: to get a profile by ID.
+- `GetCountOfUnseenNotifications`: to get the count of unseen notifications for a profile.
+- `GetPhotosByProfileByID`: to get the photos for a profile by ID.
+- `GetProfilePhotoThumbnailURL`: to get the thumbnail URL for a profile's photo by ID.
+- `SetProfilePhoto`: to set the profile photo for a profile by ID.
+- `UploadPhoto`: to upload a photo for a profile by ID.
+- `UploadImageSizes`: to upload image sizes for a photo by ID.
+- `DeletePhoto`: to delete a photo by ID.
+- `DeleteUserData`: to delete a user's data by ID. This should be updated to delete all new models that may not cascade delete and is used in the settings to delete a user's data and account.
+- `IsProfileFullyOnboarded`: to check if a profile is fully onboarded. This is used in the onboarding flow to check if the profile has completed the onboarding process. Edit as needed. On startup, a non-onboarded profile is redirected to the onboarding page.
+
+Note that a method `EntProfileToDomainObject` is used to convert the ent profile object to a domain profile object, which is a more generic object that is used throughout the app. Generally, domain objects are preferred over ent objects as they are more generic and are not tied to a specific ORM.
+
+
+## File Uploads
+
+The `StorageClient` handles all the file storage logic and lives at `pkg/repos/storage/storagerepo.go`. It uses minio under the hood to handle the file uploads with AWS S3 API, which means you can easily swap out the storage backend to any S3-compatible service. 
+
+The following methods are available:
+- `CreateBucket`: to create a new bucket.
+- `UploadFile`: to upload a new file.
+- `DeleteFile`: to delete a file.
+- `GetPresignedURL`: to get a presigned URL for a file.
+- `GetImageObjectFromFile`: to get an image object from a file.
+- `GetImageObjectsFromFiles`: to get image objects from a list of files.
+
+## Paid/Free Subscriptions
+
+The `SubscriptionsRepo` handles the subscription logic and lives at `pkg/repos/subscriptions/subscriptions.go`. It uses Stripe under the hood to handle the subscription logic. If you'd like to see the stripe webhooks, they live at `pkg/routes/payments.go`.
+
+**Note:** currently, the only type of subscription implemented is a monthly subscription that is either paid or free. Feel free to expand on this!
+
+The following methods are available:
+- `CreateSubscription`: to create a new subscription.
+- `DeactivateExpiredSubscriptions`: to deactivate all expired monthly subscriptions.
+- `UpdateToPaidPro`: to update a subscription to the pro plan.
+- `UpdateToFree`: to update a subscription to the free plan.
+- `GetCurrentlyActiveProduct`: to get the currently active product for a profile.
+- `CancelWithGracePeriod`: to cancel a subscription with a grace period.
+- `CancelOrRenew`: to cancel a subscription or renew it.
+
+
+## Regenerate Logo Image Assets 
+
+There is a python script in `scripts/regen_logo_images.py` that should be run when the logo in `static/logo.png` is updated. 
+This will regenerate the logo assets for different app icons and the favicon. It will also regenerate the correct iOS and Android app icons and place them in the `static/ios-wrapper/` and `static/android-wrapper/` directories. Note that for iOS it will remove alpha transparency and make the background black (as apple requires).
+
+```bash
+cd scripts
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+
+python3 scripts/regen_logo_images.py
+```
 
 ## Deployment
 
