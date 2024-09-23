@@ -393,3 +393,156 @@ kamal traefik reboot
 Your site should now have TLS enabled and you should see the lock icon the search bar.
 
 For reference, the above procedure was taken from [this Kamal issue](https://github.com/basecamp/kamal/discussions/112).
+
+## Future Work
+
+### Environment Management
+
+Improve the experience with handling config and environment variables. Currently, there is an `.env` file with secrets, which can be of the form `PAGODA_STORAGE_S3ACCESSKEY=123` and then in `config.yml` it is under:
+```yml
+pagoda:
+  storage:
+    s3accesskey: 123
+```
+
+And in `config.go` it is defined as:
+```go
+type Config struct {
+  Pagoda struct {
+    Storage struct {
+      S3accesskey string 
+    }
+  }
+}
+```
+
+This is fine for simple cases but can quickly be confusing. It would be nice to have a more robust env management system, perhaps one that can auto-generate env vars for you in the `.env` and `config.yml` files, so that no human error is introduced, leading the developer to confusion trying to figure out what is going on.
+
+### Code generation
+
+#### Scaffold Generator
+
+This is a CLI command that will generate a route, model, and view for you. It's just at the idea stage and would be a great feature to have. A lot of time goes into writing boilerplate code for each new route. Something like:
+
+```bash
+goship generate scaffold Post title:string content:text
+```
+
+##### Generated Model:
+```go
+// ent/schema/post.go
+package schema
+
+type Post struct {
+  ent.Schema
+}
+
+func (Post) Mixin() []ent.Mixin {
+	return []ent.Mixin{
+		TimeMixin{},
+	}
+}
+
+func (Post) Fields() []ent.Field {
+  return []ent.Field{
+		field.String("title"),
+    field.String("content"),
+	}
+}
+
+func (UsPoster) Edges() []ent.Edge {
+	return nil
+}
+```
+
+##### Route
+```go
+// app/controllers/post_controller.go
+package routes
+
+type postRoute struct {}
+
+func NewPostRoute(
+	ctr controller.Controller,
+) postRoute {
+	return postRoute{
+		ctr:                            ctr,
+	}
+}
+
+func (p *postRoute) Index(ctx echo.Context) {
+    // List all posts
+}
+
+func (p *postRoute) Show(ctx echo.Context) {
+    // Show a specific post
+}
+
+func (p *postRoute) New(ctx echo.Context) {
+    // Render form to create new post
+}
+
+func (p *postRoute) Create(ctx echo.Context) {
+    // Logic to create a new post
+}
+
+func (p *postRoute) Edit(ctx echo.Context) {
+    // Render form to edit post
+}
+
+func (p *postRoute) Update(ctx echo.Context) {
+    // Logic to update a post
+}
+
+func (p *postRoute) Destroy(ctx echo.Context) {
+    // Logic to delete a post
+}
+```
+
+##### Generated Routes:
+
+The routes will be automatically added to the router:
+```go
+postRoute := NewPostRoute(ctr)
+g.GET("/posts", postRoute.Index).Name = "posts.index"
+g.GET("/posts/:id", postRoute.Show).Name = "posts.show"
+g.GET("/posts/new", postRoute.New).Name = "posts.new"
+g.POST("/posts", postRoute.Create).Name = "posts.create"
+g.GET("/posts/:id/edit", postRoute.Edit).Name = "posts.edit"
+g.POST("/posts/:id", postRoute.Update).Name = "posts.update"
+g.DELETE("/posts/:id", postRoute.Destroy).Name = "posts.destroy"
+```
+
+##### Generated views
+```go
+package pages
+
+import (
+	"github.com/mikestefanello/pagoda/pkg/controller"
+	"github.com/mikestefanello/pagoda/pkg/types"
+	"github.com/mikestefanello/pagoda/templates/components"
+)
+
+templ PostsIndex(page *controller.Page) {
+}
+
+templ PostsShow(page *controller.Page) {
+}
+
+templ PostsNew(page *controller.Page) {
+}
+
+templ PostsEdit(page *controller.Page) {
+}
+
+templ PostsCreate(page *controller.Page) {
+}
+
+templ PostsUpdate(page *controller.Page) {
+}
+
+templ PostsDestroy(page *controller.Page) {
+}
+
+##### Generate Data Struct
+```
