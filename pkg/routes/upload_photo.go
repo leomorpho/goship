@@ -9,7 +9,6 @@ import (
 	"github.com/mikestefanello/pagoda/ent"
 	"github.com/mikestefanello/pagoda/pkg/context"
 	"github.com/mikestefanello/pagoda/pkg/controller"
-	"github.com/mikestefanello/pagoda/pkg/repo"
 	"github.com/mikestefanello/pagoda/pkg/repos/profilerepo"
 	storagerepo "github.com/mikestefanello/pagoda/pkg/repos/storage"
 	"github.com/mikestefanello/pagoda/templates/layouts"
@@ -74,12 +73,12 @@ func (p *uploadPhoto) Post(ctx echo.Context) error {
 	}
 
 	// Validate and process the image
-	err = repo.ValidateAndProcessImage(file)
+	err = ValidateAndProcessImage(file)
 	if err != nil {
 		// Handle specific errors returned by ValidateAndProcessImage
-		if errors.Is(err, repo.ErrInvalidMimeType) || errors.Is(err, repo.ErrInvalidFileExtension) {
+		if errors.Is(err, ErrInvalidMimeType) || errors.Is(err, ErrInvalidFileExtension) {
 			return echo.NewHTTPError(http.StatusBadRequest, "Invalid file type")
-		} else if errors.Is(err, repo.ErrImageProcessing) {
+		} else if errors.Is(err, ErrImageProcessing) {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Error processing image")
 		} else {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())

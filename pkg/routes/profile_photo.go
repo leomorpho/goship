@@ -3,12 +3,15 @@ package routes
 import (
 	"errors"
 	"fmt"
+	"mime/multipart"
 	"net/http"
+	"path/filepath"
+	"strings"
+	"time"
 
 	"github.com/mikestefanello/pagoda/ent"
 	"github.com/mikestefanello/pagoda/pkg/context"
 	"github.com/mikestefanello/pagoda/pkg/controller"
-	"github.com/mikestefanello/pagoda/pkg/repo"
 	"github.com/mikestefanello/pagoda/pkg/repos/profilerepo"
 	storagerepo "github.com/mikestefanello/pagoda/pkg/repos/storage"
 	"github.com/mikestefanello/pagoda/templates/layouts"
@@ -73,13 +76,13 @@ func (p *currProfilePhoto) Post(ctx echo.Context) error {
 	}
 
 	// Validate and process the image
-	err = repo.ValidateAndProcessImage(file)
+	err = ValidateAndProcessImage(file)
 	ctx.Logger().Error(err)
 	if err != nil {
 		// Handle specific errors returned by ValidateAndProcessImage
-		if errors.Is(err, repo.ErrInvalidMimeType) || errors.Is(err, repo.ErrInvalidFileExtension) {
+		if errors.Is(err, ErrInvalidMimeType) || errors.Is(err, ErrInvalidFileExtension) {
 			return echo.NewHTTPError(http.StatusBadRequest, "Invalid file type")
-		} else if errors.Is(err, repo.ErrImageProcessing) {
+		} else if errors.Is(err, ErrImageProcessing) {
 			return echo.NewHTTPError(http.StatusInternalServerError, "Error processing image")
 		} else {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
@@ -109,4 +112,58 @@ func (p *currProfilePhoto) Post(ctx echo.Context) error {
 	// msg.Success(ctx, "Successfully uploaded photo.")
 
 	return p.ctr.RenderJSON(ctx, nil)
+}
+
+var (
+	ErrInvalidMimeType      = errors.New("invalid MIME type")
+	ErrInvalidFileExtension = errors.New("invalid file extension")
+	ErrImageProcessing      = errors.New("error processing image")
+)
+
+func ValidateAndProcessImage(fileHeader *multipart.FileHeader) error {
+	// TODO: need to do many other checks for file upload security: https://portswigger.net/web-security/file-upload
+
+	// Define allowed MIME types
+	allowedMimeTypes := map[string]bool{
+		"image/jpeg": true,
+		"image/webp": true,
+		"image/png":  true,
+		"image/gif":  true,
+	}
+
+	// Define allowed file extensions
+	allowedExtensions := map[string]bool{
+		".jpg":  true,
+		".jpeg": true,
+		".webp": true,
+		".png":  true,
+		".gif":  true,
+	}
+
+	// Check MIME type
+	contentType := fileHeader.Header.Get("Content-Type")
+	if !allowedMimeTypes[contentType] {
+		return ErrInvalidMimeType
+	}
+
+	// Check file extension
+	extension := strings.ToLower(filepath.Ext(fileHeader.Filename))
+	if !allowedExtensions[extension] {
+		return ErrInvalidFileExtension
+	}
+
+	// Open the file
+	file, err := fileHeader.Open()
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	// TODO: verify that the file actually contains an image
+	return nil
+}
+
+// daysAgo returns a time.Time object for x days ago.
+func daysAgo(x int) time.Time {
+	return time.Now().UTC().AddDate(0, 0, -x)
 }
