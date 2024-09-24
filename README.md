@@ -81,7 +81,7 @@ See [goship.run](https://goship.run).
 |   |-- routes # Think of these as the controllers in a traditional MVC framework
 |   |-- services # Services on the Container struct
 |   |-- tasks # Task definitions
-|   |-- tests # Utility functions for testing, TODO: move
+|   |-- tests # Utility functions for testing
 |   |-- types # Struct types
 |-- templates # HTML templates
 |-- ent # Ent ORM, contains the schema for the DB as well as the generated code from the schema. Always commit this to git.

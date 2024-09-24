@@ -5,7 +5,7 @@ import (
 
 	"github.com/mikestefanello/pagoda/pkg/domain"
 	"github.com/mikestefanello/pagoda/pkg/repos/emailsmanager"
-	"github.com/mikestefanello/pagoda/pkg/repos/tester"
+	"github.com/mikestefanello/pagoda/pkg/tests"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -16,7 +16,7 @@ func TestEmailListSubscribtion(t *testing.T) {
 			- SSESubscribe
 			- ConfirmSubscription
 	*/
-	client, ctx := tester.CreateTestContainerPostgresEntClient(t)
+	client, ctx := tests.CreateTestContainerPostgresEntClient(t)
 	defer client.Close()
 
 	emailRepo := emailsmanager.NewEmailSubscriptionRepo(client)

@@ -16,7 +16,7 @@ import (
 	"github.com/mikestefanello/pagoda/pkg/repos/profilerepo"
 	storagerepo "github.com/mikestefanello/pagoda/pkg/repos/storage"
 	"github.com/mikestefanello/pagoda/pkg/repos/subscriptions"
-	"github.com/mikestefanello/pagoda/pkg/repos/tester"
+	"github.com/mikestefanello/pagoda/pkg/tests"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -27,12 +27,12 @@ func init() {
 }
 
 func TestGetProfileByID(t *testing.T) {
-	client, ctx := tester.CreateTestContainerPostgresEntClient(t)
+	client, ctx := tests.CreateTestContainerPostgresEntClient(t)
 	defer client.Close()
 
 	// Create users.
-	user1 := tester.CreateUser(ctx, client, "User", "user1@example.com", "password", true)
-	user2 := tester.CreateUser(ctx, client, "User", "user2@example.com", "password", true)
+	user1 := tests.CreateUser(ctx, client, "User", "user1@example.com", "password", true)
+	user2 := tests.CreateUser(ctx, client, "User", "user2@example.com", "password", true)
 
 	profileRepo := profilerepo.NewProfileRepo(client, storagerepo.NewMockStorageClient(), nil)
 
@@ -60,13 +60,13 @@ func TestGetProfileByID(t *testing.T) {
 }
 
 func TestGetProfileFriends(t *testing.T) {
-	client, ctx := tester.CreateTestContainerPostgresEntClient(t)
+	client, ctx := tests.CreateTestContainerPostgresEntClient(t)
 	defer client.Close()
 
 	// Create users
-	user1 := tester.CreateUser(ctx, client, "Jo Bandi", "jo@gmail.com", "password", true)
-	user2 := tester.CreateUser(ctx, client, "Joanne Bandi", "joane@gmail.com", "password", true)
-	user3 := tester.CreateUser(ctx, client, "James Bond", "james007@gmail.com", "password", true)
+	user1 := tests.CreateUser(ctx, client, "Jo Bandi", "jo@gmail.com", "password", true)
+	user2 := tests.CreateUser(ctx, client, "Joanne Bandi", "joane@gmail.com", "password", true)
+	user3 := tests.CreateUser(ctx, client, "James Bond", "james007@gmail.com", "password", true)
 
 	// Create profiles
 	profileRepo := profilerepo.NewProfileRepo(client, nil, nil)
@@ -84,14 +84,14 @@ func TestGetProfileFriends(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Link profiles as friends
-	tester.LinkFriends(ctx, client, profile1.ID, []int{profile2.ID})
+	tests.LinkFriends(ctx, client, profile1.ID, []int{profile2.ID})
 
 	friends, err := profileRepo.GetFriends(ctx, profile1.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(friends))
 	assert.Equal(t, profile2.ID, friends[0].ID)
 
-	tester.LinkFriends(ctx, client, profile1.ID, []int{profile3.ID})
+	tests.LinkFriends(ctx, client, profile1.ID, []int{profile3.ID})
 	friends, err = profileRepo.GetFriends(ctx, profile1.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, 2, len(friends))
@@ -110,14 +110,14 @@ func TestGetProfileFriends(t *testing.T) {
 }
 
 func TestLinkAndUnlinkProfilesAsFriends(t *testing.T) {
-	client, ctx := tester.CreateTestContainerPostgresEntClient(t)
+	client, ctx := tests.CreateTestContainerPostgresEntClient(t)
 	defer client.Close()
 
 	profileRepo := profilerepo.NewProfileRepo(client, nil, nil)
 
 	// Create two users and profiles
-	user1 := tester.CreateUser(ctx, client, "User1", "user1@example.com", "password", true)
-	user2 := tester.CreateUser(ctx, client, "User2", "user2@example.com", "password", true)
+	user1 := tests.CreateUser(ctx, client, "User1", "user1@example.com", "password", true)
+	user2 := tests.CreateUser(ctx, client, "User2", "user2@example.com", "password", true)
 
 	profile1, err := profileRepo.CreateProfile(
 		ctx, user1, "bio1",
@@ -165,7 +165,7 @@ func TestUploadImageSizes(t *testing.T) {
 	mockStorage := storagerepo.NewMockStorageClient()
 
 	// Create an instance of ProfileRepo using the mock storage client
-	client, ctx := tester.CreateTestContainerPostgresEntClient(t) // Adjust this to match your actual container creation logic
+	client, ctx := tests.CreateTestContainerPostgresEntClient(t) // Adjust this to match your actual container creation logic
 	defer client.Close()
 
 	profileRepo := profilerepo.NewProfileRepo(client, mockStorage, nil)
@@ -211,7 +211,7 @@ func TestUploadImageSizes(t *testing.T) {
 	// mockStorage.AssertExpectations(t)
 }
 func TestDeletePhoto(t *testing.T) {
-	client, ctx := tester.CreateTestContainerPostgresEntClient(t) // Adjust this to match your actual container creation logic
+	client, ctx := tests.CreateTestContainerPostgresEntClient(t) // Adjust this to match your actual container creation logic
 	defer client.Close()
 
 	mockStorage := storagerepo.NewMockStorageClient()
@@ -256,7 +256,7 @@ func TestDeletePhoto(t *testing.T) {
 	mockStorage.
 		On("UploadFile", mock.Anything, mock.Anything, mock.Anything).Return(&filestorageObject2.ID, nil).Once()
 
-	user1 := tester.CreateUser(ctx, client, "TestUser1", "test1@example.com", "password", true)
+	user1 := tests.CreateUser(ctx, client, "TestUser1", "test1@example.com", "password", true)
 
 	profile1, err := profileRepo.CreateProfile(ctx, user1, "Test bio 1", time.Now().AddDate(-30, 0, 0), nil, nil)
 	assert.NoError(t, err)
@@ -311,7 +311,7 @@ func TestDeletePhoto(t *testing.T) {
 }
 
 func TestSetProfilePhoto(t *testing.T) {
-	client, ctx := tester.CreateTestContainerPostgresEntClient(t) // Adjust this to match your actual container creation logic
+	client, ctx := tests.CreateTestContainerPostgresEntClient(t) // Adjust this to match your actual container creation logic
 	defer client.Close()
 
 	mockStorage := storagerepo.NewMockStorageClient()
@@ -346,7 +346,7 @@ func TestSetProfilePhoto(t *testing.T) {
 		Return(&filestorageObject.ID, nil).
 		Twice() // For thumbnail and preview
 
-	user1 := tester.CreateUser(ctx, client, "TestUser1", "test1@example.com", "password", true)
+	user1 := tests.CreateUser(ctx, client, "TestUser1", "test1@example.com", "password", true)
 
 	profile, err := profileRepo.CreateProfile(ctx, user1, "Test bio 1", time.Now().AddDate(-30, 0, 0), nil, nil)
 	assert.NoError(t, err)
@@ -369,14 +369,14 @@ func TestDeleteUserData(t *testing.T) {
 		are deleted in DB through cascading.
 		This can absolutely be expended (AND SHOULD!)
 	*/
-	client, ctx := tester.CreateTestContainerPostgresEntClient(t)
+	client, ctx := tests.CreateTestContainerPostgresEntClient(t)
 	defer client.Close()
 
 	// Create users.
-	user1 := tester.CreateUser(ctx, client, "User", "user1@example.com", "password", true)
-	user2 := tester.CreateUser(ctx, client, "User", "user2@example.com", "password", true)
+	user1 := tests.CreateUser(ctx, client, "User", "user1@example.com", "password", true)
+	user2 := tests.CreateUser(ctx, client, "User", "user2@example.com", "password", true)
 
-	user3 := tester.CreateUser(ctx, client, "James Bond", "james007@gmail.com", "password", true)
+	user3 := tests.CreateUser(ctx, client, "James Bond", "james007@gmail.com", "password", true)
 
 	// Create profiles for users with different genders.
 	profileRepo := profilerepo.NewProfileRepo(client, storagerepo.NewMockStorageClient(), nil)
@@ -398,7 +398,7 @@ func TestDeleteUserData(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Link profiles as friends
-	tester.LinkFriends(ctx, client, profile1.ID, []int{profile3.ID})
+	tests.LinkFriends(ctx, client, profile1.ID, []int{profile3.ID})
 
 	// Create subcription then delete it (mimicking user cancelling before
 	// deleting, this is enforced in the deletion flow).

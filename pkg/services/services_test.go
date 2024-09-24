@@ -30,7 +30,7 @@ func TestMain(m *testing.M) {
 
 	// Create a test user
 	var err error
-	if usr, err = tests.CreateUser(c.ORM); err != nil {
+	if usr, err = tests.CreateRandomUser(c.ORM); err != nil {
 		panic(err)
 	}
 

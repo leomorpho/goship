@@ -6,7 +6,7 @@ import (
 
 	"github.com/jackc/pgx/stdlib"
 	"github.com/mikestefanello/pagoda/config"
-	"github.com/mikestefanello/pagoda/pkg/repos/tester"
+	"github.com/mikestefanello/pagoda/pkg/tests"
 	"github.com/mikestefanello/pagoda/seeder"
 )
 
@@ -17,7 +17,7 @@ func init() {
 
 // TestSeeder tests the seeder code, confirming that it runs.
 func TestSeeder(t *testing.T) {
-	client, _ := tester.CreateTestContainerPostgresEntClient(t)
+	client, _ := tests.CreateTestContainerPostgresEntClient(t)
 	defer client.Close()
 
 	config := config.Config{}

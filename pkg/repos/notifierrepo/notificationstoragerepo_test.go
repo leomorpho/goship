@@ -7,17 +7,17 @@ import (
 	"github.com/mikestefanello/pagoda/pkg/domain"
 	"github.com/mikestefanello/pagoda/pkg/repos/notifierrepo"
 	"github.com/mikestefanello/pagoda/pkg/repos/profilerepo"
-	"github.com/mikestefanello/pagoda/pkg/repos/tester"
+	"github.com/mikestefanello/pagoda/pkg/tests"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNotifications(t *testing.T) {
-	client, ctx := tester.CreateTestContainerPostgresEntClient(t)
+	client, ctx := tests.CreateTestContainerPostgresEntClient(t)
 	defer client.Close()
 
 	// Create users
-	user1 := tester.CreateUser(ctx, client, "Jo Bandi", "jo@gmail.com", "password", true)
-	user2 := tester.CreateUser(ctx, client, "Ba Babagaya", "ba@gmail.com", "password", true)
+	user1 := tests.CreateUser(ctx, client, "Jo Bandi", "jo@gmail.com", "password", true)
+	user2 := tests.CreateUser(ctx, client, "Ba Babagaya", "ba@gmail.com", "password", true)
 
 	// Create profiles
 	notificationsRepo := notifierrepo.NewNotificationStorageRepo(client)

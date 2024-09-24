@@ -11,7 +11,7 @@ import (
 	"github.com/mikestefanello/pagoda/pkg/repos/profilerepo"
 	storagerepo "github.com/mikestefanello/pagoda/pkg/repos/storage"
 	"github.com/mikestefanello/pagoda/pkg/repos/subscriptions"
-	"github.com/mikestefanello/pagoda/pkg/repos/tester"
+	"github.com/mikestefanello/pagoda/pkg/tests"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -24,11 +24,11 @@ func convertToMap(pl []domain.NotificationPermissionPlatform) map[string]bool {
 	return platformMap
 }
 func TestGetPermissions(t *testing.T) {
-	client, ctx := tester.CreateTestContainerPostgresEntClient(t)
+	client, ctx := tests.CreateTestContainerPostgresEntClient(t)
 	defer client.Close()
 
 	// Create user and profile.
-	user1 := tester.CreateUser(ctx, client, "User", "user1@example.com", "password", true)
+	user1 := tests.CreateUser(ctx, client, "User", "user1@example.com", "password", true)
 	subscriptionsRepo := subscriptions.NewSubscriptionsRepo(client, 10, 10)
 	profileRepo := profilerepo.NewProfileRepo(client, storagerepo.NewMockStorageClient(), subscriptionsRepo)
 	notifSendPermissionRepo := notifierrepo.NewNotificationSendPermissionRepo(client)
@@ -110,11 +110,11 @@ func TestGetPermissions(t *testing.T) {
 }
 
 func TestCreatePermission(t *testing.T) {
-	client, ctx := tester.CreateTestContainerPostgresEntClient(t)
+	client, ctx := tests.CreateTestContainerPostgresEntClient(t)
 	defer client.Close()
 
 	// Create user and profile.
-	user1 := tester.CreateUser(ctx, client, "User", "user1@example.com", "password", true)
+	user1 := tests.CreateUser(ctx, client, "User", "user1@example.com", "password", true)
 	subscriptionsRepo := subscriptions.NewSubscriptionsRepo(client, 10, 10)
 	profileRepo := profilerepo.NewProfileRepo(client, storagerepo.NewMockStorageClient(), subscriptionsRepo)
 
@@ -176,11 +176,11 @@ func TestCreatePermission(t *testing.T) {
 }
 
 func TestDeletePermission(t *testing.T) {
-	client, ctx := tester.CreateTestContainerPostgresEntClient(t)
+	client, ctx := tests.CreateTestContainerPostgresEntClient(t)
 	defer client.Close()
 
 	// Create user and profile.
-	user1 := tester.CreateUser(ctx, client, "User", "user1@example.com", "password", true)
+	user1 := tests.CreateUser(ctx, client, "User", "user1@example.com", "password", true)
 	subscriptionsRepo := subscriptions.NewSubscriptionsRepo(client, 10, 10)
 	profileRepo := profilerepo.NewProfileRepo(client, storagerepo.NewMockStorageClient(), subscriptionsRepo)
 

@@ -15,10 +15,10 @@ func init() {
 // // We can generate a dummy email for udpates with TestSendUpdateEmail,
 // // go to http://localhost:8026/ to see the emails in Mailpit.
 // func TestSendUpdateEmailCommitted(t *testing.T) {
-// 	client, ctx := tester.CreateTestContainerPostgresEntClient(t)
+// 	client, ctx := tests.CreateTestContainerPostgresEntClient(t)
 // 	defer client.Close()
 
-// 	qaRepo, err := repo.NewQARepo(client, tester.NewMockStorageClient(), nil, &config.AppConfig{})
+// 	qaRepo, err := repo.NewQARepo(client, tests.NewMockStorageClient(), nil, &config.AppConfig{})
 // 	assert.NoError(t, err)
 
 // 	c := services.NewContainer()
@@ -58,12 +58,12 @@ func init() {
 // }
 
 // func TestSendUpdateEmailDating(t *testing.T) {
-// 	client, ctx := tester.CreateTestContainerPostgresEntClient(t)
+// 	client, ctx := tests.CreateTestContainerPostgresEntClient(t)
 // 	defer client.Close()
 // 	assert.Equal(t, 2, 2)
 // 	assert.Equal(t, 1, 1)
 
-// 	qaRepo, err := repo.NewQARepo(client, tester.NewMockStorageClient(), nil, &config.AppConfig{})
+// 	qaRepo, err := repo.NewQARepo(client, tests.NewMockStorageClient(), nil, &config.AppConfig{})
 // 	assert.NoError(t, err)
 
 // 	c := services.NewContainer()
@@ -109,7 +109,7 @@ func TestSendUpdateNotifsForSeededProfiles(t *testing.T) {
 	// t.Skip("Skipping test in automated testing environment")
 
 	// const NUM_PEOPLE_TO_GENERATE_FOR = 3
-	// client, ctx := tester.CreateTestContainerPostgresEntClient(t)
+	// client, ctx := tests.CreateTestContainerPostgresEntClient(t)
 	// defer client.Close()
 
 	// config := config.Config{}

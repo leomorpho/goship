@@ -13,7 +13,7 @@ import (
 	"github.com/mikestefanello/pagoda/pkg/domain"
 	"github.com/mikestefanello/pagoda/pkg/repos/profilerepo"
 	"github.com/mikestefanello/pagoda/pkg/repos/subscriptions"
-	"github.com/mikestefanello/pagoda/pkg/repos/tester"
+	"github.com/mikestefanello/pagoda/pkg/tests"
 )
 
 func init() {
@@ -22,11 +22,11 @@ func init() {
 }
 
 func TestGetCurrentlyActiveProduct(t *testing.T) {
-	client, ctx := tester.CreateTestContainerPostgresEntClient(t)
+	client, ctx := tests.CreateTestContainerPostgresEntClient(t)
 	defer client.Close()
 
 	// Create users
-	user1 := tester.CreateUser(ctx, client, "Jo Bandi", "jo@gmail.com", "password", true)
+	user1 := tests.CreateUser(ctx, client, "Jo Bandi", "jo@gmail.com", "password", true)
 
 	// Create pofilesr
 	profileRepo := profilerepo.NewProfileRepo(client, nil, nil)
@@ -90,12 +90,12 @@ func TestGetCurrentlyActiveProduct(t *testing.T) {
 }
 
 func TestDeactivateExpiredSubscriptions(t *testing.T) {
-	client, ctx := tester.CreateTestContainerPostgresEntClient(t)
+	client, ctx := tests.CreateTestContainerPostgresEntClient(t)
 	defer client.Close()
 
 	// Create users
-	user1 := tester.CreateUser(ctx, client, "Jo Bandi", "jo@gmail.com", "password", true)
-	user2 := tester.CreateUser(ctx, client, "Boris Yelstin", "boris@gmail.com", "password", true)
+	user1 := tests.CreateUser(ctx, client, "Jo Bandi", "jo@gmail.com", "password", true)
+	user2 := tests.CreateUser(ctx, client, "Boris Yelstin", "boris@gmail.com", "password", true)
 
 	// Create pofilesr
 	profileRepo := profilerepo.NewProfileRepo(client, nil, nil)
@@ -146,11 +146,11 @@ func TestDeactivateExpiredSubscriptions(t *testing.T) {
 }
 
 func TestStripeCustomerIDs(t *testing.T) {
-	client, ctx := tester.CreateTestContainerPostgresEntClient(t)
+	client, ctx := tests.CreateTestContainerPostgresEntClient(t)
 	defer client.Close()
 
 	// Create users
-	user1 := tester.CreateUser(ctx, client, "Jo Bandi", "jo@gmail.com", "password", true)
+	user1 := tests.CreateUser(ctx, client, "Jo Bandi", "jo@gmail.com", "password", true)
 
 	// Create pofilesr
 	profileRepo := profilerepo.NewProfileRepo(client, nil, nil)
@@ -171,12 +171,12 @@ func TestStripeCustomerIDs(t *testing.T) {
 }
 
 func TestCancelWithGracePeriod(t *testing.T) {
-	client, ctx := tester.CreateTestContainerPostgresEntClient(t)
+	client, ctx := tests.CreateTestContainerPostgresEntClient(t)
 	defer client.Close()
 
 	// Create users
-	user1 := tester.CreateUser(ctx, client, "Jo Bandi", "jo@gmail.com", "password", true)
-	user2 := tester.CreateUser(ctx, client, "Boris Yelstin", "boris@gmail.com", "password", true)
+	user1 := tests.CreateUser(ctx, client, "Jo Bandi", "jo@gmail.com", "password", true)
+	user2 := tests.CreateUser(ctx, client, "Boris Yelstin", "boris@gmail.com", "password", true)
 
 	// Create pofilesr
 	profileRepo := profilerepo.NewProfileRepo(client, nil, nil)
@@ -259,12 +259,12 @@ func TestCancelWithGracePeriod(t *testing.T) {
 }
 
 func TestCancelOrRenew(t *testing.T) {
-	client, ctx := tester.CreateTestContainerPostgresEntClient(t)
+	client, ctx := tests.CreateTestContainerPostgresEntClient(t)
 	defer client.Close()
 
 	// Create users
-	user1 := tester.CreateUser(ctx, client, "Jo Bandi", "jo@gmail.com", "password", true)
-	user2 := tester.CreateUser(ctx, client, "Boris Yelstin", "boris@gmail.com", "password", true)
+	user1 := tests.CreateUser(ctx, client, "Jo Bandi", "jo@gmail.com", "password", true)
+	user2 := tests.CreateUser(ctx, client, "Boris Yelstin", "boris@gmail.com", "password", true)
 
 	// Create pofilesr
 	profileRepo := profilerepo.NewProfileRepo(client, nil, nil)

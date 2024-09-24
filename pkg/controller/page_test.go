@@ -31,7 +31,7 @@ func TestNewPage(t *testing.T) {
 	assert.False(t, p.Cache.Enabled)
 
 	ctx, _ = tests.NewContext(c.Web, "/abc?def=123")
-	usr, err := tests.CreateUser(c.ORM)
+	usr, err := tests.CreateRandomUser(c.ORM)
 	require.NoError(t, err)
 	ctx.Set(context.AuthenticatedUserKey, usr)
 	ctx.Set(echomw.DefaultCSRFConfig.ContextKey, "csrf")
