@@ -1,4 +1,7 @@
 #!/bin/bash
+# This firewall script allows access to the following ports:  
+# - 443: HTTPS
+# - 22: SSH
 
 # Enable UFW and set default rules
 sudo ufw default deny incoming

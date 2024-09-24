@@ -1,4 +1,6 @@
 #!/bin/bash
+# This firewall script allows access to the following ports:
+# - 22: SSH
 
 # Reset UFW to default settings
 sudo ufw reset

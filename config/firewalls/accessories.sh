@@ -1,4 +1,8 @@
 #!/bin/bash
+# This firewall script allows access to the following ports:
+# - 6379: Redis
+# - 8080: AsyncMon
+# - 22: SSH
 
 YOUR_LAPTOP_IP="192.000.0.000" # SET YOUR LAPTOP IP
 

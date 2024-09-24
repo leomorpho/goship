@@ -54,93 +54,56 @@ If you'd like a no-nonesense (or not too much?) starter kit to get your next pro
 
 > **Warning alert!** this project is in active development as I am adding things after first trying them out in prod for [Goship](https://cherie.chatbond.app/), a relationship app to grow your couple. Note that I would welcome any help to develop this boilerplate ❤️.
 
-### Features
-
-#### 🌩 Realtime
-- Support for HTMX SSE extension
-- Can be used with vanilla JS
-
-#### 📬 Email Sending
-- Support for SMTP and Resend API
-- Pre-made templates for account activation, password reset, and newsletter.
-
-#### 💸 Payments
-- Stripe integration for monthly subscriptions
-- Internal subscription management
-
-#### 🏗 Background Tasks
-- Offload heavy tasks to background
-- Realtime or scheduled
-
-#### 🔔 Notifications
-- Real-time or scheduled
-- Supports push notifications to PWA, native iOS, and native Android
-
-#### 🔐 Auth Done For You
-- Email/Password logins
-- Ready-made private user area
-
-#### 📂 File Uploads with AWS APIs
-- Internal management of uploaded files
-- Host files and images on any S3 compatible service (e.g. Backblaze)
-- Pre-signed URLs!
-
-#### 📱 Mobile Ready App
-- Fully PWA-ready with internal FCM and push subscriptions management
-- IOS native wrapper with push notifications and payments
-- Pre-signed URLs!
-- Styled with mobile/tablet/desktop in mind
-
-#### 💅 Components and Styles
-- Light + Dark mode
-- Many components available (HTMX, AlpineJS, Hyperscript)
-- 20+ themes with DaisyUI
-
-#### 🪂 Drop-in any JS App
-- Designed for island architecture. Drop in any JS app and take advantage of already built infra
-- Currently has SvelteJS and VanillaJS build step and static file serving
-
-#### 🛢 AI-ready Database Layer
-- Postgres support (i.e. Supabase, Neon etc)
-- Vector-ready (PGVector integrated) for your AI/ML applications!
-
-#### 🧪 Go Tests and E2E Tests with Playwright
-- Go tests with automatic setup/teardown of DB container
-- Playwright integration tests to make sure you don't break your previously working UIs!
-
-#### 🚀 Deploy Anywhere. Easily.
-- Deploy from bare metal to Cloud VMs with Kamal
-- Single-command deploy after quick setup
-
-### Tech Stack
-
-#### Backend
-- **[Echo](https://echo.labstack.com/)** - High-performance, extensible, minimalist Go web framework.
-- **[Ent](https://entgo.io/)** - Simple yet powerful ORM for modeling and querying data.
-- **[Asynq](https://github.com/hibiken/asynq)** - Simple, reliable, and efficient distributed task queue in Go.
-- **[Stripe](https://stripe.com/)** - Payments solution.
-
-#### Frontend
-- **[HTMX](https://htmx.org/)** - Build modern user interfaces with minimal JavaScript.
-- **[Templ](https://templ.build/)** - A powerful type-safe Go templating language.
-- **[Tailwind CSS](https://tailwindcss.com/)** - A utility-first CSS framework for rapid implementation.
-- **[Hyperscript](https://hyperscript.org/)** - A lightweight JavaScript framework to sprinkle localized logic and state.
-#### Storage
-- **Postgres** - Host your DB on Supabase or any other hosting platform compatible with Postgres.
-  - Currently making optional, with **SQLite** as replacement for single binary deployments
-- **[S3](https://aws.amazon.com/s3/)** - Host files and images on any S3-compatible service (e.g., Backblaze). 
-- **Redis** - used for task queuing, caching, and SSE events.
-  - Currently making optional for single binary deployments
-
-<!-- ## WIP Documentation
+### Features && Tech Stack
  
-See [goship.run](https://goship.run). NOTE: it's currently being actively developed! Feel free to help ❤️. -->
+See [goship.run](https://goship.run). 
 
 ---
 
 # Documentation (WIP)
 
-This documentation will eventually be moved to [goship.run](https://goship.run).
+## File Structure
+```bash
+|-- cmd
+|   |-- web # Web server
+|   |-- worker # Async worker
+|   |-- seed # Seeder
+|-- config # Config files where the non-secret config vars are stored and the config go struct is defined
+|-- pkg # Package imports
+|   |-- context # Context package to handle context across the app
+|   |-- controller # Controller package to handle requests and responses
+|   |-- domain # Domain objects that are used throughout the app, these should be specific to your app/project
+|   |-- funcmap # Custom template functions
+|   |-- htmx # HTMX lifecycle helpers
+|   |-- middleware # Middleware for the app
+|   |-- msg # Show custom messages in the UI, TODO: move
+|   |-- repos # Repositories
+|   |-- routes # Think of these as the controllers in a traditional MVC framework
+|   |-- services # Services on the Container struct
+|   |-- tasks # Task definitions
+|   |-- tests # Utility functions for testing, TODO: move
+|   |-- types # Struct types
+|-- templates # HTML templates
+|-- ent # Ent ORM, contains the schema for the DB as well as the generated code from the schema. Always commit this to git.
+
+# Everything else is not Go-specific
+|-- deploy.yml # Kamal deployment file
+|-- docker-compose.yml # Docker compose file for running the project locally with Docker Desktop
+|-- e2e_tests # Playwright E2E tests
+|-- scripts # Useful scripts
+|-- static # Static files
+|-- javascript # Any javascript app can be dropped here. JS and CSS will be built and bundled into a single file. It is currently set up solely for Vanilla JS and Svelte.
+|-- build.mjs # Build script for the JS defined in `./javascript` 
+|-- .env # Secret environment variables
+|-- .kamal # Kamal hooks you can use to run commands in the project during deployment
+|-- .github # Github actions and secrets
+|-- .gitignore # Files to ignore when committing
+|-- tailwind.config.js # Tailwind config
+|-- tsconfig.json # Typescript config 
+|-- Procfile # Defines the commands to run the project in watch mode
+|-- service-worker.js # Service worker for the PWA
+|-- pwabuilder-ios-wrapper # PWA iOS wrapper. Use as a guide for push notifications. 
+```
 
 ## Makefile
 
@@ -394,6 +357,16 @@ Your site should now have TLS enabled and you should see the lock icon the searc
 
 For reference, the above procedure was taken from [this Kamal issue](https://github.com/basecamp/kamal/discussions/112).
 
+### Firewall
+
+There are some sample firewall scripts in `config/firewalls/` to help you get started. They make use of `ufw` so make sure that is installed on your system. 
+
+The worker firewall should block all ports by default except for SSH and internal network traffic.
+
+The web app firewall should block all ports by default except for SSH, HTTPS, and internal network traffic.
+
+The accessories firewall should block all ports by default, though if using Asynq, you should allow 8080 (Asynq UI) to your specific IP.
+
 ## Future Work
 
 ### Environment Management
@@ -515,6 +488,7 @@ g.DELETE("/posts/:id", postRoute.Destroy).Name = "posts.destroy"
 
 ##### Generated views
 ```go
+// templates/posts.templ
 package pages
 
 import (
@@ -543,6 +517,17 @@ templ PostsUpdate(page *controller.Page) {
 
 templ PostsDestroy(page *controller.Page) {
 }
-
-##### Generate Data Struct
 ```
+##### Generate Type Data Struct
+
+```go
+// types/post.go
+package types
+
+type Post struct {
+  Title string
+  Content string
+}
+```
+
+
