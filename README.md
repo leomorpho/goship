@@ -76,7 +76,6 @@ See [goship.run](https://goship.run).
 |   |-- funcmap # Custom template functions
 |   |-- htmx # HTMX lifecycle helpers
 |   |-- middleware # Middleware for the app
-|   |-- msg # Show custom messages in the UI, TODO: move
 |   |-- repos # Repositories
 |   |-- routes # Think of these as the controllers in a traditional MVC framework
 |   |-- services # Services on the Container struct
@@ -187,6 +186,15 @@ To apply the migrations, either run `make migrate` or do a `make reset` to start
 
 Create a new file in `routes/` and add your route. A route is a standard Echo handler with some added goodies. Once you've added handlers for your route, you can hook it up to the router in `routes/routes.go`, where the route should be registered to be reachable from the web.
 
+## Set Action Messages
+
+Following an action (POST/DELETE/GET/etc), a msg can be shown to the user. For example, a success message can shown with `msg.Success("An email confirmation was sent!")` upon user registration. The following message types are currently available:
+- success
+- info
+- warning
+- danger
+
+See `pkg/repos/msg/msg.go` for more info.
 
 ## Realtime and Notifications
 

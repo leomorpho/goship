@@ -5,16 +5,15 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/labstack/echo-contrib/session"
+	"github.com/labstack/echo/v4"
 	"github.com/mikestefanello/pagoda/ent"
 	"github.com/mikestefanello/pagoda/pkg/context"
-	"github.com/mikestefanello/pagoda/pkg/msg"
+	"github.com/mikestefanello/pagoda/pkg/repos/msg"
 	"github.com/mikestefanello/pagoda/pkg/repos/profilerepo"
 	"github.com/mikestefanello/pagoda/pkg/repos/subscriptions"
 	"github.com/mikestefanello/pagoda/pkg/services"
 	"github.com/rs/zerolog/log"
-
-	"github.com/labstack/echo-contrib/session"
-	"github.com/labstack/echo/v4"
 )
 
 // LoadAuthenticatedUser loads the authenticated user, if one, and stores in context
