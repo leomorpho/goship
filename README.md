@@ -306,6 +306,12 @@ pip install -r requirements.txt
 python3 scripts/regen_logo_images.py
 ```
 
+## Run Tasks
+
+Currently, tasks are run using [asynq](https://github.com/hibiken/asynq). This unfortunately requires [redis](https://redis.io/) to be running. This can make deployment a bit trickier as it means you will need at least 3 VPS with Kamal (except if I'm missing something), as you will need one for the web app, one for the worker, and one for the cache/queue. This is far from ideal for small projects, and [pagoda](https://github.com/mikestefanello/pagoda)'s author decided to use [backlite](https://github.com/mikestefanello/backlite), a tool he created to use SQLite as the task queue. I have not gone around to pulling these changes in yet, and I am hesitant at this point as I have multiple projects running in prod, and only 1 VPS running a cache that is serving all my projects...which means that I don't have a huge incentive to add this in. 
+
+If you'd like to change asynq to backlite, you can refer [to this pagoda PR](https://github.com/mikestefanello/pagoda/pull/72/files) to bring the changes in your goship instance.
+
 ## Drop in any JS App
 
 While the project primarily uses HTMX, it also supports integrating JavaScript applications. The current build process creates two separate bundles:
