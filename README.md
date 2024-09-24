@@ -146,6 +146,14 @@ make stripe-webhook # Sets up a webhook for stripe for local testing
 make help # Shows all the commands you can run
 ```
 
+## General Architecture
+
+For in-depth info on the architecture of the project, please see the [mikestefanello/pagoda](https://github.com/mikestefanello/pagoda) repo. There are some key differences, but since this was originally a fork, 99% of it still applies. 
+
+The most important aspects to note are:
+- The `Container` struct is instantiated when the app starts up and is used to pass dependencies around the app, specifically core services like `Logger`, `Database`, `ORM`, `Cache`, etc.
+- Routes are defined in `routes/routes.go` and are registered to the `Echo` framework. Generally, any logic that alters the DB should be done in the `repos` layer so that it is easily testable, and can be used by other routes. A route will generally have a `Component`, which is a Templ component defined in `templates/pages/` that represents the view.
+
 ## Database
 
 The current options are:
@@ -403,7 +411,9 @@ This is fine for simple cases but can quickly be confusing. It would be nice to 
 
 #### Scaffold Generator
 
-This is a CLI command that will generate a route, model, and view for you. It's just at the idea stage and would be a great feature to have. A lot of time goes into writing boilerplate code for each new route. Something like:
+This is a CLI command that will generate a route, model, and view for you. It's just at the idea stage and would be a great feature to have. A lot of time goes into writing boilerplate code for each new route. Ideally, it supports generating templ/htmx routes and JSON routes.
+
+Example:
 
 ```bash
 goship generate scaffold Post title:string content:text
