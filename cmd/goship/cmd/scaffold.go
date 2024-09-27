@@ -199,6 +199,12 @@ func generateTypeStructs(modelName string, fieldsData []FieldType) {
 		}
 	}
 
+	// Collect the list of imports from the map
+	var importList []string
+	for imp := range imports {
+		importList = append(importList, imp)
+	}
+
 	// Create the form struct template
 	formTemplate := `package types
 
@@ -232,12 +238,6 @@ type {{.ModelName}}ViewData struct {
 	// Create a function map to pass to the template
 	funcMap := template.FuncMap{
 		"getPascalCase": getPascalCase,
-	}
-
-	// Collect the list of imports from the map
-	var importList []string
-	for imp := range imports {
-		importList = append(importList, imp)
 	}
 
 	// Use Go templating to inject data into the form struct template
@@ -546,15 +546,39 @@ func generateTemplates(modelName string, fieldsData []FieldType) {
 	// Create the templates directory if it doesn't exist
 	os.MkdirAll(templateDir, os.ModePerm)
 
+	// Create a map to track required imports
+	imports := map[string]bool{
+		"fmt": true,
+		"github.com/mikestefanello/pagoda/pkg/controller":       true,
+		"github.com/mikestefanello/pagoda/pkg/types":            true,
+		"github.com/mikestefanello/pagoda/templates/components": true,
+	}
+
+	// Check field types and add required imports
+	for _, field := range fieldsData {
+		switch field.GoType {
+		case "time.Time":
+			imports["time"] = true
+			// TODO: expand for new usecases
+		}
+	}
+
+	// Collect the list of imports from the map
+	var importList []string
+	for imp := range imports {
+		importList = append(importList, imp)
+	}
+
 	// Define the template for the .templ scaffold
 	const templateContent = `package pages
 
+{{- if .Imports }}
 import (
-	"fmt"
-	"github.com/mikestefanello/pagoda/pkg/controller"
-	"github.com/mikestefanello/pagoda/pkg/types"
-	"github.com/mikestefanello/pagoda/templates/components"
+	{{- range .Imports }}
+	"{{ . }}"
+	{{- end }}
 )
+{{- end }}
 
 // Template for {{.ModelNamePascal}} views
 
@@ -654,6 +678,7 @@ templ {{.ModelNamePascal}}Form(page *controller.Page, route string) {
 		"ModelNamePascal": modelNamePascal, // PascalCase model name
 		"ModelNameLower":  strings.ToLower(modelName),
 		"Fields":          fieldsData,
+		"Imports":         importList,
 	}
 
 	// Execute the template with data and write to file
