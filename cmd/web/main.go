@@ -10,7 +10,7 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/mikestefanello/pagoda/pkg/routes"
+	"github.com/mikestefanello/pagoda/pkg/routing/routes"
 	"github.com/mikestefanello/pagoda/pkg/services"
 )
 
