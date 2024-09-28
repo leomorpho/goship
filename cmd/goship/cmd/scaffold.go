@@ -13,7 +13,6 @@ import (
 	"text/template"
 	"unicode"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/spf13/cobra"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
@@ -34,7 +33,6 @@ var scaffoldCmd = &cobra.Command{
 		// TODO: convert fields to be a list of structs instead of list of map
 		// Get fields from existing schema
 		fields, err := parseFields(modelName)
-		spew.Dump(fields)
 		if err != nil {
 			fmt.Printf("Error reading schema: %v\n", err)
 			return
@@ -585,7 +583,7 @@ import (
 templ {{.ModelNamePascal}}Index(page *controller.Page) {
 	if data, ok := page.Data.(types.{{.ModelNamePascal}}IndexData); ok {
 		<h1>{{.ModelNamePascal}} Index</h1>
-		<a href="/{{.ModelNameLower}}/create">Create New {{.ModelNamePascal}}</a>
+		<a hx-get={ page.ToURL("{{.ModelNameLower}}.create") }>Create New {{.ModelNamePascal}}</a>
 		<table>
 			<thead>
 				<tr>
@@ -602,8 +600,8 @@ templ {{.ModelNamePascal}}Index(page *controller.Page) {
 						<td>{ {{toStringRepresentation "item" .GoType .Name}} }</td>
 						{{end}}
 						<td>
-							<a href={templ.SafeURL(fmt.Sprintf("/{{$.ModelNameLower}}/%d", item.ID))}>View</a>
-							<a href={templ.SafeURL(fmt.Sprintf("/{{$.ModelNameLower}}/%d/edit", item.ID))}>Edit</a>
+							<a hx-get={ page.ToURL("{{.ModelNameLower}}.show", item.ID) }>View</a>
+							<a hx-get={ page.ToURL("{{.ModelNameLower}}.edit", item.ID) }>Edit</a>
 						</td>
 					</tr>
 				}
@@ -618,8 +616,8 @@ templ {{.ModelNamePascal}}Show(page *controller.Page) {
 		{{range .Fields}}
 		<p>{{.Name}}: { {{toStringRepresentation "data.Item" .GoType .Name}} }</p>
 		{{end}}
-		<a href={templ.SafeURL(fmt.Sprintf("/{{.ModelNameLower}}/%d/edit", data.Item.ID))}>Edit</a>
-		<a href="/{{.ModelNameLower}}">Back to List</a>
+		<a hx-get={ page.ToURL("{{.ModelNameLower}}.edit", data.Item.ID) }>Edit</a>
+		<a hx-get={ page.ToURL("{{.ModelNameLower}}.index") }>Back to List</a>
 	}
 }
 templ {{.ModelNamePascal}}Create(page *controller.Page) {
@@ -630,7 +628,7 @@ templ {{.ModelNamePascal}}Create(page *controller.Page) {
 templ {{.ModelNamePascal}}Edit(page *controller.Page) {
 	if data, ok := page.Data.(types.{{.ModelNamePascal}}ViewData); ok {
 		<h1>Edit {{.ModelNamePascal}}</h1>
-		@{{.ModelNamePascal}}Form(page, fmt.Sprintf("/{{.ModelNameLower}}/%d", data.Item.ID))
+		@{{.ModelNamePascal}}Form(page, page.ToURL("{{.ModelNameLower}}.update", data.Item.ID))
 	}
 }
 
@@ -638,7 +636,7 @@ templ {{.ModelNamePascal}}Form(page *controller.Page, route string) {
 	if form, ok := page.Form.(*types.{{.ModelNamePascal}}Form); ok {
 		<form 
 			method="POST"
-			action={ templ.URL(page.ToURL(route)) }
+			action={ templ.URL(route) }
 		>
 			{{range .Fields}}
 			<div>
