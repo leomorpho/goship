@@ -581,55 +581,91 @@ import (
 // Template for {{.ModelNamePascal}} views
 
 templ {{.ModelNamePascal}}Index(page *controller.Page) {
-	if data, ok := page.Data.(types.{{.ModelNamePascal}}IndexData); ok {
-		<h1>{{.ModelNamePascal}} Index</h1>
-		<a hx-get={ page.ToURL("{{.ModelNameLower}}.create") }>Create New {{.ModelNamePascal}}</a>
-		<table>
-			<thead>
-				<tr>
-					{{range .Fields}}
-					<th>{{getPascalCase .Name}}</th>
-					{{end}}
-					<th>Actions</th>
-				</tr>
-			</thead>
-			<tbody>
-				for _, item := range data.Items {
+	<div 
+		id="{{.ModelNameLower}}Views"
+		hx-target="#{{.ModelNameLower}}Views"
+		hx-select="#{{.ModelNameLower}}Views"
+		hx-swap="outerHTML show:window:top"
+		hx-indicator="next #page-loading"
+		hx-push-url="true"
+	>
+		if data, ok := page.Data.(types.{{.ModelNamePascal}}IndexData); ok {
+			<h1>{{.ModelNamePascal}} Index</h1>
+			<a hx-get={ page.ToURL("{{.ModelNameLower}}.create") }>Create New {{.ModelNamePascal}}</a>
+			<table>
+				<thead>
 					<tr>
 						{{range .Fields}}
-						<td>{ {{toStringRepresentation "item" .GoType .Name}} }</td>
+						<th>{{getPascalCase .Name}}</th>
 						{{end}}
-						<td>
-							<a hx-get={ page.ToURL("{{.ModelNameLower}}.show", item.ID) }>View</a>
-							<a hx-get={ page.ToURL("{{.ModelNameLower}}.edit", item.ID) }>Edit</a>
-						</td>
+						<th>Actions</th>
 					</tr>
-				}
-			</tbody>
-		</table>
-	}
+				</thead>
+				<tbody>
+					for _, item := range data.Items {
+						<tr>
+							{{range .Fields}}
+							<td>{ {{toStringRepresentation "item" .GoType .Name}} }</td>
+							{{end}}
+							<td>
+								<a hx-get={ page.ToURL("{{.ModelNameLower}}.show", item.ID) }>View</a>
+								<a hx-get={ page.ToURL("{{.ModelNameLower}}.edit", item.ID) }>Edit</a>
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		}
+	</div>
 }
 
 templ {{.ModelNamePascal}}Show(page *controller.Page) {
-	if data, ok := page.Data.(types.{{.ModelNamePascal}}ViewData); ok {
-		<h1>{{.ModelNamePascal}} Details</h1>
-		{{range .Fields}}
-		<p>{{.Name}}: { {{toStringRepresentation "data.Item" .GoType .Name}} }</p>
-		{{end}}
-		<a hx-get={ page.ToURL("{{.ModelNameLower}}.edit", data.Item.ID) }>Edit</a>
-		<a hx-get={ page.ToURL("{{.ModelNameLower}}.index") }>Back to List</a>
-	}
+	<div 
+		id="{{.ModelNameLower}}Views"
+		hx-target="#{{.ModelNameLower}}Views"
+		hx-select="#{{.ModelNameLower}}Views"
+		hx-swap="outerHTML show:window:top"
+		hx-indicator="next #page-loading"
+		hx-push-url="true"
+	>
+		if data, ok := page.Data.(types.{{.ModelNamePascal}}ViewData); ok {
+			<h1>{{.ModelNamePascal}} Details</h1>
+			{{range .Fields}}
+			<p>{{.Name}}: { {{toStringRepresentation "data.Item" .GoType .Name}} }</p>
+			{{end}}
+			<a hx-get={ page.ToURL("{{.ModelNameLower}}.edit", data.Item.ID) }>Edit</a>
+			<a hx-get={ page.ToURL("{{.ModelNameLower}}.index") }>Back to List</a>
+		}
+	</div>
 }
 templ {{.ModelNamePascal}}Create(page *controller.Page) {
-	<h1>Create {{.ModelNamePascal}}</h1>
-	@{{.ModelNamePascal}}Form(page, "/{{.ModelNameLower}}")
+	<div 
+		id="{{.ModelNameLower}}Views"
+		hx-target="#{{.ModelNameLower}}Views"
+		hx-select="#{{.ModelNameLower}}Views"
+		hx-swap="outerHTML show:window:top"
+		hx-indicator="next #page-loading"
+		hx-push-url="true"
+	>
+		<h1>Create {{.ModelNamePascal}}</h1>
+		@{{.ModelNamePascal}}Form(page, "/{{.ModelNameLower}}")
+	</div>
 }
 
 templ {{.ModelNamePascal}}Edit(page *controller.Page) {
-	if data, ok := page.Data.(types.{{.ModelNamePascal}}ViewData); ok {
-		<h1>Edit {{.ModelNamePascal}}</h1>
-		@{{.ModelNamePascal}}Form(page, page.ToURL("{{.ModelNameLower}}.update", data.Item.ID))
-	}
+	<div 
+		id="{{.ModelNameLower}}Views"
+		hx-target="#{{.ModelNameLower}}Views"
+		hx-select="#{{.ModelNameLower}}Views"
+		hx-swap="outerHTML show:window:top"
+		hx-indicator="next #page-loading"
+		hx-push-url="true"
+	>
+		if data, ok := page.Data.(types.{{.ModelNamePascal}}ViewData); ok {
+			<h1>Edit {{.ModelNamePascal}}</h1>
+			@{{.ModelNamePascal}}Form(page, page.ToURL("{{.ModelNameLower}}.update", data.Item.ID))
+		}
+	</div>
 }
 
 templ {{.ModelNamePascal}}Form(page *controller.Page, route string) {
