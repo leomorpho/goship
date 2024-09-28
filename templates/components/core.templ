@@ -47,7 +47,6 @@ templ CSS() {
 	<link rel="preload" href="https://unpkg.com/tippy.js@6/dist/tippy.css" as="style" onload="this.onload=null;this.rel='stylesheet'"/>
 	<noscript><link rel="stylesheet" href="https://unpkg.com/tippy.js@6/dist/tippy.css"/></noscript>
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css"/>
-	
 	// Below is for making ios status bar translucent: https://blog.alexwendland.com/2020-09-25-translucent-status-bar-in-pwas-on-ios/
 	<style>
 	body {
@@ -162,27 +161,9 @@ templ JSFooter(page *controller.Page) {
 	}
 	@htmxBeforeSwap()
 	@htmxOnLoad()
+	// TODO: below is currently not working
 	// @htmxWindowOnLoad()
 	@beforeBodyEnd()
-	<script>
-		function handleCacheUpdate(event) {
-			const url = new URL(event.detail.requestConfig.url, location.origin);
-			if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-				navigator.serviceWorker.controller.postMessage({
-				type: "CACHE_UPDATED",
-				url: url.href,
-				});
-			}
-		}
-		function handleCacheUpdateWithURL(url) {
-			if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-			navigator.serviceWorker.controller.postMessage({
-				type: 'CACHE_UPDATE',
-				url: url
-			});
-			}
-		}
-	</script>
 }
 
 script htmxOnLoad() {
@@ -193,7 +174,7 @@ script htmxOnLoad() {
 }
 
 script htmxWindowOnLoad() {
-// Was trying to get CTRL/CMD + Click to work, but still not working. HTMX uses hx-get instead of href,
+// TODO: Was trying to get CTRL/CMD + Click to work, but still not working. HTMX uses hx-get instead of href,
 // which confuses browsers. https://www.joncom.be/notes/htmx-ctrl-click/
 
 	window.onload = function () {

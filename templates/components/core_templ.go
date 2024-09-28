@@ -214,7 +214,7 @@ func JS() templ.Component {
 		var templ_7745c5c3_Var12 string
 		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(templ.JSONString(helpers.File("icon.png")))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/core.templ`, Line: 74, Col: 94}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/core.templ`, Line: 73, Col: 94}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 		if templ_7745c5c3_Err != nil {
@@ -227,7 +227,7 @@ func JS() templ.Component {
 		var templ_7745c5c3_Var13 string
 		templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(helpers.File("main.js"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/core.templ`, Line: 83, Col: 38}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/core.templ`, Line: 82, Col: 38}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 		if templ_7745c5c3_Err != nil {
@@ -240,7 +240,7 @@ func JS() templ.Component {
 		var templ_7745c5c3_Var14 string
 		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(helpers.File("vanilla_bundle.js"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/core.templ`, Line: 84, Col: 48}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/core.templ`, Line: 83, Col: 48}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 		if templ_7745c5c3_Err != nil {
@@ -253,7 +253,7 @@ func JS() templ.Component {
 		var templ_7745c5c3_Var15 string
 		templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(helpers.ServiceWorkerFile("service-worker.js"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/core.templ`, Line: 87, Col: 61}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/core.templ`, Line: 86, Col: 61}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 		if templ_7745c5c3_Err != nil {
@@ -370,10 +370,6 @@ func JSFooter(page *controller.Page) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<script>\n\t\tfunction handleCacheUpdate(event) {\n\t\t\tconst url = new URL(event.detail.requestConfig.url, location.origin);\n\t\t\tif (navigator.serviceWorker && navigator.serviceWorker.controller) {\n\t\t\t\tnavigator.serviceWorker.controller.postMessage({\n\t\t\t\ttype: \"CACHE_UPDATED\",\n\t\t\t\turl: url.href,\n\t\t\t\t});\n\t\t\t}\n\t\t}\n\t\tfunction handleCacheUpdateWithURL(url) {\n\t\t\tif (navigator.serviceWorker && navigator.serviceWorker.controller) {\n\t\t\tnavigator.serviceWorker.controller.postMessage({\n\t\t\t\ttype: 'CACHE_UPDATE',\n\t\t\t\turl: url\n\t\t\t});\n\t\t\t}\n\t\t}\n\t</script>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
 		return templ_7745c5c3_Err
 	})
 }
@@ -393,8 +389,8 @@ func htmxOnLoad() templ.ComponentScript {
 
 func htmxWindowOnLoad() templ.ComponentScript {
 	return templ.ComponentScript{
-		Name: `__templ_htmxWindowOnLoad_6a72`,
-		Function: `function __templ_htmxWindowOnLoad_6a72(){// Was trying to get CTRL/CMD + Click to work, but still not working. HTMX uses hx-get instead of href,
+		Name: `__templ_htmxWindowOnLoad_9494`,
+		Function: `function __templ_htmxWindowOnLoad_9494(){// TODO: Was trying to get CTRL/CMD + Click to work, but still not working. HTMX uses hx-get instead of href,
 // which confuses browsers. https://www.joncom.be/notes/htmx-ctrl-click/
 
 	window.onload = function () {
@@ -411,8 +407,8 @@ func htmxWindowOnLoad() templ.ComponentScript {
 		}
 	}
 }`,
-		Call:       templ.SafeScript(`__templ_htmxWindowOnLoad_6a72`),
-		CallInline: templ.SafeScriptInline(`__templ_htmxWindowOnLoad_6a72`),
+		Call:       templ.SafeScript(`__templ_htmxWindowOnLoad_9494`),
+		CallInline: templ.SafeScriptInline(`__templ_htmxWindowOnLoad_9494`),
 	}
 }
 
@@ -467,7 +463,7 @@ func TextFooter(page *controller.Page) templ.Component {
 		var templ_7745c5c3_Var19 string
 		templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL("about"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/core.templ`, Line: 235, Col: 35}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/core.templ`, Line: 216, Col: 35}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 		if templ_7745c5c3_Err != nil {
@@ -480,7 +476,7 @@ func TextFooter(page *controller.Page) templ.Component {
 		var templ_7745c5c3_Var20 string
 		templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL("privacy_policy"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/core.templ`, Line: 243, Col: 44}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/core.templ`, Line: 224, Col: 44}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 		if templ_7745c5c3_Err != nil {
