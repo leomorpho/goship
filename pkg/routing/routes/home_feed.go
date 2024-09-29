@@ -9,6 +9,7 @@ import (
 	"github.com/mikestefanello/pagoda/pkg/controller"
 	"github.com/mikestefanello/pagoda/pkg/domain"
 	"github.com/mikestefanello/pagoda/pkg/repos/profilerepo"
+	"github.com/mikestefanello/pagoda/pkg/routing/routenames"
 	"github.com/mikestefanello/pagoda/pkg/types"
 	"github.com/mikestefanello/pagoda/templates"
 	"github.com/mikestefanello/pagoda/templates/layouts"
@@ -81,7 +82,7 @@ func (c *homeFeed) Get(ctx echo.Context) error {
 	}
 
 	// NOTE: we're obviosuly not querying any home feed items with the timestamp, but feel free to create the appropriate repo method for it.
-	nextPageURL := ctx.Echo().Reverse("home_feed") + "?timestamp=" + oldestAnswerTimestamp.Format(time.RFC3339Nano)
+	nextPageURL := ctx.Echo().Reverse(routenames.RouteNameHomeFeed) + "?timestamp=" + oldestAnswerTimestamp.Format(time.RFC3339Nano)
 
 	data := types.HomeFeedData{
 		NextPageURL:           nextPageURL,

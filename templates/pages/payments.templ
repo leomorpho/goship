@@ -5,10 +5,11 @@ import (
 	"github.com/mikestefanello/pagoda/pkg/domain"
 	"github.com/mikestefanello/pagoda/pkg/types"
 	"github.com/mikestefanello/pagoda/templates/components"
+	"github.com/mikestefanello/pagoda/pkg/routing/routenames"
 )
 
 templ PricingPage(page *controller.Page) {
-	@components.PrevNavBarWithTitle(page.ToURL("preferences"), "", "🍻 Subscription")
+	@components.PrevNavBarWithTitle(page.ToURL(routenames.RouteNamePreferences), "", "🍻 Subscription")
 	if data, ok := page.Data.(types.PricingPageData); ok {
 		@pricingCards(page, data.ProductProPrice, data.ProductProCode, &data.ActivePlan, data.IsTrial)
 	}
@@ -96,7 +97,7 @@ templ PaymentSuccess(page *controller.Page) {
 		<div>{ "You can now continue using the platform ✨" }</div>
 		<div class="flex justify-center">
 			<button
-				hx-get={ page.ToURL("home_feed") }
+				hx-get={ page.ToURL(routenames.RouteNameHomeFeed) }
 				hx-target="#main-content"
 				hx-select="#main-content"
 				hx-indicator="next #page-loading"

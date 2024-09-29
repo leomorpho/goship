@@ -5,6 +5,7 @@ import (
 	"github.com/mikestefanello/pagoda/pkg/context"
 	"github.com/mikestefanello/pagoda/pkg/controller"
 	"github.com/mikestefanello/pagoda/pkg/repos/msg"
+	routeNames "github.com/mikestefanello/pagoda/pkg/routing/routenames"
 
 	"github.com/mikestefanello/pagoda/pkg/types"
 	"github.com/mikestefanello/pagoda/templates"
@@ -84,5 +85,5 @@ func (c *resetPassword) Post(ctx echo.Context) error {
 	}
 
 	msg.Success(ctx, "Your password has been updated.")
-	return c.ctr.Redirect(ctx, routeNameLogin)
+	return c.ctr.Redirect(ctx, routeNames.RouteNameLogin)
 }

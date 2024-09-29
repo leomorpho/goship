@@ -12,7 +12,7 @@ import (
 	"fmt"
 	"github.com/mikestefanello/pagoda/pkg/controller"
 	"github.com/mikestefanello/pagoda/pkg/domain"
-	"github.com/mikestefanello/pagoda/pkg/types"
+	"github.com/mikestefanello/pagoda/pkg/routing/routenames"
 )
 
 func Profile(page *controller.Page, profile domain.Profile, isSelf, isPotentialMatch bool, uploadGalleryPicUrl, uploadProfilePicUrl string, galleryPicsMaxCount int) templ.Component {
@@ -271,9 +271,9 @@ func ProfileHeader(page *controller.Page, profile *domain.Profile, isSelf, isPot
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var9 string
-			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL("profile", profile.ID))
+			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameProfile, profile.ID))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/profile.templ`, Line: 157, Col: 50}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/profile.templ`, Line: 157, Col: 68}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
@@ -359,9 +359,9 @@ func ProfileHeader(page *controller.Page, profile *domain.Profile, isSelf, isPot
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var13 string
-			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL("profile", profile.ID))
+			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameProfile, profile.ID))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/profile.templ`, Line: 184, Col: 49}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/profile.templ`, Line: 184, Col: 67}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 			if templ_7745c5c3_Err != nil {
@@ -426,7 +426,7 @@ func ProfileHeader(page *controller.Page, profile *domain.Profile, isSelf, isPot
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var16 templ.SafeURL = templ.URL(page.ToURL("logout"))
+			var templ_7745c5c3_Var16 templ.SafeURL = templ.URL(page.ToURL(routenames.RouteNameLogout))
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var16)))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -686,48 +686,6 @@ func InitPhoneNumberPicker(elementID, phoneE164, countryCode, saveEventName, for
 }`,
 		Call:       templ.SafeScript(`__templ_InitPhoneNumberPicker_4db0`, elementID, phoneE164, countryCode, saveEventName, formInputNameE164, formInputNameCountryCode, disabled, readOnly),
 		CallInline: templ.SafeScriptInline(`__templ_InitPhoneNumberPicker_4db0`, elementID, phoneE164, countryCode, saveEventName, formInputNameE164, formInputNameCountryCode, disabled, readOnly),
-	}
-}
-
-func Heatmap(page *controller.Page) templ.Component {
-	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
-		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
-		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
-		if !templ_7745c5c3_IsBuffer {
-			defer func() {
-				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
-				if templ_7745c5c3_Err == nil {
-					templ_7745c5c3_Err = templ_7745c5c3_BufErr
-				}
-			}()
-		}
-		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var31 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var31 == nil {
-			templ_7745c5c3_Var31 = templ.NopComponent
-		}
-		ctx = templ.ClearChildren(ctx)
-		if data, ok := page.Data.(types.ProfileCalendarHeatmap); ok {
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\" w-screen md:w-full md:overflow-hidden\"><div id=\"horizontal-scroll-container\" class=\"flex flex-col justify-center items-center p-4 w-full overflow-x-auto h-min\"><div id=\"cal-heatmap\" class=\"m-2 p-5\"></div><!-- <div id=\"legend\"></div> --></div></div>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = initCalendarHeatmap("cal-heatmap", data.Counts).Render(ctx, templ_7745c5c3_Buffer)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-		}
-		return templ_7745c5c3_Err
-	})
-}
-
-func initCalendarHeatmap(elementID string, countsByDay []types.CountByDay) templ.ComponentScript {
-	return templ.ComponentScript{
-		Name: `__templ_initCalendarHeatmap_46e0`,
-		Function: `function __templ_initCalendarHeatmap_46e0(elementID, countsByDay){createCalHeatmap(countsByDay, elementID)
-}`,
-		Call:       templ.SafeScript(`__templ_initCalendarHeatmap_46e0`, elementID, countsByDay),
-		CallInline: templ.SafeScriptInline(`__templ_initCalendarHeatmap_46e0`, elementID, countsByDay),
 	}
 }
 

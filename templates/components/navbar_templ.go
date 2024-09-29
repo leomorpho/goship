@@ -8,7 +8,10 @@ package components
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "github.com/mikestefanello/pagoda/pkg/controller"
+import (
+	"github.com/mikestefanello/pagoda/pkg/controller"
+	"github.com/mikestefanello/pagoda/pkg/routing/routenames"
+)
 
 func Navbar(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
@@ -38,9 +41,9 @@ func Navbar(page *controller.Page) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var2 string
-			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL("realtime"))
+			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameRealtime))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/navbar.templ`, Line: 10, Col: 39}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/navbar.templ`, Line: 13, Col: 57}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 			if templ_7745c5c3_Err != nil {
@@ -55,7 +58,7 @@ func Navbar(page *controller.Page) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var3 templ.SafeURL = templ.URL(page.ToURL("landing_page"))
+		var templ_7745c5c3_Var3 templ.SafeURL = templ.URL(page.ToURL(routenames.RouteNameLandingPage))
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var3)))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -67,7 +70,7 @@ func Navbar(page *controller.Page) templ.Component {
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(page.AppName)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/navbar.templ`, Line: 22, Col: 55}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/navbar.templ`, Line: 25, Col: 55}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
@@ -89,9 +92,9 @@ func Navbar(page *controller.Page) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var5 string
-			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL("home_feed"))
+			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameHomeFeed))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/navbar.templ`, Line: 33, Col: 38}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/navbar.templ`, Line: 36, Col: 55}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -107,9 +110,9 @@ func Navbar(page *controller.Page) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var6 string
-				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL("about"))
+				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameAboutUs))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/navbar.templ`, Line: 43, Col: 35}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/navbar.templ`, Line: 46, Col: 55}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 				if templ_7745c5c3_Err != nil {
@@ -122,7 +125,7 @@ func Navbar(page *controller.Page) templ.Component {
 				var templ_7745c5c3_Var7 string
 				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs("Contact Us")
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/navbar.templ`, Line: 50, Col: 40}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/navbar.templ`, Line: 53, Col: 40}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 				if templ_7745c5c3_Err != nil {
@@ -138,7 +141,7 @@ func Navbar(page *controller.Page) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var8 templ.SafeURL = templ.URL(page.ToURL("landing_page"))
+			var templ_7745c5c3_Var8 templ.SafeURL = templ.URL(page.ToURL(routenames.RouteNameLandingPage))
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var8)))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -164,7 +167,7 @@ func Navbar(page *controller.Page) templ.Component {
 			var templ_7745c5c3_Var9 string
 			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL("normalNotifications"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/navbar.templ`, Line: 76, Col: 49}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/navbar.templ`, Line: 79, Col: 49}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
@@ -177,7 +180,7 @@ func Navbar(page *controller.Page) templ.Component {
 			var templ_7745c5c3_Var10 string
 			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL("normalNotificationsCount"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/navbar.templ`, Line: 89, Col: 56}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/navbar.templ`, Line: 92, Col: 56}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 			if templ_7745c5c3_Err != nil {
@@ -225,7 +228,7 @@ func Navbar(page *controller.Page) templ.Component {
 				var templ_7745c5c3_Var13 string
 				templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(page.AuthUserProfilePicURL)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/navbar.templ`, Line: 117, Col: 76}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/navbar.templ`, Line: 120, Col: 76}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 				if templ_7745c5c3_Err != nil {
@@ -243,7 +246,7 @@ func Navbar(page *controller.Page) templ.Component {
 			var templ_7745c5c3_Var14 string
 			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(page.AuthUser.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/navbar.templ`, Line: 134, Col: 29}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/navbar.templ`, Line: 137, Col: 29}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 			if templ_7745c5c3_Err != nil {
@@ -256,7 +259,7 @@ func Navbar(page *controller.Page) templ.Component {
 			var templ_7745c5c3_Var15 string
 			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(page.AuthUser.Email)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/navbar.templ`, Line: 137, Col: 30}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/navbar.templ`, Line: 140, Col: 30}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 			if templ_7745c5c3_Err != nil {
@@ -272,9 +275,9 @@ func Navbar(page *controller.Page) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var16 string
-				templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL("profile"))
+				templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameProfile))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/navbar.templ`, Line: 145, Col: 41}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/navbar.templ`, Line: 148, Col: 59}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 				if templ_7745c5c3_Err != nil {
@@ -290,9 +293,9 @@ func Navbar(page *controller.Page) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var17 string
-			templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL("preferences"))
+			templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNamePreferences))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/navbar.templ`, Line: 153, Col: 44}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/navbar.templ`, Line: 156, Col: 62}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 			if templ_7745c5c3_Err != nil {
@@ -302,7 +305,7 @@ func Navbar(page *controller.Page) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var18 templ.SafeURL = templ.URL(page.ToURL("logout"))
+			var templ_7745c5c3_Var18 templ.SafeURL = templ.URL(page.ToURL(routenames.RouteNameLogout))
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var18)))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -374,9 +377,9 @@ func LogInButton(page *controller.Page, btnClasses string) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var22 string
-		templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL("login"))
+		templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameLogin))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/navbar.templ`, Line: 182, Col: 30}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/navbar.templ`, Line: 185, Col: 48}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 		if templ_7745c5c3_Err != nil {
@@ -412,7 +415,7 @@ func HomeButton(page *controller.Page, btnClasses string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var24 templ.SafeURL = templ.URL(page.ToURL("landing_page"))
+		var templ_7745c5c3_Var24 templ.SafeURL = templ.URL(page.ToURL(routenames.RouteNameLandingPage))
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var24)))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -469,7 +472,7 @@ func FloatingActionButton(page *controller.Page) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var28 templ.SafeURL = templ.URL(page.ToURL("landing_page"))
+		var templ_7745c5c3_Var28 templ.SafeURL = templ.URL(page.ToURL(routenames.RouteNameLandingPage))
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var28)))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -504,7 +507,7 @@ func DocsButton(page *controller.Page) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var30 templ.SafeURL = templ.URL(page.ToURL("docs"))
+		var templ_7745c5c3_Var30 templ.SafeURL = templ.URL(page.ToURL(routenames.RouteNameDocs))
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var30)))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err

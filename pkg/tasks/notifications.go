@@ -15,6 +15,7 @@ import (
 	"github.com/mikestefanello/pagoda/pkg/repos/notifierrepo"
 	"github.com/mikestefanello/pagoda/pkg/repos/profilerepo"
 	"github.com/mikestefanello/pagoda/pkg/repos/subscriptions"
+	"github.com/mikestefanello/pagoda/pkg/routing/routenames"
 	"github.com/mikestefanello/pagoda/pkg/services"
 	"github.com/rs/zerolog/log"
 )
@@ -167,7 +168,7 @@ func (d *DailyConvoNotificationsProcessor) ProcessTask(
 			title = "🌤 Today's question!"
 		}
 
-		url := d.echoServer.Reverse("home_feed")
+		url := d.echoServer.Reverse(routenames.RouteNameHomeFeed)
 		err = d.notifierRepo.PublishNotification(ctx, domain.Notification{
 			Type:                      domain.NotificationTypeDailyConversationReminder,
 			ProfileID:                 profileID,

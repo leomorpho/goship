@@ -7,21 +7,25 @@ import (
 	"github.com/mikestefanello/pagoda/pkg/context"
 	"github.com/mikestefanello/pagoda/pkg/controller"
 	"github.com/mikestefanello/pagoda/pkg/repos/msg"
+	routeNames "github.com/mikestefanello/pagoda/pkg/routing/routenames"
 )
 
 type verifyEmail struct {
-	controller.Controller
+	ctr controller.Controller
 }
 
+func NewVerifyEmailRoute(ctr controller.Controller) *verifyEmail {
+	return &verifyEmail{ctr: ctr}
+}
 func (c *verifyEmail) Get(ctx echo.Context) error {
 	var usr *ent.User
 
 	// Validate the token
 	token := ctx.Param("token")
-	email, err := c.Container.Auth.ValidateEmailVerificationToken(token)
+	email, err := c.ctr.Container.Auth.ValidateEmailVerificationToken(token)
 	if err != nil {
 		msg.Warning(ctx, "The link is either invalid or has expired.")
-		return c.Redirect(ctx, routeNameLandingPage)
+		return c.ctr.Redirect(ctx, routeNames.RouteNameLandingPage)
 	}
 
 	// Check if it matches the authenticated user
@@ -36,13 +40,13 @@ func (c *verifyEmail) Get(ctx echo.Context) error {
 
 	// Query to find a matching user, if needed
 	if usr == nil {
-		usr, err = c.Container.ORM.User.
+		usr, err = c.ctr.Container.ORM.User.
 			Query().
 			Where(user.Email(email)).
 			Only(ctx.Request().Context())
 
 		if err != nil {
-			return c.Fail(err, "query failed loading email verification token user")
+			return c.ctr.Fail(err, "query failed loading email verification token user")
 		}
 	}
 
@@ -54,7 +58,7 @@ func (c *verifyEmail) Get(ctx echo.Context) error {
 			Save(ctx.Request().Context())
 
 		if err != nil {
-			return c.Fail(err, "failed to set user as verified")
+			return c.ctr.Fail(err, "failed to set user as verified")
 		}
 	}
 
@@ -62,8 +66,8 @@ func (c *verifyEmail) Get(ctx echo.Context) error {
 
 	// If we have a user, they are already logged in and just redirect them to their home feed
 	if u != nil {
-		return c.Redirect(ctx, routeNamePreferences)
+		return c.ctr.Redirect(ctx, routeNames.RouteNamePreferences)
 
 	}
-	return c.Redirect(ctx, routeNameLogin)
+	return c.ctr.Redirect(ctx, routeNames.RouteNameLogin)
 }

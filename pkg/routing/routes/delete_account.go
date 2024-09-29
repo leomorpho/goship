@@ -7,6 +7,7 @@ import (
 	"github.com/mikestefanello/pagoda/pkg/controller"
 	"github.com/mikestefanello/pagoda/pkg/domain"
 	"github.com/mikestefanello/pagoda/pkg/repos/msg"
+	routeNames "github.com/mikestefanello/pagoda/pkg/routing/routenames"
 
 	"github.com/mikestefanello/pagoda/pkg/repos/profilerepo"
 	"github.com/mikestefanello/pagoda/pkg/repos/subscriptions"
@@ -78,5 +79,5 @@ func (c *deleteAccount) DeleteAccountRequest(ctx echo.Context) error {
 	} else {
 		msg.Danger(ctx, "An error occurred. Please try again.")
 	}
-	return c.ctr.Redirect(ctx, routeNameLandingPage)
+	return c.ctr.Redirect(ctx, routeNames.RouteNameLandingPage)
 }

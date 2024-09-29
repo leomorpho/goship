@@ -9,6 +9,7 @@ import (
 	"github.com/mikestefanello/pagoda/pkg/context"
 	"github.com/mikestefanello/pagoda/pkg/controller"
 	"github.com/mikestefanello/pagoda/pkg/repos/msg"
+	routeNames "github.com/mikestefanello/pagoda/pkg/routing/routenames"
 
 	"github.com/mikestefanello/pagoda/pkg/types"
 	"github.com/mikestefanello/pagoda/templates"
@@ -94,7 +95,7 @@ func (c *forgotPassword) Post(ctx echo.Context) error {
 	ctx.Logger().Infof("generated password reset token for user %d", u.ID)
 
 	// Email the user
-	url := ctx.Echo().Reverse(routeNameResetPassword, u.ID, pt.ID, token)
+	url := ctx.Echo().Reverse(routeNames.RouteNameResetPassword, u.ID, pt.ID, token)
 
 	err = c.sendPasswordResetEmail(ctx, u.Name, u.Email, url)
 	if err != nil {

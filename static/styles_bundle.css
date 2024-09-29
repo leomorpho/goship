@@ -5828,6 +5828,14 @@ details.collapse summary::-webkit-details-marker{
   font-weight: 600;
 }
 
+.uppercase{
+  text-transform: uppercase;
+}
+
+.capitalize{
+  text-transform: capitalize;
+}
+
 .leading-5{
   line-height: 1.25rem;
 }

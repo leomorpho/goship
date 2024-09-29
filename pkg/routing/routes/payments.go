@@ -13,6 +13,7 @@ import (
 	"github.com/mikestefanello/pagoda/pkg/controller"
 	"github.com/mikestefanello/pagoda/pkg/domain"
 	"github.com/mikestefanello/pagoda/pkg/repos/subscriptions"
+	routeNames "github.com/mikestefanello/pagoda/pkg/routing/routenames"
 	"github.com/mikestefanello/pagoda/pkg/types"
 	"github.com/mikestefanello/pagoda/templates"
 	"github.com/mikestefanello/pagoda/templates/layouts"
@@ -65,9 +66,9 @@ func (p *paymentsRoute) CreateCheckoutSession(ctx echo.Context) error {
 	if form.Submission.HasErrors() {
 		return p.PricingPage(ctx)
 	}
-	successURL := ctx.Echo().Reverse(routeNamePaymentProcessorSuccess)
+	successURL := ctx.Echo().Reverse(routeNames.RouteNamePaymentProcessorSuccess)
 	fullSuccessUrl := fmt.Sprintf("%s%s", p.ctr.Container.Config.HTTP.Domain, successURL)
-	cancelURL := ctx.Echo().Reverse(routeNamePreferences)
+	cancelURL := ctx.Echo().Reverse(routeNames.RouteNamePreferences)
 	fullCancelUrl := fmt.Sprintf("%s%s", p.ctr.Container.Config.HTTP.Domain, cancelURL)
 
 	usr := ctx.Get(internalContext.AuthenticatedUserKey).(*ent.User)
@@ -115,7 +116,7 @@ func (p *paymentsRoute) CreatePortalSession(ctx echo.Context) error {
 	usr := ctx.Get(internalContext.AuthenticatedUserKey).(*ent.User)
 	profile := usr.QueryProfile().FirstX(ctx.Request().Context())
 
-	returnURL := ctx.Echo().Reverse(routeNamePreferences)
+	returnURL := ctx.Echo().Reverse(routeNames.RouteNamePreferences)
 	fullReturnsUrl := fmt.Sprintf("%s%s", p.ctr.Container.Config.HTTP.Domain, returnURL)
 
 	// Authenticate your user.
@@ -237,7 +238,7 @@ func (p *paymentsRoute) HandleWebhook(c echo.Context) error {
 			return echo.NewHTTPError(http.StatusInternalServerError)
 		}
 
-		fullURL := c.Echo().Reverse(routeNamePreferences)
+		fullURL := c.Echo().Reverse(routeNames.RouteNamePreferences)
 		err = p.ctr.Container.Notifier.PublishNotification(
 			c.Request().Context(),
 			domain.Notification{

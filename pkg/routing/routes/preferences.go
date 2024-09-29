@@ -11,6 +11,8 @@ import (
 	"github.com/mikestefanello/pagoda/pkg/controller"
 	"github.com/mikestefanello/pagoda/pkg/domain"
 	"github.com/mikestefanello/pagoda/pkg/repos/msg"
+	"github.com/mikestefanello/pagoda/pkg/routing/routenames"
+	routeNames "github.com/mikestefanello/pagoda/pkg/routing/routenames"
 
 	"github.com/mikestefanello/pagoda/pkg/repos/notifierrepo"
 	"github.com/mikestefanello/pagoda/pkg/repos/profilerepo"
@@ -141,31 +143,31 @@ func (g *preferences) Get(ctx echo.Context) error {
 
 	addPushSubscriptionEndpoint := fmt.Sprintf("%s%s",
 		g.ctr.Container.Config.HTTP.Domain, ctx.Echo().Reverse(
-			routeNameRegisterSubscription, domain.NotificationPlatformPush.Value)) + "?csrf=" + page.CSRF
+			routeNames.RouteNameRegisterSubscription, domain.NotificationPlatformPush.Value)) + "?csrf=" + page.CSRF
 	deletePushSubscriptionEndpoint := fmt.Sprintf("%s%s",
 		g.ctr.Container.Config.HTTP.Domain, ctx.Echo().Reverse(
-			routeNameDeleteSubscription, domain.NotificationPlatformPush.Value)) + "?csrf=" + page.CSRF
+			routeNames.RouteNameDeleteSubscription, domain.NotificationPlatformPush.Value)) + "?csrf=" + page.CSRF
 
 	addFCMPushSubscriptionEndpoint := fmt.Sprintf("%s%s",
 		g.ctr.Container.Config.HTTP.Domain, ctx.Echo().Reverse(
-			routeNameRegisterSubscription, domain.NotificationPlatformFCMPush.Value)) + "?csrf=" + page.CSRF
+			routeNames.RouteNameRegisterSubscription, domain.NotificationPlatformFCMPush.Value)) + "?csrf=" + page.CSRF
 	deleteFCMPushSubscriptionEndpoint := fmt.Sprintf("%s%s",
 		g.ctr.Container.Config.HTTP.Domain, ctx.Echo().Reverse(
-			routeNameDeleteSubscription, domain.NotificationPlatformFCMPush.Value)) + "?csrf=" + page.CSRF
+			routeNames.RouteNameDeleteSubscription, domain.NotificationPlatformFCMPush.Value)) + "?csrf=" + page.CSRF
 
 	addEmailSubscriptionEndpoint := fmt.Sprintf("%s%s",
 		g.ctr.Container.Config.HTTP.Domain, ctx.Echo().Reverse(
-			routeNameRegisterSubscription, domain.NotificationPlatformEmail.Value)) + "?csrf=" + page.CSRF
+			routeNames.RouteNameRegisterSubscription, domain.NotificationPlatformEmail.Value)) + "?csrf=" + page.CSRF
 	deleteEmailSubscriptionEndpoint := fmt.Sprintf("%s%s",
 		g.ctr.Container.Config.HTTP.Domain, ctx.Echo().Reverse(
-			routeNameDeleteSubscription, domain.NotificationPlatformEmail.Value)) + "?csrf=" + page.CSRF
+			routeNames.RouteNameDeleteSubscription, domain.NotificationPlatformEmail.Value)) + "?csrf=" + page.CSRF
 
 	addSmsSubscriptionEndpoint := fmt.Sprintf("%s%s",
 		g.ctr.Container.Config.HTTP.Domain, ctx.Echo().Reverse(
-			routeNameRegisterSubscription, domain.NotificationPlatformSMS.Value)) + "?csrf=" + page.CSRF
+			routeNames.RouteNameRegisterSubscription, domain.NotificationPlatformSMS.Value)) + "?csrf=" + page.CSRF
 	deleteSmsSubscriptionEndpoint := fmt.Sprintf("%s%s",
 		g.ctr.Container.Config.HTTP.Domain, ctx.Echo().Reverse(
-			routeNameDeleteSubscription, domain.NotificationPlatformSMS.Value)) + "?csrf=" + page.CSRF
+			routeNames.RouteNameDeleteSubscription, domain.NotificationPlatformSMS.Value)) + "?csrf=" + page.CSRF
 
 	permissions, err := g.notificationSendPermissionRepo.GetPermissions(ctx.Request().Context(), profile.ID)
 	if err != nil {
@@ -448,5 +450,5 @@ func (p *onboarding) Get(ctx echo.Context) error {
 		return err
 	}
 
-	return p.ctr.RedirectWithDetails(ctx, "home_feed", "?just_finished_onboarding=true", http.StatusFound)
+	return p.ctr.RedirectWithDetails(ctx, routenames.RouteNameHomeFeed, "?just_finished_onboarding=true", http.StatusFound)
 }

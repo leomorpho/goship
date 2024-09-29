@@ -24,35 +24,25 @@ import (
 const NOTIFICATION_QUERY_PARAM = "notif"
 
 type (
-	convosNotificationsCount struct {
-		controller.Controller
-		profileRepo profilerepo.ProfileRepo
-	}
-
 	normalNotificationsCount struct {
-		controller.Controller
+		ctr         controller.Controller
 		profileRepo profilerepo.ProfileRepo
 	}
 
 	normalNotifications struct {
-		controller.Controller
+		ctr          controller.Controller
 		notifierRepo *notifierrepo.NotifierRepo
 	}
 )
 
-func (c *convosNotificationsCount) Get(ctx echo.Context) error {
-	// usr := ctx.Get(context.AuthenticatedUserKey).(*ent.User)
-	// profile := usr.QueryProfile().FirstX(ctx.Request().Context())
-
-	// num, err := c.profileRepo.GetCountOfUnseenConvosItemsOfFriends(ctx.Request().Context(), profile.ID, nil)
-	// if err != nil {
-	// 	return err
-	// }
-	num := 1 // Determine a function that will derive this number
-
-	htmlResponse := fmt.Sprintf("<span>%d</span>", num)
-
-	return ctx.String(http.StatusOK, htmlResponse)
+func NewNormalNotificationsCountRoute(
+	ctr controller.Controller,
+	profileRepo profilerepo.ProfileRepo,
+) *normalNotificationsCount {
+	return &normalNotificationsCount{
+		ctr:         ctr,
+		profileRepo: profileRepo,
+	}
 }
 
 func (c *normalNotificationsCount) Get(ctx echo.Context) error {
@@ -72,6 +62,16 @@ func (c *normalNotificationsCount) Get(ctx echo.Context) error {
 	}
 
 	return ctx.String(http.StatusOK, htmlResponse)
+}
+
+func NewNormalNotificationsRoute(
+	ctr controller.Controller,
+	notifierRepo *notifierrepo.NotifierRepo,
+) *normalNotifications {
+	return &normalNotifications{
+		ctr:          ctr,
+		notifierRepo: notifierRepo,
+	}
 }
 
 func (n *normalNotifications) Get(ctx echo.Context) error {
@@ -98,7 +98,7 @@ func (n *normalNotifications) Get(ctx echo.Context) error {
 	usr := ctx.Get(context.AuthenticatedUserKey).(*ent.User)
 	profile := usr.QueryProfile().FirstX(ctx.Request().Context())
 
-	notifications, err := n.notifierRepo.GetNotifications(ctx.Request().Context(), profile.ID, false, timestamp, &n.Container.Config.App.PageSize)
+	notifications, err := n.notifierRepo.GetNotifications(ctx.Request().Context(), profile.ID, false, timestamp, &n.ctr.Container.Config.App.PageSize)
 	if err != nil {
 		return err
 	}
@@ -130,7 +130,7 @@ func (n *normalNotifications) Get(ctx echo.Context) error {
 		NextPageURL:   nextPageURL,
 	}
 
-	return n.RenderPage(ctx, page)
+	return n.ctr.RenderPage(ctx, page)
 }
 
 func (n *normalNotifications) MarkAllAsRead(ctx echo.Context) error {
@@ -165,8 +165,17 @@ func (n *normalNotifications) Delete(ctx echo.Context) error {
 }
 
 type markNormalNotificationRead struct {
-	controller.Controller
+	ctr          controller.Controller
 	notifierRepo *notifierrepo.NotifierRepo
+}
+
+func NewMarkNormalNotificationReadRoute(
+	ctr controller.Controller, notifierRepo *notifierrepo.NotifierRepo,
+) *markNormalNotificationRead {
+	return &markNormalNotificationRead{
+		ctr:          ctr,
+		notifierRepo: notifierRepo,
+	}
 }
 
 func (c *markNormalNotificationRead) Post(ctx echo.Context) error {
@@ -190,8 +199,17 @@ func (c *markNormalNotificationRead) Post(ctx echo.Context) error {
 }
 
 type markNormalNotificationUnread struct {
-	controller.Controller
+	ctr          controller.Controller
 	notifierRepo *notifierrepo.NotifierRepo
+}
+
+func NewMarkNormalNotificationUnreadRoute(
+	ctr controller.Controller, notifierRepo *notifierrepo.NotifierRepo,
+) *markNormalNotificationUnread {
+	return &markNormalNotificationUnread{
+		ctr:          ctr,
+		notifierRepo: notifierRepo,
+	}
 }
 
 type SeenEventRequest struct {
@@ -215,5 +233,5 @@ func (c *markNormalNotificationUnread) Post(ctx echo.Context) error {
 		return err
 	}
 
-	return c.Redirect(ctx, "normalNotifications")
+	return c.ctr.Redirect(ctx, "normalNotifications")
 }

@@ -1,13 +1,16 @@
 package components
 
-import "github.com/mikestefanello/pagoda/pkg/controller"
+import (
+	"github.com/mikestefanello/pagoda/pkg/controller"
+	"github.com/mikestefanello/pagoda/pkg/routing/routenames"
+)
 
 templ Navbar(page *controller.Page) {
 	<nav
 		id="navbar"
 		if page.IsAuth && page.IsFullyOnboarded {
 			hx-ext="sse"
-			sse-connect={ page.ToURL("realtime") }
+			sse-connect={ page.ToURL(routenames.RouteNameRealtime) }
 		}
 		class="bg-primary/80 text-primary-content backdrop-blur-md"
 		hx-target="#main-content"
@@ -17,7 +20,7 @@ templ Navbar(page *controller.Page) {
 		hx-push-url="true"
 	>
 		<div class="container mx-auto px-4 py-2 flex justify-between items-center">
-			<a id="navbar-logo-with-brand" href={ templ.URL(page.ToURL("landing_page")) } class="flex items-center space-x-3 font-mono">
+			<a id="navbar-logo-with-brand" href={ templ.URL(page.ToURL(routenames.RouteNameLandingPage)) } class="flex items-center space-x-3 font-mono">
 				<img src="/files/favicon.png" class="h-8" alt="Logo"/>
 				<span class="text-2xl font-semibold">{ page.AppName }</span>
 			</a>
@@ -30,7 +33,7 @@ templ Navbar(page *controller.Page) {
 				// @DocsButton(page)
 				if page.IsAuth && page.IsFullyOnboarded {
 					<a
-						hx-get={ page.ToURL("home_feed") }
+						hx-get={ page.ToURL(routenames.RouteNameHomeFeed) }
 						class="flex items-center p-2 w-10 h-10 bg-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600 dark:bg-slate-500 rounded-full mx-2 flex items-center justify-center relative cursor-pointer"
 						id="meet"
 					>
@@ -40,7 +43,7 @@ templ Navbar(page *controller.Page) {
 					</a>
 					if !page.IsAuth {
 						<a
-							hx-get={ page.ToURL("about") }
+							hx-get={ page.ToURL(routenames.RouteNameAboutUs) }
 							class="flex items-center p-2 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 group cursor-pointer"
 							id="meet"
 						>
@@ -52,7 +55,7 @@ templ Navbar(page *controller.Page) {
 					}
 				} else {
 					<a
-						href={ templ.URL(page.ToURL("landing_page")) }
+						href={ templ.URL(page.ToURL(routenames.RouteNameLandingPage)) }
 						class="flex items-center p-2 w-10 h-10 bg-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600 dark:bg-slate-500 rounded-full mx-2 flex items-center justify-center relative cursor-pointer"
 						id="meet"
 					>
@@ -142,7 +145,7 @@ templ Navbar(page *controller.Page) {
 									<li>
 										<a
 											@click="open = false"
-											hx-get={ page.ToURL("profile") }
+											hx-get={ page.ToURL(routenames.RouteNameProfile) }
 											class="block px-4 py-2 text-sm hover-brightness hover:dark:bg-gray-700 cursor-pointer"
 										>Profile</a>
 									</li>
@@ -150,14 +153,14 @@ templ Navbar(page *controller.Page) {
 								<li>
 									<a
 										@click="open = false"
-										hx-get={ page.ToURL("preferences") }
+										hx-get={ page.ToURL(routenames.RouteNamePreferences) }
 										class="block px-4 py-2 text-sm hover-brightness hover:dark:bg-gray-700 cursor-pointer"
 									>Settings</a>
 								</li>
 								<li>
 									<a
 										@click="open = false"
-										href={ templ.URL(page.ToURL("logout")) }
+										href={ templ.URL(page.ToURL(routenames.RouteNameLogout)) }
 										class="block px-4 py-2 text-sm hover-brightness hover:dark:bg-gray-700 cursor-pointer"
 									>Sign out</a>
 								</li>
@@ -179,7 +182,7 @@ templ Navbar(page *controller.Page) {
 templ LogInButton(page *controller.Page, btnClasses string) {
 	<button
 		class={ "bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 text-white font-medium rounded-full flex justify-center items-center w-full", btnClasses }
-		hx-get={ page.ToURL("login") }
+		hx-get={ page.ToURL(routenames.RouteNameLogin) }
 		hx-target="#main-content"
 		hx-select="#main-content"
 		hx-swap="outerHTML show:window:top"
@@ -199,7 +202,7 @@ templ LogInButton(page *controller.Page, btnClasses string) {
 }
 
 templ HomeButton(page *controller.Page, btnClasses string) {
-	<a href={ templ.URL(page.ToURL("landing_page")) }>
+	<a href={ templ.URL(page.ToURL(routenames.RouteNameLandingPage )) }>
 		<button
 			class={ "bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 text-white font-medium rounded-full flex justify-center items-center w-full", btnClasses }
 		>
@@ -217,7 +220,7 @@ templ HomeButton(page *controller.Page, btnClasses string) {
 }
 
 templ FloatingActionButton(page *controller.Page) {
-	<a href={ templ.URL(page.ToURL("landing_page")) }>
+	<a href={ templ.URL(page.ToURL(routenames.RouteNameLandingPage)) }>
 		<div class="group fixed top-0 right-0 p-2 flex items-end justify-end w-16 h-16 z-50">
 			<!-- main -->
 			<div class="text-white shadow-xl flex items-center justify-center p-3 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 z-50 absolute  ">
@@ -236,7 +239,7 @@ templ FloatingActionButton(page *controller.Page) {
 
 templ DocsButton(page *controller.Page) {
 	<a
-		href={ templ.URL(page.ToURL("docs")) }
+		href={ templ.URL(page.ToURL(routenames.RouteNameDocs)) }
 		class="flex items-center w-9 h-9 lg:w-fit lg:h-8 lg:px-4 bg-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600 dark:bg-slate-500 rounded-full mx-2 flex items-center justify-center relative cursor-pointer"
 		id="meet"
 	>

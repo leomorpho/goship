@@ -1,6 +1,7 @@
 package components
 
 import "github.com/mikestefanello/pagoda/pkg/controller"
+import "github.com/mikestefanello/pagoda/pkg/routing/routenames"
 
 templ BottomNav(page *controller.Page) {
 	<div
@@ -8,7 +9,7 @@ templ BottomNav(page *controller.Page) {
 		navbar-state-data={ templ.JSONString(page.ShowBottomNavbar) }
 		if page.IsAuth && page.IsFullyOnboarded {
 			hx-ext="sse"
-			sse-connect={ page.ToURL("realtime") }
+			sse-connect={ page.ToURL(routenames.RouteNameRealtime) }
 		}
 		class="fixed bottom-0 left-0 z-50 w-full h-16 bg-white border-t border-gray-200 dark:bg-gray-950 dark:border-gray-600"
 		style="padding-bottom: env(safe-area-inset-bottom);"
@@ -35,7 +36,7 @@ templ BottomNav(page *controller.Page) {
 		>
 			<button
 				id="bottomNavbarHomefeedButton"
-				hx-get={ page.ToURL("home_feed") }
+				hx-get={ page.ToURL(routenames.RouteNameHomeFeed) }
 				type="button"
 				class="inline-flex flex-col items-center justify-center px-5 hover:bg-gray-100 dark:hover:bg-gray-800 group rounded-xl m-2"
 				@click="selected = 'home';"
@@ -113,7 +114,7 @@ templ BottomNav(page *controller.Page) {
 			// Settings button
 			<button
 				id="bottom-navbar-settings-button"
-				hx-get={ page.ToURL("preferences") }
+				hx-get={ page.ToURL(routenames.RouteNamePreferences) }
 				type="button"
 				class="inline-flex flex-col items-center justify-center px-5 hover:bg-gray-100 dark:hover:bg-gray-800 group rounded-xl m-2"
 				@click="selected = 'settings';"
@@ -144,7 +145,7 @@ templ BottomNav(page *controller.Page) {
 			// Profile button
 			<button
 				id="bottom-navbar-profile-button"
-				hx-get={ page.ToURL("profile") }
+				hx-get={ page.ToURL(routenames.RouteNameProfile) }
 				type="button"
 				class="inline-flex flex-col items-center justify-center px-5 hover:bg-gray-100 dark:hover:bg-gray-800 group rounded-xl m-2"
 				@click="selected = 'profile';"

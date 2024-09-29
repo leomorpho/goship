@@ -10,6 +10,7 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"github.com/mikestefanello/pagoda/pkg/controller"
+	"github.com/mikestefanello/pagoda/pkg/routing/routenames"
 	"github.com/mikestefanello/pagoda/pkg/types"
 	"github.com/mikestefanello/pagoda/templates/components"
 )
@@ -98,7 +99,7 @@ func login(page *controller.Page, form *types.LoginForm) templ.Component {
 		var templ_7745c5c3_Var6 string
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(form.Email)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/login.templ`, Line: 29, Col: 23}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/login.templ`, Line: 30, Col: 23}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
@@ -119,7 +120,7 @@ func login(page *controller.Page, form *types.LoginForm) templ.Component {
 		var templ_7745c5c3_Var7 string
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(form.Password)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/login.templ`, Line: 44, Col: 26}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/login.templ`, Line: 45, Col: 26}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {
@@ -129,7 +130,7 @@ func login(page *controller.Page, form *types.LoginForm) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var8 templ.SafeURL = templ.URL(page.ToURL("landing_page"))
+		var templ_7745c5c3_Var8 templ.SafeURL = templ.URL(page.ToURL(routenames.RouteNameLandingPage))
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var8)))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/mikestefanello/pagoda/pkg/controller"
+	"github.com/mikestefanello/pagoda/pkg/routing/routenames"
 	"github.com/mikestefanello/pagoda/pkg/types"
 	"github.com/mikestefanello/pagoda/templates"
 	"github.com/mikestefanello/pagoda/templates/layouts"
@@ -29,7 +30,7 @@ func (c *landingPage) Get(ctx echo.Context) error {
 	page.Layout = layouts.LandingPage
 
 	if page.AuthUser != nil {
-		return c.ctr.Redirect(ctx, "home_feed")
+		return c.ctr.Redirect(ctx, routenames.RouteNameHomeFeed)
 
 	}
 

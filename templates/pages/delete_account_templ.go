@@ -10,6 +10,7 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"github.com/mikestefanello/pagoda/pkg/controller"
+	"github.com/mikestefanello/pagoda/pkg/routing/routenames"
 	"github.com/mikestefanello/pagoda/pkg/types"
 	"github.com/mikestefanello/pagoda/templates/components"
 )
@@ -83,7 +84,7 @@ func deleteAccountPage(page *controller.Page, data *types.DeleteAccountData) tem
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var3 templ.SafeURL = templ.URL(page.ToURL("delete_account.request"))
+			var templ_7745c5c3_Var3 templ.SafeURL = templ.URL(page.ToURL(routenames.RouteNameDeleteAccountRequest))
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var3)))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err

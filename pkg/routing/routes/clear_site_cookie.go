@@ -6,6 +6,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/mikestefanello/pagoda/pkg/controller"
 	"github.com/mikestefanello/pagoda/pkg/repos/msg"
+	"github.com/mikestefanello/pagoda/pkg/routing/routenames"
 )
 
 type (
@@ -33,5 +34,5 @@ func (ck *clearCookie) Get(ctx echo.Context) error {
 		cookie.MaxAge = -1
 		ctx.SetCookie(cookie)
 	}
-	return ck.ctr.Redirect(ctx, "login")
+	return ck.ctr.Redirect(ctx, routenames.RouteNameLogin)
 }

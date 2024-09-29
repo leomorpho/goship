@@ -14,7 +14,6 @@ const (
 	PageLogin                  Page = "login"
 	PageRegister               Page = "register"
 	PageResetPassword          Page = "reset-password"
-	PageSearch                 Page = "search"
 	PageEmailSubscribe         Page = "email-subscribe"
 	PagePreferences            Page = "preferences"
 	PagePhoneNumber            Page = "preferences.phone"

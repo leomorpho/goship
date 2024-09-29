@@ -10,7 +10,7 @@ import (
 	"github.com/mikestefanello/pagoda/pkg/repos/profilerepo"
 	storagerepo "github.com/mikestefanello/pagoda/pkg/repos/storage"
 	"github.com/mikestefanello/pagoda/pkg/repos/subscriptions"
-	"github.com/mikestefanello/pagoda/pkg/routes"
+	"github.com/mikestefanello/pagoda/pkg/routing/routes"
 	"github.com/mikestefanello/pagoda/pkg/services"
 	"github.com/mikestefanello/pagoda/pkg/tasks"
 )

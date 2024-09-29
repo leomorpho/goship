@@ -10,6 +10,7 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"github.com/mikestefanello/pagoda/pkg/controller"
+	"github.com/mikestefanello/pagoda/pkg/routing/routenames"
 	"github.com/mikestefanello/pagoda/pkg/types"
 	"github.com/mikestefanello/pagoda/templates/components"
 )
@@ -38,7 +39,7 @@ func Register(page *controller.Page) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var2 templ.SafeURL = templ.URL(page.ToURL("register.post"))
+				var templ_7745c5c3_Var2 templ.SafeURL = templ.URL(page.ToURL(routenames.RouteNameRegisterSubmit))
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var2)))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
@@ -80,7 +81,7 @@ func Register(page *controller.Page) templ.Component {
 				var templ_7745c5c3_Var5 string
 				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(form.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/register.templ`, Line: 33, Col: 24}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/register.templ`, Line: 34, Col: 24}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 				if templ_7745c5c3_Err != nil {
@@ -123,7 +124,7 @@ func Register(page *controller.Page) templ.Component {
 				var templ_7745c5c3_Var8 string
 				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(form.Email)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/register.templ`, Line: 51, Col: 25}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/register.templ`, Line: 52, Col: 25}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 				if templ_7745c5c3_Err != nil {
@@ -144,7 +145,7 @@ func Register(page *controller.Page) templ.Component {
 				var templ_7745c5c3_Var9 string
 				templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(form.Password)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/register.templ`, Line: 67, Col: 28}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/register.templ`, Line: 68, Col: 28}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 				if templ_7745c5c3_Err != nil {
@@ -165,7 +166,7 @@ func Register(page *controller.Page) templ.Component {
 				var templ_7745c5c3_Var10 string
 				templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs("Birthdate (you need to be 18+ 🍭🐥)")
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/register.templ`, Line: 89, Col: 49}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/register.templ`, Line: 90, Col: 49}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 				if templ_7745c5c3_Err != nil {
@@ -178,7 +179,7 @@ func Register(page *controller.Page) templ.Component {
 				var templ_7745c5c3_Var11 string
 				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(data.MinDate)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/register.templ`, Line: 99, Col: 25}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/register.templ`, Line: 100, Col: 25}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 				if templ_7745c5c3_Err != nil {
@@ -191,7 +192,7 @@ func Register(page *controller.Page) templ.Component {
 				var templ_7745c5c3_Var12 string
 				templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(form.Birthdate)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/register.templ`, Line: 101, Col: 29}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/register.templ`, Line: 102, Col: 29}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 				if templ_7745c5c3_Err != nil {
@@ -209,7 +210,7 @@ func Register(page *controller.Page) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var13 templ.SafeURL = templ.URL(page.ToURL("landing_page"))
+				var templ_7745c5c3_Var13 templ.SafeURL = templ.URL(page.ToURL(routenames.RouteNameLandingPage))
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var13)))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
