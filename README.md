@@ -343,20 +343,24 @@ NOTE: on older/slower machines, the tests may time out. If so, you can increase 
 
 ## Deployment
 
-First, make sure all your env vars in the Kamal file `deploy.yml` are correct. All your vars should be set either in:
+I currently only use Kamal for deployment. Should you want to contribute in adding other deployment methods, please create a subdirectory in `deploy` and add it there, so that it's well organized.
+
+### Kamal
+
+First, make sure all your env vars in the Kamal file `deploy/kamal/deploy.yml` are correct. All your vars should be set either in:
  
 - `config/config.yml`: only non-secret ones
-- `deploy.yml`: only non-secret ones
+- `deploy/kamal/deploy.yml`: only non-secret ones
 - `.env`: all secret vars
 
-Then, set the IP of the server host in `deploy.yml`, as well as your image and registry details. Read up on the [kamal documentation](https://kamal-deploy.org) if you get stuck anywhere here. 
+Then, set the IP of the server host in `deploy/kamal/deploy.yml`, as well as your image and registry details. Read up on the [kamal documentation](https://kamal-deploy.org) if you get stuck anywhere here. 
 
 ### Set up live server
 
 The below command will install docker, build your image, push it to your registry, and then pull it on your remote VPS. If you set up any accessory (cache, standalone DB that is not hosted etc), these will also be deployed.
 
 ```bash
-kamal setup -c deploy.yml
+kamal setup -c deploy/kamal/deploy.yml
 ``` 
 
 At this point, your project should be live, and if `128.0.0.1111` is the IP of your VPS, entering that IP in the search bar on your browser should bring up your site.
@@ -372,7 +376,7 @@ mkdir -p /letsencrypt && touch /letsencrypt/acme.json && chmod 600 /letsencrypt/
 Then locally, run
 
 ```bash
-kamal traefik reboot
+kamal traefik reboot -c deploy/kamal/deploy.yml
 ```
 
 Your site should now have TLS enabled and you should see the lock icon the search bar.
