@@ -9,6 +9,7 @@ import (
 	"github.com/mikestefanello/pagoda/pkg/context"
 	"github.com/mikestefanello/pagoda/pkg/controller"
 	"github.com/mikestefanello/pagoda/pkg/repos/msg"
+	routeNames "github.com/mikestefanello/pagoda/pkg/routing/routenames"
 
 	"github.com/mikestefanello/pagoda/pkg/repos/profilerepo"
 	"github.com/mikestefanello/pagoda/pkg/types"
@@ -118,10 +119,10 @@ func (c *login) Post(ctx echo.Context) error {
 
 	profile := usr.QueryProfile().FirstX(ctx.Request().Context())
 	if !profilerepo.IsProfileFullyOnboarded(profile) {
-		return c.ctr.Redirect(ctx, routeNamePreferences)
+		return c.ctr.Redirect(ctx, routeNames.RouteNamePreferences)
 
 	}
-	return c.ctr.Redirect(ctx, routeNameHomeFeed)
+	return c.ctr.Redirect(ctx, routeNames.RouteNameHomeFeed)
 }
 
 // redirectAfterLogin redirects a now logged-in user to a previously requested page.

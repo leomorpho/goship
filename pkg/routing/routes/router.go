@@ -17,6 +17,7 @@ import (
 	"github.com/mikestefanello/pagoda/pkg/repos/pubsub"
 	storagerepo "github.com/mikestefanello/pagoda/pkg/repos/storage"
 	"github.com/mikestefanello/pagoda/pkg/repos/subscriptions"
+	routeNames "github.com/mikestefanello/pagoda/pkg/routing/routenames"
 	"github.com/mikestefanello/pagoda/pkg/services"
 	"github.com/ziflex/lecho/v3"
 
@@ -26,83 +27,6 @@ import (
 	"github.com/labstack/echo/v4"
 	echomw "github.com/labstack/echo/v4/middleware"
 	slogecho "github.com/samber/slog-echo"
-)
-
-// TODO: I would like to move these route names to a new package so we can use vars
-// in place of where we use the string literals due to circular imports (for example
-// in middleware and in pages).
-// TODO: I actually ran into a bug where I was using a stale string literal for a route name in a route template. I
-// seemed to have carelessly renamed a route without checking if it appeared in a template, breaking prod...
-const (
-	routeNameForgotPassword          = "forgot_password"
-	routeNameForgotPasswordSubmit    = "forgot_password.submit"
-	routeNameLogin                   = "login"
-	routeNameLoginSubmit             = "login.submit"
-	routeNameLogout                  = "logout"
-	routeNameRegister                = "register"
-	routeNameRegisterSubmit          = "register.post" // TODO: rename to "register.submit" as was done in pagoda
-	routeNameResetPassword           = "reset_password"
-	routeNameResetPasswordSubmit     = "reset_password.post" // TODO: rename to "register.submit" as was done in pagoda
-	routeNameVerifyEmail             = "verify_email"
-	routeNameContact                 = "contact"
-	routeNameContactSubmit           = "contact.submit"
-	routeNameAboutUs                 = "about"
-	routeNameLandingPage             = "landing_page"
-	routeNameSearch                  = "search"
-	routeNamePreferences             = "preferences"
-	routeNameGetPhone                = "phone.get"
-	routeNameUpdatePhoneNum          = "phone.save"
-	routeNameGetDisplayName          = "display_name.get"
-	routeNameUpdateDisplayName       = "display_name.save"
-	routeNameGetPhoneVerification    = "phone.verification"
-	routeNameSubmitPhoneVerification = "phone.verification.submit"
-	routeNameDeleteAccountPage       = "delete_account.page"
-	routeNameDeleteAccountRequest    = "delete_account.request"
-	routeNamePrivacyPolicy           = "privacy_policy"
-
-	routeNameHomeFeed           = "home_feed"
-	routeNameGetHomeFeedButtons = "home_feed.buttons"
-	routeNameGetHomeFeedStats   = "home_feed.stats"
-	routeNameSearchQuestion     = "home_feed.search_question"
-
-	routeNameGetMatch               = "meet.get_match"
-	routeNameRateMatch              = "meet.rate_match"
-	routeNameMatchMadeInHeaven      = "meet.match_made_in_heaven"
-	routeNameProfile                = "profile"
-	routeNameProfileCalendarHeatmap = "profile.calendar_heatmap"
-	routeNameInstallApp             = "install_app"
-
-	routeMarkNotificationsAsRead    = "markNormalNotificationRead"
-	routeMarkAllNotificationsAsRead = "normalNotificationsMarkAllAsRead"
-
-	routeNameRealtime = "realtime"
-
-	routeNameFinishOnboarding          = "finish_onboarding"
-	routeNameGetGeolocationComponent   = "geolocation"
-	routeNameUpdateGeolocation         = "geolocation.post"
-	routeNameGetBio                    = "profileBio.get"
-	routeNameUpdateBio                 = "profileBio.post"
-	routeNameUpdateSelfGender          = "profileGender.post"
-	routeNameUpdateInterestedInGenders = "profileInterestedGenders.post"
-	routeNameUpdateMinAgeInterestedIn  = "profileMinAgeInterestedIn.post"
-	routeNameUpdateMaxAgeInterestedIn  = "profileMaxAgeInterestedIn.post"
-
-	routeNameGetPushSubscriptions             = "push_subscriptions.get"
-	routeNameRegisterSubscription             = "notification_subscriptions.register"
-	routeNameDeleteSubscription               = "notification_subscriptions.delete"
-	routeNameDeleteEmailSubscriptionWithToken = "email_subscriptions.delete_with_token"
-
-	routeNamePaymentProcessorGetPublicKey = "payment_processor.get_public_key"
-	routeNameCreateCheckoutSession        = "stripe.create_checkout_session"
-	routeNameCreatePortalSession          = "stripe.create_portal_session"
-	routeNamePaymentProcessorWebhook      = "stripe.webhook"
-	routeNamePricingPage                  = "pricing_page"
-	routeNamePaymentProcessorSuccess      = "stripe.success"
-
-	routeNameDocs               = "docs"
-	routeNameDocsGettingStarted = "docs.getting_started"
-	routeNameDocsGuidedTour     = "docs.guided_tour"
-	routeNameDocsArchitecture   = "docs.architecture"
 )
 
 func sseSkipper(c echo.Context) bool {
@@ -273,10 +197,10 @@ func BuildRouter(c *services.Container) {
 
 func documentationRoutes(c *services.Container, g *echo.Group, ctr controller.Controller) {
 	docsRoute := NewDocsRoute(ctr)
-	g.GET("/docs", docsRoute.GetDocsHome).Name = routeNameDocs
-	g.GET("/docs/gettingStarted", docsRoute.GetDocsGettingStarted).Name = routeNameDocsGettingStarted
-	g.GET("/docs/guidedTour", docsRoute.GetDocsGuidedTour).Name = routeNameDocsGuidedTour
-	g.GET("/docs/architecture", docsRoute.GetDocsArchitecture).Name = routeNameDocsArchitecture
+	g.GET("/docs", docsRoute.GetDocsHome).Name = routeNames.RouteNameDocs
+	g.GET("/docs/gettingStarted", docsRoute.GetDocsGettingStarted).Name = routeNames.RouteNameDocsGettingStarted
+	g.GET("/docs/guidedTour", docsRoute.GetDocsGuidedTour).Name = routeNames.RouteNameDocsGuidedTour
+	g.GET("/docs/architecture", docsRoute.GetDocsArchitecture).Name = routeNames.RouteNameDocsArchitecture
 }
 
 func externalRoutes(c *services.Container, g *echo.Group, ctr controller.Controller) {
@@ -289,7 +213,7 @@ func externalRoutes(c *services.Container, g *echo.Group, ctr controller.Control
 	payments := NewPaymentsRoute(ctr, c.ORM, subscriptionsRepo)
 	// Using obfuscation to not get trolls at my payment webhooks. Note, we do check integrity of stripe requests.
 	// TODO: make the first string an env var
-	g.POST("/Q2HBfAY7iid59J1SUN8h1Y3WxJcPWA/payments/webhooks", payments.HandleWebhook).Name = routeNamePaymentProcessorWebhook
+	g.POST("/Q2HBfAY7iid59J1SUN8h1Y3WxJcPWA/payments/webhooks", payments.HandleWebhook).Name = routeNames.RouteNamePaymentProcessorWebhook
 }
 
 func generalRoutes(c *services.Container, g *echo.Group, ctr controller.Controller) {
@@ -304,7 +228,7 @@ func generalRoutes(c *services.Container, g *echo.Group, ctr controller.Controll
 	notificationSendPermissionRepo := notifierrepo.NewNotificationSendPermissionRepo(c.ORM)
 
 	landingPage := NewLandingPageRoute(ctr)
-	g.GET("/", landingPage.Get).Name = routeNameLandingPage
+	g.GET("/", landingPage.Get).Name = routeNames.RouteNameLandingPage
 
 	clearCookie := NewClearCookiesRoute(ctr)
 	g.GET("/clear-cookie", clearCookie.Get).Name = "clearCookie"
@@ -326,35 +250,35 @@ func generalRoutes(c *services.Container, g *echo.Group, ctr controller.Controll
 	g.GET("/email/subscription/:token", verifyEmailSubscription.Get).Name = "verify_email_subscription"
 
 	installApp := NewInstallAppRoute(ctr)
-	g.GET("/install-app", installApp.GetInstallPage).Name = routeNameInstallApp
+	g.GET("/install-app", installApp.GetInstallPage).Name = routeNames.RouteNameInstallApp
 
 	about := NewAboutUsRoute(ctr)
-	g.GET("/about", about.Get).Name = routeNameAboutUs
+	g.GET("/about", about.Get).Name = routeNames.RouteNameAboutUs
 
 	privacyPolicy := NewPrivacyPolicyRoute(ctr)
-	g.GET("/privacy-policy", privacyPolicy.Get).Name = routeNamePrivacyPolicy
+	g.GET("/privacy-policy", privacyPolicy.Get).Name = routeNames.RouteNamePrivacyPolicy
 
 	userGroup := g.Group("/user", middleware.RequireNoAuthentication())
 
 	login := NewLoginRoute(ctr)
-	userGroup.GET("/login", login.Get).Name = routeNameLogin
-	userGroup.POST("/login", login.Post).Name = routeNameLoginSubmit
+	userGroup.GET("/login", login.Get).Name = routeNames.RouteNameLogin
+	userGroup.POST("/login", login.Post).Name = routeNames.RouteNameLoginSubmit
 
 	register := NewRegisterRoute(ctr, profileRepo, *subscriptionsRepo, notificationSendPermissionRepo)
-	userGroup.GET("/register", register.Get).Name = routeNameRegister
-	userGroup.POST("/register", register.Post).Name = routeNameRegisterSubmit
+	userGroup.GET("/register", register.Get).Name = routeNames.RouteNameRegister
+	userGroup.POST("/register", register.Post).Name = routeNames.RouteNameRegisterSubmit
 
 	forgot := NewForgotPasswordRoute(ctr)
-	userGroup.GET("/password", forgot.Get).Name = routeNameForgotPassword
-	userGroup.POST("/password", forgot.Post).Name = routeNameForgotPasswordSubmit
+	userGroup.GET("/password", forgot.Get).Name = routeNames.RouteNameForgotPassword
+	userGroup.POST("/password", forgot.Post).Name = routeNames.RouteNameForgotPasswordSubmit
 
 	resetGroup := userGroup.Group("/password/reset",
 		middleware.LoadUser(c.ORM),
 		middleware.LoadValidPasswordToken(c.Auth),
 	)
 	reset := NewResetPasswordRoute(ctr)
-	resetGroup.GET("/token/:user/:password_token/:token", reset.Get).Name = routeNameResetPassword
-	resetGroup.POST("/token/:user/:password_token/:token", reset.Post).Name = routeNameResetPasswordSubmit
+	resetGroup.GET("/token/:user/:password_token/:token", reset.Get).Name = routeNames.RouteNameResetPassword
+	resetGroup.POST("/token/:user/:password_token/:token", reset.Post).Name = routeNames.RouteNameResetPasswordSubmit
 
 	if ctr.Container.Config.App.Environment != config.EnvProduction {
 		// These facilitate triggering specific errors and seeing what they look like in the UI
@@ -403,50 +327,50 @@ func coreAuthRoutes(c *services.Container, g *echo.Group, ctr controller.Control
 	onboardingGroup := g.Group("/welcome", middleware.RequireAuthentication())
 	preferences := NewPreferencesRoute(
 		ctr, &profileRepo, pwaPushNotificationsRepo, notificationSendPermissionRepo, subscriptionsRepo, smsSenderRepo)
-	onboardingGroup.GET("/preferences", preferences.Get).Name = routeNamePreferences
-	onboardingGroup.GET("/preferences/phone", preferences.GetPhoneComponent).Name = routeNameGetPhone
-	onboardingGroup.GET("/preferences/phone/verification", preferences.GetPhoneVerificationComponent).Name = routeNameGetPhoneVerification
-	onboardingGroup.POST("/preferences/phone/verification", preferences.SubmitPhoneVerificationCode).Name = routeNameSubmitPhoneVerification
-	onboardingGroup.POST("/preferences/phone/save", preferences.SavePhoneInfo).Name = routeNameUpdatePhoneNum
-	onboardingGroup.GET("/preferences/display-name/get", preferences.GetDisplayName).Name = routeNameGetDisplayName
-	onboardingGroup.POST("/preferences/display-name/save", preferences.SaveDisplayName).Name = routeNameUpdateDisplayName
+	onboardingGroup.GET("/preferences", preferences.Get).Name = routeNames.RouteNamePreferences
+	onboardingGroup.GET("/preferences/phone", preferences.GetPhoneComponent).Name = routeNames.RouteNameGetPhone
+	onboardingGroup.GET("/preferences/phone/verification", preferences.GetPhoneVerificationComponent).Name = routeNames.RouteNameGetPhoneVerification
+	onboardingGroup.POST("/preferences/phone/verification", preferences.SubmitPhoneVerificationCode).Name = routeNames.RouteNameSubmitPhoneVerification
+	onboardingGroup.POST("/preferences/phone/save", preferences.SavePhoneInfo).Name = routeNames.RouteNameUpdatePhoneNum
+	onboardingGroup.GET("/preferences/display-name/get", preferences.GetDisplayName).Name = routeNames.RouteNameGetDisplayName
+	onboardingGroup.POST("/preferences/display-name/save", preferences.SaveDisplayName).Name = routeNames.RouteNameUpdateDisplayName
 
 	deleteAccountRoute := NewDeleteAccountRoute(ctr, &profileRepo, subscriptionsRepo)
-	onboardingGroup.GET("/preferences/delete-account", deleteAccountRoute.DeleteAccountPage).Name = routeNameDeleteAccountPage
-	onboardingGroup.GET("/preferences/delete-account/now", deleteAccountRoute.DeleteAccountRequest).Name = routeNameDeleteAccountRequest
+	onboardingGroup.GET("/preferences/delete-account", deleteAccountRoute.DeleteAccountPage).Name = routeNames.RouteNameDeleteAccountPage
+	onboardingGroup.GET("/preferences/delete-account/now", deleteAccountRoute.DeleteAccountRequest).Name = routeNames.RouteNameDeleteAccountRequest
 
-	// TODO: move all pref routes to the preferences route (and not have a gazillion different routes...)
+	// TODO: move all pref routes to the preferences route (and not have a gazillion different ..)
 	finishOnboarding := NewOnboardingRoute(ctr, c.ORM, c.Tasks)
-	onboardingGroup.GET("/finish-onboarding", finishOnboarding.Get).Name = routeNameFinishOnboarding
+	onboardingGroup.GET("/finish-onboarding", finishOnboarding.Get).Name = routeNames.RouteNameFinishOnboarding
 
 	profilePrefs := NewProfilePrefsRoute(ctr, c.ORM)
-	onboardingGroup.GET("/profileBio", profilePrefs.GetBio).Name = routeNameGetBio
-	onboardingGroup.POST("/profileBio/update", profilePrefs.UpdateBio).Name = routeNameUpdateBio
+	onboardingGroup.GET("/profileBio", profilePrefs.GetBio).Name = routeNames.RouteNameGetBio
+	onboardingGroup.POST("/profileBio/update", profilePrefs.UpdateBio).Name = routeNames.RouteNameUpdateBio
 
 	outgoingNotifications := NewPushNotifsRoute(ctr, pwaPushNotificationsRepo, fcmPushNotificationsRepo, notificationSendPermissionRepo)
-	onboardingGroup.GET("/subscription/push", outgoingNotifications.GetPushSubscriptions).Name = routeNameGetPushSubscriptions
-	onboardingGroup.POST("/subscription/:platform", outgoingNotifications.RegisterSubscription).Name = routeNameRegisterSubscription
-	onboardingGroup.DELETE("/subscription/:platform", outgoingNotifications.DeleteSubscription).Name = routeNameDeleteSubscription
-	onboardingGroup.GET("/email-subscription/unsubscribe/:permission/:token", outgoingNotifications.DeleteEmailSubscription).Name = routeNameDeleteEmailSubscriptionWithToken
+	onboardingGroup.GET("/subscription/push", outgoingNotifications.GetPushSubscriptions).Name = routeNames.RouteNameGetPushSubscriptions
+	onboardingGroup.POST("/subscription/:platform", outgoingNotifications.RegisterSubscription).Name = routeNames.RouteNameRegisterSubscription
+	onboardingGroup.DELETE("/subscription/:platform", outgoingNotifications.DeleteSubscription).Name = routeNames.RouteNameDeleteSubscription
+	onboardingGroup.GET("/email-subscription/unsubscribe/:permission/:token", outgoingNotifications.DeleteEmailSubscription).Name = routeNames.RouteNameDeleteEmailSubscriptionWithToken
 
 	// The "all group" is for routes that need to have an authenticated but do not need an onboarded profile
 	allGroup := g.Group("/auth", middleware.RequireAuthentication())
-	logout := logout{Controller: ctr}
-	allGroup.GET("/logout", logout.Get, middleware.RequireAuthentication()).Name = routeNameLogout
+	logout := NewLogoutRoute(ctr)
+	allGroup.GET("/logout", logout.Get, middleware.RequireAuthentication()).Name = routeNames.RouteNameLogout
 
 	// Auth group is for all routes that are accessible to a fully logged in and onboarded user
 	onboardedGroup := g.Group("/auth", middleware.RequireAuthentication(), middleware.RedirectToOnboardingIfNotComplete())
 
-	verifyEmail := verifyEmail{Controller: ctr}
-	g.GET("/email/verify/:token", verifyEmail.Get).Name = routeNameVerifyEmail
+	verifyEmail := NewVerifyEmailRoute(ctr)
+	g.GET("/email/verify/:token", verifyEmail.Get).Name = routeNames.RouteNameVerifyEmail
 
 	homeFeed := NewHomeFeedRoute(ctr, profileRepo, &c.Config.App.PageSize)
-	onboardedGroup.GET("/homeFeed", homeFeed.Get, middleware.SetLastSeenOnline(c.Auth)).Name = routeNameHomeFeed
-	onboardedGroup.GET("/homeFeed/buttons", homeFeed.GetHomeButtons).Name = routeNameGetHomeFeedButtons
+	onboardedGroup.GET("/homeFeed", homeFeed.Get, middleware.SetLastSeenOnline(c.Auth)).Name = routeNames.RouteNameHomeFeed
+	onboardedGroup.GET("/homeFeed/buttons", homeFeed.GetHomeButtons).Name = routeNames.RouteNameGetHomeFeedButtons
 
 	singleProfile := NewProfileRoutes(ctr, &profileRepo)
-	onboardedGroup.GET("/profile", singleProfile.Get).Name = routeNameProfile
-	onboardedGroup.GET("/profile/calendar-heatmap", singleProfile.GetCalendarHeatmap).Name = routeNameProfileCalendarHeatmap
+	onboardedGroup.GET("/profile", singleProfile.Get).Name = routeNames.RouteNameProfile
+	onboardedGroup.GET("/profile/calendar-heatmap", singleProfile.GetCalendarHeatmap).Name = routeNames.RouteNameProfileCalendarHeatmap
 
 	uploadPhoto := NewUploadPhotoRoutes(ctr, &profileRepo, storageRepo, c.Config.Storage.PhotosMaxFileSizeMB)
 	onboardedGroup.GET("/uploadPhoto", uploadPhoto.Get).Name = "uploadPhoto"
@@ -457,28 +381,28 @@ func coreAuthRoutes(c *services.Container, g *echo.Group, ctr controller.Control
 	onboardedGroup.GET("/currProfilePhoto", currProfilePhoto.Get).Name = "currProfilePhoto"
 	onboardedGroup.POST("/currProfilePhoto", currProfilePhoto.Post).Name = "currProfilePhoto.post"
 
-	// TODO: create functions to create these routes. Removfe notifierRepo as it's accessible on container.
-	markNormalNotificationRead := markNormalNotificationRead{Controller: ctr, notifierRepo: notifierRepo}
-	onboardedGroup.POST("/notificationSeenByEvent/:notification_id", markNormalNotificationRead.Post).Name = routeMarkNotificationsAsRead
+	// TODO: create functions to create these  Removfe notifierRepo as it's accessible on container.
+	markNormalNotificationRead := NewMarkNormalNotificationReadRoute(ctr, notifierRepo)
+	onboardedGroup.POST("/notificationSeenByEvent/:notification_id", markNormalNotificationRead.Post).Name = routeNames.RouteNameMarkNotificationsAsRead
 
-	markNormalNotificationUnread := markNormalNotificationUnread{Controller: ctr, notifierRepo: notifierRepo}
+	markNormalNotificationUnread := NewMarkNormalNotificationUnreadRoute(ctr, notifierRepo)
 	onboardedGroup.POST("/markNormalNotificationUnread", markNormalNotificationUnread.Post).Name = "markNormalNotificationUnread"
 
-	normalNotificationsCount := normalNotificationsCount{Controller: ctr, profileRepo: profileRepo}
+	normalNotificationsCount := NewNormalNotificationsCountRoute(ctr, profileRepo)
 	onboardedGroup.GET("/notifications/normalNotificationsCount", normalNotificationsCount.Get).Name = "normalNotificationsCount"
 
-	normalNotifications := normalNotifications{Controller: ctr, notifierRepo: notifierRepo}
+	normalNotifications := NewNormalNotificationsRoute(ctr, notifierRepo)
 	onboardedGroup.GET("/notifications", normalNotifications.Get, middleware.SetLastSeenOnline(c.Auth)).Name = "normalNotifications"
-	onboardedGroup.GET("/notifications/markAllAsRead", normalNotifications.MarkAllAsRead, middleware.SetLastSeenOnline(c.Auth)).Name = routeMarkAllNotificationsAsRead
+	onboardedGroup.GET("/notifications/markAllAsRead", normalNotifications.MarkAllAsRead, middleware.SetLastSeenOnline(c.Auth)).Name = routeNames.RouteNameMarkAllNotificationsAsRead
 
 	onboardedGroup.DELETE("/notifications/normalNotifications/:notification_id", normalNotifications.Delete).Name = "normalNotifications.delete"
 
 	payments := NewPaymentsRoute(ctr, c.ORM, subscriptionsRepo)
-	onboardedGroup.GET("/payments/get-public-key", payments.GetPaymentProcessorPublickey).Name = routeNamePaymentProcessorGetPublicKey
-	onboardedGroup.POST("/payments/create-checkout-session", payments.CreateCheckoutSession).Name = routeNameCreateCheckoutSession
-	onboardedGroup.POST("/payments/create-portal-session", payments.CreatePortalSession).Name = routeNameCreatePortalSession
-	onboardedGroup.GET("/payments/pricing", payments.PricingPage).Name = routeNamePricingPage
-	onboardedGroup.GET("/payments/success", payments.SuccessfullySubscribed).Name = routeNamePaymentProcessorSuccess
+	onboardedGroup.GET("/payments/get-public-key", payments.GetPaymentProcessorPublickey).Name = routeNames.RouteNamePaymentProcessorGetPublicKey
+	onboardedGroup.POST("/payments/create-checkout-session", payments.CreateCheckoutSession).Name = routeNames.RouteNameCreateCheckoutSession
+	onboardedGroup.POST("/payments/create-portal-session", payments.CreatePortalSession).Name = routeNames.RouteNameCreatePortalSession
+	onboardedGroup.GET("/payments/pricing", payments.PricingPage).Name = routeNames.RouteNamePricingPage
+	onboardedGroup.GET("/payments/success", payments.SuccessfullySubscribed).Name = routeNames.RouteNamePaymentProcessorSuccess
 
 }
 
@@ -487,6 +411,6 @@ func sseRoutes(c *services.Container, g *echo.Group, ctr controller.Controller) 
 
 	onboardedGroup := g.Group("/auth", middleware.RequireAuthentication())
 
-	realtime := realtime{Controller: ctr, notifier: *c.Notifier}
-	onboardedGroup.GET("/realtime", realtime.Get).Name = routeNameRealtime
+	realtime := NewRealtimeRoute(ctr, *c.Notifier)
+	onboardedGroup.GET("/realtime", realtime.Get).Name = routeNames.RouteNameRealtime
 }

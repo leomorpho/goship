@@ -17,8 +17,18 @@ import (
 )
 
 type realtime struct {
-	controller.Controller
+	ctr      controller.Controller
 	notifier notifierrepo.NotifierRepo
+}
+
+func NewRealtimeRoute(
+	ctr controller.Controller,
+	notifier notifierrepo.NotifierRepo,
+) *realtime {
+	return &realtime{
+		ctr:      ctr,
+		notifier: notifier,
+	}
 }
 
 // realtime handles SSE connections to any client desiring real-time data.
@@ -52,7 +62,7 @@ func (c *realtime) Get(ctx echo.Context) error {
 	}
 
 	// Send periodic comments to keep the connection alive
-	ticker := time.NewTicker(c.Container.Config.HTTP.SseKeepAlive)
+	ticker := time.NewTicker(c.ctr.Container.Config.HTTP.SseKeepAlive)
 	defer ticker.Stop()
 
 	for {

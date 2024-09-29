@@ -10,6 +10,7 @@ import (
 	"github.com/mikestefanello/pagoda/pkg/controller"
 	"github.com/mikestefanello/pagoda/pkg/domain"
 	"github.com/mikestefanello/pagoda/pkg/repos/msg"
+	routeNames "github.com/mikestefanello/pagoda/pkg/routing/routenames"
 
 	"github.com/mikestefanello/pagoda/pkg/repos/notifierrepo"
 	"github.com/mikestefanello/pagoda/pkg/types"
@@ -338,24 +339,24 @@ func (c *outgoingNotifications) createNotificationsPage(ctx echo.Context, profil
 	}
 	addPushSubscriptionEndpoint := fmt.Sprintf("%s%s",
 		c.ctr.Container.Config.HTTP.Domain, ctx.Echo().Reverse(
-			routeNameRegisterSubscription, domain.NotificationPlatformPush.Value)) + "?csrf=" + page.CSRF
+			routeNames.RouteNameRegisterSubscription, domain.NotificationPlatformPush.Value)) + "?csrf=" + page.CSRF
 	deletePushSubscriptionEndpoint := fmt.Sprintf("%s%s",
 		c.ctr.Container.Config.HTTP.Domain, ctx.Echo().Reverse(
-			routeNameDeleteSubscription, domain.NotificationPlatformPush.Value)) + "?csrf=" + page.CSRF
+			routeNames.RouteNameDeleteSubscription, domain.NotificationPlatformPush.Value)) + "?csrf=" + page.CSRF
 
 	addEmailSubscriptionEndpoint := fmt.Sprintf("%s%s",
 		c.ctr.Container.Config.HTTP.Domain, ctx.Echo().Reverse(
-			routeNameRegisterSubscription, domain.NotificationPlatformEmail.Value)) + "?csrf=" + page.CSRF
+			routeNames.RouteNameRegisterSubscription, domain.NotificationPlatformEmail.Value)) + "?csrf=" + page.CSRF
 	deleteEmailSubscriptionEndpoint := fmt.Sprintf("%s%s",
 		c.ctr.Container.Config.HTTP.Domain, ctx.Echo().Reverse(
-			routeNameDeleteSubscription, domain.NotificationPlatformEmail.Value)) + "?csrf=" + page.CSRF
+			routeNames.RouteNameDeleteSubscription, domain.NotificationPlatformEmail.Value)) + "?csrf=" + page.CSRF
 
 	addSmsSubscriptionEndpoint := fmt.Sprintf("%s%s",
 		c.ctr.Container.Config.HTTP.Domain, ctx.Echo().Reverse(
-			routeNameRegisterSubscription, domain.NotificationPlatformSMS.Value)) + "?csrf=" + page.CSRF
+			routeNames.RouteNameRegisterSubscription, domain.NotificationPlatformSMS.Value)) + "?csrf=" + page.CSRF
 	deleteSmsSubscriptionEndpoint := fmt.Sprintf("%s%s",
 		c.ctr.Container.Config.HTTP.Domain, ctx.Echo().Reverse(
-			routeNameDeleteSubscription, domain.NotificationPlatformSMS.Value)) + "?csrf=" + page.CSRF
+			routeNames.RouteNameDeleteSubscription, domain.NotificationPlatformSMS.Value)) + "?csrf=" + page.CSRF
 
 	notificationPermissions := types.NotificationPermissionsData{
 		VapidPublicKey:                c.ctr.Container.Config.App.VapidPublicKey,
