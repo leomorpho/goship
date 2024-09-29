@@ -11,6 +11,7 @@ import (
 	"github.com/mikestefanello/pagoda/pkg/controller"
 	"github.com/mikestefanello/pagoda/pkg/repos/profilerepo"
 	storagerepo "github.com/mikestefanello/pagoda/pkg/repos/storage"
+	"github.com/mikestefanello/pagoda/pkg/routing/routenames"
 	"github.com/mikestefanello/pagoda/templates/layouts"
 
 	"github.com/labstack/echo/v4"
@@ -127,5 +128,5 @@ func (p *uploadPhoto) Delete(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
-	return p.ctr.RedirectWithDetails(ctx, "profile", "", http.StatusSeeOther)
+	return p.ctr.RedirectWithDetails(ctx, routenames.RouteNameProfile, "", http.StatusSeeOther)
 }

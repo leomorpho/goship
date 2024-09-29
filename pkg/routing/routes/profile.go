@@ -3,7 +3,6 @@ package routes
 import (
 	"fmt"
 	"strconv"
-	"time"
 
 	"github.com/mikestefanello/pagoda/ent"
 	"github.com/mikestefanello/pagoda/pkg/context"
@@ -12,7 +11,6 @@ import (
 	"github.com/mikestefanello/pagoda/pkg/repos/profilerepo"
 	"github.com/mikestefanello/pagoda/pkg/types"
 	"github.com/mikestefanello/pagoda/templates"
-	"github.com/mikestefanello/pagoda/templates/components"
 	"github.com/mikestefanello/pagoda/templates/layouts"
 	"github.com/mikestefanello/pagoda/templates/pages"
 	"github.com/nyaruka/phonenumbers"
@@ -118,55 +116,4 @@ func (c *singleProfile) Get(ctx echo.Context) error {
 func GetFullSecureUrlForRoute(ctx echo.Context, domain, routeName, csrf string) string {
 	url := ctx.Echo().Reverse(routeName)
 	return fmt.Sprintf("%s%s?csrf=%s", domain, url, csrf)
-}
-
-func (c *singleProfile) GetCalendarHeatmap(ctx echo.Context) error {
-	// var otherProfileID int
-	// var selfProfileID int
-	// var err error
-
-	// usr := ctx.Get(context.AuthenticatedUserKey).(*ent.User)
-
-	// selfProfileID = usr.QueryProfile().
-	// 	FirstX(ctx.Request().Context()).ID
-
-	// var wantedProfileID int
-	// otherProfileIdStr := ctx.QueryParam(PROFILE_ID_QUERY_PARAM)
-	// if otherProfileIdStr != "" {
-	// 	otherProfileID, err = strconv.Atoi(otherProfileIdStr)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// 	wantedProfileID = otherProfileID
-	// } else {
-	// 	wantedProfileID = selfProfileID
-	// }
-
-	// TODO: make your own func to get countByDay using wantedProfileID
-	countByDay := make(map[time.Time]int)
-
-	page := controller.NewPage(ctx)
-
-	page.Layout = layouts.Main
-	page.Name = templates.PageProfile
-
-	data := types.ProfileCalendarHeatmap{
-		Counts: ConvertCountsToCountByDay(countByDay),
-	}
-
-	page.Data = data
-	page.Component = components.Heatmap(&page)
-
-	return c.ctr.RenderPage(ctx, page)
-}
-
-func ConvertCountsToCountByDay(counts map[time.Time]int) []types.CountByDay {
-	var data []types.CountByDay
-	for date, value := range counts {
-		data = append(data, types.CountByDay{
-			Date:  date.UTC().Format(time.RFC3339Nano),
-			Value: value,
-		})
-	}
-	return data
 }

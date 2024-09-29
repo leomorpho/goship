@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/mikestefanello/pagoda/pkg/controller"
 	"github.com/mikestefanello/pagoda/pkg/domain"
-	"github.com/mikestefanello/pagoda/pkg/types"
+	"github.com/mikestefanello/pagoda/pkg/routing/routenames"
 )
 
 templ Profile(page *controller.Page, profile domain.Profile, isSelf, isPotentialMatch bool, uploadGalleryPicUrl, uploadProfilePicUrl string, galleryPicsMaxCount int) {
@@ -154,7 +154,7 @@ templ ProfileHeader(page *controller.Page, profile *domain.Profile, isSelf, isPo
 						<div
 							class={ "w-28 h-28 rounded-full", templ.KV("cursor-pointer", isIndividualConvoView) }
 							if isIndividualConvoView {
-								hx-get={ page.ToURL("profile", profile.ID) }
+								hx-get={ page.ToURL(routenames.RouteNameProfile, profile.ID) }
 								hx-target="#main-content"
 								hx-select="#main-content"
 								hx-indicator="next #page-loading"
@@ -181,7 +181,7 @@ templ ProfileHeader(page *controller.Page, profile *domain.Profile, isSelf, isPo
 						class={ "font-bold text-2xl mb-2",
 						templ.KV("hover:underline cursor-pointer", isIndividualConvoView) }
 						if isIndividualConvoView {
-							hx-get={ page.ToURL("profile", profile.ID) }
+							hx-get={ page.ToURL(routenames.RouteNameProfile, profile.ID) }
 							hx-target="#main-content"
 							hx-select="#main-content"
 							hx-indicator="next #page-loading"
@@ -204,7 +204,7 @@ templ ProfileHeader(page *controller.Page, profile *domain.Profile, isSelf, isPo
 						@initGalleryPhotoUploaders(uploadProfilePicUrl, uploadGalleryPicUrl, len(profile.Photos) < galleryPicsMaxCount)
 					}
 					<a
-						href={ templ.URL(page.ToURL("logout")) }
+						href={ templ.URL(page.ToURL(routenames.RouteNameLogout)) }
 					>
 						<button
 							type="button"
@@ -302,22 +302,3 @@ script InitPhoneNumberPicker(elementID, phoneE164, countryCode, saveEventName, f
 	});
 }
 
-templ Heatmap(page *controller.Page) {
-	if data, ok := page.Data.(types.ProfileCalendarHeatmap); ok {
-		<div class=" w-screen md:w-full md:overflow-hidden">
-			<div
-				id="horizontal-scroll-container"
-				class="flex flex-col justify-center items-center p-4 w-full overflow-x-auto h-min"
-			>
-				<div id="cal-heatmap" class="m-2 p-5"></div>
-				<!-- <div id="legend"></div> -->
-			</div>
-		</div>
-		@initCalendarHeatmap("cal-heatmap", data.Counts)
-	}
-}
-
-script initCalendarHeatmap(elementID string, countsByDay []types.CountByDay) {
-
-	createCalHeatmap(countsByDay, elementID)
-}

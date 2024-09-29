@@ -1,6 +1,9 @@
 package components
 
-import "github.com/mikestefanello/pagoda/pkg/controller"
+import (
+	"github.com/mikestefanello/pagoda/pkg/controller"
+	"github.com/mikestefanello/pagoda/pkg/routing/routenames"
+)
 
 templ AuthButtons(page *controller.Page, showLoginBtn, showRegisterBtn, showResetPasswordBtn bool) {
 	<div class="inline-flex items-center justify-center w-full">
@@ -17,7 +20,7 @@ templ AuthButtons(page *controller.Page, showLoginBtn, showRegisterBtn, showRese
 	>
 		if showLoginBtn {
 			<button
-				hx-get={ page.ToURL("login") }
+				hx-get={ page.ToURL(routenames.RouteNameLogin) }
 				type="button"
 				class="m-1 px-3 py-2 font-medium text-center inline-flex items-center text-black dark:text-white rounded-3xl bg-slate-200 hover:bg-slate-300 dark:bg-slate-600 dark:hover:bg-slate-700"
 			>
@@ -34,7 +37,7 @@ templ AuthButtons(page *controller.Page, showLoginBtn, showRegisterBtn, showRese
 		}
 		if showRegisterBtn {
 			<button
-				hx-get={ page.ToURL("register") }
+				hx-get={ page.ToURL(routenames.RouteNameRegister) }
 				type="button"
 				class="m-1 px-3 py-2 font-medium text-center inline-flex items-center text-black dark:text-white rounded-3xl bg-slate-200 hover:bg-slate-300 dark:bg-slate-600 dark:hover:bg-slate-700"
 			>
@@ -55,7 +58,7 @@ templ AuthButtons(page *controller.Page, showLoginBtn, showRegisterBtn, showRese
 		}
 		if showResetPasswordBtn {
 			<button
-				hx-get={ page.ToURL("forgot_password") }
+				hx-get={ page.ToURL(routenames.RouteNameForgotPassword) }
 				type="button"
 				class="m-1 px-3 py-2 font-medium text-center inline-flex items-center text-black dark:text-white rounded-3xl bg-slate-200 hover:bg-slate-300 dark:bg-slate-600 dark:hover:bg-slate-700"
 			>

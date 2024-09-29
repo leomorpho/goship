@@ -17,6 +17,7 @@ import (
 	"github.com/mikestefanello/pagoda/ent/sentemail"
 	"github.com/mikestefanello/pagoda/pkg/controller"
 	"github.com/mikestefanello/pagoda/pkg/domain"
+	"github.com/mikestefanello/pagoda/pkg/routing/routenames"
 	"github.com/mikestefanello/pagoda/pkg/services"
 	"github.com/mikestefanello/pagoda/pkg/types"
 	"github.com/mikestefanello/pagoda/templates/emails"
@@ -218,11 +219,11 @@ func (e *UpdateEmailSender) SendUpdateEmail(
 	// Create a new Echo context
 	echoCtx := ech.NewContext(req, rec)
 
-	url := e.container.Web.Reverse("email_subscriptions.delete_with_token",
+	url := e.container.Web.Reverse(routenames.RouteNameDeleteEmailSubscriptionWithToken,
 		domain.NotificationPermissionDailyReminder.Value, dailyUpdatePermissionToken)
 	unsubscribeDailyUpdatesLink := fmt.Sprintf("%s%s", e.container.Config.HTTP.Domain, url)
 
-	url = e.container.Web.Reverse("email_subscriptions.delete_with_token",
+	url = e.container.Web.Reverse(routenames.RouteNameDeleteEmailSubscriptionWithToken,
 		domain.NotificationPermissionNewFriendActivity.Value, partnerUpdatePermissionToken)
 	unsubscribePartnerActivityLink := fmt.Sprintf("%s%s", e.container.Config.HTTP.Domain, url)
 

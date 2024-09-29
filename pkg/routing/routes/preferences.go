@@ -11,6 +11,7 @@ import (
 	"github.com/mikestefanello/pagoda/pkg/controller"
 	"github.com/mikestefanello/pagoda/pkg/domain"
 	"github.com/mikestefanello/pagoda/pkg/repos/msg"
+	"github.com/mikestefanello/pagoda/pkg/routing/routenames"
 	routeNames "github.com/mikestefanello/pagoda/pkg/routing/routenames"
 
 	"github.com/mikestefanello/pagoda/pkg/repos/notifierrepo"
@@ -449,5 +450,5 @@ func (p *onboarding) Get(ctx echo.Context) error {
 		return err
 	}
 
-	return p.ctr.RedirectWithDetails(ctx, "home_feed", "?just_finished_onboarding=true", http.StatusFound)
+	return p.ctr.RedirectWithDetails(ctx, routenames.RouteNameHomeFeed, "?just_finished_onboarding=true", http.StatusFound)
 }

@@ -370,7 +370,6 @@ func coreAuthRoutes(c *services.Container, g *echo.Group, ctr controller.Control
 
 	singleProfile := NewProfileRoutes(ctr, &profileRepo)
 	onboardedGroup.GET("/profile", singleProfile.Get).Name = routeNames.RouteNameProfile
-	onboardedGroup.GET("/profile/calendar-heatmap", singleProfile.GetCalendarHeatmap).Name = routeNames.RouteNameProfileCalendarHeatmap
 
 	uploadPhoto := NewUploadPhotoRoutes(ctr, &profileRepo, storageRepo, c.Config.Storage.PhotosMaxFileSizeMB)
 	onboardedGroup.GET("/uploadPhoto", uploadPhoto.Get).Name = "uploadPhoto"

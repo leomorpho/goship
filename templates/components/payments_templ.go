@@ -11,6 +11,7 @@ import templruntime "github.com/a-h/templ/runtime"
 import (
 	"github.com/mikestefanello/pagoda/pkg/controller"
 	"github.com/mikestefanello/pagoda/pkg/domain"
+	"github.com/mikestefanello/pagoda/pkg/routing/routenames"
 )
 
 func ManageSubscriptionButton(page *controller.Page, subscription domain.ProductType, isTrial bool) templ.Component {
@@ -73,9 +74,9 @@ func PricingPage(page *controller.Page) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var3 string
-		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL("pricing_page"))
+		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNamePricingPage))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/payments.templ`, Line: 19, Col: 37}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/payments.templ`, Line: 20, Col: 54}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
@@ -111,7 +112,7 @@ func StripePortal(page *controller.Page) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var5 templ.SafeURL = templ.SafeURL(page.ToURL("stripe.create_portal_session"))
+		var templ_7745c5c3_Var5 templ.SafeURL = templ.SafeURL(page.ToURL(routenames.RouteNameCreatePortalSession))
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var5)))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err

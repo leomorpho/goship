@@ -11,6 +11,7 @@ import templruntime "github.com/a-h/templ/runtime"
 import (
 	"github.com/mikestefanello/pagoda/pkg/controller"
 	"github.com/mikestefanello/pagoda/pkg/domain"
+	"github.com/mikestefanello/pagoda/pkg/routing/routenames"
 	"github.com/mikestefanello/pagoda/pkg/types"
 	"github.com/mikestefanello/pagoda/templates/components"
 )
@@ -33,7 +34,7 @@ func PricingPage(page *controller.Page) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = components.PrevNavBarWithTitle(page.ToURL("preferences"), "", "🍻 Subscription").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = components.PrevNavBarWithTitle(page.ToURL(routenames.RouteNamePreferences), "", "🍻 Subscription").Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -110,7 +111,7 @@ func pricingCard(page *controller.Page, title, subtitle, price string, points []
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/payments.templ`, Line: 29, Col: 57}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/payments.templ`, Line: 30, Col: 57}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
@@ -123,7 +124,7 @@ func pricingCard(page *controller.Page, title, subtitle, price string, points []
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(subtitle)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/payments.templ`, Line: 30, Col: 86}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/payments.templ`, Line: 31, Col: 86}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
@@ -136,7 +137,7 @@ func pricingCard(page *controller.Page, title, subtitle, price string, points []
 		var templ_7745c5c3_Var6 string
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(price)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/payments.templ`, Line: 32, Col: 54}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/payments.templ`, Line: 33, Col: 54}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
@@ -154,7 +155,7 @@ func pricingCard(page *controller.Page, title, subtitle, price string, points []
 			var templ_7745c5c3_Var7 string
 			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(point)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/payments.templ`, Line: 41, Col: 18}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/payments.templ`, Line: 42, Col: 18}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 			if templ_7745c5c3_Err != nil {
@@ -217,7 +218,7 @@ func pricingCard(page *controller.Page, title, subtitle, price string, points []
 					var templ_7745c5c3_Var9 string
 					templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(checkoutValue)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/payments.templ`, Line: 75, Col: 28}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/payments.templ`, Line: 76, Col: 28}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 					if templ_7745c5c3_Err != nil {
@@ -268,7 +269,7 @@ func PaymentSuccess(page *controller.Page) templ.Component {
 		var templ_7745c5c3_Var11 string
 		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs("Success! 🤗🎉")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/payments.templ`, Line: 95, Col: 28}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/payments.templ`, Line: 96, Col: 28}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 		if templ_7745c5c3_Err != nil {
@@ -281,7 +282,7 @@ func PaymentSuccess(page *controller.Page) templ.Component {
 		var templ_7745c5c3_Var12 string
 		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs("You can now continue using the platform ✨")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/payments.templ`, Line: 96, Col: 54}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/payments.templ`, Line: 97, Col: 54}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 		if templ_7745c5c3_Err != nil {
@@ -292,9 +293,9 @@ func PaymentSuccess(page *controller.Page) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var13 string
-		templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL("home_feed"))
+		templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameHomeFeed))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/payments.templ`, Line: 99, Col: 36}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/payments.templ`, Line: 100, Col: 53}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 		if templ_7745c5c3_Err != nil {
@@ -307,7 +308,7 @@ func PaymentSuccess(page *controller.Page) templ.Component {
 		var templ_7745c5c3_Var14 string
 		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs("Go to home feed")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/payments.templ`, Line: 110, Col: 23}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/pages/payments.templ`, Line: 111, Col: 23}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 		if templ_7745c5c3_Err != nil {

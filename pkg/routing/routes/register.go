@@ -10,6 +10,7 @@ import (
 	"github.com/mikestefanello/pagoda/pkg/controller"
 	"github.com/mikestefanello/pagoda/pkg/domain"
 	"github.com/mikestefanello/pagoda/pkg/repos/msg"
+	"github.com/mikestefanello/pagoda/pkg/routing/routenames"
 	routeNames "github.com/mikestefanello/pagoda/pkg/routing/routenames"
 
 	"github.com/mikestefanello/pagoda/pkg/repos/notifierrepo"
@@ -154,7 +155,7 @@ func (c *register) Post(ctx echo.Context) error {
 		tx.Rollback()
 		ctx.Logger().Errorf("failed to create profile: %v", err)
 		msg.Info(ctx, "unable to create user")
-		return c.ctr.Redirect(ctx, "login")
+		return c.ctr.Redirect(ctx, routenames.RouteNameLogin)
 	}
 
 	err = c.subscriptionsRepo.CreateSubscription(ctx.Request().Context(), tx, profile.ID)

@@ -3,6 +3,7 @@ package layouts
 import (
 	"github.com/mikestefanello/pagoda/pkg/controller"
 	"github.com/mikestefanello/pagoda/templates/components"
+	"github.com/mikestefanello/pagoda/pkg/routing/routenames"
 )
 
 templ Auth(content templ.Component, page *controller.Page) {
@@ -30,7 +31,7 @@ templ Auth(content templ.Component, page *controller.Page) {
 					<span>
 						@components.ThemeToggle("landing-page-theme-toggle")
 					</span>
-					<a id="auth-logo-with-brand" href={ templ.URL(page.ToURL("landing_page")) } class="flex justify-center items-center space-x-3 my-8 hover:underline">
+					<a id="auth-logo-with-brand" href={ templ.URL(page.ToURL(routenames.RouteNameLandingPage)) } class="flex justify-center items-center space-x-3 my-8 hover:underline">
 						<img src="/files/icon.png" class="h-16" alt="Logo"/>
 						<span class="text-2xl font-semibold">{ page.AppName }</span>
 					</a>

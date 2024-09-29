@@ -8,7 +8,10 @@ package components
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "github.com/mikestefanello/pagoda/pkg/controller"
+import (
+	"github.com/mikestefanello/pagoda/pkg/controller"
+	"github.com/mikestefanello/pagoda/pkg/routing/routenames"
+)
 
 func Drawer(page *controller.Page, showTopBar bool) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
@@ -38,9 +41,9 @@ func Drawer(page *controller.Page, showTopBar bool) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var2 string
-			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL("realtime"))
+			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameRealtime))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/drawer.templ`, Line: 26, Col: 39}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/drawer.templ`, Line: 29, Col: 57}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 			if templ_7745c5c3_Err != nil {
@@ -100,7 +103,7 @@ func drawerButtonToggle(page *controller.Page) templ.Component {
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL("normalNotificationsCount"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/drawer.templ`, Line: 65, Col: 52}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/drawer.templ`, Line: 68, Col: 52}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
@@ -232,7 +235,7 @@ func drawerMenu(page *controller.Page) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = dropdownListEntry(page.ToURL("docs.architecture"), "Architecture").Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = dropdownListEntry(page.ToURL(routenames.RouteNameDocsArchitecture), "Architecture").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -395,7 +398,7 @@ func drawerTopBar(page *controller.Page) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var11 templ.SafeURL = templ.URL(page.ToURL("home_feed"))
+			var templ_7745c5c3_Var11 templ.SafeURL = templ.URL(page.ToURL(routenames.RouteNameHomeFeed))
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var11)))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -409,7 +412,7 @@ func drawerTopBar(page *controller.Page) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var12 templ.SafeURL = templ.URL(page.ToURL("landing_page"))
+			var templ_7745c5c3_Var12 templ.SafeURL = templ.URL(page.ToURL(routenames.RouteNameLandingPage))
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var12)))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -426,7 +429,7 @@ func drawerTopBar(page *controller.Page) templ.Component {
 		var templ_7745c5c3_Var13 string
 		templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(page.AppName)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/drawer.templ`, Line: 158, Col: 17}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/drawer.templ`, Line: 161, Col: 17}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 		if templ_7745c5c3_Err != nil {
@@ -467,7 +470,7 @@ func profile(page *controller.Page) templ.Component {
 				var templ_7745c5c3_Var15 string
 				templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(page.AuthUserProfilePicURL)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/drawer.templ`, Line: 179, Col: 71}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/drawer.templ`, Line: 182, Col: 71}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 				if templ_7745c5c3_Err != nil {
@@ -485,7 +488,7 @@ func profile(page *controller.Page) templ.Component {
 			var templ_7745c5c3_Var16 string
 			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(page.AuthUser.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/drawer.templ`, Line: 182, Col: 45}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/drawer.templ`, Line: 185, Col: 45}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 			if templ_7745c5c3_Err != nil {
@@ -498,7 +501,7 @@ func profile(page *controller.Page) templ.Component {
 			var templ_7745c5c3_Var17 string
 			templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(page.AuthUser.Email)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/drawer.templ`, Line: 183, Col: 46}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/drawer.templ`, Line: 186, Col: 46}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 			if templ_7745c5c3_Err != nil {
@@ -562,9 +565,9 @@ func SidebarSharedFields(page *controller.Page) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var20 string
-		templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL("home_feed"))
+		templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameHomeFeed))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/drawer.templ`, Line: 199, Col: 35}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/drawer.templ`, Line: 202, Col: 52}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 		if templ_7745c5c3_Err != nil {
@@ -577,7 +580,7 @@ func SidebarSharedFields(page *controller.Page) templ.Component {
 		var templ_7745c5c3_Var21 string
 		templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL("normalNotifications"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/drawer.templ`, Line: 211, Col: 45}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/drawer.templ`, Line: 214, Col: 45}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 		if templ_7745c5c3_Err != nil {
@@ -590,7 +593,7 @@ func SidebarSharedFields(page *controller.Page) templ.Component {
 		var templ_7745c5c3_Var22 string
 		templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL("normalNotificationsCount"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/drawer.templ`, Line: 221, Col: 52}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/drawer.templ`, Line: 224, Col: 52}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 		if templ_7745c5c3_Err != nil {
@@ -647,7 +650,7 @@ func dropdownEntry(icon templ.Component, menuTitle string) templ.Component {
 		var templ_7745c5c3_Var24 string
 		templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(menuTitle)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/drawer.templ`, Line: 249, Col: 15}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/drawer.templ`, Line: 252, Col: 15}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 		if templ_7745c5c3_Err != nil {
@@ -710,7 +713,7 @@ func dropdownListEntryWithIcon(icon templ.Component, url, menuTitle string) temp
 			var templ_7745c5c3_Var27 string
 			templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(menuTitle)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/drawer.templ`, Line: 273, Col: 32}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/drawer.templ`, Line: 276, Col: 32}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 			if templ_7745c5c3_Err != nil {
@@ -767,7 +770,7 @@ func dropdownListEntry(url, menuTitle string) templ.Component {
 			var templ_7745c5c3_Var30 string
 			templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(menuTitle)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/drawer.templ`, Line: 279, Col: 32}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/drawer.templ`, Line: 282, Col: 32}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var30))
 			if templ_7745c5c3_Err != nil {

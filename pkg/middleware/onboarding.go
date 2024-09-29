@@ -5,6 +5,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/mikestefanello/pagoda/pkg/context"
+	"github.com/mikestefanello/pagoda/pkg/routing/routenames"
 )
 
 func RedirectToOnboardingIfNotComplete() echo.MiddlewareFunc {
@@ -15,7 +16,7 @@ func RedirectToOnboardingIfNotComplete() echo.MiddlewareFunc {
 			}
 			isFullyOnboarded := c.Get(context.ProfileFullyOnboarded).(bool)
 			if !isFullyOnboarded {
-				url := c.Echo().Reverse("preferences")
+				url := c.Echo().Reverse(routenames.RouteNamePreferences)
 				return c.Redirect(303, url)
 			}
 			return next(c)

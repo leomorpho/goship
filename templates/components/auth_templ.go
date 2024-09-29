@@ -8,7 +8,10 @@ package components
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "github.com/mikestefanello/pagoda/pkg/controller"
+import (
+	"github.com/mikestefanello/pagoda/pkg/controller"
+	"github.com/mikestefanello/pagoda/pkg/routing/routenames"
+)
 
 func AuthButtons(page *controller.Page, showLoginBtn, showRegisterBtn, showResetPasswordBtn bool) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
@@ -38,9 +41,9 @@ func AuthButtons(page *controller.Page, showLoginBtn, showRegisterBtn, showReset
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var2 string
-			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL("login"))
+			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameLogin))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/auth.templ`, Line: 20, Col: 32}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/auth.templ`, Line: 23, Col: 50}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 			if templ_7745c5c3_Err != nil {
@@ -57,9 +60,9 @@ func AuthButtons(page *controller.Page, showLoginBtn, showRegisterBtn, showReset
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var3 string
-			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL("register"))
+			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameRegister))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/auth.templ`, Line: 37, Col: 35}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/auth.templ`, Line: 40, Col: 53}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -76,9 +79,9 @@ func AuthButtons(page *controller.Page, showLoginBtn, showRegisterBtn, showReset
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var4 string
-			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL("forgot_password"))
+			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameForgotPassword))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/auth.templ`, Line: 58, Col: 42}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `templates/components/auth.templ`, Line: 61, Col: 59}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {

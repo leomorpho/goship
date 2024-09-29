@@ -12,6 +12,7 @@ import (
 	"github.com/mikestefanello/pagoda/pkg/repos/msg"
 	"github.com/mikestefanello/pagoda/pkg/repos/profilerepo"
 	"github.com/mikestefanello/pagoda/pkg/repos/subscriptions"
+	"github.com/mikestefanello/pagoda/pkg/routing/routenames"
 	"github.com/mikestefanello/pagoda/pkg/services"
 	"github.com/rs/zerolog/log"
 )
@@ -92,7 +93,7 @@ func LoadValidPasswordToken(authClient *services.AuthClient) echo.MiddlewareFunc
 			case services.InvalidPasswordTokenError:
 				msg.Warning(c, "The link is either invalid or has expired. Please request a new one.")
 				// TODO use the const for route name
-				return c.Redirect(http.StatusFound, c.Echo().Reverse("forgot_password"))
+				return c.Redirect(http.StatusFound, c.Echo().Reverse(routenames.RouteNameForgotPassword))
 			default:
 				return echo.NewHTTPError(
 					http.StatusInternalServerError,
@@ -121,7 +122,7 @@ func RequireAuthentication() echo.MiddlewareFunc {
 				}
 
 				// Redirect to login page
-				url := c.Echo().Reverse("login")
+				url := c.Echo().Reverse(routenames.RouteNameLogin)
 				return c.Redirect(http.StatusSeeOther, url)
 				// Note: leaving original code commented out in case there are unforeseen consequences...so I remember this change which may have caused it...
 				// return echo.NewHTTPError(http.StatusUnauthorized)

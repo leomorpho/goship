@@ -1,4 +1,4 @@
-package routeNames
+package routenames
 
 const (
 	RouteNameForgotPassword          = "forgot_password"
@@ -7,15 +7,14 @@ const (
 	RouteNameLoginSubmit             = "login.submit"
 	RouteNameLogout                  = "logout"
 	RouteNameRegister                = "register"
-	RouteNameRegisterSubmit          = "register.post" // TODO: rename to "register.submit" as was done in pagoda
+	RouteNameRegisterSubmit          = "register.submit"
 	RouteNameResetPassword           = "reset_password"
-	RouteNameResetPasswordSubmit     = "reset_password.post" // TODO: rename to "register.submit" as was done in pagoda
+	RouteNameResetPasswordSubmit     = "reset_password.submit"
 	RouteNameVerifyEmail             = "verify_email"
 	RouteNameContact                 = "contact"
 	RouteNameContactSubmit           = "contact.submit"
 	RouteNameAboutUs                 = "about"
 	RouteNameLandingPage             = "landing_page"
-	RouteNameSearch                  = "search"
 	RouteNamePreferences             = "preferences"
 	RouteNameGetPhone                = "phone.get"
 	RouteNameUpdatePhoneNum          = "phone.save"
@@ -30,29 +29,18 @@ const (
 	RouteNameHomeFeed           = "home_feed"
 	RouteNameGetHomeFeedButtons = "home_feed.buttons"
 	RouteNameGetHomeFeedStats   = "home_feed.stats"
-	RouteNameSearchQuestion     = "home_feed.search_question"
 
-	RouteNameGetMatch               = "meet.get_match"
-	RouteNameRateMatch              = "meet.rate_match"
-	RouteNameMatchMadeInHeaven      = "meet.match_made_in_heaven"
-	RouteNameProfile                = "profile"
-	RouteNameProfileCalendarHeatmap = "profile.calendar_heatmap"
-	RouteNameInstallApp             = "install_app"
+	RouteNameProfile    = "profile"
+	RouteNameInstallApp = "install_app"
 
 	RouteNameMarkNotificationsAsRead    = "markNormalNotificationRead"
 	RouteNameMarkAllNotificationsAsRead = "normalNotificationsMarkAllAsRead"
 
 	RouteNameRealtime = "realtime"
 
-	RouteNameFinishOnboarding          = "finish_onboarding"
-	RouteNameGetGeolocationComponent   = "geolocation"
-	RouteNameUpdateGeolocation         = "geolocation.post"
-	RouteNameGetBio                    = "profileBio.get"
-	RouteNameUpdateBio                 = "profileBio.post"
-	RouteNameUpdateSelfGender          = "profileGender.post"
-	RouteNameUpdateInterestedInGenders = "profileInterestedGenders.post"
-	RouteNameUpdateMinAgeInterestedIn  = "profileMinAgeInterestedIn.post"
-	RouteNameUpdateMaxAgeInterestedIn  = "profileMaxAgeInterestedIn.post"
+	RouteNameFinishOnboarding = "finish_onboarding"
+	RouteNameGetBio           = "profileBio.get"
+	RouteNameUpdateBio        = "profileBio.post"
 
 	RouteNameGetPushSubscriptions             = "push_subscriptions.get"
 	RouteNameRegisterSubscription             = "notification_subscriptions.register"
@@ -66,6 +54,7 @@ const (
 	RouteNamePricingPage                  = "pricing_page"
 	RouteNamePaymentProcessorSuccess      = "stripe.success"
 
+	// NOTE: docs route is being actively worked on. Refer to Readme for up to date documentation.
 	RouteNameDocs               = "docs"
 	RouteNameDocsGettingStarted = "docs.getting_started"
 	RouteNameDocsGuidedTour     = "docs.guided_tour"

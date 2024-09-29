@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/mikestefanello/pagoda/pkg/routing/routenames"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -63,7 +64,7 @@ func TestRegisterUserFieldValidation(t *testing.T) {
 			formData.Del(tc.omitField)
 
 			// Perform the HTTP POST request
-			postReq := request(t).setRoute("register").setBody(formData)
+			postReq := request(t).setRoute(routenames.RouteNameRegister).setBody(formData)
 			response := postReq.post()
 
 			// Ensure the page reloads with a 200 status, indicating form errors

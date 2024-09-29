@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/mikestefanello/pagoda/pkg/controller"
 	"github.com/mikestefanello/pagoda/pkg/domain"
+	"github.com/mikestefanello/pagoda/pkg/routing/routenames"
 	"github.com/mikestefanello/pagoda/pkg/types"
 	"github.com/mikestefanello/pagoda/templates/components"
 )
@@ -12,7 +13,7 @@ templ NotificationsPage(page *controller.Page) {
 	if data, ok := page.Data.(types.NormalNotificationsPageData); ok {
 		<div class="flex justify-center items-center w-full">
 			<button
-				hx-get={ page.ToURL("normalNotificationsMarkAllAsRead") }
+				hx-get={ page.ToURL(routenames.RouteNameMarkAllNotificationsAsRead) }
 				hx-target="#main-content"
 				hx-select="#main-content"
 				hx-indicator="next #page-loading"
@@ -74,7 +75,7 @@ templ Notification(page *controller.Page, notification domain.Notification) {
                         templ.KV("bg-slate-100 dark:bg-slate-600 text-black dark:text-white font-bold", !notification.Read),
                         templ.KV("bg-slate-300 dark:bg-slate-800 text-slate-700 dark:text-slate-100 font-normal", notification.Read) }
 		if !notification.Read && notification.Link == "" {
-			hx-post={ page.ToURL("markNormalNotificationRead", notification.ID) + "?csrf=" + page.CSRF }
+			hx-post={ page.ToURL(routenames.RouteNameMarkNotificationsAsRead, notification.ID) + "?csrf=" + page.CSRF }
 			hx-trigger="click"
 			hx-swap="none"
 		}
@@ -85,7 +86,7 @@ templ Notification(page *controller.Page, notification domain.Notification) {
 		>
 			<span
 				if notification.ReadInNotificationsCenter && !notification.Read {
-					hx-post={ page.ToURL("markNormalNotificationRead", notification.ID) + "?csrf=" + page.CSRF }
+					hx-post={ page.ToURL(routenames.RouteNameMarkNotificationsAsRead, notification.ID) + "?csrf=" + page.CSRF }
 					hx-swap="none"
 					hx-trigger="intersect once"
 					hx-push-url="false"
@@ -93,7 +94,7 @@ templ Notification(page *controller.Page, notification domain.Notification) {
 			></span>
 			if notification.ReadInNotificationsCenter && !notification.Read {
 				<span
-					hx-post={ page.ToURL("markNormalNotificationRead", notification.ID) + "?csrf=" + page.CSRF }
+					hx-post={ page.ToURL(routenames.RouteNameMarkNotificationsAsRead, notification.ID) + "?csrf=" + page.CSRF }
 					hx-swap="none"
 					hx-trigger="intersect once"
 					hx-push-url="false"
