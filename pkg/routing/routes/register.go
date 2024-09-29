@@ -5,25 +5,22 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/labstack/echo/v4"
 	"github.com/mikestefanello/pagoda/ent"
 	"github.com/mikestefanello/pagoda/pkg/context"
 	"github.com/mikestefanello/pagoda/pkg/controller"
 	"github.com/mikestefanello/pagoda/pkg/domain"
 	"github.com/mikestefanello/pagoda/pkg/repos/msg"
-	"github.com/mikestefanello/pagoda/pkg/routing/routenames"
-	routeNames "github.com/mikestefanello/pagoda/pkg/routing/routenames"
-
 	"github.com/mikestefanello/pagoda/pkg/repos/notifierrepo"
 	"github.com/mikestefanello/pagoda/pkg/repos/profilerepo"
 	"github.com/mikestefanello/pagoda/pkg/repos/subscriptions"
+	"github.com/mikestefanello/pagoda/pkg/routing/routenames"
 	"github.com/mikestefanello/pagoda/pkg/types"
 	"github.com/mikestefanello/pagoda/templates"
 	"github.com/mikestefanello/pagoda/templates/emails"
 	"github.com/mikestefanello/pagoda/templates/layouts"
 	"github.com/mikestefanello/pagoda/templates/pages"
 	"github.com/rs/zerolog/log"
-
-	"github.com/labstack/echo/v4"
 )
 
 type (
@@ -137,7 +134,7 @@ func (c *register) Post(ctx echo.Context) error {
 		switch err.(type) {
 		case *ent.ConstraintError:
 			msg.Warning(ctx, "A user with this email address already exists. Please log in.")
-			return c.ctr.Redirect(ctx, routeNames.RouteNameLogin)
+			return c.ctr.Redirect(ctx, routenames.RouteNameLogin)
 		default:
 			return c.ctr.Fail(err, "unable to create user")
 		}
@@ -185,7 +182,7 @@ func (c *register) Post(ctx echo.Context) error {
 	if err != nil {
 		ctx.Logger().Errorf("unable to log in: %v", err)
 		msg.Info(ctx, "Your account has been created.")
-		return c.ctr.Redirect(ctx, routeNames.RouteNameLogin)
+		return c.ctr.Redirect(ctx, routenames.RouteNameLogin)
 	}
 
 	msg.Success(ctx, "Your account has been created. You are now logged in. 👌")
@@ -201,7 +198,7 @@ func (c *register) Post(ctx echo.Context) error {
 		return nil
 	}
 
-	return c.ctr.Redirect(ctx, routeNames.RouteNamePreferences)
+	return c.ctr.Redirect(ctx, routenames.RouteNamePreferences)
 }
 
 func (c *register) sendVerificationEmail(ctx echo.Context, usr *ent.User) {
@@ -212,7 +209,7 @@ func (c *register) sendVerificationEmail(ctx echo.Context, usr *ent.User) {
 		return
 	}
 
-	url := ctx.Echo().Reverse(routeNames.RouteNameVerifyEmail, token)
+	url := ctx.Echo().Reverse(routenames.RouteNameVerifyEmail, token)
 	fullUrl := fmt.Sprintf("%s%s", c.ctr.Container.Config.HTTP.Domain, url)
 
 	page := controller.NewPage(ctx)
