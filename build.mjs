@@ -38,7 +38,7 @@ async function build() {
 
     // Write the metafile for Svelte bundle
     await fs.writeFile(
-      "meta_svelte_bundle.json",
+      path.join(outputDir, "meta_svelte_bundle.json"),
       JSON.stringify(svelteResult.metafile)
     );
 
@@ -54,7 +54,7 @@ async function build() {
 
     // Write the metafile to disk and open with https://esbuild.github.io/analyze/
     await fs.writeFile(
-      "meta_vanilla_bundle.json",
+      path.join(outputDir, "meta_vanilla_bundle.json"),
       JSON.stringify(vanillaResult.metafile)
     );
 
