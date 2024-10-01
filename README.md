@@ -21,6 +21,9 @@
 This started as a fork of [pagoda](https://github.com/mikestefanello/pagoda), for which I am super grateful! Big shoutout to Mike Stefanello and team!
 <p align="center"><img alt="Logo" src="https://user-images.githubusercontent.com/552328/147838644-0efac538-a97e-4a46-86a0-41e3abdf9f20.png" height="100px"/></p>
 
+### Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=leomorpho/GoShip&type=Date)](https://star-history.com/#leomorpho/GoShip&Date)
 
 ### Getting Started
 
