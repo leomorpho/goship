@@ -12,6 +12,7 @@ import (
 
 	"github.com/mikestefanello/pagoda/pkg/routing/routes"
 	"github.com/mikestefanello/pagoda/pkg/services"
+	"github.com/mikestefanello/pagoda/pkg/tasks"
 )
 
 func timeoutMiddleware(next http.Handler, writeTimeout time.Duration) http.Handler {
@@ -67,12 +68,12 @@ func main() {
 		}
 	}()
 
-	// // Start the scheduler service to queue periodic tasks
-	// go func() {
-	// 	if err := c.Tasks.StartScheduler(); err != nil {
-	// 		c.Web.Logger.Fatalf("scheduler shutdown: %v", err)
-	// 	}
-	// }()
+	// Register all task queues
+	tasks.Register(c)
+
+	// Start the task runner to execute queued tasks
+	ctx, cancel := context.WithCancel(context.Background())
+	go c.Tasks.StartRunner(ctx)
 
 	// seeder.RunIdempotentSeeder(c.Config, c.ORM)
 
@@ -117,7 +118,8 @@ func main() {
 	signal.Notify(quit, os.Interrupt)
 	signal.Notify(quit, os.Kill)
 	<-quit
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	cancel()
+	ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	if err := c.Web.Shutdown(ctx); err != nil {
 		c.Web.Logger.Fatal(err)

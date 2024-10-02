@@ -67,6 +67,7 @@ type (
 		App         AppConfig
 		Cache       CacheConfig
 		Database    DatabaseConfig
+		Tasks       TasksConfig
 		Mail        MailConfig
 		Phone       PhoneConfig
 		Recommender RecommenderConfig
@@ -135,12 +136,8 @@ type (
 
 	// CacheConfig stores the cache configuration
 	CacheConfig struct {
-		Hostname     string
-		Port         uint16
-		Password     string
-		Database     int
-		TestDatabase int
-		Expiration   struct {
+		Capacity   int
+		Expiration struct {
 			StaticFile time.Duration
 			Page       time.Duration
 		}
@@ -162,6 +159,13 @@ type (
 		TestDatabase      string
 		SslCertPath       string
 		SslMode           string
+	}
+
+	// TasksConfig stores the tasks configuration
+	TasksConfig struct {
+		PollInterval time.Duration
+		MaxRetries   int
+		Goroutines   int
 	}
 
 	// MailConfig stores the mail configuration

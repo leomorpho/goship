@@ -106,18 +106,14 @@ func NewContainer() *Container {
 
 // Shutdown shuts the Container down and disconnects all connections
 func (c *Container) Shutdown() error {
-	if err := c.Tasks.Close(); err != nil {
-		return err
-	}
-	if err := c.Cache.Close(); err != nil {
-		return err
-	}
+
 	if err := c.ORM.Close(); err != nil {
 		return err
 	}
 	if err := c.Database.Close(); err != nil {
 		return err
 	}
+	c.Cache.Close()
 
 	return nil
 }
@@ -196,10 +192,13 @@ func (c *Container) initWeb() {
 
 // initCache initializes the cache
 func (c *Container) initCache() {
-	var err error
-	if c.Cache, err = NewCacheClient(c.Config); err != nil {
+	store, err := newInMemoryCache(c.Config.Cache.Capacity)
+
+	if err != nil {
 		panic(err)
 	}
+
+	c.Cache = NewCacheClient(store)
 }
 
 func (c *Container) getDBAddr(dbName string) string {
@@ -403,5 +402,11 @@ func (c *Container) initPaymentProcessor() {
 
 // initTasks initializes the task client
 func (c *Container) initTasks() {
-	c.Tasks = NewTaskClient(c.Config)
+	var err error
+	// You could use a separate database for tasks, if you'd like. but using one
+	// makes transaction support easier
+	c.Tasks, err = NewTaskClient(c.Config.Tasks, c.Database)
+	if err != nil {
+		panic(fmt.Sprintf("failed to create task client: %v", err))
+	}
 }

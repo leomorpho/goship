@@ -50,11 +50,7 @@ app:
   firebaseBase64AccessKeys: ""
 
 cache:
-  hostname: "localhost"
-  port: 6379
-  password: ""
-  database: 0
-  testDatabase: 1
+  capacity: 100000
   expiration:
     # Set these in .env files as we don't want them for dev
     staticFile: "0h"

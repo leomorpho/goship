@@ -296,7 +296,7 @@ func coreAuthRoutes(c *services.Container, g *echo.Group, ctr controller.Control
 	storageRepo := storagerepo.NewStorageClient(c.Config, c.ORM)
 	profileRepo := *profilerepo.NewProfileRepo(c.ORM, storageRepo, nil)
 
-	pubsubRepo := pubsub.NewRedisPubSubClient(c.Cache.Client)
+	pubsubRepo := pubsub.NewGoroutinePubSubClient()
 	notificationStorageRepo := notifierrepo.NewNotificationStorageRepo(c.ORM)
 	subscriptionsRepo := subscriptions.NewSubscriptionsRepo(
 		c.ORM,

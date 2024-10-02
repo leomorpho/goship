@@ -34,6 +34,7 @@ require (
 	github.com/labstack/echo/v4 v4.11.4
 	github.com/labstack/gommon v0.4.2
 	github.com/mattn/go-sqlite3 v1.14.23
+	github.com/maypok86/otter v1.2.3
 	github.com/mileusna/useragent v1.3.4
 	github.com/minio/minio-go/v7 v7.0.67
 	github.com/nats-io/nats.go v1.33.1
@@ -49,6 +50,7 @@ require (
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.29.1
 	github.com/ziflex/lecho/v3 v3.5.0
 	golang.org/x/crypto v0.26.0
+	golang.org/x/exp v0.0.0-20240205201215-2c58cdc269a3
 	google.golang.org/api v0.183.0
 )
 
@@ -95,10 +97,12 @@ require (
 	github.com/docker/docker v25.0.3+incompatible // indirect
 	github.com/docker/go-connections v0.5.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
+	github.com/dolthub/maphash v0.1.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
+	github.com/gammazero/deque v0.2.1 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
@@ -134,6 +138,7 @@ require (
 	github.com/leodido/go-urn v1.2.4 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
+	github.com/maragudk/goqite v0.2.3 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
@@ -193,7 +198,6 @@ require (
 	go.opentelemetry.io/otel/metric v1.27.0 // indirect
 	go.opentelemetry.io/otel/trace v1.27.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/exp v0.0.0-20240205201215-2c58cdc269a3 // indirect
 	golang.org/x/image v0.15.0 // indirect
 	golang.org/x/mod v0.20.0 // indirect
 	golang.org/x/net v0.28.0 // indirect

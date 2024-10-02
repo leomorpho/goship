@@ -1,98 +1,100 @@
 package tasks
 
-import (
-	"context"
-	"encoding/json"
-	"fmt"
+// TODO: did not update asynq tasks to backlite
 
-	"github.com/hibiken/asynq"
-	"github.com/labstack/echo/v4"
-	"github.com/mikestefanello/pagoda/config"
-	"github.com/mikestefanello/pagoda/ent"
-	"github.com/mikestefanello/pagoda/pkg/controller"
-	"github.com/mikestefanello/pagoda/pkg/repos/emailsmanager"
-	"github.com/mikestefanello/pagoda/pkg/repos/mailer"
-	"github.com/mikestefanello/pagoda/pkg/services"
-	"github.com/mikestefanello/pagoda/pkg/types"
-	"github.com/mikestefanello/pagoda/templates/emails"
-	"github.com/mikestefanello/pagoda/templates/layouts"
-)
+// import (
+// 	"context"
+// 	"encoding/json"
+// 	"fmt"
 
-// ////////////////////////////////////////////////////////////////////////////
-// Send email list confirmation email
-// ////////////////////////////////////////////////////////////////////////////
+// 	"github.com/hibiken/asynq"
+// 	"github.com/labstack/echo/v4"
+// 	"github.com/mikestefanello/pagoda/config"
+// 	"github.com/mikestefanello/pagoda/ent"
+// 	"github.com/mikestefanello/pagoda/pkg/controller"
+// 	"github.com/mikestefanello/pagoda/pkg/repos/emailsmanager"
+// 	"github.com/mikestefanello/pagoda/pkg/repos/mailer"
+// 	"github.com/mikestefanello/pagoda/pkg/services"
+// 	"github.com/mikestefanello/pagoda/pkg/types"
+// 	"github.com/mikestefanello/pagoda/templates/emails"
+// 	"github.com/mikestefanello/pagoda/templates/layouts"
+// )
 
-const TypeEmailSubscriptionConfirmation = "email:email_subscription_confirmation"
+// // ////////////////////////////////////////////////////////////////////////////
+// // Send email list confirmation email
+// // ////////////////////////////////////////////////////////////////////////////
 
-type (
-	EmailSubscriptionConfirmationProcessor struct {
-		mailer *mailer.MailClient
-		config *config.Config
-	}
+// const TypeEmailSubscriptionConfirmation = "email:email_subscription_confirmation"
 
-	EmailSubscriptionConfirmationPayload struct {
-		Email string `json:"to"`
-		Url   string `json:"url"`
-	}
-)
+// type (
+// 	EmailSubscriptionConfirmationProcessor struct {
+// 		mailer *mailer.MailClient
+// 		config *config.Config
+// 	}
 
-func NewEmailSubscriptionConfirmationProcessor(
-	mailer *mailer.MailClient, config *config.Config,
-) *EmailSubscriptionConfirmationProcessor {
-	return &EmailSubscriptionConfirmationProcessor{mailer: mailer, config: config}
-}
+// 	EmailSubscriptionConfirmationPayload struct {
+// 		Email string `json:"to"`
+// 		Url   string `json:"url"`
+// 	}
+// )
 
-func (esc *EmailSubscriptionConfirmationProcessor) ProcessTask(ctx context.Context, t *asynq.Task) error {
-	var p EmailSubscriptionConfirmationPayload
-	if err := json.Unmarshal(t.Payload(), &p); err != nil {
-		fmt.Printf("Error unmarshalling payload: %v\n", err)
-		return err
-	}
+// func NewEmailSubscriptionConfirmationProcessor(
+// 	mailer *mailer.MailClient, config *config.Config,
+// ) *EmailSubscriptionConfirmationProcessor {
+// 	return &EmailSubscriptionConfirmationProcessor{mailer: mailer, config: config}
+// }
 
-	fullUrl := fmt.Sprintf("%s%s", esc.config.HTTP.Domain, p.Url)
+// func (esc *EmailSubscriptionConfirmationProcessor) ProcessTask(ctx context.Context, t *asynq.Task) error {
+// 	var p EmailSubscriptionConfirmationPayload
+// 	if err := json.Unmarshal(t.Payload(), &p); err != nil {
+// 		fmt.Printf("Error unmarshalling payload: %v\n", err)
+// 		return err
+// 	}
 
-	page := controller.NewPage(echo.New().AcquireContext())
-	page.Layout = layouts.Main
-	page.Data = types.EmailDefaultData{
-		AppName:          string(esc.config.App.Name),
-		ConfirmationLink: fullUrl,
-		SupportEmail:     esc.config.Mail.FromAddress,
-		Domain:           esc.config.HTTP.Domain,
-	}
+// 	fullUrl := fmt.Sprintf("%s%s", esc.config.HTTP.Domain, p.Url)
 
-	err := esc.mailer.
-		Compose().
-		To(p.Email).
-		Subject("Confirm your email subscription for the app release anouncement.").
-		TemplateLayout(layouts.Email).
-		Component(emails.SubscriptionConfirmation(&page)).
-		Send(ctx)
+// 	page := controller.NewPage(echo.New().AcquireContext())
+// 	page.Layout = layouts.Main
+// 	page.Data = types.EmailDefaultData{
+// 		AppName:          string(esc.config.App.Name),
+// 		ConfirmationLink: fullUrl,
+// 		SupportEmail:     esc.config.Mail.FromAddress,
+// 		Domain:           esc.config.HTTP.Domain,
+// 	}
 
-	return err
-}
+// 	err := esc.mailer.
+// 		Compose().
+// 		To(p.Email).
+// 		Subject("Confirm your email subscription for the app release anouncement.").
+// 		TemplateLayout(layouts.Email).
+// 		Component(emails.SubscriptionConfirmation(&page)).
+// 		Send(ctx)
 
-// ----------------------------------------------------------
+// 	return err
+// }
 
-const TypeEmailUpdates = "email:email_updates"
+// // ----------------------------------------------------------
 
-type (
-	EmailUpdateProcessor struct {
-		emailSender *emailsmanager.UpdateEmailSender
-	}
-)
+// const TypeEmailUpdates = "email:email_updates"
 
-// TODO: no need for all the param this takes, some are in Container. Fix later.
-func NewEmailUpdateProcessor(
-	container *services.Container, orm *ent.Client,
-) *EmailUpdateProcessor {
+// type (
+// 	EmailUpdateProcessor struct {
+// 		emailSender *emailsmanager.UpdateEmailSender
+// 	}
+// )
 
-	updateEmailSender := emailsmanager.NewUpdateEmailSender(orm, container)
+// // TODO: no need for all the param this takes, some are in Container. Fix later.
+// func NewEmailUpdateProcessor(
+// 	container *services.Container, orm *ent.Client,
+// ) *EmailUpdateProcessor {
 
-	return &EmailUpdateProcessor{
-		emailSender: updateEmailSender,
-	}
-}
+// 	updateEmailSender := emailsmanager.NewUpdateEmailSender(orm, container)
 
-func (e *EmailUpdateProcessor) ProcessTask(ctx context.Context, t *asynq.Task) error {
-	return e.emailSender.PrepareAndSendUpdateEmailForAll(ctx)
-}
+// 	return &EmailUpdateProcessor{
+// 		emailSender: updateEmailSender,
+// 	}
+// }
+
+// func (e *EmailUpdateProcessor) ProcessTask(ctx context.Context, t *asynq.Task) error {
+// 	return e.emailSender.PrepareAndSendUpdateEmailForAll(ctx)
+// }
