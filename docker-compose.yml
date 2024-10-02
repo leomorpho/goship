@@ -1,9 +1,10 @@
 services:
-  cache:
-    image: "redis:alpine"
-    container_name: goship_cache
-    ports:
-      - "127.0.0.1:${HOST_CACHE_PORT-6379}:6379"
+  # NOTE: if you want to use redis and postgres, uncomment and hook up in `pkg/services/container.go`
+  # cache:
+  #   image: "redis:alpine"
+  #   container_name: goship_cache
+  #   ports:
+  #     - "127.0.0.1:${HOST_CACHE_PORT-6379}:6379"
 
   # db:
   #   # PG 16 is currenly not supported by Ent ORM: https://github.com/ent/ent/issues/3750

@@ -4742,10 +4742,6 @@ details.collapse summary::-webkit-details-marker{
           appearance: none;
 }
 
-.grid-cols-3{
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
 .grid-cols-4{
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
@@ -5826,14 +5822,6 @@ details.collapse summary::-webkit-details-marker{
 
 .font-semibold{
   font-weight: 600;
-}
-
-.uppercase{
-  text-transform: uppercase;
-}
-
-.capitalize{
-  text-transform: capitalize;
 }
 
 .leading-5{

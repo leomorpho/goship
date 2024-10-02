@@ -28,10 +28,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
 
-      - name: Start containers
-        run: |
-          docker compose up -d
-          sleep 3
+      # NOTE: uncomment the following if using postgres (or any docker containers for dev)
+      # - name: Start containers
+      #   run: |
+      #     docker compose up -d
+      #     sleep 3
 
       - name: Test
         run: go test -p 1 ./...

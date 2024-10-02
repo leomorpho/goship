@@ -327,7 +327,6 @@ func (c *Container) initORM() {
 	}
 }
 
-// TODO: not quite sure why I added the below ent hook. Might be removable for streamlining.
 func renameColumnHook(next schema.Differ) schema.Differ {
 	return schema.DiffFunc(func(current, desired *atlas.Schema) ([]atlas.Change, error) {
 		changes, err := next.Diff(current, desired)
@@ -366,7 +365,7 @@ func (c *Container) initAuth() {
 }
 
 func (c *Container) initNotifier() {
-	pubsubRepo := pubsub.NewRedisPubSubClient(c.Cache.Client)
+	pubsubRepo := pubsub.NewGoroutinePubSubClient()
 	notificationStorageRepo := notifierrepo.NewNotificationStorageRepo(c.ORM)
 	pwaPushNotificationsRepo := notifierrepo.NewPwaPushNotificationsRepo(
 		c.ORM, c.Config.App.VapidPublicKey, c.Config.App.VapidPrivateKey, c.Config.Mail.FromAddress,

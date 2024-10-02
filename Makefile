@@ -255,14 +255,5 @@ js-reinstall: ## Reinstall all JS dependencies
 	rm -rf node_modules package-lock.json
 	npm install
 
-.PHONY: doc
-pkgsite: ## Create pkgsite docs
-	pkgsite -open .
-
-.PHONY: golds
-# Documentation: https://go101.org/apps-and-libs/golds.html
-golds: ## Create golds docs
-	golds ./...
-
 stripe-webhook: ## Forward events from test mode to local webhooks endpoint 
 	stripe listen --forward-to localhost:8002/Q2HBfAY7iid59J1SUN8h1Y3WxJcPWA/payments/webhooks --latest
