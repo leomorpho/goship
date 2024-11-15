@@ -51,7 +51,7 @@ Well, I noticed that there were none for Go. Now, I know most Go folks like to b
 
 If you'd like a no-nonesense (or not too much?) starter kit to get your next project to production ASAP, while also using awesome technologies like Go, you've found a suitable starting point!
 
-> **Warning alert!** this project is in active development as I am adding things after first trying them out in prod for [Goship](https://cherie.chatbond.app/), a relationship app to grow your couple. Note that I would welcome any help to develop this boilerplate ❤️.
+> **Warning alert!** this project is in active development as I am adding things after first trying them out in prod for [Chérie](https://cherie.chatbond.app/), a relationship app to grow your couple. Note that I would welcome any help to develop this boilerplate ❤️.
 
 ### Features && Tech Stack
  
