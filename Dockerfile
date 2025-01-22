@@ -1,5 +1,5 @@
 # Stage 1: Build the Go application
-FROM golang:1.22.2-bullseye AS builder
+FROM --platform=linux/amd64 golang:1.22.2-bullseye AS builder
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -13,15 +13,20 @@ RUN apt-get update && apt-get install -y \
 
 # Copy Go modules and download dependencies
 COPY go.mod go.sum ./
+RUN go mod tidy
 RUN go mod download
 
 # Copy the source code
 COPY . .
 
+ENV CGO_ENABLED=1
+ENV GOOS=linux
+ENV GOARCH=amd64
+
 # Build the application
-RUN CGO_ENABLED=1 GOOS=linux go build -ldflags="-s -w" -gcflags=all=-l -o /app/goship-web ./cmd/web/main.go
-RUN CGO_ENABLED=1 GOOS=linux go build -ldflags="-s -w" -gcflags=all=-l -o /app/goship-worker ./cmd/worker/main.go
-RUN CGO_ENABLED=1 GOOS=linux go build -ldflags="-s -w" -gcflags=all=-l -o /app/goship-seed ./cmd/seed/main.go
+RUN GOARCH=amd64  go build -ldflags="-s -w" -gcflags=all=-l -o /app/goship-web ./cmd/web/main.go
+RUN GOARCH=amd64  go build -ldflags="-s -w" -gcflags=all=-l -o /app/goship-worker ./cmd/worker/main.go
+RUN GOARCH=amd64  go build -ldflags="-s -w" -gcflags=all=-l -o /app/goship-seed ./cmd/seed/main.go
 
 # Install asynq tools
 RUN go install github.com/hibiken/asynq/tools/asynq@latest
