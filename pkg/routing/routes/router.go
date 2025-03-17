@@ -14,7 +14,6 @@ import (
 	"github.com/mikestefanello/pagoda/pkg/repos/emailsmanager"
 	"github.com/mikestefanello/pagoda/pkg/repos/notifierrepo"
 	"github.com/mikestefanello/pagoda/pkg/repos/profilerepo"
-	"github.com/mikestefanello/pagoda/pkg/repos/pubsub"
 	storagerepo "github.com/mikestefanello/pagoda/pkg/repos/storage"
 	"github.com/mikestefanello/pagoda/pkg/repos/subscriptions"
 	routeNames "github.com/mikestefanello/pagoda/pkg/routing/routenames"
@@ -113,7 +112,7 @@ func BuildRouter(c *services.Container) {
 		}),
 		session.Middleware(sessions.NewCookieStore([]byte(c.Config.App.EncryptionKey))),
 		middleware.LoadAuthenticatedUser(c.Auth, profileRepo, subscriptionsRepo),
-		middleware.ServeCachedPage(c.Cache),
+		// middleware.ServeCachedPage(c.Cache), // NOTE: turn on if you use a cache
 		echomw.CSRFWithConfig(echomw.CSRFConfig{
 			TokenLookup:  "form:csrf,header:X-CSRF-Token,query:csrf",
 			CookieMaxAge: 172800, // 48h
@@ -189,7 +188,7 @@ func BuildRouter(c *services.Container) {
 
 	if c.Config.App.OperationalConstants.UserSignupEnabled {
 		coreAuthRoutes(c, g, ctr)
-		sseRoutes(c, s, ctr)
+		// sseRoutes(c, s, ctr)
 		externalRoutes(c, e, ctr)
 	}
 
@@ -296,8 +295,8 @@ func coreAuthRoutes(c *services.Container, g *echo.Group, ctr controller.Control
 	storageRepo := storagerepo.NewStorageClient(c.Config, c.ORM)
 	profileRepo := *profilerepo.NewProfileRepo(c.ORM, storageRepo, nil)
 
-	pubsubRepo := pubsub.NewRedisPubSubClient(c.Cache.Client)
-	notificationStorageRepo := notifierrepo.NewNotificationStorageRepo(c.ORM)
+	// pubsubRepo := pubsub.NewRedisPubSubClient(c.Cache.Client)
+	// notificationStorageRepo := notifierrepo.NewNotificationStorageRepo(c.ORM)
 	subscriptionsRepo := subscriptions.NewSubscriptionsRepo(
 		c.ORM,
 		c.Config.App.OperationalConstants.ProTrialTimespanInDays,
@@ -313,8 +312,8 @@ func coreAuthRoutes(c *services.Container, g *echo.Group, ctr controller.Control
 	}
 
 	notificationSendPermissionRepo := notifierrepo.NewNotificationSendPermissionRepo(c.ORM)
-	notifierRepo := notifierrepo.NewNotifierRepo(
-		pubsubRepo, notificationStorageRepo, pwaPushNotificationsRepo, fcmPushNotificationsRepo, profileRepo.GetCountOfUnseenNotifications)
+	// notifierRepo := notifierrepo.NewNotifierRepo(
+	// 	pubsubRepo, notificationStorageRepo, pwaPushNotificationsRepo, fcmPushNotificationsRepo, profileRepo.GetCountOfUnseenNotifications)
 	smsSenderRepo, err := notifierrepo.NewSMSSender(
 		c.ORM, c.Config.Phone.Region, c.Config.Phone.SenderID, c.Config.Phone.ValidationCodeExpirationMinutes)
 	if err != nil {
@@ -380,21 +379,21 @@ func coreAuthRoutes(c *services.Container, g *echo.Group, ctr controller.Control
 	onboardedGroup.GET("/currProfilePhoto", currProfilePhoto.Get).Name = "currProfilePhoto"
 	onboardedGroup.POST("/currProfilePhoto", currProfilePhoto.Post).Name = "currProfilePhoto.post"
 
-	// TODO: create functions to create these  Removfe notifierRepo as it's accessible on container.
-	markNormalNotificationRead := NewMarkNormalNotificationReadRoute(ctr, notifierRepo)
-	onboardedGroup.POST("/notificationSeenByEvent/:notification_id", markNormalNotificationRead.Post).Name = routeNames.RouteNameMarkNotificationsAsRead
+	// // TODO: create functions to create these  Removfe notifierRepo as it's accessible on container.
+	// markNormalNotificationRead := NewMarkNormalNotificationReadRoute(ctr, notifierRepo)
+	// onboardedGroup.POST("/notificationSeenByEvent/:notification_id", markNormalNotificationRead.Post).Name = routeNames.RouteNameMarkNotificationsAsRead
 
-	markNormalNotificationUnread := NewMarkNormalNotificationUnreadRoute(ctr, notifierRepo)
-	onboardedGroup.POST("/markNormalNotificationUnread", markNormalNotificationUnread.Post).Name = "markNormalNotificationUnread"
+	// markNormalNotificationUnread := NewMarkNormalNotificationUnreadRoute(ctr, notifierRepo)
+	// onboardedGroup.POST("/markNormalNotificationUnread", markNormalNotificationUnread.Post).Name = "markNormalNotificationUnread"
 
 	normalNotificationsCount := NewNormalNotificationsCountRoute(ctr, profileRepo)
 	onboardedGroup.GET("/notifications/normalNotificationsCount", normalNotificationsCount.Get).Name = "normalNotificationsCount"
 
-	normalNotifications := NewNormalNotificationsRoute(ctr, notifierRepo)
-	onboardedGroup.GET("/notifications", normalNotifications.Get, middleware.SetLastSeenOnline(c.Auth)).Name = "normalNotifications"
-	onboardedGroup.GET("/notifications/markAllAsRead", normalNotifications.MarkAllAsRead, middleware.SetLastSeenOnline(c.Auth)).Name = routeNames.RouteNameMarkAllNotificationsAsRead
+	// normalNotifications := NewNormalNotificationsRoute(ctr, notifierRepo)
+	// onboardedGroup.GET("/notifications", normalNotifications.Get, middleware.SetLastSeenOnline(c.Auth)).Name = "normalNotifications"
+	// onboardedGroup.GET("/notifications/markAllAsRead", normalNotifications.MarkAllAsRead, middleware.SetLastSeenOnline(c.Auth)).Name = routeNames.RouteNameMarkAllNotificationsAsRead
 
-	onboardedGroup.DELETE("/notifications/normalNotifications/:notification_id", normalNotifications.Delete).Name = "normalNotifications.delete"
+	// onboardedGroup.DELETE("/notifications/normalNotifications/:notification_id", normalNotifications.Delete).Name = "normalNotifications.delete"
 
 	payments := NewPaymentsRoute(ctr, c.ORM, subscriptionsRepo)
 	onboardedGroup.GET("/payments/get-public-key", payments.GetPaymentProcessorPublickey).Name = routeNames.RouteNamePaymentProcessorGetPublicKey

@@ -93,14 +93,14 @@ func NewContainer() *Container {
 	c.initConfig()
 	c.initValidator()
 	c.initWeb()
-	c.initCache()
+	// c.initCache()
 	c.initDatabase()
 	c.initORM()
 	c.initAuth()
-	c.initNotifier()
+	// c.initNotifier()
 	c.initMail()
 	c.initPaymentProcessor()
-	c.initTasks()
+	// c.initTasks()
 	return c
 }
 
