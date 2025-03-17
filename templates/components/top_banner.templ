@@ -1,0 +1,33 @@
+package components
+
+templ BonfireBanner() {
+	<!-- Banner (hidden initially) -->
+	<div id="bonfire-banner" class="fixed bottom-0 left-0 w-full bg-orange-500 text-white text-sm flex items-center justify-between px-4 py-2 z-50">
+		<div class="w-full flex items-center justify-center">
+			<span>
+				🚀 Check out our new event platform! 
+				<a href="https://bnfr-events.app" target="_blank" class="font-bold underline ml-1">Try Bonfire for free</a>
+			</span>
+		</div>
+		<!-- Dismiss Button -->
+		<button onclick="dismissBonfireBanner()" class="text-white opacity-70 hover:opacity-100 text-lg">
+			✖
+		</button>
+	</div>
+	@topBannerJs()
+}
+
+script topBannerJs() {
+        // Show the banner if it hasn't been dismissed before
+		(function () {
+			if (!localStorage.getItem("hideBonfireBanner")) {
+				document.getElementById("bonfire-banner").style.display = "flex";
+			}
+		})();
+
+		// Function to dismiss the banner and remember the preference
+		function dismissBonfireBanner() {
+			document.getElementById("bonfire-banner").style.display = "none";
+			localStorage.setItem("hideBonfireBanner", "true");
+		}
+}

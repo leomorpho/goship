@@ -13,7 +13,9 @@ templ LandingPage(content templ.Component, page *controller.Page) {
 			@components.CSS()
 			@components.JS()
 		</head>
-		<body>			
+		<body>
+			@components.BonfireBanner()
+			
 			<div class="hidden lg:block sticky top-0 z-10">
 				@components.Navbar(page)
 			</div>
