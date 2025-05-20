@@ -18,6 +18,9 @@ templ LandingPage(page *controller.Page) {
 		// <div class="block lg:hidden">
 		// 	@components.DocsButton(page)
 		// </div>
+		<div class="my-5 block lg:hidden sticky top-0 z-10 flex flex-row justify-center items-center m-2">
+			@components.BlogButton()
+		</div>
 		@mobileDarkModeButton()
 	</div>
 	if data, ok := page.Data.(types.LandingPage); ok {

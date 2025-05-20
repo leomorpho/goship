@@ -4253,6 +4253,10 @@ details.collapse summary::-webkit-details-marker{
   margin-right: 1rem;
 }
 
+.mr-5{
+  margin-right: 1.25rem;
+}
+
 .ms-3{
   margin-inline-start: 0.75rem;
 }

@@ -173,6 +173,7 @@ watch-go: ## Run the application with air (auto reload changes)
 	air
 
 watch: 
+	echo "Run 'nvm use v18.20.7' to make sure the JS version will work."
 	overmind start
 
 .PHONY: test

@@ -68,6 +68,9 @@ templ Navbar(page *controller.Page) {
 			<div
 				class="flex items-center"
 			>
+				<div class="mr-5">
+					@BlogButton()
+				</div>
 				@ThemeToggle("navbar-theme-toggle")
 				if page.IsAuth && page.IsFullyOnboarded {
 					<div
@@ -202,7 +205,7 @@ templ LogInButton(page *controller.Page, btnClasses string) {
 }
 
 templ HomeButton(page *controller.Page, btnClasses string) {
-	<a href={ templ.URL(page.ToURL(routenames.RouteNameLandingPage )) }>
+	<a href={ templ.URL(page.ToURL(routenames.RouteNameLandingPage)) }>
 		<button
 			class={ "bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 text-white font-medium rounded-full flex justify-center items-center w-full", btnClasses }
 		>
@@ -256,5 +259,20 @@ templ DocsButton(page *controller.Page) {
 			class="w-5 h-5"
 		>><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 4.984h2"></path><path d="M8 4.984h2.5"></path><path d="M14.5 4.984h2.5"></path><path d="M22 4.984h-2"></path><path d="M4 4.984l5.455 14.516l6.545 -14.516"></path><path d="M9 4.984l6 14.516l6 -14.516"></path></svg>
 		<span class="hidden lg:block ml-1">Docs</span>
+	</a>
+}
+
+templ BlogButton() {
+	<a
+		href="https://tobyluxembourg.com/tags/ch%C3%A9rie"
+		id="blog-header-menu-item"
+		target="_blank"
+	>
+		<div class="flex flex-col justify-center">
+			<div class="flex w-full items-center justify-center">
+				<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 lucide lucide-book-open-text-icon lucide-book-open-text"><path d="M12 7v14"></path><path d="M16 12h2"></path><path d="M16 8h2"></path><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"></path><path d="M6 12h2"></path><path d="M6 8h2"></path></svg>
+			</div>
+			<div class="text-xs">Blog</div>
+		</div>
 	</a>
 }
