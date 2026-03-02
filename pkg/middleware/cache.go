@@ -36,6 +36,11 @@ type CachedPage struct {
 func ServeCachedPage(ch *services.CacheClient) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
+			// Cache backend is optional in some runtime profiles.
+			if ch == nil {
+				return next(c)
+			}
+
 			// Skip non GET requests
 			if c.Request().Method != http.MethodGet {
 				return next(c)

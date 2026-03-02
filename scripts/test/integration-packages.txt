@@ -1,0 +1,9 @@
+# Packages with infrastructure-heavy tests
+./pkg/routing/routes
+./pkg/repos/emailsmanager
+./pkg/repos/notifierrepo
+./pkg/repos/profilerepo
+./pkg/repos/subscriptions
+./seeder
+./pkg/services
+

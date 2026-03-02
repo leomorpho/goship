@@ -192,12 +192,17 @@ watch: ## Start all dev watchers/processes through overmind
 	overmind start
 
 .PHONY: test
-test: ## Run all tests
-	go test -p 1 ./...
+test: ## Run Docker-free unit test package set
+	bash scripts/test-unit.sh
+
+.PHONY: test-integration
+test-integration: ## Run integration test package set (may require Docker/infra)
+	bash scripts/test-integration.sh
 
 .PHONY: testall
-testall: ## Run all tests with no caching
-	go test -count=1 -p 1 -count=1 ./...
+testall: ## Run both unit and integration test package sets
+	bash scripts/test-unit.sh
+	bash scripts/test-integration.sh
 
 .PHONY: cover
 cover: ## Create a html coverage report and open it once generated

@@ -361,6 +361,26 @@ Decision:
 - Keep HTMX-first and no-build-friendly by default.
 - Ensure CLI removes manual compile-pipeline pain where Svelte is used.
 
+## Unified Styling Policy
+
+Goal:
+
+- one unified styling system across GoShip modules and generated apps.
+
+Preferred direction:
+
+1. Use a single design system source of truth (tokens, component variants, spacing, colors, typography).
+2. If Svelte is used, keep style parity with the same design tokens/components (e.g. shadcn + shadcn-svelte style equivalence).
+3. Avoid fragmented ad-hoc component styling across stacks.
+
+LLM/agent styling guardrails:
+
+1. LLMs may change HTML/Templ/Svelte structure and behavior logic.
+2. LLMs should not freely rewrite Tailwind styling.
+3. Styling changes must be centralized in designated style system files with explicit documentation comments.
+4. Generated/component docs should clearly mark style contract boundaries as "do not mutate directly" unless requested.
+5. Framework prompts/checklists should enforce: "change behavior first, preserve style tokens/classes unless style task is explicitly requested."
+
 ## Testing Strategy (Developer Ergonomics First)
 
 Test workflow should be fast and local-first without requiring Docker for most feedback loops.
@@ -486,10 +506,16 @@ Test evidence:
 - `go test ./pkg/runtimeplan`
 
 4. `R0.4` Testing harness improvements so default `make test` is Docker-free and fast.
-Status: `in_progress`
+Status: `completed`
+Done when:
+- default `make test` executes a Docker-free unit package set;
+- integration/infra-heavy tests run via separate command;
+- cache-dependent unit tests do not fail when cache service is disabled in runtime profile.
+Test evidence:
+- `bash scripts/test-unit.sh`
 
 5. `R0.5` Establish package-level coverage baselines and close highest-value test gaps.
-Status: `not_started`
+Status: `in_progress`
 
 ### Phase 1: Core Abstractions
 

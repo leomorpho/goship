@@ -200,8 +200,8 @@ func BuildRouter(c *services.Container) {
 	ctr := controller.NewController(c)
 
 	// Error handler
-	err := NewErrorHandler(ctr)
-	c.Web.HTTPErrorHandler = err.Get
+	errorHandler := NewErrorHandler(ctr)
+	c.Web.HTTPErrorHandler = errorHandler.Get
 
 	generalRoutes(c, g, ctr)
 	documentationRoutes(c, g, ctr)

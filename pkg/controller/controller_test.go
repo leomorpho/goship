@@ -149,6 +149,10 @@ func TestController_RenderPage(t *testing.T) {
 	})
 
 	t.Run("page cache", func(t *testing.T) {
+		if c.Cache == nil {
+			t.Skip("cache service is not initialized in this runtime profile")
+		}
+
 		ctx, rec, ctr, p := setup()
 		p.Cache.Enabled = true
 		p.Cache.Tags = []string{"tag1"}

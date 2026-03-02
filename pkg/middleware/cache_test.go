@@ -14,6 +14,10 @@ import (
 )
 
 func TestServeCachedPage(t *testing.T) {
+	if c.Cache == nil {
+		t.Skip("cache service is not initialized in this runtime profile")
+	}
+
 	// Cache a page
 	cp := CachedPage{
 		URL:        "/cache",

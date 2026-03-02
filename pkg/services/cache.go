@@ -83,6 +83,9 @@ func NewCacheClient(cfg *config.Config) (*CacheClient, error) {
 
 // Close closes the connection to the cache
 func (c *CacheClient) Close() error {
+	if c == nil || c.Client == nil {
+		return nil
+	}
 	return c.Client.Close()
 }
 
