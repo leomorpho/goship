@@ -49,6 +49,21 @@ app:
   appEncryptionKey: "="
   firebaseBase64AccessKeys: ""
 
+runtime:
+  profile: "server-db"
+
+processes:
+  web: true
+  worker: false
+  scheduler: false
+  coLocated: false
+
+adapters:
+  db: "postgres"
+  cache: "memory"
+  jobs: "inproc"
+  pubsub: "inproc"
+
 cache:
   hostname: "localhost"
   port: 6379

@@ -24,6 +24,7 @@ const (
 type app string
 type environment string
 type dbmode string
+type runtimeprofile string
 
 const (
 	// EnvLocal represents the local environment
@@ -49,6 +50,15 @@ const (
 
 	// DBModeStandalone represents a standalone DB as being used as a storage backend
 	DBModeStandalone dbmode = "standalone"
+
+	// RuntimeProfileServerDB is the default profile using an external DB server.
+	RuntimeProfileServerDB runtimeprofile = "server-db"
+
+	// RuntimeProfileSingleNode is the profile targeting single-node embedding.
+	RuntimeProfileSingleNode runtimeprofile = "single-node"
+
+	// RuntimeProfileDistributed is the profile targeting distributed processes.
+	RuntimeProfileDistributed runtimeprofile = "distributed"
 )
 
 // SwitchEnvironment sets the environment variable used to dictate which environment the application is
@@ -65,12 +75,33 @@ type (
 	Config struct {
 		HTTP        HTTPConfig
 		App         AppConfig
+		Runtime     RuntimeConfig
+		Processes   ProcessesConfig
+		Adapters    AdaptersConfig
 		Cache       CacheConfig
 		Database    DatabaseConfig
 		Mail        MailConfig
 		Phone       PhoneConfig
 		Recommender RecommenderConfig
 		Storage     StorageConfig
+	}
+
+	RuntimeConfig struct {
+		Profile runtimeprofile
+	}
+
+	ProcessesConfig struct {
+		Web        bool
+		Worker     bool
+		Scheduler  bool
+		CoLocated  bool
+	}
+
+	AdaptersConfig struct {
+		DB     string
+		Cache  string
+		Jobs   string
+		PubSub string
 	}
 
 	// HTTPConfig stores HTTP configuration

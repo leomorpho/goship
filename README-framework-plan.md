@@ -20,6 +20,71 @@ Build a highly productive, convention-first Go framework where developers can:
 2. install batteries as versioned modules;
 3. choose deployment/runtime mode without rewriting app code.
 
+Primary framing:
+
+- GoShip aims to be a Ruby on Rails alternative in Go, with comparable batteries-included productivity and developer ergonomics.
+- Product aspiration: be a deeply loved framework by developers by putting developer joy, speed, and clarity first.
+- Rails inspiration applies to the entire framework experience (not only environment settings): app structure, conventions, generators, batteries, defaults, testing, and deployment workflows.
+
+### Rails-Inspired Framework Pillars
+
+1. Convention over configuration:
+- opinionated defaults for layout, modules, and naming;
+- explicit escape hatches when teams need control.
+2. Generators-first workflow:
+- create apps/resources/jobs/modules with minimal manual wiring.
+3. Batteries-included, modular delivery:
+- auth, billing, notifications, storage, admin, jobs as installable modules.
+4. Stable abstractions over pluggable implementations:
+- developers code to GoShip interfaces; adapters are swap-friendly.
+5. Excellent local DX:
+- fast feedback, minimal setup, stateless tests by default.
+6. Production-ready path:
+- clear migration from local single-process to distributed process topology.
+
+Rails inspiration for configuration and "what runs":
+
+1. Rails uses layered configuration:
+- `config/application.rb` for global app config;
+- `config/environments/*.rb` for per-environment overrides;
+- `config/initializers/*.rb` for subsystem wiring;
+- Gemfile/Bundler groups for dependency activation.
+2. GoShip equivalent target:
+- global framework/module manifest + adapter selection;
+- per-environment overrides;
+- startup wiring that follows enabled modules/adapters.
+
+### Execution Topology and File Approach
+
+To decide what runs in parallel (web/worker/scheduler) and with which adapters, use layered config files:
+
+1. `config/application.yaml`:
+- global defaults;
+- module enablement;
+- adapter defaults (`db`, `cache`, `jobs`, `pubsub`, `storage`).
+2. `config/environments/{local,dev,test,prod}.yaml`:
+- per-environment overrides;
+- profile selection (`server-db`, `single-node`, `distributed`).
+3. `config/processes.yaml`:
+- process topology matrix:
+  - `web` (bool)
+  - `worker` (bool)
+  - `scheduler` (bool)
+  - `co_located` (bool)
+- examples:
+  - local default: web=true, worker=true, scheduler=true (single process with goroutines if backend supports it)
+  - prod distributed web: web=true, worker=false, scheduler=false
+  - prod worker: web=false, worker=true, scheduler=true
+4. `config/initializers/*.go` (generated/wired by CLI):
+- runtime boot wiring based on enabled modules/adapters/processes.
+
+CLI responsibilities:
+
+1. `goship new` writes initial config set with sane defaults.
+2. `goship profile set <profile>` updates environment/process presets.
+3. `goship module add <name>` updates module manifest + initializer wiring.
+4. `goship jobs backend set <backend>` updates adapter config with capability checks.
+
 ## Core Product Goals
 
 1. Rails-like productivity in Go.
@@ -34,6 +99,8 @@ Build a highly productive, convention-first Go framework where developers can:
 2. Use a monorepo with multiple Go modules plus `go.work` for maintainers.
 3. Ship installable/versioned modules (auth, billing, notifications, storage, admin).
 4. Keep one blessed default stack, but support both single-node and distributed runtime modes via adapters.
+5. Near-term default is database-server-first (Postgres first), not SQLite-centric.
+6. Redis is optional capability, not a hard requirement.
 
 ## Upstream/Downstream Relationship
 
@@ -61,6 +128,38 @@ Based on Cherie docs and current implementation, these are strong candidates to 
 - cache invalidation/ops guidance;
 - migration caveats and guardrails.
 
+## Pagoda Upstream Intake Plan
+
+Long-term policy:
+
+1. Treat Pagoda as an upstream source of framework/runtime improvements.
+2. Regularly evaluate and selectively port changes into GoShip.
+3. Do not adopt Pagoda UI/component layer choices that conflict with GoShip direction.
+
+Current known upstream shifts in Pagoda (to evaluate and/or port):
+
+1. Default move from Postgres+Redis to SQLite-centric operation (reference only, not the current GoShip default direction).
+2. Migration from Asynq to Backlite for DB-backed task queues.
+3. In-process task runner startup in web process, with graceful task shutdown in container.
+4. Use of in-memory cache as default for simpler local development.
+5. Admin/task runtime integration improvements.
+
+Non-goals for direct adoption:
+
+1. Go-based HTML component stack from Pagoda (`gomponents`) as a hard dependency.
+2. Any upstream UI architecture changes that reduce GoShip's Templ+HTMX ergonomics.
+3. Forcing GoShip into SQLite-centric defaults at this stage.
+
+## Pagoda Intake TODOs
+
+- [ ] Create a recurring upstream review cadence (weekly or per-tag) for Pagoda.
+- [ ] Add a "Pagoda intake log" mapping upstream commit/tag -> GoShip decision (`adopt`, `adapt`, `skip`).
+- [ ] Evaluate Backlite-style DB-backed jobs as a GoShip jobs adapter candidate.
+- [ ] Port container lifecycle hardening patterns where applicable (startup/shutdown ordering and timeouts).
+- [ ] Port testability improvements that reduce Docker dependence.
+- [ ] Keep UI/component layer decisions independent from runtime/service layer intake.
+- [ ] Prefer LLM-assisted feature re-implementation over direct commit cherry-picks due codebase divergence.
+
 ## Cherie Sync Policy
 
 1. Every GoShip framework milestone must include a Cherie compatibility check.
@@ -77,19 +176,52 @@ Based on Cherie docs and current implementation, these are strong candidates to 
 
 ## Runtime Modes
 
-### 1) Single-Node Mode
+### 1) Server-DB Mode (Primary Near-Term Default)
+
+- DB: external DB server (Postgres first; MySQL later through adapter boundary)
+- Cache: in-memory by default
+- Jobs: pluggable (`inproc` for simplicity, durable backend for reliability)
+- Redis: optional, not required
+
+### 2) Single-Node Mode (Future-Friendly Profile)
 
 - DB: SQLite
 - Cache: in-memory
 - PubSub: in-process
 - Jobs: in-process scheduler/worker
 
-### 2) Distributed Mode
+### 3) Distributed Mode
 
 - DB: Postgres
-- Cache: Redis
-- PubSub: Redis-backed
-- Jobs: Asynq
+- Cache: adapter-driven (Redis optional)
+- PubSub: adapter-driven
+- Jobs: adapter-driven (DB-backed queue or external queue service)
+
+## Worker Queue Abstraction Strategy
+
+Goal:
+
+- one stable app-facing jobs API with multiple backend implementations.
+
+Design principles:
+
+1. Define a minimal stable core contract in `goship/jobs`:
+- `Register(name, handler)`
+- `Enqueue(name, payload, opts...)`
+- `StartWorker(ctx)`
+- `StopWorker(ctx)`
+- `StartScheduler(ctx)` (if supported)
+2. Use capability declarations per backend (delayed jobs, retries, cron, priority, dead-letter, UI).
+3. Validate feature usage against backend capabilities at startup.
+4. Keep backend-specific settings in adapter config, not spread in app code.
+5. Keep handlers/payload contracts backend-agnostic.
+
+Planned adapters:
+
+1. `jobs/inproc` (best local DX)
+2. `jobs/dbqueue` (DB-backed durable queue, no Redis required)
+3. `jobs/asynq` (optional Redis-backed adapter)
+4. future cloud adapters (Pub/Sub / Cloud Tasks bridges)
 
 ## Required Core Interfaces
 
@@ -289,10 +421,16 @@ Test evidence:
 - `go test ./pkg/services -run 'Test(NewContainer|ContainerShutdownNilSafe)$'`
 
 2. `R0.2` Container initialization policy by runtime mode (`single-node` vs `distributed`), with explicit config contract.
-Status: `in_progress`
+Status: `completed`
+Done when:
+- runtime/process/adapters config scaffold exists;
+- runtime plan resolver exists with table tests;
+- no startup behavior change yet (scaffold only).
+Test evidence:
+- `go test ./config ./pkg/runtimeplan`
 
 3. `R0.3` Router consistency pass (realtime + notifications wired consistently with initialized dependencies).
-Status: `not_started`
+Status: `in_progress`
 
 4. `R0.4` Testing harness improvements so default `make test` is Docker-free and fast.
 Status: `not_started`
