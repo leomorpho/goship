@@ -44,7 +44,8 @@ hooks: ## Install git hooks via lefthook
 # Core workflow ------------------------------------------------------------------------------
 
 .PHONY: dev
-dev: up deps-js build-js build-css watch ## Start local development (infra + asset deps + watch mode)
+dev: ## Start local development (infra + asset deps + watch mode)
+	bash scripts/dev.sh "$(DCO_BIN)"
 
 .PHONY: dev-reset
 dev-reset: reset deps-js build-js build-css seed watch ## Full reset then start dev (destructive to local DB state)
@@ -141,8 +142,7 @@ generate: ## Run code generation
 
 .PHONY: up
 up: ensure-compose ## Start Docker containers
-	$(DCO_BIN) up -d --remove-orphans
-	sleep 3
+	bash scripts/up.sh "$(DCO_BIN)"
 
 .PHONY: down
 down: ensure-compose ## Stop Docker containers
