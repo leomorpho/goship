@@ -14,6 +14,7 @@ import (
 	"github.com/mikestefanello/pagoda/pkg/repos/emailsmanager"
 	"github.com/mikestefanello/pagoda/pkg/repos/notifierrepo"
 	"github.com/mikestefanello/pagoda/pkg/repos/profilerepo"
+	"github.com/mikestefanello/pagoda/pkg/runtimeplan"
 	storagerepo "github.com/mikestefanello/pagoda/pkg/repos/storage"
 	"github.com/mikestefanello/pagoda/pkg/repos/subscriptions"
 	routeNames "github.com/mikestefanello/pagoda/pkg/routing/routenames"
@@ -35,6 +36,21 @@ func sseSkipper(c echo.Context) bool {
 
 // BuildRouter builds the router
 func BuildRouter(c *services.Container) {
+	plan, err := runtimeplan.Resolve(c.Config)
+	if err != nil {
+		log.Warn().
+			Err(err).
+			Msg("invalid runtime plan configuration, falling back to safe web defaults")
+		plan = runtimeplan.Plan{
+			Profile: string(c.Config.Runtime.Profile),
+			RunWeb:  true,
+			Adapters: runtimeplan.Adapters{
+				PubSub: c.Config.Adapters.PubSub,
+			},
+		}
+	}
+	webFeatures := runtimeplan.ResolveWebFeatures(plan, c.Cache != nil, c.Notifier != nil)
+
 	// Create a slog logger, which:
 	//   - Logs to json.
 	// TODO: add option to log to file
@@ -112,7 +128,6 @@ func BuildRouter(c *services.Container) {
 		}),
 		session.Middleware(sessions.NewCookieStore([]byte(c.Config.App.EncryptionKey))),
 		middleware.LoadAuthenticatedUser(c.Auth, profileRepo, subscriptionsRepo),
-		// middleware.ServeCachedPage(c.Cache), // NOTE: turn on if you use a cache
 		echomw.CSRFWithConfig(echomw.CSRFConfig{
 			TokenLookup:  "form:csrf,header:X-CSRF-Token,query:csrf",
 			CookieMaxAge: 172800, // 48h
@@ -123,6 +138,11 @@ func BuildRouter(c *services.Container) {
 		}),
 		middleware.SetDeviceTypeToServe(),
 	)
+	if webFeatures.EnablePageCache {
+		g.Use(middleware.ServeCachedPage(c.Cache))
+	} else {
+		log.Info().Msg("page cache middleware disabled (cache dependency unavailable or web process disabled)")
+	}
 
 	// Realtime routes router
 	s.Use(
@@ -188,7 +208,11 @@ func BuildRouter(c *services.Container) {
 
 	if c.Config.App.OperationalConstants.UserSignupEnabled {
 		coreAuthRoutes(c, g, ctr)
-		// sseRoutes(c, s, ctr)
+		if webFeatures.EnableRealtime {
+			sseRoutes(c, s, ctr)
+		} else {
+			log.Info().Msg("realtime SSE routes disabled (notifier/pubsub dependency unavailable)")
+		}
 		externalRoutes(c, e, ctr)
 	}
 

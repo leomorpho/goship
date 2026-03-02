@@ -93,6 +93,32 @@ CLI responsibilities:
 4. Modular infrastructure adapters.
 5. Strong defaults with optional escape hatches.
 
+## Architecture Style (Pragmatic)
+
+GoShip will use a pragmatic blend:
+
+1. Rails-style developer experience at the framework surface.
+2. Selective clean-architecture boundaries only where they add real value.
+
+What this means:
+
+1. Do not implement clean architecture verbatim across every layer.
+2. Use interfaces at infrastructure seams so backend technology is swappable.
+3. Keep core app/domain logic straightforward and low-ceremony.
+
+Primary infrastructure seams to abstract:
+
+1. `Store` (database)
+2. `Cache`
+3. `Jobs`
+4. `PubSub`
+5. `BlobStorage`
+6. `Mailer`
+
+Non-goal:
+
+- Avoid abstracting everything "just in case"; abstractions must improve portability or testability.
+
 ## Confirmed Decisions
 
 1. Keep Ent as the ORM for now.
@@ -215,6 +241,7 @@ Design principles:
 3. Validate feature usage against backend capabilities at startup.
 4. Keep backend-specific settings in adapter config, not spread in app code.
 5. Keep handlers/payload contracts backend-agnostic.
+6. Introduce capability contracts so unsupported backend features fail fast at startup.
 
 Planned adapters:
 
@@ -222,6 +249,16 @@ Planned adapters:
 2. `jobs/dbqueue` (DB-backed durable queue, no Redis required)
 3. `jobs/asynq` (optional Redis-backed adapter)
 4. future cloud adapters (Pub/Sub / Cloud Tasks bridges)
+
+## Backend-Agnostic Framework Rule
+
+Like Rails/Django, GoShip should not force one database/cache choice.
+
+Policy:
+
+1. Framework APIs remain backend-agnostic.
+2. Backend selection happens in config + runtime wiring.
+3. Application/business code must not depend directly on concrete infra clients.
 
 ## Required Core Interfaces
 
@@ -349,6 +386,16 @@ Target pyramid:
 3. Docker/integration suites run separately (manual or CI), not as a local pre-commit default.
 4. As packages are refactored, they should be moved into the pre-commit suite.
 
+### Agent-Driven Documentation and Downstream Sync Policy
+
+For every implementation change and commit:
+
+1. Update developer + LLM-oriented docs in the same change stream.
+2. Keep docs split into focused markdown files by area/topic rather than one giant file.
+3. Reflect behavior changes in framework docs and LLM reference docs.
+4. Add/update downstream impact notes for Cherie when GoShip changes affect integration.
+5. Treat documentation sync and Cherie sync as required agent checks.
+
 ## Commit Standard
 
 Use Conventional Commits for all framework work:
@@ -430,10 +477,16 @@ Test evidence:
 - `go test ./config ./pkg/runtimeplan`
 
 3. `R0.3` Router consistency pass (realtime + notifications wired consistently with initialized dependencies).
-Status: `in_progress`
+Status: `completed`
+Done when:
+- router enables cache middleware only when cache dependency is available;
+- realtime routes are wired only when notifier+pubsub dependencies are available;
+- runtime plan is resolved at router build with safe fallback on invalid plan configuration.
+Test evidence:
+- `go test ./pkg/runtimeplan`
 
 4. `R0.4` Testing harness improvements so default `make test` is Docker-free and fast.
-Status: `not_started`
+Status: `in_progress`
 
 5. `R0.5` Establish package-level coverage baselines and close highest-value test gaps.
 Status: `not_started`
@@ -487,6 +540,8 @@ Status: `not_started`
 - [ ] Create a `CHERIE_SYNC.md` runbook (upgrade process + rollback + validation checklist).
 - [ ] Create a baseline compatibility test suite for Cherie critical paths.
 - [ ] Define testing standards doc: what must be unit-testable and where table tests are required.
+- [ ] Add doc-sync guardrails in pre-commit/CI for framework-impacting changes.
+- [ ] Add Cherie-sync guardrails in pre-commit/CI (or mandatory checklist gate).
 
 ## Near-Term
 
