@@ -3,14 +3,15 @@ package main
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/hibiken/asynq"
+	"github.com/mikestefanello/pagoda/app/goship/web/routes"
 	"github.com/mikestefanello/pagoda/config"
 	"github.com/mikestefanello/pagoda/pkg/repos/notifierrepo"
 	"github.com/mikestefanello/pagoda/pkg/repos/profilerepo"
 	storagerepo "github.com/mikestefanello/pagoda/pkg/repos/storage"
 	"github.com/mikestefanello/pagoda/pkg/repos/subscriptions"
-	"github.com/mikestefanello/pagoda/pkg/routing/routes"
 	"github.com/mikestefanello/pagoda/pkg/services"
 	"github.com/mikestefanello/pagoda/pkg/tasks"
 )
@@ -23,9 +24,20 @@ func main() {
 	}
 
 	// Build the worker server
+	cacheHost := strings.TrimSpace(cfg.Cache.Hostname)
+	if cacheHost == "" || strings.EqualFold(cacheHost, "FILL") {
+		log.Printf("cache hostname is unset/placeholder (%q); defaulting to localhost for local worker", cfg.Cache.Hostname)
+		cacheHost = "localhost"
+	}
+
+	cachePort := cfg.Cache.Port
+	if cachePort == 0 {
+		cachePort = 6379
+	}
+
 	srv := asynq.NewServer(
 		asynq.RedisClientOpt{
-			Addr:     fmt.Sprintf("%s:%d", cfg.Cache.Hostname, cfg.Cache.Port),
+			Addr:     fmt.Sprintf("%s:%d", cacheHost, cachePort),
 			DB:       cfg.Cache.Database,
 			Password: cfg.Cache.Password,
 		},
@@ -49,7 +61,9 @@ func main() {
 	}()
 
 	// Build the router, which is needed to get the reverse of routes by name in some tasks.
-	routes.BuildRouter(c)
+	if err := routes.BuildRouter(c); err != nil {
+		c.Web.Logger.Fatalf("failed to build router: %v", err)
+	}
 
 	storageRepo := storagerepo.NewStorageClient(c.Config, c.ORM)
 	subscriptionsRepo := subscriptions.NewSubscriptionsRepo(

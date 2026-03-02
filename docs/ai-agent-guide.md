@@ -5,12 +5,12 @@ This guide is for code agents making changes in this repository.
 ## Start Here
 
 1. Read `docs/project-scope-analysis.md` and `docs/known-gaps-and-risks.md`.
-2. Inspect route wiring in `pkg/routing/routes/router.go` before editing handlers.
+2. Inspect route wiring in `app/goship/web/routes/router.go` before editing handlers.
 3. Inspect `pkg/services/container.go` before assuming a dependency is initialized.
 
 ## Architectural Conventions
 
-- HTTP handlers live in `pkg/routing/routes`.
+- HTTP handlers live in `app/goship/web/routes`.
 - Domain logic should prefer repository packages (`pkg/repos/...`) over route-level DB logic.
 - Rendering is typically done via `controller.Page` + templ components.
 - Enums/constants are centralized in `pkg/domain`.
@@ -25,7 +25,7 @@ This guide is for code agents making changes in this repository.
 
 2. Check for related tests:
 - `rg "func Test" pkg/...`
-- route tests in `pkg/routing/routes/*_test.go`
+- route tests in `app/goship/web/routes/*_test.go`
 
 3. Implement minimal, local change first.
 4. Run targeted tests, then broader tests if needed.
@@ -47,7 +47,7 @@ Dependency wiring:
 
 Routing and middleware:
 
-- `pkg/routing/routes/router.go`
+- `app/goship/web/routes/router.go`
 - `pkg/middleware/*.go`
 
 Data and domain:
@@ -59,7 +59,7 @@ Data and domain:
 UI and rendering:
 
 - `pkg/controller/*.go`
-- `templates/**/*.templ`
+- `app/goship/views/**/*.templ`
 - `javascript/**/*`
 
 ## Common Pitfalls
@@ -86,4 +86,3 @@ When code behavior changes, update at least:
 - `docs/project-scope-analysis.md` if capability changed
 - `docs/http-routes.md` if route surface changed
 - `docs/known-gaps-and-risks.md` if a risk was added/removed
-

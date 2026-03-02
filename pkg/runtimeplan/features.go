@@ -17,4 +17,3 @@ func ResolveWebFeatures(plan Plan, hasCache, hasNotifier bool) WebFeatures {
 		EnableRealtime:  hasNotifier && plan.Adapters.PubSub != "",
 	}
 }
-

@@ -7,6 +7,8 @@ import (
 
 	"github.com/hibiken/asynq"
 	"github.com/labstack/echo/v4"
+	"github.com/mikestefanello/pagoda/app/goship/views/emails"
+	"github.com/mikestefanello/pagoda/app/goship/views/layouts"
 	"github.com/mikestefanello/pagoda/config"
 	"github.com/mikestefanello/pagoda/ent"
 	"github.com/mikestefanello/pagoda/pkg/controller"
@@ -14,8 +16,6 @@ import (
 	"github.com/mikestefanello/pagoda/pkg/repos/mailer"
 	"github.com/mikestefanello/pagoda/pkg/services"
 	"github.com/mikestefanello/pagoda/pkg/types"
-	"github.com/mikestefanello/pagoda/templates/emails"
-	"github.com/mikestefanello/pagoda/templates/layouts"
 )
 
 // ////////////////////////////////////////////////////////////////////////////

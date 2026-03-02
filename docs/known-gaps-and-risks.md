@@ -19,9 +19,9 @@ Impact:
 
 ## 2) Realtime SSE Route Not Wired (High for realtime features)
 
-`pkg/routing/routes/realtime.go` has a full SSE handler, but router registration is commented out:
+`app/goship/web/routes/realtime.go` has a full SSE handler, but router registration is commented out:
 
-- `sseRoutes(c, s, ctr)` is commented in `pkg/routing/routes/router.go`.
+- `sseRoutes(c, s, ctr)` is commented in `app/goship/web/routes/router.go`.
 
 Impact:
 
@@ -29,7 +29,7 @@ Impact:
 
 ## 3) Notification Center Endpoints Partially Disabled (Medium)
 
-Route handlers exist in `pkg/routing/routes/notifications.go`, but several are commented out during route wiring.
+Route handlers exist in `app/goship/web/routes/notifications.go`, but several are commented out during route wiring.
 
 Impact:
 
@@ -64,7 +64,7 @@ Impact:
 
 ## 7) Some Feature Paths Still Use Placeholder Data (Low)
 
-Example: home feed button counts are hardcoded in `pkg/routing/routes/home_feed.go`.
+Example: home feed button counts are hardcoded in `app/goship/web/routes/home_feed.go`.
 
 Impact:
 

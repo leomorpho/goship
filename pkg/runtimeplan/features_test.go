@@ -77,4 +77,3 @@ func TestResolveWebFeatures(t *testing.T) {
 		})
 	}
 }
-

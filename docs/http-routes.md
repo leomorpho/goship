@@ -1,6 +1,6 @@
 # HTTP Route Map
 
-Routes are registered in `pkg/routing/routes/router.go`.
+Routes are registered in `app/goship/web/routes/router.go`.
 
 ## Public/General Routes
 

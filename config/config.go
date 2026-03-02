@@ -91,10 +91,10 @@ type (
 	}
 
 	ProcessesConfig struct {
-		Web        bool
-		Worker     bool
-		Scheduler  bool
-		CoLocated  bool
+		Web       bool
+		Worker    bool
+		Scheduler bool
+		CoLocated bool
 	}
 
 	AdaptersConfig struct {
@@ -141,6 +141,7 @@ type (
 		PublicStripeKey                  string
 		PrivateStripeKey                 string
 		StripeWebhookSecret              string
+		StripeWebhookPath                string
 		AppEncryptionKey                 string
 		FirebaseBase64AccessKeys         string
 		FirebaseJSONAccessKeys           []byte

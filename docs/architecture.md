@@ -6,18 +6,18 @@ The application follows a layered structure:
 
 - `cmd/*`: process entrypoints (`web`, `worker`, `seed`)
 - `pkg/services`: dependency container and infrastructure clients
-- `pkg/routing/routes`: HTTP handlers and route composition
+- `app/goship/web/routes`: HTTP handlers and route composition
 - `pkg/middleware`: auth/session/cache/onboarding/request middleware
 - `pkg/repos`: data access and external service adapters
 - `pkg/controller`: rendering, page object, redirect helpers
-- `templates`: Templ UI components/layouts/pages/emails
+- `app/goship/views`: Templ UI components/layouts/pages/emails
 - `ent`: schema + generated ORM
 - `pkg/tasks`: Asynq task processors
 
 ## Web Runtime Flow
 
 1. `cmd/web/main.go` creates container via `services.NewContainer()`.
-2. `routes.BuildRouter(c)` configures middleware stack and registers routes.
+2. `routes.BuildRouter(c)` configures middleware stack, registers routes, and returns an error on startup misconfiguration.
 3. Echo server starts with request timeout middleware (SSE-aware).
 4. Request path executes middleware chain, route handler, and page rendering.
 
@@ -53,7 +53,7 @@ This mismatch affects parts of the runtime that assume those dependencies exist.
 
 ## HTTP Middleware Stack
 
-Primary middleware set in `pkg/routing/routes/router.go` includes:
+Primary middleware set in `app/goship/web/routes/router.go` includes:
 
 - Trailing slash normalization
 - Panic recovery
@@ -80,8 +80,8 @@ The UI is server-rendered using Templ components.
 
 - Base page abstraction: `pkg/controller/page.go`
 - Render orchestration: `pkg/controller/controller.go`
-- Layout wrappers: `templates/layouts/*.templ`
-- Route page components: `templates/pages/*.templ`
+- Layout wrappers: `app/goship/views/layouts/*.templ`
+- Route page components: `app/goship/views/pages/*.templ`
 
 HTMX behavior is integrated in the page object (`Page.HTMX`) and controller render logic.
 
@@ -98,7 +98,7 @@ HTMX behavior is integrated in the page object (`Page.HTMX`) and controller rend
   - persistent DB notifications
   - pub/sub events for SSE
   - push channels (PWA + FCM)
-- SSE endpoint exists (`pkg/routing/routes/realtime.go`) but route wiring is currently disabled.
+- SSE endpoint exists (`app/goship/web/routes/realtime.go`) but route wiring is currently disabled.
 
 ## Frontend Asset Architecture
 
@@ -112,4 +112,3 @@ HTMX behavior is integrated in the page object (`Page.HTMX`) and controller rend
 - Local process orchestration via Overmind (`Procfile`)
 - Docker Compose for Redis + Mailpit in current config
 - Kamal deployment files present (`deploy/`, `.kamal/`)
-

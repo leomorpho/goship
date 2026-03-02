@@ -44,8 +44,14 @@ hooks: ## Install git hooks via lefthook
 # Core workflow ------------------------------------------------------------------------------
 
 .PHONY: dev
-dev: ## Start local development (infra + asset deps + watch mode)
+dev: ## Start local development (infra + Go processes; no JS/CSS build/watch)
 	bash scripts/dev.sh "$(DCO_BIN)"
+
+.PHONY: dev-full
+dev-full: ## Start local development including JS/CSS watchers
+	bash scripts/up.sh "$(DCO_BIN)"
+	echo "Tip: run 'nvm use v18.20.7' if JS tooling fails."
+	overmind start
 
 .PHONY: dev-reset
 dev-reset: reset deps-js build-js build-css seed watch ## Full reset then start dev (destructive to local DB state)

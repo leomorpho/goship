@@ -64,4 +64,3 @@ func Resolve(cfg *config.Config) (Plan, error) {
 
 	return p, nil
 }
-

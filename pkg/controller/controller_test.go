@@ -7,15 +7,15 @@ import (
 	"os"
 	"testing"
 
+	"github.com/mikestefanello/pagoda/app/goship/views/components"
+	"github.com/mikestefanello/pagoda/app/goship/views/layouts"
+	"github.com/mikestefanello/pagoda/app/goship/views/pages"
 	"github.com/mikestefanello/pagoda/config"
 	"github.com/mikestefanello/pagoda/pkg/controller"
 	"github.com/mikestefanello/pagoda/pkg/htmx"
 	"github.com/mikestefanello/pagoda/pkg/middleware"
 	"github.com/mikestefanello/pagoda/pkg/services"
 	"github.com/mikestefanello/pagoda/pkg/tests"
-	"github.com/mikestefanello/pagoda/templates/components"
-	"github.com/mikestefanello/pagoda/templates/layouts"
-	"github.com/mikestefanello/pagoda/templates/pages"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

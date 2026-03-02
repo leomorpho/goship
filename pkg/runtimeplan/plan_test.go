@@ -94,8 +94,8 @@ func TestResolve(t *testing.T) {
 					Profile: config.RuntimeProfileDistributed,
 				},
 				Processes: config.ProcessesConfig{
-					Web:     true,
-					Worker:  true,
+					Web:       true,
+					Worker:    true,
 					CoLocated: true,
 				},
 				Adapters: config.AdaptersConfig{
@@ -126,4 +126,3 @@ func TestResolve(t *testing.T) {
 		})
 	}
 }
-

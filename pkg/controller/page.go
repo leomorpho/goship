@@ -8,12 +8,12 @@ import (
 	"github.com/a-h/templ"
 	"github.com/labstack/echo/v4"
 	echomw "github.com/labstack/echo/v4/middleware"
+	"github.com/mikestefanello/pagoda/app/goship/views"
 	"github.com/mikestefanello/pagoda/ent"
 	"github.com/mikestefanello/pagoda/pkg/context"
 	"github.com/mikestefanello/pagoda/pkg/domain"
 	"github.com/mikestefanello/pagoda/pkg/htmx"
 	"github.com/mikestefanello/pagoda/pkg/repos/msg"
-	"github.com/mikestefanello/pagoda/templates"
 )
 
 type (

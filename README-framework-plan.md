@@ -20,6 +20,16 @@ Build a highly productive, convention-first Go framework where developers can:
 2. install batteries as versioned modules;
 3. choose deployment/runtime mode without rewriting app code.
 
+## Documentation Source Of Truth
+
+Implementation and architecture documentation lives in `docs/`.
+
+Primary files for ongoing refactor work:
+
+1. `docs/structure-and-boundaries.md` (canonical placement rules)
+2. `docs/architecture.md` (runtime/system behavior)
+3. `docs/ai-agent-guide.md` (agent execution conventions)
+
 Primary framing:
 
 - GoShip aims to be a Ruby on Rails alternative in Go, with comparable batteries-included productivity and developer ergonomics.
@@ -84,6 +94,7 @@ CLI responsibilities:
 2. `goship profile set <profile>` updates environment/process presets.
 3. `goship module add <name>` updates module manifest + initializer wiring.
 4. `goship jobs backend set <backend>` updates adapter config with capability checks.
+5. `goship new` should auto-install templ tooling and keep it current in generated projects (including `go get -u github.com/a-h/templ` as part of bootstrap/update workflow).
 
 ## Core Product Goals
 
@@ -92,6 +103,14 @@ CLI responsibilities:
 3. Convention over configuration.
 4. Modular infrastructure adapters.
 5. Strong defaults with optional escape hatches.
+
+## Current Repository Shape (Post-Refactor)
+
+1. `app/goship/` contains app-specific web handlers and templ views.
+2. `pkg/` currently remains the framework/infrastructure layer.
+3. `cmd/` contains process entrypoints.
+
+Note: `pkg/repos` and `pkg/services` are intentionally still centralized for now and will be split into app-specific vs reusable framework modules in a dedicated follow-up pass.
 
 ## Architecture Style (Pragmatic)
 
@@ -259,6 +278,26 @@ Policy:
 1. Framework APIs remain backend-agnostic.
 2. Backend selection happens in config + runtime wiring.
 3. Application/business code must not depend directly on concrete infra clients.
+
+## Routing Organization (Rails-Inspired, Pragmatic)
+
+Target:
+
+1. Keep one orchestration router entrypoint.
+2. Register routes by domain slices (auth, public, docs, billing, notifications, etc.).
+3. Keep domain registration functions small and convention-driven.
+4. Avoid over-engineered plugin systems in early stages.
+
+Current direction:
+
+1. `BuildRouter` handles shared middleware and runtime feature gating.
+2. Domain registration is split into focused files:
+- public
+- docs
+- auth
+- external
+- realtime
+3. App composition happens via a single route composition function, preparing for multi-app mounting later.
 
 ## Required Core Interfaces
 

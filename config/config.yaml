@@ -42,6 +42,7 @@ app:
   publicStripeKey: "pk_..."
   privateStripeKey: "sk_..."
   stripeWebhookSecret: "whsec_..."
+  stripeWebhookPath: "/Q2HBfAY7iid59J1SUN8h1Y3WxJcPWA/payments/webhooks"
   vapidPublicKey: ""
   vapidPrivateKey: ""
   sentryDsn: "my-sentry-dsn-in-config"

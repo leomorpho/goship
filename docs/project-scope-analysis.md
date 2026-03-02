@@ -27,7 +27,7 @@ The repository still carries heritage from a related product domain ("Cherie"), 
 
 Core flows implemented in routes and services:
 
-- Login/logout (`pkg/routing/routes/login.go`, `logout.go`)
+- Login/logout (`app/goship/web/routes/login.go`, `logout.go`)
 - Register (`register.go`)
 - Forgot/reset password (`forgot_password.go`, `reset_password.go`)
 - Email verification (`verify_email.go`)
@@ -41,14 +41,14 @@ Key implementation choices:
 
 ## 2) Onboarding, Preferences, and Profile
 
-- Onboarding and preferences mostly in `pkg/routing/routes/preferences.go`
+- Onboarding and preferences mostly in `app/goship/web/routes/preferences.go`
 - Profile page in `profile.go`
 - Mark onboarding completion (`/welcome/finish-onboarding`)
 - Profile photo and gallery image routes (`profile_photo.go`, `upload_photo.go`)
 
 ## 3) Payments and Subscription Lifecycle
 
-- Stripe checkout + customer portal + webhook in `pkg/routing/routes/payments.go`
+- Stripe checkout + customer portal + webhook in `app/goship/web/routes/payments.go`
 - Local subscription state managed in `pkg/repos/subscriptions/subscriptions.go`
 - Product model currently centered on free vs pro (`pkg/domain/enum.go`)
 
@@ -101,7 +101,7 @@ Worker bootstrap and registration in `cmd/worker/main.go`.
 
 ## 8) Frontend Delivery Model
 
-- Server-rendered pages via Templ (`templates/` + `pkg/controller`)
+- Server-rendered pages via Templ (`app/goship/views/` + `pkg/controller`)
 - HTMX-enhanced interactions
 - Optional Svelte components bundled into `static/svelte_bundle.js`
 - Optional vanilla JS bundle into `static/vanilla_bundle.js`
@@ -137,4 +137,3 @@ Storage modes:
 ## Practical Summary
 
 This codebase is a strong "production-ready starter" foundation with authentication, payments, notifications, storage, and worker primitives. It is also in an active transitional state where some features are scaffolded but not fully wired in the web runtime.
-

@@ -10,6 +10,8 @@ import (
 
 	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/labstack/echo/v4"
+	"github.com/mikestefanello/pagoda/app/goship/views/emails"
+	"github.com/mikestefanello/pagoda/app/goship/views/layouts"
 	"github.com/mikestefanello/pagoda/ent"
 	"github.com/mikestefanello/pagoda/ent/notification"
 	"github.com/mikestefanello/pagoda/ent/notificationpermission"
@@ -20,8 +22,6 @@ import (
 	"github.com/mikestefanello/pagoda/pkg/routing/routenames"
 	"github.com/mikestefanello/pagoda/pkg/services"
 	"github.com/mikestefanello/pagoda/pkg/types"
-	"github.com/mikestefanello/pagoda/templates/emails"
-	"github.com/mikestefanello/pagoda/templates/layouts"
 	"github.com/rs/zerolog/log"
 )
 

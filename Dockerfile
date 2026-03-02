@@ -48,8 +48,8 @@ COPY --from=builder /app/goship-seed /goship-seed
 # Copy asynq tool
 COPY --from=builder /go/bin/asynq /usr/local/bin/
 
-# Copy the templates
-COPY templates/ /app/templates/
+# Copy templ views
+COPY app/goship/views/ /app/app/goship/views/
 
 # Optional: Bind to a TCP port (document the ports the application listens on)
 EXPOSE 8000
