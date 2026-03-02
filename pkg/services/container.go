@@ -106,17 +106,25 @@ func NewContainer() *Container {
 
 // Shutdown shuts the Container down and disconnects all connections
 func (c *Container) Shutdown() error {
-	if err := c.Tasks.Close(); err != nil {
-		return err
+	if c.Tasks != nil {
+		if err := c.Tasks.Close(); err != nil {
+			return err
+		}
 	}
-	if err := c.Cache.Close(); err != nil {
-		return err
+	if c.Cache != nil {
+		if err := c.Cache.Close(); err != nil {
+			return err
+		}
 	}
-	if err := c.ORM.Close(); err != nil {
-		return err
+	if c.ORM != nil {
+		if err := c.ORM.Close(); err != nil {
+			return err
+		}
 	}
-	if err := c.Database.Close(); err != nil {
-		return err
+	if c.Database != nil {
+		if err := c.Database.Close(); err != nil {
+			return err
+		}
 	}
 
 	return nil

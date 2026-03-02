@@ -4,16 +4,28 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewContainer(t *testing.T) {
+	c := NewContainer()
+	t.Cleanup(func() {
+		require.NoError(t, c.Shutdown())
+	})
+
 	assert.NotNil(t, c.Web)
 	assert.NotNil(t, c.Config)
 	assert.NotNil(t, c.Validator)
-	assert.NotNil(t, c.Cache)
 	assert.NotNil(t, c.Database)
 	assert.NotNil(t, c.ORM)
 	assert.NotNil(t, c.Mail)
 	assert.NotNil(t, c.Auth)
-	assert.NotNil(t, c.Tasks)
+	assert.Nil(t, c.Cache)
+	assert.Nil(t, c.Tasks)
+	assert.Nil(t, c.Notifier)
+}
+
+func TestContainerShutdownNilSafe(t *testing.T) {
+	c := &Container{}
+	assert.NoError(t, c.Shutdown())
 }

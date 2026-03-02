@@ -30,6 +30,10 @@ help: ## Show this help message.
 	@echo
 	@echo "To see the details of each command, run: make <command>"
 
+.PHONY: hooks
+hooks: ## Install git hooks via lefthook
+	lefthook install
+
 .PHONY: db
 db: ## Connect to the primary database
 	docker exec -it goship_db psql postgresql://admin:admin@localhost:5432/goship_db

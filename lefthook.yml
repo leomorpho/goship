@@ -1,0 +1,6 @@
+pre-commit:
+  parallel: false
+  commands:
+    unit-tests:
+      run: bash scripts/precommit-tests.sh
+

@@ -210,6 +210,35 @@ Target pyramid:
 2. Integration tests (few): DB/repo boundaries and adapter contracts.
 3. E2E tests (very few): key user journeys only.
 
+### Pre-Commit Test Policy
+
+1. Every commit must pass `lefthook` pre-commit tests.
+2. Pre-commit runs a fast, stateless Go unit suite only.
+3. Docker/integration suites run separately (manual or CI), not as a local pre-commit default.
+4. As packages are refactored, they should be moved into the pre-commit suite.
+
+## Commit Standard
+
+Use Conventional Commits for all framework work:
+
+`type(scope): imperative summary`
+
+Allowed types:
+
+- `feat`
+- `fix`
+- `refactor`
+- `test`
+- `docs`
+- `chore`
+- `ci`
+
+Examples:
+
+- `fix(services): make container shutdown nil-safe`
+- `test(services): add nil-safe shutdown coverage`
+- `docs(plan): define first rework execution workflow`
+
 ## Module Plan
 
 Proposed module boundaries:
@@ -230,6 +259,46 @@ Proposed module boundaries:
 2. Resolve realtime/notification route wiring drift.
 3. Clean and align current docs with actual runtime behavior.
 4. Refresh stale e2e coverage for critical flows.
+
+## First Rework Execution Plan
+
+This section is the active implementation tracker for the first rework pass.
+Rule: execute exactly one task at a time, validate with tests, then move to the next task.
+
+### Quality Gates (for every task)
+
+1. Add or update tests with the change (prefer table-driven tests).
+2. Run targeted tests for touched package(s).
+3. Keep tests mostly stateless (no Docker for default test path).
+4. No task is marked complete without test evidence.
+
+### Coverage Targets
+
+1. Global target: 90%+ over time (not required in one PR).
+2. Reworked packages should trend toward 90%+ before moving on.
+3. Complex pure-logic packages should aim for near-100% branch coverage with table tests.
+
+### Active Task Queue (First Rework)
+
+1. `R0.1` Container shutdown safety + reliable container unit test baseline.
+Status: `completed`
+Done when:
+- `Container.Shutdown()` is nil-safe for optional services.
+- container unit tests compile and pass without external services.
+Test evidence:
+- `go test ./pkg/services -run 'Test(NewContainer|ContainerShutdownNilSafe)$'`
+
+2. `R0.2` Container initialization policy by runtime mode (`single-node` vs `distributed`), with explicit config contract.
+Status: `in_progress`
+
+3. `R0.3` Router consistency pass (realtime + notifications wired consistently with initialized dependencies).
+Status: `not_started`
+
+4. `R0.4` Testing harness improvements so default `make test` is Docker-free and fast.
+Status: `not_started`
+
+5. `R0.5` Establish package-level coverage baselines and close highest-value test gaps.
+Status: `not_started`
 
 ### Phase 1: Core Abstractions
 
