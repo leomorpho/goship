@@ -1,7 +1,12 @@
+SHELL := /bin/bash
+.DEFAULT_GOAL := help
+
 # Define variables
 PGVECTOR_IMAGE_NAME = custom-pgvector-for-atlas
 PGVECTOR_IMAGE_TAG = latest
 PGVECTOR_IMAGE_DIR = pgvector-image
+NPM ?= npm
+TAILWIND ?= npx tailwindcss
 
 # Define a function to check for docker compose command
 define find_docker_compose
@@ -14,13 +19,8 @@ define find_docker_compose
   fi
 endef
 
-# TODO: https://github.com/casey/just?tab=readme-ov-file seems like a nice alternative/improvement to make
 # Determine if you have docker-compose or docker compose installed locally
-# If this does not work on your system, just set the name of the executable you have installed
 DCO_BIN := $(shell $(find_docker_compose))
-define Comment
-	- Run `make help` to see all the available options.
-endef
 
 .PHONY: help
 help: ## Show this help message.
@@ -30,9 +30,24 @@ help: ## Show this help message.
 	@echo
 	@echo "To see the details of each command, run: make <command>"
 
+.PHONY: ensure-compose
+ensure-compose:
+	@if [ -z "$(DCO_BIN)" ]; then \
+		echo "No docker compose command found (docker-compose or docker compose)."; \
+		exit 1; \
+	fi
+
 .PHONY: hooks
 hooks: ## Install git hooks via lefthook
 	lefthook install
+
+# Core workflow ------------------------------------------------------------------------------
+
+.PHONY: dev
+dev: up deps-js build-js build-css watch ## Start local development (infra + asset deps + watch mode)
+
+.PHONY: dev-reset
+dev-reset: reset deps-js build-js build-css seed watch ## Full reset then start dev (destructive to local DB state)
 
 .PHONY: db
 db: ## Connect to the primary database
@@ -125,16 +140,16 @@ generate: ## Run code generation
 	go generate ./...
 
 .PHONY: up
-up: ## Start the Docker containers
+up: ensure-compose ## Start Docker containers
 	$(DCO_BIN) up -d --remove-orphans
 	sleep 3
 
 .PHONY: down
-down: ## Stop the Docker containers
+down: ensure-compose ## Stop Docker containers
 	$(DCO_BIN) down
 
-.PHONY: down
-down-volume: ## Stop the Docker containers
+.PHONY: down-volume
+down-volume: ensure-compose ## Stop Docker containers and delete volumes
 	$(DCO_BIN) down --volumes
 
 .PHONY: seed
@@ -142,42 +157,38 @@ seed: ## Seed with data (must be clean to begin with or will die)
 	go run cmd/seed/main.go
 
 .PHONY: reset
-reset: ## Rebuild Docker containers to wipe all data
-	$(DCO_BIN) down
-	make up
+reset: down up ## Rebuild Docker containers to wipe all data
 
-.PHONY: init 
-init: ## Set up the repo and run a fully working version of GoShip
-	make reset
-	make build-js 
-	make build-css 
-	make seed 
-	make watch
+.PHONY: init
+init: dev-reset ## Backward-compatible alias for full reset dev startup
 
 .PHONY: build-js
 build-js: ## Build JS/Svelte assets
-	npm run build
+	$(NPM) run build
 
+.PHONY: deps-js
+deps-js: ## Install JS dependencies
+	$(NPM) install
 
-.PHONY: build-js
-watch-js: ## Build JS/Svelte assets (auto reload changes)
-	npm install
-	npm run watch 
+.PHONY: watch-js
+watch-js: ## Watch and rebuild JS/Svelte assets
+	$(NPM) run watch
 
+.PHONY: build-css
 build-css: ## Build CSS assets (auto reload changes)
-	npx tailwindcss -i ./styles/styles.css -o ./static/styles_bundle.css
+	$(TAILWIND) -i ./styles/styles.css -o ./static/styles_bundle.css
 
+.PHONY: watch-css
 watch-css: ## Build CSS assets (auto reload changes)
-	npx tailwindcss -i ./styles/styles.css -o ./static/styles_bundle.css --watch
+	$(TAILWIND) -i ./styles/styles.css -o ./static/styles_bundle.css --watch
 
-
-.PHONY: run
+.PHONY: watch-go
 watch-go: ## Run the application with air (auto reload changes)
 	clear
 	air
 
-watch: 
-	echo "Run 'nvm use v18.20.7' to make sure the JS version will work."
+watch: ## Start all dev watchers/processes through overmind
+	@echo "Tip: run 'nvm use v18.20.7' if JS tooling fails."
 	overmind start
 
 .PHONY: test
