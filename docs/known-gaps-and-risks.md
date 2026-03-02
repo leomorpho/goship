@@ -1,0 +1,80 @@
+# Known Gaps and Risks
+
+This list is based on direct code inspection and is intended to guide contributor priorities.
+
+## 1) Container Initialization Mismatch (High)
+
+In `pkg/services/container.go`, `NewContainer()` does not call:
+
+- `initCache()`
+- `initNotifier()`
+- `initTasks()`
+
+Yet runtime code assumes these dependencies exist in multiple places, and `Shutdown()` calls `c.Tasks.Close()` and `c.Cache.Close()` unconditionally.
+
+Impact:
+
+- Potential nil-pointer panics on shutdown or during feature paths that rely on tasks/notifier/cache.
+- Web and worker behavior can diverge from intended architecture.
+
+## 2) Realtime SSE Route Not Wired (High for realtime features)
+
+`pkg/routing/routes/realtime.go` has a full SSE handler, but router registration is commented out:
+
+- `sseRoutes(c, s, ctr)` is commented in `pkg/routing/routes/router.go`.
+
+Impact:
+
+- Realtime endpoint is effectively disabled in web runtime.
+
+## 3) Notification Center Endpoints Partially Disabled (Medium)
+
+Route handlers exist in `pkg/routing/routes/notifications.go`, but several are commented out during route wiring.
+
+Impact:
+
+- Notification center behavior is incomplete from an HTTP exposure perspective.
+- Some notifier capabilities are not reachable from active routes.
+
+## 4) Stale/Inconsistent E2E Coverage (Medium)
+
+`e2e_tests/tests/goship.spec.ts` is marked with TODO and contains stale product/domain assumptions.
+
+Impact:
+
+- End-to-end test confidence for current GoShip behavior is limited.
+
+## 5) Dev Runtime Drift Between Config and Docker Compose (Medium)
+
+- Default config uses embedded SQLite (`config/config.yaml`).
+- Docker Compose currently starts Redis and Mailpit only; DB service is commented out.
+- Make targets include Postgres-dependent commands.
+
+Impact:
+
+- Contributors can experience confusion about canonical local dev DB path.
+
+## 6) In-App Docs Are Present But Sparse (Low)
+
+`/docs/*` pages exist, but architecture/getting-started sections are mostly placeholders.
+
+Impact:
+
+- Existing user-facing docs routes do not currently reflect true implementation depth.
+
+## 7) Some Feature Paths Still Use Placeholder Data (Low)
+
+Example: home feed button counts are hardcoded in `pkg/routing/routes/home_feed.go`.
+
+Impact:
+
+- UI may represent scaffolding rather than production data behavior in some sections.
+
+## Suggested Priority Order
+
+1. Fix container/service initialization and safe shutdown semantics.
+2. Decide and document realtime strategy: wire SSE or remove dead path.
+3. Re-enable or remove notification-center routes consistently.
+4. Refresh e2e tests to match current GoShip flows.
+5. Align local stack docs with actual DB mode and compose services.
+
