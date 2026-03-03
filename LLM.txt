@@ -1569,9 +1569,17 @@ These commands are implemented as wrappers over existing workflows:
 - `ship test` -> `go test ./...` (integration-tagged tests are excluded by default)
 - `ship test --integration` -> `go test -tags=integration ./...`
 - `ship db create` -> detects `docker-compose`/`docker compose` and runs `up -d cache`, then attempts `up -d mailpit` (non-fatal if mailpit fails)
-- `ship db migrate` -> `atlas migrate apply --dir file://ent/migrate/migrations --url <configured>`
+- `ship db migrate` -> `atlas migrate apply --dir file://ent/migrate/migrations --url <resolved>`
 - `ship db rollback [amount]` -> `atlas migrate down ... [amount]`
 - `ship db seed` -> `go run ./cmd/seed/main.go`
+
+DB URL resolution precedence for migrate/rollback:
+
+1. `DATABASE_URL`
+2. `config/application.yaml` + `config/environments/<APP_ENV|app.environment>.yaml`
+
+If `PAGODA_DATABASE_URL` is set, CLI fails with an explicit error and asks to use `DATABASE_URL`.
+If config resolves to embedded DB mode, `ship db migrate`/`rollback` fail with an explicit error.
 - `ship templ generate --path app` -> `templ generate -path app`, then move each `*_templ.go` into sibling `gen/` directory
 - `ship new <app>` -> create minimal deterministic project scaffold in a new directory (no network calls)
 - `ship generate resource <name>` -> scaffold handler (+ optional templ page), ensure route-name constant, and print route snippet for manual insertion in `app/goship/router.go`

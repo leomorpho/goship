@@ -7,6 +7,8 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"net"
+	"net/url"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -20,7 +22,6 @@ import (
 
 const (
 	atlasDir = "file://ent/migrate/migrations"
-	atlasURL = "postgres://admin:admin@localhost:5432/app?search_path=public&sslmode=disable"
 )
 
 type CmdRunner interface {
@@ -51,6 +52,7 @@ type CLI struct {
 	Runner         CmdRunner
 	RunDevAll      func() int
 	ResolveCompose func() ([]string, error)
+	ResolveDBURL   func() (string, error)
 }
 
 func New() CLI {
@@ -328,7 +330,12 @@ func (c CLI) runDB(args []string) int {
 			fmt.Fprintln(c.Err, "usage: ship db migrate")
 			return 1
 		}
-		return c.runCmd("atlas", "migrate", "apply", "--dir", atlasDir, "--url", atlasURL)
+		dbURL, err := c.resolveDBURL()
+		if err != nil {
+			fmt.Fprintf(c.Err, "failed to resolve database URL: %v\n", err)
+			return 1
+		}
+		return c.runCmd("atlas", "migrate", "apply", "--dir", atlasDir, "--url", dbURL)
 	case "rollback":
 		return c.runDBRollback(args[1:])
 	case "seed":
@@ -459,7 +466,13 @@ func (c CLI) runDBRollback(args []string) int {
 		amount = args[0]
 	}
 
-	return c.runCmd("atlas", "migrate", "down", "--dir", atlasDir, "--url", atlasURL, amount)
+	dbURL, err := c.resolveDBURL()
+	if err != nil {
+		fmt.Fprintf(c.Err, "failed to resolve database URL: %v\n", err)
+		return 1
+	}
+
+	return c.runCmd("atlas", "migrate", "down", "--dir", atlasDir, "--url", dbURL, amount)
 }
 
 func (c CLI) runCmd(name string, args ...string) int {
@@ -719,16 +732,232 @@ func withWorkingDir(dir string, fn func() error) error {
 }
 
 func resolveComposeCommand() ([]string, error) {
-	if _, err := exec.LookPath("docker-compose"); err == nil {
+	return resolveComposeCommandWith(exec.LookPath, func() error {
+		cmd := exec.Command("docker", "compose", "version")
+		return cmd.Run()
+	})
+}
+
+func resolveComposeCommandWith(lookPath func(string) (string, error), dockerComposeVersion func() error) ([]string, error) {
+	if _, err := lookPath("docker-compose"); err == nil {
 		return []string{"docker-compose"}, nil
 	}
-	if _, err := exec.LookPath("docker"); err == nil {
-		cmd := exec.Command("docker", "compose", "version")
-		if err := cmd.Run(); err == nil {
+	if _, err := lookPath("docker"); err == nil {
+		if err := dockerComposeVersion(); err == nil {
 			return []string{"docker", "compose"}, nil
 		}
 	}
 	return nil, errors.New("no docker compose command found (docker-compose or docker compose)")
+}
+
+func (c CLI) resolveDBURL() (string, error) {
+	if c.ResolveDBURL != nil {
+		return c.ResolveDBURL()
+	}
+	return resolveAtlasDBURL()
+}
+
+type atlasConfig struct {
+	App struct {
+		Environment string `yaml:"environment"`
+	} `yaml:"app"`
+	Database struct {
+		DbMode            string `yaml:"dbMode"`
+		Hostname          string `yaml:"hostname"`
+		Port              uint16 `yaml:"port"`
+		User              string `yaml:"user"`
+		Password          string `yaml:"password"`
+		DatabaseNameLocal string `yaml:"databaseNameLocal"`
+		DatabaseNameProd  string `yaml:"databaseNameProd"`
+		TestDatabase      string `yaml:"testDatabase"`
+		SslMode           string `yaml:"sslMode"`
+		SslCertPath       string `yaml:"sslCertPath"`
+	} `yaml:"database"`
+}
+
+func resolveAtlasDBURL() (string, error) {
+	if u := strings.TrimSpace(os.Getenv("DATABASE_URL")); u != "" {
+		return u, nil
+	}
+	if u := strings.TrimSpace(os.Getenv("PAGODA_DATABASE_URL")); u != "" {
+		return "", errors.New("PAGODA_DATABASE_URL is not supported; use DATABASE_URL")
+	}
+
+	cfg, err := loadAtlasConfig()
+	if err != nil {
+		return "", err
+	}
+	if strings.EqualFold(cfg.Database.DbMode, "embedded") {
+		return "", errors.New("database mode is embedded; set DATABASE_URL or switch runtime profile to server-db for atlas migrations")
+	}
+
+	env := strings.TrimSpace(os.Getenv("APP_ENV"))
+	if env == "" {
+		env = strings.TrimSpace(cfg.App.Environment)
+	}
+	if env == "" {
+		env = "local"
+	}
+
+	dbName := strings.TrimSpace(cfg.Database.DatabaseNameLocal)
+	switch env {
+	case "production":
+		dbName = strings.TrimSpace(cfg.Database.DatabaseNameProd)
+	case "test":
+		if t := strings.TrimSpace(cfg.Database.TestDatabase); t != "" {
+			dbName = t
+		}
+	}
+	if dbName == "" {
+		return "", errors.New("database name is empty in config; set DATABASE_URL or database.databaseNameLocal")
+	}
+	if strings.TrimSpace(cfg.Database.Hostname) == "" || cfg.Database.Port == 0 {
+		return "", errors.New("database host/port missing in config; set DATABASE_URL or database hostname/port")
+	}
+
+	query := url.Values{}
+	sslMode := strings.TrimSpace(cfg.Database.SslMode)
+	if sslMode == "" {
+		sslMode = "disable"
+	}
+	query.Set("sslmode", sslMode)
+	if cert := strings.TrimSpace(cfg.Database.SslCertPath); cert != "" {
+		query.Set("sslrootcert", cert)
+	}
+
+	u := &url.URL{
+		Scheme:   "postgresql",
+		Host:     net.JoinHostPort(cfg.Database.Hostname, strconv.Itoa(int(cfg.Database.Port))),
+		Path:     "/" + dbName,
+		RawQuery: query.Encode(),
+	}
+	if user := strings.TrimSpace(cfg.Database.User); user != "" {
+		u.User = url.UserPassword(user, cfg.Database.Password)
+	}
+	return u.String(), nil
+}
+
+func loadAtlasConfig() (atlasConfig, error) {
+	var cfg atlasConfig
+	configDir, err := findConfigDir()
+	if err != nil {
+		return cfg, err
+	}
+	if err := unmarshalYAMLFile(filepath.Join(configDir, "application.yaml"), &cfg); err != nil {
+		return cfg, err
+	}
+
+	env := strings.TrimSpace(os.Getenv("APP_ENV"))
+	if env == "" {
+		env = strings.TrimSpace(cfg.App.Environment)
+	}
+	if env == "" {
+		env = "local"
+	}
+	envFile := filepath.Join(configDir, "environments", env+".yaml")
+	if hasFile(envFile) {
+		if err := unmarshalYAMLFile(envFile, &cfg); err != nil {
+			return cfg, err
+		}
+	}
+	return cfg, nil
+}
+
+func findConfigDir() (string, error) {
+	wd, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+	dir := wd
+	for {
+		cfgDir := filepath.Join(dir, "config")
+		if hasFile(filepath.Join(cfgDir, "application.yaml")) {
+			return cfgDir, nil
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			return "", errors.New("config/application.yaml not found; set DATABASE_URL")
+		}
+		dir = parent
+	}
+}
+
+func unmarshalYAMLFile(path string, dst any) error {
+	cfg, ok := dst.(*atlasConfig)
+	if !ok {
+		return errors.New("unsupported config type")
+	}
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+	return parseAtlasConfigYAML(string(b), cfg)
+}
+
+func parseAtlasConfigYAML(content string, cfg *atlasConfig) error {
+	section := ""
+	lines := strings.Split(content, "\n")
+	for _, raw := range lines {
+		line := strings.TrimSpace(raw)
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		if !strings.HasPrefix(raw, " ") && strings.HasSuffix(line, ":") {
+			section = strings.TrimSuffix(line, ":")
+			continue
+		}
+		if !strings.HasPrefix(raw, "  ") {
+			continue
+		}
+		key, value, ok := strings.Cut(strings.TrimSpace(raw), ":")
+		if !ok {
+			continue
+		}
+		key = strings.TrimSpace(key)
+		value = normalizeYAMLScalar(value)
+		switch section {
+		case "app":
+			if key == "environment" {
+				cfg.App.Environment = value
+			}
+		case "database":
+			switch key {
+			case "dbMode":
+				cfg.Database.DbMode = value
+			case "hostname":
+				cfg.Database.Hostname = value
+			case "port":
+				if v, err := strconv.Atoi(value); err == nil && v > 0 && v <= 65535 {
+					cfg.Database.Port = uint16(v)
+				}
+			case "user":
+				cfg.Database.User = value
+			case "password":
+				cfg.Database.Password = value
+			case "databaseNameLocal":
+				cfg.Database.DatabaseNameLocal = value
+			case "databaseNameProd":
+				cfg.Database.DatabaseNameProd = value
+			case "testDatabase":
+				cfg.Database.TestDatabase = value
+			case "sslMode":
+				cfg.Database.SslMode = value
+			case "sslCertPath":
+				cfg.Database.SslCertPath = value
+			}
+		}
+	}
+	return nil
+}
+
+func normalizeYAMLScalar(v string) string {
+	s := strings.TrimSpace(v)
+	if idx := strings.Index(s, "#"); idx >= 0 {
+		s = strings.TrimSpace(s[:idx])
+	}
+	s = strings.Trim(s, `"`)
+	s = strings.Trim(s, `'`)
+	return s
 }
 
 type prefixedWriter struct {
