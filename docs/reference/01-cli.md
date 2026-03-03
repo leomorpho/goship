@@ -11,6 +11,21 @@ Module location:
 - `cli/ship` (standalone Go module)
 - binary entrypoint: `cli/ship/cmd/ship`
 
+## Repository Placement
+
+The CLI is in the same repository as the framework and example app.
+
+- Repo model: monorepo with multiple Go modules.
+- App/framework module: repository root.
+- CLI module: `cli/ship`.
+- Workspace: `go.work` includes both modules for local development.
+
+Why this shape:
+
+1. Single repo keeps framework, app example, and CLI evolution in sync.
+2. Separate CLI module keeps dependency graph and release surface clean.
+3. Developers can iterate across modules locally without publishing interim versions.
+
 Design constraints:
 
 1. Keep commands Rails-like and convention-first.
@@ -72,6 +87,22 @@ Local run examples from repository root:
 
 - `go run ./cli/ship/cmd/ship -- help`
 - `go run ./cli/ship/cmd/ship -- dev`
+
+## Ownership Boundaries
+
+CLI owns:
+
+- developer command interface (`ship ...`);
+- orchestration of dev/test/db workflows;
+- version/tooling checks and future generators.
+
+App/framework owns:
+
+- actual runtime behavior in `cmd/*`, `app/goship/*`, `pkg/*`, and `config/*`.
+
+Rule:
+
+- keep business/runtime logic out of CLI package; CLI should call stable commands/APIs.
 
 ## Deferred (Not In V1)
 

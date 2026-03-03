@@ -2,14 +2,21 @@
 
 This document defines where code belongs as GoShip evolves into a Rails-like framework plus example app.
 
-## Current Top-Level Shape
+## Current Top-Level Shape (Single Repository)
 
 - `app/goship/`: app-specific code for the first-party GoShip app
-- `cmd/`: runnable entrypoints (`web`, `worker`, `seed`, CLI)
+- `cmd/`: runnable entrypoints for the app module (`web`, `worker`, `seed`)
+- `cli/ship/`: standalone CLI module (`ship`) that lives in this same repository
 - `pkg/`: reusable framework-level libraries and adapters
 - `config/`: runtime configuration
 - `ent/`: schema and generated ORM
 - `docs/`: internal design and implementation documentation
+
+Monorepo note:
+
+- GoShip currently uses one repository with multiple Go modules:
+- root app/framework module + `cli/ship` module
+- `go.work` ties local development across modules together for maintainers.
 
 ## App vs Framework Rules
 
@@ -46,4 +53,3 @@ These remain framework-level until each package is classified as either:
 
 - app-specific (move under `app/goship/...`), or
 - reusable framework module (stay in `pkg/...` or move to future dedicated framework modules).
-
