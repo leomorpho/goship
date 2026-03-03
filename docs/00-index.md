@@ -58,7 +58,9 @@ It is not intended as user-facing product documentation.
 - `pkg/repos/**/*.go`
 - `ent/schema/*.go`
 - `config/config.go`
-- `config/config.yaml`
+- `config/application.yaml`
+- `config/environments/*.yaml`
+- `config/processes.yaml`
 - `Makefile`
 - `build.mjs`
 - `package.json`

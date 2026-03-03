@@ -46,7 +46,7 @@ Impact:
 
 ## 5) Dev Runtime Drift Between Config and Docker Compose (Medium)
 
-- Default config uses embedded SQLite (`config/config.yaml`).
+- Default base config currently keeps embedded SQLite defaults in `config/application.yaml`.
 - Docker Compose currently starts Redis and Mailpit only; DB service is commented out.
 - Make targets include Postgres-dependent commands.
 
@@ -77,4 +77,3 @@ Impact:
 3. Re-enable or remove notification-center routes consistently.
 4. Refresh e2e tests to match current GoShip flows.
 5. Align local stack docs with actual DB mode and compose services.
-

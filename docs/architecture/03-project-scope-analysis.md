@@ -115,7 +115,7 @@ Build pipeline:
 
 Config loading:
 
-- `config/config.go` + `config/config.yaml`
+- `config/config.go` + layered YAML config (`application`, `environments/*`, `processes`)
 - Production can override via env vars (Viper env binding)
 
 Storage modes:

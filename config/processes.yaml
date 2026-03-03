@@ -1,0 +1,18 @@
+profiles:
+  server-db:
+    web: true
+    worker: false
+    scheduler: false
+    coLocated: false
+
+  single-node:
+    web: true
+    worker: true
+    scheduler: true
+    coLocated: true
+
+  distributed:
+    web: true
+    worker: false
+    scheduler: false
+    coLocated: false

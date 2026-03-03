@@ -2,8 +2,10 @@ package config
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -232,42 +234,41 @@ type (
 // GetConfig loads and returns configuration
 func GetConfig() (Config, error) {
 	var c Config
+	roots := configSearchRoots()
+	v := viper.New()
+	v.SetConfigType("yaml")
 
-	// Common config loading
-	viper.SetConfigName("config")
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath(".")
-	viper.AddConfigPath("config")
-	viper.AddConfigPath("../config")
-	viper.AddConfigPath("../../config")
-	viper.AddConfigPath("../../../config")
-
-	// Load the config file
-	if err := viper.ReadInConfig(); err != nil {
+	// Base config is required.
+	if err := mergeNamedConfig(v, roots, "application.yaml", true); err != nil {
 		return c, err
 	}
 
-	// Unmarshal the config
-	if err := viper.Unmarshal(&c); err != nil {
+	// Unmarshal once to detect default environment before environment-specific overrides.
+	if err := v.Unmarshal(&c); err != nil {
+		return c, err
+	}
+	env := resolveEnvironment(c.App.Environment)
+
+	// Layer per-environment overrides.
+	if err := mergeNamedConfig(v, roots, filepath.Join("environments", string(env)+".yaml"), true); err != nil {
 		return c, err
 	}
 
-	// Check the environment variable PAGODA_APP_ENVIRONMENT
-	env := os.Getenv("PAGODA_APP_ENVIRONMENT")
-	if env == string(EnvProduction) || c.App.Environment == EnvProduction {
+	// Production supports env var overrides with PAGODA_ prefix.
+	if env == EnvProduction {
 		// Load env variables for production
-		viper.SetEnvPrefix("pagoda")
-		viper.AutomaticEnv()
-		viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+		v.SetEnvPrefix("pagoda")
+		v.AutomaticEnv()
+		v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	}
 
-	// Load the config file
-	if err := viper.ReadInConfig(); err != nil {
+	if err := v.Unmarshal(&c); err != nil {
 		return c, err
 	}
+	c.App.Environment = env
+	applyRuntimeDefaults(&c)
 
-	// Unmarshal the config
-	if err := viper.Unmarshal(&c); err != nil {
+	if err := applyProcessesProfile(&c, roots); err != nil {
 		return c, err
 	}
 
@@ -280,4 +281,88 @@ func GetConfig() (Config, error) {
 	}
 
 	return c, nil
+}
+
+func configSearchRoots() []string {
+	return []string{
+		".",
+		"config",
+		"../config",
+		"../../config",
+		"../../../config",
+	}
+}
+
+func resolveEnvironment(configured environment) environment {
+	if env := strings.TrimSpace(os.Getenv("PAGODA_APP_ENVIRONMENT")); env != "" {
+		return environment(env)
+	}
+	if configured != "" {
+		return configured
+	}
+	return EnvLocal
+}
+
+func applyRuntimeDefaults(c *Config) {
+	if c.Runtime.Profile == "" {
+		c.Runtime.Profile = RuntimeProfileServerDB
+	}
+}
+
+func mergeNamedConfig(dst *viper.Viper, roots []string, relPath string, required bool) error {
+	for _, root := range roots {
+		absPath := filepath.Clean(filepath.Join(root, relPath))
+		info, err := os.Stat(absPath)
+		if err != nil {
+			if errors.Is(err, os.ErrNotExist) {
+				continue
+			}
+			return fmt.Errorf("stat config file %q: %w", absPath, err)
+		}
+		if info.IsDir() {
+			continue
+		}
+
+		src := viper.New()
+		src.SetConfigFile(absPath)
+		src.SetConfigType("yaml")
+		if err := src.ReadInConfig(); err != nil {
+			return fmt.Errorf("read config file %q: %w", absPath, err)
+		}
+		if err := dst.MergeConfigMap(src.AllSettings()); err != nil {
+			return fmt.Errorf("merge config file %q: %w", absPath, err)
+		}
+		return nil
+	}
+
+	if required {
+		return fmt.Errorf("required config file %q not found in search paths", relPath)
+	}
+	return nil
+}
+
+type processProfilesFile struct {
+	Profiles map[runtimeprofile]ProcessesConfig `mapstructure:"profiles"`
+}
+
+func applyProcessesProfile(c *Config, roots []string) error {
+	pv := viper.New()
+	pv.SetConfigType("yaml")
+	if err := mergeNamedConfig(pv, roots, "processes.yaml", true); err != nil {
+		return err
+	}
+
+	var profiles processProfilesFile
+	if err := pv.Unmarshal(&profiles); err != nil {
+		return fmt.Errorf("unmarshal processes profiles: %w", err)
+	}
+	if len(profiles.Profiles) == 0 {
+		return fmt.Errorf("processes.yaml missing profiles")
+	}
+
+	if p, ok := profiles.Profiles[c.Runtime.Profile]; ok {
+		c.Processes = p
+		return nil
+	}
+	return fmt.Errorf("runtime profile %q not found in processes.yaml", c.Runtime.Profile)
 }

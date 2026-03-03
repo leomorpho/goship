@@ -1,5 +1,5 @@
 # Stage 1: Build the Go application
-FROM golang:1.24.3-bullseye AS builder
+FROM golang:1.25.6 AS builder
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -21,12 +21,11 @@ COPY . .
 
 ENV CGO_ENABLED=1
 ENV GOOS=linux
-ENV GOARCH=amd64
 
 # Build the application
-RUN GOARCH=amd64  go build -ldflags="-s -w" -gcflags=all=-l -o /app/goship-web ./cmd/web/main.go
-RUN GOARCH=amd64  go build -ldflags="-s -w" -gcflags=all=-l -o /app/goship-worker ./cmd/worker/main.go
-RUN GOARCH=amd64  go build -ldflags="-s -w" -gcflags=all=-l -o /app/goship-seed ./cmd/seed/main.go
+RUN go build -ldflags="-s -w" -gcflags=all=-l -o /app/goship-web ./cmd/web/main.go
+RUN go build -ldflags="-s -w" -gcflags=all=-l -o /app/goship-worker ./cmd/worker/main.go
+RUN go build -ldflags="-s -w" -gcflags=all=-l -o /app/goship-seed ./cmd/seed/main.go
 
 # Install asynq tools
 RUN go install github.com/hibiken/asynq/tools/asynq@latest
@@ -59,7 +58,9 @@ EXPOSE 8080
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-COPY config/config.yaml .
+COPY config/application.yaml ./config/application.yaml
+COPY config/processes.yaml ./config/processes.yaml
+COPY config/environments/ ./config/environments/
 COPY service-worker.js /service-worker.js
 COPY static /static
 
