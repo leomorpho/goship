@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	echomw "github.com/labstack/echo/v4/middleware"
+	"github.com/leomorpho/goship/app/goship/controller"
 	"github.com/leomorpho/goship/pkg/context"
-	"github.com/leomorpho/goship/pkg/controller"
 	"github.com/leomorpho/goship/pkg/repos/msg"
 	"github.com/leomorpho/goship/pkg/tests"
 	"github.com/stretchr/testify/assert"

@@ -1,6 +1,6 @@
 package types
 
-import "github.com/leomorpho/goship/pkg/controller"
+import "github.com/leomorpho/goship/app/goship/controller"
 
 type (
 	ResetPasswordForm struct {

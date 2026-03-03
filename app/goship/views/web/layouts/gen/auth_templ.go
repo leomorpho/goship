@@ -9,9 +9,9 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
+	"github.com/leomorpho/goship/app/goship/controller"
 	"github.com/leomorpho/goship/app/goship/views/web/components/gen"
 	"github.com/leomorpho/goship/app/goship/web/routenames"
-	"github.com/leomorpho/goship/pkg/controller"
 )
 
 func Auth(content templ.Component, page *controller.Page) templ.Component {

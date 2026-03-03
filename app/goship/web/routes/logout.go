@@ -1,8 +1,8 @@
 package routes
 
 import (
+	"github.com/leomorpho/goship/app/goship/controller"
 	routeNames "github.com/leomorpho/goship/app/goship/web/routenames"
-	"github.com/leomorpho/goship/pkg/controller"
 	"github.com/leomorpho/goship/pkg/repos/msg"
 
 	"github.com/labstack/echo/v4"

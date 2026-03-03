@@ -10,7 +10,7 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"fmt"
-	"github.com/leomorpho/goship/pkg/types"
+	"github.com/leomorpho/goship/app/goship/types"
 )
 
 func CapabilityExplorer(defaultKey string, sections []types.CapabilitySection, showDocLinks bool) templ.Component {

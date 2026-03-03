@@ -5,10 +5,10 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/leomorpho/goship/app/goship/controller"
 	routeNames "github.com/leomorpho/goship/app/goship/web/routenames"
 	"github.com/leomorpho/goship/ent"
 	"github.com/leomorpho/goship/pkg/context"
-	"github.com/leomorpho/goship/pkg/controller"
 	"github.com/leomorpho/goship/pkg/domain"
 	"github.com/leomorpho/goship/pkg/repos/msg"
 
@@ -16,7 +16,7 @@ import (
 	"github.com/leomorpho/goship/app/goship/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/goship/views/web/pages/gen"
 	"github.com/leomorpho/goship/pkg/repos/notifierrepo"
-	"github.com/leomorpho/goship/pkg/types"
+	"github.com/leomorpho/goship/app/goship/types"
 	"github.com/rs/zerolog/log"
 )
 

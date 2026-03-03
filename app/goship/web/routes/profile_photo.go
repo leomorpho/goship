@@ -9,10 +9,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/leomorpho/goship/app/goship/controller"
 	"github.com/leomorpho/goship/app/goship/views/web/layouts/gen"
 	"github.com/leomorpho/goship/ent"
 	"github.com/leomorpho/goship/pkg/context"
-	"github.com/leomorpho/goship/pkg/controller"
 	"github.com/leomorpho/goship/pkg/repos/profilerepo"
 	storagerepo "github.com/leomorpho/goship/pkg/repos/storage"
 

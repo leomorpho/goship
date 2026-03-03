@@ -257,7 +257,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/pkg/controller"
+	"github.com/leomorpho/goship/app/goship/controller"
 )
 
 type %s struct {
@@ -283,7 +283,7 @@ import (
 	"github.com/leomorpho/goship/app/goship/views"
 	"github.com/leomorpho/goship/app/goship/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/goship/views/web/pages/gen"
-	"github.com/leomorpho/goship/pkg/controller"
+	"github.com/leomorpho/goship/app/goship/controller"
 )
 
 type %s struct {
@@ -310,7 +310,7 @@ func (r *%s) Get(ctx echo.Context) error {
 func renderResourceTempl(n normalizedResourceName) string {
 	return fmt.Sprintf(`package pages
 
-import "github.com/leomorpho/goship/pkg/controller"
+import "github.com/leomorpho/goship/app/goship/controller"
 
 templ %sPage(page *controller.Page) {
 	<section>

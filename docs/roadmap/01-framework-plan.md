@@ -628,7 +628,7 @@ Done when:
 - handler implementations remain in `app/goship/web/routes/*.go`;
 - realtime registration is feature-gated directly in the canonical router.
 Test evidence:
-- `go test ./cmd/web ./pkg/controller ./pkg/runtimeplan`
+- `go test ./cmd/web ./app/goship/controller ./pkg/runtimeplan`
 - `go test -c ./app/goship/web/routes` (compile check in restricted env)
 
 7. `R1.2` Minimal resource generator foundation.

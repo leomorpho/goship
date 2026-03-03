@@ -7,12 +7,12 @@ import (
 	"os"
 	"time"
 
+	"github.com/leomorpho/goship/app/goship/repos/emailsmanager"
 	"github.com/leomorpho/goship/app/goship/services"
 	"github.com/leomorpho/goship/config"
 	"github.com/leomorpho/goship/ent"
 	"github.com/leomorpho/goship/ent/user"
 	"github.com/leomorpho/goship/pkg/domain"
-	"github.com/leomorpho/goship/pkg/repos/emailsmanager"
 	"github.com/leomorpho/goship/pkg/repos/notifierrepo"
 	"github.com/leomorpho/goship/pkg/repos/profilerepo"
 	storagerepo "github.com/leomorpho/goship/pkg/repos/storage"

@@ -8,9 +8,9 @@ import (
 
 	"github.com/janberktold/sse"
 	"github.com/labstack/echo/v4"
+	"github.com/leomorpho/goship/app/goship/controller"
 	"github.com/leomorpho/goship/ent"
 	customContext "github.com/leomorpho/goship/pkg/context"
-	"github.com/leomorpho/goship/pkg/controller"
 	"github.com/leomorpho/goship/pkg/repos/notifierrepo"
 	"github.com/rs/zerolog/log"
 )

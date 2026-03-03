@@ -7,14 +7,14 @@ import (
 	"os"
 	"testing"
 
+	"github.com/leomorpho/goship/app/goship/controller"
+	"github.com/leomorpho/goship/app/goship/middleware"
 	"github.com/leomorpho/goship/app/goship/services"
 	"github.com/leomorpho/goship/app/goship/views/web/components/gen"
 	"github.com/leomorpho/goship/app/goship/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/goship/views/web/pages/gen"
 	"github.com/leomorpho/goship/config"
-	"github.com/leomorpho/goship/pkg/controller"
 	"github.com/leomorpho/goship/pkg/htmx"
-	"github.com/leomorpho/goship/pkg/middleware"
 	"github.com/leomorpho/goship/pkg/tests"
 
 	"github.com/stretchr/testify/assert"

@@ -8,7 +8,7 @@ package components
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "github.com/leomorpho/goship/pkg/controller"
+import "github.com/leomorpho/goship/app/goship/controller"
 import "github.com/leomorpho/goship/app/goship/web/routenames"
 
 func InstallButtonRedirectsToInstallPage(page *controller.Page, classes string) templ.Component {

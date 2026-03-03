@@ -4,15 +4,15 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/leomorpho/goship/app/goship/controller"
 	"github.com/leomorpho/goship/app/goship/views"
 	"github.com/leomorpho/goship/app/goship/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/goship/views/web/pages/gen"
 	"github.com/leomorpho/goship/ent"
 	"github.com/leomorpho/goship/pkg/context"
-	"github.com/leomorpho/goship/pkg/controller"
 	"github.com/leomorpho/goship/pkg/domain"
 	"github.com/leomorpho/goship/pkg/repos/profilerepo"
-	"github.com/leomorpho/goship/pkg/types"
+	"github.com/leomorpho/goship/app/goship/types"
 	"github.com/nyaruka/phonenumbers"
 	"github.com/rs/zerolog/log"
 

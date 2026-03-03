@@ -10,7 +10,7 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"fmt"
-	"github.com/leomorpho/goship/pkg/controller"
+	"github.com/leomorpho/goship/app/goship/controller"
 )
 
 // TODO: I think i broke the way the messages are dismissed in the original pagoda system.

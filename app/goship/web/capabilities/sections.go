@@ -1,6 +1,6 @@
 package capabilities
 
-import "github.com/leomorpho/goship/pkg/types"
+import "github.com/leomorpho/goship/app/goship/types"
 
 func LandingSections() []types.CapabilitySection {
 	return []types.CapabilitySection{

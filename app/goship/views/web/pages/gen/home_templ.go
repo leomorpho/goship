@@ -11,9 +11,9 @@ import templruntime "github.com/a-h/templ/runtime"
 import (
 	"fmt"
 
+	"github.com/leomorpho/goship/app/goship/controller"
+	"github.com/leomorpho/goship/app/goship/types"
 	"github.com/leomorpho/goship/app/goship/views/web/helpers/gen"
-	"github.com/leomorpho/goship/pkg/controller"
-	"github.com/leomorpho/goship/pkg/types"
 )
 
 func Home(page *controller.Page) templ.Component {

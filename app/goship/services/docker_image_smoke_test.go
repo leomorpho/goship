@@ -71,7 +71,7 @@ func mustRepoRoot(t *testing.T) string {
 	if !ok {
 		t.Fatal("failed to resolve test file path")
 	}
-	return filepath.Clean(filepath.Join(filepath.Dir(thisFile), "..", ".."))
+	return filepath.Clean(filepath.Join(filepath.Dir(thisFile), "..", "..", ".."))
 }
 
 func runCommand(ctx context.Context, name string, args ...string) error {

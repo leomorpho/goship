@@ -5,8 +5,8 @@ package emailsmanager_test
 import (
 	"testing"
 
+	"github.com/leomorpho/goship/app/goship/repos/emailsmanager"
 	"github.com/leomorpho/goship/pkg/domain"
-	"github.com/leomorpho/goship/pkg/repos/emailsmanager"
 	"github.com/leomorpho/goship/pkg/tests"
 	"github.com/stretchr/testify/assert"
 )

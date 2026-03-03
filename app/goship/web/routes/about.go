@@ -1,11 +1,11 @@
 package routes
 
 import (
+	"github.com/leomorpho/goship/app/goship/controller"
 	"github.com/leomorpho/goship/app/goship/views"
 	"github.com/leomorpho/goship/app/goship/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/goship/views/web/pages/gen"
-	"github.com/leomorpho/goship/pkg/controller"
-	"github.com/leomorpho/goship/pkg/types"
+	"github.com/leomorpho/goship/app/goship/types"
 
 	"github.com/labstack/echo/v4"
 )

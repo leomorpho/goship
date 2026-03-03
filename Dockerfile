@@ -23,9 +23,9 @@ ENV CGO_ENABLED=1
 ENV GOOS=linux
 
 # Build the application
-RUN go build -ldflags="-s -w" -gcflags=all=-l -o /app/goship-web ./cmd/web/main.go
-RUN go build -ldflags="-s -w" -gcflags=all=-l -o /app/goship-worker ./cmd/worker/main.go
-RUN go build -ldflags="-s -w" -gcflags=all=-l -o /app/goship-seed ./cmd/seed/main.go
+RUN go build -ldflags="-s -w" -gcflags=all=-l -o /app/goship-web ./cmd/web
+RUN go build -ldflags="-s -w" -gcflags=all=-l -o /app/goship-worker ./cmd/worker
+RUN go build -ldflags="-s -w" -gcflags=all=-l -o /app/goship-seed ./cmd/seed
 
 # Install asynq tools
 RUN go install github.com/hibiken/asynq/tools/asynq@latest

@@ -9,8 +9,8 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
+	"github.com/leomorpho/goship/app/goship/controller"
 	"github.com/leomorpho/goship/app/goship/web/routenames"
-	"github.com/leomorpho/goship/pkg/controller"
 )
 
 func AuthButtons(page *controller.Page, showLoginBtn, showRegisterBtn, showResetPasswordBtn bool) templ.Component {

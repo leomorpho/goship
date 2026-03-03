@@ -3,7 +3,7 @@ package types
 import (
 	"time"
 
-	"github.com/leomorpho/goship/pkg/controller"
+	"github.com/leomorpho/goship/app/goship/controller"
 	"github.com/leomorpho/goship/pkg/domain"
 )
 
