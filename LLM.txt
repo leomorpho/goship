@@ -453,6 +453,7 @@ Last updated: 2026-03-03
 FILE: docs/architecture/01-architecture.md
 ---
 # Architecture
+<!-- FRONTEND_SYNC: Landing capability explorer in app/goship/views/web/pages/landing_page.templ links here for Validation and Forms, Jobs and Scheduling, and Events and Realtime. Keep both landing copy and this doc aligned. -->
 
 ## High-Level Layout
 
@@ -572,6 +573,7 @@ HTMX behavior is integrated in the page object (`Page.HTMX`) and controller rend
 FILE: docs/architecture/02-structure-and-boundaries.md
 ---
 # Structure and Boundaries
+<!-- FRONTEND_SYNC: Landing capability explorer in app/goship/views/web/pages/landing_page.templ links here for Views and Server UI. Keep both landing copy and this doc aligned. -->
 
 This document defines where code belongs as GoShip evolves into a Rails-like framework plus example app.
 
@@ -633,6 +635,7 @@ These remain framework-level until each package is classified as either:
 FILE: docs/architecture/03-project-scope-analysis.md
 ---
 # Project Scope Analysis
+<!-- FRONTEND_SYNC: Landing capability explorer in app/goship/views/web/pages/landing_page.templ links here for Authentication and Authorization, Notifications and Mail, and File Storage. Keep both landing copy and this doc aligned. -->
 
 ## What This Project Is
 
@@ -776,6 +779,7 @@ This codebase is a strong "production-ready starter" foundation with authenticat
 FILE: docs/architecture/04-http-routes.md
 ---
 # HTTP Route Map
+<!-- FRONTEND_SYNC: Landing capability explorer in app/goship/views/web/pages/landing_page.templ links here for Routing and Controllers. Keep both landing copy and this doc aligned. -->
 
 Routes are wired through canonical `app/goship/router.go` and composed in `app/goship/web/routes/router.go`.
 
@@ -895,6 +899,7 @@ Notification center routes have implementations but are commented out in route w
 FILE: docs/architecture/05-data-model.md
 ---
 # Data Model
+<!-- FRONTEND_SYNC: Landing capability explorer in app/goship/views/web/pages/landing_page.templ links here for Models and ORM (Ent). Keep both landing copy and this doc aligned. -->
 
 Primary schema is defined in `ent/schema/*.go` and compiled into generated Ent code in `ent/`.
 
@@ -980,11 +985,11 @@ Permissions are separated from notifications and keyed by platform + permission 
 `FileStorage` holds object metadata and object key info for S3-compatible storage.
 The storage repo generates presigned URLs and maps image sizes into frontend-friendly `domain.Photo` objects.
 
-
 ---
 FILE: docs/architecture/06-known-gaps-and-risks.md
 ---
 # Known Gaps and Risks
+<!-- FRONTEND_SYNC: Landing capability explorer in app/goship/views/web/pages/landing_page.templ links here for Events and Realtime. Keep both landing copy and this doc aligned. -->
 
 This list is based on direct code inspection and is intended to guide contributor priorities.
 
@@ -1163,6 +1168,7 @@ When code behavior changes, update at least:
 FILE: docs/guides/02-development-workflows.md
 ---
 # Development Workflows
+<!-- FRONTEND_SYNC: Landing capability explorer in app/goship/views/web/pages/landing_page.templ links here for Database and Migrations and Testing. Keep both landing copy and this doc aligned. -->
 
 ## Local Startup
 
@@ -1370,6 +1376,7 @@ kamal traefik reboot -c deploy/kamal/deploy.yml
 FILE: docs/policies/01-engineering-standards.md
 ---
 # Repository Requirements (Engineering Standards)
+<!-- FRONTEND_SYNC: Landing capability explorer in app/goship/views/web/pages/landing_page.templ links here for Testing. Keep both landing copy and this doc aligned. -->
 
 This file defines baseline requirements for any GoShip repository (framework, CLI, or app) to stay maintainable.
 

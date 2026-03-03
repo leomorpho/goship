@@ -19,7 +19,7 @@ exclude_dir = [
 ]
 args_bin = []
 bin = "./tmp/main"
-cmd = "templ generate && go build -o ./tmp/main cmd/web/main.go"
+cmd = "go run ./cli/ship/cmd/ship templ generate --path app && go build -o ./tmp/main ./cmd/web"
 delay = 1000
 exclude_file = []
 exclude_regex = [".*_templ.go", "_test.go"]

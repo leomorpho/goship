@@ -1,4 +1,5 @@
 # Project Scope Analysis
+<!-- FRONTEND_SYNC: Landing capability explorer in app/goship/views/web/pages/landing_page.templ links here for Authentication and Authorization, Notifications and Mail, and File Storage. Keep both landing copy and this doc aligned. -->
 
 ## What This Project Is
 

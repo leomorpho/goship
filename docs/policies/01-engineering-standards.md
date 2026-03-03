@@ -1,4 +1,5 @@
 # Repository Requirements (Engineering Standards)
+<!-- FRONTEND_SYNC: Landing capability explorer in app/goship/views/web/pages/landing_page.templ links here for Testing. Keep both landing copy and this doc aligned. -->
 
 This file defines baseline requirements for any GoShip repository (framework, CLI, or app) to stay maintainable.
 

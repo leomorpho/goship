@@ -1,4 +1,5 @@
 # Architecture
+<!-- FRONTEND_SYNC: Landing capability explorer in app/goship/views/web/pages/landing_page.templ links here for Validation and Forms, Jobs and Scheduling, and Events and Realtime. Keep both landing copy and this doc aligned. -->
 
 ## High-Level Layout
 

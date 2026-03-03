@@ -36,47 +36,47 @@ func (c *landingPage) Get(ctx echo.Context) error {
 
 	var data types.LandingPage
 
-	page.Metatags.Description = "Ship your app in record time."
-	page.Metatags.Keywords = []string{"Boilerplate", "HTMX", "AlpineJS", "Javascript", "Starter kit", "Startup", "Solopreneur", "Indie Hacking"}
+	page.Metatags.Description = "Opinionated Go + HTMX framework for shipping production apps fast."
+	page.Metatags.Keywords = []string{"Go", "HTMX", "Templ", "Starter", "Framework", "SaaS", "CLI", "LLM"}
 	data = types.LandingPage{
 		AppName:           string(c.ctr.Container.Config.App.Name),
 		UserSignupEnabled: c.ctr.Container.Config.App.OperationalConstants.UserSignupEnabled,
 
-		Title:      "Ship in Record Time",
-		Subtitle:   "A Go + HTMX boilerplate with all the essentials for your SaaS, AI tools, or web apps. Start earning online quickly without the hassle.",
+		Title:      "Ship Production Apps in Go",
+		Subtitle:   "An opinionated Go + HTMX framework and starter app designed for fast delivery, clean defaults, and low-infra deployments.",
 		GetNowText: "Get Started",
-		IntroTitle: "Build & Launch Without the Headaches",
+		IntroTitle: "Build Fast Without Rebuilding Foundations",
 
 		HowItWorksTitle: "How it works.",
 
-		Quote1: "Save time on setup: Stop spending countless hours configuring email, payment gateways, and authentication. GoShip handles it for you.",
-		Quote2: "Simplify your tech stack: GoShip minimizes JavaScript, focusing on the simplicity and speed of Go and HTMX, while still providing the modern features you need.",
+		Quote1: "Start with practical defaults for routing, auth, data, and operational wiring so product work starts on day one.",
+		Quote2: "Use Go + HTMX + Templ for server-driven UI, and scale with modules plus the ship CLI instead of ad-hoc boilerplate.",
 
 		ExampleQuestion1: "What’s the most laughable fashion trend you have ever followed?",
 		ExampleQuestion2: "What's one place you've never been to but feel drawn to visit?",
 		ExampleQuestion3: "What are your strategies for maintaining intimacy with your partner?",
 
-		AboutUsTitle1: "Championing trust and authentic connections.",
-		AboutUsText1:  "We're not a faceless conglomerate. We're a dedicated small team, committed to safeguarding your privacy and fostering real relationships. Your data is encrypted, not up for sale, and can be deleted at any time.",
-		AboutUsTitle2: "Our mission?",
-		AboutUsText2:  "To make Chérie so successful that you won't need us for long – because you'll be immersed in enjoying real-world relationships!",
+		AboutUsTitle1: "Why this project exists.",
+		AboutUsText1:  "GoShip is the stack I use to launch projects repeatedly without re-building the same platform plumbing every time.",
+		AboutUsTitle2: "Current mission.",
+		AboutUsText2:  "Deliver excellent developer ergonomics in Go: clear conventions, strong defaults, and fast iteration for both humans and LLM agents.",
 
 		QAItems: []types.QAItem{
 			{
-				Question: "What exactly is included?",
-				Answer:   "You get a fully functional Go + HTMX boilerplate with built-in integrations for payment processing, authentication, database management, and more.",
+				Question: "What do I get out of the box?",
+				Answer:   "A production-ready Go starter with routing, auth flows, data wiring, test setup, and deployment workflows. Optional batteries are meant to be added as modules.",
 			},
 			{
-				Question: "Can I customize the tech stack?",
-				Answer:   "Yes! While GoShip is optimized for Go and HTMX, you can easily adapt it to suit your specific tech stack.",
+				Question: "Can I customize the stack?",
+				Answer:   "Yes. GoShip is opinionated by default but built to evolve by modules and adapters as your app requirements grow.",
 			},
 			{
-				Question: "Is this a website template?",
-				Answer:   "No, GoShip is a complete boilerplate with backend and frontend code ready to use.",
+				Question: "Is this just a UI template?",
+				Answer:   "No. It is an end-to-end application foundation with backend, frontend, infra workflows, and deployment paths.",
 			},
 			{
-				Question: "How does GoShip compare to other boilerplates?",
-				Answer:   "GoShip focuses on simplicity and efficiency by minimizing JavaScript, allowing you to build interactive apps with minimal complexity.",
+				Question: "How does it help with LLM-assisted development?",
+				Answer:   "The project is being shaped to be LLM-friendly: consistent structure, explicit docs, and a CLI-driven generation path that reduces repetitive manual setup.",
 			},
 		},
 

@@ -2,6 +2,7 @@ package pages
 
 import (
 	"fmt"
+	"github.com/leomorpho/goship/app/goship/web/capabilities"
 	"github.com/leomorpho/goship/pkg/controller"
 	"github.com/leomorpho/goship/pkg/types"
 	"github.com/leomorpho/goship/app/goship/views/web/components/gen"
@@ -30,7 +31,7 @@ templ LandingPage(page *controller.Page) {
 			@verticalSpacer("h-32")
 			@builtAndShipsWith()
 			@verticalSpacer("h-10")
-			@features()
+			@features(data)
 			@verticalSpacer("h-10")
 			@builtWithGoShip()
 			@verticalSpacer("h-10")
@@ -112,12 +113,15 @@ templ welcomeScreen(page *controller.Page, d types.LandingPage) {
 		</div>
 	</div>
 	<div class="w-full flex justify-center p-3">
-		<iframe
-			class="w-full md:w-[85%] lg:w-[75%] xl:w-[60%] aspect-video shadow-2xl rounded-xl"
-			src="http://www.youtube.com/embed/Mnti8f-4bp0"
-			frameborder="0"
-			allowfullscreen
-		></iframe>
+		<div class="w-full md:w-[85%] lg:w-[75%] xl:w-[60%] rounded-xl border border-gray-200 dark:border-gray-700 p-6 bg-white/70 dark:bg-slate-900/50 shadow">
+			<div class="text-xl font-semibold mb-3">What changed recently</div>
+			<ul class="list-disc ml-5 space-y-2 text-sm md:text-base text-gray-700 dark:text-gray-300">
+				<li>Unified app routing through a canonical <code>app/goship/router.go</code> entrypoint.</li>
+				<li>Templ source and generated code are now split with sibling <code>gen/</code> package directories.</li>
+				<li><code>ship</code> CLI now owns templ generation workflows for faster developer and agent iteration.</li>
+				<li>Documentation has been reorganized as the primary source of truth for contributors.</li>
+			</ul>
+		</div>
 	</div>
 }
 
@@ -221,18 +225,21 @@ templ viewTheRepo() {
 	</script>
 }
 
-templ features() {
+templ features(data types.LandingPage) {
 	<div class="w-full py-8 px-4 md:px-6">
-		<div class="max-w-3xl mx-auto">
+		<div class="max-w-5xl mx-auto">
 			<div data-aos="fade-up" data-aos-once="true">
 				<div
 					class="pb-1 flex justify-center w-full font-black text-5xl md:text-6xl
                 bg-gradient-to-r from-red-500 to-purple-500
                 inline-block text-transparent bg-clip-text
                 "
-				>Features</div>
+				>First-Class Building Blocks</div>
 			</div>
-			@GoshipFeatures()
+			<p class="text-center mt-3 text-slate-700 dark:text-slate-300">
+				Core framework capabilities, organized by how you actually build product features.
+			</p>
+			@components.CapabilityExplorer("routing", capabilities.LandingSections(), true)
 		</div>
 	</div>
 }
@@ -298,9 +305,9 @@ templ QASection(questions []types.QAItem) {
                 bg-gradient-to-r from-red-500 to-purple-500
                 inline-block text-transparent bg-clip-text
                 "
-				>Q&A Section</div>
+				>Common Questions</div>
 			</div>
-			<div id="accordion-collapse" data-accordion="collapse">
+			<div class="grid grid-cols-1 gap-4 mt-4">
 				for _, qa := range questions {
 					@qaIndividualSection(qa)
 				}
@@ -310,25 +317,10 @@ templ QASection(questions []types.QAItem) {
 }
 
 templ qaIndividualSection(qa types.QAItem) {
-	<div
-		class="collapsible mt-4 bg-slate-300 dark:bg-slate-800 text-slate-800 dark:text-white rounded-xl mouse-pointer"
-		x-data="{ expanded: false }"
-		x-cloak
-	>
-		<button
-			@click="expanded = ! expanded"
-			class="w-full p-2 flex items-center justify-center"
-		>{ qa.Question }</button>
-		<div
-			x-show="expanded"
-			x-collapse
-			class="bg-slate-200 dark:bg-slate-900 text-slate-800 dark:text-white rounded-b-xl"
-		>
-			<div
-				class="p-3 md:p-4"
-			>
-				{ qa.Answer }
-			</div>
+	<div class="rounded-xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-900/40 p-4">
+		<h3 class="text-base md:text-lg font-semibold text-slate-900 dark:text-slate-100">{ qa.Question }</h3>
+		<div class="mt-2 text-sm md:text-base text-slate-700 dark:text-slate-300">
+			{ qa.Answer }
 		</div>
 	</div>
 }

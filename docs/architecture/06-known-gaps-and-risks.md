@@ -1,4 +1,5 @@
 # Known Gaps and Risks
+<!-- FRONTEND_SYNC: Landing capability explorer in app/goship/views/web/pages/landing_page.templ links here for Events and Realtime. Keep both landing copy and this doc aligned. -->
 
 This list is based on direct code inspection and is intended to guide contributor priorities.
 

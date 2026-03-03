@@ -1,4 +1,5 @@
 # Development Workflows
+<!-- FRONTEND_SYNC: Landing capability explorer in app/goship/views/web/pages/landing_page.templ links here for Database and Migrations and Testing. Keep both landing copy and this doc aligned. -->
 
 ## Local Startup
 

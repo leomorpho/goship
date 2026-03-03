@@ -1,4 +1,5 @@
 # Data Model
+<!-- FRONTEND_SYNC: Landing capability explorer in app/goship/views/web/pages/landing_page.templ links here for Models and ORM (Ent). Keep both landing copy and this doc aligned. -->
 
 Primary schema is defined in `ent/schema/*.go` and compiled into generated Ent code in `ent/`.
 
@@ -83,4 +84,3 @@ Permissions are separated from notifications and keyed by platform + permission 
 
 `FileStorage` holds object metadata and object key info for S3-compatible storage.
 The storage repo generates presigned URLs and maps image sizes into frontend-friendly `domain.Photo` objects.
-

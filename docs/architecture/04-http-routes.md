@@ -1,4 +1,5 @@
 # HTTP Route Map
+<!-- FRONTEND_SYNC: Landing capability explorer in app/goship/views/web/pages/landing_page.templ links here for Routing and Controllers. Keep both landing copy and this doc aligned. -->
 
 Routes are wired through canonical `app/goship/router.go` and composed in `app/goship/web/routes/router.go`.
 

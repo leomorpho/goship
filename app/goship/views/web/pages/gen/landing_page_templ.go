@@ -11,6 +11,7 @@ import templruntime "github.com/a-h/templ/runtime"
 import (
 	"fmt"
 	"github.com/leomorpho/goship/app/goship/views/web/components/gen"
+	"github.com/leomorpho/goship/app/goship/web/capabilities"
 	"github.com/leomorpho/goship/pkg/controller"
 	"github.com/leomorpho/goship/pkg/routing/routenames"
 	"github.com/leomorpho/goship/pkg/types"
@@ -96,7 +97,7 @@ func LandingPage(page *controller.Page) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = features().Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = features(data).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -306,7 +307,7 @@ func welcomeScreen(page *controller.Page, d types.LandingPage) templ.Component {
 		var templ_7745c5c3_Var6 string
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(d.AppName)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/landing_page.templ`, Line: 92, Col: 64}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/landing_page.templ`, Line: 93, Col: 64}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
@@ -319,7 +320,7 @@ func welcomeScreen(page *controller.Page, d types.LandingPage) templ.Component {
 		var templ_7745c5c3_Var7 string
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(d.Title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/landing_page.templ`, Line: 100, Col: 13}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/landing_page.templ`, Line: 101, Col: 13}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {
@@ -332,7 +333,7 @@ func welcomeScreen(page *controller.Page, d types.LandingPage) templ.Component {
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(d.Subtitle)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/landing_page.templ`, Line: 103, Col: 36}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/landing_page.templ`, Line: 104, Col: 36}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
@@ -350,7 +351,7 @@ func welcomeScreen(page *controller.Page, d types.LandingPage) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</span></div><div class=\"hidden lg:mt-0 lg:col-span-5 lg:flex w-1/3\"><img src=\"https://goship-static.s3.us-west-002.backblazeb2.com/assets/gopher.png\" alt=\"mockup\"></div></div><div class=\"w-full flex justify-center p-3\"><iframe class=\"w-full md:w-[85%] lg:w-[75%] xl:w-[60%] aspect-video shadow-2xl rounded-xl\" src=\"http://www.youtube.com/embed/Mnti8f-4bp0\" frameborder=\"0\" allowfullscreen></iframe></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "</span></div><div class=\"hidden lg:mt-0 lg:col-span-5 lg:flex w-1/3\"><img src=\"https://goship-static.s3.us-west-002.backblazeb2.com/assets/gopher.png\" alt=\"mockup\"></div></div><div class=\"w-full flex justify-center p-3\"><div class=\"w-full md:w-[85%] lg:w-[75%] xl:w-[60%] rounded-xl border border-gray-200 dark:border-gray-700 p-6 bg-white/70 dark:bg-slate-900/50 shadow\"><div class=\"text-xl font-semibold mb-3\">What changed recently</div><ul class=\"list-disc ml-5 space-y-2 text-sm md:text-base text-gray-700 dark:text-gray-300\"><li>Unified app routing through a canonical <code>app/goship/router.go</code> entrypoint.</li><li>Templ source and generated code are now split with sibling <code>gen/</code> package directories.</li><li><code>ship</code> CLI now owns templ generation workflows for faster developer and agent iteration.</li><li>Documentation has been reorganized as the primary source of truth for contributors.</li></ul></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -471,7 +472,7 @@ func getStartedButton(page *controller.Page) templ.Component {
 		var templ_7745c5c3_Var11 templ.SafeURL
 		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(page.ToURL(routenames.RouteNameDocs)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/landing_page.templ`, Line: 169, Col: 56}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/landing_page.templ`, Line: 173, Col: 56}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 		if templ_7745c5c3_Err != nil {
@@ -514,7 +515,7 @@ func viewTheRepo() templ.Component {
 	})
 }
 
-func features() templ.Component {
+func features(data types.LandingPage) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -535,11 +536,11 @@ func features() templ.Component {
 			templ_7745c5c3_Var13 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "<div class=\"w-full py-8 px-4 md:px-6\"><div class=\"max-w-3xl mx-auto\"><div data-aos=\"fade-up\" data-aos-once=\"true\"><div class=\"pb-1 flex justify-center w-full font-black text-5xl md:text-6xl bg-gradient-to-r from-red-500 to-purple-500 inline-block text-transparent bg-clip-text\">Features</div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "<div class=\"w-full py-8 px-4 md:px-6\"><div class=\"max-w-5xl mx-auto\"><div data-aos=\"fade-up\" data-aos-once=\"true\"><div class=\"pb-1 flex justify-center w-full font-black text-5xl md:text-6xl bg-gradient-to-r from-red-500 to-purple-500 inline-block text-transparent bg-clip-text\">First-Class Building Blocks</div></div><p class=\"text-center mt-3 text-slate-700 dark:text-slate-300\">Core framework capabilities, organized by how you actually build product features.</p>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = GoshipFeatures().Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = components.CapabilityExplorer("routing", capabilities.LandingSections(), true).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -656,7 +657,7 @@ func newsletterRegistration(page *controller.Page) templ.Component {
 			var templ_7745c5c3_Var19 string
 			templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL("emailSubscribe"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/landing_page.templ`, Line: 271, Col: 45}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/landing_page.templ`, Line: 278, Col: 45}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 			if templ_7745c5c3_Err != nil {
@@ -729,7 +730,7 @@ func QASection(questions []types.QAItem) templ.Component {
 			templ_7745c5c3_Var21 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "<div class=\"w-full py-8 px-4 md:px-6\"><div class=\"max-w-3xl mx-auto\"><div data-aos=\"fade-up\" data-aos-once=\"true\"><div class=\"pb-1 flex justify-center w-full font-black text-5xl md:text-6xl bg-gradient-to-r from-red-500 to-purple-500 inline-block text-transparent bg-clip-text\">Q&A Section</div></div><div id=\"accordion-collapse\" data-accordion=\"collapse\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "<div class=\"w-full py-8 px-4 md:px-6\"><div class=\"max-w-3xl mx-auto\"><div data-aos=\"fade-up\" data-aos-once=\"true\"><div class=\"pb-1 flex justify-center w-full font-black text-5xl md:text-6xl bg-gradient-to-r from-red-500 to-purple-500 inline-block text-transparent bg-clip-text\">Common Questions</div></div><div class=\"grid grid-cols-1 gap-4 mt-4\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -768,33 +769,33 @@ func qaIndividualSection(qa types.QAItem) templ.Component {
 			templ_7745c5c3_Var22 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "<div class=\"collapsible mt-4 bg-slate-300 dark:bg-slate-800 text-slate-800 dark:text-white rounded-xl mouse-pointer\" x-data=\"{ expanded: false }\" x-cloak><button @click=\"expanded = ! expanded\" class=\"w-full p-2 flex items-center justify-center\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "<div class=\"rounded-xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-900/40 p-4\"><h3 class=\"text-base md:text-lg font-semibold text-slate-900 dark:text-slate-100\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var23 string
 		templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(qa.Question)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/landing_page.templ`, Line: 321, Col: 16}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/landing_page.templ`, Line: 321, Col: 97}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "</button><div x-show=\"expanded\" x-collapse class=\"bg-slate-200 dark:bg-slate-900 text-slate-800 dark:text-white rounded-b-xl\"><div class=\"p-3 md:p-4\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "</h3><div class=\"mt-2 text-sm md:text-base text-slate-700 dark:text-slate-300\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var24 string
 		templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(qa.Answer)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/landing_page.templ`, Line: 330, Col: 15}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/landing_page.templ`, Line: 323, Col: 14}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "</div></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "</div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -830,7 +831,7 @@ func madeWithLove(d types.LandingPage) templ.Component {
 		var templ_7745c5c3_Var26 string
 		templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs("Made With Sprinkles of Love and Tears of Frustration.")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/landing_page.templ`, Line: 357, Col: 60}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/landing_page.templ`, Line: 349, Col: 60}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
 		if templ_7745c5c3_Err != nil {
@@ -872,7 +873,7 @@ func socialMedia(d types.LandingPage) templ.Component {
 		var templ_7745c5c3_Var28 templ.SafeURL
 		templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(fmt.Sprintf("mailto:%s", d.ContactEmail)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/landing_page.templ`, Line: 452, Col: 65}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/landing_page.templ`, Line: 444, Col: 65}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 		if templ_7745c5c3_Err != nil {
@@ -973,7 +974,7 @@ func questionExample(questionType, prompt string) templ.Component {
 		var templ_7745c5c3_Var34 string
 		templ_7745c5c3_Var34, templ_7745c5c3_Err = templ.JoinStringErrs(prompt)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/landing_page.templ`, Line: 498, Col: 47}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/landing_page.templ`, Line: 490, Col: 47}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var34))
 		if templ_7745c5c3_Err != nil {
