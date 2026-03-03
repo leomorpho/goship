@@ -481,6 +481,8 @@ func (c CLI) runMake(args []string) int {
 	}
 
 	switch args[0] {
+	case "controller":
+		return c.runMakeController(args[1:])
 	case "model":
 		return c.runGenerateModel(args[1:])
 	case "resource":
@@ -660,6 +662,7 @@ func printTemplHelp(w io.Writer) {
 
 func printMakeHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship make commands:")
+	fmt.Fprintln(w, "  ship make:controller <Name|NameController> [--actions index,show,create,update,destroy] [--auth public|auth] [--wire]")
 	fmt.Fprintln(w, "  ship make:resource <name> [--path app/goship] [--auth public|auth] [--views templ|none] [--wire] [--dry-run]")
 	fmt.Fprintln(w, "  ship make:model <Name> [fields...]")
 }

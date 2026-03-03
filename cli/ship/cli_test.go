@@ -325,6 +325,12 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			wantErr:  "usage: ship make:model <Name> [fields...]",
 		},
 		{
+			name:     "make controller missing name",
+			args:     []string{"make:controller"},
+			wantCode: 1,
+			wantErr:  "usage: ship make:controller",
+		},
+		{
 			name:     "make model",
 			args:     []string{"make:model", "Post"},
 			wantCode: 0,

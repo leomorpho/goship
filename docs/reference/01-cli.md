@@ -66,6 +66,8 @@ Generation:
 - `ship templ generate [--path <dir>] [--file <file.templ>]`
 - `ship make:resource <name> [--path app/goship] [--auth public|auth] [--views templ|none] [--wire] [--dry-run]` (or `ship make` for help)
 - `ship make:model <Name> [fields...] [--force]`
+- `ship make:controller <Name|NameController> [--actions index,show,create,update,destroy] [--auth public|auth] [--wire]`
+- `ship make:controller <Name|NameController> [--actions index,show,create,update,destroy] [--auth public|auth] [--wire]`
 - `ship destroy <generated-artifact>` (planned)
 
 ## Versioning Rules
@@ -106,6 +108,10 @@ If config resolves to embedded DB mode, `ship db:migrate`/`db:rollback` fail wit
 - `ship make:resource <name> --dry-run` -> preview all planned changes without writing files
 - `ship make:model <Name>` -> run Ent schema scaffolding (`ent new`) then ORM codegen (`ent generate`)
 - `ship make:model <Name> [fields...]` -> write `ent/schema/<model>.go` with typed fields, then run ORM codegen (`ent generate`)
+- `ship make:controller <Name>` -> generate controller/handler scaffold in `app/goship/web/routes`
+- `ship make:controller <Name> --actions ... --wire` -> wire generated routes into `app/goship/router.go` markers
+- `ship make:controller <Name>` -> write controller/route handler scaffold under `app/goship/web/routes`
+- `ship make:controller <Name> --actions ... --wire` -> optionally wire generated routes idempotently in `app/goship/router.go` markers
 
 Field syntax for `make:model`:
 
