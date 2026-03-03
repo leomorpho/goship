@@ -1551,7 +1551,7 @@ Generation:
 
 - `ship templ generate [--path <dir>] [--file <file.templ>]`
 - `ship make:resource <name> [--path app/goship] [--auth public|auth] [--views templ|none] [--wire] [--dry-run]` (or `ship make` for help)
-- `ship make:model <Name> [fields...]`
+- `ship make:model <Name> [fields...] [--force]`
 - `ship destroy <generated-artifact>` (planned)
 
 ## Versioning Rules
@@ -1591,6 +1591,13 @@ If config resolves to embedded DB mode, `ship db:migrate`/`db:rollback` fail wit
 - `ship make:resource <name> --wire` -> also insert snippet behind ship markers in `app/goship/router.go`
 - `ship make:resource <name> --dry-run` -> preview all planned changes without writing files
 - `ship make:model <Name>` -> run Ent schema scaffolding (`ent new`) then ORM codegen (`ent generate`)
+- `ship make:model <Name> [fields...]` -> write `ent/schema/<model>.go` with typed fields, then run ORM codegen (`ent generate`)
+
+Field syntax for `make:model`:
+
+- `name:type` (for example: `title:string`, `published_at:time`, `is_live:bool`)
+- supported types: `string`, `text`, `int`, `bool`, `time`, `float`, `email`, `url`
+- use `--force` to overwrite an existing schema file
 
 `ship new` v1 contract:
 

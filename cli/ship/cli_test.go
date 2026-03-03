@@ -334,12 +334,10 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			},
 		},
 		{
-			name:     "make model with fields warns",
+			name:     "make model with fields",
 			args:     []string{"make:model", "Post", "title:string"},
 			wantCode: 0,
-			wantErr:  "field scaffolding is not yet implemented",
 			wantCalls: []fakeCall{
-				{name: "go", args: []string{"run", "-mod=mod", "entgo.io/ent/cmd/ent", "new", "Post"}},
 				{name: "go", args: []string{"run", "-mod=mod", "entgo.io/ent/cmd/ent", "generate", "--feature", "sql/upsert,sql/execquery", "./ent/schema"}},
 			},
 		},
@@ -368,7 +366,7 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if len(tt.args) > 0 && (tt.args[0] == "dev" || tt.args[0] == "shipdev" || tt.args[0] == "test" || tt.args[0] == "check") {
+			if len(tt.args) > 0 && (tt.args[0] == "dev" || tt.args[0] == "shipdev" || tt.args[0] == "test" || tt.args[0] == "check" || tt.args[0] == "make:model" || tt.args[0] == "make:resource") {
 				prevWD, err := os.Getwd()
 				if err != nil {
 					t.Fatal(err)
