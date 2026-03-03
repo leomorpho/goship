@@ -52,6 +52,8 @@ func TestScaffoldNewProject(t *testing.T) {
 		filepath.Join(opts.AppPath, "app", "goship", "router.go"),
 		filepath.Join(opts.AppPath, "pkg", "routing", "routenames", "routenames.go"),
 		filepath.Join(opts.AppPath, "app", "goship", "views", "templates.go"),
+		filepath.Join(opts.AppPath, "app", "goship", "web", "routes", "routes.go"),
+		filepath.Join(opts.AppPath, "cmd", "web", "main.go"),
 	}
 	for _, p := range checkFiles {
 		if _, err := os.Stat(p); err != nil {

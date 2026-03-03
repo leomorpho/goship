@@ -74,6 +74,8 @@ func (c CLI) Run(args []string) int {
 		return c.runDev(args[1:])
 	case "new":
 		return c.runNew(args[1:])
+	case "check":
+		return c.runCheck(args[1:])
 	case "test":
 		return c.runTest(args[1:])
 	case "db":
@@ -134,15 +136,75 @@ func (c CLI) runDev(args []string) int {
 
 	switch mode {
 	case "web":
-		return c.runCmd("make", "dev")
+		if hasMakefile() {
+			return c.runCmd("make", "dev")
+		}
+		return c.runCmd("go", "run", "./cmd/web")
 	case "worker":
-		return c.runCmd("make", "dev-worker")
+		if hasMakefile() {
+			return c.runCmd("make", "dev-worker")
+		}
+		return c.runCmd("go", "run", "./cmd/worker")
 	case "all":
-		return c.runCmd("make", "dev-full")
+		if hasMakefile() {
+			return c.runCmd("make", "dev-full")
+		}
+		fmt.Fprintln(c.Err, "ship dev all requires project process orchestration; use ship dev in CLI-only projects")
+		return 1
 	default:
 		fmt.Fprintf(c.Err, "unknown dev mode: %s\n", mode)
 		return 1
 	}
+}
+
+func (c CLI) runCheck(args []string) int {
+	for _, arg := range args {
+		if arg == "-h" || arg == "--help" || arg == "help" {
+			printCheckHelp(c.Out)
+			return 0
+		}
+	}
+	if len(args) > 0 {
+		fmt.Fprintf(c.Err, "unexpected check arguments: %v\n", args)
+		return 1
+	}
+
+	root, hasLists := findProjectRootWithCheckLists()
+	if hasLists {
+		if err := withWorkingDir(root, func() error {
+			unitPkgs, err := readPackageList(filepath.Join("scripts", "test", "unit-packages.txt"))
+			if err != nil {
+				return err
+			}
+			for _, pkg := range unitPkgs {
+				if code := c.runCmd("go", "test", pkg); code != 0 {
+					return fmt.Errorf("go test %s failed with exit code %d", pkg, code)
+				}
+			}
+
+			compilePkgs, err := readPackageList(filepath.Join("scripts", "test", "compile-packages.txt"))
+			if err != nil {
+				return err
+			}
+			for _, pkg := range compilePkgs {
+				if code := c.runCmd("go", "test", "-run", "^$", pkg); code != 0 {
+					return fmt.Errorf("compile check for %s failed with exit code %d", pkg, code)
+				}
+			}
+			if hasFile(filepath.Join("app", "goship", "web", "routes", "routes_test.go")) {
+				if code := c.runCmd("go", "test", "-c", "./app/goship/web/routes"); code != 0 {
+					return fmt.Errorf("route test compile check failed with exit code %d", code)
+				}
+				_ = os.Remove("routes.test")
+			}
+			return nil
+		}); err != nil {
+			fmt.Fprintf(c.Err, "ship check failed: %v\n", err)
+			return 1
+		}
+		return 0
+	}
+	return c.runCmd("go", "test", "./...")
 }
 
 func (c CLI) runTest(args []string) int {
@@ -166,9 +228,15 @@ func (c CLI) runTest(args []string) int {
 	}
 
 	if *integration {
-		return c.runCmd("make", "test-integration")
+		if hasMakefile() {
+			return c.runCmd("make", "test-integration")
+		}
+		return c.runCmd("go", "test", "-tags=integration", "./...")
 	}
-	return c.runCmd("make", "test")
+	if hasMakefile() {
+		return c.runCmd("make", "test")
+	}
+	return c.runCmd("go", "test", "./...")
 }
 
 func (c CLI) runDB(args []string) int {
@@ -316,6 +384,7 @@ func printRootHelp(w io.Writer) {
 	fmt.Fprintln(w, "Usage:")
 	fmt.Fprintln(w, "  ship new <app> [--module <module-path>] [--dry-run] [--force]")
 	fmt.Fprintln(w, "  ship dev [worker|all] [--worker|--all]")
+	fmt.Fprintln(w, "  ship check")
 	fmt.Fprintln(w, "  ship test [--integration]")
 	fmt.Fprintln(w, "  ship db <create|migrate|rollback|seed>")
 	fmt.Fprintln(w, "  ship templ <generate>")
@@ -324,6 +393,7 @@ func printRootHelp(w io.Writer) {
 	fmt.Fprintln(w, "Examples:")
 	fmt.Fprintln(w, "  ship new demo")
 	fmt.Fprintln(w, "  ship dev")
+	fmt.Fprintln(w, "  ship check")
 	fmt.Fprintln(w, "  ship dev worker")
 	fmt.Fprintln(w, "  ship dev --all")
 	fmt.Fprintln(w, "  ship test --integration")
@@ -354,6 +424,11 @@ func printTestHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship test commands:")
 	fmt.Fprintln(w, "  ship test")
 	fmt.Fprintln(w, "  ship test --integration")
+}
+
+func printCheckHelp(w io.Writer) {
+	fmt.Fprintln(w, "ship check commands:")
+	fmt.Fprintln(w, "  ship check")
 }
 
 func printTemplHelp(w io.Writer) {
@@ -475,4 +550,76 @@ func findGoModule(start string) (string, string, error) {
 		}
 		dir = parent
 	}
+}
+
+func hasFile(path string) bool {
+	_, err := os.Stat(path)
+	return err == nil
+}
+
+func hasMakefile() bool {
+	wd, err := os.Getwd()
+	if err != nil {
+		return false
+	}
+	dir := wd
+	for {
+		if _, err := os.Stat(filepath.Join(dir, "Makefile")); err == nil {
+			return true
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			return false
+		}
+		dir = parent
+	}
+}
+
+func findProjectRootWithCheckLists() (string, bool) {
+	wd, err := os.Getwd()
+	if err != nil {
+		return "", false
+	}
+	dir := wd
+	for {
+		unitPath := filepath.Join(dir, "scripts", "test", "unit-packages.txt")
+		compilePath := filepath.Join(dir, "scripts", "test", "compile-packages.txt")
+		if hasFile(unitPath) && hasFile(compilePath) {
+			return dir, true
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			return "", false
+		}
+		dir = parent
+	}
+}
+
+func readPackageList(path string) ([]string, error) {
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	lines := strings.Split(string(b), "\n")
+	pkgs := make([]string, 0, len(lines))
+	for _, line := range lines {
+		s := strings.TrimSpace(line)
+		if s == "" || strings.HasPrefix(s, "#") {
+			continue
+		}
+		pkgs = append(pkgs, s)
+	}
+	return pkgs, nil
+}
+
+func withWorkingDir(dir string, fn func() error) error {
+	wd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+	if err := os.Chdir(dir); err != nil {
+		return err
+	}
+	defer func() { _ = os.Chdir(wd) }()
+	return fn()
 }

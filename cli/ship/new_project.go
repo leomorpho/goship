@@ -116,6 +116,8 @@ func scaffoldNewProject(opts newProjectOptions) error {
 		filepath.Join(opts.AppPath, "app", "goship", "router.go"):                    renderRouterSkeleton(),
 		filepath.Join(opts.AppPath, "pkg", "routing", "routenames", "routenames.go"): renderRouteNamesSkeleton(),
 		filepath.Join(opts.AppPath, "app", "goship", "views", "templates.go"):        renderTemplatesSkeleton(),
+		filepath.Join(opts.AppPath, "app", "goship", "web", "routes", "routes.go"):   renderRoutesSkeleton(),
+		filepath.Join(opts.AppPath, "cmd", "web", "main.go"):                         renderWebMain(),
 	}
 
 	for path, content := range files {
@@ -180,5 +182,36 @@ func renderTemplatesSkeleton() string {
 type (
 	Page string
 )
+`
+}
+
+func renderRoutesSkeleton() string {
+	return `package routes
+
+type landingPage struct{}
+
+func NewLandingPageRoute() landingPage {
+	return landingPage{}
+}
+`
+}
+
+func renderWebMain() string {
+	return `package main
+
+import (
+	"log"
+	"net/http"
+)
+
+func main() {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte("GoShip app"))
+	})
+	if err := http.ListenAndServe(":8000", mux); err != nil {
+		log.Fatal(err)
+	}
+}
 `
 }

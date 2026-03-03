@@ -45,6 +45,7 @@ Local runtime:
 - `ship dev` (web-only default)
 - `ship dev --worker`
 - `ship dev --all`
+- `ship check`
 
 Testing:
 
@@ -78,6 +79,7 @@ These commands are implemented as wrappers over existing workflows:
 - `ship dev` -> `make dev`
 - `ship dev --worker` -> `make dev-worker`
 - `ship dev --all` -> `make dev-full`
+- `ship check` -> runs Go checks directly; uses package lists in `scripts/test/*.txt` when present, otherwise `go test ./...`
 - `ship test` -> `make test`
 - `ship test --integration` -> `make test-integration`
 - `ship db create` -> `make up`
@@ -99,6 +101,11 @@ These commands are implemented as wrappers over existing workflows:
 `pkg/routing/routenames/routenames.go`
 `app/goship/views/templates.go`
 3. Supports `--dry-run` and `--force`.
+
+Generated project workflow:
+
+1. `ship` is the canonical interface for dev/test/check/generate flows.
+2. Generated projects must not require a Makefile to use core workflows.
 
 Resource generator contract (v1 minimal):
 

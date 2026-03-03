@@ -270,6 +270,12 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			wantErr:  "usage: ship generate resource",
 		},
 		{
+			name:     "check help",
+			args:     []string{"check", "--help"},
+			wantCode: 0,
+			wantOut:  "ship check commands:",
+		},
+		{
 			name:       "runner exit code is propagated",
 			args:       []string{"dev"},
 			wantCode:   7,
@@ -386,5 +392,85 @@ import "example.com/test/app/demo/views/web/components"
 	}
 	if !strings.Contains(string(helperContent), `"example.com/test/app/demo/views/web/components/gen"`) {
 		t.Fatalf("helper moved file missing rewritten component import: %s", string(helperContent))
+	}
+}
+
+func TestRunCheck_UsesProjectPackageLists(t *testing.T) {
+	root := t.TempDir()
+	prevWD, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(prevWD) })
+	if err := os.Chdir(root); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := os.MkdirAll(filepath.Join(root, "scripts", "test"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(filepath.Join(root, "app", "goship", "web", "routes"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, "scripts", "test", "unit-packages.txt"), []byte("./pkg/a\n#c\n./pkg/b\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, "scripts", "test", "compile-packages.txt"), []byte("./app/x\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, "app", "goship", "web", "routes", "routes_test.go"), []byte("package routes_test\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	runner := &fakeRunner{}
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	cli := CLI{Out: out, Err: errOut, Runner: runner}
+
+	code := cli.Run([]string{"check"})
+	if code != 0 {
+		t.Fatalf("check exit code = %d, stderr=%s", code, errOut.String())
+	}
+
+	want := []fakeCall{
+		{name: "go", args: []string{"test", "./pkg/a"}},
+		{name: "go", args: []string{"test", "./pkg/b"}},
+		{name: "go", args: []string{"test", "-run", "^$", "./app/x"}},
+		{name: "go", args: []string{"test", "-c", "./app/goship/web/routes"}},
+	}
+	if len(runner.calls) != len(want) {
+		t.Fatalf("calls len=%d want=%d calls=%v", len(runner.calls), len(want), runner.calls)
+	}
+	for i := range want {
+		if runner.calls[i].name != want[i].name || strings.Join(runner.calls[i].args, " ") != strings.Join(want[i].args, " ") {
+			t.Fatalf("call[%d]=%s %v want %s %v", i, runner.calls[i].name, runner.calls[i].args, want[i].name, want[i].args)
+		}
+	}
+}
+
+func TestRunCheck_FallbackToGoTestAll(t *testing.T) {
+	root := t.TempDir()
+	prevWD, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(prevWD) })
+	if err := os.Chdir(root); err != nil {
+		t.Fatal(err)
+	}
+
+	runner := &fakeRunner{}
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	cli := CLI{Out: out, Err: errOut, Runner: runner}
+	code := cli.Run([]string{"check"})
+	if code != 0 {
+		t.Fatalf("check exit code = %d, stderr=%s", code, errOut.String())
+	}
+	if len(runner.calls) != 1 {
+		t.Fatalf("calls len=%d want=1 calls=%v", len(runner.calls), runner.calls)
+	}
+	if runner.calls[0].name != "go" || strings.Join(runner.calls[0].args, " ") != "test ./..." {
+		t.Fatalf("unexpected call: %s %v", runner.calls[0].name, runner.calls[0].args)
 	}
 }
