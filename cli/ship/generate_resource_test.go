@@ -75,6 +75,27 @@ func TestGenerateResourceScaffold(t *testing.T) {
 	if _, err := os.Stat(viewPath); err != nil {
 		t.Fatalf("expected templ file, stat error: %v", err)
 	}
+	handlerContent, err := os.ReadFile(handlerPath)
+	if err != nil {
+		t.Fatalf("read handler file: %v", err)
+	}
+	handlerText := string(handlerContent)
+	if !strings.Contains(handlerText, "controller.NewPage(ctx)") {
+		t.Fatalf("expected templ handler to build page object, got:\n%s", handlerText)
+	}
+	if !strings.Contains(handlerText, "return r.ctr.RenderPage(ctx, page)") {
+		t.Fatalf("expected templ handler to render page, got:\n%s", handlerText)
+	}
+	if !strings.Contains(handlerText, `github.com/leomorpho/goship/app/goship/views/web/pages/gen`) {
+		t.Fatalf("expected templ handler to import pages/gen, got:\n%s", handlerText)
+	}
+	viewContent, err := os.ReadFile(viewPath)
+	if err != nil {
+		t.Fatalf("read templ file: %v", err)
+	}
+	if !strings.Contains(string(viewContent), "templ ContactFormPage(page *controller.Page)") {
+		t.Fatalf("expected templ page signature with controller.Page, got:\n%s", string(viewContent))
+	}
 	if len(result.CreatedFiles) != 2 {
 		t.Fatalf("created files = %d, want 2", len(result.CreatedFiles))
 	}

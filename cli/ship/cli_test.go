@@ -60,6 +60,12 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			wantCalls: nil,
 		},
 		{
+			name:     "new missing app name",
+			args:     []string{"new"},
+			wantCode: 1,
+			wantErr:  "usage: ship new <app>",
+		},
+		{
 			name:      "dev default",
 			args:      []string{"dev"},
 			wantCode:  0,

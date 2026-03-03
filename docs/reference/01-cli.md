@@ -37,7 +37,7 @@ Design constraints:
 
 Project lifecycle:
 
-- `ship new <app>` (planned)
+- `ship new <app> [--module <module-path>] [--dry-run] [--force]`
 - `ship doctor` (planned)
 
 Local runtime:
@@ -85,9 +85,20 @@ These commands are implemented as wrappers over existing workflows:
 - `ship db rollback [amount]` -> `atlas migrate down ... [amount]`
 - `ship db seed` -> `make seed`
 - `ship templ generate --path app` -> `templ generate -path app`, then move each `*_templ.go` into sibling `gen/` directory
+- `ship new <app>` -> create minimal deterministic project scaffold in a new directory (no network calls)
 - `ship generate resource <name>` -> scaffold handler (+ optional templ page), ensure route-name constant, and print route snippet for manual insertion in `app/goship/router.go`
 - `ship generate resource <name> --wire` -> also insert snippet behind ship markers in `app/goship/router.go`
 - `ship generate resource <name> --dry-run` -> preview all planned changes without writing files
+
+`ship new` v1 contract:
+
+1. Creates a local scaffold only (no external downloads or package installs).
+2. Writes deterministic starter files:
+`go.mod`
+`app/goship/router.go` (with route marker pairs for `--wire`)
+`pkg/routing/routenames/routenames.go`
+`app/goship/views/templates.go`
+3. Supports `--dry-run` and `--force`.
 
 Resource generator contract (v1 minimal):
 
@@ -100,6 +111,16 @@ Markers:
 4. Creates `app/goship/views/web/pages/<resource>.templ` when `--views templ`.
 5. Ensures `RouteName<Resource>` constant exists in `pkg/routing/routenames/routenames.go`.
 6. Prints exact snippet target (`registerPublicRoutes` or `registerAuthRoutes`) when not wiring.
+
+Generated handler behavior:
+
+- `--views templ`: generates a controller/page-rendering handler (`controller.NewPage`, layout assignment, `RenderPage`).
+- `--views none`: generates a minimal HTTP string handler for API/prototype paths.
+
+Generator test strategy:
+
+- Unit + integration tests for `cli/ship` run against temporary fixture projects.
+- Generator tests do not depend on the live repository app tree.
 
 Local run examples from repository root:
 

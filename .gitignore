@@ -11,6 +11,10 @@ tmp/
 /ship
 /ship-mcp
 
+# CLI test fixture/artifact safety (should remain temp-only)
+/cli/ship/test-fixtures/
+/cli/ship/.tmp/
+
 schemaspy-output
 .DS_Store
 .env

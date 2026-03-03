@@ -72,6 +72,8 @@ func (c CLI) Run(args []string) int {
 		return 0
 	case "dev", "shipdev":
 		return c.runDev(args[1:])
+	case "new":
+		return c.runNew(args[1:])
 	case "test":
 		return c.runTest(args[1:])
 	case "db":
@@ -312,6 +314,7 @@ func printRootHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship - GoShip CLI")
 	fmt.Fprintln(w)
 	fmt.Fprintln(w, "Usage:")
+	fmt.Fprintln(w, "  ship new <app> [--module <module-path>] [--dry-run] [--force]")
 	fmt.Fprintln(w, "  ship dev [worker|all] [--worker|--all]")
 	fmt.Fprintln(w, "  ship test [--integration]")
 	fmt.Fprintln(w, "  ship db <create|migrate|rollback|seed>")
@@ -319,6 +322,7 @@ func printRootHelp(w io.Writer) {
 	fmt.Fprintln(w, "  ship generate <resource>")
 	fmt.Fprintln(w)
 	fmt.Fprintln(w, "Examples:")
+	fmt.Fprintln(w, "  ship new demo")
 	fmt.Fprintln(w, "  ship dev")
 	fmt.Fprintln(w, "  ship dev worker")
 	fmt.Fprintln(w, "  ship dev --all")

@@ -158,7 +158,7 @@ func generateResourceScaffold(opts resourceGenerateOptions) (resourceGenerateRes
 
 	handlerDir := filepath.Join(opts.Path, "web", "routes")
 	handlerFile := filepath.Join(handlerDir, norm.Snake+".go")
-	if err := writeFile(handlerFile, renderResourceHandler(norm), opts.DryRun); err != nil {
+	if err := writeFile(handlerFile, renderResourceHandler(norm, opts.Views), opts.DryRun); err != nil {
 		return result, err
 	}
 	result.CreatedFiles = append(result.CreatedFiles, handlerFile)
@@ -243,7 +243,14 @@ func tokenizeResourceName(raw string) []string {
 	return tokens
 }
 
-func renderResourceHandler(n normalizedResourceName) string {
+func renderResourceHandler(n normalizedResourceName, views string) string {
+	if views == "templ" {
+		return renderResourceTemplHandler(n)
+	}
+	return renderResourceBasicHandler(n)
+}
+
+func renderResourceBasicHandler(n normalizedResourceName) string {
 	return fmt.Sprintf(`package routes
 
 import (
@@ -268,10 +275,44 @@ func (r *%s) Get(ctx echo.Context) error {
 `, n.LowerCamel, n.Pascal, n.LowerCamel, n.LowerCamel, n.LowerCamel, n.Kebab)
 }
 
+func renderResourceTemplHandler(n normalizedResourceName) string {
+	return fmt.Sprintf(`package routes
+
+import (
+	"github.com/labstack/echo/v4"
+	"github.com/leomorpho/goship/app/goship/views"
+	"github.com/leomorpho/goship/app/goship/views/web/layouts/gen"
+	"github.com/leomorpho/goship/app/goship/views/web/pages/gen"
+	"github.com/leomorpho/goship/pkg/controller"
+)
+
+type %s struct {
+	ctr controller.Controller
+}
+
+func New%sRoute(ctr controller.Controller) *%s {
+	return &%s{ctr: ctr}
+}
+
+func (r *%s) Get(ctx echo.Context) error {
+	page := controller.NewPage(ctx)
+	page.Layout = layouts.Main
+	page.Name = templates.Page("%s")
+	page.Title = "%s"
+	page.Component = pages.%sPage(&page)
+	page.HTMX.Request.Boosted = true
+
+	return r.ctr.RenderPage(ctx, page)
+}
+`, n.LowerCamel, n.Pascal, n.LowerCamel, n.LowerCamel, n.LowerCamel, n.Kebab, n.Pascal, n.Pascal)
+}
+
 func renderResourceTempl(n normalizedResourceName) string {
 	return fmt.Sprintf(`package pages
 
-templ %sPage() {
+import "github.com/leomorpho/goship/pkg/controller"
+
+templ %sPage(page *controller.Page) {
 	<section>
 		<h1>%s</h1>
 		<p>TODO: implement %s page.</p>

@@ -719,7 +719,7 @@ Test evidence:
 
 ## Mid-Term
 
-- [ ] Release `goship new` CLI command.
+- [x] Release minimal `ship new` CLI command (v1 local scaffold, no network bootstrap).
 - [ ] Release `goship g model` and `goship g migration`.
 - [ ] Release `auth` and `storage` modules.
 - [ ] Release `admin` scaffolding MVP.
