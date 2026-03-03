@@ -410,6 +410,7 @@ func (c *Container) initAuth() {
 func (c *Container) initNotifier() {
 	pubsubRepo := pubsub.NewRedisPubSubClient(c.Cache.Client)
 	c.PubSub = pubsubRepo
+	c.CorePubSub = NewCorePubSubAdapter(pubsubRepo)
 	notificationStorageRepo := notifierrepo.NewNotificationStorageRepo(c.ORM)
 	pwaPushNotificationsRepo := notifierrepo.NewPwaPushNotificationsRepo(
 		c.ORM, c.Config.App.VapidPublicKey, c.Config.App.VapidPrivateKey, c.Config.Mail.FromAddress,
@@ -422,7 +423,7 @@ func (c *Container) initNotifier() {
 	storageRepo := storagerepo.NewStorageClient(c.Config, c.ORM)
 	profileRepo := *profilerepo.NewProfileRepo(c.ORM, storageRepo, nil)
 	c.Notifier = notifierrepo.NewNotifierRepo(
-		pubsubRepo, notificationStorageRepo, pwaPushNotificationsRepo, fcmPushNotificationsRepo, profileRepo.GetCountOfUnseenNotifications)
+		c.CorePubSub, notificationStorageRepo, pwaPushNotificationsRepo, fcmPushNotificationsRepo, profileRepo.GetCountOfUnseenNotifications)
 }
 
 // initMail initialize the mail client

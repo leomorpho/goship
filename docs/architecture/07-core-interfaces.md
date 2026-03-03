@@ -81,6 +81,7 @@ Current startup behavior:
 First migrated call site:
 
 - `pkg/tasks/notifications.go` now enqueues follow-up jobs through `core.Jobs` instead of `*services.TaskClient`.
+- `pkg/repos/notifierrepo/notifier.go` now publishes/subscribes through `core.PubSub` with explicit SSE event payload encoding.
 
 ## Scope Boundaries
 

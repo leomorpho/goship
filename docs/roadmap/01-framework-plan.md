@@ -672,8 +672,9 @@ Current progress:
 
 1. Adapter registry + capability validation are active at container startup.
 2. Container exposes `CoreCache`, `CoreJobs`, and `CorePubSub`.
-3. First application call site migrated to interface seam:
+3. First application call sites migrated to interface seams:
 - notifications fan-out enqueue in `pkg/tasks/notifications.go` now uses `core.Jobs`.
+- notifier publish/subscribe path in `pkg/repos/notifierrepo/notifier.go` now uses `core.PubSub`.
 
 ### Phase 2: Monorepo and Module Packaging
 

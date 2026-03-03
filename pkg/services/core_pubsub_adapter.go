@@ -60,6 +60,7 @@ func (a *CorePubSubAdapter) Subscribe(ctx context.Context, topic string, handler
 					return
 				}
 				if err := handler(subCtx, topic, []byte(evt.Data)); err != nil {
+					cancel()
 					return
 				}
 			}

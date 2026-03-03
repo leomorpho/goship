@@ -4,10 +4,12 @@ package notifierrepo_test
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"testing"
 	"time"
 
+	"github.com/leomorpho/goship/pkg/core"
 	"github.com/leomorpho/goship/pkg/domain"
 	"github.com/leomorpho/goship/pkg/repos/notifierrepo"
 	"github.com/leomorpho/goship/pkg/repos/pubsub"
@@ -19,18 +21,32 @@ type MockPubSubClient struct {
 	mock.Mock
 }
 
-func (m *MockPubSubClient) Publish(ctx context.Context, topic string, event pubsub.SSEEvent) error {
-	args := m.Called(ctx, topic, event)
+func (m *MockPubSubClient) Publish(ctx context.Context, topic string, payload []byte) error {
+	args := m.Called(ctx, topic, payload)
 	return args.Error(0)
 }
 
-func (m *MockPubSubClient) SSESubscribe(ctx context.Context, topic string) (<-chan pubsub.SSEEvent, error) {
-	args := m.Called(ctx, topic)
-	return args.Get(0).(<-chan pubsub.SSEEvent), args.Error(1)
+func (m *MockPubSubClient) Subscribe(ctx context.Context, topic string, handler core.MessageHandler) (core.Subscription, error) {
+	args := m.Called(ctx, topic, handler)
+	return args.Get(0).(core.Subscription), args.Error(1)
+}
+
+func (m *MockPubSubClient) Close() error {
+	args := m.Called()
+	return args.Error(0)
 }
 
 func (m *MockPubSubClient) DeleteNotification(ctx context.Context, notificationID int) error {
 	args := m.Called(ctx)
+	return args.Error(0)
+}
+
+type mockSubscription struct {
+	mock.Mock
+}
+
+func (s *mockSubscription) Close() error {
+	args := s.Called()
 	return args.Error(0)
 }
 
@@ -177,11 +193,21 @@ func TestSubscribe(t *testing.T) {
 	mockPubSubClient := new(MockPubSubClient)
 	mockNotificationStorageRepo := new(MockNotificationStorageRepo)
 	topic := "someTopic"
+	mockSub := new(mockSubscription)
 
-	// Create a channel to return from the mocked SSESubscribe
-	eventCh := make(chan pubsub.SSEEvent)
-	// Mock SSESubscribe to return the channel
-	mockPubSubClient.On("SSESubscribe", ctx, topic).Return((<-chan pubsub.SSEEvent)(eventCh), nil)
+	evt := pubsub.SSEEvent{Type: "TestEvent", Data: "TestData"}
+	payload, err := json.Marshal(evt)
+	assert.NoError(t, err)
+	mockSub.On("Close").Return(nil).Maybe()
+	mockPubSubClient.
+		On("Subscribe", mock.Anything, topic, mock.Anything).
+		Run(func(args mock.Arguments) {
+			handler := args.Get(2).(core.MessageHandler)
+			go func() {
+				_ = handler(ctx, topic, payload)
+			}()
+		}).
+		Return(core.Subscription(mockSub), nil)
 
 	// Create notifier repo
 	notifierRepo := notifierrepo.NewNotifierRepo(mockPubSubClient, mockNotificationStorageRepo, nil, nil, nil)
@@ -190,12 +216,6 @@ func TestSubscribe(t *testing.T) {
 	receivedCh, err := notifierRepo.SSESubscribe(ctx, topic)
 	assert.NoError(t, err)
 	assert.NotNil(t, receivedCh)
-
-	// Simulate receiving an event and closing the channel
-	go func() {
-		eventCh <- pubsub.SSEEvent{Type: "TestEvent", Data: "TestData"}
-		close(eventCh)
-	}()
 
 	// Listen on the received channel and test for the expected event
 	select {
@@ -209,9 +229,6 @@ func TestSubscribe(t *testing.T) {
 		t.Fatal("Timed out waiting for an event")
 	}
 
-	// Ensure the channel eventually gets closed
-	_, ok := <-receivedCh
-	assert.False(t, ok, "Expected the channel to be closed")
-
 	mockPubSubClient.AssertExpectations(t)
+	mockSub.AssertExpectations(t)
 }

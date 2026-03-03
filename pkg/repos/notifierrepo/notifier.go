@@ -2,9 +2,11 @@ package notifierrepo
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
+	"github.com/leomorpho/goship/pkg/core"
 	"github.com/rs/zerolog/log"
 
 	"github.com/leomorpho/goship/pkg/domain"
@@ -18,7 +20,7 @@ NotifierRepo manages the full lifecycle of notifications. That includes:
 - Create push notifications (TODO) for mobile apps.
 */
 type NotifierRepo struct {
-	pubSubClient             pubsub.PubSubClient
+	pubSubClient             core.PubSub
 	notificationStorageRepo  NotificationStorage
 	pwaPushNotificationsRepo *PwaPushNotificationsRepo
 	fcmPushNotificationsRepo *FcmPushNotificationsRepo
@@ -26,7 +28,7 @@ type NotifierRepo struct {
 }
 
 func NewNotifierRepo(
-	pubSubClient pubsub.PubSubClient,
+	pubSubClient core.PubSub,
 	notificationStorageRepo NotificationStorage,
 	pwaPushNotificationsRepo *PwaPushNotificationsRepo,
 	fcmPushNotificationsRepo *FcmPushNotificationsRepo,
@@ -67,7 +69,7 @@ func (s *NotifierRepo) PublishNotification(
 	// TODO: if we re-use the messaging notifications, we'll need to defined the Type of this notif
 	// accordingly. For example we should use NotificationTypeIncrementNumUnseenMessages and NotificationTypeDecrementNumUnseenMessages
 	// for private messages, but NotificationTypeUpdateNumNotifications for general notifications.
-	err := s.pubSubClient.Publish(ctx, fmt.Sprint(notification.ProfileID), pubsub.SSEEvent{
+	err := s.publishEvent(ctx, fmt.Sprint(notification.ProfileID), pubsub.SSEEvent{
 		Type: domain.NotificationTypeUpdateNumNotifications.Value,
 		Data: "n/a",
 	})
@@ -109,7 +111,7 @@ func (s *NotifierRepo) PublishNotification(
 	}
 
 	// Publish the notification to the user-specific topic
-	return s.pubSubClient.Publish(ctx, fmt.Sprint(notification.ProfileID), pubsub.SSEEvent{
+	return s.publishEvent(ctx, fmt.Sprint(notification.ProfileID), pubsub.SSEEvent{
 		Type: notification.Type.Value,
 		Data: notification.Text,
 	})
@@ -120,7 +122,7 @@ func (s *NotifierRepo) SendSSEUpdate(
 	ctx context.Context, notification domain.Notification,
 ) error {
 	// Publish the notification to the user-specific topic
-	return s.pubSubClient.Publish(ctx, fmt.Sprint(notification.ProfileID), pubsub.SSEEvent{
+	return s.publishEvent(ctx, fmt.Sprint(notification.ProfileID), pubsub.SSEEvent{
 		Type: notification.Type.Value,
 		Data: notification.Text,
 	})
@@ -235,5 +237,40 @@ func (s *NotifierRepo) DeleteNotification(ctx context.Context, notificationID in
 func (s *NotifierRepo) SSESubscribe(
 	ctx context.Context, topic string,
 ) (<-chan pubsub.SSEEvent, error) {
-	return s.pubSubClient.SSESubscribe(ctx, topic)
+	subCtx, cancel := context.WithCancel(ctx)
+	out := make(chan pubsub.SSEEvent)
+	sub, err := s.pubSubClient.Subscribe(subCtx, topic, func(hctx context.Context, _ string, payload []byte) error {
+		var event pubsub.SSEEvent
+		if err := json.Unmarshal(payload, &event); err != nil {
+			return err
+		}
+		select {
+		case out <- event:
+			return nil
+		case <-hctx.Done():
+			return hctx.Err()
+		}
+	})
+	if err != nil {
+		cancel()
+		close(out)
+		return nil, err
+	}
+
+	go func() {
+		<-subCtx.Done()
+		cancel()
+		_ = sub.Close()
+		close(out)
+	}()
+
+	return out, nil
+}
+
+func (s *NotifierRepo) publishEvent(ctx context.Context, topic string, event pubsub.SSEEvent) error {
+	payload, err := json.Marshal(event)
+	if err != nil {
+		return err
+	}
+	return s.pubSubClient.Publish(ctx, topic, payload)
 }
