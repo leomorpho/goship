@@ -57,11 +57,12 @@ Entity schema source:
 Common workflow:
 
 1. `make ent-new name=YourEntity` (if new entity)
-2. `make makemigrations name=your_change`
-3. `make ent-gen`
-4. `make migrate`
+2. `go run ./cli/ship/cmd/ship db:make your_change`
+3. `make ent-gen` (or `go run ./cli/ship/cmd/ship make:model ...` when scaffolding a new model)
+4. `go run ./cli/ship/cmd/ship db:migrate`
+5. `go run ./cli/ship/cmd/ship db:status`
 
-CLI wrapper equivalents (in progress) are documented in `docs/reference/01-cli.md`.
+Use `ship db:*` as the canonical migration interface; avoid calling Atlas directly.
 
 ## Worker and Tasks
 

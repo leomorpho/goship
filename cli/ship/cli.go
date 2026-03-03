@@ -385,6 +385,8 @@ func (c CLI) runDB(args []string) int {
 			return 1
 		}
 		return c.runAtlasCmd("migrate", "apply", "--dir", atlasDir, "--url", dbURL)
+	case "status":
+		return c.runDBStatus(args[1:])
 	case "rollback":
 		return c.runDBRollback(args[1:])
 	case "seed":
@@ -401,6 +403,21 @@ func (c CLI) runDB(args []string) int {
 		printDBHelp(c.Err)
 		return 1
 	}
+}
+
+func (c CLI) runDBStatus(args []string) int {
+	if len(args) != 0 {
+		fmt.Fprintln(c.Err, "usage: ship db:status")
+		return 1
+	}
+
+	dbURL, err := c.resolveDBURL()
+	if err != nil {
+		fmt.Fprintf(c.Err, "failed to resolve database URL: %v\n", err)
+		return 1
+	}
+
+	return c.runAtlasCmd("migrate", "status", "--dir", atlasDir, "--url", dbURL)
 }
 
 func (c CLI) runInfra(args []string) int {
@@ -668,7 +685,7 @@ func printRootHelp(w io.Writer) {
 	fmt.Fprintln(w, "  ship dev [worker|all] [--worker|--all]")
 	fmt.Fprintln(w, "  ship check")
 	fmt.Fprintln(w, "  ship test [--integration]")
-	fmt.Fprintln(w, "  ship db:<make|migrate|rollback|seed>  (or ship db for help)")
+	fmt.Fprintln(w, "  ship db:<make|migrate|status|rollback|seed>  (or ship db for help)")
 	fmt.Fprintln(w, "  ship infra:<up|down>                  (or ship infra for help)")
 	fmt.Fprintln(w, "  ship templ <generate>")
 	fmt.Fprintln(w, "  ship make:<resource|model>            (or ship make for help)")
@@ -682,6 +699,7 @@ func printRootHelp(w io.Writer) {
 	fmt.Fprintln(w, "  ship test --integration")
 	fmt.Fprintln(w, "  ship db:make add_posts")
 	fmt.Fprintln(w, "  ship db:migrate")
+	fmt.Fprintln(w, "  ship db:status")
 	fmt.Fprintln(w, "  ship db:rollback 1")
 	fmt.Fprintln(w, "  ship infra:up")
 	fmt.Fprintln(w, "  ship templ generate --path app")
@@ -703,6 +721,7 @@ func printDBHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship db commands:")
 	fmt.Fprintln(w, "  ship db:make <migration_name>")
 	fmt.Fprintln(w, "  ship db:migrate")
+	fmt.Fprintln(w, "  ship db:status")
 	fmt.Fprintln(w, "  ship db:rollback [amount]")
 	fmt.Fprintln(w, "  ship db:seed")
 }

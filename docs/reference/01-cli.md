@@ -58,6 +58,7 @@ Database:
 
 - `ship db:make <migration_name>` (or `ship db` for help)
 - `ship db:migrate`
+- `ship db:status`
 - `ship db:rollback`
 - `ship db:seed`
 
@@ -96,6 +97,7 @@ These commands are implemented as wrappers over existing workflows:
 - `ship infra:up` -> detects `docker-compose`/`docker compose` and runs `up -d cache`, then attempts `up -d mailpit` (non-fatal if mailpit fails)
 - `ship infra:down` -> detects `docker-compose`/`docker compose` and runs `down`
 - `ship db:migrate` -> `atlas migrate apply --dir file://app/goship/db/migrate/migrations --url <resolved>`
+- `ship db:status` -> `atlas migrate status --dir file://app/goship/db/migrate/migrations --url <resolved>`
 - `ship db:make <migration_name>` -> `atlas migrate diff <migration_name> --dir file://app/goship/db/migrate/migrations --to ent://app/goship/db/schema --dev-url sqlite://file?mode=memory&_fk=1`
 - `ship db:rollback [amount]` -> `atlas migrate down ... [amount]`
 - Atlas is managed by `ship`: it uses `atlas` from `PATH` when present, otherwise auto-installs pinned `ariga.io/atlas/cmd/atlas@v0.27.1` to `.cache/tools/bin/atlas`, and finally falls back to `go run` for zero-friction operation.

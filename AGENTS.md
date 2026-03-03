@@ -67,9 +67,15 @@ Common commands:
 - `make testall`
 - `make templ-gen`
 - `make ent-gen`
+- `make makemigrations name=your_change`
+- `make migrate`
+- `make db-status`
 - `go run ./cli/ship/cmd/ship dev`
 - `go run ./cli/ship/cmd/ship test`
 - `go run ./cli/ship/cmd/ship test --integration`
+- `go run ./cli/ship/cmd/ship db:make your_change`
+- `go run ./cli/ship/cmd/ship db:migrate`
+- `go run ./cli/ship/cmd/ship db:status`
 
 ## Documentation Sync (Required)
 

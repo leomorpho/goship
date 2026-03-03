@@ -1280,7 +1280,9 @@ UI and rendering:
 - `make build-css`
 - `make templ-gen`
 - `make ent-gen`
-- `make makemigrations name=YourChange`
+- `go run ./cli/ship/cmd/ship db:make your_change`
+- `go run ./cli/ship/cmd/ship db:migrate`
+- `go run ./cli/ship/cmd/ship db:status`
 
 ## Documentation Rule
 
@@ -1357,11 +1359,12 @@ Entity schema source:
 Common workflow:
 
 1. `make ent-new name=YourEntity` (if new entity)
-2. `make makemigrations name=your_change`
-3. `make ent-gen`
-4. `make migrate`
+2. `go run ./cli/ship/cmd/ship db:make your_change`
+3. `make ent-gen` (or `go run ./cli/ship/cmd/ship make:model ...` when scaffolding a new model)
+4. `go run ./cli/ship/cmd/ship db:migrate`
+5. `go run ./cli/ship/cmd/ship db:status`
 
-CLI wrapper equivalents (in progress) are documented in `docs/reference/01-cli.md`.
+Use `ship db:*` as the canonical migration interface; avoid calling Atlas directly.
 
 ## Worker and Tasks
 
@@ -1664,6 +1667,7 @@ Database:
 
 - `ship db:make <migration_name>` (or `ship db` for help)
 - `ship db:migrate`
+- `ship db:status`
 - `ship db:rollback`
 - `ship db:seed`
 
@@ -1702,6 +1706,7 @@ These commands are implemented as wrappers over existing workflows:
 - `ship infra:up` -> detects `docker-compose`/`docker compose` and runs `up -d cache`, then attempts `up -d mailpit` (non-fatal if mailpit fails)
 - `ship infra:down` -> detects `docker-compose`/`docker compose` and runs `down`
 - `ship db:migrate` -> `atlas migrate apply --dir file://app/goship/db/migrate/migrations --url <resolved>`
+- `ship db:status` -> `atlas migrate status --dir file://app/goship/db/migrate/migrations --url <resolved>`
 - `ship db:make <migration_name>` -> `atlas migrate diff <migration_name> --dir file://app/goship/db/migrate/migrations --to ent://app/goship/db/schema --dev-url sqlite://file?mode=memory&_fk=1`
 - `ship db:rollback [amount]` -> `atlas migrate down ... [amount]`
 - Atlas is managed by `ship`: it uses `atlas` from `PATH` when present, otherwise auto-installs pinned `ariga.io/atlas/cmd/atlas@v0.27.1` to `.cache/tools/bin/atlas`, and finally falls back to `go run` for zero-friction operation.

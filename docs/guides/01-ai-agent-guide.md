@@ -81,7 +81,9 @@ UI and rendering:
 - `make build-css`
 - `make templ-gen`
 - `make ent-gen`
-- `make makemigrations name=YourChange`
+- `go run ./cli/ship/cmd/ship db:make your_change`
+- `go run ./cli/ship/cmd/ship db:migrate`
+- `go run ./cli/ship/cmd/ship db:status`
 
 ## Documentation Rule
 

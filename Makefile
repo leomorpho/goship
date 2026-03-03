@@ -2,7 +2,7 @@ SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
 # Define variables
-PGVECTOR_IMAGE_NAME = custom-pgvector-for-atlas
+PGVECTOR_IMAGE_NAME = custom-pgvector
 PGVECTOR_IMAGE_TAG = latest
 PGVECTOR_IMAGE_DIR = pgvector-image
 NPM ?= npm
@@ -88,10 +88,6 @@ build-image: ## Build the Docker image for pgvector
 	docker build -t $(PGVECTOR_IMAGE_NAME):$(PGVECTOR_IMAGE_TAG) $(PGVECTOR_IMAGE_DIR)
 
 
-.PHONY: updateatlas
-updateatlas: ## Update the Atlas migration tool we use
-	curl -sSf https://atlasgo.sh | sh
-
 .PHONY: migrate_diff
 makemigrations: ## Create a migration through ship CLI
 	go run ./cli/ship/cmd/ship db:make "$(name)"
@@ -100,19 +96,9 @@ makemigrations: ## Create a migration through ship CLI
 migrate: ## Apply migrations through ship CLI
 	go run ./cli/ship/cmd/ship db:migrate
 
-.PHONY: inspectschema
-inspectsql: ## Inspect the SQL DB schema
-	@atlas schema inspect \
-		-u "ent://app/goship/db/schema" \
-		--dev-url "sqlite://file?mode=memory&_fk=1" \
-		--format '{{ sql . "  " }}'
-
-.PHONY: inspecterd
-inspecterd: ## Inspect the ERD DB schema
-	atlas schema inspect \
-		-u "ent://app/goship/db/schema" \
-		--dev-url "sqlite://file?mode=memory&_fk=1" \
-		-w
+.PHONY: db-status
+db-status: ## Show migration status through ship CLI
+	go run ./cli/ship/cmd/ship db:status
 
 .PHONY: schemaspy
 schema: ## Create DB schema

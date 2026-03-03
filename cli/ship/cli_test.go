@@ -173,6 +173,12 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			wantCalls: []fakeCall{{name: "atlas", args: []string{"migrate", "apply", "--dir", atlasDir, "--url", testDBURL}}},
 		},
 		{
+			name:      "db status",
+			args:      []string{"db:status"},
+			wantCode:  0,
+			wantCalls: []fakeCall{{name: "atlas", args: []string{"migrate", "status", "--dir", atlasDir, "--url", testDBURL}}},
+		},
+		{
 			name:      "db make",
 			args:      []string{"db:make", "add_posts"},
 			wantCode:  0,
@@ -219,6 +225,12 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			args:     []string{"db:rollback", "1", "2"},
 			wantCode: 1,
 			wantErr:  "usage: ship db:rollback [amount]",
+		},
+		{
+			name:     "db status extra arg",
+			args:     []string{"db:status", "extra"},
+			wantCode: 1,
+			wantErr:  "usage: ship db:status",
 		},
 		{
 			name:     "db missing subcommand",
@@ -336,7 +348,7 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			args:     []string{"make:model", "Post"},
 			wantCode: 0,
 			wantCalls: []fakeCall{
-				{name: "go", args: []string{"run", "entgo.io/ent/cmd/ent", "generate", "--feature", "sql/upsert,sql/execquery", "--target", "./ent", "./app/goship/db/schema"}},
+				{name: "go", args: []string{"run", "-mod=mod", "entgo.io/ent/cmd/ent", "generate", "--feature", "sql/upsert,sql/execquery", "--target", "./ent", "./app/goship/db/schema"}},
 			},
 		},
 		{
@@ -344,7 +356,7 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			args:     []string{"make:model", "Post", "title:string"},
 			wantCode: 0,
 			wantCalls: []fakeCall{
-				{name: "go", args: []string{"run", "entgo.io/ent/cmd/ent", "generate", "--feature", "sql/upsert,sql/execquery", "--target", "./ent", "./app/goship/db/schema"}},
+				{name: "go", args: []string{"run", "-mod=mod", "entgo.io/ent/cmd/ent", "generate", "--feature", "sql/upsert,sql/execquery", "--target", "./ent", "./app/goship/db/schema"}},
 			},
 		},
 		{
@@ -960,6 +972,30 @@ func TestRunDBRollback_DBURLResolutionError(t *testing.T) {
 		},
 	}
 	code := cli.Run([]string{"db:rollback"})
+	if code != 1 {
+		t.Fatalf("exit code = %d, want 1", code)
+	}
+	if !strings.Contains(errOut.String(), "failed to resolve database URL") {
+		t.Fatalf("stderr = %q, want db url resolution failure", errOut.String())
+	}
+	if len(runner.calls) != 0 {
+		t.Fatalf("runner calls = %v, want none", runner.calls)
+	}
+}
+
+func TestRunDBStatus_DBURLResolutionError(t *testing.T) {
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	runner := &fakeRunner{}
+	cli := CLI{
+		Out:    out,
+		Err:    errOut,
+		Runner: runner,
+		ResolveDBURL: func() (string, error) {
+			return "", errors.New("missing url")
+		},
+	}
+	code := cli.Run([]string{"db:status"})
 	if code != 1 {
 		t.Fatalf("exit code = %d, want 1", code)
 	}
