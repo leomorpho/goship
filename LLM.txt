@@ -159,7 +159,7 @@ For in-depth info on the architecture of the project, please see the [mikestefan
 
 The most important aspects to note are:
 - The `Container` struct is instantiated when the app starts up and is used to pass dependencies around the app, specifically core services like `Logger`, `Database`, `ORM`, `Cache`, etc.
-- Routes are defined in `app/goship/web/routes/router.go` and are registered to the `Echo` framework. Generally, any logic that alters the DB should be done in the `repos` layer so that it is easily testable, and can be used by other routes. A route will generally have a `Component`, which is a Templ component defined in `app/goship/views/pages/` that represents the view.
+- Routes are defined in `app/goship/router.go` and are registered to the `Echo` framework. Generally, any logic that alters the DB should be done in the `repos` layer so that it is easily testable, and can be used by other routes. A route will generally have a `Component`, which is a Templ component defined in `app/goship/views/web/pages/` that represents the view.
 
 ## Database
 
@@ -529,7 +529,7 @@ package pages
 import (
 	"github.com/mikestefanello/pagoda/pkg/controller"
 	"github.com/mikestefanello/pagoda/pkg/types"
-	"github.com/mikestefanello/pagoda/app/goship/views/components"
+	"github.com/mikestefanello/pagoda/app/goship/views/web/components"
 )
 
 templ PostsIndex(page *controller.Page) {
@@ -623,7 +623,7 @@ It is not intended as user-facing product documentation.
 - `cli/ship/cmd/ship/main.go`
 - `cli/ship/cli.go`
 - `pkg/services/container.go`
-- `app/goship/web/routes/router.go`
+- `app/goship/router.go`
 - `app/goship/web/routes/*.go`
 - `pkg/tasks/*.go`
 - `pkg/repos/**/*.go`
@@ -659,7 +659,7 @@ The application follows a layered structure:
 ## Web Runtime Flow
 
 1. `cmd/web/main.go` creates container via `services.NewContainer()`.
-2. `routes.BuildRouter(c)` configures middleware stack, registers routes, and returns an error on startup misconfiguration.
+2. `goship.BuildRouter(c)` is the canonical app router entrypoint and delegates to modular route composition.
 3. Echo server starts with request timeout middleware (SSE-aware).
 4. Request path executes middleware chain, route handler, and page rendering.
 
@@ -722,8 +722,8 @@ The UI is server-rendered using Templ components.
 
 - Base page abstraction: `pkg/controller/page.go`
 - Render orchestration: `pkg/controller/controller.go`
-- Layout wrappers: `app/goship/views/layouts/*.templ`
-- Route page components: `app/goship/views/pages/*.templ`
+- Layout wrappers: `app/goship/views/web/layouts/*.templ`
+- Route page components: `app/goship/views/web/pages/*.templ`
 
 HTMX behavior is integrated in the page object (`Page.HTMX`) and controller render logic.
 
@@ -795,7 +795,7 @@ App web code is now app-scoped:
 
 Router source of truth:
 
-- `app/goship/web/routes/router.go`
+- `app/goship/router.go`
 
 ## Refactor Status
 
@@ -963,7 +963,7 @@ FILE: docs/architecture/04-http-routes.md
 ---
 # HTTP Route Map
 
-Routes are registered in `app/goship/web/routes/router.go`.
+Routes are wired through canonical `app/goship/router.go` and composed in `app/goship/web/routes/router.go`.
 
 ## Public/General Routes
 
@@ -1076,7 +1076,6 @@ Notification center routes have implementations but are commented out in route w
 - mark all read
 - delete notification
 - mark read/unread endpoints
-
 
 ---
 FILE: docs/architecture/05-data-model.md
@@ -1261,7 +1260,7 @@ This guide is for code agents making changes in this repository.
 ## Start Here
 
 1. Read `docs/architecture/03-project-scope-analysis.md` and `docs/architecture/06-known-gaps-and-risks.md`.
-2. Inspect route wiring in `app/goship/web/routes/router.go` before editing handlers.
+2. Inspect route wiring in `app/goship/router.go` before editing handlers.
 3. Inspect `pkg/services/container.go` before assuming a dependency is initialized.
 
 ## Architectural Conventions
@@ -1303,7 +1302,7 @@ Dependency wiring:
 
 Routing and middleware:
 
-- `app/goship/web/routes/router.go`
+- `app/goship/router.go`
 - `pkg/middleware/*.go`
 
 Data and domain:
@@ -1634,6 +1633,7 @@ Database:
 
 Generation:
 
+- `ship templ generate [--path <dir>] [--file <file.templ>]`
 - `ship generate <resource|model|job|module>` (planned)
 - `ship destroy <generated-artifact>` (planned)
 
@@ -1657,6 +1657,7 @@ These commands are implemented as wrappers over existing workflows:
 - `ship db migrate` -> `make migrate`
 - `ship db rollback [amount]` -> `atlas migrate down ... [amount]`
 - `ship db seed` -> `make seed`
+- `ship templ generate --path app` -> `templ generate -path app`, then move each `*_templ.go` into sibling `gen/` directory
 
 Local run examples from repository root:
 

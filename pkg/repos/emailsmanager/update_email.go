@@ -10,8 +10,8 @@ import (
 
 	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/labstack/echo/v4"
-	"github.com/mikestefanello/pagoda/app/goship/views/emails"
-	"github.com/mikestefanello/pagoda/app/goship/views/layouts"
+	"github.com/mikestefanello/pagoda/app/goship/views/emails/gen"
+	"github.com/mikestefanello/pagoda/app/goship/views/web/layouts/gen"
 	"github.com/mikestefanello/pagoda/ent"
 	"github.com/mikestefanello/pagoda/ent/notification"
 	"github.com/mikestefanello/pagoda/ent/notificationpermission"

@@ -4,8 +4,8 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"github.com/mikestefanello/pagoda/app/goship/views"
-	"github.com/mikestefanello/pagoda/app/goship/views/layouts"
-	"github.com/mikestefanello/pagoda/app/goship/views/pages"
+	"github.com/mikestefanello/pagoda/app/goship/views/web/layouts/gen"
+	"github.com/mikestefanello/pagoda/app/goship/views/web/pages/gen"
 	"github.com/mikestefanello/pagoda/pkg/controller"
 )
 

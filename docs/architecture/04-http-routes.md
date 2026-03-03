@@ -1,6 +1,6 @@
 # HTTP Route Map
 
-Routes are registered in `app/goship/web/routes/router.go`.
+Routes are wired through canonical `app/goship/router.go` and composed in `app/goship/web/routes/router.go`.
 
 ## Public/General Routes
 
@@ -113,4 +113,3 @@ Notification center routes have implementations but are commented out in route w
 - mark all read
 - delete notification
 - mark read/unread endpoints
-

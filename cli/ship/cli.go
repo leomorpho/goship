@@ -1,13 +1,17 @@
 package ship
 
 import (
+	"bufio"
 	"errors"
 	"flag"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
+	"path"
+	"path/filepath"
 	"strconv"
+	"strings"
 )
 
 const (
@@ -72,6 +76,8 @@ func (c CLI) Run(args []string) int {
 		return c.runTest(args[1:])
 	case "db":
 		return c.runDB(args[1:])
+	case "templ":
+		return c.runTempl(args[1:])
 	default:
 		fmt.Fprintf(c.Err, "unknown command: %s\n\n", args[0])
 		printRootHelp(c.Err)
@@ -199,6 +205,62 @@ func (c CLI) runDB(args []string) int {
 	}
 }
 
+func (c CLI) runTempl(args []string) int {
+	if len(args) == 0 {
+		printTemplHelp(c.Err)
+		return 1
+	}
+
+	switch args[0] {
+	case "generate":
+		return c.runTemplGenerate(args[1:])
+	case "help", "-h", "--help":
+		printTemplHelp(c.Out)
+		return 0
+	default:
+		fmt.Fprintf(c.Err, "unknown templ command: %s\n\n", args[0])
+		printTemplHelp(c.Err)
+		return 1
+	}
+}
+
+func (c CLI) runTemplGenerate(args []string) int {
+	fs := flag.NewFlagSet("templ generate", flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+	path := fs.String("path", ".", "path to generate templ files from")
+	file := fs.String("file", "", "single .templ file to generate")
+	if err := fs.Parse(args); err != nil {
+		fmt.Fprintf(c.Err, "invalid templ generate arguments: %v\n", err)
+		return 1
+	}
+	if fs.NArg() > 0 {
+		fmt.Fprintf(c.Err, "unexpected templ generate arguments: %v\n", fs.Args())
+		return 1
+	}
+
+	cmdArgs := []string{"generate"}
+	if *file != "" {
+		cmdArgs = append(cmdArgs, "-f", *file)
+	} else {
+		cmdArgs = append(cmdArgs, "-path", *path)
+	}
+
+	if code := c.runCmd("templ", cmdArgs...); code != 0 {
+		return code
+	}
+
+	rootPath := *path
+	if *file != "" {
+		rootPath = filepath.Dir(*file)
+	}
+	if err := relocateTemplGenerated(rootPath); err != nil {
+		fmt.Fprintf(c.Err, "failed to move generated templ files into gen directories: %v\n", err)
+		return 1
+	}
+
+	return 0
+}
+
 func (c CLI) runDBRollback(args []string) int {
 	amount := "1"
 	if len(args) > 1 {
@@ -232,6 +294,7 @@ func printRootHelp(w io.Writer) {
 	fmt.Fprintln(w, "  ship dev [worker|all] [--worker|--all]")
 	fmt.Fprintln(w, "  ship test [--integration]")
 	fmt.Fprintln(w, "  ship db <create|migrate|rollback|seed>")
+	fmt.Fprintln(w, "  ship templ <generate>")
 	fmt.Fprintln(w)
 	fmt.Fprintln(w, "Examples:")
 	fmt.Fprintln(w, "  ship dev")
@@ -240,6 +303,7 @@ func printRootHelp(w io.Writer) {
 	fmt.Fprintln(w, "  ship test --integration")
 	fmt.Fprintln(w, "  ship db migrate")
 	fmt.Fprintln(w, "  ship db rollback 1")
+	fmt.Fprintln(w, "  ship templ generate --path app")
 }
 
 func printDevHelp(w io.Writer) {
@@ -263,4 +327,120 @@ func printTestHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship test commands:")
 	fmt.Fprintln(w, "  ship test")
 	fmt.Fprintln(w, "  ship test --integration")
+}
+
+func printTemplHelp(w io.Writer) {
+	fmt.Fprintln(w, "ship templ commands:")
+	fmt.Fprintln(w, "  ship templ generate [--path <dir>] [--file <file.templ>]")
+	fmt.Fprintln(w, "    (generated files are moved to a child gen/ directory per templ package)")
+}
+
+func relocateTemplGenerated(rootPath string) error {
+	absRoot, err := filepath.Abs(rootPath)
+	if err != nil {
+		return err
+	}
+	if _, err := os.Stat(absRoot); errors.Is(err, os.ErrNotExist) {
+		return nil
+	}
+
+	goModDir, modulePath, err := findGoModule(absRoot)
+	if err != nil {
+		return err
+	}
+
+	var generatedFiles []string
+	err = filepath.WalkDir(absRoot, func(p string, d os.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		if d.IsDir() {
+			if d.Name() == "gen" {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		if strings.HasSuffix(d.Name(), "_templ.go") {
+			generatedFiles = append(generatedFiles, p)
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	if len(generatedFiles) == 0 {
+		return nil
+	}
+
+	importMap := make(map[string]string)
+	movedFiles := make([]string, 0, len(generatedFiles))
+	for _, src := range generatedFiles {
+		srcDir := filepath.Dir(src)
+		relDir, err := filepath.Rel(goModDir, srcDir)
+		if err != nil {
+			return err
+		}
+		oldImport := path.Join(modulePath, filepath.ToSlash(relDir))
+		newImport := path.Join(oldImport, "gen")
+		importMap[oldImport] = newImport
+
+		dstDir := filepath.Join(srcDir, "gen")
+		if err := os.MkdirAll(dstDir, 0o755); err != nil {
+			return err
+		}
+		dst := filepath.Join(dstDir, filepath.Base(src))
+		_ = os.Remove(dst)
+		if err := os.Rename(src, dst); err != nil {
+			return err
+		}
+		movedFiles = append(movedFiles, dst)
+	}
+
+	for _, file := range movedFiles {
+		b, err := os.ReadFile(file)
+		if err != nil {
+			return err
+		}
+		content := string(b)
+		for oldImport, newImport := range importMap {
+			content = strings.ReplaceAll(content, `"`+oldImport+`"`, `"`+newImport+`"`)
+		}
+		if err := os.WriteFile(file, []byte(content), 0o644); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func findGoModule(start string) (string, string, error) {
+	dir := start
+	for {
+		goMod := filepath.Join(dir, "go.mod")
+		f, err := os.Open(goMod)
+		if err == nil {
+			defer f.Close()
+			scanner := bufio.NewScanner(f)
+			for scanner.Scan() {
+				line := strings.TrimSpace(scanner.Text())
+				if strings.HasPrefix(line, "module ") {
+					modulePath := strings.TrimSpace(strings.TrimPrefix(line, "module "))
+					if modulePath == "" {
+						return "", "", errors.New("empty module path in go.mod")
+					}
+					return dir, modulePath, nil
+				}
+			}
+			if scanErr := scanner.Err(); scanErr != nil {
+				return "", "", scanErr
+			}
+			return "", "", errors.New("module line not found in go.mod")
+		}
+
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			return "", "", errors.New("go.mod not found from current path")
+		}
+		dir = parent
+	}
 }

@@ -45,6 +45,10 @@ hooks: ## Install git hooks via lefthook
 llm-txt: ## Generate root LLM.txt from README and docs markdown files
 	bash scripts/generate-llm-txt.sh
 
+.PHONY: templ-gen
+templ-gen: ## Generate templ code next to .templ files via ship CLI
+	go run ./cli/ship/cmd/ship templ generate --path app
+
 # Core workflow ------------------------------------------------------------------------------
 
 .PHONY: dev
@@ -151,8 +155,8 @@ ent-gen: ## Generate Ent code
 ent-new: ## Create a new Ent entity
 	go run entgo.io/ent/cmd/ent new $(name)
  
- .PHONY: generate
-generate: ## Run code generation
+.PHONY: generate
+generate: templ-gen ## Run code generation
 	go generate ./...
 
 .PHONY: up

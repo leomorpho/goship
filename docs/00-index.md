@@ -52,7 +52,7 @@ It is not intended as user-facing product documentation.
 - `cli/ship/cmd/ship/main.go`
 - `cli/ship/cli.go`
 - `pkg/services/container.go`
-- `app/goship/web/routes/router.go`
+- `app/goship/router.go`
 - `app/goship/web/routes/*.go`
 - `pkg/tasks/*.go`
 - `pkg/repos/**/*.go`

@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/mikestefanello/pagoda/app/goship/views"
-	"github.com/mikestefanello/pagoda/app/goship/views/layouts"
-	"github.com/mikestefanello/pagoda/app/goship/views/pages"
+	"github.com/mikestefanello/pagoda/app/goship/views/web/layouts/gen"
+	"github.com/mikestefanello/pagoda/app/goship/views/web/pages/gen"
 	"github.com/mikestefanello/pagoda/ent"
 	"github.com/mikestefanello/pagoda/pkg/context"
 	"github.com/mikestefanello/pagoda/pkg/controller"

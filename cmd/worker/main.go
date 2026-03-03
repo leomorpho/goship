@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/hibiken/asynq"
-	"github.com/mikestefanello/pagoda/app/goship/web/routes"
+	"github.com/mikestefanello/pagoda/app/goship"
 	"github.com/mikestefanello/pagoda/config"
 	"github.com/mikestefanello/pagoda/pkg/repos/notifierrepo"
 	"github.com/mikestefanello/pagoda/pkg/repos/profilerepo"
@@ -61,7 +61,7 @@ func main() {
 	}()
 
 	// Build the router, which is needed to get the reverse of routes by name in some tasks.
-	if err := routes.BuildRouter(c); err != nil {
+	if err := goship.BuildRouter(c); err != nil {
 		c.Web.Logger.Fatalf("failed to build router: %v", err)
 	}
 

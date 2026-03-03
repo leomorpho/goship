@@ -2,7 +2,7 @@ package routes
 
 import (
 	"github.com/labstack/echo/v4"
-	"github.com/mikestefanello/pagoda/app/goship/views/layouts"
+	"github.com/mikestefanello/pagoda/app/goship/views/web/layouts/gen"
 	"github.com/mikestefanello/pagoda/pkg/controller"
 	"github.com/mikestefanello/pagoda/pkg/repos/emailsmanager"
 )

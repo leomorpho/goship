@@ -13,6 +13,10 @@ import (
 )
 
 func TestCacheClient(t *testing.T) {
+	if c.Cache == nil {
+		t.Skip("cache dependency disabled in current runtime plan")
+	}
+
 	type cacheTest struct {
 		Value string
 	}

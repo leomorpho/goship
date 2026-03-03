@@ -35,7 +35,7 @@ App web code is now app-scoped:
 
 Router source of truth:
 
-- `app/goship/web/routes/router.go`
+- `app/goship/router.go`
 
 ## Refactor Status
 

@@ -60,6 +60,7 @@ Database:
 
 Generation:
 
+- `ship templ generate [--path <dir>] [--file <file.templ>]`
 - `ship generate <resource|model|job|module>` (planned)
 - `ship destroy <generated-artifact>` (planned)
 
@@ -83,6 +84,7 @@ These commands are implemented as wrappers over existing workflows:
 - `ship db migrate` -> `make migrate`
 - `ship db rollback [amount]` -> `atlas migrate down ... [amount]`
 - `ship db seed` -> `make seed`
+- `ship templ generate --path app` -> `templ generate -path app`, then move each `*_templ.go` into sibling `gen/` directory
 
 Local run examples from repository root:
 

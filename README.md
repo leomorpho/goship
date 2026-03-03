@@ -151,7 +151,7 @@ For in-depth info on the architecture of the project, please see the [mikestefan
 
 The most important aspects to note are:
 - The `Container` struct is instantiated when the app starts up and is used to pass dependencies around the app, specifically core services like `Logger`, `Database`, `ORM`, `Cache`, etc.
-- Routes are defined in `app/goship/web/routes/router.go` and are registered to the `Echo` framework. Generally, any logic that alters the DB should be done in the `repos` layer so that it is easily testable, and can be used by other routes. A route will generally have a `Component`, which is a Templ component defined in `app/goship/views/pages/` that represents the view.
+- Routes are defined in `app/goship/router.go` and are registered to the `Echo` framework. Generally, any logic that alters the DB should be done in the `repos` layer so that it is easily testable, and can be used by other routes. A route will generally have a `Component`, which is a Templ component defined in `app/goship/views/web/pages/` that represents the view.
 
 ## Database
 
@@ -521,7 +521,7 @@ package pages
 import (
 	"github.com/mikestefanello/pagoda/pkg/controller"
 	"github.com/mikestefanello/pagoda/pkg/types"
-	"github.com/mikestefanello/pagoda/app/goship/views/components"
+	"github.com/mikestefanello/pagoda/app/goship/views/web/components"
 )
 
 templ PostsIndex(page *controller.Page) {

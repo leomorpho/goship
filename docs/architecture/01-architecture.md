@@ -17,7 +17,7 @@ The application follows a layered structure:
 ## Web Runtime Flow
 
 1. `cmd/web/main.go` creates container via `services.NewContainer()`.
-2. `routes.BuildRouter(c)` configures middleware stack, registers routes, and returns an error on startup misconfiguration.
+2. `goship.BuildRouter(c)` is the canonical app router entrypoint and delegates to modular route composition.
 3. Echo server starts with request timeout middleware (SSE-aware).
 4. Request path executes middleware chain, route handler, and page rendering.
 
@@ -80,8 +80,8 @@ The UI is server-rendered using Templ components.
 
 - Base page abstraction: `pkg/controller/page.go`
 - Render orchestration: `pkg/controller/controller.go`
-- Layout wrappers: `app/goship/views/layouts/*.templ`
-- Route page components: `app/goship/views/pages/*.templ`
+- Layout wrappers: `app/goship/views/web/layouts/*.templ`
+- Route page components: `app/goship/views/web/pages/*.templ`
 
 HTMX behavior is integrated in the page object (`Page.HTMX`) and controller render logic.
 

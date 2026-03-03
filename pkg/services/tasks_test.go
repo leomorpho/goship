@@ -10,6 +10,10 @@ import (
 )
 
 func TestTaskClient_New(t *testing.T) {
+	if c.Tasks == nil {
+		t.Skip("task dependency disabled in current runtime plan")
+	}
+
 	now := time.Now()
 	tk := c.Tasks.
 		New("task1").

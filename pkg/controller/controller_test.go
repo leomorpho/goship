@@ -7,9 +7,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/mikestefanello/pagoda/app/goship/views/components"
-	"github.com/mikestefanello/pagoda/app/goship/views/layouts"
-	"github.com/mikestefanello/pagoda/app/goship/views/pages"
+	"github.com/mikestefanello/pagoda/app/goship/views/web/components/gen"
+	"github.com/mikestefanello/pagoda/app/goship/views/web/layouts/gen"
+	"github.com/mikestefanello/pagoda/app/goship/views/web/pages/gen"
 	"github.com/mikestefanello/pagoda/config"
 	"github.com/mikestefanello/pagoda/pkg/controller"
 	"github.com/mikestefanello/pagoda/pkg/htmx"

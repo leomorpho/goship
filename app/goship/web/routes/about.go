@@ -2,8 +2,8 @@ package routes
 
 import (
 	"github.com/mikestefanello/pagoda/app/goship/views"
-	"github.com/mikestefanello/pagoda/app/goship/views/layouts"
-	"github.com/mikestefanello/pagoda/app/goship/views/pages"
+	"github.com/mikestefanello/pagoda/app/goship/views/web/layouts/gen"
+	"github.com/mikestefanello/pagoda/app/goship/views/web/pages/gen"
 	"github.com/mikestefanello/pagoda/pkg/controller"
 	"github.com/mikestefanello/pagoda/pkg/types"
 

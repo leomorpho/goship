@@ -13,8 +13,8 @@ import (
 	routeNames "github.com/mikestefanello/pagoda/pkg/routing/routenames"
 
 	"github.com/mikestefanello/pagoda/app/goship/views"
-	"github.com/mikestefanello/pagoda/app/goship/views/layouts"
-	"github.com/mikestefanello/pagoda/app/goship/views/pages"
+	"github.com/mikestefanello/pagoda/app/goship/views/web/layouts/gen"
+	"github.com/mikestefanello/pagoda/app/goship/views/web/pages/gen"
 	"github.com/mikestefanello/pagoda/pkg/repos/notifierrepo"
 	"github.com/mikestefanello/pagoda/pkg/types"
 	"github.com/rs/zerolog/log"

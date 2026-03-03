@@ -3,6 +3,8 @@ package ship
 import (
 	"bytes"
 	"errors"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -196,6 +198,48 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			wantOut:  "ship db commands:",
 		},
 		{
+			name:      "templ generate default path",
+			args:      []string{"templ", "generate"},
+			wantCode:  0,
+			wantCalls: []fakeCall{{name: "templ", args: []string{"generate", "-path", "."}}},
+		},
+		{
+			name:      "templ generate custom path",
+			args:      []string{"templ", "generate", "--path", "app"},
+			wantCode:  0,
+			wantCalls: []fakeCall{{name: "templ", args: []string{"generate", "-path", "app"}}},
+		},
+		{
+			name:      "templ generate single file",
+			args:      []string{"templ", "generate", "--file", "app/goship/views/web/pages/home.templ"},
+			wantCode:  0,
+			wantCalls: []fakeCall{{name: "templ", args: []string{"generate", "-f", "app/goship/views/web/pages/home.templ"}}},
+		},
+		{
+			name:     "templ generate invalid flag",
+			args:     []string{"templ", "generate", "--watch"},
+			wantCode: 1,
+			wantErr:  "invalid templ generate arguments",
+		},
+		{
+			name:     "templ generate invalid extra arg",
+			args:     []string{"templ", "generate", "extra"},
+			wantCode: 1,
+			wantErr:  "unexpected templ generate arguments",
+		},
+		{
+			name:     "templ help",
+			args:     []string{"templ", "help"},
+			wantCode: 0,
+			wantOut:  "ship templ commands:",
+		},
+		{
+			name:     "templ missing subcommand",
+			args:     []string{"templ"},
+			wantCode: 1,
+			wantErr:  "ship templ commands:",
+		},
+		{
 			name:       "runner exit code is propagated",
 			args:       []string{"dev"},
 			wantCode:   7,
@@ -241,5 +285,76 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestRelocateTemplGenerated(t *testing.T) {
+	root := t.TempDir()
+	moduleRoot := filepath.Join(root, "repo")
+	if err := os.MkdirAll(moduleRoot, 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	goMod := "module example.com/test\n\ngo 1.25\n"
+	if err := os.WriteFile(filepath.Join(moduleRoot, "go.mod"), []byte(goMod), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	templDir := filepath.Join(moduleRoot, "app", "demo", "views", "web", "components")
+	if err := os.MkdirAll(templDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	srcPath := filepath.Join(templDir, "foo_templ.go")
+	src := `package components
+
+import "example.com/test/app/demo/views/web/components"
+import "example.com/test/app/demo/views/web/helpers"
+`
+	if err := os.WriteFile(srcPath, []byte(src), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	helperDir := filepath.Join(moduleRoot, "app", "demo", "views", "web", "helpers")
+	if err := os.MkdirAll(helperDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	helperSrcPath := filepath.Join(helperDir, "helpers_templ.go")
+	helperSrc := `package helpers
+
+import "example.com/test/app/demo/views/web/components"
+`
+	if err := os.WriteFile(helperSrcPath, []byte(helperSrc), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := relocateTemplGenerated(filepath.Join(moduleRoot, "app")); err != nil {
+		t.Fatalf("relocateTemplGenerated returned error: %v", err)
+	}
+
+	if _, err := os.Stat(srcPath); !os.IsNotExist(err) {
+		t.Fatalf("expected source file to be moved, stat err=%v", err)
+	}
+
+	dstPath := filepath.Join(templDir, "gen", "foo_templ.go")
+	b, err := os.ReadFile(dstPath)
+	if err != nil {
+		t.Fatalf("reading moved file: %v", err)
+	}
+	content := string(b)
+	if !strings.Contains(content, `"example.com/test/app/demo/views/web/components/gen"`) {
+		t.Fatalf("moved file missing rewritten self import: %s", content)
+	}
+	if !strings.Contains(content, `"example.com/test/app/demo/views/web/helpers/gen"`) {
+		t.Fatalf("moved file missing rewritten helper import: %s", content)
+	}
+
+	helperDstPath := filepath.Join(helperDir, "gen", "helpers_templ.go")
+	helperContent, err := os.ReadFile(helperDstPath)
+	if err != nil {
+		t.Fatalf("reading moved helper file: %v", err)
+	}
+	if !strings.Contains(string(helperContent), `"example.com/test/app/demo/views/web/components/gen"`) {
+		t.Fatalf("helper moved file missing rewritten component import: %s", string(helperContent))
 	}
 }
