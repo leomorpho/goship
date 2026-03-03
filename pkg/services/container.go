@@ -86,6 +86,9 @@ type Container struct {
 
 	// Tasks stores the task client
 	Tasks *TaskClient
+
+	// Adapters stores resolved adapter selection/capabilities for runtime use.
+	Adapters coreadapters.Resolved
 }
 
 // NewContainer creates and initializes a new Container
@@ -111,20 +114,11 @@ func (c *Container) validateAdapterPlan() {
 		panic("invalid container state: nil config")
 	}
 
-	reg := coreadapters.NewDefaultRegistry()
-	selection := coreadapters.Selection{
-		DB:     c.Config.Adapters.DB,
-		Cache:  c.Config.Adapters.Cache,
-		Jobs:   c.Config.Adapters.Jobs,
-		PubSub: c.Config.Adapters.PubSub,
+	resolved, err := coreadapters.ResolveFromConfig(c.Config)
+	if err != nil {
+		panic(fmt.Sprintf("invalid adapter plan: %v", err))
 	}
-
-	if err := reg.ValidateSelection(selection); err != nil {
-		panic(fmt.Sprintf("invalid adapter selection: %v", err))
-	}
-	if err := reg.ValidateRequirements(selection, coreadapters.RequirementsFromConfig(c.Config)); err != nil {
-		panic(fmt.Sprintf("invalid adapter capabilities: %v", err))
-	}
+	c.Adapters = resolved
 }
 
 // Shutdown shuts the Container down and disconnects all connections

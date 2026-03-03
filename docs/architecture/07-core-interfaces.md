@@ -19,6 +19,7 @@ To enforce that, app and module code should depend on core interfaces instead of
 
 - `pkg/core/interfaces.go`
 - `pkg/core/adapters/registry.go`
+- `pkg/core/adapters/resolve.go`
 
 This package is the current source of truth for adapter seam contracts.
 
@@ -70,6 +71,7 @@ Container startup validates:
 Current startup behavior:
 
 - invalid selection or capability mismatch fails fast at startup.
+- resolved adapter metadata is stored in `services.Container.Adapters` for downstream wiring.
 
 ## Scope Boundaries
 
