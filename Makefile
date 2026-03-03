@@ -96,27 +96,27 @@ updateatlas: ## Update the Atlas migration tool we use
 makemigrations: build-image ## Create a migration
 	@echo "Running Atlas migrate diff..."
 	atlas migrate diff "$(name)" \
-	  --dir "file://ent/migrate/migrations" \
-	  --to "ent://ent/schema" \
+	  --dir "file://app/goship/ent/migrate/migrations" \
+	  --to "ent://app/goship/ent/schema" \
 	  --dev-url "docker+postgres://_/$(PGVECTOR_IMAGE_NAME):$(PGVECTOR_IMAGE_TAG)/dev?search_path=public&sslmode=disable"
 
 .PHONY: migrate_apply
 migrate: ## Apply migrations
 	@atlas migrate apply \
-	  --dir "file://ent/migrate/migrations" \
+	  --dir "file://app/goship/ent/migrate/migrations" \
 	  --url "postgres://admin:admin@localhost:5432/app?search_path=public&sslmode=disable"
 
 .PHONY: inspectschema
 inspectsql: ## Inspect the SQL DB schema
 	@atlas schema inspect \
-		-u "ent://ent/schema" \
+		-u "ent://app/goship/ent/schema" \
 		--dev-url "sqlite://file?mode=memory&_fk=1" \
 		--format '{{ sql . "  " }}'
 
 .PHONY: inspecterd
 inspecterd: ## Inspect the ERD DB schema
 	atlas schema inspect \
-		-u "ent://ent/schema" \
+		-u "ent://app/goship/ent/schema" \
 		--dev-url "sqlite://file?mode=memory&_fk=1" \
 		-w
 
@@ -153,11 +153,11 @@ ent-install: ## Install Ent code-generation module
 
 .PHONY: ent-gen
 ent-gen: ## Generate Ent code
-	go run -mod=mod entgo.io/ent/cmd/ent generate --feature sql/upsert,sql/execquery ./ent/schema
+	go run -mod=mod entgo.io/ent/cmd/ent generate --feature sql/upsert,sql/execquery --target ./ent ./app/goship/ent/schema
 
 .PHONY: ent-new
 ent-new: ## Create a new Ent entity
-	go run entgo.io/ent/cmd/ent new $(name)
+	go run ./cli/ship/cmd/ship make:model $(name)
  
 .PHONY: generate
 generate: templ-gen ## Run code generation

@@ -115,6 +115,8 @@ func scaffoldNewProject(opts newProjectOptions) error {
 		filepath.Join(opts.AppPath, "go.mod"):                                        renderGoMod(opts),
 		filepath.Join(opts.AppPath, "app", "goship", "router.go"):                    renderRouterSkeleton(),
 		filepath.Join(opts.AppPath, "pkg", "routing", "routenames", "routenames.go"): renderRouteNamesSkeleton(),
+		filepath.Join(opts.AppPath, "app", "goship", "ent", "schema", "user.go"):     renderUserSchemaSkeleton(),
+		filepath.Join(opts.AppPath, "app", "goship", "ent", "migrate", "migrations", ".gitkeep"): "",
 		filepath.Join(opts.AppPath, "app", "goship", "views", "templates.go"):        renderTemplatesSkeleton(),
 		filepath.Join(opts.AppPath, "app", "goship", "web", "routes", "routes.go"):   renderRoutesSkeleton(),
 		filepath.Join(opts.AppPath, "cmd", "web", "main.go"):                         renderWebMain(),
@@ -142,7 +144,12 @@ func writeScaffoldFile(path, content string, dryRun bool, force bool) error {
 }
 
 func renderGoMod(opts newProjectOptions) string {
-	return fmt.Sprintf("module %s\n\ngo 1.25\n", opts.Module)
+	return fmt.Sprintf(`module %s
+
+go 1.25
+
+require entgo.io/ent v0.14.0
+`, opts.Module)
 }
 
 func renderRouterSkeleton() string {
@@ -211,6 +218,28 @@ func main() {
 	})
 	if err := http.ListenAndServe(":8000", mux); err != nil {
 		log.Fatal(err)
+	}
+}
+`
+}
+
+func renderUserSchemaSkeleton() string {
+	return `package schema
+
+import (
+	"entgo.io/ent"
+	"entgo.io/ent/schema/field"
+)
+
+// User holds the schema definition for the User entity.
+type User struct {
+	ent.Schema
+}
+
+// Fields of the User.
+func (User) Fields() []ent.Field {
+	return []ent.Field{
+		field.String("email").NotEmpty(),
 	}
 }
 `

@@ -21,7 +21,8 @@ import (
 )
 
 const (
-	atlasDir = "file://ent/migrate/migrations"
+	atlasDir     = "file://app/goship/ent/migrate/migrations"
+	entSchemaDir = "app/goship/ent/schema"
 )
 
 type CmdRunner interface {
@@ -577,7 +578,7 @@ func (c CLI) runDBMake(args []string) int {
 		"--dir",
 		atlasDir,
 		"--to",
-		"ent://ent/schema",
+		"ent://app/goship/ent/schema",
 		"--dev-url",
 		"sqlite://file?mode=memory&_fk=1",
 	)

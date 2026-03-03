@@ -25,33 +25,27 @@ func (c CLI) runGenerateModel(args []string) int {
 		return 1
 	}
 
-	if len(fields) == 0 {
-		if code := c.runCmd("go", "run", "-mod=mod", "entgo.io/ent/cmd/ent", "new", name); code != 0 {
-			return code
-		}
-	} else {
-		schemaPath := filepath.Join("ent", "schema", modelFileName(name)+".go")
-		if hasFile(schemaPath) && !force {
-			fmt.Fprintf(c.Err, "refusing to overwrite existing schema %s (use --force)\n", schemaPath)
-			return 1
-		}
-		content, renderErr := renderEntSchema(name, fields)
-		if renderErr != nil {
-			fmt.Fprintf(c.Err, "failed to render schema: %v\n", renderErr)
-			return 1
-		}
-		if err := os.MkdirAll(filepath.Dir(schemaPath), 0o755); err != nil {
-			fmt.Fprintf(c.Err, "failed to create schema directory: %v\n", err)
-			return 1
-		}
-		if err := os.WriteFile(schemaPath, []byte(content), 0o644); err != nil {
-			fmt.Fprintf(c.Err, "failed to write schema file: %v\n", err)
-			return 1
-		}
-		fmt.Fprintf(c.Out, "Wrote schema: %s\n", schemaPath)
+	schemaPath := filepath.Join(entSchemaDir, modelFileName(name)+".go")
+	if hasFile(schemaPath) && !force {
+		fmt.Fprintf(c.Err, "refusing to overwrite existing schema %s (use --force)\n", schemaPath)
+		return 1
 	}
+	content, renderErr := renderEntSchema(name, fields)
+	if renderErr != nil {
+		fmt.Fprintf(c.Err, "failed to render schema: %v\n", renderErr)
+		return 1
+	}
+	if err := os.MkdirAll(filepath.Dir(schemaPath), 0o755); err != nil {
+		fmt.Fprintf(c.Err, "failed to create schema directory: %v\n", err)
+		return 1
+	}
+	if err := os.WriteFile(schemaPath, []byte(content), 0o644); err != nil {
+		fmt.Fprintf(c.Err, "failed to write schema file: %v\n", err)
+		return 1
+	}
+	fmt.Fprintf(c.Out, "Wrote schema: %s\n", schemaPath)
 
-	if code := c.runCmd("go", "run", "-mod=mod", "entgo.io/ent/cmd/ent", "generate", "--feature", "sql/upsert,sql/execquery", "./ent/schema"); code != 0 {
+	if code := c.runCmd("go", "run", "-mod=mod", "entgo.io/ent/cmd/ent", "generate", "--feature", "sql/upsert,sql/execquery", "--target", "./ent", "./"+entSchemaDir); code != 0 {
 		return code
 	}
 

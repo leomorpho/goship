@@ -52,7 +52,7 @@ Routing and middleware:
 
 Data and domain:
 
-- `ent/schema/*.go`
+- `app/goship/ent/schema/*.go`
 - `pkg/repos/**/*.go`
 - `pkg/domain/*.go`
 

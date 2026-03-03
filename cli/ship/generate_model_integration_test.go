@@ -29,7 +29,7 @@ func TestGenerateModelIntegration_WithFieldsWritesSchemaAndNextSteps(t *testing.
 		t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
 	}
 
-	schemaPath := filepath.Join(root, "ent", "schema", "blog_post.go")
+	schemaPath := filepath.Join(root, "app", "goship", "ent", "schema", "blog_post.go")
 	content, err := os.ReadFile(schemaPath)
 	if err != nil {
 		t.Fatalf("read schema: %v", err)
@@ -70,7 +70,7 @@ func TestGenerateModelIntegration_ForceOverwritesSchema(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	schemaPath := filepath.Join(root, "ent", "schema", "post.go")
+	schemaPath := filepath.Join(root, "app", "goship", "ent", "schema", "post.go")
 	if err := os.MkdirAll(filepath.Dir(schemaPath), 0o755); err != nil {
 		t.Fatal(err)
 	}

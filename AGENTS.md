@@ -35,7 +35,7 @@ Naming normalization from roadmap:
 - Canonical app router entrypoint: `app/goship/router.go`
 - App composition container/adapters: `app/goship/services/*`
 - Framework/infrastructure layer: `pkg/*`
-- ORM schema: `ent/schema/*`
+- ORM schema: `app/goship/ent/schema/*`
 - Config: `config/*`
 - Templates: `app/goship/views/**/*.templ`
 
