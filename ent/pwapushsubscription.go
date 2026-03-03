@@ -9,8 +9,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/mikestefanello/pagoda/ent/profile"
-	"github.com/mikestefanello/pagoda/ent/pwapushsubscription"
+	"github.com/leomorpho/goship/ent/profile"
+	"github.com/leomorpho/goship/ent/pwapushsubscription"
 )
 
 // PwaPushSubscription is the model entity for the PwaPushSubscription schema.

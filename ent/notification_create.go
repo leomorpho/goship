@@ -11,8 +11,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/mikestefanello/pagoda/ent/notification"
-	"github.com/mikestefanello/pagoda/ent/profile"
+	"github.com/leomorpho/goship/ent/notification"
+	"github.com/leomorpho/goship/ent/profile"
 )
 
 // NotificationCreate is the builder for creating a Notification entity.

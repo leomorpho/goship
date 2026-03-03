@@ -7,15 +7,15 @@ import (
 
 	"github.com/hibiken/asynq"
 	"github.com/labstack/echo/v4"
-	"github.com/mikestefanello/pagoda/app/goship/views/emails/gen"
-	"github.com/mikestefanello/pagoda/app/goship/views/web/layouts/gen"
-	"github.com/mikestefanello/pagoda/config"
-	"github.com/mikestefanello/pagoda/ent"
-	"github.com/mikestefanello/pagoda/pkg/controller"
-	"github.com/mikestefanello/pagoda/pkg/repos/emailsmanager"
-	"github.com/mikestefanello/pagoda/pkg/repos/mailer"
-	"github.com/mikestefanello/pagoda/pkg/services"
-	"github.com/mikestefanello/pagoda/pkg/types"
+	"github.com/leomorpho/goship/app/goship/views/emails/gen"
+	"github.com/leomorpho/goship/app/goship/views/web/layouts/gen"
+	"github.com/leomorpho/goship/config"
+	"github.com/leomorpho/goship/ent"
+	"github.com/leomorpho/goship/pkg/controller"
+	"github.com/leomorpho/goship/pkg/repos/emailsmanager"
+	"github.com/leomorpho/goship/pkg/repos/mailer"
+	"github.com/leomorpho/goship/pkg/services"
+	"github.com/leomorpho/goship/pkg/types"
 )
 
 // ////////////////////////////////////////////////////////////////////////////

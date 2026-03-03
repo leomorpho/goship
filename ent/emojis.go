@@ -8,7 +8,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/mikestefanello/pagoda/ent/emojis"
+	"github.com/leomorpho/goship/ent/emojis"
 )
 
 // Emojis is the model entity for the Emojis schema.

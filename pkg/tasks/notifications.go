@@ -9,14 +9,14 @@ import (
 
 	"github.com/hibiken/asynq"
 	"github.com/labstack/echo/v4"
-	"github.com/mikestefanello/pagoda/ent"
-	"github.com/mikestefanello/pagoda/ent/notification"
-	"github.com/mikestefanello/pagoda/pkg/domain"
-	"github.com/mikestefanello/pagoda/pkg/repos/notifierrepo"
-	"github.com/mikestefanello/pagoda/pkg/repos/profilerepo"
-	"github.com/mikestefanello/pagoda/pkg/repos/subscriptions"
-	"github.com/mikestefanello/pagoda/pkg/routing/routenames"
-	"github.com/mikestefanello/pagoda/pkg/services"
+	"github.com/leomorpho/goship/ent"
+	"github.com/leomorpho/goship/ent/notification"
+	"github.com/leomorpho/goship/pkg/domain"
+	"github.com/leomorpho/goship/pkg/repos/notifierrepo"
+	"github.com/leomorpho/goship/pkg/repos/profilerepo"
+	"github.com/leomorpho/goship/pkg/repos/subscriptions"
+	"github.com/leomorpho/goship/pkg/routing/routenames"
+	"github.com/leomorpho/goship/pkg/services"
 	"github.com/rs/zerolog/log"
 )
 

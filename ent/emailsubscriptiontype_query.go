@@ -12,9 +12,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/mikestefanello/pagoda/ent/emailsubscription"
-	"github.com/mikestefanello/pagoda/ent/emailsubscriptiontype"
-	"github.com/mikestefanello/pagoda/ent/predicate"
+	"github.com/leomorpho/goship/ent/emailsubscription"
+	"github.com/leomorpho/goship/ent/emailsubscriptiontype"
+	"github.com/leomorpho/goship/ent/predicate"
 )
 
 // EmailSubscriptionTypeQuery is the builder for querying EmailSubscriptionType entities.

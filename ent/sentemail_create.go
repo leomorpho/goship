@@ -11,8 +11,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/mikestefanello/pagoda/ent/profile"
-	"github.com/mikestefanello/pagoda/ent/sentemail"
+	"github.com/leomorpho/goship/ent/profile"
+	"github.com/leomorpho/goship/ent/sentemail"
 )
 
 // SentEmailCreate is the builder for creating a SentEmail entity.

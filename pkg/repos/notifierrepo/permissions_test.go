@@ -5,13 +5,13 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
-	"github.com/mikestefanello/pagoda/ent/notificationpermission"
-	"github.com/mikestefanello/pagoda/pkg/domain"
-	"github.com/mikestefanello/pagoda/pkg/repos/notifierrepo"
-	"github.com/mikestefanello/pagoda/pkg/repos/profilerepo"
-	storagerepo "github.com/mikestefanello/pagoda/pkg/repos/storage"
-	"github.com/mikestefanello/pagoda/pkg/repos/subscriptions"
-	"github.com/mikestefanello/pagoda/pkg/tests"
+	"github.com/leomorpho/goship/ent/notificationpermission"
+	"github.com/leomorpho/goship/pkg/domain"
+	"github.com/leomorpho/goship/pkg/repos/notifierrepo"
+	"github.com/leomorpho/goship/pkg/repos/profilerepo"
+	storagerepo "github.com/leomorpho/goship/pkg/repos/storage"
+	"github.com/leomorpho/goship/pkg/repos/subscriptions"
+	"github.com/leomorpho/goship/pkg/tests"
 	"github.com/stretchr/testify/assert"
 )
 

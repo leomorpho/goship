@@ -11,9 +11,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/mikestefanello/pagoda/ent/notificationtime"
-	"github.com/mikestefanello/pagoda/ent/predicate"
-	"github.com/mikestefanello/pagoda/ent/profile"
+	"github.com/leomorpho/goship/ent/notificationtime"
+	"github.com/leomorpho/goship/ent/predicate"
+	"github.com/leomorpho/goship/ent/profile"
 )
 
 // NotificationTimeQuery is the builder for querying NotificationTime entities.

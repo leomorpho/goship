@@ -9,8 +9,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/mikestefanello/pagoda/ent/notificationpermission"
-	"github.com/mikestefanello/pagoda/ent/profile"
+	"github.com/leomorpho/goship/ent/notificationpermission"
+	"github.com/leomorpho/goship/ent/profile"
 )
 
 // NotificationPermission is the model entity for the NotificationPermission schema.

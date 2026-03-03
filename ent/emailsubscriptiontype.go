@@ -9,7 +9,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/mikestefanello/pagoda/ent/emailsubscriptiontype"
+	"github.com/leomorpho/goship/ent/emailsubscriptiontype"
 )
 
 // EmailSubscriptionType is the model entity for the EmailSubscriptionType schema.

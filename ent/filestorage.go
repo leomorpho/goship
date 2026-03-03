@@ -9,7 +9,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/mikestefanello/pagoda/ent/filestorage"
+	"github.com/leomorpho/goship/ent/filestorage"
 )
 
 // FileStorage is the model entity for the FileStorage schema.

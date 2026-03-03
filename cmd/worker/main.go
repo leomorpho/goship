@@ -6,14 +6,14 @@ import (
 	"strings"
 
 	"github.com/hibiken/asynq"
-	"github.com/mikestefanello/pagoda/app/goship"
-	"github.com/mikestefanello/pagoda/config"
-	"github.com/mikestefanello/pagoda/pkg/repos/notifierrepo"
-	"github.com/mikestefanello/pagoda/pkg/repos/profilerepo"
-	storagerepo "github.com/mikestefanello/pagoda/pkg/repos/storage"
-	"github.com/mikestefanello/pagoda/pkg/repos/subscriptions"
-	"github.com/mikestefanello/pagoda/pkg/services"
-	"github.com/mikestefanello/pagoda/pkg/tasks"
+	"github.com/leomorpho/goship/app/goship"
+	"github.com/leomorpho/goship/config"
+	"github.com/leomorpho/goship/pkg/repos/notifierrepo"
+	"github.com/leomorpho/goship/pkg/repos/profilerepo"
+	storagerepo "github.com/leomorpho/goship/pkg/repos/storage"
+	"github.com/leomorpho/goship/pkg/repos/subscriptions"
+	"github.com/leomorpho/goship/pkg/services"
+	"github.com/leomorpho/goship/pkg/tasks"
 )
 
 func main() {

@@ -4,8 +4,8 @@ import (
 	"context"
 	"strings"
 
-	ge "github.com/mikestefanello/pagoda/ent"
-	"github.com/mikestefanello/pagoda/ent/hook"
+	ge "github.com/leomorpho/goship/ent"
+	"github.com/leomorpho/goship/ent/hook"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/entsql"

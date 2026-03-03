@@ -9,8 +9,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/mikestefanello/pagoda/ent/invitation"
-	"github.com/mikestefanello/pagoda/ent/profile"
+	"github.com/leomorpho/goship/ent/invitation"
+	"github.com/leomorpho/goship/ent/profile"
 )
 
 // Invitation is the model entity for the Invitation schema.

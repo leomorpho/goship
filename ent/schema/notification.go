@@ -4,8 +4,8 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
-	"github.com/mikestefanello/pagoda/ent/hook"
-	"github.com/mikestefanello/pagoda/pkg/domain"
+	"github.com/leomorpho/goship/ent/hook"
+	"github.com/leomorpho/goship/pkg/domain"
 )
 
 // Notification holds the schema definition for the Notification entity.

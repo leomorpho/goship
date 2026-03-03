@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	shipcli "github.com/mikestefanello/pagoda/cli/ship"
+	shipcli "github.com/leomorpho/goship/cli/ship"
 )
 
 func main() {

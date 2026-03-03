@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mikestefanello/pagoda/pkg/domain"
-	"github.com/mikestefanello/pagoda/pkg/repos/notifierrepo"
-	"github.com/mikestefanello/pagoda/pkg/repos/pubsub"
+	"github.com/leomorpho/goship/pkg/domain"
+	"github.com/leomorpho/goship/pkg/repos/notifierrepo"
+	"github.com/leomorpho/goship/pkg/repos/pubsub"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

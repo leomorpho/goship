@@ -1,7 +1,7 @@
 package types
 
 import (
-	"github.com/mikestefanello/pagoda/pkg/domain"
+	"github.com/leomorpho/goship/pkg/domain"
 )
 
 type ProfilePageData struct {

@@ -9,8 +9,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/mikestefanello/pagoda/ent/fcmsubscriptions"
-	"github.com/mikestefanello/pagoda/ent/profile"
+	"github.com/leomorpho/goship/ent/fcmsubscriptions"
+	"github.com/leomorpho/goship/ent/profile"
 )
 
 // FCMSubscriptions is the model entity for the FCMSubscriptions schema.

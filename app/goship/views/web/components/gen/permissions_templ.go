@@ -9,8 +9,8 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	"github.com/mikestefanello/pagoda/pkg/domain"
-	"github.com/mikestefanello/pagoda/pkg/types"
+	"github.com/leomorpho/goship/pkg/domain"
+	"github.com/leomorpho/goship/pkg/types"
 )
 
 func PermissionsButtons(platforms map[domain.NotificationPlatform]bool, notifsPermissions types.NotificationPermissionsData) templ.Component {

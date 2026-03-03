@@ -9,9 +9,9 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/mikestefanello/pagoda/ent/filestorage"
-	"github.com/mikestefanello/pagoda/ent/image"
-	"github.com/mikestefanello/pagoda/ent/imagesize"
+	"github.com/leomorpho/goship/ent/filestorage"
+	"github.com/leomorpho/goship/ent/image"
+	"github.com/leomorpho/goship/ent/imagesize"
 )
 
 // ImageSize is the model entity for the ImageSize schema.

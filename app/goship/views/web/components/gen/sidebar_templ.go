@@ -9,7 +9,7 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	"github.com/mikestefanello/pagoda/pkg/controller"
+	"github.com/leomorpho/goship/pkg/controller"
 )
 
 func Sidebar(page *controller.Page) templ.Component {

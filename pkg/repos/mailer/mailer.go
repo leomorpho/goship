@@ -7,7 +7,7 @@ import (
 
 	"github.com/a-h/templ"
 
-	"github.com/mikestefanello/pagoda/config"
+	"github.com/leomorpho/goship/config"
 )
 
 type (

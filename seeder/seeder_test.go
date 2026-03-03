@@ -5,9 +5,9 @@ import (
 	"testing"
 
 	"github.com/jackc/pgx/stdlib"
-	"github.com/mikestefanello/pagoda/config"
-	"github.com/mikestefanello/pagoda/pkg/tests"
-	"github.com/mikestefanello/pagoda/seeder"
+	"github.com/leomorpho/goship/config"
+	"github.com/leomorpho/goship/pkg/tests"
+	"github.com/leomorpho/goship/seeder"
 )
 
 func init() {

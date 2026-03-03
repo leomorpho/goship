@@ -9,9 +9,9 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/mikestefanello/pagoda/ent/image"
-	"github.com/mikestefanello/pagoda/ent/profile"
-	"github.com/mikestefanello/pagoda/ent/user"
+	"github.com/leomorpho/goship/ent/image"
+	"github.com/leomorpho/goship/ent/profile"
+	"github.com/leomorpho/goship/ent/user"
 )
 
 // Profile is the model entity for the Profile schema.

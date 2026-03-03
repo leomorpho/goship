@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/mikestefanello/pagoda/pkg/context"
-	"github.com/mikestefanello/pagoda/pkg/routing/routenames"
+	"github.com/leomorpho/goship/pkg/context"
+	"github.com/leomorpho/goship/pkg/routing/routenames"
 )
 
 func RedirectToOnboardingIfNotComplete() echo.MiddlewareFunc {

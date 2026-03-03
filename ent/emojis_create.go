@@ -10,7 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/mikestefanello/pagoda/ent/emojis"
+	"github.com/leomorpho/goship/ent/emojis"
 )
 
 // EmojisCreate is the builder for creating a Emojis entity.

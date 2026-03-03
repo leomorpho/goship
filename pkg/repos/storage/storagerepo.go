@@ -10,10 +10,10 @@ import (
 	"log"
 	"time"
 
-	"github.com/mikestefanello/pagoda/config"
-	"github.com/mikestefanello/pagoda/ent"
-	"github.com/mikestefanello/pagoda/ent/filestorage"
-	"github.com/mikestefanello/pagoda/pkg/domain"
+	"github.com/leomorpho/goship/config"
+	"github.com/leomorpho/goship/ent"
+	"github.com/leomorpho/goship/ent/filestorage"
+	"github.com/leomorpho/goship/pkg/domain"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 )

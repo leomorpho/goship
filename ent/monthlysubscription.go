@@ -9,8 +9,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/mikestefanello/pagoda/ent/monthlysubscription"
-	"github.com/mikestefanello/pagoda/ent/profile"
+	"github.com/leomorpho/goship/ent/monthlysubscription"
+	"github.com/leomorpho/goship/ent/profile"
 )
 
 // MonthlySubscription is the model entity for the MonthlySubscription schema.

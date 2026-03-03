@@ -11,8 +11,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/mikestefanello/pagoda/ent/profile"
-	"github.com/mikestefanello/pagoda/ent/pwapushsubscription"
+	"github.com/leomorpho/goship/ent/profile"
+	"github.com/leomorpho/goship/ent/pwapushsubscription"
 )
 
 // PwaPushSubscriptionCreate is the builder for creating a PwaPushSubscription entity.

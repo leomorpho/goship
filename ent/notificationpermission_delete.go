@@ -8,8 +8,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/mikestefanello/pagoda/ent/notificationpermission"
-	"github.com/mikestefanello/pagoda/ent/predicate"
+	"github.com/leomorpho/goship/ent/notificationpermission"
+	"github.com/leomorpho/goship/ent/predicate"
 )
 
 // NotificationPermissionDelete is the builder for deleting a NotificationPermission entity.

@@ -1,6 +1,6 @@
 package types
 
-import "github.com/mikestefanello/pagoda/pkg/controller"
+import "github.com/leomorpho/goship/pkg/controller"
 
 type (
 	ResetPasswordForm struct {

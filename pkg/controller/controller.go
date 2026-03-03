@@ -9,10 +9,10 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/mikestefanello/pagoda/pkg/context"
-	"github.com/mikestefanello/pagoda/pkg/htmx"
-	"github.com/mikestefanello/pagoda/pkg/middleware"
-	"github.com/mikestefanello/pagoda/pkg/services"
+	"github.com/leomorpho/goship/pkg/context"
+	"github.com/leomorpho/goship/pkg/htmx"
+	"github.com/leomorpho/goship/pkg/middleware"
+	"github.com/leomorpho/goship/pkg/services"
 
 	"github.com/labstack/echo/v4"
 )

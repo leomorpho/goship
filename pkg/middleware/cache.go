@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/mikestefanello/pagoda/pkg/context"
-	"github.com/mikestefanello/pagoda/pkg/services"
+	"github.com/leomorpho/goship/pkg/context"
+	"github.com/leomorpho/goship/pkg/services"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/labstack/echo/v4"

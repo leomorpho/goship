@@ -9,7 +9,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/mikestefanello/pagoda/ent/image"
+	"github.com/leomorpho/goship/ent/image"
 )
 
 // Image is the model entity for the Image schema.

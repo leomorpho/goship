@@ -11,8 +11,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/aws/aws-sdk-go-v2/service/sns/types"
-	"github.com/mikestefanello/pagoda/ent"
-	"github.com/mikestefanello/pagoda/ent/phoneverificationcode"
+	"github.com/leomorpho/goship/ent"
+	"github.com/leomorpho/goship/ent/phoneverificationcode"
 	"github.com/rs/zerolog/log"
 )
 

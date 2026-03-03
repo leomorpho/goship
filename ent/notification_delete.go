@@ -8,8 +8,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/mikestefanello/pagoda/ent/notification"
-	"github.com/mikestefanello/pagoda/ent/predicate"
+	"github.com/leomorpho/goship/ent/notification"
+	"github.com/leomorpho/goship/ent/predicate"
 )
 
 // NotificationDelete is the builder for deleting a Notification entity.

@@ -8,8 +8,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/mikestefanello/pagoda/ent/invitation"
-	"github.com/mikestefanello/pagoda/ent/predicate"
+	"github.com/leomorpho/goship/ent/invitation"
+	"github.com/leomorpho/goship/ent/predicate"
 )
 
 // InvitationDelete is the builder for deleting a Invitation entity.

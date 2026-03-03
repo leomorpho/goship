@@ -9,8 +9,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/mikestefanello/pagoda/ent/profile"
-	"github.com/mikestefanello/pagoda/ent/user"
+	"github.com/leomorpho/goship/ent/profile"
+	"github.com/leomorpho/goship/ent/user"
 )
 
 // User is the model entity for the User schema.

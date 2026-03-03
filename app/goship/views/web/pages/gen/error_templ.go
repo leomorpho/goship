@@ -10,8 +10,8 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"fmt"
-	"github.com/mikestefanello/pagoda/pkg/controller"
-	"github.com/mikestefanello/pagoda/pkg/routing/routenames"
+	"github.com/leomorpho/goship/pkg/controller"
+	"github.com/leomorpho/goship/pkg/routing/routenames"
 )
 
 func Error(page *controller.Page) templ.Component {

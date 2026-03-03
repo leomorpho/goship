@@ -10,8 +10,8 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/mikestefanello/pagoda/app/goship"
-	"github.com/mikestefanello/pagoda/pkg/services"
+	"github.com/leomorpho/goship/app/goship"
+	"github.com/leomorpho/goship/pkg/services"
 )
 
 func timeoutMiddleware(next http.Handler, writeTimeout time.Duration) http.Handler {

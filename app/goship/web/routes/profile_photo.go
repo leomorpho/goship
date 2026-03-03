@@ -9,12 +9,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/mikestefanello/pagoda/app/goship/views/web/layouts/gen"
-	"github.com/mikestefanello/pagoda/ent"
-	"github.com/mikestefanello/pagoda/pkg/context"
-	"github.com/mikestefanello/pagoda/pkg/controller"
-	"github.com/mikestefanello/pagoda/pkg/repos/profilerepo"
-	storagerepo "github.com/mikestefanello/pagoda/pkg/repos/storage"
+	"github.com/leomorpho/goship/app/goship/views/web/layouts/gen"
+	"github.com/leomorpho/goship/ent"
+	"github.com/leomorpho/goship/pkg/context"
+	"github.com/leomorpho/goship/pkg/controller"
+	"github.com/leomorpho/goship/pkg/repos/profilerepo"
+	storagerepo "github.com/leomorpho/goship/pkg/repos/storage"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"

@@ -23,18 +23,18 @@ import (
 	"github.com/stripe/stripe-go/v78"
 	"github.com/ziflex/lecho/v3"
 
-	"github.com/mikestefanello/pagoda/config"
-	"github.com/mikestefanello/pagoda/ent"
-	"github.com/mikestefanello/pagoda/pkg/repos/mailer"
-	"github.com/mikestefanello/pagoda/pkg/repos/notifierrepo"
-	"github.com/mikestefanello/pagoda/pkg/repos/profilerepo"
-	"github.com/mikestefanello/pagoda/pkg/repos/pubsub"
-	storagerepo "github.com/mikestefanello/pagoda/pkg/repos/storage"
+	"github.com/leomorpho/goship/config"
+	"github.com/leomorpho/goship/ent"
+	"github.com/leomorpho/goship/pkg/repos/mailer"
+	"github.com/leomorpho/goship/pkg/repos/notifierrepo"
+	"github.com/leomorpho/goship/pkg/repos/profilerepo"
+	"github.com/leomorpho/goship/pkg/repos/pubsub"
+	storagerepo "github.com/leomorpho/goship/pkg/repos/storage"
 
 	// Required by ent
-	"github.com/mikestefanello/pagoda/ent/migrate"
-	_ "github.com/mikestefanello/pagoda/ent/runtime"
-	"github.com/mikestefanello/pagoda/ent/user"
+	"github.com/leomorpho/goship/ent/migrate"
+	_ "github.com/leomorpho/goship/ent/runtime"
+	"github.com/leomorpho/goship/ent/user"
 )
 
 type SentryHook struct{}

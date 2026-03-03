@@ -8,8 +8,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/mikestefanello/pagoda/ent/lastseenonline"
-	"github.com/mikestefanello/pagoda/ent/predicate"
+	"github.com/leomorpho/goship/ent/lastseenonline"
+	"github.com/leomorpho/goship/ent/predicate"
 )
 
 // LastSeenOnlineDelete is the builder for deleting a LastSeenOnline entity.

@@ -11,9 +11,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/mikestefanello/pagoda/ent/notificationpermission"
-	"github.com/mikestefanello/pagoda/ent/predicate"
-	"github.com/mikestefanello/pagoda/ent/profile"
+	"github.com/leomorpho/goship/ent/notificationpermission"
+	"github.com/leomorpho/goship/ent/predicate"
+	"github.com/leomorpho/goship/ent/profile"
 )
 
 // NotificationPermissionUpdate is the builder for updating NotificationPermission entities.

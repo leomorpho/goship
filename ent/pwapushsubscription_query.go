@@ -11,9 +11,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/mikestefanello/pagoda/ent/predicate"
-	"github.com/mikestefanello/pagoda/ent/profile"
-	"github.com/mikestefanello/pagoda/ent/pwapushsubscription"
+	"github.com/leomorpho/goship/ent/predicate"
+	"github.com/leomorpho/goship/ent/profile"
+	"github.com/leomorpho/goship/ent/pwapushsubscription"
 )
 
 // PwaPushSubscriptionQuery is the builder for querying PwaPushSubscription entities.

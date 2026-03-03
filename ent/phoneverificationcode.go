@@ -9,8 +9,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/mikestefanello/pagoda/ent/phoneverificationcode"
-	"github.com/mikestefanello/pagoda/ent/profile"
+	"github.com/leomorpho/goship/ent/phoneverificationcode"
+	"github.com/leomorpho/goship/ent/profile"
 )
 
 // PhoneVerificationCode is the model entity for the PhoneVerificationCode schema.

@@ -3,8 +3,8 @@ package types
 import (
 	"time"
 
-	"github.com/mikestefanello/pagoda/pkg/controller"
-	"github.com/mikestefanello/pagoda/pkg/domain"
+	"github.com/leomorpho/goship/pkg/controller"
+	"github.com/leomorpho/goship/pkg/domain"
 )
 
 type (

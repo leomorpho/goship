@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/hibiken/asynq"
-	"github.com/mikestefanello/pagoda/pkg/repos/subscriptions"
+	"github.com/leomorpho/goship/pkg/repos/subscriptions"
 )
 
 const TypeDeactivateExpiredSubscriptions = "subscription.deactivate_all_expired"

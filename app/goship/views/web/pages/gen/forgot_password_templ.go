@@ -9,10 +9,10 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	"github.com/mikestefanello/pagoda/app/goship/views/web/components/gen"
-	"github.com/mikestefanello/pagoda/pkg/controller"
-	"github.com/mikestefanello/pagoda/pkg/routing/routenames"
-	"github.com/mikestefanello/pagoda/pkg/types"
+	"github.com/leomorpho/goship/app/goship/views/web/components/gen"
+	"github.com/leomorpho/goship/pkg/controller"
+	"github.com/leomorpho/goship/pkg/routing/routenames"
+	"github.com/leomorpho/goship/pkg/types"
 )
 
 func ForgotPassword(page *controller.Page) templ.Component {

@@ -4,7 +4,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
-	"github.com/mikestefanello/pagoda/pkg/domain"
+	"github.com/leomorpho/goship/pkg/domain"
 )
 
 // SentEmail holds the schema definition for the SentEmail entity.

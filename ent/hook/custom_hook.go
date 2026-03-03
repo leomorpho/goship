@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/mikestefanello/pagoda/ent"
+	"github.com/leomorpho/goship/ent"
 )
 
 // EnsureUTCHook creates a hook that ensures specified time fields are in UTC.

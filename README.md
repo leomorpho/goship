@@ -4,7 +4,7 @@
 
 🎯 **The goal of this project** is to build the most comprehensive Go-centric OSS starter boilerplate to ship projects fast.
 
-<!-- [![Go Report Card](https://goreportcard.com/badge/github.com/mikestefanello/pagoda)](https://goreportcard.com/report/github.com/mikestefanello/pagoda) -->
+<!-- [![Go Report Card](https://goreportcard.com/badge/github.com/leomorpho/goship)](https://goreportcard.com/report/github.com/leomorpho/goship) -->
 [![Test](https://github.com/leomorpho/GoShip/actions/workflows/test.yml/badge.svg)](https://github.com/leomorpho/GoShip/actions/workflows/test.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -18,7 +18,7 @@
 
 <p style="text-align:center;">Check out the video above for a rapid walkthrough of the project! 🏂</p>
 
-This started as a fork of [pagoda](https://github.com/mikestefanello/pagoda), for which I am super grateful! Big shoutout to Mike Stefanello and team!
+This started as a fork of [pagoda](https://github.com/leomorpho/goship), for which I am super grateful! Big shoutout to Mike Stefanello and team!
 <p align="center"><img alt="Logo" src="https://user-images.githubusercontent.com/552328/147838644-0efac538-a97e-4a46-86a0-41e3abdf9f20.png" height="100px"/></p>
 
 ### Getting Started
@@ -39,7 +39,7 @@ make init
 make watch
 ```
 
-For in-depth info on the architecture of the project, please see the [mikestefanello/pagoda](https://github.com/mikestefanello/pagoda) repo. There are some key differences, but since this was originally a fork, 99% of it still applies. I am working on creating clear and actionable documentation, but that is quite time-consuming, so don't hold your socks.
+For in-depth info on the architecture of the project, please see the [mikestefanello/pagoda](https://github.com/leomorpho/goship) repo. There are some key differences, but since this was originally a fork, 99% of it still applies. I am working on creating clear and actionable documentation, but that is quite time-consuming, so don't hold your socks.
 
 ### Motivation
 
@@ -147,7 +147,7 @@ make help # Shows all the commands you can run
 
 ## General Architecture
 
-For in-depth info on the architecture of the project, please see the [mikestefanello/pagoda](https://github.com/mikestefanello/pagoda) repo. There are some key differences, but since this was originally a fork, 99% of it still applies. 
+For in-depth info on the architecture of the project, please see the [mikestefanello/pagoda](https://github.com/leomorpho/goship) repo. There are some key differences, but since this was originally a fork, 99% of it still applies. 
 
 The most important aspects to note are:
 - The `Container` struct is instantiated when the app starts up and is used to pass dependencies around the app, specifically core services like `Logger`, `Database`, `ORM`, `Cache`, etc.
@@ -307,9 +307,9 @@ python3 scripts/regen_logo_images.py
 
 ## Run Tasks
 
-Currently, tasks are run using [asynq](https://github.com/hibiken/asynq). This unfortunately requires [redis](https://redis.io/) to be running. This can make deployment a bit trickier as it means you will need at least 3 VPS with Kamal (except if I'm missing something), as you will need one for the web app, one for the worker, and one for the cache/queue. This is far from ideal for small projects, and [pagoda](https://github.com/mikestefanello/pagoda)'s author decided to use [backlite](https://github.com/mikestefanello/backlite), a tool he created to use SQLite as the task queue. I have not gone around to pulling these changes in yet, and I am hesitant at this point as I have multiple projects running in prod, and only 1 VPS running a cache that is serving all my projects...which means that I don't have a huge incentive to add this in. 
+Currently, tasks are run using [asynq](https://github.com/hibiken/asynq). This unfortunately requires [redis](https://redis.io/) to be running. This can make deployment a bit trickier as it means you will need at least 3 VPS with Kamal (except if I'm missing something), as you will need one for the web app, one for the worker, and one for the cache/queue. This is far from ideal for small projects, and [pagoda](https://github.com/leomorpho/goship)'s author decided to use [backlite](https://github.com/mikestefanello/backlite), a tool he created to use SQLite as the task queue. I have not gone around to pulling these changes in yet, and I am hesitant at this point as I have multiple projects running in prod, and only 1 VPS running a cache that is serving all my projects...which means that I don't have a huge incentive to add this in. 
 
-If you'd like to change asynq to backlite, you can refer [to this pagoda PR](https://github.com/mikestefanello/pagoda/pull/72/files) to bring the changes in your goship instance.
+If you'd like to change asynq to backlite, you can refer [to this pagoda PR](https://github.com/leomorpho/goship/pull/72/files) to bring the changes in your goship instance.
 
 ## Drop in any JS App
 
@@ -519,9 +519,9 @@ g.DELETE("/posts/:id", postRoute.Destroy).Name = "posts.destroy"
 package pages
 
 import (
-	"github.com/mikestefanello/pagoda/pkg/controller"
-	"github.com/mikestefanello/pagoda/pkg/types"
-	"github.com/mikestefanello/pagoda/app/goship/views/web/components"
+	"github.com/leomorpho/goship/pkg/controller"
+	"github.com/leomorpho/goship/pkg/types"
+	"github.com/leomorpho/goship/app/goship/views/web/components"
 )
 
 templ PostsIndex(page *controller.Page) {

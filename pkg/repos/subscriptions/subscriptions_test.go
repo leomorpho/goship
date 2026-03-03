@@ -8,12 +8,12 @@ import (
 	"github.com/jackc/pgx/stdlib"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mikestefanello/pagoda/ent/monthlysubscription"
-	"github.com/mikestefanello/pagoda/ent/profile"
-	"github.com/mikestefanello/pagoda/pkg/domain"
-	"github.com/mikestefanello/pagoda/pkg/repos/profilerepo"
-	"github.com/mikestefanello/pagoda/pkg/repos/subscriptions"
-	"github.com/mikestefanello/pagoda/pkg/tests"
+	"github.com/leomorpho/goship/ent/monthlysubscription"
+	"github.com/leomorpho/goship/ent/profile"
+	"github.com/leomorpho/goship/pkg/domain"
+	"github.com/leomorpho/goship/pkg/repos/profilerepo"
+	"github.com/leomorpho/goship/pkg/repos/subscriptions"
+	"github.com/leomorpho/goship/pkg/tests"
 )
 
 func init() {

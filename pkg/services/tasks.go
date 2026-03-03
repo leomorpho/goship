@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/hibiken/asynq"
-	"github.com/mikestefanello/pagoda/config"
+	"github.com/leomorpho/goship/config"
 )
 
 type (

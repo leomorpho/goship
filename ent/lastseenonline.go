@@ -9,8 +9,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/mikestefanello/pagoda/ent/lastseenonline"
-	"github.com/mikestefanello/pagoda/ent/user"
+	"github.com/leomorpho/goship/ent/lastseenonline"
+	"github.com/leomorpho/goship/ent/user"
 )
 
 // LastSeenOnline is the model entity for the LastSeenOnline schema.

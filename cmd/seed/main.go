@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/mikestefanello/pagoda/pkg/services"
-	"github.com/mikestefanello/pagoda/seeder"
+	"github.com/leomorpho/goship/pkg/services"
+	"github.com/leomorpho/goship/seeder"
 )
 
 func main() {

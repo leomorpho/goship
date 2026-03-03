@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/mikestefanello/pagoda/pkg/routing/routenames"
+	"github.com/leomorpho/goship/pkg/routing/routenames"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -8,8 +8,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/mikestefanello/pagoda/ent/phoneverificationcode"
-	"github.com/mikestefanello/pagoda/ent/predicate"
+	"github.com/leomorpho/goship/ent/phoneverificationcode"
+	"github.com/leomorpho/goship/ent/predicate"
 )
 
 // PhoneVerificationCodeDelete is the builder for deleting a PhoneVerificationCode entity.

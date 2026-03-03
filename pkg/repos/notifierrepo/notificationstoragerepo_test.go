@@ -4,10 +4,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mikestefanello/pagoda/pkg/domain"
-	"github.com/mikestefanello/pagoda/pkg/repos/notifierrepo"
-	"github.com/mikestefanello/pagoda/pkg/repos/profilerepo"
-	"github.com/mikestefanello/pagoda/pkg/tests"
+	"github.com/leomorpho/goship/pkg/domain"
+	"github.com/leomorpho/goship/pkg/repos/notifierrepo"
+	"github.com/leomorpho/goship/pkg/repos/profilerepo"
+	"github.com/leomorpho/goship/pkg/tests"
 	"github.com/stretchr/testify/assert"
 )
 

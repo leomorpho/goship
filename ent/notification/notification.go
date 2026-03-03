@@ -92,7 +92,7 @@ func ValidColumn(column string) bool {
 // package on the initialization of the application. Therefore,
 // it should be imported in the main as follows:
 //
-//	import _ "github.com/mikestefanello/pagoda/ent/runtime"
+//	import _ "github.com/leomorpho/goship/ent/runtime"
 var (
 	Hooks [1]ent.Hook
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.

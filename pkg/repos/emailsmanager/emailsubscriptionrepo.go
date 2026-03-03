@@ -9,10 +9,10 @@ import (
 	"math/big"
 
 	emailverifier "github.com/AfterShip/email-verifier"
-	"github.com/mikestefanello/pagoda/ent"
-	"github.com/mikestefanello/pagoda/ent/emailsubscription"
-	"github.com/mikestefanello/pagoda/ent/emailsubscriptiontype"
-	"github.com/mikestefanello/pagoda/pkg/domain"
+	"github.com/leomorpho/goship/ent"
+	"github.com/leomorpho/goship/ent/emailsubscription"
+	"github.com/leomorpho/goship/ent/emailsubscriptiontype"
+	"github.com/leomorpho/goship/pkg/domain"
 	"github.com/rs/zerolog/log"
 )
 

@@ -11,8 +11,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/mikestefanello/pagoda/ent/fcmsubscriptions"
-	"github.com/mikestefanello/pagoda/ent/profile"
+	"github.com/leomorpho/goship/ent/fcmsubscriptions"
+	"github.com/leomorpho/goship/ent/profile"
 )
 
 // FCMSubscriptionsCreate is the builder for creating a FCMSubscriptions entity.

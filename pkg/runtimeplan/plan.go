@@ -3,7 +3,7 @@ package runtimeplan
 import (
 	"fmt"
 
-	"github.com/mikestefanello/pagoda/config"
+	"github.com/leomorpho/goship/config"
 )
 
 // Plan describes the resolved runtime/process topology without mutating startup behavior.

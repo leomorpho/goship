@@ -2,9 +2,9 @@ package routes
 
 import (
 	"github.com/labstack/echo/v4"
-	"github.com/mikestefanello/pagoda/app/goship/views/web/layouts/gen"
-	"github.com/mikestefanello/pagoda/pkg/controller"
-	"github.com/mikestefanello/pagoda/pkg/repos/emailsmanager"
+	"github.com/leomorpho/goship/app/goship/views/web/layouts/gen"
+	"github.com/leomorpho/goship/pkg/controller"
+	"github.com/leomorpho/goship/pkg/repos/emailsmanager"
 )
 
 type verifyEmailSubscription struct {

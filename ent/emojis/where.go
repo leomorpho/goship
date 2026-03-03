@@ -4,7 +4,7 @@ package emojis
 
 import (
 	"entgo.io/ent/dialect/sql"
-	"github.com/mikestefanello/pagoda/ent/predicate"
+	"github.com/leomorpho/goship/ent/predicate"
 )
 
 // ID filters vertices based on their ID field.

@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mikestefanello/pagoda/ent"
-	"github.com/mikestefanello/pagoda/ent/enttest"
+	"github.com/leomorpho/goship/ent"
+	"github.com/leomorpho/goship/ent/enttest"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"

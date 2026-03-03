@@ -11,10 +11,10 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/mikestefanello/pagoda/ent/filestorage"
-	"github.com/mikestefanello/pagoda/ent/image"
-	"github.com/mikestefanello/pagoda/ent/imagesize"
-	"github.com/mikestefanello/pagoda/ent/predicate"
+	"github.com/leomorpho/goship/ent/filestorage"
+	"github.com/leomorpho/goship/ent/image"
+	"github.com/leomorpho/goship/ent/imagesize"
+	"github.com/leomorpho/goship/ent/predicate"
 )
 
 // ImageSizeUpdate is the builder for updating ImageSize entities.

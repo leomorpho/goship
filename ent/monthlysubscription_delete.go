@@ -8,8 +8,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/mikestefanello/pagoda/ent/monthlysubscription"
-	"github.com/mikestefanello/pagoda/ent/predicate"
+	"github.com/leomorpho/goship/ent/monthlysubscription"
+	"github.com/leomorpho/goship/ent/predicate"
 )
 
 // MonthlySubscriptionDelete is the builder for deleting a MonthlySubscription entity.

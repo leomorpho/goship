@@ -6,7 +6,7 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
-	"github.com/mikestefanello/pagoda/pkg/domain"
+	"github.com/leomorpho/goship/pkg/domain"
 )
 
 // MonthlySubscription holds the schema definition for the MonthlySubscription entity.

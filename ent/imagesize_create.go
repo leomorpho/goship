@@ -11,9 +11,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/mikestefanello/pagoda/ent/filestorage"
-	"github.com/mikestefanello/pagoda/ent/image"
-	"github.com/mikestefanello/pagoda/ent/imagesize"
+	"github.com/leomorpho/goship/ent/filestorage"
+	"github.com/leomorpho/goship/ent/image"
+	"github.com/leomorpho/goship/ent/imagesize"
 )
 
 // ImageSizeCreate is the builder for creating a ImageSize entity.

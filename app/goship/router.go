@@ -1,8 +1,8 @@
 package goship
 
 import (
-	"github.com/mikestefanello/pagoda/app/goship/web/routes"
-	"github.com/mikestefanello/pagoda/pkg/services"
+	"github.com/leomorpho/goship/app/goship/web/routes"
+	"github.com/leomorpho/goship/pkg/services"
 )
 
 // BuildRouter is the canonical app-level router entrypoint.

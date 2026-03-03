@@ -11,8 +11,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/mikestefanello/pagoda/ent/notificationtime"
-	"github.com/mikestefanello/pagoda/ent/profile"
+	"github.com/leomorpho/goship/ent/notificationtime"
+	"github.com/leomorpho/goship/ent/profile"
 )
 
 // NotificationTimeCreate is the builder for creating a NotificationTime entity.

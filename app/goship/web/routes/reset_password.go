@@ -1,16 +1,16 @@
 package routes
 
 import (
-	"github.com/mikestefanello/pagoda/ent"
-	"github.com/mikestefanello/pagoda/pkg/context"
-	"github.com/mikestefanello/pagoda/pkg/controller"
-	"github.com/mikestefanello/pagoda/pkg/repos/msg"
-	routeNames "github.com/mikestefanello/pagoda/pkg/routing/routenames"
+	"github.com/leomorpho/goship/ent"
+	"github.com/leomorpho/goship/pkg/context"
+	"github.com/leomorpho/goship/pkg/controller"
+	"github.com/leomorpho/goship/pkg/repos/msg"
+	routeNames "github.com/leomorpho/goship/pkg/routing/routenames"
 
-	"github.com/mikestefanello/pagoda/app/goship/views"
-	"github.com/mikestefanello/pagoda/app/goship/views/web/layouts/gen"
-	"github.com/mikestefanello/pagoda/app/goship/views/web/pages/gen"
-	"github.com/mikestefanello/pagoda/pkg/types"
+	"github.com/leomorpho/goship/app/goship/views"
+	"github.com/leomorpho/goship/app/goship/views/web/layouts/gen"
+	"github.com/leomorpho/goship/app/goship/views/web/pages/gen"
+	"github.com/leomorpho/goship/pkg/types"
 
 	"github.com/labstack/echo/v4"
 )

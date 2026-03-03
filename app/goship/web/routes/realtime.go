@@ -8,11 +8,11 @@ import (
 
 	"github.com/janberktold/sse"
 	"github.com/labstack/echo/v4"
-	"github.com/mikestefanello/pagoda/ent"
-	customContext "github.com/mikestefanello/pagoda/pkg/context"
-	"github.com/mikestefanello/pagoda/pkg/controller"
-	"github.com/mikestefanello/pagoda/pkg/repos/notifierrepo"
-	"github.com/mikestefanello/pagoda/pkg/repos/pubsub"
+	"github.com/leomorpho/goship/ent"
+	customContext "github.com/leomorpho/goship/pkg/context"
+	"github.com/leomorpho/goship/pkg/controller"
+	"github.com/leomorpho/goship/pkg/repos/notifierrepo"
+	"github.com/leomorpho/goship/pkg/repos/pubsub"
 	"github.com/rs/zerolog/log"
 )
 

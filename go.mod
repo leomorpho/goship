@@ -1,4 +1,4 @@
-module github.com/mikestefanello/pagoda
+module github.com/leomorpho/goship
 
 go 1.23.0
 

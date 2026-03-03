@@ -9,8 +9,8 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/mikestefanello/pagoda/ent/notificationtime"
-	"github.com/mikestefanello/pagoda/ent/profile"
+	"github.com/leomorpho/goship/ent/notificationtime"
+	"github.com/leomorpho/goship/ent/profile"
 )
 
 // NotificationTime is the model entity for the NotificationTime schema.

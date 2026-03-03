@@ -11,8 +11,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/mikestefanello/pagoda/ent/emailsubscription"
-	"github.com/mikestefanello/pagoda/ent/emailsubscriptiontype"
+	"github.com/leomorpho/goship/ent/emailsubscription"
+	"github.com/leomorpho/goship/ent/emailsubscriptiontype"
 )
 
 // EmailSubscriptionCreate is the builder for creating a EmailSubscription entity.

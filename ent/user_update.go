@@ -11,11 +11,11 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/mikestefanello/pagoda/ent/lastseenonline"
-	"github.com/mikestefanello/pagoda/ent/passwordtoken"
-	"github.com/mikestefanello/pagoda/ent/predicate"
-	"github.com/mikestefanello/pagoda/ent/profile"
-	"github.com/mikestefanello/pagoda/ent/user"
+	"github.com/leomorpho/goship/ent/lastseenonline"
+	"github.com/leomorpho/goship/ent/passwordtoken"
+	"github.com/leomorpho/goship/ent/predicate"
+	"github.com/leomorpho/goship/ent/profile"
+	"github.com/leomorpho/goship/ent/user"
 )
 
 // UserUpdate is the builder for updating User entities.

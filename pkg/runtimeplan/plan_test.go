@@ -3,7 +3,7 @@ package runtimeplan
 import (
 	"testing"
 
-	"github.com/mikestefanello/pagoda/config"
+	"github.com/leomorpho/goship/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

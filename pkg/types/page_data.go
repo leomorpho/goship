@@ -1,6 +1,6 @@
 package types
 
-import "github.com/mikestefanello/pagoda/ent"
+import "github.com/leomorpho/goship/ent"
 
 type PageData struct {
 	IsAuth   bool

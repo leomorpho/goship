@@ -8,9 +8,9 @@ package pages
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "github.com/mikestefanello/pagoda/pkg/controller"
+import "github.com/leomorpho/goship/pkg/controller"
 
-// "github.com/mikestefanello/pagoda/app/goship/views/web/components/gen"
+// "github.com/leomorpho/goship/app/goship/views/web/components/gen"
 func DocumentationEmailingPage(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context

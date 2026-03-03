@@ -10,8 +10,8 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"fmt"
-	"github.com/mikestefanello/pagoda/app/goship/views/web/components/gen"
-	"github.com/mikestefanello/pagoda/pkg/controller"
+	"github.com/leomorpho/goship/app/goship/views/web/components/gen"
+	"github.com/leomorpho/goship/pkg/controller"
 )
 
 func DocumentationLandingPage(page *controller.Page) templ.Component {

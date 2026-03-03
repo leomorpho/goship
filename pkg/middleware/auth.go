@@ -7,13 +7,13 @@ import (
 
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
-	"github.com/mikestefanello/pagoda/ent"
-	"github.com/mikestefanello/pagoda/pkg/context"
-	"github.com/mikestefanello/pagoda/pkg/repos/msg"
-	"github.com/mikestefanello/pagoda/pkg/repos/profilerepo"
-	"github.com/mikestefanello/pagoda/pkg/repos/subscriptions"
-	"github.com/mikestefanello/pagoda/pkg/routing/routenames"
-	"github.com/mikestefanello/pagoda/pkg/services"
+	"github.com/leomorpho/goship/ent"
+	"github.com/leomorpho/goship/pkg/context"
+	"github.com/leomorpho/goship/pkg/repos/msg"
+	"github.com/leomorpho/goship/pkg/repos/profilerepo"
+	"github.com/leomorpho/goship/pkg/repos/subscriptions"
+	"github.com/leomorpho/goship/pkg/routing/routenames"
+	"github.com/leomorpho/goship/pkg/services"
 	"github.com/rs/zerolog/log"
 )
 

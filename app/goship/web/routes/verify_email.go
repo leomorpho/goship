@@ -2,12 +2,12 @@ package routes
 
 import (
 	"github.com/labstack/echo/v4"
-	"github.com/mikestefanello/pagoda/ent"
-	"github.com/mikestefanello/pagoda/ent/user"
-	"github.com/mikestefanello/pagoda/pkg/context"
-	"github.com/mikestefanello/pagoda/pkg/controller"
-	"github.com/mikestefanello/pagoda/pkg/repos/msg"
-	routeNames "github.com/mikestefanello/pagoda/pkg/routing/routenames"
+	"github.com/leomorpho/goship/ent"
+	"github.com/leomorpho/goship/ent/user"
+	"github.com/leomorpho/goship/pkg/context"
+	"github.com/leomorpho/goship/pkg/controller"
+	"github.com/leomorpho/goship/pkg/repos/msg"
+	routeNames "github.com/leomorpho/goship/pkg/routing/routenames"
 )
 
 type verifyEmail struct {

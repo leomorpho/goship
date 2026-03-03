@@ -6,10 +6,10 @@ import (
 
 	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/gofrs/uuid"
-	"github.com/mikestefanello/pagoda/ent"
-	"github.com/mikestefanello/pagoda/ent/notificationpermission"
-	"github.com/mikestefanello/pagoda/ent/profile"
-	"github.com/mikestefanello/pagoda/pkg/domain"
+	"github.com/leomorpho/goship/ent"
+	"github.com/leomorpho/goship/ent/notificationpermission"
+	"github.com/leomorpho/goship/ent/profile"
+	"github.com/leomorpho/goship/pkg/domain"
 )
 
 type NotificationSendPermissionRepo struct {

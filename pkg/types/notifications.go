@@ -1,6 +1,6 @@
 package types
 
-import "github.com/mikestefanello/pagoda/pkg/domain"
+import "github.com/leomorpho/goship/pkg/domain"
 
 type NormalNotificationsPageData struct {
 	Notifications []*domain.Notification

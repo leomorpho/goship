@@ -11,8 +11,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/mikestefanello/pagoda/ent/phoneverificationcode"
-	"github.com/mikestefanello/pagoda/ent/profile"
+	"github.com/leomorpho/goship/ent/phoneverificationcode"
+	"github.com/leomorpho/goship/ent/profile"
 )
 
 // PhoneVerificationCodeCreate is the builder for creating a PhoneVerificationCode entity.
