@@ -37,7 +37,7 @@ func TestGenerateResourceIntegration_FullGenerationExactOutput(t *testing.T) {
 
 	out.Reset()
 	errOut.Reset()
-	code = cli.Run([]string{"generate", "resource", "contact_form", "--path", "app/goship", "--auth", "public", "--views", "templ", "--wire"})
+	code = cli.Run([]string{"make:resource", "contact_form", "--path", "app/goship", "--auth", "public", "--views", "templ", "--wire"})
 	if code != 0 {
 		t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
 	}

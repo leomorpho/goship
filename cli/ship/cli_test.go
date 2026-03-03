@@ -163,35 +163,35 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			name:     "db create removed",
 			args:     []string{"db", "create"},
 			wantCode: 1,
-			wantErr:  "unknown db command: create",
+			wantErr:  "use namespaced DB commands",
 		},
 		{
 			name:      "db migrate",
-			args:      []string{"db", "migrate"},
+			args:      []string{"db:migrate"},
 			wantCode:  0,
 			wantCalls: []fakeCall{{name: "atlas", args: []string{"migrate", "apply", "--dir", atlasDir, "--url", testDBURL}}},
 		},
 		{
 			name:      "db make",
-			args:      []string{"db", "make", "add_posts"},
+			args:      []string{"db:make", "add_posts"},
 			wantCode:  0,
 			wantCalls: []fakeCall{{name: "atlas", args: []string{"migrate", "diff", "add_posts", "--dir", atlasDir, "--to", "ent://ent/schema", "--dev-url", "sqlite://file?mode=memory&_fk=1"}}},
 		},
 		{
 			name:     "db make missing name",
-			args:     []string{"db", "make"},
+			args:     []string{"db:make"},
 			wantCode: 1,
-			wantErr:  "usage: ship db make <migration_name>",
+			wantErr:  "usage: ship db:make <migration_name>",
 		},
 		{
 			name:      "db seed",
-			args:      []string{"db", "seed"},
+			args:      []string{"db:seed"},
 			wantCode:  0,
 			wantCalls: []fakeCall{{name: "go", args: []string{"run", "./cmd/seed/main.go"}}},
 		},
 		{
 			name:     "db rollback default amount",
-			args:     []string{"db", "rollback"},
+			args:     []string{"db:rollback"},
 			wantCode: 0,
 			wantCalls: []fakeCall{{
 				name: "atlas",
@@ -200,7 +200,7 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 		},
 		{
 			name:     "db rollback explicit amount",
-			args:     []string{"db", "rollback", "3"},
+			args:     []string{"db:rollback", "3"},
 			wantCode: 0,
 			wantCalls: []fakeCall{{
 				name: "atlas",
@@ -209,21 +209,21 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 		},
 		{
 			name:     "db rollback invalid amount",
-			args:     []string{"db", "rollback", "x"},
+			args:     []string{"db:rollback", "x"},
 			wantCode: 1,
 			wantErr:  "invalid rollback amount",
 		},
 		{
 			name:     "db rollback too many args",
-			args:     []string{"db", "rollback", "1", "2"},
+			args:     []string{"db:rollback", "1", "2"},
 			wantCode: 1,
-			wantErr:  "usage: ship db rollback [amount]",
+			wantErr:  "usage: ship db:rollback [amount]",
 		},
 		{
 			name:     "db missing subcommand",
 			args:     []string{"db"},
-			wantCode: 1,
-			wantErr:  "ship db commands:",
+			wantCode: 0,
+			wantOut:  "ship db commands:",
 		},
 		{
 			name:     "db help",
@@ -233,7 +233,7 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 		},
 		{
 			name:     "infra up",
-			args:     []string{"infra", "up"},
+			args:     []string{"infra:up"},
 			wantCode: 0,
 			wantCalls: []fakeCall{
 				{name: "docker-compose", args: []string{"up", "-d", "cache"}},
@@ -242,7 +242,7 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 		},
 		{
 			name:      "infra down",
-			args:      []string{"infra", "down"},
+			args:      []string{"infra:down"},
 			wantCode:  0,
 			wantCalls: []fakeCall{{name: "docker-compose", args: []string{"down"}}},
 		},
@@ -295,38 +295,38 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			wantErr:  "ship templ commands:",
 		},
 		{
-			name:     "generate help",
-			args:     []string{"generate", "help"},
+			name:     "make help",
+			args:     []string{"make", "help"},
 			wantCode: 0,
-			wantOut:  "ship generate commands:",
+			wantOut:  "ship make commands:",
 		},
 		{
-			name:     "generate missing subcommand",
-			args:     []string{"generate"},
+			name:     "make missing subcommand",
+			args:     []string{"make"},
+			wantCode: 0,
+			wantOut:  "ship make commands:",
+		},
+		{
+			name:     "make unknown subcommand",
+			args:     []string{"make:widget"},
 			wantCode: 1,
-			wantErr:  "ship generate commands:",
+			wantErr:  "unknown make command",
 		},
 		{
-			name:     "generate unknown subcommand",
-			args:     []string{"generate", "widget"},
+			name:     "make resource missing name",
+			args:     []string{"make:resource"},
 			wantCode: 1,
-			wantErr:  "unknown generate command",
+			wantErr:  "usage: ship make:resource",
 		},
 		{
-			name:     "generate resource missing name",
-			args:     []string{"generate", "resource"},
+			name:     "make model missing name",
+			args:     []string{"make:model"},
 			wantCode: 1,
-			wantErr:  "usage: ship generate resource",
+			wantErr:  "usage: ship make:model <Name> [fields...]",
 		},
 		{
-			name:     "generate model missing name",
-			args:     []string{"generate", "model"},
-			wantCode: 1,
-			wantErr:  "usage: ship generate model <Name> [fields...]",
-		},
-		{
-			name:     "generate model",
-			args:     []string{"generate", "model", "Post"},
+			name:     "make model",
+			args:     []string{"make:model", "Post"},
 			wantCode: 0,
 			wantCalls: []fakeCall{
 				{name: "go", args: []string{"run", "-mod=mod", "entgo.io/ent/cmd/ent", "new", "Post"}},
@@ -334,8 +334,8 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			},
 		},
 		{
-			name:     "generate model with fields warns",
-			args:     []string{"generate", "model", "Post", "title:string"},
+			name:     "make model with fields warns",
+			args:     []string{"make:model", "Post", "title:string"},
 			wantCode: 0,
 			wantErr:  "field scaffolding is not yet implemented",
 			wantCalls: []fakeCall{
@@ -590,7 +590,7 @@ func TestRunInfraUp_ResolveComposeFailure(t *testing.T) {
 		},
 	}
 
-	code := cli.Run([]string{"infra", "up"})
+	code := cli.Run([]string{"infra:up"})
 	if code != 1 {
 		t.Fatalf("exit code = %d, want 1", code)
 	}
@@ -619,7 +619,7 @@ func TestRunInfraUp_MailpitFailureIsNonFatal(t *testing.T) {
 		},
 	}
 
-	code := cli.Run([]string{"infra", "up"})
+	code := cli.Run([]string{"infra:up"})
 	if code != 0 {
 		t.Fatalf("exit code = %d, want 0", code)
 	}
@@ -648,7 +648,7 @@ func TestRunInfraDown_ResolveComposeFailure(t *testing.T) {
 		},
 	}
 
-	code := cli.Run([]string{"infra", "down"})
+	code := cli.Run([]string{"infra:down"})
 	if code != 1 {
 		t.Fatalf("exit code = %d, want 1", code)
 	}
@@ -931,7 +931,7 @@ func TestRunDBMigrate_DBURLResolutionError(t *testing.T) {
 			return "", errors.New("missing url")
 		},
 	}
-	code := cli.Run([]string{"db", "migrate"})
+	code := cli.Run([]string{"db:migrate"})
 	if code != 1 {
 		t.Fatalf("exit code = %d, want 1", code)
 	}
@@ -955,7 +955,7 @@ func TestRunDBRollback_DBURLResolutionError(t *testing.T) {
 			return "", errors.New("missing url")
 		},
 	}
-	code := cli.Run([]string{"db", "rollback"})
+	code := cli.Run([]string{"db:rollback"})
 	if code != 1 {
 		t.Fatalf("exit code = %d, want 1", code)
 	}

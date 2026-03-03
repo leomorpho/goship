@@ -325,7 +325,7 @@ func registerPublicRoutes() {
 	out := &bytes.Buffer{}
 	errOut := &bytes.Buffer{}
 	cli := CLI{Out: out, Err: errOut, Runner: &fakeRunner{}}
-	code := cli.Run([]string{"generate", "resource", "inbox", "--path", "app/goship", "--wire", "--dry-run", "--views", "none"})
+	code := cli.Run([]string{"make:resource", "inbox", "--path", "app/goship", "--wire", "--dry-run", "--views", "none"})
 	if code != 0 {
 		t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
 	}
@@ -382,7 +382,7 @@ func registerPublicRoutes() {
 	out := &bytes.Buffer{}
 	errOut := &bytes.Buffer{}
 	cli := CLI{Out: out, Err: errOut, Runner: &fakeRunner{}}
-	code := cli.Run([]string{"generate", "resource", "inbox", "--path", "app/goship", "--wire", "--views", "none"})
+	code := cli.Run([]string{"make:resource", "inbox", "--path", "app/goship", "--wire", "--views", "none"})
 	if code != 0 {
 		t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
 	}

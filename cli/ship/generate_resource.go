@@ -36,7 +36,7 @@ func (c CLI) runGenerateResource(args []string) int {
 		return 1
 	}
 	if strings.TrimSpace(parsed.Name) == "" {
-		fmt.Fprintln(c.Err, "usage: ship generate resource <name> [--path app/goship] [--auth public|auth] [--views templ|none] [--wire] [--dry-run]")
+		fmt.Fprintln(c.Err, "usage: ship make:resource <name> [--path app/goship] [--auth public|auth] [--views templ|none] [--wire] [--dry-run]")
 		return 1
 	}
 

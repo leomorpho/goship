@@ -46,8 +46,8 @@ Local runtime:
 - `ship dev --worker`
 - `ship dev --all`
 - `ship check`
-- `ship infra up`
-- `ship infra down`
+- `ship infra:up` (or `ship infra` for help)
+- `ship infra:down`
 
 Testing:
 
@@ -56,16 +56,16 @@ Testing:
 
 Database:
 
-- `ship db make <migration_name>`
-- `ship db migrate`
-- `ship db rollback`
-- `ship db seed`
+- `ship db:make <migration_name>` (or `ship db` for help)
+- `ship db:migrate`
+- `ship db:rollback`
+- `ship db:seed`
 
 Generation:
 
 - `ship templ generate [--path <dir>] [--file <file.templ>]`
-- `ship generate resource <name> [--path app/goship] [--auth public|auth] [--views templ|none] [--wire] [--dry-run]`
-- `ship generate model <Name> [fields...]`
+- `ship make:resource <name> [--path app/goship] [--auth public|auth] [--views templ|none] [--wire] [--dry-run]` (or `ship make` for help)
+- `ship make:model <Name> [fields...]`
 - `ship destroy <generated-artifact>` (planned)
 
 ## Versioning Rules
@@ -85,12 +85,12 @@ These commands are implemented as wrappers over existing workflows:
 - `ship check` -> runs Go checks directly; uses package lists in `scripts/test/*.txt` when present, otherwise `go test ./...`
 - `ship test` -> `go test ./...` (integration-tagged tests are excluded by default)
 - `ship test --integration` -> `go test -tags=integration ./...`
-- `ship infra up` -> detects `docker-compose`/`docker compose` and runs `up -d cache`, then attempts `up -d mailpit` (non-fatal if mailpit fails)
-- `ship infra down` -> detects `docker-compose`/`docker compose` and runs `down`
-- `ship db migrate` -> `atlas migrate apply --dir file://ent/migrate/migrations --url <resolved>`
-- `ship db make <migration_name>` -> `atlas migrate diff <migration_name> --dir file://ent/migrate/migrations --to ent://ent/schema --dev-url sqlite://file?mode=memory&_fk=1`
-- `ship db rollback [amount]` -> `atlas migrate down ... [amount]`
-- `ship db seed` -> `go run ./cmd/seed/main.go`
+- `ship infra:up` -> detects `docker-compose`/`docker compose` and runs `up -d cache`, then attempts `up -d mailpit` (non-fatal if mailpit fails)
+- `ship infra:down` -> detects `docker-compose`/`docker compose` and runs `down`
+- `ship db:migrate` -> `atlas migrate apply --dir file://ent/migrate/migrations --url <resolved>`
+- `ship db:make <migration_name>` -> `atlas migrate diff <migration_name> --dir file://ent/migrate/migrations --to ent://ent/schema --dev-url sqlite://file?mode=memory&_fk=1`
+- `ship db:rollback [amount]` -> `atlas migrate down ... [amount]`
+- `ship db:seed` -> `go run ./cmd/seed/main.go`
 
 DB URL resolution precedence for migrate/rollback:
 
@@ -98,13 +98,13 @@ DB URL resolution precedence for migrate/rollback:
 2. `config/application.yaml` + `config/environments/<APP_ENV|app.environment>.yaml`
 
 If `PAGODA_DATABASE_URL` is set, CLI fails with an explicit error and asks to use `DATABASE_URL`.
-If config resolves to embedded DB mode, `ship db migrate`/`rollback` fail with an explicit error.
+If config resolves to embedded DB mode, `ship db:migrate`/`db:rollback` fail with an explicit error.
 - `ship templ generate --path app` -> `templ generate -path app`, then move each `*_templ.go` into sibling `gen/` directory
 - `ship new <app>` -> create minimal deterministic project scaffold in a new directory (no network calls)
-- `ship generate resource <name>` -> scaffold handler (+ optional templ page), ensure route-name constant, and print route snippet for manual insertion in `app/goship/router.go`
-- `ship generate resource <name> --wire` -> also insert snippet behind ship markers in `app/goship/router.go`
-- `ship generate resource <name> --dry-run` -> preview all planned changes without writing files
-- `ship generate model <Name>` -> run Ent schema scaffolding (`ent new`) then ORM codegen (`ent generate`)
+- `ship make:resource <name>` -> scaffold handler (+ optional templ page), ensure route-name constant, and print route snippet for manual insertion in `app/goship/router.go`
+- `ship make:resource <name> --wire` -> also insert snippet behind ship markers in `app/goship/router.go`
+- `ship make:resource <name> --dry-run` -> preview all planned changes without writing files
+- `ship make:model <Name>` -> run Ent schema scaffolding (`ent new`) then ORM codegen (`ent generate`)
 
 `ship new` v1 contract:
 

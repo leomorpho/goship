@@ -10,7 +10,7 @@ var modelNamePattern = regexp.MustCompile(`^[A-Z][A-Za-z0-9]*$`)
 
 func (c CLI) runGenerateModel(args []string) int {
 	if len(args) == 0 {
-		fmt.Fprintln(c.Err, "usage: ship generate model <Name> [fields...]")
+		fmt.Fprintln(c.Err, "usage: ship make:model <Name> [fields...]")
 		return 1
 	}
 
