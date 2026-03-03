@@ -1,3 +1,5 @@
+//go:build integration
+
 package emailsmanager_test
 
 import (

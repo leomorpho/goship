@@ -1,3 +1,5 @@
+//go:build integration
+
 package subscriptions_test
 
 import (

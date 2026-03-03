@@ -2,16 +2,20 @@ package ship
 
 import (
 	"bufio"
+	"context"
 	"errors"
 	"flag"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
+	"syscall"
 )
 
 const (
@@ -42,9 +46,10 @@ func (ExecRunner) Run(name string, args ...string) (int, error) {
 }
 
 type CLI struct {
-	Out    io.Writer
-	Err    io.Writer
-	Runner CmdRunner
+	Out       io.Writer
+	Err       io.Writer
+	Runner    CmdRunner
+	RunDevAll func() int
 }
 
 func New() CLI {
@@ -136,25 +141,96 @@ func (c CLI) runDev(args []string) int {
 
 	switch mode {
 	case "web":
-		if hasMakefile() {
-			return c.runCmd("make", "dev")
-		}
 		return c.runCmd("go", "run", "./cmd/web")
 	case "worker":
-		if hasMakefile() {
-			return c.runCmd("make", "dev-worker")
-		}
 		return c.runCmd("go", "run", "./cmd/worker")
 	case "all":
-		if hasMakefile() {
-			return c.runCmd("make", "dev-full")
+		if c.RunDevAll != nil {
+			return c.RunDevAll()
 		}
-		fmt.Fprintln(c.Err, "ship dev all requires project process orchestration; use ship dev in CLI-only projects")
-		return 1
+		return c.runDevAll()
 	default:
 		fmt.Fprintf(c.Err, "unknown dev mode: %s\n", mode)
 		return 1
 	}
+}
+
+type devProcessExit struct {
+	name string
+	code int
+	err  error
+}
+
+func (c CLI) runDevAll() int {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	processes := []struct {
+		name string
+		args []string
+	}{
+		{name: "web", args: []string{"run", "./cmd/web"}},
+		{name: "worker", args: []string{"run", "./cmd/worker"}},
+	}
+
+	cmds := make([]*exec.Cmd, 0, len(processes))
+	exitCh := make(chan devProcessExit, len(processes))
+
+	for _, proc := range processes {
+		cmd := exec.CommandContext(ctx, "go", proc.args...)
+		cmd.Stdout = newPrefixedWriter(c.Out, proc.name)
+		cmd.Stderr = newPrefixedWriter(c.Err, proc.name)
+		cmd.Stdin = os.Stdin
+		if err := cmd.Start(); err != nil {
+			stop()
+			fmt.Fprintf(c.Err, "failed to start %s: %v\n", proc.name, err)
+			return 1
+		}
+		cmds = append(cmds, cmd)
+		go func(name string, started *exec.Cmd) {
+			err := started.Wait()
+			code := 0
+			if err != nil {
+				var exitErr *exec.ExitError
+				if errors.As(err, &exitErr) {
+					code = exitErr.ExitCode()
+				} else {
+					code = 1
+				}
+			}
+			exitCh <- devProcessExit{name: name, code: code, err: err}
+		}(proc.name, cmd)
+	}
+
+	failed := false
+	failedCode := 1
+	for range processes {
+		exit := <-exitCh
+		if exit.code != 0 {
+			if ctx.Err() != nil {
+				continue
+			}
+			if !failed {
+				failed = true
+				failedCode = exit.code
+				fmt.Fprintf(c.Err, "%s exited with code %d\n", exit.name, exit.code)
+				stop()
+				for _, cmd := range cmds {
+					if cmd.Process != nil {
+						_ = cmd.Process.Signal(syscall.SIGTERM)
+					}
+				}
+			}
+		}
+	}
+
+	if failed {
+		return failedCode
+	}
+	if ctx.Err() != nil {
+		return 130
+	}
+	return 0
 }
 
 func (c CLI) runCheck(args []string) int {
@@ -228,13 +304,7 @@ func (c CLI) runTest(args []string) int {
 	}
 
 	if *integration {
-		if hasMakefile() {
-			return c.runCmd("make", "test-integration")
-		}
 		return c.runCmd("go", "test", "-tags=integration", "./...")
-	}
-	if hasMakefile() {
-		return c.runCmd("make", "test")
 	}
 	return c.runCmd("go", "test", "./...")
 }
@@ -410,6 +480,7 @@ func printDevHelp(w io.Writer) {
 	fmt.Fprintln(w, "  ship dev all")
 	fmt.Fprintln(w, "  ship dev --worker")
 	fmt.Fprintln(w, "  ship dev --all")
+	fmt.Fprintln(w, "  (default runs web; use --all to run web + worker concurrently)")
 }
 
 func printDBHelp(w io.Writer) {
@@ -622,4 +693,35 @@ func withWorkingDir(dir string, fn func() error) error {
 	}
 	defer func() { _ = os.Chdir(wd) }()
 	return fn()
+}
+
+type prefixedWriter struct {
+	out    io.Writer
+	prefix string
+	mu     sync.Mutex
+}
+
+func newPrefixedWriter(out io.Writer, name string) io.Writer {
+	return &prefixedWriter{
+		out:    out,
+		prefix: "[" + name + "] ",
+	}
+}
+
+func (w *prefixedWriter) Write(p []byte) (int, error) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+
+	text := string(p)
+	lines := strings.Split(text, "\n")
+	for i, line := range lines {
+		// Preserve trailing newline behavior while still prefixing all complete lines.
+		if line == "" && i == len(lines)-1 {
+			continue
+		}
+		if _, err := io.WriteString(w.out, w.prefix+line+"\n"); err != nil {
+			return 0, err
+		}
+	}
+	return len(p), nil
 }

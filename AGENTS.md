@@ -53,6 +53,8 @@ When in doubt, follow `docs/architecture/02-structure-and-boundaries.md`.
 - Prefer table-driven unit tests.
 - Keep logic testable without Docker where possible.
 - Use integration tests for external/process boundaries.
+- Mark integration tests with `//go:build integration`.
+- Run integration paths with `go run ./cli/ship/cmd/ship test --integration`.
 - Pre-commit must pass (`lefthook`).
 - Aim for 90%+ package coverage trend over time.
 
@@ -60,12 +62,12 @@ Common commands:
 
 - `make dev`
 - `make test`
-- `make test-integration`
 - `make testall`
 - `make templ-gen`
 - `make ent-gen`
 - `go run ./cli/ship/cmd/ship dev`
 - `go run ./cli/ship/cmd/ship test`
+- `go run ./cli/ship/cmd/ship test --integration`
 
 ## Documentation Sync (Required)
 

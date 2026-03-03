@@ -76,6 +76,7 @@ UI and rendering:
 - `make test` (Go tests)
 - `make test-integration`
 - `go run ./cli/ship/cmd/ship test`
+- `go run ./cli/ship/cmd/ship test --integration`
 - `make build-js`
 - `make build-css`
 - `make templ-gen`
@@ -89,3 +90,8 @@ When code behavior changes, update at least:
 - `docs/architecture/03-project-scope-analysis.md` if capability changed
 - `docs/architecture/04-http-routes.md` if route surface changed
 - `docs/architecture/06-known-gaps-and-risks.md` if a risk was added/removed
+
+## Test Tagging Rule
+
+- Integration tests must use `//go:build integration`.
+- Keep default tests (`ship test`) stateless and fast by tagging infra-dependent tests.

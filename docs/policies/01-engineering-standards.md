@@ -43,8 +43,8 @@ Rules:
 Every PR must run:
 
 1. lint/format checks
-2. `make test`
-3. selected integration tests (or full `make test-integration` where feasible)
+2. `ship test`
+3. selected integration tests (or full `ship test --integration` where feasible)
 
 Main branch protection should require CI green before merge.
 
@@ -54,6 +54,7 @@ Main branch protection should require CI green before merge.
 2. Keep business logic testable without Docker where possible.
 3. Use integration tests for external systems and process boundaries only.
 4. Keep package-level coverage trending to 90%+ over time.
+5. Mark integration tests with Go build tags (`//go:build integration`) and run them via `ship test --integration`.
 
 ## 6) Versioning and Tooling
 

@@ -1,3 +1,5 @@
+//go:build integration
+
 package profilerepo_test
 
 import (

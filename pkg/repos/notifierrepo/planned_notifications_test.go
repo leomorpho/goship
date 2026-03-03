@@ -1,3 +1,5 @@
+//go:build integration
+
 package notifierrepo_test
 
 import (

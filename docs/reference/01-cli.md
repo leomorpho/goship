@@ -76,12 +76,12 @@ Generation:
 
 These commands are implemented as wrappers over existing workflows:
 
-- `ship dev` -> `make dev`
-- `ship dev --worker` -> `make dev-worker`
-- `ship dev --all` -> `make dev-full`
+- `ship dev` -> `go run ./cmd/web`
+- `ship dev --worker` -> `go run ./cmd/worker`
+- `ship dev --all` -> starts both processes concurrently with prefixed logs (`[web]`, `[worker]`) and signal-aware shutdown
 - `ship check` -> runs Go checks directly; uses package lists in `scripts/test/*.txt` when present, otherwise `go test ./...`
-- `ship test` -> `make test`
-- `ship test --integration` -> `make test-integration`
+- `ship test` -> `go test ./...` (integration-tagged tests are excluded by default)
+- `ship test --integration` -> `go test -tags=integration ./...`
 - `ship db create` -> `make up`
 - `ship db migrate` -> `make migrate`
 - `ship db rollback [amount]` -> `atlas migrate down ... [amount]`
@@ -106,6 +106,7 @@ Generated project workflow:
 
 1. `ship` is the canonical interface for dev/test/check/generate flows.
 2. Generated projects must not require a Makefile to use core workflows.
+3. Integration tests must use Go build tags (`//go:build integration`) instead of package list curation.
 
 Resource generator contract (v1 minimal):
 

@@ -24,8 +24,8 @@ Before deploying:
 2. Confirm server hosts and SSH configuration.
 3. Confirm runtime environment variables (DB, cache, app secrets).
 4. Run local checks:
-   - `make test`
-   - `make test-integration` (recommended when touching infra-sensitive code)
+   - `go run ./cli/ship/cmd/ship test`
+   - `go run ./cli/ship/cmd/ship test --integration` (recommended when touching infra-sensitive code)
 
 ## First Setup
 

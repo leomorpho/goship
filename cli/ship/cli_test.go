@@ -36,14 +36,16 @@ func (f *fakeRunner) Run(name string, args ...string) (int, error) {
 
 func TestRun_DispatchAndArgs(t *testing.T) {
 	tests := []struct {
-		name       string
-		args       []string
-		wantCode   int
-		wantCalls  []fakeCall
-		wantOut    string
-		wantErr    string
-		runnerCode int
-		runnerErr  error
+		name            string
+		args            []string
+		wantCode        int
+		wantCalls       []fakeCall
+		wantOut         string
+		wantErr         string
+		runnerCode      int
+		runnerErr       error
+		useDevAllRunner bool
+		devAllCode      int
 	}{
 		{
 			name:      "no args prints root help",
@@ -69,37 +71,49 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			name:      "dev default",
 			args:      []string{"dev"},
 			wantCode:  0,
-			wantCalls: []fakeCall{{name: "make", args: []string{"dev"}}},
+			wantCalls: []fakeCall{{name: "go", args: []string{"run", "./cmd/web"}}},
 		},
 		{
 			name:      "shipdev alias",
 			args:      []string{"shipdev"},
 			wantCode:  0,
-			wantCalls: []fakeCall{{name: "make", args: []string{"dev"}}},
+			wantCalls: []fakeCall{{name: "go", args: []string{"run", "./cmd/web"}}},
 		},
 		{
 			name:      "dev worker positional",
 			args:      []string{"dev", "worker"},
 			wantCode:  0,
-			wantCalls: []fakeCall{{name: "make", args: []string{"dev-worker"}}},
+			wantCalls: []fakeCall{{name: "go", args: []string{"run", "./cmd/worker"}}},
 		},
 		{
-			name:      "dev all positional",
-			args:      []string{"dev", "all"},
-			wantCode:  0,
-			wantCalls: []fakeCall{{name: "make", args: []string{"dev-full"}}},
+			name:            "dev all positional",
+			args:            []string{"dev", "all"},
+			wantCode:        0,
+			wantCalls:       nil,
+			useDevAllRunner: true,
+			devAllCode:      0,
 		},
 		{
 			name:      "dev worker flag",
 			args:      []string{"dev", "--worker"},
 			wantCode:  0,
-			wantCalls: []fakeCall{{name: "make", args: []string{"dev-worker"}}},
+			wantCalls: []fakeCall{{name: "go", args: []string{"run", "./cmd/worker"}}},
 		},
 		{
-			name:      "dev all flag",
-			args:      []string{"dev", "--all"},
-			wantCode:  0,
-			wantCalls: []fakeCall{{name: "make", args: []string{"dev-full"}}},
+			name:            "dev all flag",
+			args:            []string{"dev", "--all"},
+			wantCode:        0,
+			wantCalls:       nil,
+			useDevAllRunner: true,
+			devAllCode:      0,
+		},
+		{
+			name:            "dev all runner exit code is propagated",
+			args:            []string{"dev", "all"},
+			wantCode:        9,
+			wantCalls:       nil,
+			useDevAllRunner: true,
+			devAllCode:      9,
 		},
 		{
 			name:     "dev both flags invalid",
@@ -123,13 +137,13 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			name:      "test default",
 			args:      []string{"test"},
 			wantCode:  0,
-			wantCalls: []fakeCall{{name: "make", args: []string{"test"}}},
+			wantCalls: []fakeCall{{name: "go", args: []string{"test", "./..."}}},
 		},
 		{
 			name:      "test integration",
 			args:      []string{"test", "--integration"},
 			wantCode:  0,
-			wantCalls: []fakeCall{{name: "make", args: []string{"test-integration"}}},
+			wantCalls: []fakeCall{{name: "go", args: []string{"test", "-tags=integration", "./..."}}},
 		},
 		{
 			name:     "test invalid arg",
@@ -279,14 +293,14 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			name:       "runner exit code is propagated",
 			args:       []string{"dev"},
 			wantCode:   7,
-			wantCalls:  []fakeCall{{name: "make", args: []string{"dev"}}},
+			wantCalls:  []fakeCall{{name: "go", args: []string{"run", "./cmd/web"}}},
 			runnerCode: 7,
 		},
 		{
 			name:      "runner error prints message",
 			args:      []string{"dev"},
 			wantCode:  1,
-			wantCalls: []fakeCall{{name: "make", args: []string{"dev"}}},
+			wantCalls: []fakeCall{{name: "go", args: []string{"run", "./cmd/web"}}},
 			wantErr:   "failed to run command",
 			runnerErr: errors.New("boom"),
 		},
@@ -294,14 +308,36 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			if len(tt.args) > 0 && (tt.args[0] == "dev" || tt.args[0] == "shipdev" || tt.args[0] == "test" || tt.args[0] == "check") {
+				prevWD, err := os.Getwd()
+				if err != nil {
+					t.Fatal(err)
+				}
+				tmp := t.TempDir()
+				if err := os.Chdir(tmp); err != nil {
+					t.Fatal(err)
+				}
+				t.Cleanup(func() { _ = os.Chdir(prevWD) })
+			}
+
 			out := &bytes.Buffer{}
 			errOut := &bytes.Buffer{}
 			runner := &fakeRunner{code: tt.runnerCode, err: tt.runnerErr}
+			devAllCalls := 0
 			cli := CLI{Out: out, Err: errOut, Runner: runner}
+			if tt.useDevAllRunner {
+				cli.RunDevAll = func() int {
+					devAllCalls++
+					return tt.devAllCode
+				}
+			}
 
 			got := cli.Run(tt.args)
 			if got != tt.wantCode {
 				t.Fatalf("exit code = %d, want %d", got, tt.wantCode)
+			}
+			if tt.useDevAllRunner && devAllCalls != 1 {
+				t.Fatalf("RunDevAll calls = %d, want 1", devAllCalls)
 			}
 			if tt.wantOut != "" && !strings.Contains(out.String(), tt.wantOut) {
 				t.Fatalf("stdout = %q, want contains %q", out.String(), tt.wantOut)
