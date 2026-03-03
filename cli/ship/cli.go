@@ -46,10 +46,11 @@ func (ExecRunner) Run(name string, args ...string) (int, error) {
 }
 
 type CLI struct {
-	Out       io.Writer
-	Err       io.Writer
-	Runner    CmdRunner
-	RunDevAll func() int
+	Out            io.Writer
+	Err            io.Writer
+	Runner         CmdRunner
+	RunDevAll      func() int
+	ResolveCompose func() ([]string, error)
 }
 
 func New() CLI {
@@ -321,14 +322,13 @@ func (c CLI) runDB(args []string) int {
 			fmt.Fprintln(c.Err, "usage: ship db create")
 			return 1
 		}
-		// In current local setup, creating DB is equivalent to bringing infra up.
-		return c.runCmd("make", "up")
+		return c.runDBCreate()
 	case "migrate":
 		if len(args) != 1 {
 			fmt.Fprintln(c.Err, "usage: ship db migrate")
 			return 1
 		}
-		return c.runCmd("make", "migrate")
+		return c.runCmd("atlas", "migrate", "apply", "--dir", atlasDir, "--url", atlasURL)
 	case "rollback":
 		return c.runDBRollback(args[1:])
 	case "seed":
@@ -336,7 +336,7 @@ func (c CLI) runDB(args []string) int {
 			fmt.Fprintln(c.Err, "usage: ship db seed")
 			return 1
 		}
-		return c.runCmd("make", "seed")
+		return c.runCmd("go", "run", "./cmd/seed/main.go")
 	case "help", "-h", "--help":
 		printDBHelp(c.Out)
 		return 0
@@ -345,6 +345,29 @@ func (c CLI) runDB(args []string) int {
 		printDBHelp(c.Err)
 		return 1
 	}
+}
+
+func (c CLI) runDBCreate() int {
+	resolver := c.ResolveCompose
+	if resolver == nil {
+		resolver = resolveComposeCommand
+	}
+	compose, err := resolver()
+	if err != nil {
+		fmt.Fprintf(c.Err, "failed to resolve docker compose: %v\n", err)
+		return 1
+	}
+	name := compose[0]
+	baseArgs := compose[1:]
+
+	if code := c.runCmd(name, append(baseArgs, "up", "-d", "cache")...); code != 0 {
+		return code
+	}
+	if code := c.runCmd(name, append(baseArgs, "up", "-d", "mailpit")...); code != 0 {
+		// Mailpit should not block local development when SMTP port 1025 is already occupied.
+		fmt.Fprintln(c.Err, "warning: could not start mailpit; continuing with cache only")
+	}
+	return 0
 }
 
 func (c CLI) runTempl(args []string) int {
@@ -693,6 +716,19 @@ func withWorkingDir(dir string, fn func() error) error {
 	}
 	defer func() { _ = os.Chdir(wd) }()
 	return fn()
+}
+
+func resolveComposeCommand() ([]string, error) {
+	if _, err := exec.LookPath("docker-compose"); err == nil {
+		return []string{"docker-compose"}, nil
+	}
+	if _, err := exec.LookPath("docker"); err == nil {
+		cmd := exec.Command("docker", "compose", "version")
+		if err := cmd.Run(); err == nil {
+			return []string{"docker", "compose"}, nil
+		}
+	}
+	return nil, errors.New("no docker compose command found (docker-compose or docker compose)")
 }
 
 type prefixedWriter struct {

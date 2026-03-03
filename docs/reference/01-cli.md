@@ -82,10 +82,10 @@ These commands are implemented as wrappers over existing workflows:
 - `ship check` -> runs Go checks directly; uses package lists in `scripts/test/*.txt` when present, otherwise `go test ./...`
 - `ship test` -> `go test ./...` (integration-tagged tests are excluded by default)
 - `ship test --integration` -> `go test -tags=integration ./...`
-- `ship db create` -> `make up`
-- `ship db migrate` -> `make migrate`
+- `ship db create` -> detects `docker-compose`/`docker compose` and runs `up -d cache`, then attempts `up -d mailpit` (non-fatal if mailpit fails)
+- `ship db migrate` -> `atlas migrate apply --dir file://ent/migrate/migrations --url <configured>`
 - `ship db rollback [amount]` -> `atlas migrate down ... [amount]`
-- `ship db seed` -> `make seed`
+- `ship db seed` -> `go run ./cmd/seed/main.go`
 - `ship templ generate --path app` -> `templ generate -path app`, then move each `*_templ.go` into sibling `gen/` directory
 - `ship new <app>` -> create minimal deterministic project scaffold in a new directory (no network calls)
 - `ship generate resource <name>` -> scaffold handler (+ optional templ page), ensure route-name constant, and print route snippet for manual insertion in `app/goship/router.go`

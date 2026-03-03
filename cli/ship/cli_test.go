@@ -158,22 +158,25 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			wantOut:  "ship test commands:",
 		},
 		{
-			name:      "db create",
-			args:      []string{"db", "create"},
-			wantCode:  0,
-			wantCalls: []fakeCall{{name: "make", args: []string{"up"}}},
+			name:     "db create",
+			args:     []string{"db", "create"},
+			wantCode: 0,
+			wantCalls: []fakeCall{
+				{name: "docker-compose", args: []string{"up", "-d", "cache"}},
+				{name: "docker-compose", args: []string{"up", "-d", "mailpit"}},
+			},
 		},
 		{
 			name:      "db migrate",
 			args:      []string{"db", "migrate"},
 			wantCode:  0,
-			wantCalls: []fakeCall{{name: "make", args: []string{"migrate"}}},
+			wantCalls: []fakeCall{{name: "atlas", args: []string{"migrate", "apply", "--dir", atlasDir, "--url", atlasURL}}},
 		},
 		{
 			name:      "db seed",
 			args:      []string{"db", "seed"},
 			wantCode:  0,
-			wantCalls: []fakeCall{{name: "make", args: []string{"seed"}}},
+			wantCalls: []fakeCall{{name: "go", args: []string{"run", "./cmd/seed/main.go"}}},
 		},
 		{
 			name:     "db rollback default amount",
@@ -325,6 +328,9 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			runner := &fakeRunner{code: tt.runnerCode, err: tt.runnerErr}
 			devAllCalls := 0
 			cli := CLI{Out: out, Err: errOut, Runner: runner}
+			cli.ResolveCompose = func() ([]string, error) {
+				return []string{"docker-compose"}, nil
+			}
 			if tt.useDevAllRunner {
 				cli.RunDevAll = func() int {
 					devAllCalls++
@@ -508,5 +514,63 @@ func TestRunCheck_FallbackToGoTestAll(t *testing.T) {
 	}
 	if runner.calls[0].name != "go" || strings.Join(runner.calls[0].args, " ") != "test ./..." {
 		t.Fatalf("unexpected call: %s %v", runner.calls[0].name, runner.calls[0].args)
+	}
+}
+
+func TestRunDBCreate_ResolveComposeFailure(t *testing.T) {
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	runner := &fakeRunner{}
+	cli := CLI{
+		Out:    out,
+		Err:    errOut,
+		Runner: runner,
+		ResolveCompose: func() ([]string, error) {
+			return nil, errors.New("missing compose")
+		},
+	}
+
+	code := cli.Run([]string{"db", "create"})
+	if code != 1 {
+		t.Fatalf("exit code = %d, want 1", code)
+	}
+	if !strings.Contains(errOut.String(), "failed to resolve docker compose") {
+		t.Fatalf("stderr = %q, want compose failure message", errOut.String())
+	}
+	if len(runner.calls) != 0 {
+		t.Fatalf("runner calls = %v, want none", runner.calls)
+	}
+}
+
+func TestRunDBCreate_MailpitFailureIsNonFatal(t *testing.T) {
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	runner := &fakeRunner{
+		nextCode: map[string]int{
+			"docker-compose up -d mailpit": 1,
+		},
+	}
+	cli := CLI{
+		Out:    out,
+		Err:    errOut,
+		Runner: runner,
+		ResolveCompose: func() ([]string, error) {
+			return []string{"docker-compose"}, nil
+		},
+	}
+
+	code := cli.Run([]string{"db", "create"})
+	if code != 0 {
+		t.Fatalf("exit code = %d, want 0", code)
+	}
+	if !strings.Contains(errOut.String(), "warning: could not start mailpit") {
+		t.Fatalf("stderr = %q, want mailpit warning", errOut.String())
+	}
+	want := []fakeCall{
+		{name: "docker-compose", args: []string{"up", "-d", "cache"}},
+		{name: "docker-compose", args: []string{"up", "-d", "mailpit"}},
+	}
+	if len(runner.calls) != len(want) {
+		t.Fatalf("calls len=%d want=%d calls=%v", len(runner.calls), len(want), runner.calls)
 	}
 }
