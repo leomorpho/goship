@@ -437,6 +437,7 @@ Last updated: 2026-03-03
 - `cli/ship/cli.go`
 - `pkg/services/container.go`
 - `pkg/core/interfaces.go`
+- `pkg/core/adapters/registry.go`
 - `app/goship/router.go`
 - `app/goship/web/routes/*.go`
 - `pkg/tasks/*.go`
@@ -1100,6 +1101,7 @@ To enforce that, app and module code should depend on core interfaces instead of
 ## Canonical Package
 
 - `pkg/core/interfaces.go`
+- `pkg/core/adapters/registry.go`
 
 This package is the current source of truth for adapter seam contracts.
 
@@ -1134,6 +1136,23 @@ Jobs backends expose `JobCapabilities` (delayed, retries, cron, priority, dead-l
 
 - `ValidateJobCapabilities(required, available)` fails fast at startup when runtime config requires unsupported features.
 - This is the first implementation of the "capability contract" rule from the framework plan.
+
+## Adapter Registry and Startup Guardrails
+
+The runtime now has a canonical adapter registry:
+
+- known adapter names by seam (`db`, `cache`, `jobs`, `pubsub`)
+- jobs capability map per backend
+- derived requirements from process/runtime config (`pkg/core/adapters/requirements.go`)
+
+Container startup validates:
+
+1. selected adapters are known;
+2. selected jobs backend satisfies derived capability requirements.
+
+Current startup behavior:
+
+- invalid selection or capability mismatch fails fast at startup.
 
 ## Scope Boundaries
 
@@ -2602,7 +2621,7 @@ Test evidence:
 - [x] Decide and document exact package naming convention (`github.com/leomorpho/goship/*`).
 - [x] Choose CLI implementation approach (stdlib `flag` + explicit command dispatch in `cli/ship`).
 - [x] Draft `core` interface contracts in a design doc and first package (`pkg/core`).
-- [ ] Define runtime config schema for adapter selection.
+- [x] Define runtime config schema for adapter selection and add startup adapter validation registry.
 - [ ] Specify module compatibility/version policy.
 - [ ] Create a developer-facing README + LLM-facing README/`llm.txt` split with one source of truth.
 - [ ] Define MCP server scope for GoShip (commands, module APIs, recipes, migration help).

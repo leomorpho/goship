@@ -57,6 +57,7 @@ Last updated: 2026-03-03
 - `cli/ship/cli.go`
 - `pkg/services/container.go`
 - `pkg/core/interfaces.go`
+- `pkg/core/adapters/registry.go`
 - `app/goship/router.go`
 - `app/goship/web/routes/*.go`
 - `pkg/tasks/*.go`

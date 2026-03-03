@@ -18,6 +18,7 @@ To enforce that, app and module code should depend on core interfaces instead of
 ## Canonical Package
 
 - `pkg/core/interfaces.go`
+- `pkg/core/adapters/registry.go`
 
 This package is the current source of truth for adapter seam contracts.
 
@@ -52,6 +53,23 @@ Jobs backends expose `JobCapabilities` (delayed, retries, cron, priority, dead-l
 
 - `ValidateJobCapabilities(required, available)` fails fast at startup when runtime config requires unsupported features.
 - This is the first implementation of the "capability contract" rule from the framework plan.
+
+## Adapter Registry and Startup Guardrails
+
+The runtime now has a canonical adapter registry:
+
+- known adapter names by seam (`db`, `cache`, `jobs`, `pubsub`)
+- jobs capability map per backend
+- derived requirements from process/runtime config (`pkg/core/adapters/requirements.go`)
+
+Container startup validates:
+
+1. selected adapters are known;
+2. selected jobs backend satisfies derived capability requirements.
+
+Current startup behavior:
+
+- invalid selection or capability mismatch fails fast at startup.
 
 ## Scope Boundaries
 

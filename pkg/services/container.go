@@ -25,6 +25,7 @@ import (
 
 	"github.com/leomorpho/goship/config"
 	"github.com/leomorpho/goship/ent"
+	coreadapters "github.com/leomorpho/goship/pkg/core/adapters"
 	"github.com/leomorpho/goship/pkg/repos/mailer"
 	"github.com/leomorpho/goship/pkg/repos/notifierrepo"
 	"github.com/leomorpho/goship/pkg/repos/profilerepo"
@@ -91,6 +92,7 @@ type Container struct {
 func NewContainer() *Container {
 	c := new(Container)
 	c.initConfig()
+	c.validateAdapterPlan()
 	c.initValidator()
 	c.initWeb()
 	// c.initCache()
@@ -102,6 +104,27 @@ func NewContainer() *Container {
 	c.initPaymentProcessor()
 	// c.initTasks()
 	return c
+}
+
+func (c *Container) validateAdapterPlan() {
+	if c == nil || c.Config == nil {
+		panic("invalid container state: nil config")
+	}
+
+	reg := coreadapters.NewDefaultRegistry()
+	selection := coreadapters.Selection{
+		DB:     c.Config.Adapters.DB,
+		Cache:  c.Config.Adapters.Cache,
+		Jobs:   c.Config.Adapters.Jobs,
+		PubSub: c.Config.Adapters.PubSub,
+	}
+
+	if err := reg.ValidateSelection(selection); err != nil {
+		panic(fmt.Sprintf("invalid adapter selection: %v", err))
+	}
+	if err := reg.ValidateRequirements(selection, coreadapters.RequirementsFromConfig(c.Config)); err != nil {
+		panic(fmt.Sprintf("invalid adapter capabilities: %v", err))
+	}
 }
 
 // Shutdown shuts the Container down and disconnects all connections

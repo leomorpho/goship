@@ -700,7 +700,7 @@ Test evidence:
 - [x] Decide and document exact package naming convention (`github.com/leomorpho/goship/*`).
 - [x] Choose CLI implementation approach (stdlib `flag` + explicit command dispatch in `cli/ship`).
 - [x] Draft `core` interface contracts in a design doc and first package (`pkg/core`).
-- [ ] Define runtime config schema for adapter selection.
+- [x] Define runtime config schema for adapter selection and add startup adapter validation registry.
 - [ ] Specify module compatibility/version policy.
 - [ ] Create a developer-facing README + LLM-facing README/`llm.txt` split with one source of truth.
 - [ ] Define MCP server scope for GoShip (commands, module APIs, recipes, migration help).
