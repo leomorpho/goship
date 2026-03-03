@@ -88,6 +88,8 @@ func (c CLI) Run(args []string) int {
 		return c.runTest(args[1:])
 	case "db":
 		return c.runDB(args[1:])
+	case "infra":
+		return c.runInfra(args[1:])
 	case "templ":
 		return c.runTempl(args[1:])
 	case "generate":
@@ -319,12 +321,6 @@ func (c CLI) runDB(args []string) int {
 	}
 
 	switch args[0] {
-	case "create":
-		if len(args) != 1 {
-			fmt.Fprintln(c.Err, "usage: ship db create")
-			return 1
-		}
-		return c.runDBCreate()
 	case "migrate":
 		if len(args) != 1 {
 			fmt.Fprintln(c.Err, "usage: ship db migrate")
@@ -354,7 +350,47 @@ func (c CLI) runDB(args []string) int {
 	}
 }
 
-func (c CLI) runDBCreate() int {
+func (c CLI) runInfra(args []string) int {
+	if len(args) == 0 {
+		printInfraHelp(c.Err)
+		return 1
+	}
+
+	switch args[0] {
+	case "up":
+		if len(args) != 1 {
+			fmt.Fprintln(c.Err, "usage: ship infra up")
+			return 1
+		}
+		return c.runInfraUp()
+	case "down":
+		if len(args) != 1 {
+			fmt.Fprintln(c.Err, "usage: ship infra down")
+			return 1
+		}
+		resolver := c.ResolveCompose
+		if resolver == nil {
+			resolver = resolveComposeCommand
+		}
+		compose, err := resolver()
+		if err != nil {
+			fmt.Fprintf(c.Err, "failed to resolve docker compose: %v\n", err)
+			return 1
+		}
+		name := compose[0]
+		baseArgs := compose[1:]
+		return c.runCmd(name, append(baseArgs, "down")...)
+	case "help", "-h", "--help":
+		printInfraHelp(c.Out)
+		return 0
+	default:
+		fmt.Fprintf(c.Err, "unknown infra command: %s\n\n", args[0])
+		printInfraHelp(c.Err)
+		return 1
+	}
+}
+
+func (c CLI) runInfraUp() int {
 	resolver := c.ResolveCompose
 	if resolver == nil {
 		resolver = resolveComposeCommand
@@ -492,7 +528,8 @@ func printRootHelp(w io.Writer) {
 	fmt.Fprintln(w, "  ship dev [worker|all] [--worker|--all]")
 	fmt.Fprintln(w, "  ship check")
 	fmt.Fprintln(w, "  ship test [--integration]")
-	fmt.Fprintln(w, "  ship db <create|migrate|rollback|seed>")
+	fmt.Fprintln(w, "  ship db <migrate|rollback|seed>")
+	fmt.Fprintln(w, "  ship infra <up|down>")
 	fmt.Fprintln(w, "  ship templ <generate>")
 	fmt.Fprintln(w, "  ship generate <resource>")
 	fmt.Fprintln(w)
@@ -505,6 +542,7 @@ func printRootHelp(w io.Writer) {
 	fmt.Fprintln(w, "  ship test --integration")
 	fmt.Fprintln(w, "  ship db migrate")
 	fmt.Fprintln(w, "  ship db rollback 1")
+	fmt.Fprintln(w, "  ship infra up")
 	fmt.Fprintln(w, "  ship templ generate --path app")
 	fmt.Fprintln(w, "  ship generate resource contact")
 }
@@ -521,10 +559,15 @@ func printDevHelp(w io.Writer) {
 
 func printDBHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship db commands:")
-	fmt.Fprintln(w, "  ship db create")
 	fmt.Fprintln(w, "  ship db migrate")
 	fmt.Fprintln(w, "  ship db rollback [amount]")
 	fmt.Fprintln(w, "  ship db seed")
+}
+
+func printInfraHelp(w io.Writer) {
+	fmt.Fprintln(w, "ship infra commands:")
+	fmt.Fprintln(w, "  ship infra up")
+	fmt.Fprintln(w, "  ship infra down")
 }
 
 func printTestHelp(w io.Writer) {

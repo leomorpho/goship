@@ -160,13 +160,10 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			wantOut:  "ship test commands:",
 		},
 		{
-			name:     "db create",
+			name:     "db create removed",
 			args:     []string{"db", "create"},
-			wantCode: 0,
-			wantCalls: []fakeCall{
-				{name: "docker-compose", args: []string{"up", "-d", "cache"}},
-				{name: "docker-compose", args: []string{"up", "-d", "mailpit"}},
-			},
+			wantCode: 1,
+			wantErr:  "unknown db command: create",
 		},
 		{
 			name:      "db migrate",
@@ -221,6 +218,27 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			args:     []string{"db", "help"},
 			wantCode: 0,
 			wantOut:  "ship db commands:",
+		},
+		{
+			name:     "infra up",
+			args:     []string{"infra", "up"},
+			wantCode: 0,
+			wantCalls: []fakeCall{
+				{name: "docker-compose", args: []string{"up", "-d", "cache"}},
+				{name: "docker-compose", args: []string{"up", "-d", "mailpit"}},
+			},
+		},
+		{
+			name:      "infra down",
+			args:      []string{"infra", "down"},
+			wantCode:  0,
+			wantCalls: []fakeCall{{name: "docker-compose", args: []string{"down"}}},
+		},
+		{
+			name:     "infra help",
+			args:     []string{"infra", "help"},
+			wantCode: 0,
+			wantOut:  "ship infra commands:",
 		},
 		{
 			name:      "templ generate default path",
@@ -522,7 +540,7 @@ func TestRunCheck_FallbackToGoTestAll(t *testing.T) {
 	}
 }
 
-func TestRunDBCreate_ResolveComposeFailure(t *testing.T) {
+func TestRunInfraUp_ResolveComposeFailure(t *testing.T) {
 	out := &bytes.Buffer{}
 	errOut := &bytes.Buffer{}
 	runner := &fakeRunner{}
@@ -535,7 +553,7 @@ func TestRunDBCreate_ResolveComposeFailure(t *testing.T) {
 		},
 	}
 
-	code := cli.Run([]string{"db", "create"})
+	code := cli.Run([]string{"infra", "up"})
 	if code != 1 {
 		t.Fatalf("exit code = %d, want 1", code)
 	}
@@ -547,7 +565,7 @@ func TestRunDBCreate_ResolveComposeFailure(t *testing.T) {
 	}
 }
 
-func TestRunDBCreate_MailpitFailureIsNonFatal(t *testing.T) {
+func TestRunInfraUp_MailpitFailureIsNonFatal(t *testing.T) {
 	out := &bytes.Buffer{}
 	errOut := &bytes.Buffer{}
 	runner := &fakeRunner{
@@ -564,7 +582,7 @@ func TestRunDBCreate_MailpitFailureIsNonFatal(t *testing.T) {
 		},
 	}
 
-	code := cli.Run([]string{"db", "create"})
+	code := cli.Run([]string{"infra", "up"})
 	if code != 0 {
 		t.Fatalf("exit code = %d, want 0", code)
 	}
@@ -577,6 +595,31 @@ func TestRunDBCreate_MailpitFailureIsNonFatal(t *testing.T) {
 	}
 	if len(runner.calls) != len(want) {
 		t.Fatalf("calls len=%d want=%d calls=%v", len(runner.calls), len(want), runner.calls)
+	}
+}
+
+func TestRunInfraDown_ResolveComposeFailure(t *testing.T) {
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	runner := &fakeRunner{}
+	cli := CLI{
+		Out:    out,
+		Err:    errOut,
+		Runner: runner,
+		ResolveCompose: func() ([]string, error) {
+			return nil, errors.New("missing compose")
+		},
+	}
+
+	code := cli.Run([]string{"infra", "down"})
+	if code != 1 {
+		t.Fatalf("exit code = %d, want 1", code)
+	}
+	if !strings.Contains(errOut.String(), "failed to resolve docker compose") {
+		t.Fatalf("stderr = %q, want compose failure message", errOut.String())
+	}
+	if len(runner.calls) != 0 {
+		t.Fatalf("runner calls = %v, want none", runner.calls)
 	}
 }
 

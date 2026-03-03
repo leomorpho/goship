@@ -1532,6 +1532,8 @@ Local runtime:
 - `ship dev --worker`
 - `ship dev --all`
 - `ship check`
+- `ship infra up`
+- `ship infra down`
 
 Testing:
 
@@ -1540,7 +1542,6 @@ Testing:
 
 Database:
 
-- `ship db create`
 - `ship db migrate`
 - `ship db rollback`
 - `ship db seed`
@@ -1568,7 +1569,8 @@ These commands are implemented as wrappers over existing workflows:
 - `ship check` -> runs Go checks directly; uses package lists in `scripts/test/*.txt` when present, otherwise `go test ./...`
 - `ship test` -> `go test ./...` (integration-tagged tests are excluded by default)
 - `ship test --integration` -> `go test -tags=integration ./...`
-- `ship db create` -> detects `docker-compose`/`docker compose` and runs `up -d cache`, then attempts `up -d mailpit` (non-fatal if mailpit fails)
+- `ship infra up` -> detects `docker-compose`/`docker compose` and runs `up -d cache`, then attempts `up -d mailpit` (non-fatal if mailpit fails)
+- `ship infra down` -> detects `docker-compose`/`docker compose` and runs `down`
 - `ship db migrate` -> `atlas migrate apply --dir file://ent/migrate/migrations --url <resolved>`
 - `ship db rollback [amount]` -> `atlas migrate down ... [amount]`
 - `ship db seed` -> `go run ./cmd/seed/main.go`
