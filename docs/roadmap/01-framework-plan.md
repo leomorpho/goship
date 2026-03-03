@@ -31,6 +31,12 @@ Primary files for ongoing refactor work:
 3. `docs/guides/01-ai-agent-guide.md` (agent execution conventions)
 4. `docs/reference/01-cli.md` (living `ship` CLI contract)
 
+Documentation execution priority:
+
+1. Docs-first is preferred over MCP/tooling-first in the near term.
+2. `ship-mcp` remains a future extension point, not a primary workflow dependency today.
+3. Build task-focused how-to guides that make common changes fast and repeatable.
+
 Primary framing:
 
 - GoShip aims to be a Ruby on Rails alternative in Go, with comparable batteries-included productivity and developer ergonomics.
@@ -228,6 +234,26 @@ Non-goals for direct adoption:
 1. Go-based HTML component stack from Pagoda (`gomponents`) as a hard dependency.
 2. Any upstream UI architecture changes that reduce GoShip's Templ+HTMX ergonomics.
 3. Forcing GoShip into SQLite-centric defaults at this stage.
+
+## Documentation Quality Initiative
+
+Primary goal:
+
+1. Deliver documentation quality at least equal to Pagoda's onboarding clarity, and better on practical implementation guides.
+
+Near-term deliverable:
+
+1. Build out `docs/guides/03-how-to-playbook.md` into concrete how-to guides for common engineering tasks.
+
+Initial guide set:
+
+1. Add endpoint
+2. Add page/view
+3. Add model + migration
+4. Add service/repo
+5. Add background job
+6. Add adapter
+7. Add tests
 
 ## Pagoda Intake TODOs
 

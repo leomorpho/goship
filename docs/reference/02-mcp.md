@@ -2,6 +2,14 @@
 
 This document defines the minimal MCP server currently shipped in this repository.
 
+## Status
+
+Current status:
+
+1. Not actively used in day-to-day framework development right now.
+2. Kept as a future extension point for LLM-facing tooling.
+3. Near-term priority is high-quality human + LLM-friendly documentation under `docs/`.
+
 ## Location
 
 - Module: `mcp/ship`

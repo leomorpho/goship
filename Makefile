@@ -41,6 +41,10 @@ ensure-compose:
 hooks: ## Install git hooks via lefthook
 	lefthook install
 
+.PHONY: llm-txt
+llm-txt: ## Generate root LLM.txt from README and docs markdown files
+	bash scripts/generate-llm-txt.sh
+
 # Core workflow ------------------------------------------------------------------------------
 
 .PHONY: dev

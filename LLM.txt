@@ -1,0 +1,2537 @@
+# LLM.txt
+
+Generated file. Do not edit manually.
+Source of truth is the markdown docs in this repository.
+
+---
+FILE: README.md
+---
+## GoShip: Ship in Record Time ⛵️🛟⚓️📦
+
+### A Go + HTMX boilerplate with all the essentials for your SaaS, AI tools, or web apps. Start earning online quickly without the hassle.
+
+🎯 **The goal of this project** is to build the most comprehensive Go-centric OSS starter boilerplate to ship projects fast.
+
+<!-- [![Go Report Card](https://goreportcard.com/badge/github.com/mikestefanello/pagoda)](https://goreportcard.com/report/github.com/mikestefanello/pagoda) -->
+[![Test](https://github.com/leomorpho/GoShip/actions/workflows/test.yml/badge.svg)](https://github.com/leomorpho/GoShip/actions/workflows/test.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+
+<p align="center"><img alt="Logo" src="https://goship-static.s3.us-west-002.backblazeb2.com/assets/goship.png" height="200px"/></p>
+
+<p align="center">
+  <a href="http://www.youtube.com/watch?feature=player_embedded&v=Mnti8f-4bp0" target="_blank"><img src="https://goship-static.s3.us-west-002.backblazeb2.com/assets/git-repo-video-overview-frame.jpg" 
+  alt="Rapid walktrough of project" style="max-width: 100%; height: auto; border: 10px;" /></a>
+</p>
+
+<p style="text-align:center;">Check out the video above for a rapid walkthrough of the project! 🏂</p>
+
+This started as a fork of [pagoda](https://github.com/mikestefanello/pagoda), for which I am super grateful! Big shoutout to Mike Stefanello and team!
+<p align="center"><img alt="Logo" src="https://user-images.githubusercontent.com/552328/147838644-0efac538-a97e-4a46-86a0-41e3abdf9f20.png" height="100px"/></p>
+
+### Getting Started
+
+Make sure you have `make` and Golang installed on your machine.
+
+To get up and running with GoShip:
+```bash
+# The below command will:
+# - set up the postgres/redis/mailer containers
+# - build the JS/CSS assets 
+# - seed the DB with test users
+# - start the project in watch mode
+make init
+
+# Running init will fully scrap your state and start with fresh new containers. 
+# After running `make init` the first time, just use the below for everyday work.
+make watch
+```
+
+For in-depth info on the architecture of the project, please see the [mikestefanello/pagoda](https://github.com/mikestefanello/pagoda) repo. There are some key differences, but since this was originally a fork, 99% of it still applies. I am working on creating clear and actionable documentation, but that is quite time-consuming, so don't hold your socks.
+
+### Motivation
+
+Build the same rich interfaces you would build with Javascript frameworks, but with HTML and Go. Limit the number of tools you use. Develop rapidly.
+
+#### Why the Hell Do We Need Another Boilerplate?
+
+Well, I noticed that there were none for Go. Now, I know most Go folks like to build it all themselves. And while I love doing that myself, I have many project ideas for which I just want to build that specific project, not the entire infra surrounding it, like auth, notifications, payments, file uploads etc. This project has served me well in bringing to production many projects so far. It has evolved far beyond what I originally planned for, though there is still so much potentional to expand on and implement for.
+
+If you'd like a no-nonesense (or not too much?) starter kit to get your next project to production ASAP, while also using awesome technologies like Go, you've found a suitable starting point!
+
+> **Warning alert!** this project is in active development as I am adding things after first trying them out in prod for [Chérie](https://cherie.chatbond.app/), a relationship app to grow your couple. Note that I would welcome any help to develop this boilerplate ❤️.
+
+### Features && Tech Stack
+ 
+See [goship.run](https://goship.run). 
+
+---
+
+# Documentation (WIP)
+
+## File Structure
+```bash
+|-- cmd
+|   |-- web # Web server
+|   |-- worker # Async worker
+|   |-- seed # Seeder
+|-- config # Config files where the non-secret config vars are stored and the config go struct is defined
+|-- pkg # Package imports
+|   |-- context # Context package to handle context across the app
+|   |-- controller # Controller package to handle requests and responses
+|   |-- domain # Domain objects that are used throughout the app, these should be specific to your app/project
+|   |-- funcmap # Custom template functions
+|   |-- htmx # HTMX lifecycle helpers
+|   |-- middleware # Middleware for the app
+|   |-- repos # Repositories
+|   |-- routes # Think of these as the controllers in a traditional MVC framework
+|   |-- services # Services on the Container struct
+|   |-- tasks # Task definitions
+|   |-- tests # Utility functions for testing
+|   |-- types # Struct types
+|-- templates # HTML templates
+|-- ent # Ent ORM, contains the schema for the DB as well as the generated code from the schema. Always commit this to git.
+
+# Everything else is not Go-specific
+|-- deploy.yml # Kamal deployment file
+|-- docker-compose.yml # Docker compose file for running the project locally with Docker Desktop
+|-- e2e_tests # Playwright E2E tests
+|-- scripts # Useful scripts
+|-- static # Static files
+|-- javascript # Any javascript app can be dropped here. JS and CSS will be built and bundled into a single file. It is currently set up solely for Vanilla JS and Svelte.
+|-- build.mjs # Build script for the JS defined in `./javascript` 
+|-- .env # Secret environment variables
+|-- .kamal # Kamal hooks you can use to run commands in the project during deployment
+|-- .github # Github actions and secrets
+|-- .gitignore # Files to ignore when committing
+|-- tailwind.config.js # Tailwind config
+|-- tsconfig.json # Typescript config 
+|-- Procfile # Defines the commands to run the project in watch mode
+|-- service-worker.js # Service worker for the PWA
+|-- pwabuilder-ios-wrapper # PWA iOS wrapper. Use as a guide for push notifications. 
+```
+
+## Makefile
+
+The Makefile is the main entry point for the project. It is used to build the project, run the project, and deploy the project.
+
+The following commands are the most useful ones:
+```bash
+make init # Initializes the project
+make watch # Runs the project in watch mode, rebuilding assets as you go (JS, CSS, Templ, etc)
+make test # Runs the tests
+make e2eui # Runs the interactive e2e tests with Playwright # 
+make cover # Shows a Go coverage report of the tests
+
+# DB specific commands
+make ent-new name=YourModelName # Creates a new ent schema file
+make makemigrations # Creates a new migration file
+make ent-gen # Generates the ent code from the schema
+make migrate # Applies migrations
+make inspecterd # Shows you a view of all your tables in a UI
+make schema
+
+# Docker commands
+make up # Starts the docker containers
+make down # Stops the docker containers
+make down-volume # Stops the docker containers and removes the volumes
+make reset # Stops the docker containers and removes the volumes, then rebuilds the docker containers
+
+# Assets
+make build-js # Builds the JS assets
+make watch-js # Watches the JS assets and rebuilds them on change
+make build-css # Builds the CSS assets
+make watch-css # Watches the CSS assets and rebuilds them on change
+
+# Worker commands
+make worker # Starts the worker
+make worker-ui # Will open the terminal to the asynq worker UI
+
+# Stripe (payments)
+make stripe-webhook # Sets up a webhook for stripe for local testing
+
+make help # Shows all the commands you can run
+```
+
+## General Architecture
+
+For in-depth info on the architecture of the project, please see the [mikestefanello/pagoda](https://github.com/mikestefanello/pagoda) repo. There are some key differences, but since this was originally a fork, 99% of it still applies. 
+
+The most important aspects to note are:
+- The `Container` struct is instantiated when the app starts up and is used to pass dependencies around the app, specifically core services like `Logger`, `Database`, `ORM`, `Cache`, etc.
+- Routes are defined in `app/goship/web/routes/router.go` and are registered to the `Echo` framework. Generally, any logic that alters the DB should be done in the `repos` layer so that it is easily testable, and can be used by other routes. A route will generally have a `Component`, which is a Templ component defined in `app/goship/views/pages/` that represents the view.
+
+## Database
+
+The current options are:
+- Standalone Postgres DB (which you can host anywhere, including locally with Docker)
+  - For free deployments, see [Supabase](https://supabase.com/pricing) or [Neon](https://neon.tech/pricing). There are also other free options available, and if you host each one of your projects on a different DB, you can use the free tier for all your projects!
+- Embedded SQLite DB (which is great for small projects and local development)
+  
+
+## Starting DB State
+
+To get a look at what tables are available to start off, you can run 
+
+```bash
+make schema
+```
+
+or go to `ent/schema` and see the declared schemas. Note that ent generates a lot of code. Do not remove it from git. In fact, make sure to keep it there. 
+
+To create a new schema, do:
+```bash
+make ent-new name=YourSchemaName
+```
+
+Then generate the migrations
+```bash
+make makemigrations
+```
+
+Then generate the ent generated code to interact with your new schema in Go:
+```bash
+make ent-gen
+```
+
+To apply the migrations, either run `make migrate` or do a `make reset` to start from scratch (often times easier, and your test DB should be treated as disposable).
+
+
+## Add a route
+
+Create a new file in `routes/` and add your route. A route is a standard Echo handler with some added goodies. Once you've added handlers for your route, you can hook it up to the router in `routes/routes.go`, where the route should be registered to be reachable from the web.
+
+## Set Action Messages
+
+Following an action (POST/DELETE/GET/etc), a msg can be shown to the user. For example, a success message can shown with `msg.Success("An email confirmation was sent!")` upon user registration. The following message types are currently available:
+- success
+- info
+- warning
+- danger
+
+See `pkg/repos/msg/msg.go` for more info.
+
+## Realtime and Notifications
+
+There is a `realtime` route that is setup to handle SSE connections to any client desiring real-time data. Realtime data is sent in "notifications" which are just custom events with a notification type, some data, and a profile id. The `NotifierRepo` handles subscribing the client to the right channels and pushing new notifications to the client. Notifications can be stored in the DB in case the client is offline and needs to be picked up later when they reconnect - these will be shown in the notification center UI.
+
+Methods for interacting with notifications:
+
+- `PublishNotification` to send a notification to a user. This can optionally store the notification in the DB.
+- `MarkNotificationUnread` to mark a notification as unread.
+- `MarkNotificationRead` to mark a notification as read.
+- `DeleteNotification` to delete a notification.
+- `GetNotifications` to get all notifications for a user.
+
+Note that actual storage of notifications in the DB is handled by `NotificationStorageRepo`.
+
+## Notification Permissions
+
+The `NotificationSendPermissionRepo` handles the permission logic for sending notifications to a user. It is used to determine if a user has granted permission to send notifications to them and lives at `pkg/repos/notifierrepo/permissions.go`.
+You can mostly leave this alone, but if you need to add a new permission platform (e.g. a new push notification service), you may need to add a new permission here.
+
+## Planned Notifications
+
+The `PlannedNotificationsRepo` handles the logic for sending notifications at a planned time and lives at `pkg/repos/notifierrepo/planned_notifications.go`. The repo does not send any notifications, but rather sets up the DB storage for scheduled notifications. It also contains a method to clean up old notifications. But both the sending and deletion methods need to be called as tasks. Two examples are the `TypeAllDailyConvoNotifications` and `TypeEmailUpdates` tasks, as well as the `TypeDeleteStaleNotifications` task, which are commented out in the `cmd/web/main.go` file.
+
+The algorithm used to determine best time to send notifications is very primitive. Feel free to improve it! (or I will eventually, though it's low priority)
+
+## PWA Notifications
+
+There are 2 push notification repos for different use cases: 
+- `PwaPushNotificationsRepo`: for sending push notifications to PWAs.
+- `FcmPushNotificationsRepo`: for sending push notifications to native Android and iOS apps.
+
+Both have similar interfaces:
+- `AddPushSubscription`: to add a new push subscription, triggered when the profile turns on PWA notifications in their profile settings.
+- `SendPushNotifications`: to send a push notification to a user. This is generally handled by the `NotifierRepo` after storing a notification in the DB using the `PublishNotification` method. 
+- `DeletePushSubscriptionByEndpoint`: to delete a push subscription by endpoint.
+
+## Profile Repo
+
+The `ProfileRepo` handles all the profile logic and lives at `pkg/repos/profilerepo/profilerepo.go`. It contains basic CRUD methods for profiles, as well as some helper methods for getting friends, updating profile info, etc.
+
+There is extensive "friendship" logic in the repo, which is currently not used in the app. It is left over from [Chérie](https://cherie.chatbond.app/) as a demo. Feel free to delete these methods if you don't need them!
+
+- `GetFriends`: to get all friends for a profile. This is a demo as there is no friends feature in the app.
+- `AreProfilesFriends`: to check if two profiles are friends. This is a demo as there is no friends feature in the app.
+- `LinkProfilesAsFriends`: to link two profiles as friends. This is a demo as there is no friends feature in the app.
+- `UnlinkProfilesAsFriends`: to unlink two profiles as friends. This is a demo as there is no friends feature in the app.
+- `GetProfileByID`: to get a profile by ID.
+- `GetCountOfUnseenNotifications`: to get the count of unseen notifications for a profile.
+- `GetPhotosByProfileByID`: to get the photos for a profile by ID.
+- `GetProfilePhotoThumbnailURL`: to get the thumbnail URL for a profile's photo by ID.
+- `SetProfilePhoto`: to set the profile photo for a profile by ID.
+- `UploadPhoto`: to upload a photo for a profile by ID.
+- `UploadImageSizes`: to upload image sizes for a photo by ID.
+- `DeletePhoto`: to delete a photo by ID.
+- `DeleteUserData`: to delete a user's data by ID. This should be updated to delete all new models that may not cascade delete and is used in the settings to delete a user's data and account.
+- `IsProfileFullyOnboarded`: to check if a profile is fully onboarded. This is used in the onboarding flow to check if the profile has completed the onboarding process. Edit as needed. On startup, a non-onboarded profile is redirected to the onboarding page.
+
+Note that a method `EntProfileToDomainObject` is used to convert the ent profile object to a domain profile object, which is a more generic object that is used throughout the app. Generally, domain objects are preferred over ent objects as they are more generic and are not tied to a specific ORM.
+
+
+## File Uploads
+
+The `StorageClient` handles all the file storage logic and lives at `pkg/repos/storage/storagerepo.go`. It uses minio under the hood to handle the file uploads with AWS S3 API, which means you can easily swap out the storage backend to any S3-compatible service. 
+
+The following methods are available:
+- `CreateBucket`: to create a new bucket.
+- `UploadFile`: to upload a new file.
+- `DeleteFile`: to delete a file.
+- `GetPresignedURL`: to get a presigned URL for a file.
+- `GetImageObjectFromFile`: to get an image object from a file.
+- `GetImageObjectsFromFiles`: to get image objects from a list of files.
+
+## Paid/Free Subscriptions
+
+The `SubscriptionsRepo` handles the subscription logic and lives at `pkg/repos/subscriptions/subscriptions.go`. It uses Stripe under the hood to handle the subscription logic. If you'd like to see the stripe webhooks, they live at `pkg/routes/payments.go`.
+
+**Note:** currently, the only type of subscription implemented is a monthly subscription that is either paid or free. Feel free to expand on this!
+
+The following methods are available:
+- `CreateSubscription`: to create a new subscription.
+- `DeactivateExpiredSubscriptions`: to deactivate all expired monthly subscriptions.
+- `UpdateToPaidPro`: to update a subscription to the pro plan.
+- `UpdateToFree`: to update a subscription to the free plan.
+- `GetCurrentlyActiveProduct`: to get the currently active product for a profile.
+- `CancelWithGracePeriod`: to cancel a subscription with a grace period.
+- `CancelOrRenew`: to cancel a subscription or renew it.
+
+
+## Regenerate Logo Image Assets 
+
+There is a python script in `scripts/regen_logo_images.py` that should be run when the logo in `static/logo.png` is updated. 
+This will regenerate the logo assets for different app icons and the favicon. It will also regenerate the correct iOS and Android app icons and place them in the `static/ios-wrapper/` and `static/android-wrapper/` directories. Note that for iOS it will remove alpha transparency and make the background black (as apple requires).
+
+```bash
+cd scripts
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+
+python3 scripts/regen_logo_images.py
+```
+
+## Run Tasks
+
+Currently, tasks are run using [asynq](https://github.com/hibiken/asynq). This unfortunately requires [redis](https://redis.io/) to be running. This can make deployment a bit trickier as it means you will need at least 3 VPS with Kamal (except if I'm missing something), as you will need one for the web app, one for the worker, and one for the cache/queue. This is far from ideal for small projects, and [pagoda](https://github.com/mikestefanello/pagoda)'s author decided to use [backlite](https://github.com/mikestefanello/backlite), a tool he created to use SQLite as the task queue. I have not gone around to pulling these changes in yet, and I am hesitant at this point as I have multiple projects running in prod, and only 1 VPS running a cache that is serving all my projects...which means that I don't have a huge incentive to add this in. 
+
+If you'd like to change asynq to backlite, you can refer [to this pagoda PR](https://github.com/mikestefanello/pagoda/pull/72/files) to bring the changes in your goship instance.
+
+## Drop in any JS App
+
+While the project primarily uses HTMX, it also supports integrating JavaScript applications. The current build process creates two separate bundles:
+1. A single Vanilla JavaScript bundle
+2. A single Svelte bundle
+This approach allows you to incorporate JavaScript functionality alongside the HTMX-driven parts of your application. Here's how it works:
+- The build.mjs script handles the bundling process for both Vanilla JS and Svelte components.
+-Each framework (Vanilla JS and Svelte) is compiled into its own single file bundle.
+-These bundles can be served to the frontend and used where needed in your application.
+
+**Note:** While this method allows for easy integration, it does come with the trade-off of potentially large bundle sizes. Future improvements could involve optimizing the build process to create smaller, component-specific bundles for more efficient loading.
+
+This setup provides flexibility to use JavaScript frameworks alongside HTMX, leveraging the strengths of both approaches in different parts of your application.
+
+Note that any JS framework could be used.
+
+**Note:** Svelte is used for highly interactive components, although I've come to regret this as it is a large framework to bundle and slow down the initial page load. In the future, I plan to remove Svelte and only use HTMX for all components. This would not impact the ability to drop in any JS app, however.
+
+## Playwright E2E Tests
+
+TODO: the test file can be found at `e2e_tests/tests/goship.spec.ts` and is currently still the one from [chérie](https://cherie.chatbond.app/)...I will update it soon!
+
+You can run the Playwright tests with:
+```bash
+make e2eui
+```
+
+NOTE: on older/slower machines, the tests may time out. If so, you can increase the timeout in the test file. I was facing that issue when testing locally on a 2014 Macbook Pro, though have not faced it since running the tests on my M2 Mac. I am no playwright expert too, so perhaps I am missing something.
+
+## Deployment
+
+I currently only use Kamal for deployment. Should you want to contribute in adding other deployment methods, please create a subdirectory in `deploy` and add it there, so that it's well organized.
+
+### Kamal
+
+First, make sure all your env vars in the Kamal file `deploy/kamal/deploy.yml` are correct. All your vars should be set either in:
+ 
+- `config/config.yml`: only non-secret ones
+- `deploy/kamal/deploy.yml`: only non-secret ones
+- `.env`: all secret vars
+
+Then, set the IP of the server host in `deploy/kamal/deploy.yml`, as well as your image and registry details. Read up on the [kamal documentation](https://kamal-deploy.org) if you get stuck anywhere here. 
+
+### Set up live server
+
+The below command will install docker, build your image, push it to your registry, and then pull it on your remote VPS. If you set up any accessory (cache, standalone DB that is not hosted etc), these will also be deployed.
+
+```bash
+kamal setup -c deploy/kamal/deploy.yml
+``` 
+
+At this point, your project should be live, and if `128.0.0.1111` is the IP of your VPS, entering that IP in the search bar on your browser should bring up your site.
+
+### HTTPS
+
+Hop into your VPS console.
+
+```bash
+mkdir -p /letsencrypt && touch /letsencrypt/acme.json && chmod 600 /letsencrypt/acme.json
+```
+
+Then locally, run
+
+```bash
+kamal traefik reboot -c deploy/kamal/deploy.yml
+```
+
+Your site should now have TLS enabled and you should see the lock icon the search bar.
+
+For reference, the above procedure was taken from [this Kamal issue](https://github.com/basecamp/kamal/discussions/112).
+
+### Firewall
+
+There are some sample firewall scripts in `config/firewalls/` to help you get started. They make use of `ufw` so make sure that is installed on your system. 
+
+The worker firewall should block all ports by default except for SSH and internal network traffic.
+
+The web app firewall should block all ports by default except for SSH, HTTPS, and internal network traffic.
+
+The accessories firewall should block all ports by default, though if using Asynq, you should allow 8080 (Asynq UI) to your specific IP.
+
+## Future Work
+
+### Environment Management
+
+Improve the experience with handling config and environment variables. Currently, there is an `.env` file with secrets, which can be of the form `PAGODA_STORAGE_S3ACCESSKEY=123` and then in `config.yml` it is under:
+```yml
+pagoda:
+  storage:
+    s3accesskey: 123
+```
+
+And in `config.go` it is defined as:
+```go
+type Config struct {
+  Pagoda struct {
+    Storage struct {
+      S3accesskey string 
+    }
+  }
+}
+```
+
+This is fine for simple cases but can quickly be confusing. It would be nice to have a more robust env management system, perhaps one that can auto-generate env vars for you in the `.env` and `config.yml` files, so that no human error is introduced, leading the developer to confusion trying to figure out what is going on.
+
+### Code generation
+
+#### Scaffold Generator
+
+This is a CLI command that will generate a route, model, and view for you. It's just at the idea stage and would be a great feature to have. A lot of time goes into writing boilerplate code for each new route. Ideally, it supports generating templ/htmx routes and JSON routes.
+
+Example:
+
+```bash
+goship generate scaffold Post title:string content:text
+```
+
+##### Generated Model:
+```go
+// ent/schema/post.go
+package schema
+
+type Post struct {
+  ent.Schema
+}
+
+func (Post) Mixin() []ent.Mixin {
+	return []ent.Mixin{
+		TimeMixin{},
+	}
+}
+
+func (Post) Fields() []ent.Field {
+  return []ent.Field{
+		field.String("title"),
+    field.String("content"),
+	}
+}
+
+func (UsPoster) Edges() []ent.Edge {
+	return nil
+}
+```
+
+##### Route
+```go
+// app/controllers/post_controller.go
+package routes
+
+type postRoute struct {}
+
+func NewPostRoute(
+	ctr controller.Controller,
+) postRoute {
+	return postRoute{
+		ctr:                            ctr,
+	}
+}
+
+func (p *postRoute) Index(ctx echo.Context) {
+    // List all posts
+}
+
+func (p *postRoute) Show(ctx echo.Context) {
+    // Show a specific post
+}
+
+func (p *postRoute) New(ctx echo.Context) {
+    // Render form to create new post
+}
+
+func (p *postRoute) Create(ctx echo.Context) {
+    // Logic to create a new post
+}
+
+func (p *postRoute) Edit(ctx echo.Context) {
+    // Render form to edit post
+}
+
+func (p *postRoute) Update(ctx echo.Context) {
+    // Logic to update a post
+}
+
+func (p *postRoute) Destroy(ctx echo.Context) {
+    // Logic to delete a post
+}
+```
+
+##### Generated Routes:
+
+The routes will be automatically added to the router:
+```go
+postRoute := NewPostRoute(ctr)
+g.GET("/posts", postRoute.Index).Name = "posts.index"
+g.GET("/posts/:id", postRoute.Show).Name = "posts.show"
+g.GET("/posts/new", postRoute.New).Name = "posts.new"
+g.POST("/posts", postRoute.Create).Name = "posts.create"
+g.GET("/posts/:id/edit", postRoute.Edit).Name = "posts.edit"
+g.POST("/posts/:id", postRoute.Update).Name = "posts.update"
+g.DELETE("/posts/:id", postRoute.Destroy).Name = "posts.destroy"
+```
+
+##### Generated views
+```go
+// app/goship/views/posts.templ
+package pages
+
+import (
+	"github.com/mikestefanello/pagoda/pkg/controller"
+	"github.com/mikestefanello/pagoda/pkg/types"
+	"github.com/mikestefanello/pagoda/app/goship/views/components"
+)
+
+templ PostsIndex(page *controller.Page) {
+}
+
+templ PostsShow(page *controller.Page) {
+}
+
+templ PostsNew(page *controller.Page) {
+}
+
+templ PostsEdit(page *controller.Page) {
+}
+
+templ PostsCreate(page *controller.Page) {
+}
+
+templ PostsUpdate(page *controller.Page) {
+}
+
+templ PostsDestroy(page *controller.Page) {
+}
+```
+##### Generate Type Data Struct
+
+```go
+// types/post.go
+package types
+
+type Post struct {
+  Title string
+  Content string
+}
+```
+
+
+---
+FILE: docs/00-index.md
+---
+# Documentation Index
+
+This `docs/` directory is internal and implementation-focused.
+It is not intended as user-facing product documentation.
+
+## Goals
+
+- Explain what the project does today based on code, not assumptions.
+- Give developers and AI agents a fast map of where to make changes.
+- Capture system risks and incomplete areas so work is directed intentionally.
+
+## README Index
+
+1. `README-01` - `../README.md`: project-level overview and onboarding.
+2. `README-02` - `00-index.md`: documentation hub and map of all internal docs.
+
+## Structure
+
+### Architecture
+
+1. `A01` - `architecture/01-architecture.md`: runtime architecture, request flow, and service composition.
+2. `A02` - `architecture/02-structure-and-boundaries.md`: canonical placement rules for app vs framework code.
+3. `A03` - `architecture/03-project-scope-analysis.md`: end-to-end feature and capability analysis.
+4. `A04` - `architecture/04-http-routes.md`: route inventory grouped by access level and purpose.
+5. `A05` - `architecture/05-data-model.md`: Ent entities and domain model coverage.
+6. `A06` - `architecture/06-known-gaps-and-risks.md`: confirmed implementation gaps and technical risks.
+
+### Guides
+
+1. `G01` - `guides/01-ai-agent-guide.md`: practical guide for AI agents working in this repo.
+2. `G02` - `guides/02-development-workflows.md`: day-to-day run/build/test/migration workflows.
+3. `G03` - `guides/03-how-to-playbook.md`: prioritized how-to guide backlog and writing template.
+
+### Reference
+
+1. `R01` - `reference/01-cli.md`: living CLI specification (`ship`) for developers and agents.
+2. `R02` - `reference/02-mcp.md`: living MCP spec (`ship-mcp`) for LLM-facing docs and CLI support.
+
+### Policies
+
+1. `P01` - `policies/01-engineering-standards.md`: baseline requirements for maintainable repositories (hooks, CI, tests, docs, versioning).
+
+### Roadmap
+
+1. `M01` - `roadmap/01-framework-plan.md`: long-term framework strategy and execution tracker.
+
+## Primary Source Files Used For This Analysis
+
+- `cmd/web/main.go`
+- `cmd/worker/main.go`
+- `cmd/seed/main.go`
+- `cli/ship/cmd/ship/main.go`
+- `cli/ship/cli.go`
+- `pkg/services/container.go`
+- `app/goship/web/routes/router.go`
+- `app/goship/web/routes/*.go`
+- `pkg/tasks/*.go`
+- `pkg/repos/**/*.go`
+- `ent/schema/*.go`
+- `config/config.go`
+- `config/config.yaml`
+- `Makefile`
+- `build.mjs`
+- `package.json`
+- `e2e_tests/tests/goship.spec.ts`
+
+---
+FILE: docs/architecture/01-architecture.md
+---
+# Architecture
+
+## High-Level Layout
+
+The application follows a layered structure:
+
+- `cmd/*`: process entrypoints (`web`, `worker`, `seed`)
+- `pkg/services`: dependency container and infrastructure clients
+- `app/goship/web/routes`: HTTP handlers and route composition
+- `pkg/middleware`: auth/session/cache/onboarding/request middleware
+- `pkg/repos`: data access and external service adapters
+- `pkg/controller`: rendering, page object, redirect helpers
+- `app/goship/views`: Templ UI components/layouts/pages/emails
+- `ent`: schema + generated ORM
+- `pkg/tasks`: Asynq task processors
+
+## Web Runtime Flow
+
+1. `cmd/web/main.go` creates container via `services.NewContainer()`.
+2. `routes.BuildRouter(c)` configures middleware stack, registers routes, and returns an error on startup misconfiguration.
+3. Echo server starts with request timeout middleware (SSE-aware).
+4. Request path executes middleware chain, route handler, and page rendering.
+
+## Worker Runtime Flow
+
+1. `cmd/worker/main.go` loads config and starts Asynq server.
+2. Creates app container and builds router (for reverse route URLs in tasks).
+3. Constructs repo instances needed by task processors.
+4. Registers handlers on Asynq mux and runs worker.
+
+## Container Composition
+
+`pkg/services/container.go` is the core composition root.
+
+Currently initialized in `NewContainer()`:
+
+- Config
+- Validator
+- Echo web server + logger
+- DB connection
+- Ent ORM
+- Auth client
+- Mail client
+- Stripe API key setup
+
+Not currently initialized (commented out):
+
+- Cache client
+- Notifier repo
+- Task client
+
+This mismatch affects parts of the runtime that assume those dependencies exist. See `known-gaps-and-risks.md`.
+
+## HTTP Middleware Stack
+
+Primary middleware set in `app/goship/web/routes/router.go` includes:
+
+- Trailing slash normalization
+- Panic recovery
+- Security headers
+- Request ID
+- Gzip
+- Structured request logging
+- Request timeout (SSE skipped)
+- Session middleware
+- Authenticated user hydration
+- CSRF middleware
+- Device type tagging
+
+Additional gatekeepers:
+
+- `RequireAuthentication`
+- `RequireNoAuthentication`
+- `RedirectToOnboardingIfNotComplete`
+- Password token validity loader
+
+## Rendering Model
+
+The UI is server-rendered using Templ components.
+
+- Base page abstraction: `pkg/controller/page.go`
+- Render orchestration: `pkg/controller/controller.go`
+- Layout wrappers: `app/goship/views/layouts/*.templ`
+- Route page components: `app/goship/views/pages/*.templ`
+
+HTMX behavior is integrated in the page object (`Page.HTMX`) and controller render logic.
+
+## Data Layer
+
+- Ent ORM (`ent`) is authoritative for schema and query generation.
+- Schema create/migrate is invoked in app startup via `c.ORM.Schema.Create(...)`.
+- Repository packages encapsulate higher-level domain operations.
+
+## Async + Notifications Architecture
+
+- Asynq handles background jobs with Redis backend.
+- Notification system is designed around:
+  - persistent DB notifications
+  - pub/sub events for SSE
+  - push channels (PWA + FCM)
+- SSE endpoint exists (`app/goship/web/routes/realtime.go`) but route wiring is currently disabled.
+
+## Frontend Asset Architecture
+
+- `build.mjs` bundles Svelte entrypoints under `javascript/svelte/*.js`
+- Also bundles vanilla JS from `javascript/vanilla/main.js`
+- Outputs static bundles and meta files in `static/`
+- Tailwind build pipeline outputs `static/styles_bundle.css`
+
+## Deployment/Operations Shape
+
+- Local process orchestration via Overmind (`Procfile`)
+- Docker Compose for Redis + Mailpit in current config
+- Kamal deployment files present (`deploy/`, `.kamal/`)
+
+---
+FILE: docs/architecture/02-structure-and-boundaries.md
+---
+# Structure and Boundaries
+
+This document defines where code belongs as GoShip evolves into a Rails-like framework plus example app.
+
+## Current Top-Level Shape (Single Repository)
+
+- `app/goship/`: app-specific code for the first-party GoShip app
+- `cmd/`: runnable entrypoints for the app module (`web`, `worker`, `seed`)
+- `cli/ship/`: standalone CLI module (`ship`) that lives in this same repository
+- `mcp/ship/`: standalone MCP module (`ship-mcp`) for LLM-facing docs/CLI tooling
+- `pkg/`: reusable framework-level libraries and adapters
+- `config/`: runtime configuration
+- `ent/`: schema and generated ORM
+- `docs/`: internal design and implementation documentation
+
+Monorepo note:
+
+- GoShip currently uses one repository with multiple Go modules:
+- root app/framework module + `cli/ship` module + `mcp/ship` module
+- `go.work` ties local development across modules together for maintainers.
+
+## App vs Framework Rules
+
+Use this placement rule for every new file:
+
+- Put code in `app/goship/...` when it encodes product behavior/UI for the GoShip app.
+- Put code in `pkg/...` when it is reusable as framework infrastructure across apps.
+
+## Web Layer Layout
+
+App web code is now app-scoped:
+
+- `app/goship/web/routes`: route composition + handlers
+- `app/goship/views`: templ components/layouts/pages/emails
+
+Router source of truth:
+
+- `app/goship/web/routes/router.go`
+
+## Refactor Status
+
+Completed in this pass:
+
+- Moved routes from `pkg/routing/routes` to `app/goship/web/routes`.
+- Moved templ views from `templates` to `app/goship/views`.
+- Updated imports and test package paths accordingly.
+
+Still intentionally centralized (next phase):
+
+- `pkg/repos`
+- `pkg/services`
+
+These remain framework-level until each package is classified as either:
+
+- app-specific (move under `app/goship/...`), or
+- reusable framework module (stay in `pkg/...` or move to future dedicated framework modules).
+
+---
+FILE: docs/architecture/03-project-scope-analysis.md
+---
+# Project Scope Analysis
+
+## What This Project Is
+
+GoShip is a Go + Echo + Templ + HTMX starter application that ships with:
+
+- Session-based authentication and account lifecycle flows
+- Profile and onboarding flows
+- Email subscriptions and transactional email support
+- Subscription billing integration via Stripe
+- Notification infrastructure (DB + push + SSE-oriented architecture)
+- S3-compatible file storage support with image variants
+- Background task processing (Asynq worker)
+- Frontend asset bundling for Svelte components and vanilla JS
+
+The repository still carries heritage from a related product domain ("Cherie"), and some feature areas are partially wired or intentionally disabled.
+
+## Runtime Programs
+
+- `cmd/web/main.go`: main HTTP application server
+- `cmd/worker/main.go`: asynchronous worker process for task handlers
+- `cmd/seed/main.go`: seed runner for test/dev data
+
+## Feature Areas
+
+## 1) Authentication and Account Management
+
+Core flows implemented in routes and services:
+
+- Login/logout (`app/goship/web/routes/login.go`, `logout.go`)
+- Register (`register.go`)
+- Forgot/reset password (`forgot_password.go`, `reset_password.go`)
+- Email verification (`verify_email.go`)
+- Auth middleware and session handling (`pkg/middleware/auth.go`, `pkg/services/auth.go`)
+
+Key implementation choices:
+
+- Cookie-backed session auth using Gorilla sessions via Echo middleware.
+- Password reset tokens stored as bcrypt hashes.
+- Email verification tokens use JWT signed with app encryption key.
+
+## 2) Onboarding, Preferences, and Profile
+
+- Onboarding and preferences mostly in `app/goship/web/routes/preferences.go`
+- Profile page in `profile.go`
+- Mark onboarding completion (`/welcome/finish-onboarding`)
+- Profile photo and gallery image routes (`profile_photo.go`, `upload_photo.go`)
+
+## 3) Payments and Subscription Lifecycle
+
+- Stripe checkout + customer portal + webhook in `app/goship/web/routes/payments.go`
+- Local subscription state managed in `pkg/repos/subscriptions/subscriptions.go`
+- Product model currently centered on free vs pro (`pkg/domain/enum.go`)
+
+Webhook flow currently handles:
+
+- `customer.subscription.created`
+- `customer.subscription.updated`
+- `customer.subscription.deleted`
+
+## 4) Notifications and Realtime Capabilities
+
+Implemented infrastructure includes:
+
+- Notification domain and storage
+- Notification permissions by platform (push, fcm_push, email, sms)
+- PWA and FCM push subscription storage/sending
+- SSE pub/sub abstractions
+
+Status of exposure:
+
+- Some notification endpoints are active (count endpoint, permission/subscription management)
+- Several notification-center routes are currently commented out in router wiring
+- SSE route wiring is currently commented out in router (`sseRoutes` not enabled)
+
+## 5) Email Features
+
+- Newsletter-style email subscription flow (`email_subscribe.go`, `verify_email_subscription.go`)
+- Task processor for subscription confirmation emails (`pkg/tasks/mail.go`)
+- Update email sender integration (`emailsmanager`)
+- Mail provider abstraction supports SMTP and Resend (`pkg/repos/mailer`)
+
+## 6) File Storage and Images
+
+- S3-compatible object storage through MinIO client (`pkg/repos/storage/storagerepo.go`)
+- DB metadata persisted in `file_storages`
+- Image size variants represented by enums and related image size records
+- Signed URLs generated for image access
+
+## 7) Background Tasks
+
+Task processors under `pkg/tasks`:
+
+- Email subscription confirmation
+- Email updates
+- Subscription deactivation maintenance
+- Daily conversation notification orchestration
+- Stale notification cleanup
+
+Worker bootstrap and registration in `cmd/worker/main.go`.
+
+## 8) Frontend Delivery Model
+
+- Server-rendered pages via Templ (`app/goship/views/` + `pkg/controller`)
+- HTMX-enhanced interactions
+- Optional Svelte components bundled into `static/svelte_bundle.js`
+- Optional vanilla JS bundle into `static/vanilla_bundle.js`
+
+Build pipeline:
+
+- JS via `build.mjs` + esbuild
+- CSS via Tailwind CLI in Makefile
+
+## Environments and Configuration
+
+Config loading:
+
+- `config/config.go` + `config/config.yaml`
+- Production can override via env vars (Viper env binding)
+
+Storage modes:
+
+- Embedded SQLite (default in config)
+- Standalone Postgres path exists and includes pgvector extension setup
+
+## Testing Surface
+
+- 70+ Go tests in `pkg/**`
+- Playwright e2e folder exists (`e2e_tests/`), but specs are currently product-domain stale and marked TODO
+
+## Operational Tooling
+
+- `Makefile` is the primary task runner (init, watch, test, migrations, worker)
+- `Procfile` for multi-process dev with Overmind
+- Docker Compose currently starts Redis + Mailpit; Postgres service is commented out
+
+## Practical Summary
+
+This codebase is a strong "production-ready starter" foundation with authentication, payments, notifications, storage, and worker primitives. It is also in an active transitional state where some features are scaffolded but not fully wired in the web runtime.
+
+---
+FILE: docs/architecture/04-http-routes.md
+---
+# HTTP Route Map
+
+Routes are registered in `app/goship/web/routes/router.go`.
+
+## Public/General Routes
+
+- `GET /` landing page
+- `GET /up` healthcheck
+- `GET /clear-cookie`
+- `GET /about`
+- `GET /privacy-policy`
+- `GET /install-app`
+
+Docs pages (user-facing in-app docs):
+
+- `GET /docs`
+- `GET /docs/gettingStarted`
+- `GET /docs/guidedTour`
+- `GET /docs/architecture`
+
+Email subscription:
+
+- `GET /emailSubscribe`
+- `POST /emailSubscribe`
+- `GET /email/subscription/:token`
+
+Service worker / app-links:
+
+- `GET /service-worker.js`
+- `GET /.well-known/assetlinks.json`
+
+## User-Not-Authenticated Group (`/user`)
+
+- `GET /user/login`
+- `POST /user/login`
+- `GET /user/register`
+- `POST /user/register`
+- `GET /user/password`
+- `POST /user/password`
+- `GET /user/password/reset/token/:user/:password_token/:token`
+- `POST /user/password/reset/token/:user/:password_token/:token`
+
+## Authenticated Onboarding Group (`/welcome`)
+
+- `GET /welcome/preferences`
+- `GET /welcome/preferences/phone`
+- `GET /welcome/preferences/phone/verification`
+- `POST /welcome/preferences/phone/verification`
+- `POST /welcome/preferences/phone/save`
+- `GET /welcome/preferences/display-name/get`
+- `POST /welcome/preferences/display-name/save`
+- `GET /welcome/preferences/delete-account`
+- `GET /welcome/preferences/delete-account/now`
+- `GET /welcome/finish-onboarding`
+- `GET /welcome/profileBio`
+- `POST /welcome/profileBio/update`
+
+Notification subscription management during onboarding:
+
+- `GET /welcome/subscription/push`
+- `POST /welcome/subscription/:platform`
+- `DELETE /welcome/subscription/:platform`
+- `GET /welcome/email-subscription/unsubscribe/:permission/:token`
+
+## Authenticated Group (`/auth`)
+
+- `GET /auth/logout`
+
+Fully onboarded-only routes (`/auth` with onboarding guard):
+
+- `GET /auth/homeFeed`
+- `GET /auth/homeFeed/buttons`
+- `GET /auth/profile`
+- `GET /auth/uploadPhoto`
+- `POST /auth/uploadPhoto`
+- `DELETE /auth/uploadPhoto/:image_id`
+- `GET /auth/currProfilePhoto`
+- `POST /auth/currProfilePhoto`
+- `GET /auth/notifications/normalNotificationsCount`
+- `GET /auth/payments/get-public-key`
+- `POST /auth/payments/create-checkout-session`
+- `POST /auth/payments/create-portal-session`
+- `GET /auth/payments/pricing`
+- `GET /auth/payments/success`
+
+## Auth-Adjacent Routes
+
+- `GET /email/verify/:token`
+
+## External Integration Routes
+
+- `POST /Q2HBfAY7iid59J1SUN8h1Y3WxJcPWA/payments/webhooks`
+
+## Development-Only Error Preview Routes
+
+Registered only when not production:
+
+- `GET /error/400`
+- `GET /error/401`
+- `GET /error/403`
+- `GET /error/404`
+- `GET /error/500`
+
+## Routes Present But Not Currently Wired
+
+SSE route function exists but registration is commented out:
+
+- `GET /auth/realtime`
+
+Notification center routes have implementations but are commented out in route wiring:
+
+- list notifications
+- mark all read
+- delete notification
+- mark read/unread endpoints
+
+
+---
+FILE: docs/architecture/05-data-model.md
+---
+# Data Model
+
+Primary schema is defined in `ent/schema/*.go` and compiled into generated Ent code in `ent/`.
+
+## Core Entities
+
+Identity and profile:
+
+- `User`
+- `Profile`
+- `PasswordToken`
+- `LastSeenOnline`
+
+Communication and notifications:
+
+- `Notification`
+- `NotificationPermission`
+- `NotificationTime`
+- `PwaPushSubscription`
+- `FCMSubscriptions`
+- `SentEmail`
+
+Billing:
+
+- `MonthlySubscription`
+
+Media and file storage:
+
+- `Image`
+- `ImageSize`
+- `FileStorage`
+
+Other domain support:
+
+- `EmailSubscription`
+- `EmailSubscriptionType`
+- `Invitation`
+- `PhoneVerificationCode`
+- `Emojis`
+
+## Important Relationships
+
+- `User` has one `Profile` (`User.profile` unique edge).
+- `Profile` has many `notifications`, `photos`, `invitations`, push subscriptions, and notification permissions.
+- `MonthlySubscription` has one `payer` profile and many `benefactors` profiles.
+- `Notification` belongs to one `Profile`.
+- `NotificationPermission` is unique per `(profile_id, permission, platform)`.
+- `NotificationTime` is unique per `(profile_id, type)`.
+- `Image` has many `ImageSize` records.
+- `ImageSize` has one required `FileStorage` object.
+
+## Domain Enums
+
+Defined in `pkg/domain/enum.go`:
+
+- Notification types
+- Notification permission types
+- Notification delivery platforms
+- Image sizes and categories
+- Product type (free/pro)
+- Bottom navbar item
+- Email subscription list
+
+## Subscription Model Notes
+
+Current app logic treats free plan as absence of an active pro subscription.
+
+- Creation path often creates trial pro subscription on onboarding.
+- Active subscription uniqueness is enforced by unique index on `(paying_profile_id, is_active)`.
+
+## Notification Model Notes
+
+Notification records include:
+
+- Type/title/text/link
+- Read and read timestamp
+- Optional actor/resource linkage
+- Per-profile ownership
+
+Permissions are separated from notifications and keyed by platform + permission type.
+
+## Storage Model Notes
+
+`FileStorage` holds object metadata and object key info for S3-compatible storage.
+The storage repo generates presigned URLs and maps image sizes into frontend-friendly `domain.Photo` objects.
+
+
+---
+FILE: docs/architecture/06-known-gaps-and-risks.md
+---
+# Known Gaps and Risks
+
+This list is based on direct code inspection and is intended to guide contributor priorities.
+
+## 1) Container Initialization Mismatch (High)
+
+In `pkg/services/container.go`, `NewContainer()` does not call:
+
+- `initCache()`
+- `initNotifier()`
+- `initTasks()`
+
+Yet runtime code assumes these dependencies exist in multiple places, and `Shutdown()` calls `c.Tasks.Close()` and `c.Cache.Close()` unconditionally.
+
+Impact:
+
+- Potential nil-pointer panics on shutdown or during feature paths that rely on tasks/notifier/cache.
+- Web and worker behavior can diverge from intended architecture.
+
+## 2) Realtime SSE Route Not Wired (High for realtime features)
+
+`app/goship/web/routes/realtime.go` has a full SSE handler, but router registration is commented out:
+
+- `sseRoutes(c, s, ctr)` is commented in `app/goship/web/routes/router.go`.
+
+Impact:
+
+- Realtime endpoint is effectively disabled in web runtime.
+
+## 3) Notification Center Endpoints Partially Disabled (Medium)
+
+Route handlers exist in `app/goship/web/routes/notifications.go`, but several are commented out during route wiring.
+
+Impact:
+
+- Notification center behavior is incomplete from an HTTP exposure perspective.
+- Some notifier capabilities are not reachable from active routes.
+
+## 4) Stale/Inconsistent E2E Coverage (Medium)
+
+`e2e_tests/tests/goship.spec.ts` is marked with TODO and contains stale product/domain assumptions.
+
+Impact:
+
+- End-to-end test confidence for current GoShip behavior is limited.
+
+## 5) Dev Runtime Drift Between Config and Docker Compose (Medium)
+
+- Default config uses embedded SQLite (`config/config.yaml`).
+- Docker Compose currently starts Redis and Mailpit only; DB service is commented out.
+- Make targets include Postgres-dependent commands.
+
+Impact:
+
+- Contributors can experience confusion about canonical local dev DB path.
+
+## 6) In-App Docs Are Present But Sparse (Low)
+
+`/docs/*` pages exist, but architecture/getting-started sections are mostly placeholders.
+
+Impact:
+
+- Existing user-facing docs routes do not currently reflect true implementation depth.
+
+## 7) Some Feature Paths Still Use Placeholder Data (Low)
+
+Example: home feed button counts are hardcoded in `app/goship/web/routes/home_feed.go`.
+
+Impact:
+
+- UI may represent scaffolding rather than production data behavior in some sections.
+
+## Suggested Priority Order
+
+1. Fix container/service initialization and safe shutdown semantics.
+2. Decide and document realtime strategy: wire SSE or remove dead path.
+3. Re-enable or remove notification-center routes consistently.
+4. Refresh e2e tests to match current GoShip flows.
+5. Align local stack docs with actual DB mode and compose services.
+
+
+---
+FILE: docs/guides/01-ai-agent-guide.md
+---
+# AI Agent Guide
+
+This guide is for code agents making changes in this repository.
+
+## Start Here
+
+1. Read `docs/architecture/03-project-scope-analysis.md` and `docs/architecture/06-known-gaps-and-risks.md`.
+2. Inspect route wiring in `app/goship/web/routes/router.go` before editing handlers.
+3. Inspect `pkg/services/container.go` before assuming a dependency is initialized.
+
+## Architectural Conventions
+
+- HTTP handlers live in `app/goship/web/routes`.
+- Domain logic should prefer repository packages (`pkg/repos/...`) over route-level DB logic.
+- Rendering is typically done via `controller.Page` + templ components.
+- Enums/constants are centralized in `pkg/domain`.
+
+## Safe Change Workflow
+
+1. Identify layer to change:
+- routing
+- repository/service
+- domain/schema
+- template/frontend
+
+2. Check for related tests:
+- `rg "func Test" pkg/...`
+- route tests in `app/goship/web/routes/*_test.go`
+
+3. Implement minimal, local change first.
+4. Run targeted tests, then broader tests if needed.
+5. Update docs in `docs/` when behavior or architecture changes.
+
+## Key Files By Concern
+
+Runtime bootstrap:
+
+- `cmd/web/main.go`
+- `cmd/worker/main.go`
+- `cmd/seed/main.go`
+
+Dependency wiring:
+
+- `pkg/services/container.go`
+- `pkg/services/auth.go`
+- `pkg/services/tasks.go`
+
+Routing and middleware:
+
+- `app/goship/web/routes/router.go`
+- `pkg/middleware/*.go`
+
+Data and domain:
+
+- `ent/schema/*.go`
+- `pkg/repos/**/*.go`
+- `pkg/domain/*.go`
+
+UI and rendering:
+
+- `pkg/controller/*.go`
+- `app/goship/views/**/*.templ`
+- `javascript/**/*`
+
+## Common Pitfalls
+
+- Assuming cache/notifier/task clients are initialized in the container.
+- Implementing a route but not registering it in `router.go`.
+- Adding schema logic without checking migration/generation workflow.
+- Updating frontend behavior without checking templ + JS integration points.
+
+## Commands Commonly Used
+
+- `make watch` (multi-process local dev)
+- `make test` (Go tests)
+- `make worker` (async worker)
+- `make build-js`
+- `make build-css`
+- `make ent-gen`
+- `make makemigrations name=YourChange`
+
+## Documentation Rule
+
+When code behavior changes, update at least:
+
+- `docs/architecture/03-project-scope-analysis.md` if capability changed
+- `docs/architecture/04-http-routes.md` if route surface changed
+- `docs/architecture/06-known-gaps-and-risks.md` if a risk was added/removed
+
+---
+FILE: docs/guides/02-development-workflows.md
+---
+# Development Workflows
+
+## Local Startup
+
+Primary commands (from `Makefile`):
+
+- `make init`: reset containers, build assets, seed data, start watch mode
+- `make watch`: start process group via Overmind (`Procfile`)
+
+`Procfile` runs:
+
+- `watch-js`
+- `watch-go`
+- `watch-css`
+- `watch-go-worker`
+
+## Services and Infra
+
+Docker Compose currently provisions:
+
+- Redis (`goship_cache`)
+- Mailpit (`goship_mailpit`)
+
+Notes:
+
+- Postgres service is present but commented out in `docker-compose.yml`.
+- Default config DB mode is embedded SQLite.
+
+## Assets
+
+JS build:
+
+- `npm run build` (via `build.mjs`)
+- Bundles Svelte entrypoints and vanilla JS
+
+CSS build:
+
+- Tailwind CLI to `static/styles_bundle.css`
+
+## Database and Schema
+
+Entity schema source:
+
+- `ent/schema/*.go`
+
+Common workflow:
+
+1. `make ent-new name=YourEntity` (if new entity)
+2. `make makemigrations name=your_change`
+3. `make ent-gen`
+4. `make migrate`
+
+## Worker and Tasks
+
+Run worker manually:
+
+- `make worker`
+
+Asynq UI:
+
+- `make workerui`
+
+Task processor registration:
+
+- `cmd/worker/main.go`
+
+## Testing
+
+Go tests:
+
+- `make test`
+- `make cover`
+
+E2E tests:
+
+- `make e2e`
+- `make e2eui`
+
+Note: current e2e specs are partially stale and should be treated as non-authoritative for GoShip behavior.
+
+
+---
+FILE: docs/guides/03-how-to-playbook.md
+---
+# How-To Playbook (Docs-First)
+
+This file tracks practical how-to guides we want to provide for GoShip.
+
+## Objective
+
+Create docs quality equal to or better than Pagoda's onboarding experience, with concrete implementation guides for common tasks.
+
+## Priority Guides
+
+1. Add a new endpoint (route + handler + templ view + tests).
+2. Add a new page with server-rendered UI.
+3. Add a new Ent model and migration flow.
+4. Add a new service/repository with boundaries (app vs framework placement).
+5. Add a background job and wire worker behavior.
+6. Add a module adapter (db/cache/jobs/pubsub/storage) with interface wiring.
+7. Add realtime event flow (publish + subscribe + UI update).
+8. Add authentication-protected endpoint and authorization check.
+9. Add table-driven unit tests for routes/repos/services.
+10. Add integration test (happy path only, Docker-minimal).
+
+## Guide Template (Use For Every How-To)
+
+1. Goal: one-sentence desired outcome.
+2. Preconditions: files, commands, env vars needed.
+3. Steps: exact edits/commands in order.
+4. Validation: tests/commands and expected output.
+5. Common failures: top 3 mistakes and fixes.
+6. References: links to canonical docs and source files.
+
+## Writing Rules
+
+1. Prefer copy-pastable commands and exact file paths.
+2. Use current numbered docs paths in all references.
+3. Keep examples aligned with `ship` commands where available.
+4. Every guide must include a test/verification section.
+5. Keep sections short and task-oriented; avoid long conceptual digressions.
+
+## Execution TODO
+
+- [ ] Draft guide: Add a new endpoint.
+- [ ] Draft guide: Add a new Ent model and migration.
+- [ ] Draft guide: Add a background job.
+- [ ] Draft guide: Add tests (table-driven + integration).
+- [ ] Draft guide: Add a module adapter.
+
+---
+FILE: docs/policies/01-engineering-standards.md
+---
+# Repository Requirements (Engineering Standards)
+
+This file defines baseline requirements for any GoShip repository (framework, CLI, or app) to stay maintainable.
+
+## 1) Repository Layout
+
+1. Keep runtime/app code, framework code, and CLI code clearly separated.
+2. Keep architecture and operational docs in `docs/`.
+3. Keep one living plan document for roadmap/decisions.
+
+## 2) Local Developer Workflow
+
+Required commands must exist and work:
+
+1. `make dev` (web-only default)
+2. `make test` (fast Docker-free unit set)
+3. `make test-integration` (infra-backed integration set)
+4. `make testall` (unit + integration)
+
+If CLI exists, equivalent commands must exist in CLI:
+
+1. `ship dev`
+2. `ship test`
+3. `ship test --integration`
+
+## 3) Pre-Commit Hooks (Required)
+
+Use `lefthook` with at least:
+
+1. unit test package set
+2. formatting checks for touched languages
+3. basic static checks (as adopted by repo stage)
+
+Rules:
+
+1. No bypass by default.
+2. Hook runtime should stay fast (target under ~60s on normal changes).
+3. Integration tests are not required in pre-commit.
+
+## 4) CI Requirements (Required)
+
+Every PR must run:
+
+1. lint/format checks
+2. `make test`
+3. selected integration tests (or full `make test-integration` where feasible)
+
+Main branch protection should require CI green before merge.
+
+## 5) Test Strategy
+
+1. Prefer table-driven unit tests.
+2. Keep business logic testable without Docker where possible.
+3. Use integration tests for external systems and process boundaries only.
+4. Keep package-level coverage trending to 90%+ over time.
+
+## 6) Versioning and Tooling
+
+1. Pin project tools to declared versions (do not auto-latest on normal commands).
+2. Provide a doctor/check command to detect version drift.
+3. Use explicit upgrade workflows for intentional version bumps.
+
+## 7) Documentation Requirements
+
+For each behavior/architecture change:
+
+1. Update relevant `docs/*.md` files in the same change stream.
+2. Keep CLI contract in `docs/reference/01-cli.md` current.
+3. Keep framework plan (`docs/roadmap/01-framework-plan.md`) aligned with decisions.
+
+## 8) Commit and PR Standards
+
+1. Use conventional commit prefixes (`feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `ci`).
+2. Keep commits scoped and reviewable.
+3. PR description must include:
+: what changed
+: why it changed
+: test evidence
+: docs updated
+
+## 9) Standalone Repo Readiness Checklist
+
+A module/repo is ready to stand alone when:
+
+1. it has its own `README` and usage commands
+2. it has independent tests passing in CI
+3. it has pinned toolchain policy documented
+4. it has release/versioning policy documented
+5. it can be developed with minimal implicit dependency on sibling repos
+
+---
+FILE: docs/reference/01-cli.md
+---
+# CLI Specification (Living)
+
+This file is the living CLI contract for developers and agents.
+
+Short command name:
+
+- `ship`
+
+Module location:
+
+- `cli/ship` (standalone Go module)
+- binary entrypoint: `cli/ship/cmd/ship`
+- companion MCP module: `mcp/ship` (for LLM-facing tool access)
+
+## Repository Placement
+
+The CLI is in the same repository as the framework and example app.
+
+- Repo model: monorepo with multiple Go modules.
+- App/framework module: repository root.
+- CLI module: `cli/ship`.
+- Workspace: `go.work` includes both modules for local development.
+
+Why this shape:
+
+1. Single repo keeps framework, app example, and CLI evolution in sync.
+2. Separate CLI module keeps dependency graph and release surface clean.
+3. Developers can iterate across modules locally without publishing interim versions.
+
+Design constraints:
+
+1. Keep commands Rails-like and convention-first.
+2. Keep v1 command set intentionally small.
+3. Expand only after each command is stable and tested.
+
+## Minimal V1 Command Set
+
+Project lifecycle:
+
+- `ship new <app>` (planned)
+- `ship doctor` (planned)
+
+Local runtime:
+
+- `ship dev` (web-only default)
+- `ship dev --worker`
+- `ship dev --all`
+
+Testing:
+
+- `ship test` (unit default)
+- `ship test --integration`
+
+Database:
+
+- `ship db create`
+- `ship db migrate`
+- `ship db rollback`
+- `ship db seed`
+
+Generation:
+
+- `ship generate <resource|model|job|module>` (planned)
+- `ship destroy <generated-artifact>` (planned)
+
+## Versioning Rules
+
+1. CLI-managed tools (for example `templ`) must be pinned to project-declared versions.
+2. `ship dev` and `ship test` must never auto-upgrade toolchain versions.
+3. `ship doctor` reports version drift and prints explicit fix commands.
+4. Only `ship upgrade` (future) may intentionally bump pinned versions.
+
+## Implementation Mapping (Current Repo)
+
+These commands are implemented as wrappers over existing workflows:
+
+- `ship dev` -> `make dev`
+- `ship dev --worker` -> `make dev-worker`
+- `ship dev --all` -> `make dev-full`
+- `ship test` -> `make test`
+- `ship test --integration` -> `make test-integration`
+- `ship db create` -> `make up`
+- `ship db migrate` -> `make migrate`
+- `ship db rollback [amount]` -> `atlas migrate down ... [amount]`
+- `ship db seed` -> `make seed`
+
+Local run examples from repository root:
+
+- `go run ./cli/ship/cmd/ship -- help`
+- `go run ./cli/ship/cmd/ship -- dev`
+
+## Ownership Boundaries
+
+CLI owns:
+
+- developer command interface (`ship ...`);
+- orchestration of dev/test/db workflows;
+- version/tooling checks and future generators.
+
+App/framework owns:
+
+- actual runtime behavior in `cmd/*`, `app/goship/*`, `pkg/*`, and `config/*`.
+
+Rule:
+
+- keep business/runtime logic out of CLI package; CLI should call stable commands/APIs.
+
+## Deferred (Not In V1)
+
+- `ship console`
+- `ship routes`
+- `ship upgrade`
+- advanced generator variants
+
+---
+FILE: docs/reference/02-mcp.md
+---
+# MCP Server (ship-mcp)
+
+This document defines the minimal MCP server currently shipped in this repository.
+
+## Status
+
+Current status:
+
+1. Not actively used in day-to-day framework development right now.
+2. Kept as a future extension point for LLM-facing tooling.
+3. Near-term priority is high-quality human + LLM-friendly documentation under `docs/`.
+
+## Location
+
+- Module: `mcp/ship`
+- Entrypoint: `mcp/ship/cmd/ship-mcp/main.go`
+- Workspace wiring: `go.work`
+
+This is a standalone Go module in the same monorepo as:
+
+- app/framework module at repo root
+- CLI module at `cli/ship`
+
+## Purpose
+
+Provide an LLM-facing interface for:
+
+1. `ship` command usage guidance.
+2. focused access to docs under `docs/`.
+
+## Current Tool Set (V1)
+
+1. `ship_help`
+- Returns usage/help text for core `ship` commands.
+- Input: optional `topic` (`general`, `dev`, `test`, `db`).
+
+2. `docs_search`
+- Searches markdown files under `docs/`.
+- Input: `query` (required), `limit` (optional, default 20, max 50).
+
+3. `docs_get`
+- Returns a single markdown document from `docs/`.
+- Input: `path` (required), relative to `docs/`.
+
+## Runtime Notes
+
+- Transport: stdio with MCP JSON-RPC framing (`Content-Length` headers).
+- Default docs root: `docs`.
+- Override docs root with `SHIP_MCP_DOCS_ROOT`.
+
+Run from repo root:
+
+```bash
+go run ./mcp/ship/cmd/ship-mcp
+```
+
+## Install In MCP Clients
+
+Build a reusable local binary first:
+
+```bash
+go build -o ~/.local/bin/ship-mcp ./mcp/ship/cmd/ship-mcp
+```
+
+Use an absolute docs path:
+
+```bash
+export SHIP_MCP_DOCS_ROOT=/Users/leoaudibert/Workspace/pagoda-based/goship/docs
+```
+
+Register in Codex:
+
+```bash
+codex mcp add ship --env SHIP_MCP_DOCS_ROOT=/Users/leoaudibert/Workspace/pagoda-based/goship/docs -- ~/.local/bin/ship-mcp
+codex mcp list
+```
+
+Register in Claude Code:
+
+```bash
+claude mcp add --scope user -e SHIP_MCP_DOCS_ROOT=/Users/leoaudibert/Workspace/pagoda-based/goship/docs ship -- ~/.local/bin/ship-mcp
+claude mcp list
+```
+
+Register in Gemini CLI:
+
+```bash
+gemini mcp add --scope user -e SHIP_MCP_DOCS_ROOT=/Users/leoaudibert/Workspace/pagoda-based/goship/docs ship ~/.local/bin/ship-mcp
+gemini mcp list
+```
+
+Notes:
+
+1. `--scope user` makes this MCP server available globally; use project/local scope for repo-only registration.
+2. Restart your CLI session after adding a new MCP server.
+3. If `~/.local/bin` is not on `PATH`, keep using the absolute binary path.
+
+## Release Binaries (MCP Internals)
+
+`ship-mcp` prebuilt binaries are published from this repository using GoReleaser and GitHub Actions.
+
+Internal release files:
+
+- `.goreleaser.ship-mcp.yml`
+- `.github/workflows/release-ship-mcp.yml`
+
+Workflow trigger policy:
+
+1. Tag push only: `ship-mcp/v*`
+2. Manual trigger allowed: `workflow_dispatch`
+3. No release on regular branch pushes
+
+Tag example:
+
+```bash
+git tag ship-mcp/v0.1.0
+git push origin ship-mcp/v0.1.0
+```
+
+What gets published:
+
+1. `ship-mcp` binaries for `linux`, `darwin`, `windows`
+2. Architectures: `amd64`, `arm64`
+3. Checksums file: `ship-mcp_checksums.txt`
+
+## Safety Rules
+
+1. `docs_get` only reads inside `docs/` (path traversal blocked).
+2. large doc payloads are truncated.
+3. unknown methods/tools return structured JSON-RPC errors.
+
+## Near-Term Extensions
+
+1. Add a `ship_run` tool with allowlisted commands.
+2. Add doc IDs that map to numbered filenames for stable retrieval.
+3. Add cross-doc link graph output for faster agent navigation.
+
+---
+FILE: docs/roadmap/01-framework-plan.md
+---
+# GoShip Framework Plan
+
+This document tracks the plan to evolve GoShip from a starter kit into a Rails-like Go framework with strong developer ergonomics.
+
+## Terminology Note
+
+Voice-to-text aliases used in discussion:
+
+- `shiri` => `Cherie`
+- `jerry` => `Cherie`
+- `sherry` => `Cherie`
+
+When planning or tracking work, treat all of the above as `Cherie`.
+
+## Vision
+
+Build a highly productive, convention-first Go framework where developers can:
+
+1. ship fast with sensible defaults;
+2. install batteries as versioned modules;
+3. choose deployment/runtime mode without rewriting app code.
+
+## Documentation Source Of Truth
+
+Implementation and architecture documentation lives in `docs/`.
+
+Primary files for ongoing refactor work:
+
+1. `docs/architecture/02-structure-and-boundaries.md` (canonical placement rules)
+2. `docs/architecture/01-architecture.md` (runtime/system behavior)
+3. `docs/guides/01-ai-agent-guide.md` (agent execution conventions)
+4. `docs/reference/01-cli.md` (living `ship` CLI contract)
+
+Documentation execution priority:
+
+1. Docs-first is preferred over MCP/tooling-first in the near term.
+2. `ship-mcp` remains a future extension point, not a primary workflow dependency today.
+3. Build task-focused how-to guides that make common changes fast and repeatable.
+
+Primary framing:
+
+- GoShip aims to be a Ruby on Rails alternative in Go, with comparable batteries-included productivity and developer ergonomics.
+- Product aspiration: be a deeply loved framework by developers by putting developer joy, speed, and clarity first.
+- Rails inspiration applies to the entire framework experience (not only environment settings): app structure, conventions, generators, batteries, defaults, testing, and deployment workflows.
+
+### Rails-Inspired Framework Pillars
+
+1. Convention over configuration:
+- opinionated defaults for layout, modules, and naming;
+- explicit escape hatches when teams need control.
+2. Generators-first workflow:
+- create apps/resources/jobs/modules with minimal manual wiring.
+3. Batteries-included, modular delivery:
+- auth, billing, notifications, storage, admin, jobs as installable modules.
+4. Stable abstractions over pluggable implementations:
+- developers code to GoShip interfaces; adapters are swap-friendly.
+5. Excellent local DX:
+- fast feedback, minimal setup, stateless tests by default.
+6. Production-ready path:
+- clear migration from local single-process to distributed process topology.
+
+Rails inspiration for configuration and "what runs":
+
+1. Rails uses layered configuration:
+- `config/application.rb` for global app config;
+- `config/environments/*.rb` for per-environment overrides;
+- `config/initializers/*.rb` for subsystem wiring;
+- Gemfile/Bundler groups for dependency activation.
+2. GoShip equivalent target:
+- global framework/module manifest + adapter selection;
+- per-environment overrides;
+- startup wiring that follows enabled modules/adapters.
+
+### Execution Topology and File Approach
+
+To decide what runs in parallel (web/worker/scheduler) and with which adapters, use layered config files:
+
+1. `config/application.yaml`:
+- global defaults;
+- module enablement;
+- adapter defaults (`db`, `cache`, `jobs`, `pubsub`, `storage`).
+2. `config/environments/{local,dev,test,prod}.yaml`:
+- per-environment overrides;
+- profile selection (`server-db`, `single-node`, `distributed`).
+3. `config/processes.yaml`:
+- process topology matrix:
+  - `web` (bool)
+  - `worker` (bool)
+  - `scheduler` (bool)
+  - `co_located` (bool)
+- examples:
+  - local default: web=true, worker=true, scheduler=true (single process with goroutines if backend supports it)
+  - prod distributed web: web=true, worker=false, scheduler=false
+  - prod worker: web=false, worker=true, scheduler=true
+4. `config/initializers/*.go` (generated/wired by CLI):
+- runtime boot wiring based on enabled modules/adapters/processes.
+
+CLI responsibilities:
+
+1. `goship new` writes initial config set with sane defaults.
+2. `goship profile set <profile>` updates environment/process presets.
+3. `goship module add <name>` updates module manifest + initializer wiring.
+4. `goship jobs backend set <backend>` updates adapter config with capability checks.
+5. `goship new` should auto-install templ tooling and keep it current in generated projects (including `go get -u github.com/a-h/templ` as part of bootstrap/update workflow).
+
+### CLI Surface (Rails-Inspired)
+
+Primary command groups to match Rails ergonomics while staying Go-native:
+
+1. Project lifecycle:
+- `goship new <app>`
+- `goship upgrade`
+- `goship doctor`
+2. Runtime/developer workflow:
+- `goship dev` (web-only default)
+- `goship dev --worker`
+- `goship dev --all`
+- `goship test` (unit default)
+- `goship test --integration`
+3. Code generation:
+- `goship generate <resource|model|job|module>`
+- `goship destroy <generated-artifact>`
+4. Modules/adapters:
+- `goship module add <name>`
+- `goship module remove <name>`
+- `goship adapter set <db|cache|jobs|pubsub|storage|mailer> <impl>`
+5. Data/schema:
+- `goship db:migrate`
+- `goship db:rollback`
+- `goship db:seed`
+
+Rules for versioned tooling in generated apps:
+
+1. CLI installs tool versions pinned to the project declaration.
+2. CLI does not auto-upgrade tools to latest on dev/test commands.
+3. `goship doctor` reports drift (e.g., templ CLI older/newer than project version) and provides fix commands.
+4. `goship upgrade` is the only command that intentionally bumps pinned tool/module versions.
+
+## Core Product Goals
+
+1. Rails-like productivity in Go.
+2. LLM-first developer experience.
+3. Convention over configuration.
+4. Modular infrastructure adapters.
+5. Strong defaults with optional escape hatches.
+
+## Current Repository Shape (Post-Refactor)
+
+1. `app/goship/` contains app-specific web handlers and templ views.
+2. `pkg/` currently remains the framework/infrastructure layer.
+3. `cmd/` contains process entrypoints.
+
+Note: `pkg/repos` and `pkg/services` are intentionally still centralized for now and will be split into app-specific vs reusable framework modules in a dedicated follow-up pass.
+
+## Architecture Style (Pragmatic)
+
+GoShip will use a pragmatic blend:
+
+1. Rails-style developer experience at the framework surface.
+2. Selective clean-architecture boundaries only where they add real value.
+
+What this means:
+
+1. Do not implement clean architecture verbatim across every layer.
+2. Use interfaces at infrastructure seams so backend technology is swappable.
+3. Keep core app/domain logic straightforward and low-ceremony.
+
+Primary infrastructure seams to abstract:
+
+1. `Store` (database)
+2. `Cache`
+3. `Jobs`
+4. `PubSub`
+5. `BlobStorage`
+6. `Mailer`
+
+Non-goal:
+
+- Avoid abstracting everything "just in case"; abstractions must improve portability or testability.
+
+## Confirmed Decisions
+
+1. Keep Ent as the ORM for now.
+2. Use a monorepo with multiple Go modules plus `go.work` for maintainers.
+3. Ship installable/versioned modules (auth, billing, notifications, storage, admin).
+4. Keep one blessed default stack, but support both single-node and distributed runtime modes via adapters.
+5. Near-term default is database-server-first (Postgres first), not SQLite-centric.
+6. Redis is optional capability, not a hard requirement.
+
+## Upstream/Downstream Relationship
+
+GoShip is the framework upstream.
+Cherie is a downstream product built on top of GoShip.
+
+Framework work must include a sync path so Cherie stays current without fragile manual cherry-picking.
+
+## Candidate Capabilities To Pull From Cherie
+
+Based on Cherie docs and current implementation, these are strong candidates to upstream into GoShip modules:
+
+1. Realtime baseline that is fully wired (SSE endpoint + unread counts + notification center patterns).
+2. Mature notification permissions model (type + platform + grant/revoke lifecycle).
+3. Background job patterns for daily/periodic workflows (retention, maintenance, notification orchestration).
+4. Referral system primitives (link generation, attribution, reward application).
+5. Gamification primitives (points/progression hooks) as optional module.
+6. Multi-app branding strategy from one codebase (app profile/brand config).
+7. Security hardening patterns:
+- route-level authorization checks for resource interaction;
+- friend/relationship ownership checks where relevant;
+- explicit forbidden/not-found behavior for unauthorized access.
+8. Production operations runbooks:
+- deploy profile separation;
+- cache invalidation/ops guidance;
+- migration caveats and guardrails.
+
+## Pagoda Upstream Intake Plan
+
+Long-term policy:
+
+1. Treat Pagoda as an upstream source of framework/runtime improvements.
+2. Regularly evaluate and selectively port changes into GoShip.
+3. Do not adopt Pagoda UI/component layer choices that conflict with GoShip direction.
+
+Current known upstream shifts in Pagoda (to evaluate and/or port):
+
+1. Default move from Postgres+Redis to SQLite-centric operation (reference only, not the current GoShip default direction).
+2. Migration from Asynq to Backlite for DB-backed task queues.
+3. In-process task runner startup in web process, with graceful task shutdown in container.
+4. Use of in-memory cache as default for simpler local development.
+5. Admin/task runtime integration improvements.
+
+Non-goals for direct adoption:
+
+1. Go-based HTML component stack from Pagoda (`gomponents`) as a hard dependency.
+2. Any upstream UI architecture changes that reduce GoShip's Templ+HTMX ergonomics.
+3. Forcing GoShip into SQLite-centric defaults at this stage.
+
+## Documentation Quality Initiative
+
+Primary goal:
+
+1. Deliver documentation quality at least equal to Pagoda's onboarding clarity, and better on practical implementation guides.
+
+Near-term deliverable:
+
+1. Build out `docs/guides/03-how-to-playbook.md` into concrete how-to guides for common engineering tasks.
+
+Initial guide set:
+
+1. Add endpoint
+2. Add page/view
+3. Add model + migration
+4. Add service/repo
+5. Add background job
+6. Add adapter
+7. Add tests
+
+## Pagoda Intake TODOs
+
+- [ ] Create a recurring upstream review cadence (weekly or per-tag) for Pagoda.
+- [ ] Add a "Pagoda intake log" mapping upstream commit/tag -> GoShip decision (`adopt`, `adapt`, `skip`).
+- [ ] Evaluate Backlite-style DB-backed jobs as a GoShip jobs adapter candidate.
+- [ ] Port container lifecycle hardening patterns where applicable (startup/shutdown ordering and timeouts).
+- [ ] Port testability improvements that reduce Docker dependence.
+- [ ] Keep UI/component layer decisions independent from runtime/service layer intake.
+- [ ] Prefer LLM-assisted feature re-implementation over direct commit cherry-picks due codebase divergence.
+
+## Cherie Sync Policy
+
+1. Every GoShip framework milestone must include a Cherie compatibility check.
+2. Breaking changes require:
+- migration notes;
+- codemods or scripted upgrade steps where possible;
+- a compatibility window policy.
+3. Maintain a living "GoShip -> Cherie adoption board" with statuses:
+- `not started`
+- `in progress`
+- `adopted`
+- `blocked`
+4. Do not merge major framework refactors without validating Cherie boot, auth flow, and realtime flow.
+
+## Runtime Modes
+
+### 1) Server-DB Mode (Primary Near-Term Default)
+
+- DB: external DB server (Postgres first; MySQL later through adapter boundary)
+- Cache: in-memory by default
+- Jobs: pluggable (`inproc` for simplicity, durable backend for reliability)
+- Redis: optional, not required
+
+### 2) Single-Node Mode (Future-Friendly Profile)
+
+- DB: SQLite
+- Cache: in-memory
+- PubSub: in-process
+- Jobs: in-process scheduler/worker
+
+### 3) Distributed Mode
+
+- DB: Postgres
+- Cache: adapter-driven (Redis optional)
+- PubSub: adapter-driven
+- Jobs: adapter-driven (DB-backed queue or external queue service)
+
+## Worker Queue Abstraction Strategy
+
+Goal:
+
+- one stable app-facing jobs API with multiple backend implementations.
+
+Design principles:
+
+1. Define a minimal stable core contract in `goship/jobs`:
+- `Register(name, handler)`
+- `Enqueue(name, payload, opts...)`
+- `StartWorker(ctx)`
+- `StopWorker(ctx)`
+- `StartScheduler(ctx)` (if supported)
+2. Use capability declarations per backend (delayed jobs, retries, cron, priority, dead-letter, UI).
+3. Validate feature usage against backend capabilities at startup.
+4. Keep backend-specific settings in adapter config, not spread in app code.
+5. Keep handlers/payload contracts backend-agnostic.
+6. Introduce capability contracts so unsupported backend features fail fast at startup.
+
+Planned adapters:
+
+1. `jobs/inproc` (best local DX)
+2. `jobs/dbqueue` (DB-backed durable queue, no Redis required)
+3. `jobs/asynq` (optional Redis-backed adapter)
+4. future cloud adapters (Pub/Sub / Cloud Tasks bridges)
+
+## Backend-Agnostic Framework Rule
+
+Like Rails/Django, GoShip should not force one database/cache choice.
+
+Policy:
+
+1. Framework APIs remain backend-agnostic.
+2. Backend selection happens in config + runtime wiring.
+3. Application/business code must not depend directly on concrete infra clients.
+
+## Routing Organization (Rails-Inspired, Pragmatic)
+
+Target:
+
+1. Keep one orchestration router entrypoint.
+2. Register routes by domain slices (auth, public, docs, billing, notifications, etc.).
+3. Keep domain registration functions small and convention-driven.
+4. Avoid over-engineered plugin systems in early stages.
+
+Current direction:
+
+1. `BuildRouter` handles shared middleware and runtime feature gating.
+2. Domain registration is split into focused files:
+- public
+- docs
+- auth
+- external
+- realtime
+3. App composition happens via a single route composition function, preparing for multi-app mounting later.
+
+## Required Core Interfaces
+
+Create stable contracts in `core` so app code is backend-agnostic:
+
+1. `Store` (database/repository boundary)
+2. `Cache`
+3. `PubSub`
+4. `Jobs`
+5. `SessionStore`
+6. `BlobStore`
+7. `Auth`
+8. `Billing`
+9. `Notifications`
+
+## Rails-Like Capabilities to Implement First
+
+1. `goship new <app>` CLI with a 2-minute happy path.
+2. Generators:
+- `goship g model`
+- `goship g scaffold`
+- `goship g migration`
+- `goship g job`
+- `goship g mailer`
+- `goship g module install <name>`
+3. ActiveStorage-like file attachments:
+- attach files to entities;
+- support local + S3 backends;
+- simple URL + variant APIs.
+4. Admin scaffolding from Ent schema.
+5. Background jobs with retries/scheduling.
+
+## Frontend Strategy (HTMX-First, Svelte as Islands)
+
+Svelte should remain optional and isolated. Current pattern in Cherie/GoShip bundles all Svelte entrypoints into one global `svelte_bundle.js`, which increases payload and causes coupling.
+
+Target approach:
+
+1. Keep HTMX + Templ as default.
+2. Load Svelte only for pages/components that need it.
+3. Replace single global Svelte bundle with per-island chunks (no single global Svelte build artifact loaded site-wide).
+4. Use auto-discovery to find islands and generate a manifest + runtime registry automatically.
+5. Use dynamic imports so `renderSvelteComponent(name, ...)` loads code on demand.
+6. Avoid globally injecting `svelte_bundle.js` for all pages.
+
+Important DX constraint:
+
+- No manual island wiring by default.
+- Island wiring should be generated by CLI/scaffolding.
+
+### Auto-Discovery + Auto-Wire Model
+
+Desired developer flow:
+
+1. Create a Svelte component either:
+- next to its usage (colocated), or
+- in a central reusable island library.
+2. Reference it in Templ with a helper/component tag and props.
+3. Build step auto-discovers island files and generates:
+- island manifest (`component -> js/css asset`);
+- runtime registry for lazy mounting;
+- optional typed helper stubs.
+4. Templ helper injects only needed island script(s) for that page/partial.
+
+No manual edits should be required for:
+
+- central JS registry files;
+- script tag wiring in templates;
+- per-component import maps.
+
+## Svelte/Islands TODOs
+
+- [ ] Replace single `svelte_bundle.js` build with multiple outputs (code-split entries).
+- [ ] Add an island manifest mapping `componentName -> asset path`.
+- [ ] Add template helper to include only required island scripts per page.
+- [ ] Support HTMX swap lifecycle: mount/unmount Svelte instances safely after partial swaps.
+- [ ] Benchmark before/after page payload and interaction latency.
+- [ ] Document "when to use Svelte vs Alpine vs vanilla vs pure HTMX" as framework guidance.
+- [ ] Add `goship g island <Name>` to generate component + entrypoint + registration with zero manual edits.
+- [ ] Support colocated islands and central-library islands with the same discovery pipeline.
+- [ ] Add a watch mode that re-generates island manifest/registry automatically during development.
+
+## Frontend Alternatives (No-Compile Paths)
+
+Question: can we load raw `.svelte` components directly in browser without build?
+
+Answer:
+
+- Not as a production default. Svelte is compile-based.
+
+Viable alternatives for no-build interactivity:
+
+1. HTMX + Alpine (preferred default for small/medium interactions).
+2. Vanilla Web Components for reusable widgets.
+3. Lightweight runtime libraries (e.g. Petite-Vue) where appropriate.
+
+Decision:
+
+- Keep Svelte optional for advanced islands.
+- Keep HTMX-first and no-build-friendly by default.
+- Ensure CLI removes manual compile-pipeline pain where Svelte is used.
+
+## Unified Styling Policy
+
+Goal:
+
+- one unified styling system across GoShip modules and generated apps.
+
+Preferred direction:
+
+1. Use a single design system source of truth (tokens, component variants, spacing, colors, typography).
+2. If Svelte is used, keep style parity with the same design tokens/components (e.g. shadcn + shadcn-svelte style equivalence).
+3. Avoid fragmented ad-hoc component styling across stacks.
+
+LLM/agent styling guardrails:
+
+1. LLMs may change HTML/Templ/Svelte structure and behavior logic.
+2. LLMs should not freely rewrite Tailwind styling.
+3. Styling changes must be centralized in designated style system files with explicit documentation comments.
+4. Generated/component docs should clearly mark style contract boundaries as "do not mutate directly" unless requested.
+5. Framework prompts/checklists should enforce: "change behavior first, preserve style tokens/classes unless style task is explicitly requested."
+
+## Testing Strategy (Developer Ergonomics First)
+
+Test workflow should be fast and local-first without requiring Docker for most feedback loops.
+
+Principles:
+
+1. Maximize unit tests and table-driven tests for business logic.
+2. Push side effects behind interfaces to allow in-memory fakes.
+3. Keep integration tests focused and limited (happy-path + critical failure cases).
+4. Keep end-to-end tests minimal and scenario-driven.
+5. Avoid making Docker a prerequisite for routine test runs.
+
+Target pyramid:
+
+1. Unit tests (majority): pure Go, table tests, no network, no containers.
+2. Integration tests (few): DB/repo boundaries and adapter contracts.
+3. E2E tests (very few): key user journeys only.
+
+### Pre-Commit Test Policy
+
+1. Every commit must pass `lefthook` pre-commit tests.
+2. Pre-commit runs a fast, stateless Go unit suite only.
+3. Docker/integration suites run separately (manual or CI), not as a local pre-commit default.
+4. As packages are refactored, they should be moved into the pre-commit suite.
+
+### Agent-Driven Documentation and Downstream Sync Policy
+
+For every implementation change and commit:
+
+1. Update developer + LLM-oriented docs in the same change stream.
+2. Keep docs split into focused markdown files by area/topic rather than one giant file.
+3. Reflect behavior changes in framework docs and LLM reference docs.
+4. Add/update downstream impact notes for Cherie when GoShip changes affect integration.
+5. Treat documentation sync and Cherie sync as required agent checks.
+
+## Commit Standard
+
+Use Conventional Commits for all framework work:
+
+`type(scope): imperative summary`
+
+Allowed types:
+
+- `feat`
+- `fix`
+- `refactor`
+- `test`
+- `docs`
+- `chore`
+- `ci`
+
+Examples:
+
+- `fix(services): make container shutdown nil-safe`
+- `test(services): add nil-safe shutdown coverage`
+- `docs(plan): define first rework execution workflow`
+
+## Module Plan
+
+Proposed module boundaries:
+
+1. `packages/core`
+2. `packages/auth`
+3. `packages/billing`
+4. `packages/notifications`
+5. `packages/storage`
+6. `packages/admin`
+7. `cli/ship`
+
+## Priority Roadmap
+
+### Phase 0: Stabilize Current Base
+
+1. Fix container initialization mismatch and shutdown safety.
+2. Resolve realtime/notification route wiring drift.
+3. Clean and align current docs with actual runtime behavior.
+4. Refresh stale e2e coverage for critical flows.
+
+## First Rework Execution Plan
+
+This section is the active implementation tracker for the first rework pass.
+Rule: execute exactly one task at a time, validate with tests, then move to the next task.
+
+### Quality Gates (for every task)
+
+1. Add or update tests with the change (prefer table-driven tests).
+2. Run targeted tests for touched package(s).
+3. Keep tests mostly stateless (no Docker for default test path).
+4. No task is marked complete without test evidence.
+
+### Coverage Targets
+
+1. Global target: 90%+ over time (not required in one PR).
+2. Reworked packages should trend toward 90%+ before moving on.
+3. Complex pure-logic packages should aim for near-100% branch coverage with table tests.
+
+### Active Task Queue (First Rework)
+
+1. `R0.1` Container shutdown safety + reliable container unit test baseline.
+Status: `completed`
+Done when:
+- `Container.Shutdown()` is nil-safe for optional services.
+- container unit tests compile and pass without external services.
+Test evidence:
+- `go test ./pkg/services -run 'Test(NewContainer|ContainerShutdownNilSafe)$'`
+
+2. `R0.2` Container initialization policy by runtime mode (`single-node` vs `distributed`), with explicit config contract.
+Status: `completed`
+Done when:
+- runtime/process/adapters config scaffold exists;
+- runtime plan resolver exists with table tests;
+- no startup behavior change yet (scaffold only).
+Test evidence:
+- `go test ./config ./pkg/runtimeplan`
+
+3. `R0.3` Router consistency pass (realtime + notifications wired consistently with initialized dependencies).
+Status: `completed`
+Done when:
+- router enables cache middleware only when cache dependency is available;
+- realtime routes are wired only when notifier+pubsub dependencies are available;
+- runtime plan is resolved at router build with safe fallback on invalid plan configuration.
+Test evidence:
+- `go test ./pkg/runtimeplan`
+
+4. `R0.4` Testing harness improvements so default `make test` is Docker-free and fast.
+Status: `completed`
+Done when:
+- default `make test` executes a Docker-free unit package set;
+- integration/infra-heavy tests run via separate command;
+- cache-dependent unit tests do not fail when cache service is disabled in runtime profile.
+Test evidence:
+- `bash scripts/test-unit.sh`
+
+5. `R0.5` Establish package-level coverage baselines and close highest-value test gaps.
+Status: `in_progress`
+
+### Phase 1: Core Abstractions
+
+1. Define `core` interfaces for DB/cache/pubsub/jobs/storage.
+2. Implement adapters:
+- SQLite + Postgres
+- memory-cache + Redis-cache
+- inproc-pubsub + Redis-pubsub
+- inproc-jobs + Asynq
+3. Add runtime mode config (`single-node`, `distributed`).
+
+### Phase 2: Monorepo and Module Packaging
+
+1. Restructure into multi-module layout.
+2. Add `go.work` for local development across modules.
+3. Establish semver tagging and module release process.
+4. Define how Cherie consumes modules during local dev (`go.work`) vs released versions (tags).
+
+### Phase 3: CLI and Generators
+
+1. Build `goship` CLI.
+2. Implement app bootstrap and generator commands.
+3. Add idempotent install/wire commands for optional modules.
+
+### Phase 4: Batteries and DX
+
+1. Deliver auth, storage, notifications, billing, admin modules.
+2. Implement ActiveStorage-like attachment primitives.
+3. Improve diagnostics, error pages, and test templates.
+
+### Phase 5: LLM-First Tooling
+
+1. Add `llm.txt` as machine-readable framework reference.
+2. Add an MCP server exposing commands, module contracts, and examples.
+3. Generate concise human docs from the same source of truth.
+
+## TODO Checklist
+
+## Immediate
+
+- [ ] Decide and document exact package naming convention (`goship/*`).
+- [ ] Choose CLI implementation approach (`cobra`, `urfave/cli`, or stdlib).
+- [ ] Draft `core` interface contracts in a design doc.
+- [ ] Define runtime config schema for adapter selection.
+- [ ] Specify module compatibility/version policy.
+- [ ] Create a developer-facing README + LLM-facing README/`llm.txt` split with one source of truth.
+- [ ] Define MCP server scope for GoShip (commands, module APIs, recipes, migration help).
+- [ ] Create a `CHERIE_SYNC.md` runbook (upgrade process + rollback + validation checklist).
+- [ ] Create a baseline compatibility test suite for Cherie critical paths.
+- [ ] Define testing standards doc: what must be unit-testable and where table tests are required.
+- [ ] Add doc-sync guardrails in pre-commit/CI for framework-impacting changes.
+- [ ] Add Cherie-sync guardrails in pre-commit/CI (or mandatory checklist gate).
+
+## Near-Term
+
+- [ ] Build first adapter pair: `sqlite` + `postgres`.
+- [ ] Build first cache pair: `memory` + `redis`.
+- [ ] Build first pubsub pair: `inproc` + `redis`.
+- [ ] Build first jobs pair: `inproc` + `asynq`.
+- [ ] Prototype attachment API with local and S3 storage.
+- [ ] Refactor high-logic route/service code into testable units with interface boundaries.
+- [ ] Add in-memory test doubles for cache/pubsub/jobs/storage adapters.
+- [ ] Ensure default `make test` runs without Docker.
+
+## Mid-Term
+
+- [ ] Release `goship new` CLI command.
+- [ ] Release `goship g model` and `goship g migration`.
+- [ ] Release `auth` and `storage` modules.
+- [ ] Release `admin` scaffolding MVP.
+- [ ] Add golden-path example apps for both runtime modes.
+- [ ] Move Cherie onto released GoShip modules incrementally (module by module).
+- [ ] Upstream selected Cherie capabilities into optional GoShip modules (notifications/referrals/gamification/security helpers).
+- [ ] Keep Docker-based integration suite as optional/CI-focused (`make test-integration`), not default local path.
+
+## Open Questions
+
+1. How strict should conventions be before allowing customization hooks?
+2. Which features are mandatory in v1 versus module-only?
+3. What is the minimum stable API surface for `core` v1.0.0?
+4. How should we guarantee cross-module compatibility at release time?
+
+## Definition of Success (v1)
+
+1. A developer can run `goship new myapp` and ship a working app quickly.
+2. The same app code can run in single-node or distributed mode by config.
+3. Optional batteries are added via CLI without copy-paste.
+4. LLMs can reliably reason over framework structure using `llm.txt` + MCP.
+5. Cherie can upgrade to current GoShip with a documented, repeatable process.
+

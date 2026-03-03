@@ -29,6 +29,7 @@ It is not intended as user-facing product documentation.
 
 1. `G01` - `guides/01-ai-agent-guide.md`: practical guide for AI agents working in this repo.
 2. `G02` - `guides/02-development-workflows.md`: day-to-day run/build/test/migration workflows.
+3. `G03` - `guides/03-how-to-playbook.md`: prioritized how-to guide backlog and writing template.
 
 ### Reference
 

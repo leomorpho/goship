@@ -1,6 +1,7 @@
 pre-commit:
   parallel: false
   commands:
+    generate-llm-txt:
+      run: bash scripts/precommit-generate-llm-txt.sh
     unit-tests:
       run: bash scripts/precommit-tests.sh
-
