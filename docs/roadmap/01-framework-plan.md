@@ -668,6 +668,13 @@ Test evidence:
 - inproc-jobs + Asynq
 3. Add runtime mode config (`single-node`, `distributed`).
 
+Current progress:
+
+1. Adapter registry + capability validation are active at container startup.
+2. Container exposes `CoreCache`, `CoreJobs`, and `CorePubSub`.
+3. First application call site migrated to interface seam:
+- notifications fan-out enqueue in `pkg/tasks/notifications.go` now uses `core.Jobs`.
+
 ### Phase 2: Monorepo and Module Packaging
 
 1. Restructure into multi-module layout.

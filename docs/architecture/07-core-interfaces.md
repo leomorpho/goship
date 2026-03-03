@@ -41,6 +41,7 @@ This package is the current source of truth for adapter seam contracts.
 - `Register`, `Enqueue`
 - `StartWorker`, `StartScheduler`, `Stop`
 - `Capabilities`
+- `EnqueueOptions` supports `timeout`, `run_at`, `max_retries`, and `retention`
 
 5. `BlobStorage`
 - `Put`, `Delete`, `PresignGet`
@@ -76,6 +77,10 @@ Current startup behavior:
   - `CoreCache` (`core.Cache`) via `services.CoreCacheAdapter`
   - `CoreJobs` (`core.Jobs`) via `services.CoreJobsAdapter`
   - `CorePubSub` (`core.PubSub`) via `services.CorePubSubAdapter`
+
+First migrated call site:
+
+- `pkg/tasks/notifications.go` now enqueues follow-up jobs through `core.Jobs` instead of `*services.TaskClient`.
 
 ## Scope Boundaries
 

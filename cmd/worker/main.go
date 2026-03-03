@@ -81,7 +81,7 @@ func main() {
 	emailUpdateProcessor := tasks.NewEmailUpdateProcessor(c, c.ORM)
 
 	deactivateExpiredSubscriptionsProcessor := tasks.NewDeactivateExpiredSubscriptionsProcessor(subscriptionsRepo)
-	allDailyConvoNotificationsProcessor := tasks.NewAllDailyConvoNotificationsProcessor(c.ORM, profileRepo, plannedNotificationRepo, c.Tasks, 30)
+	allDailyConvoNotificationsProcessor := tasks.NewAllDailyConvoNotificationsProcessor(c.ORM, profileRepo, plannedNotificationRepo, c.CoreJobs, 30)
 	dailyConvoNotificationsProcessor := tasks.NewDailyConvoNotificationsProcessor(c.Notifier, c.Web, subscriptionsRepo, plannedNotificationRepo)
 	deleteStaleNotificationsProcessor := tasks.NewDeleteStaleNotificationsProcessor(
 		c.ORM, c.Config.App.OperationalConstants.DeleteStaleNotificationAfterDays,

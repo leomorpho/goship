@@ -11,12 +11,12 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/leomorpho/goship/ent"
 	"github.com/leomorpho/goship/ent/notification"
+	"github.com/leomorpho/goship/pkg/core"
 	"github.com/leomorpho/goship/pkg/domain"
 	"github.com/leomorpho/goship/pkg/repos/notifierrepo"
 	"github.com/leomorpho/goship/pkg/repos/profilerepo"
 	"github.com/leomorpho/goship/pkg/repos/subscriptions"
 	"github.com/leomorpho/goship/pkg/routing/routenames"
-	"github.com/leomorpho/goship/pkg/services"
 	"github.com/rs/zerolog/log"
 )
 
@@ -34,7 +34,7 @@ type (
 	AllDailyConvoNotificationsProcessor struct {
 		orm                     *ent.Client
 		profileRepo             *profilerepo.ProfileRepo
-		taskRunner              *services.TaskClient
+		taskRunner              core.Jobs
 		timespanInMinutes       int
 		plannedNotificationRepo *notifierrepo.PlannedNotificationsRepo
 	}
@@ -44,7 +44,7 @@ func NewAllDailyConvoNotificationsProcessor(
 	orm *ent.Client,
 	profileRepo *profilerepo.ProfileRepo,
 	plannedNotificationRepo *notifierrepo.PlannedNotificationsRepo,
-	taskRunner *services.TaskClient,
+	taskRunner core.Jobs,
 	timespanInMinutes int,
 ) *AllDailyConvoNotificationsProcessor {
 	return &AllDailyConvoNotificationsProcessor{
@@ -82,12 +82,15 @@ func (d *AllDailyConvoNotificationsProcessor) ProcessTask(
 		}
 		batch := profileIDs[i:end]
 
-		if err := d.taskRunner.
-			New(TypeDailyConvoNotification).
-			Payload(DailyConvoNotificationsPayload{ProfileIDs: batch}).
-			Timeout(120 * time.Second).
-			Retain(24 * time.Hour).
-			Save(); err != nil {
+		payload, err := json.Marshal(DailyConvoNotificationsPayload{ProfileIDs: batch})
+		if err != nil {
+			log.Error().Err(err).Msg("failed to marshal TypeDailyConvoNotification payload")
+			continue
+		}
+		if _, err := d.taskRunner.Enqueue(ctx, TypeDailyConvoNotification, payload, core.EnqueueOptions{
+			Timeout:   120 * time.Second,
+			Retention: 24 * time.Hour,
+		}); err != nil {
 			log.Error().Err(err).
 				Msg("failed to start TypeDailyConvoNotification task")
 		}

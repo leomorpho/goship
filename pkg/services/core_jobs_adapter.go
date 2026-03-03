@@ -104,6 +104,9 @@ func toAsynqOptions(opts core.EnqueueOptions) []asynq.Option {
 	if opts.Timeout > 0 {
 		converted = append(converted, asynq.Timeout(opts.Timeout))
 	}
+	if opts.Retention > 0 {
+		converted = append(converted, asynq.Retention(opts.Retention))
+	}
 	if !opts.RunAt.IsZero() {
 		delay := time.Until(opts.RunAt)
 		if delay > 0 {

@@ -50,6 +50,7 @@ type EnqueueOptions struct {
 	RunAt      time.Time
 	MaxRetries int
 	Timeout    time.Duration
+	Retention  time.Duration
 	Priority   int
 }
 
