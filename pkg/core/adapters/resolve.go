@@ -36,7 +36,7 @@ func ResolveFromConfig(cfg *config.Config) (Resolved, error) {
 		return Resolved{}, err
 	}
 
-	cap, ok := reg.jobsCap[sel.Jobs]
+	cap, ok := reg.JobsCapabilities(sel.Jobs)
 	if !ok {
 		return Resolved{}, fmt.Errorf("unknown jobs adapter %q", sel.Jobs)
 	}

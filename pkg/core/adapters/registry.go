@@ -96,7 +96,7 @@ func (r Registry) ValidateSelection(sel Selection) error {
 
 // ValidateRequirements ensures selected adapters satisfy runtime capability needs.
 func (r Registry) ValidateRequirements(sel Selection, req Requirements) error {
-	cap, ok := r.jobsCap[sel.Jobs]
+	cap, ok := r.JobsCapabilities(sel.Jobs)
 	if !ok {
 		return fmt.Errorf("unknown jobs adapter %q", sel.Jobs)
 	}
@@ -104,6 +104,12 @@ func (r Registry) ValidateRequirements(sel Selection, req Requirements) error {
 		return fmt.Errorf("jobs adapter %q: %w", sel.Jobs, err)
 	}
 	return nil
+}
+
+// JobsCapabilities returns the capability metadata for a jobs adapter.
+func (r Registry) JobsCapabilities(name string) (core.JobCapabilities, bool) {
+	cap, ok := r.jobsCap[name]
+	return cap, ok
 }
 
 func (r Registry) validateOne(kind, name string) error {

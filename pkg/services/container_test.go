@@ -23,6 +23,8 @@ func TestNewContainer(t *testing.T) {
 	assert.Nil(t, c.Cache)
 	assert.Nil(t, c.Tasks)
 	assert.Nil(t, c.Notifier)
+	assert.NotNil(t, c.CoreCache)
+	assert.NotNil(t, c.CoreJobs)
 	assert.NotEmpty(t, c.Adapters.Selection.DB)
 	assert.NotEmpty(t, c.Adapters.Selection.Cache)
 	assert.NotEmpty(t, c.Adapters.Selection.Jobs)

@@ -59,6 +59,8 @@ Last updated: 2026-03-03
 - `pkg/core/interfaces.go`
 - `pkg/core/adapters/registry.go`
 - `pkg/core/adapters/resolve.go`
+- `pkg/services/core_cache_adapter.go`
+- `pkg/services/core_jobs_adapter.go`
 - `app/goship/router.go`
 - `app/goship/web/routes/*.go`
 - `pkg/tasks/*.go`

@@ -72,6 +72,9 @@ Current startup behavior:
 
 - invalid selection or capability mismatch fails fast at startup.
 - resolved adapter metadata is stored in `services.Container.Adapters` for downstream wiring.
+- `services.Container` initializes backend-agnostic seams:
+  - `CoreCache` (`core.Cache`) via `services.CoreCacheAdapter`
+  - `CoreJobs` (`core.Jobs`) via `services.CoreJobsAdapter`
 
 ## Scope Boundaries
 

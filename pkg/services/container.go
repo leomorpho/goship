@@ -25,6 +25,7 @@ import (
 
 	"github.com/leomorpho/goship/config"
 	"github.com/leomorpho/goship/ent"
+	"github.com/leomorpho/goship/pkg/core"
 	coreadapters "github.com/leomorpho/goship/pkg/core/adapters"
 	"github.com/leomorpho/goship/pkg/repos/mailer"
 	"github.com/leomorpho/goship/pkg/repos/notifierrepo"
@@ -87,6 +88,11 @@ type Container struct {
 	// Tasks stores the task client
 	Tasks *TaskClient
 
+	// CoreCache exposes cache via the backend-agnostic core seam.
+	CoreCache core.Cache
+	// CoreJobs exposes jobs via the backend-agnostic core seam.
+	CoreJobs core.Jobs
+
 	// Adapters stores resolved adapter selection/capabilities for runtime use.
 	Adapters coreadapters.Resolved
 }
@@ -106,6 +112,7 @@ func NewContainer() *Container {
 	c.initMail()
 	c.initPaymentProcessor()
 	// c.initTasks()
+	c.initCoreAdapters()
 	return c
 }
 
@@ -119,6 +126,11 @@ func (c *Container) validateAdapterPlan() {
 		panic(fmt.Sprintf("invalid adapter plan: %v", err))
 	}
 	c.Adapters = resolved
+}
+
+func (c *Container) initCoreAdapters() {
+	c.CoreCache = NewCoreCacheAdapter(c.Cache)
+	c.CoreJobs = NewCoreJobsAdapter(c.Tasks, c.Adapters.JobsCapabilities)
 }
 
 // Shutdown shuts the Container down and disconnects all connections
