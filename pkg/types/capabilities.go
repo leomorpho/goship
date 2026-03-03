@@ -13,4 +13,3 @@ type CapabilitySection struct {
 	Description string
 	Docs        []CapabilityDocLink
 }
-

@@ -103,4 +103,3 @@ func DocsSections() []types.CapabilitySection {
 		{Key: "realtime", Title: "Events and Realtime", Description: "Support live updates with pub/sub abstractions that work in distributed deployments while preserving simple local behavior."},
 	}
 }
-

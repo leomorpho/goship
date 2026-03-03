@@ -435,13 +435,13 @@ Last updated: 2026-03-03
 - `cmd/seed/main.go`
 - `cli/ship/cmd/ship/main.go`
 - `cli/ship/cli.go`
-- `pkg/services/container.go`
+- `app/goship/services/container.go`
 - `pkg/core/interfaces.go`
 - `pkg/core/adapters/registry.go`
 - `pkg/core/adapters/resolve.go`
-- `pkg/services/core_cache_adapter.go`
-- `pkg/services/core_jobs_adapter.go`
-- `pkg/services/core_pubsub_adapter.go`
+- `app/goship/services/core_cache_adapter.go`
+- `app/goship/services/core_jobs_adapter.go`
+- `app/goship/services/core_pubsub_adapter.go`
 - `app/goship/router.go`
 - `app/goship/web/routes/*.go`
 - `pkg/tasks/*.go`
@@ -467,7 +467,7 @@ FILE: docs/architecture/01-architecture.md
 The application follows a layered structure:
 
 - `cmd/*`: process entrypoints (`web`, `worker`, `seed`)
-- `pkg/services`: dependency container and infrastructure clients
+- `app/goship/services`: app composition container and app-bound infrastructure adapters
 - `app/goship/web/routes`: HTTP handlers
 - `app/goship/web/wiring.go`: HTTP stack wiring (middleware/static/deps)
 - `pkg/middleware`: auth/session/cache/onboarding/request middleware
@@ -493,7 +493,7 @@ The application follows a layered structure:
 
 ## Container Composition
 
-`pkg/services/container.go` is the core composition root.
+`app/goship/services/container.go` is the core app composition root.
 
 Currently initialized in `NewContainer()`:
 
@@ -615,6 +615,7 @@ App web code is now app-scoped:
 
 - `app/goship/web/routes`: handlers
 - `app/goship/web/wiring.go`: HTTP wiring helpers (middleware/static/dependencies)
+- `app/goship/services`: app composition container and app-specific runtime adapters
 - `app/goship/views`: templ components/layouts/pages/emails
 - `app/goship/views/**/gen`: generated templ Go files (same package names as source dirs)
 
@@ -633,7 +634,6 @@ Completed in this pass:
 Still intentionally centralized (next phase):
 
 - `pkg/repos`
-- `pkg/services`
 
 These remain framework-level until each package is classified as either:
 
@@ -677,7 +677,7 @@ Core flows implemented in routes and services:
 - Register (`register.go`)
 - Forgot/reset password (`forgot_password.go`, `reset_password.go`)
 - Email verification (`verify_email.go`)
-- Auth middleware and session handling (`pkg/middleware/auth.go`, `pkg/services/auth.go`)
+- Auth middleware and session handling (`pkg/middleware/auth.go`, `app/goship/services/auth.go`)
 
 Key implementation choices:
 
@@ -1009,7 +1009,7 @@ This list is based on direct code inspection and is intended to guide contributo
 
 ## 1) Container Initialization Mismatch (High)
 
-In `pkg/services/container.go`, `NewContainer()` does not call:
+In `app/goship/services/container.go`, `NewContainer()` does not call:
 
 - `initCache()`
 - `initNotifier()`
@@ -1183,7 +1183,7 @@ These interfaces are runtime seams, not domain/repository APIs.
 
 ## Migration Plan
 
-1. Keep existing concrete packages running (`pkg/services`, `pkg/repos/*`).
+1. Keep existing concrete packages running (`app/goship/services`, `pkg/repos/*`).
 2. Add adapters that satisfy `pkg/core` contracts.
 3. Move container wiring to resolve adapters via config and capabilities.
 4. Gradually convert call sites from concrete clients to interfaces.
@@ -1205,7 +1205,7 @@ This guide is for code agents making changes in this repository.
 
 1. Read `docs/architecture/03-project-scope-analysis.md` and `docs/architecture/06-known-gaps-and-risks.md`.
 2. Inspect route wiring in `app/goship/router.go` before editing handlers.
-3. Inspect `pkg/services/container.go` before assuming a dependency is initialized.
+3. Inspect `app/goship/services/container.go` before assuming a dependency is initialized.
 
 ## Architectural Conventions
 
@@ -1240,9 +1240,9 @@ Runtime bootstrap:
 
 Dependency wiring:
 
-- `pkg/services/container.go`
-- `pkg/services/auth.go`
-- `pkg/services/tasks.go`
+- `app/goship/services/container.go`
+- `app/goship/services/auth.go`
+- `app/goship/services/tasks.go`
 
 Routing and middleware:
 
@@ -1736,7 +1736,7 @@ Field syntax for `make:model`:
 2. Writes deterministic starter files:
 `go.mod`
 `app/goship/router.go` (with route marker pairs for `--wire`)
-`pkg/routing/routenames/routenames.go`
+`app/goship/web/routenames/routenames.go`
 `app/goship/views/templates.go`
 3. Supports `--dry-run` and `--force`.
 
@@ -1755,7 +1755,7 @@ Markers:
 `// ship:routes:auth:start ... // ship:routes:auth:end`
 3. Creates `app/goship/web/routes/<resource>.go`.
 4. Creates `app/goship/views/web/pages/<resource>.templ` when `--views templ`.
-5. Ensures `RouteName<Resource>` constant exists in `pkg/routing/routenames/routenames.go`.
+5. Ensures `RouteName<Resource>` constant exists in `app/goship/web/routenames/routenames.go`.
 6. Prints exact snippet target (`registerPublicRoutes` or `registerAuthRoutes`) when not wiring.
 
 Generated handler behavior:
@@ -2095,7 +2095,7 @@ Rules for versioned tooling in generated apps:
 2. `pkg/` currently remains the framework/infrastructure layer.
 3. `cmd/` contains process entrypoints.
 
-Note: `pkg/repos` and `pkg/services` are intentionally still centralized for now and will be split into app-specific vs reusable framework modules in a dedicated follow-up pass.
+Note: app composition/runtime wiring has moved to `app/goship/services`. `pkg/repos` remains intentionally centralized for now and will be split into app-specific vs reusable framework modules in a dedicated follow-up pass.
 
 ## Architecture Style (Pragmatic)
 
@@ -2529,7 +2529,7 @@ Done when:
 - `Container.Shutdown()` is nil-safe for optional services.
 - container unit tests compile and pass without external services.
 Test evidence:
-- `go test ./pkg/services -run 'Test(NewContainer|ContainerShutdownNilSafe)$'`
+- `go test ./app/goship/services -run 'Test(NewContainer|ContainerShutdownNilSafe)$'`
 
 2. `R0.2` Container initialization policy by runtime mode (`single-node` vs `distributed`), with explicit config contract.
 Status: `completed`
@@ -2593,7 +2593,7 @@ Test evidence:
 9. `R1.4` Route name automation and dry-run previews for resource generation.
 Status: `completed`
 Done when:
-- generator ensures `RouteName<Resource>` constant is present in `pkg/routing/routenames/routenames.go`;
+- generator ensures `RouteName<Resource>` constant is present in `app/goship/web/routenames/routenames.go`;
 - `ship make:resource ... --dry-run` previews file/router/routename changes without writing;
 - wiring/import/constant insertion paths are idempotent and tested.
 Test evidence:

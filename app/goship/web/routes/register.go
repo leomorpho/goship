@@ -5,13 +5,13 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/leomorpho/goship/app/goship/web/routenames"
+	routeNames "github.com/leomorpho/goship/app/goship/web/routenames"
 	"github.com/leomorpho/goship/ent"
 	"github.com/leomorpho/goship/pkg/context"
 	"github.com/leomorpho/goship/pkg/controller"
 	"github.com/leomorpho/goship/pkg/domain"
 	"github.com/leomorpho/goship/pkg/repos/msg"
-	"github.com/leomorpho/goship/pkg/routing/routenames"
-	routeNames "github.com/leomorpho/goship/pkg/routing/routenames"
 
 	"github.com/leomorpho/goship/app/goship/views"
 	"github.com/leomorpho/goship/app/goship/views/emails/gen"

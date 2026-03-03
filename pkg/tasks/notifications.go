@@ -9,6 +9,7 @@ import (
 
 	"github.com/hibiken/asynq"
 	"github.com/labstack/echo/v4"
+	"github.com/leomorpho/goship/app/goship/web/routenames"
 	"github.com/leomorpho/goship/ent"
 	"github.com/leomorpho/goship/ent/notification"
 	"github.com/leomorpho/goship/pkg/core"
@@ -16,7 +17,6 @@ import (
 	"github.com/leomorpho/goship/pkg/repos/notifierrepo"
 	"github.com/leomorpho/goship/pkg/repos/profilerepo"
 	"github.com/leomorpho/goship/pkg/repos/subscriptions"
-	"github.com/leomorpho/goship/pkg/routing/routenames"
 	"github.com/rs/zerolog/log"
 )
 

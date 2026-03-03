@@ -5,7 +5,7 @@ This list is based on direct code inspection and is intended to guide contributo
 
 ## 1) Container Initialization Mismatch (High)
 
-In `pkg/services/container.go`, `NewContainer()` does not call:
+In `app/goship/services/container.go`, `NewContainer()` does not call:
 
 - `initCache()`
 - `initNotifier()`

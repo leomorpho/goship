@@ -33,6 +33,7 @@ App web code is now app-scoped:
 
 - `app/goship/web/routes`: handlers
 - `app/goship/web/wiring.go`: HTTP wiring helpers (middleware/static/dependencies)
+- `app/goship/services`: app composition container and app-specific runtime adapters
 - `app/goship/views`: templ components/layouts/pages/emails
 - `app/goship/views/**/gen`: generated templ Go files (same package names as source dirs)
 
@@ -51,7 +52,6 @@ Completed in this pass:
 Still intentionally centralized (next phase):
 
 - `pkg/repos`
-- `pkg/services`
 
 These remain framework-level until each package is classified as either:
 

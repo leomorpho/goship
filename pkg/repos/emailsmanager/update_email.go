@@ -10,8 +10,10 @@ import (
 
 	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/labstack/echo/v4"
+	"github.com/leomorpho/goship/app/goship/services"
 	"github.com/leomorpho/goship/app/goship/views/emails/gen"
 	"github.com/leomorpho/goship/app/goship/views/web/layouts/gen"
+	"github.com/leomorpho/goship/app/goship/web/routenames"
 	"github.com/leomorpho/goship/ent"
 	"github.com/leomorpho/goship/ent/notification"
 	"github.com/leomorpho/goship/ent/notificationpermission"
@@ -19,8 +21,6 @@ import (
 	"github.com/leomorpho/goship/ent/sentemail"
 	"github.com/leomorpho/goship/pkg/controller"
 	"github.com/leomorpho/goship/pkg/domain"
-	"github.com/leomorpho/goship/pkg/routing/routenames"
-	"github.com/leomorpho/goship/pkg/services"
 	"github.com/leomorpho/goship/pkg/types"
 	"github.com/rs/zerolog/log"
 )

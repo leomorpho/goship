@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/leomorpho/goship/pkg/routing/routenames"
+	"github.com/leomorpho/goship/app/goship/web/routenames"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -130,7 +130,7 @@ Field syntax for `make:model`:
 2. Writes deterministic starter files:
 `go.mod`
 `app/goship/router.go` (with route marker pairs for `--wire`)
-`pkg/routing/routenames/routenames.go`
+`app/goship/web/routenames/routenames.go`
 `app/goship/views/templates.go`
 3. Supports `--dry-run` and `--force`.
 
@@ -149,7 +149,7 @@ Markers:
 `// ship:routes:auth:start ... // ship:routes:auth:end`
 3. Creates `app/goship/web/routes/<resource>.go`.
 4. Creates `app/goship/views/web/pages/<resource>.templ` when `--views templ`.
-5. Ensures `RouteName<Resource>` constant exists in `pkg/routing/routenames/routenames.go`.
+5. Ensures `RouteName<Resource>` constant exists in `app/goship/web/routenames/routenames.go`.
 6. Prints exact snippet target (`registerPublicRoutes` or `registerAuthRoutes`) when not wiring.
 
 Generated handler behavior:

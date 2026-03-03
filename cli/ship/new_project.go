@@ -149,7 +149,7 @@ func renderRouterSkeleton() string {
 	return `package goship
 
 import (
-	routeNames "github.com/leomorpho/goship/pkg/routing/routenames"
+	routeNames "github.com/leomorpho/goship/app/goship/web/routenames"
 	"github.com/leomorpho/goship/app/goship/web/routes"
 )
 

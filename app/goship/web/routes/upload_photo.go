@@ -7,12 +7,12 @@ import (
 	"strconv"
 
 	"github.com/leomorpho/goship/app/goship/views/web/layouts/gen"
+	"github.com/leomorpho/goship/app/goship/web/routenames"
 	"github.com/leomorpho/goship/ent"
 	"github.com/leomorpho/goship/pkg/context"
 	"github.com/leomorpho/goship/pkg/controller"
 	"github.com/leomorpho/goship/pkg/repos/profilerepo"
 	storagerepo "github.com/leomorpho/goship/pkg/repos/storage"
-	"github.com/leomorpho/goship/pkg/routing/routenames"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"

@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/leomorpho/goship/app/goship"
-	"github.com/leomorpho/goship/pkg/services"
+	"github.com/leomorpho/goship/app/goship/services"
 )
 
 func timeoutMiddleware(next http.Handler, writeTimeout time.Duration) http.Handler {

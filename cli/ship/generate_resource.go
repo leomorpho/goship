@@ -446,7 +446,7 @@ func ensureRouteNamesImport(routerPath string, dryRun bool) error {
 		return err
 	}
 	content := string(b)
-	if strings.Contains(content, `routeNames "github.com/leomorpho/goship/pkg/routing/routenames"`) {
+	if strings.Contains(content, `routeNames "github.com/leomorpho/goship/app/goship/web/routenames"`) {
 		return nil
 	}
 
@@ -460,7 +460,7 @@ func ensureRouteNamesImport(routerPath string, dryRun bool) error {
 	}
 	importEnd += importStart
 
-	line := "\trouteNames \"github.com/leomorpho/goship/pkg/routing/routenames\"\n"
+	line := "\trouteNames \"github.com/leomorpho/goship/app/goship/web/routenames\"\n"
 	updated := content[:importEnd] + line + content[importEnd:]
 	if dryRun {
 		return nil

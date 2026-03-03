@@ -9,8 +9,8 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
+	"github.com/leomorpho/goship/app/goship/web/routenames"
 	"github.com/leomorpho/goship/pkg/controller"
-	"github.com/leomorpho/goship/pkg/routing/routenames"
 )
 
 func Drawer(page *controller.Page, showTopBar bool) templ.Component {

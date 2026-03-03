@@ -12,8 +12,8 @@ import (
 	"fmt"
 	"github.com/leomorpho/goship/app/goship/views/web/components/gen"
 	"github.com/leomorpho/goship/app/goship/web/capabilities"
+	"github.com/leomorpho/goship/app/goship/web/routenames"
 	"github.com/leomorpho/goship/pkg/controller"
-	"github.com/leomorpho/goship/pkg/routing/routenames"
 	"github.com/leomorpho/goship/pkg/types"
 )
 

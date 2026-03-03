@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"testing"
 
-	routeNames "github.com/leomorpho/goship/pkg/routing/routenames"
+	routeNames "github.com/leomorpho/goship/app/goship/web/routenames"
 	"github.com/stretchr/testify/assert"
 )
 

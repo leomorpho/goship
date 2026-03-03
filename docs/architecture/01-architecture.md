@@ -6,7 +6,7 @@
 The application follows a layered structure:
 
 - `cmd/*`: process entrypoints (`web`, `worker`, `seed`)
-- `pkg/services`: dependency container and infrastructure clients
+- `app/goship/services`: app composition container and app-bound infrastructure adapters
 - `app/goship/web/routes`: HTTP handlers
 - `app/goship/web/wiring.go`: HTTP stack wiring (middleware/static/deps)
 - `pkg/middleware`: auth/session/cache/onboarding/request middleware
@@ -32,7 +32,7 @@ The application follows a layered structure:
 
 ## Container Composition
 
-`pkg/services/container.go` is the core composition root.
+`app/goship/services/container.go` is the core app composition root.
 
 Currently initialized in `NewContainer()`:
 

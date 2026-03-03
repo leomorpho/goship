@@ -5,4 +5,4 @@
 ./cmd/seed
 ./pkg/controller
 ./pkg/runtimeplan
-./pkg/services
+./app/goship/services

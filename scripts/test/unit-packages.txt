@@ -7,5 +7,5 @@
 ./pkg/middleware
 ./pkg/repos/msg
 ./pkg/runtimeplan
-./pkg/services
+./app/goship/services
 ./cli/ship

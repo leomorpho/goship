@@ -140,7 +140,9 @@ type testJobs struct{}
 
 func (testJobs) Register(string, JobHandler) error { return nil }
 
-func (testJobs) Enqueue(context.Context, string, []byte, EnqueueOptions) (string, error) { return "job-1", nil }
+func (testJobs) Enqueue(context.Context, string, []byte, EnqueueOptions) (string, error) {
+	return "job-1", nil
+}
 
 func (testJobs) StartWorker(context.Context) error { return nil }
 
@@ -170,12 +172,12 @@ func TestInterfaceSatisfactionAndBasicUsage(t *testing.T) {
 	t.Parallel()
 
 	var (
-		store Store = testStore{}
-		cache Cache = testCache{}
-		ps    PubSub = testPubSub{}
-		jobs  Jobs = testJobs{}
+		store Store       = testStore{}
+		cache Cache       = testCache{}
+		ps    PubSub      = testPubSub{}
+		jobs  Jobs        = testJobs{}
 		blob  BlobStorage = testBlobStorage{}
-		mail  Mailer = testMailer{}
+		mail  Mailer      = testMailer{}
 	)
 
 	ctx := context.Background()

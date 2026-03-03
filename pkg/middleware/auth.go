@@ -7,13 +7,13 @@ import (
 
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
+	"github.com/leomorpho/goship/app/goship/services"
+	"github.com/leomorpho/goship/app/goship/web/routenames"
 	"github.com/leomorpho/goship/ent"
 	"github.com/leomorpho/goship/pkg/context"
 	"github.com/leomorpho/goship/pkg/repos/msg"
 	"github.com/leomorpho/goship/pkg/repos/profilerepo"
 	"github.com/leomorpho/goship/pkg/repos/subscriptions"
-	"github.com/leomorpho/goship/pkg/routing/routenames"
-	"github.com/leomorpho/goship/pkg/services"
 	"github.com/rs/zerolog/log"
 )
 

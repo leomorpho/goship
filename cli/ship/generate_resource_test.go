@@ -279,7 +279,7 @@ import (
 	if err != nil {
 		t.Fatal(err)
 	}
-	if strings.Count(string(content), `routeNames "github.com/leomorpho/goship/pkg/routing/routenames"`) != 1 {
+	if strings.Count(string(content), `routeNames "github.com/leomorpho/goship/app/goship/web/routenames"`) != 1 {
 		t.Fatalf("expected single routeNames import insertion, got:\n%s", string(content))
 	}
 }
@@ -302,7 +302,7 @@ func TestRunGenerateResourceDryRun(t *testing.T) {
 	routerContent := `package goship
 
 import (
-	routeNames "github.com/leomorpho/goship/pkg/routing/routenames"
+	routeNames "github.com/leomorpho/goship/app/goship/web/routenames"
 )
 
 func registerPublicRoutes() {
@@ -358,7 +358,7 @@ func TestRunGenerateResourceWireWritesExpected(t *testing.T) {
 
 import (
 	"fmt"
-	routeNames "github.com/leomorpho/goship/pkg/routing/routenames"
+	routeNames "github.com/leomorpho/goship/app/goship/web/routenames"
 	"github.com/leomorpho/goship/app/goship/web/routes"
 )
 

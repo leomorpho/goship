@@ -6,8 +6,8 @@ import (
 	"github.com/leomorpho/goship/app/goship/views"
 	"github.com/leomorpho/goship/app/goship/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/goship/views/web/pages/gen"
+	"github.com/leomorpho/goship/app/goship/web/routenames"
 	"github.com/leomorpho/goship/pkg/controller"
-	"github.com/leomorpho/goship/pkg/routing/routenames"
 	"github.com/leomorpho/goship/pkg/types"
 
 	"github.com/labstack/echo/v4"

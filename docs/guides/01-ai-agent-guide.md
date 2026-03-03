@@ -6,7 +6,7 @@ This guide is for code agents making changes in this repository.
 
 1. Read `docs/architecture/03-project-scope-analysis.md` and `docs/architecture/06-known-gaps-and-risks.md`.
 2. Inspect route wiring in `app/goship/router.go` before editing handlers.
-3. Inspect `pkg/services/container.go` before assuming a dependency is initialized.
+3. Inspect `app/goship/services/container.go` before assuming a dependency is initialized.
 
 ## Architectural Conventions
 
@@ -41,9 +41,9 @@ Runtime bootstrap:
 
 Dependency wiring:
 
-- `pkg/services/container.go`
-- `pkg/services/auth.go`
-- `pkg/services/tasks.go`
+- `app/goship/services/container.go`
+- `app/goship/services/auth.go`
+- `app/goship/services/tasks.go`
 
 Routing and middleware:
 

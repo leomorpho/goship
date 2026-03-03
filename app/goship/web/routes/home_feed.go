@@ -9,10 +9,10 @@ import (
 	"github.com/leomorpho/goship/app/goship/views"
 	"github.com/leomorpho/goship/app/goship/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/goship/views/web/pages/gen"
+	"github.com/leomorpho/goship/app/goship/web/routenames"
 	"github.com/leomorpho/goship/pkg/controller"
 	"github.com/leomorpho/goship/pkg/domain"
 	"github.com/leomorpho/goship/pkg/repos/profilerepo"
-	"github.com/leomorpho/goship/pkg/routing/routenames"
 	"github.com/leomorpho/goship/pkg/types"
 	"github.com/rs/zerolog/log"
 )

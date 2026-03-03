@@ -5,5 +5,5 @@
 ./pkg/repos/profilerepo
 ./pkg/repos/subscriptions
 ./seeder
-./pkg/services
+./app/goship/services
 

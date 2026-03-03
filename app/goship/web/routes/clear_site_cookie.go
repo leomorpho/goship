@@ -4,9 +4,9 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"github.com/leomorpho/goship/app/goship/web/routenames"
 	"github.com/leomorpho/goship/pkg/controller"
 	"github.com/leomorpho/goship/pkg/repos/msg"
-	"github.com/leomorpho/goship/pkg/routing/routenames"
 )
 
 type (

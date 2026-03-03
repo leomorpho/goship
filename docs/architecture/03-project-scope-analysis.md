@@ -32,7 +32,7 @@ Core flows implemented in routes and services:
 - Register (`register.go`)
 - Forgot/reset password (`forgot_password.go`, `reset_password.go`)
 - Email verification (`verify_email.go`)
-- Auth middleware and session handling (`pkg/middleware/auth.go`, `pkg/services/auth.go`)
+- Auth middleware and session handling (`pkg/middleware/auth.go`, `app/goship/services/auth.go`)
 
 Key implementation choices:
 

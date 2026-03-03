@@ -154,7 +154,7 @@ Rules for versioned tooling in generated apps:
 2. `pkg/` currently remains the framework/infrastructure layer.
 3. `cmd/` contains process entrypoints.
 
-Note: `pkg/repos` and `pkg/services` are intentionally still centralized for now and will be split into app-specific vs reusable framework modules in a dedicated follow-up pass.
+Note: app composition/runtime wiring has moved to `app/goship/services`. `pkg/repos` remains intentionally centralized for now and will be split into app-specific vs reusable framework modules in a dedicated follow-up pass.
 
 ## Architecture Style (Pragmatic)
 
@@ -588,7 +588,7 @@ Done when:
 - `Container.Shutdown()` is nil-safe for optional services.
 - container unit tests compile and pass without external services.
 Test evidence:
-- `go test ./pkg/services -run 'Test(NewContainer|ContainerShutdownNilSafe)$'`
+- `go test ./app/goship/services -run 'Test(NewContainer|ContainerShutdownNilSafe)$'`
 
 2. `R0.2` Container initialization policy by runtime mode (`single-node` vs `distributed`), with explicit config contract.
 Status: `completed`
@@ -652,7 +652,7 @@ Test evidence:
 9. `R1.4` Route name automation and dry-run previews for resource generation.
 Status: `completed`
 Done when:
-- generator ensures `RouteName<Resource>` constant is present in `pkg/routing/routenames/routenames.go`;
+- generator ensures `RouteName<Resource>` constant is present in `app/goship/web/routenames/routenames.go`;
 - `ship make:resource ... --dry-run` previews file/router/routename changes without writing;
 - wiring/import/constant insertion paths are idempotent and tested.
 Test evidence:
