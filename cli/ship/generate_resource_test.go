@@ -1,6 +1,9 @@
 package ship
 
 import (
+	"bytes"
+	"go/parser"
+	"go/token"
 	"os"
 	"path/filepath"
 	"strings"
@@ -162,16 +165,16 @@ func registerAuthRoutes() {
 	}
 
 	publicSnippet := "\t// ship:generated:contact\n\tcontact := routes.NewContactRoute(ctr)\n\tg.GET(\"/contact\", contact.Get).Name = routeNames.RouteNameContact\n"
-	if err := wireRouteSnippet(routerPath, "public", publicSnippet); err != nil {
+	if err := wireRouteSnippet(routerPath, "public", publicSnippet, false); err != nil {
 		t.Fatalf("wire public failed: %v", err)
 	}
 	// Idempotent second call.
-	if err := wireRouteSnippet(routerPath, "public", publicSnippet); err != nil {
+	if err := wireRouteSnippet(routerPath, "public", publicSnippet, false); err != nil {
 		t.Fatalf("wire public second call failed: %v", err)
 	}
 
 	authSnippet := "\t// ship:generated:inbox\n\tinbox := routes.NewInboxRoute(ctr)\n\tonboardedGroup.GET(\"/inbox\", inbox.Get).Name = routeNames.RouteNameInbox\n"
-	if err := wireRouteSnippet(routerPath, "auth", authSnippet); err != nil {
+	if err := wireRouteSnippet(routerPath, "auth", authSnippet, false); err != nil {
 		t.Fatalf("wire auth failed: %v", err)
 	}
 
@@ -194,13 +197,200 @@ func TestWireRouteSnippet_MarkerErrors(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err := wireRouteSnippet(routerPath, "public", "\tfoo := bar\n")
+	err := wireRouteSnippet(routerPath, "public", "\tfoo := bar\n", false)
 	if err == nil {
 		t.Fatalf("expected marker error")
 	}
 
-	err = wireRouteSnippet(routerPath, "internal", "\tfoo := bar\n")
+	err = wireRouteSnippet(routerPath, "internal", "\tfoo := bar\n", false)
 	if err == nil {
 		t.Fatalf("expected auth group validation error")
+	}
+}
+
+func TestWireRouteNameConstant(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "routenames.go")
+	base := `package routenames
+
+const (
+	RouteNameLandingPage = "landing_page"
+)
+`
+	if err := os.WriteFile(path, []byte(base), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := wireRouteNameConstant(path, "RouteNameInbox", "inbox", false); err != nil {
+		t.Fatalf("wireRouteNameConstant failed: %v", err)
+	}
+	// idempotent
+	if err := wireRouteNameConstant(path, "RouteNameInbox", "inbox", false); err != nil {
+		t.Fatalf("wireRouteNameConstant second call failed: %v", err)
+	}
+
+	content, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Count(string(content), "RouteNameInbox") != 1 {
+		t.Fatalf("expected single RouteNameInbox insertion, got:\n%s", string(content))
+	}
+}
+
+func TestEnsureRouteNamesImport(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "router.go")
+	base := `package goship
+
+import (
+	"fmt"
+)
+`
+	if err := os.WriteFile(path, []byte(base), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := ensureRouteNamesImport(path, false); err != nil {
+		t.Fatalf("ensureRouteNamesImport failed: %v", err)
+	}
+	if err := ensureRouteNamesImport(path, false); err != nil {
+		t.Fatalf("ensureRouteNamesImport second call failed: %v", err)
+	}
+	content, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Count(string(content), `routeNames "github.com/leomorpho/goship/pkg/routing/routenames"`) != 1 {
+		t.Fatalf("expected single routeNames import insertion, got:\n%s", string(content))
+	}
+}
+
+func TestRunGenerateResourceDryRun(t *testing.T) {
+	root := t.TempDir()
+	prevWD, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(prevWD) })
+	if err := os.Chdir(root); err != nil {
+		t.Fatal(err)
+	}
+
+	routerPath := filepath.Join(root, "app", "goship", "router.go")
+	if err := os.MkdirAll(filepath.Dir(routerPath), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	routerContent := `package goship
+
+import (
+	routeNames "github.com/leomorpho/goship/pkg/routing/routenames"
+)
+
+func registerPublicRoutes() {
+	// ship:routes:public:start
+	// ship:routes:public:end
+}
+`
+	if err := os.WriteFile(routerPath, []byte(routerContent), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	routeNamesPath := filepath.Join(root, "pkg", "routing", "routenames", "routenames.go")
+	if err := os.MkdirAll(filepath.Dir(routeNamesPath), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(routeNamesPath, []byte("package routenames\n\nconst (\n)\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	cli := CLI{Out: out, Err: errOut, Runner: &fakeRunner{}}
+	code := cli.Run([]string{"generate", "resource", "inbox", "--path", "app/goship", "--wire", "--dry-run", "--views", "none"})
+	if code != 0 {
+		t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
+	}
+	if !strings.Contains(out.String(), "Dry-run mode: no files were written.") {
+		t.Fatalf("expected dry-run message, stdout=%s", out.String())
+	}
+
+	handlerPath := filepath.Join(root, "app", "goship", "web", "routes", "inbox.go")
+	if _, err := os.Stat(handlerPath); !os.IsNotExist(err) {
+		t.Fatalf("expected no handler file to be written in dry-run mode")
+	}
+}
+
+func TestRunGenerateResourceWireWritesExpected(t *testing.T) {
+	root := t.TempDir()
+	prevWD, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(prevWD) })
+	if err := os.Chdir(root); err != nil {
+		t.Fatal(err)
+	}
+
+	routerPath := filepath.Join(root, "app", "goship", "router.go")
+	if err := os.MkdirAll(filepath.Dir(routerPath), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	routerContent := `package goship
+
+import (
+	"fmt"
+	routeNames "github.com/leomorpho/goship/pkg/routing/routenames"
+	"github.com/leomorpho/goship/app/goship/web/routes"
+)
+
+func registerPublicRoutes() {
+	// ship:routes:public:start
+	// ship:routes:public:end
+}
+`
+	if err := os.WriteFile(routerPath, []byte(routerContent), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	routeNamesPath := filepath.Join(root, "pkg", "routing", "routenames", "routenames.go")
+	if err := os.MkdirAll(filepath.Dir(routeNamesPath), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(routeNamesPath, []byte("package routenames\n\nconst (\n)\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	cli := CLI{Out: out, Err: errOut, Runner: &fakeRunner{}}
+	code := cli.Run([]string{"generate", "resource", "inbox", "--path", "app/goship", "--wire", "--views", "none"})
+	if code != 0 {
+		t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
+	}
+
+	handlerPath := filepath.Join(root, "app", "goship", "web", "routes", "inbox.go")
+	if _, err := os.Stat(handlerPath); err != nil {
+		t.Fatalf("expected handler file: %v", err)
+	}
+
+	routerBytes, err := os.ReadFile(routerPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	routerContentOut := string(routerBytes)
+	if !strings.Contains(routerContentOut, "ship:generated:inbox") {
+		t.Fatalf("expected generated marker in router, got:\n%s", routerContentOut)
+	}
+
+	routeNamesBytes, err := os.ReadFile(routeNamesPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(routeNamesBytes), `RouteNameInbox = "inbox"`) {
+		t.Fatalf("expected routename constant insertion, got:\n%s", string(routeNamesBytes))
+	}
+
+	// Syntax smoke-check generated handler file.
+	fset := token.NewFileSet()
+	if _, err := parser.ParseFile(fset, handlerPath, nil, parser.AllErrors); err != nil {
+		t.Fatalf("generated handler is not valid Go syntax: %v", err)
 	}
 }

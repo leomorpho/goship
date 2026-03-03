@@ -645,6 +645,15 @@ Done when:
 Test evidence:
 - `go test ./cli/ship`
 
+9. `R1.4` Route name automation and dry-run previews for resource generation.
+Status: `completed`
+Done when:
+- generator ensures `RouteName<Resource>` constant is present in `pkg/routing/routenames/routenames.go`;
+- `ship generate resource ... --dry-run` previews file/router/routename changes without writing;
+- wiring/import/constant insertion paths are idempotent and tested.
+Test evidence:
+- `go test ./cli/ship`
+
 ### Phase 1: Core Abstractions
 
 1. Define `core` interfaces for DB/cache/pubsub/jobs/storage.

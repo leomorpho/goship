@@ -3,7 +3,6 @@ package ship
 import (
 	"bytes"
 	"errors"
-	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -12,11 +11,12 @@ import (
 )
 
 type resourceGenerateOptions struct {
-	Name  string
-	Path  string
-	Auth  string
-	Views string
-	Wire  bool
+	Name   string
+	Path   string
+	Auth   string
+	Views  string
+	Wire   bool
+	DryRun bool
 }
 
 type resourceGenerateResult struct {
@@ -24,41 +24,41 @@ type resourceGenerateResult struct {
 	RouterPath         string
 	RouteSnippet       string
 	RouteInsertSnippet string
+	RouteNamePath      string
+	RouteNameConst     string
+	RouteNameValue     string
 }
 
 func (c CLI) runGenerateResource(args []string) int {
-	fs := flag.NewFlagSet("generate resource", flag.ContinueOnError)
-	fs.SetOutput(c.Err)
-	basePath := fs.String("path", "app/goship", "app path containing router.go (for example app/goship)")
-	auth := fs.String("auth", "public", "route group target: public or auth")
-	views := fs.String("views", "templ", "view scaffold mode: templ or none")
-	wire := fs.Bool("wire", false, "insert generated route snippet into router.go behind ship markers")
-	if err := fs.Parse(args); err != nil {
+	parsed, err := parseGenerateResourceArgs(args)
+	if err != nil {
 		fmt.Fprintf(c.Err, "invalid generate resource arguments: %v\n", err)
 		return 1
 	}
-	if fs.NArg() != 1 {
-		fmt.Fprintln(c.Err, "usage: ship generate resource <name> [--path app/goship] [--auth public|auth] [--views templ|none] [--wire]")
+	if strings.TrimSpace(parsed.Name) == "" {
+		fmt.Fprintln(c.Err, "usage: ship generate resource <name> [--path app/goship] [--auth public|auth] [--views templ|none] [--wire] [--dry-run]")
 		return 1
 	}
 
-	result, err := generateResourceScaffold(resourceGenerateOptions{
-		Name:  fs.Arg(0),
-		Path:  *basePath,
-		Auth:  *auth,
-		Views: *views,
-		Wire:  *wire,
-	})
+	result, err := generateResourceScaffold(parsed)
 	if err != nil {
 		fmt.Fprintf(c.Err, "failed to generate resource: %v\n", err)
 		return 1
 	}
 
-	if *wire {
-		if err := wireRouteSnippet(result.RouterPath, *auth, result.RouteInsertSnippet); err != nil {
+	if parsed.Wire {
+		if err := ensureRouteNamesImport(result.RouterPath, parsed.DryRun); err != nil {
+			fmt.Fprintf(c.Err, "failed to ensure routeNames import: %v\n", err)
+			return 1
+		}
+		if err := wireRouteSnippet(result.RouterPath, parsed.Auth, result.RouteInsertSnippet, parsed.DryRun); err != nil {
 			fmt.Fprintf(c.Err, "failed to wire generated route: %v\n", err)
 			return 1
 		}
+	}
+	if err := wireRouteNameConstant(result.RouteNamePath, result.RouteNameConst, result.RouteNameValue, parsed.DryRun); err != nil {
+		fmt.Fprintf(c.Err, "failed to wire route name constant: %v\n", err)
+		return 1
 	}
 
 	fmt.Fprintln(c.Out, "Generated files:")
@@ -66,16 +66,76 @@ func (c CLI) runGenerateResource(args []string) int {
 		fmt.Fprintf(c.Out, "- %s\n", f)
 	}
 	fmt.Fprintln(c.Out)
-	if *wire {
+	if parsed.DryRun {
+		fmt.Fprintln(c.Out, "Dry-run mode: no files were written.")
+		fmt.Fprintf(c.Out, "Would update route names in %s:\n", result.RouteNamePath)
+		fmt.Fprintf(c.Out, "- %s = %q\n\n", result.RouteNameConst, result.RouteNameValue)
+	}
+	if parsed.Wire {
 		fmt.Fprintf(c.Out, "Wired route snippet into %s behind ship markers.\n", result.RouterPath)
 	} else {
 		fmt.Fprintf(c.Out, "Update %s with this snippet:\n\n", result.RouterPath)
 		fmt.Fprintln(c.Out, result.RouteSnippet)
 	}
 	fmt.Fprintln(c.Out)
-	fmt.Fprintln(c.Out, "Also add a route name constant in pkg/routing/routenames.")
+	if !parsed.DryRun {
+		fmt.Fprintf(c.Out, "Route name constant ensured in %s.\n", result.RouteNamePath)
+	}
 
 	return 0
+}
+
+func parseGenerateResourceArgs(args []string) (resourceGenerateOptions, error) {
+	opts := resourceGenerateOptions{
+		Path:  "app/goship",
+		Auth:  "public",
+		Views: "templ",
+	}
+
+	var positionals []string
+	for i := 0; i < len(args); i++ {
+		arg := args[i]
+		if !strings.HasPrefix(arg, "-") {
+			positionals = append(positionals, arg)
+			continue
+		}
+
+		switch {
+		case arg == "--wire":
+			opts.Wire = true
+		case arg == "--dry-run":
+			opts.DryRun = true
+		case strings.HasPrefix(arg, "--path="):
+			opts.Path = strings.TrimPrefix(arg, "--path=")
+		case strings.HasPrefix(arg, "--auth="):
+			opts.Auth = strings.TrimPrefix(arg, "--auth=")
+		case strings.HasPrefix(arg, "--views="):
+			opts.Views = strings.TrimPrefix(arg, "--views=")
+		case arg == "--path" || arg == "--auth" || arg == "--views":
+			if i+1 >= len(args) {
+				return opts, fmt.Errorf("missing value for %s", arg)
+			}
+			i++
+			switch arg {
+			case "--path":
+				opts.Path = args[i]
+			case "--auth":
+				opts.Auth = args[i]
+			case "--views":
+				opts.Views = args[i]
+			}
+		default:
+			return opts, fmt.Errorf("unknown option: %s", arg)
+		}
+	}
+
+	if len(positionals) > 1 {
+		return opts, fmt.Errorf("unexpected positional arguments: %v", positionals[1:])
+	}
+	if len(positionals) == 1 {
+		opts.Name = positionals[0]
+	}
+	return opts, nil
 }
 
 func generateResourceScaffold(opts resourceGenerateOptions) (resourceGenerateResult, error) {
@@ -97,22 +157,16 @@ func generateResourceScaffold(opts resourceGenerateOptions) (resourceGenerateRes
 	}
 
 	handlerDir := filepath.Join(opts.Path, "web", "routes")
-	if err := os.MkdirAll(handlerDir, 0o755); err != nil {
-		return result, err
-	}
 	handlerFile := filepath.Join(handlerDir, norm.Snake+".go")
-	if err := writeFileIfMissing(handlerFile, renderResourceHandler(norm)); err != nil {
+	if err := writeFile(handlerFile, renderResourceHandler(norm), opts.DryRun); err != nil {
 		return result, err
 	}
 	result.CreatedFiles = append(result.CreatedFiles, handlerFile)
 
 	if opts.Views == "templ" {
 		viewDir := filepath.Join(opts.Path, "views", "web", "pages")
-		if err := os.MkdirAll(viewDir, 0o755); err != nil {
-			return result, err
-		}
 		viewFile := filepath.Join(viewDir, norm.Snake+".templ")
-		if err := writeFileIfMissing(viewFile, renderResourceTempl(norm)); err != nil {
+		if err := writeFile(viewFile, renderResourceTempl(norm), opts.DryRun); err != nil {
 			return result, err
 		}
 		result.CreatedFiles = append(result.CreatedFiles, viewFile)
@@ -121,6 +175,9 @@ func generateResourceScaffold(opts resourceGenerateOptions) (resourceGenerateRes
 	result.RouterPath = filepath.Join(opts.Path, "router.go")
 	result.RouteSnippet = renderRouteSnippet(norm, opts.Auth)
 	result.RouteInsertSnippet = renderRouteInsertSnippet(norm, opts.Auth)
+	result.RouteNamePath = filepath.Join("pkg", "routing", "routenames", "routenames.go")
+	result.RouteNameConst = "RouteName" + norm.Pascal
+	result.RouteNameValue = norm.Snake
 	return result, nil
 }
 
@@ -245,9 +302,15 @@ func renderRouteInsertSnippet(n normalizedResourceName, auth string) string {
 `, n.Snake, n.LowerCamel, n.Pascal, targetGroup, n.Kebab, n.LowerCamel, n.Pascal)
 }
 
-func writeFileIfMissing(path string, content string) error {
+func writeFile(path string, content string, dryRun bool) error {
 	if _, err := os.Stat(path); err == nil {
 		return fmt.Errorf("refusing to overwrite existing file: %s", path)
+	}
+	if dryRun {
+		return nil
+	}
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return err
 	}
 	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
 		return err
@@ -255,7 +318,7 @@ func writeFileIfMissing(path string, content string) error {
 	return nil
 }
 
-func wireRouteSnippet(routerPath, auth, snippet string) error {
+func wireRouteSnippet(routerPath, auth, snippet string, dryRun bool) error {
 	startMarker, endMarker, err := routeMarkerPair(auth)
 	if err != nil {
 		return err
@@ -293,6 +356,9 @@ func wireRouteSnippet(routerPath, auth, snippet string) error {
 	}
 
 	updated := content[:insertPos] + insert.String() + content[insertPos:]
+	if dryRun {
+		return nil
+	}
 	return os.WriteFile(routerPath, []byte(updated), 0o644)
 }
 
@@ -305,4 +371,58 @@ func routeMarkerPair(auth string) (string, string, error) {
 	default:
 		return "", "", fmt.Errorf("unknown auth group %q", auth)
 	}
+}
+
+func wireRouteNameConstant(routeNamesPath, constName, constValue string, dryRun bool) error {
+	b, err := os.ReadFile(routeNamesPath)
+	if err != nil {
+		return err
+	}
+	content := string(b)
+	if strings.Contains(content, constName+" ") || strings.Contains(content, constName+"\t") {
+		return nil
+	}
+	constStart := strings.Index(content, "const (")
+	if constStart == -1 {
+		return fmt.Errorf("const block not found in %s", routeNamesPath)
+	}
+	constEnd := strings.Index(content[constStart:], "\n)")
+	if constEnd == -1 {
+		return fmt.Errorf("const block closing not found in %s", routeNamesPath)
+	}
+	constEnd += constStart
+	line := fmt.Sprintf("\t%s = %q\n", constName, constValue)
+	updated := content[:constEnd] + line + content[constEnd:]
+	if dryRun {
+		return nil
+	}
+	return os.WriteFile(routeNamesPath, []byte(updated), 0o644)
+}
+
+func ensureRouteNamesImport(routerPath string, dryRun bool) error {
+	b, err := os.ReadFile(routerPath)
+	if err != nil {
+		return err
+	}
+	content := string(b)
+	if strings.Contains(content, `routeNames "github.com/leomorpho/goship/pkg/routing/routenames"`) {
+		return nil
+	}
+
+	importStart := strings.Index(content, "import (\n")
+	if importStart == -1 {
+		return fmt.Errorf("import block not found in %s", routerPath)
+	}
+	importEnd := strings.Index(content[importStart:], "\n)")
+	if importEnd == -1 {
+		return fmt.Errorf("import block closing not found in %s", routerPath)
+	}
+	importEnd += importStart
+
+	line := "\trouteNames \"github.com/leomorpho/goship/pkg/routing/routenames\"\n"
+	updated := content[:importEnd] + line + content[importEnd:]
+	if dryRun {
+		return nil
+	}
+	return os.WriteFile(routerPath, []byte(updated), 0o644)
 }

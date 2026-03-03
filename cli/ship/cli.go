@@ -360,7 +360,7 @@ func printTemplHelp(w io.Writer) {
 
 func printGenerateHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship generate commands:")
-	fmt.Fprintln(w, "  ship generate resource <name> [--path app/goship] [--auth public|auth] [--views templ|none] [--wire]")
+	fmt.Fprintln(w, "  ship generate resource <name> [--path app/goship] [--auth public|auth] [--views templ|none] [--wire] [--dry-run]")
 }
 
 func relocateTemplGenerated(rootPath string) error {
