@@ -71,11 +71,14 @@ UI and rendering:
 
 ## Commands Commonly Used
 
-- `make watch` (multi-process local dev)
+- `make dev` (default local dev: infra + web)
+- `make dev-full` (web + worker + JS/CSS watchers)
 - `make test` (Go tests)
-- `make worker` (async worker)
+- `make test-integration`
+- `go run ./cli/ship/cmd/ship test`
 - `make build-js`
 - `make build-css`
+- `make templ-gen`
 - `make ent-gen`
 - `make makemigrations name=YourChange`
 

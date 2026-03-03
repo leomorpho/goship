@@ -32,6 +32,7 @@ App web code is now app-scoped:
 
 - `app/goship/web/routes`: route composition + handlers
 - `app/goship/views`: templ components/layouts/pages/emails
+- `app/goship/views/**/gen`: generated templ Go files (same package names as source dirs)
 
 Router source of truth:
 

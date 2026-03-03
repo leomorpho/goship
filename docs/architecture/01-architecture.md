@@ -10,7 +10,7 @@ The application follows a layered structure:
 - `pkg/middleware`: auth/session/cache/onboarding/request middleware
 - `pkg/repos`: data access and external service adapters
 - `pkg/controller`: rendering, page object, redirect helpers
-- `app/goship/views`: Templ UI components/layouts/pages/emails
+- `app/goship/views`: Templ source files (`.templ`) and generated Go (`gen/*_templ.go`)
 - `ent`: schema + generated ORM
 - `pkg/tasks`: Asynq task processors
 
@@ -80,8 +80,9 @@ The UI is server-rendered using Templ components.
 
 - Base page abstraction: `pkg/controller/page.go`
 - Render orchestration: `pkg/controller/controller.go`
-- Layout wrappers: `app/goship/views/web/layouts/*.templ`
-- Route page components: `app/goship/views/web/pages/*.templ`
+- Layout wrappers (source): `app/goship/views/web/layouts/*.templ`
+- Page components (source): `app/goship/views/web/pages/*.templ`
+- Generated packages: `app/goship/views/**/gen/*_templ.go`
 
 HTMX behavior is integrated in the page object (`Page.HTMX`) and controller render logic.
 

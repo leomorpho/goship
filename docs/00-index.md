@@ -3,16 +3,18 @@
 This `docs/` directory is internal and implementation-focused.
 It is not intended as user-facing product documentation.
 
+Last updated: 2026-03-03
+
 ## Goals
 
 - Explain what the project does today based on code, not assumptions.
 - Give developers and AI agents a fast map of where to make changes.
 - Capture system risks and incomplete areas so work is directed intentionally.
 
-## README Index
+## Entrypoints
 
-1. `README-01` - `../README.md`: project-level overview and onboarding.
-2. `README-02` - `00-index.md`: documentation hub and map of all internal docs.
+1. `README` - `../README.md`: concise repo landing page for new contributors.
+2. `DOCS` - `00-index.md`: documentation hub and map of all internal docs.
 
 ## Structure
 
@@ -30,6 +32,7 @@ It is not intended as user-facing product documentation.
 1. `G01` - `guides/01-ai-agent-guide.md`: practical guide for AI agents working in this repo.
 2. `G02` - `guides/02-development-workflows.md`: day-to-day run/build/test/migration workflows.
 3. `G03` - `guides/03-how-to-playbook.md`: prioritized how-to guide backlog and writing template.
+4. `G04` - `guides/04-deployment-kamal.md`: current deployment workflow via Kamal.
 
 ### Reference
 
