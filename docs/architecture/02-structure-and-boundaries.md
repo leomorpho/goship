@@ -7,6 +7,7 @@ This document defines where code belongs as GoShip evolves into a Rails-like fra
 - `app/goship/`: app-specific code for the first-party GoShip app
 - `cmd/`: runnable entrypoints for the app module (`web`, `worker`, `seed`)
 - `cli/ship/`: standalone CLI module (`ship`) that lives in this same repository
+- `mcp/ship/`: standalone MCP module (`ship-mcp`) for LLM-facing docs/CLI tooling
 - `pkg/`: reusable framework-level libraries and adapters
 - `config/`: runtime configuration
 - `ent/`: schema and generated ORM
@@ -15,7 +16,7 @@ This document defines where code belongs as GoShip evolves into a Rails-like fra
 Monorepo note:
 
 - GoShip currently uses one repository with multiple Go modules:
-- root app/framework module + `cli/ship` module
+- root app/framework module + `cli/ship` module + `mcp/ship` module
 - `go.work` ties local development across modules together for maintainers.
 
 ## App vs Framework Rules

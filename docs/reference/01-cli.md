@@ -10,6 +10,7 @@ Module location:
 
 - `cli/ship` (standalone Go module)
 - binary entrypoint: `cli/ship/cmd/ship`
+- companion MCP module: `mcp/ship` (for LLM-facing tool access)
 
 ## Repository Placement
 

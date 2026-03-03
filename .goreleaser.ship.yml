@@ -1,0 +1,28 @@
+project_name: ship
+
+builds:
+  - id: ship
+    main: ./cli/ship/cmd/ship
+    binary: ship
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+
+archives:
+  - id: ship-archives
+    builds:
+      - ship
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        format: zip
+
+checksum:
+  name_template: "ship_checksums.txt"
+

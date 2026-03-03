@@ -33,6 +33,7 @@ It is not intended as user-facing product documentation.
 ### Reference
 
 1. `R01` - `reference/01-cli.md`: living CLI specification (`ship`) for developers and agents.
+2. `R02` - `reference/02-mcp.md`: living MCP spec (`ship-mcp`) for LLM-facing docs and CLI support.
 
 ### Policies
 
