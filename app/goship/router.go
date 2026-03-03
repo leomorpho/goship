@@ -219,7 +219,7 @@ func registerAuthRoutes(c *services.Container, g *echo.Group, ctr controller.Con
 	onboardingGroup.GET("/preferences/delete-account", deleteAccountRoute.DeleteAccountPage).Name = routeNames.RouteNameDeleteAccountPage
 	onboardingGroup.GET("/preferences/delete-account/now", deleteAccountRoute.DeleteAccountRequest).Name = routeNames.RouteNameDeleteAccountRequest
 
-	finishOnboarding := routes.NewOnboardingRoute(ctr, c.ORM, c.Tasks)
+	finishOnboarding := routes.NewOnboardingRoute(ctr, c.ORM)
 	onboardingGroup.GET("/finish-onboarding", finishOnboarding.Get).Name = routeNames.RouteNameFinishOnboarding
 
 	profilePrefs := routes.NewProfilePrefsRoute(ctr, c.ORM)

@@ -20,7 +20,6 @@ import (
 	"github.com/leomorpho/goship/pkg/repos/notifierrepo"
 	"github.com/leomorpho/goship/pkg/repos/profilerepo"
 	"github.com/leomorpho/goship/pkg/repos/subscriptions"
-	"github.com/leomorpho/goship/pkg/services"
 	"github.com/leomorpho/goship/pkg/types"
 	"github.com/rs/zerolog/log"
 )
@@ -423,18 +422,16 @@ func (p *preferences) SaveDisplayName(ctx echo.Context) error {
 }
 
 type onboarding struct {
-	ctr        controller.Controller
-	orm        *ent.Client
-	taskRunner *services.TaskClient
+	ctr controller.Controller
+	orm *ent.Client
 }
 
 func NewOnboardingRoute(
-	ctr controller.Controller, orm *ent.Client, taskRunner *services.TaskClient,
+	ctr controller.Controller, orm *ent.Client,
 ) onboarding {
 	return onboarding{
-		ctr:        ctr,
-		orm:        orm,
-		taskRunner: taskRunner,
+		ctr: ctr,
+		orm: orm,
 	}
 }
 
