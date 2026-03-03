@@ -321,6 +321,8 @@ func (c CLI) runDB(args []string) int {
 	}
 
 	switch args[0] {
+	case "make":
+		return c.runDBMake(args[1:])
 	case "migrate":
 		if len(args) != 1 {
 			fmt.Fprintln(c.Err, "usage: ship db migrate")
@@ -439,6 +441,8 @@ func (c CLI) runGenerate(args []string) int {
 	}
 
 	switch args[0] {
+	case "model":
+		return c.runGenerateModel(args[1:])
 	case "resource":
 		return c.runGenerateResource(args[1:])
 	case "help", "-h", "--help":
@@ -511,6 +515,30 @@ func (c CLI) runDBRollback(args []string) int {
 	return c.runCmd("atlas", "migrate", "down", "--dir", atlasDir, "--url", dbURL, amount)
 }
 
+func (c CLI) runDBMake(args []string) int {
+	if len(args) != 1 {
+		fmt.Fprintln(c.Err, "usage: ship db make <migration_name>")
+		return 1
+	}
+	name := strings.TrimSpace(args[0])
+	if name == "" {
+		fmt.Fprintln(c.Err, "usage: ship db make <migration_name>")
+		return 1
+	}
+	return c.runCmd(
+		"atlas",
+		"migrate",
+		"diff",
+		name,
+		"--dir",
+		atlasDir,
+		"--to",
+		"ent://ent/schema",
+		"--dev-url",
+		"sqlite://file?mode=memory&_fk=1",
+	)
+}
+
 func (c CLI) runCmd(name string, args ...string) int {
 	code, err := c.Runner.Run(name, args...)
 	if err != nil {
@@ -528,10 +556,10 @@ func printRootHelp(w io.Writer) {
 	fmt.Fprintln(w, "  ship dev [worker|all] [--worker|--all]")
 	fmt.Fprintln(w, "  ship check")
 	fmt.Fprintln(w, "  ship test [--integration]")
-	fmt.Fprintln(w, "  ship db <migrate|rollback|seed>")
+	fmt.Fprintln(w, "  ship db <make|migrate|rollback|seed>")
 	fmt.Fprintln(w, "  ship infra <up|down>")
 	fmt.Fprintln(w, "  ship templ <generate>")
-	fmt.Fprintln(w, "  ship generate <resource>")
+	fmt.Fprintln(w, "  ship generate <resource|model>")
 	fmt.Fprintln(w)
 	fmt.Fprintln(w, "Examples:")
 	fmt.Fprintln(w, "  ship new demo")
@@ -540,11 +568,13 @@ func printRootHelp(w io.Writer) {
 	fmt.Fprintln(w, "  ship dev worker")
 	fmt.Fprintln(w, "  ship dev --all")
 	fmt.Fprintln(w, "  ship test --integration")
+	fmt.Fprintln(w, "  ship db make add_posts")
 	fmt.Fprintln(w, "  ship db migrate")
 	fmt.Fprintln(w, "  ship db rollback 1")
 	fmt.Fprintln(w, "  ship infra up")
 	fmt.Fprintln(w, "  ship templ generate --path app")
 	fmt.Fprintln(w, "  ship generate resource contact")
+	fmt.Fprintln(w, "  ship generate model Post title:string")
 }
 
 func printDevHelp(w io.Writer) {
@@ -559,6 +589,7 @@ func printDevHelp(w io.Writer) {
 
 func printDBHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship db commands:")
+	fmt.Fprintln(w, "  ship db make <migration_name>")
 	fmt.Fprintln(w, "  ship db migrate")
 	fmt.Fprintln(w, "  ship db rollback [amount]")
 	fmt.Fprintln(w, "  ship db seed")
@@ -590,6 +621,7 @@ func printTemplHelp(w io.Writer) {
 func printGenerateHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship generate commands:")
 	fmt.Fprintln(w, "  ship generate resource <name> [--path app/goship] [--auth public|auth] [--views templ|none] [--wire] [--dry-run]")
+	fmt.Fprintln(w, "  ship generate model <Name> [fields...]")
 }
 
 func relocateTemplGenerated(rootPath string) error {

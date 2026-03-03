@@ -56,6 +56,7 @@ Testing:
 
 Database:
 
+- `ship db make <migration_name>`
 - `ship db migrate`
 - `ship db rollback`
 - `ship db seed`
@@ -64,6 +65,7 @@ Generation:
 
 - `ship templ generate [--path <dir>] [--file <file.templ>]`
 - `ship generate resource <name> [--path app/goship] [--auth public|auth] [--views templ|none] [--wire] [--dry-run]`
+- `ship generate model <Name> [fields...]`
 - `ship destroy <generated-artifact>` (planned)
 
 ## Versioning Rules
@@ -86,6 +88,7 @@ These commands are implemented as wrappers over existing workflows:
 - `ship infra up` -> detects `docker-compose`/`docker compose` and runs `up -d cache`, then attempts `up -d mailpit` (non-fatal if mailpit fails)
 - `ship infra down` -> detects `docker-compose`/`docker compose` and runs `down`
 - `ship db migrate` -> `atlas migrate apply --dir file://ent/migrate/migrations --url <resolved>`
+- `ship db make <migration_name>` -> `atlas migrate diff <migration_name> --dir file://ent/migrate/migrations --to ent://ent/schema --dev-url sqlite://file?mode=memory&_fk=1`
 - `ship db rollback [amount]` -> `atlas migrate down ... [amount]`
 - `ship db seed` -> `go run ./cmd/seed/main.go`
 
@@ -101,6 +104,7 @@ If config resolves to embedded DB mode, `ship db migrate`/`rollback` fail with a
 - `ship generate resource <name>` -> scaffold handler (+ optional templ page), ensure route-name constant, and print route snippet for manual insertion in `app/goship/router.go`
 - `ship generate resource <name> --wire` -> also insert snippet behind ship markers in `app/goship/router.go`
 - `ship generate resource <name> --dry-run` -> preview all planned changes without writing files
+- `ship generate model <Name>` -> run Ent schema scaffolding (`ent new`) then ORM codegen (`ent generate`)
 
 `ship new` v1 contract:
 

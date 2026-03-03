@@ -172,6 +172,18 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			wantCalls: []fakeCall{{name: "atlas", args: []string{"migrate", "apply", "--dir", atlasDir, "--url", testDBURL}}},
 		},
 		{
+			name:      "db make",
+			args:      []string{"db", "make", "add_posts"},
+			wantCode:  0,
+			wantCalls: []fakeCall{{name: "atlas", args: []string{"migrate", "diff", "add_posts", "--dir", atlasDir, "--to", "ent://ent/schema", "--dev-url", "sqlite://file?mode=memory&_fk=1"}}},
+		},
+		{
+			name:     "db make missing name",
+			args:     []string{"db", "make"},
+			wantCode: 1,
+			wantErr:  "usage: ship db make <migration_name>",
+		},
+		{
 			name:      "db seed",
 			args:      []string{"db", "seed"},
 			wantCode:  0,
@@ -296,7 +308,7 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 		},
 		{
 			name:     "generate unknown subcommand",
-			args:     []string{"generate", "model"},
+			args:     []string{"generate", "widget"},
 			wantCode: 1,
 			wantErr:  "unknown generate command",
 		},
@@ -305,6 +317,31 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			args:     []string{"generate", "resource"},
 			wantCode: 1,
 			wantErr:  "usage: ship generate resource",
+		},
+		{
+			name:     "generate model missing name",
+			args:     []string{"generate", "model"},
+			wantCode: 1,
+			wantErr:  "usage: ship generate model <Name> [fields...]",
+		},
+		{
+			name:     "generate model",
+			args:     []string{"generate", "model", "Post"},
+			wantCode: 0,
+			wantCalls: []fakeCall{
+				{name: "go", args: []string{"run", "-mod=mod", "entgo.io/ent/cmd/ent", "new", "Post"}},
+				{name: "go", args: []string{"run", "-mod=mod", "entgo.io/ent/cmd/ent", "generate", "--feature", "sql/upsert,sql/execquery", "./ent/schema"}},
+			},
+		},
+		{
+			name:     "generate model with fields warns",
+			args:     []string{"generate", "model", "Post", "title:string"},
+			wantCode: 0,
+			wantErr:  "field scaffolding is not yet implemented",
+			wantCalls: []fakeCall{
+				{name: "go", args: []string{"run", "-mod=mod", "entgo.io/ent/cmd/ent", "new", "Post"}},
+				{name: "go", args: []string{"run", "-mod=mod", "entgo.io/ent/cmd/ent", "generate", "--feature", "sql/upsert,sql/execquery", "./ent/schema"}},
+			},
 		},
 		{
 			name:     "check help",
