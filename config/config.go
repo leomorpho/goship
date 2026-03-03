@@ -16,8 +16,8 @@ const (
 	// TemplateExt stores the extension used for the template files
 	TemplateExt = ".gohtml"
 
-	// StaticDir stores the name of the directory that will serve static files
-	StaticDir = "static"
+	// StaticDir stores the directory served as static assets for the example app.
+	StaticDir = "app/goship/static"
 
 	// StaticPrefix stores the URL prefix used when serving static files
 	StaticPrefix = "files"

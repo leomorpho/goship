@@ -103,8 +103,8 @@ The following methods are available:
 
 ## Regenerate Logo Image Assets 
 
-There is a python script in `scripts/regen_logo_images.py` that should be run when the logo in `static/logo.png` is updated. 
-This will regenerate the logo assets for different app icons and the favicon. It will also regenerate the correct iOS and Android app icons and place them in the `static/ios-wrapper/` and `static/android-wrapper/` directories. Note that for iOS it will remove alpha transparency and make the background black (as apple requires).
+There is a python script in `scripts/regen_logo_images.py` that should be run when the logo in `app/goship/static/logo.png` is updated.
+This will regenerate the logo assets for different app icons and the favicon. It will also regenerate the correct iOS and Android app icons and place them in app-specific static wrapper directories.
 
 ```bash
 cd scripts

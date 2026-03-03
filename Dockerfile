@@ -61,8 +61,7 @@ RUN chmod +x /entrypoint.sh
 COPY config/application.yaml ./config/application.yaml
 COPY config/processes.yaml ./config/processes.yaml
 COPY config/environments/ ./config/environments/
-COPY service-worker.js /service-worker.js
-COPY static /static
+COPY app/goship/static/ /app/app/goship/static/
 
 # Below is only used if you need to use PWABuilder to make a native Android app
 # RUN mkdir pwabuilder-android-wrapper

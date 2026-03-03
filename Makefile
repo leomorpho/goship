@@ -199,11 +199,11 @@ watch-js: ## Watch and rebuild JS/Svelte assets
 
 .PHONY: build-css
 build-css: ## Build CSS assets (auto reload changes)
-	$(TAILWIND) -i ./styles/styles.css -o ./static/styles_bundle.css
+	$(TAILWIND) -i ./app/goship/styles/styles.css -o ./app/goship/static/styles_bundle.css
 
 .PHONY: watch-css
 watch-css: ## Build CSS assets (auto reload changes)
-	$(TAILWIND) -i ./styles/styles.css -o ./static/styles_bundle.css --watch
+	$(TAILWIND) -i ./app/goship/styles/styles.css -o ./app/goship/static/styles_bundle.css --watch
 
 .PHONY: watch-go
 watch-go: ## Run the application with air (auto reload changes)
@@ -260,12 +260,12 @@ check-updates: ## Check for direct dependency updates
 # See https://tailwindcss.com/blog/standalone-cli
 .PHONY: tailwind-watch
 tailwind-watch: ## Start a Tailwind watcher
-	./tailwindcss -o static/output.css --watch
+	./tailwindcss -o app/goship/static/output.css --watch
 
 # See https://tailwindcss.com/blog/standalone-cli
 .PHONY: tailwind-compile
 tailwind-compile: ## Compile and minify your CSS for production
-	./tailwindcss -i input.css -o static/output.css --minify
+	./tailwindcss -i app/goship/styles/styles.css -o app/goship/static/output.css --minify
 
 .PHONY: deploy-cherie
 deploy-goship: ## Deploy new Goship version

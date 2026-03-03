@@ -107,8 +107,8 @@ HTMX behavior is integrated in the page object (`Page.HTMX`) and controller rend
 
 - `build.mjs` bundles Svelte entrypoints under `javascript/svelte/*.js`
 - Also bundles vanilla JS from `javascript/vanilla/main.js`
-- Outputs static bundles and meta files in `static/`
-- Tailwind build pipeline outputs `static/styles_bundle.css`
+- Outputs static bundles and meta files in `app/goship/static/`
+- Tailwind build pipeline outputs `app/goship/static/styles_bundle.css`
 
 ## Deployment/Operations Shape
 

@@ -104,8 +104,8 @@ Worker bootstrap and registration in `cmd/worker/main.go`.
 
 - Server-rendered pages via Templ (`app/goship/views/` + `pkg/controller`)
 - HTMX-enhanced interactions
-- Optional Svelte components bundled into `static/svelte_bundle.js`
-- Optional vanilla JS bundle into `static/vanilla_bundle.js`
+- Optional Svelte components bundled into `app/goship/static/svelte_bundle.js`
+- Optional vanilla JS bundle into `app/goship/static/vanilla_bundle.js`
 
 Build pipeline:
 

@@ -74,7 +74,7 @@ func RegisterStaticRoutes(c *services.Container) {
 		ctx.Response().Header().Set(echo.HeaderContentType, "application/javascript")
 		ctx.Response().Header().Set("Service-Worker-Allowed", "/")
 		ctx.Response().Header().Set("Cache-Control", fmt.Sprintf("public, max-age=%d", c.Config.Cache.Expiration.StaticFile))
-		return ctx.File("./service-worker.js")
+		return ctx.File("./app/goship/static/service-worker.js")
 	})
 
 	// Custom handler for serving Android asset links.

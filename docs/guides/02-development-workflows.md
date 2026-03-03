@@ -40,7 +40,7 @@ JS build:
 
 CSS build:
 
-- Tailwind CLI to `static/styles_bundle.css`
+- Tailwind CLI to `app/goship/static/styles_bundle.css`
 
 Templ generation:
 

@@ -172,13 +172,13 @@ func SeedUsers(cfg *config.Config, client *ent.Client, useS3 bool) error {
 		//////////////////////////////////////////
 		log.Printf("Uploading some photos...")
 
-		photo1, err := os.Open("testdata/photos/1.jpg")
+		photo1, err := os.Open("app/goship/testdata/photos/1.jpg")
 		if err != nil {
 			log.Fatal().Err(err).Msg("failed to open file")
 		}
 		defer photo1.Close()
 
-		photo2, err := os.Open("testdata/photos/2.jpg")
+		photo2, err := os.Open("app/goship/testdata/photos/2.jpg")
 		if err != nil {
 			log.Fatal().Err(err).Msg("failed to open file")
 		}

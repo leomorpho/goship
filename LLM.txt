@@ -111,8 +111,8 @@ The following methods are available:
 
 ## Regenerate Logo Image Assets 
 
-There is a python script in `scripts/regen_logo_images.py` that should be run when the logo in `static/logo.png` is updated. 
-This will regenerate the logo assets for different app icons and the favicon. It will also regenerate the correct iOS and Android app icons and place them in the `static/ios-wrapper/` and `static/android-wrapper/` directories. Note that for iOS it will remove alpha transparency and make the background black (as apple requires).
+There is a python script in `scripts/regen_logo_images.py` that should be run when the logo in `app/goship/static/logo.png` is updated.
+This will regenerate the logo assets for different app icons and the favicon. It will also regenerate the correct iOS and Android app icons and place them in app-specific static wrapper directories.
 
 ```bash
 cd scripts
@@ -568,8 +568,8 @@ HTMX behavior is integrated in the page object (`Page.HTMX`) and controller rend
 
 - `build.mjs` bundles Svelte entrypoints under `javascript/svelte/*.js`
 - Also bundles vanilla JS from `javascript/vanilla/main.js`
-- Outputs static bundles and meta files in `static/`
-- Tailwind build pipeline outputs `static/styles_bundle.css`
+- Outputs static bundles and meta files in `app/goship/static/`
+- Tailwind build pipeline outputs `app/goship/static/styles_bundle.css`
 
 ## Deployment/Operations Shape
 
@@ -749,8 +749,8 @@ Worker bootstrap and registration in `cmd/worker/main.go`.
 
 - Server-rendered pages via Templ (`app/goship/views/` + `pkg/controller`)
 - HTMX-enhanced interactions
-- Optional Svelte components bundled into `static/svelte_bundle.js`
-- Optional vanilla JS bundle into `static/vanilla_bundle.js`
+- Optional Svelte components bundled into `app/goship/static/svelte_bundle.js`
+- Optional vanilla JS bundle into `app/goship/static/vanilla_bundle.js`
 
 Build pipeline:
 
@@ -1340,7 +1340,7 @@ JS build:
 
 CSS build:
 
-- Tailwind CLI to `static/styles_bundle.css`
+- Tailwind CLI to `app/goship/static/styles_bundle.css`
 
 Templ generation:
 

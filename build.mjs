@@ -5,7 +5,7 @@ import path from "path";
 import sveltePreprocess from "svelte-preprocess";
 
 const svelteEntrypointsDir = "javascript/svelte";
-const outputDir = "static";
+const outputDir = "app/goship/static";
 
 // Define an asynchronous function to handle the build process
 async function build() {
@@ -46,7 +46,7 @@ async function build() {
     const vanillaResult = await esbuild.build({
       entryPoints: ["javascript/vanilla/main.js"], // Entry point for your vanilla JS
       bundle: true,
-      outfile: "static/vanilla_bundle.js", // Output file for vanilla JS
+      outfile: path.join(outputDir, "vanilla_bundle.js"), // Output file for vanilla JS
       minify: true,
       sourcemap: true,
       metafile: true,
@@ -62,7 +62,7 @@ async function build() {
     // await esbuild.build({
     //   entryPoints: ["javascript/vanilla/audio_player.js"], // Entry point for your vanilla JS
     //   bundle: true,
-    //   outfile: "static/audio_player.js", // Output file for vanilla JS
+    //   outfile: path.join(outputDir, "audio_player.js"), // Output file for vanilla JS
     //   minify: true,
     //   sourcemap: true,
     //   metafile: true,
