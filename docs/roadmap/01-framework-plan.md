@@ -675,6 +675,8 @@ Current progress:
 3. First application call sites migrated to interface seams:
 - notifications fan-out enqueue in `pkg/tasks/notifications.go` now uses `core.Jobs`.
 - notifier publish/subscribe path in `pkg/repos/notifierrepo/notifier.go` now uses `core.PubSub`.
+4. Domain testability improved:
+- notifications task processor now depends on a small planned-notification interface with table-driven unit tests.
 
 ### Phase 2: Monorepo and Module Packaging
 

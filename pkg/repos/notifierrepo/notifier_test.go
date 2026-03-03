@@ -12,7 +12,6 @@ import (
 	"github.com/leomorpho/goship/pkg/core"
 	"github.com/leomorpho/goship/pkg/domain"
 	"github.com/leomorpho/goship/pkg/repos/notifierrepo"
-	"github.com/leomorpho/goship/pkg/repos/pubsub"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -195,7 +194,7 @@ func TestSubscribe(t *testing.T) {
 	topic := "someTopic"
 	mockSub := new(mockSubscription)
 
-	evt := pubsub.SSEEvent{Type: "TestEvent", Data: "TestData"}
+	evt := notifierrepo.SSEEvent{Type: "TestEvent", Data: "TestData"}
 	payload, err := json.Marshal(evt)
 	assert.NoError(t, err)
 	mockSub.On("Close").Return(nil).Maybe()

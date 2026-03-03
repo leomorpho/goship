@@ -68,6 +68,7 @@ CLI wrapper equivalents (in progress) are documented in `docs/reference/01-cli.m
 Run worker manually:
 
 - `make worker`
+- Worker process currently targets Asynq backend only; ensure `adapters.jobs` is set to `asynq`.
 
 Asynq UI:
 

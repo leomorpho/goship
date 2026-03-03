@@ -31,19 +31,24 @@ var dailyNotifText = []string{
 const TypeAllDailyConvoNotifications = "notification.all_daily_conversation"
 
 type (
+	plannedNotificationSource interface {
+		CreateNotificationTimeObjects(ctx context.Context, notifType domain.NotificationType, permissionType domain.NotificationPermissionType) error
+		ProfileIDsCanGetPlannedNotificationNow(ctx context.Context, now time.Time, notifType domain.NotificationType, scopeProfileIDs *[]int) ([]int, error)
+	}
+
 	AllDailyConvoNotificationsProcessor struct {
 		orm                     *ent.Client
 		profileRepo             *profilerepo.ProfileRepo
 		taskRunner              core.Jobs
 		timespanInMinutes       int
-		plannedNotificationRepo *notifierrepo.PlannedNotificationsRepo
+		plannedNotificationRepo plannedNotificationSource
 	}
 )
 
 func NewAllDailyConvoNotificationsProcessor(
 	orm *ent.Client,
 	profileRepo *profilerepo.ProfileRepo,
-	plannedNotificationRepo *notifierrepo.PlannedNotificationsRepo,
+	plannedNotificationRepo plannedNotificationSource,
 	taskRunner core.Jobs,
 	timespanInMinutes int,
 ) *AllDailyConvoNotificationsProcessor {
@@ -109,7 +114,7 @@ type (
 		notifierRepo            *notifierrepo.NotifierRepo
 		echoServer              *echo.Echo
 		subscriptionRepo        *subscriptions.SubscriptionsRepo
-		plannedNotificationRepo *notifierrepo.PlannedNotificationsRepo
+		plannedNotificationRepo plannedNotificationSource
 	}
 
 	DailyConvoNotificationsPayload struct {
@@ -121,7 +126,7 @@ func NewDailyConvoNotificationsProcessor(
 	notifierRepo *notifierrepo.NotifierRepo,
 	e *echo.Echo,
 	subscriptionRepo *subscriptions.SubscriptionsRepo,
-	plannedNotificationRepo *notifierrepo.PlannedNotificationsRepo,
+	plannedNotificationRepo plannedNotificationSource,
 ) *DailyConvoNotificationsProcessor {
 
 	return &DailyConvoNotificationsProcessor{

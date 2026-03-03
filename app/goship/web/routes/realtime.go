@@ -12,7 +12,6 @@ import (
 	customContext "github.com/leomorpho/goship/pkg/context"
 	"github.com/leomorpho/goship/pkg/controller"
 	"github.com/leomorpho/goship/pkg/repos/notifierrepo"
-	"github.com/leomorpho/goship/pkg/repos/pubsub"
 	"github.com/rs/zerolog/log"
 )
 
@@ -49,8 +48,6 @@ func (c *realtime) Get(ctx echo.Context) error {
 		log.Error().Err(err).Msg("Failed to send initial SSE message")
 	}
 
-	messageChan := make(chan pubsub.SSEEvent)
-
 	subCtx, cancel := context.WithCancel(ctx.Request().Context())
 	defer cancel()
 
@@ -79,7 +76,6 @@ func (c *realtime) Get(ctx echo.Context) error {
 			}
 		// The SSE endpoint is no longer listened to and its ressources can be discarded.
 		case <-ctx.Request().Context().Done():
-			close(messageChan)
 			log.Info().Msg("SSE connection unsubscribed and cleaned up")
 			return nil
 		}

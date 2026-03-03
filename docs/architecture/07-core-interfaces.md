@@ -77,11 +77,14 @@ Current startup behavior:
   - `CoreCache` (`core.Cache`) via `services.CoreCacheAdapter`
   - `CoreJobs` (`core.Jobs`) via `services.CoreJobsAdapter`
   - `CorePubSub` (`core.PubSub`) via `services.CorePubSubAdapter`
+- container no longer needs to expose a concrete pubsub client field for application wiring.
 
 First migrated call site:
 
 - `pkg/tasks/notifications.go` now enqueues follow-up jobs through `core.Jobs` instead of `*services.TaskClient`.
 - `pkg/repos/notifierrepo/notifier.go` now publishes/subscribes through `core.PubSub` with explicit SSE event payload encoding.
+- `pkg/tasks/notifications.go` now uses a small planned-notification source interface, enabling table-driven unit tests without DB/container boot.
+- `pkg/repos/notifierrepo/notifier.go` now exposes notifier-owned `SSEEvent` payloads so route code no longer depends on pubsub package event types.
 
 ## Scope Boundaries
 

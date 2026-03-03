@@ -486,8 +486,8 @@ The application follows a layered structure:
 
 ## Worker Runtime Flow
 
-1. `cmd/worker/main.go` loads config and starts Asynq server.
-2. Creates app container and builds router (for reverse route URLs in tasks).
+1. `cmd/worker/main.go` creates app container and validates that jobs adapter is `asynq` via `c.Config`.
+2. Starts Asynq server from cache config and builds router (for reverse route URLs in tasks).
 3. Constructs repo instances needed by task processors.
 4. Registers handlers on Asynq mux and runs worker.
 
@@ -1164,11 +1164,14 @@ Current startup behavior:
   - `CoreCache` (`core.Cache`) via `services.CoreCacheAdapter`
   - `CoreJobs` (`core.Jobs`) via `services.CoreJobsAdapter`
   - `CorePubSub` (`core.PubSub`) via `services.CorePubSubAdapter`
+- container no longer needs to expose a concrete pubsub client field for application wiring.
 
 First migrated call site:
 
 - `pkg/tasks/notifications.go` now enqueues follow-up jobs through `core.Jobs` instead of `*services.TaskClient`.
 - `pkg/repos/notifierrepo/notifier.go` now publishes/subscribes through `core.PubSub` with explicit SSE event payload encoding.
+- `pkg/tasks/notifications.go` now uses a small planned-notification source interface, enabling table-driven unit tests without DB/container boot.
+- `pkg/repos/notifierrepo/notifier.go` now exposes notifier-owned `SSEEvent` payloads so route code no longer depends on pubsub package event types.
 
 ## Scope Boundaries
 
@@ -1365,6 +1368,7 @@ CLI wrapper equivalents (in progress) are documented in `docs/reference/01-cli.m
 Run worker manually:
 
 - `make worker`
+- Worker process currently targets Asynq backend only; ensure `adapters.jobs` is set to `asynq`.
 
 Asynq UI:
 
@@ -2612,6 +2616,8 @@ Current progress:
 3. First application call sites migrated to interface seams:
 - notifications fan-out enqueue in `pkg/tasks/notifications.go` now uses `core.Jobs`.
 - notifier publish/subscribe path in `pkg/repos/notifierrepo/notifier.go` now uses `core.PubSub`.
+4. Domain testability improved:
+- notifications task processor now depends on a small planned-notification interface with table-driven unit tests.
 
 ### Phase 2: Monorepo and Module Packaging
 

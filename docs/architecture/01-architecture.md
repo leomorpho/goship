@@ -25,8 +25,8 @@ The application follows a layered structure:
 
 ## Worker Runtime Flow
 
-1. `cmd/worker/main.go` loads config and starts Asynq server.
-2. Creates app container and builds router (for reverse route URLs in tasks).
+1. `cmd/worker/main.go` creates app container and validates that jobs adapter is `asynq` via `c.Config`.
+2. Starts Asynq server from cache config and builds router (for reverse route URLs in tasks).
 3. Constructs repo instances needed by task processors.
 4. Registers handlers on Asynq mux and runs worker.
 

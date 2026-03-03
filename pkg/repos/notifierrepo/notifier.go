@@ -10,7 +10,6 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/leomorpho/goship/pkg/domain"
-	"github.com/leomorpho/goship/pkg/repos/pubsub"
 )
 
 /*
@@ -25,6 +24,12 @@ type NotifierRepo struct {
 	pwaPushNotificationsRepo *PwaPushNotificationsRepo
 	fcmPushNotificationsRepo *FcmPushNotificationsRepo
 	getNumNotifsCount        func(context.Context, int) (int, error)
+}
+
+// SSEEvent is the notifier-level realtime event payload exposed to callers.
+type SSEEvent struct {
+	Type string `json:"type"`
+	Data string `json:"data"`
 }
 
 func NewNotifierRepo(
@@ -69,7 +74,7 @@ func (s *NotifierRepo) PublishNotification(
 	// TODO: if we re-use the messaging notifications, we'll need to defined the Type of this notif
 	// accordingly. For example we should use NotificationTypeIncrementNumUnseenMessages and NotificationTypeDecrementNumUnseenMessages
 	// for private messages, but NotificationTypeUpdateNumNotifications for general notifications.
-	err := s.publishEvent(ctx, fmt.Sprint(notification.ProfileID), pubsub.SSEEvent{
+	err := s.publishEvent(ctx, fmt.Sprint(notification.ProfileID), SSEEvent{
 		Type: domain.NotificationTypeUpdateNumNotifications.Value,
 		Data: "n/a",
 	})
@@ -111,7 +116,7 @@ func (s *NotifierRepo) PublishNotification(
 	}
 
 	// Publish the notification to the user-specific topic
-	return s.publishEvent(ctx, fmt.Sprint(notification.ProfileID), pubsub.SSEEvent{
+	return s.publishEvent(ctx, fmt.Sprint(notification.ProfileID), SSEEvent{
 		Type: notification.Type.Value,
 		Data: notification.Text,
 	})
@@ -122,7 +127,7 @@ func (s *NotifierRepo) SendSSEUpdate(
 	ctx context.Context, notification domain.Notification,
 ) error {
 	// Publish the notification to the user-specific topic
-	return s.publishEvent(ctx, fmt.Sprint(notification.ProfileID), pubsub.SSEEvent{
+	return s.publishEvent(ctx, fmt.Sprint(notification.ProfileID), SSEEvent{
 		Type: notification.Type.Value,
 		Data: notification.Text,
 	})
@@ -233,14 +238,14 @@ func (s *NotifierRepo) DeleteNotification(ctx context.Context, notificationID in
 	return nil
 }
 
-// SSESubscribe to a topic to get live notifications from it
+// SSESubscribe to a topic to get live notifications from it.
 func (s *NotifierRepo) SSESubscribe(
 	ctx context.Context, topic string,
-) (<-chan pubsub.SSEEvent, error) {
+) (<-chan SSEEvent, error) {
 	subCtx, cancel := context.WithCancel(ctx)
-	out := make(chan pubsub.SSEEvent)
+	out := make(chan SSEEvent)
 	sub, err := s.pubSubClient.Subscribe(subCtx, topic, func(hctx context.Context, _ string, payload []byte) error {
-		var event pubsub.SSEEvent
+		var event SSEEvent
 		if err := json.Unmarshal(payload, &event); err != nil {
 			return err
 		}
@@ -267,7 +272,7 @@ func (s *NotifierRepo) SSESubscribe(
 	return out, nil
 }
 
-func (s *NotifierRepo) publishEvent(ctx context.Context, topic string, event pubsub.SSEEvent) error {
+func (s *NotifierRepo) publishEvent(ctx context.Context, topic string, event SSEEvent) error {
 	payload, err := json.Marshal(event)
 	if err != nil {
 		return err
