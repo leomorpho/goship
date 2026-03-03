@@ -84,6 +84,8 @@ type Container struct {
 
 	// Notifier handles all notifications to clients
 	Notifier *notifierrepo.NotifierRepo
+	// PubSub stores the repo-level pubsub client used by notifier/realtime.
+	PubSub pubsub.PubSubClient
 
 	// Tasks stores the task client
 	Tasks *TaskClient
@@ -92,6 +94,8 @@ type Container struct {
 	CoreCache core.Cache
 	// CoreJobs exposes jobs via the backend-agnostic core seam.
 	CoreJobs core.Jobs
+	// CorePubSub exposes pubsub via the backend-agnostic core seam.
+	CorePubSub core.PubSub
 
 	// Adapters stores resolved adapter selection/capabilities for runtime use.
 	Adapters coreadapters.Resolved
@@ -131,6 +135,7 @@ func (c *Container) validateAdapterPlan() {
 func (c *Container) initCoreAdapters() {
 	c.CoreCache = NewCoreCacheAdapter(c.Cache)
 	c.CoreJobs = NewCoreJobsAdapter(c.Tasks, c.Adapters.JobsCapabilities)
+	c.CorePubSub = NewCorePubSubAdapter(c.PubSub)
 }
 
 // Shutdown shuts the Container down and disconnects all connections
@@ -404,6 +409,7 @@ func (c *Container) initAuth() {
 
 func (c *Container) initNotifier() {
 	pubsubRepo := pubsub.NewRedisPubSubClient(c.Cache.Client)
+	c.PubSub = pubsubRepo
 	notificationStorageRepo := notifierrepo.NewNotificationStorageRepo(c.ORM)
 	pwaPushNotificationsRepo := notifierrepo.NewPwaPushNotificationsRepo(
 		c.ORM, c.Config.App.VapidPublicKey, c.Config.App.VapidPrivateKey, c.Config.Mail.FromAddress,

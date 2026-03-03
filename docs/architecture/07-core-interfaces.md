@@ -75,6 +75,7 @@ Current startup behavior:
 - `services.Container` initializes backend-agnostic seams:
   - `CoreCache` (`core.Cache`) via `services.CoreCacheAdapter`
   - `CoreJobs` (`core.Jobs`) via `services.CoreJobsAdapter`
+  - `CorePubSub` (`core.PubSub`) via `services.CorePubSubAdapter`
 
 ## Scope Boundaries
 
