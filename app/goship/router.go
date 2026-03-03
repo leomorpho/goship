@@ -152,6 +152,9 @@ func registerPublicRoutes(c *services.Container, g *echo.Group, ctr controller.C
 		g.GET("/error/500", errHandler.GetHttp500InternalServerError)
 	}
 
+	// ship:routes:public:start
+	// ship:routes:public:end
+
 	return nil
 }
 
@@ -263,6 +266,9 @@ func registerAuthRoutes(c *services.Container, g *echo.Group, ctr controller.Con
 	onboardedGroup.POST("/payments/create-portal-session", payments.CreatePortalSession).Name = routeNames.RouteNameCreatePortalSession
 	onboardedGroup.GET("/payments/pricing", payments.PricingPage).Name = routeNames.RouteNamePricingPage
 	onboardedGroup.GET("/payments/success", payments.SuccessfullySubscribed).Name = routeNames.RouteNamePaymentProcessorSuccess
+
+	// ship:routes:auth:start
+	// ship:routes:auth:end
 
 	return nil
 }

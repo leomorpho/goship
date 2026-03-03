@@ -1,6 +1,5 @@
 # Compile-only package set (no Docker, no runtime network binds)
 ./app/goship
-./app/goship/web/routes
 ./cmd/web
 ./cmd/worker
 ./cmd/seed

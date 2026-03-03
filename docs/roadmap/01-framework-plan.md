@@ -627,6 +627,24 @@ Test evidence:
 - `go test ./cmd/web ./pkg/controller ./pkg/runtimeplan`
 - `go test -c ./app/goship/web/routes` (compile check in restricted env)
 
+7. `R1.2` Minimal resource generator foundation.
+Status: `completed`
+Done when:
+- `ship generate resource <name>` scaffolds route handler (+ optional templ page);
+- generator prints router insertion snippet instead of auto-editing `app/goship/router.go`;
+- generator logic is table-driven tested in `cli/ship`.
+Test evidence:
+- `go test ./cli/ship`
+
+8. `R1.3` Optional safe router wiring mode for generator.
+Status: `completed`
+Done when:
+- `ship generate resource ... --wire` inserts generated snippet into `app/goship/router.go`;
+- insertion only occurs behind explicit marker pairs (`public` or `auth`);
+- operation is idempotent and tested (no duplicate insertion).
+Test evidence:
+- `go test ./cli/ship`
+
 ### Phase 1: Core Abstractions
 
 1. Define `core` interfaces for DB/cache/pubsub/jobs/storage.

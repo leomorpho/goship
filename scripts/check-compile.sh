@@ -12,7 +12,7 @@ echo "Running compile checks (no test execution)..."
 
 while IFS= read -r pkg; do
   [[ -z "${pkg}" || "${pkg}" =~ ^# ]] && continue
-  go build "${pkg}"
+  go test -run '^$' "${pkg}"
 done < "${PKG_FILE}"
 
 # Compile route tests without executing TestMain/httptest server startup.

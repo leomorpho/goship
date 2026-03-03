@@ -61,7 +61,7 @@ Database:
 Generation:
 
 - `ship templ generate [--path <dir>] [--file <file.templ>]`
-- `ship generate <resource|model|job|module>` (planned)
+- `ship generate resource <name> [--path app/goship] [--auth public|auth] [--views templ|none] [--wire]`
 - `ship destroy <generated-artifact>` (planned)
 
 ## Versioning Rules
@@ -85,6 +85,19 @@ These commands are implemented as wrappers over existing workflows:
 - `ship db rollback [amount]` -> `atlas migrate down ... [amount]`
 - `ship db seed` -> `make seed`
 - `ship templ generate --path app` -> `templ generate -path app`, then move each `*_templ.go` into sibling `gen/` directory
+- `ship generate resource <name>` -> scaffold handler (+ optional templ page) and print route snippet for manual insertion in `app/goship/router.go`
+- `ship generate resource <name> --wire` -> also insert snippet behind ship markers in `app/goship/router.go`
+
+Resource generator contract (v1 minimal):
+
+1. Does not auto-edit router.
+2. Optional `--wire` mode inserts snippet behind marker pairs.
+Markers:
+`// ship:routes:public:start ... // ship:routes:public:end`
+`// ship:routes:auth:start ... // ship:routes:auth:end`
+3. Creates `app/goship/web/routes/<resource>.go`.
+4. Creates `app/goship/views/web/pages/<resource>.templ` when `--views templ`.
+5. Prints exact snippet target (`registerPublicRoutes` or `registerAuthRoutes`) and required route-name constant hint.
 
 Local run examples from repository root:
 

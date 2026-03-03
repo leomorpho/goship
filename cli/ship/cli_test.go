@@ -240,6 +240,30 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			wantErr:  "ship templ commands:",
 		},
 		{
+			name:     "generate help",
+			args:     []string{"generate", "help"},
+			wantCode: 0,
+			wantOut:  "ship generate commands:",
+		},
+		{
+			name:     "generate missing subcommand",
+			args:     []string{"generate"},
+			wantCode: 1,
+			wantErr:  "ship generate commands:",
+		},
+		{
+			name:     "generate unknown subcommand",
+			args:     []string{"generate", "model"},
+			wantCode: 1,
+			wantErr:  "unknown generate command",
+		},
+		{
+			name:     "generate resource missing name",
+			args:     []string{"generate", "resource"},
+			wantCode: 1,
+			wantErr:  "usage: ship generate resource",
+		},
+		{
 			name:       "runner exit code is propagated",
 			args:       []string{"dev"},
 			wantCode:   7,

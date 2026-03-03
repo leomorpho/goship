@@ -25,6 +25,7 @@ Naming normalization from roadmap:
 2. Keep docs as first-class, updated with code.
 3. Keep default test loop fast and mostly stateless.
 4. Keep Cherie compatibility visible for framework changes.
+5. Keep files LLM-friendly: target <= 500 lines per file when practical.
 
 ## Architectural Placement Rules
 
@@ -45,6 +46,7 @@ When in doubt, follow `docs/architecture/02-structure-and-boundaries.md`.
 3. Run targeted tests for touched packages.
 4. Run broader tests when risk crosses package/process boundaries.
 5. Update docs in the same change stream.
+6. If a touched file grows past ~500 lines, split by responsibility unless there is a strong reason not to.
 
 ## Testing and Quality Gates
 

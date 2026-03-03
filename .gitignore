@@ -2,6 +2,15 @@
 .idea
 tmp/
 .cache/
+*.test
+
+# Local Go build artifacts (root-level binaries from `go build ./cmd/...`)
+/web
+/worker
+/seed
+/ship
+/ship-mcp
+
 schemaspy-output
 .DS_Store
 .env

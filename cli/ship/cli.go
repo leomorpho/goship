@@ -78,6 +78,8 @@ func (c CLI) Run(args []string) int {
 		return c.runDB(args[1:])
 	case "templ":
 		return c.runTempl(args[1:])
+	case "generate":
+		return c.runGenerate(args[1:])
 	default:
 		fmt.Fprintf(c.Err, "unknown command: %s\n\n", args[0])
 		printRootHelp(c.Err)
@@ -224,6 +226,25 @@ func (c CLI) runTempl(args []string) int {
 	}
 }
 
+func (c CLI) runGenerate(args []string) int {
+	if len(args) == 0 {
+		printGenerateHelp(c.Err)
+		return 1
+	}
+
+	switch args[0] {
+	case "resource":
+		return c.runGenerateResource(args[1:])
+	case "help", "-h", "--help":
+		printGenerateHelp(c.Out)
+		return 0
+	default:
+		fmt.Fprintf(c.Err, "unknown generate command: %s\n\n", args[0])
+		printGenerateHelp(c.Err)
+		return 1
+	}
+}
+
 func (c CLI) runTemplGenerate(args []string) int {
 	fs := flag.NewFlagSet("templ generate", flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
@@ -295,6 +316,7 @@ func printRootHelp(w io.Writer) {
 	fmt.Fprintln(w, "  ship test [--integration]")
 	fmt.Fprintln(w, "  ship db <create|migrate|rollback|seed>")
 	fmt.Fprintln(w, "  ship templ <generate>")
+	fmt.Fprintln(w, "  ship generate <resource>")
 	fmt.Fprintln(w)
 	fmt.Fprintln(w, "Examples:")
 	fmt.Fprintln(w, "  ship dev")
@@ -304,6 +326,7 @@ func printRootHelp(w io.Writer) {
 	fmt.Fprintln(w, "  ship db migrate")
 	fmt.Fprintln(w, "  ship db rollback 1")
 	fmt.Fprintln(w, "  ship templ generate --path app")
+	fmt.Fprintln(w, "  ship generate resource contact")
 }
 
 func printDevHelp(w io.Writer) {
@@ -333,6 +356,11 @@ func printTemplHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship templ commands:")
 	fmt.Fprintln(w, "  ship templ generate [--path <dir>] [--file <file.templ>]")
 	fmt.Fprintln(w, "    (generated files are moved to a child gen/ directory per templ package)")
+}
+
+func printGenerateHelp(w io.Writer) {
+	fmt.Fprintln(w, "ship generate commands:")
+	fmt.Fprintln(w, "  ship generate resource <name> [--path app/goship] [--auth public|auth] [--views templ|none] [--wire]")
 }
 
 func relocateTemplGenerated(rootPath string) error {

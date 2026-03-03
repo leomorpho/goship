@@ -8,4 +8,4 @@
 ./pkg/repos/msg
 ./pkg/runtimeplan
 ./pkg/services
-
+./cli/ship
