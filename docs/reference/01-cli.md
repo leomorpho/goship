@@ -68,8 +68,13 @@ Generation:
 - `ship make:model <Name> [fields...] [--force]`
 - `ship make:controller <Name|NameController> [--actions index,show,create,update,destroy] [--auth public|auth] [--wire]`
 - `ship make:scaffold <Name> [fields...] [--path app/goship] [--views templ|none] [--auth public|auth] [--api] [--migrate] [--dry-run] [--force]`
-- `ship make:controller <Name|NameController> [--actions index,show,create,update,destroy] [--auth public|auth] [--wire]`
 - `ship destroy <generated-artifact>` (planned)
+
+Command grammar policy:
+
+1. Canonical commands are namespaced via colon (`db:*`, `make:*`, `infra:*`).
+2. Bare namespace commands (`ship db`, `ship make`, `ship infra`) show scoped help.
+3. Space-form subcommands (for example `ship db migrate`) are intentionally rejected with a hint to use colon form.
 
 ## Versioning Rules
 
@@ -112,8 +117,6 @@ If config resolves to embedded DB mode, `ship db:migrate`/`db:rollback` fail wit
 - `ship make:controller <Name>` -> generate controller/handler scaffold in `app/goship/web/routes`
 - `ship make:controller <Name> --actions ... --wire` -> wire generated routes into `app/goship/router.go` markers
 - `ship make:scaffold <Name> ...` -> orchestration command that composes `make:model`, `db:make`, `make:controller --wire`, and optionally `make:resource` / `db:migrate`
-- `ship make:controller <Name>` -> write controller/route handler scaffold under `app/goship/web/routes`
-- `ship make:controller <Name> --actions ... --wire` -> optionally wire generated routes idempotently in `app/goship/router.go` markers
 
 Field syntax for `make:model`:
 

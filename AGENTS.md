@@ -15,9 +15,10 @@ Naming normalization from roadmap:
 1. `docs/00-index.md`
 2. `docs/architecture/02-structure-and-boundaries.md`
 3. `docs/architecture/01-architecture.md`
-4. `docs/guides/01-ai-agent-guide.md`
-5. `docs/reference/01-cli.md`
-6. `docs/roadmap/01-framework-plan.md`
+4. `docs/architecture/07-core-interfaces.md`
+5. `docs/guides/01-ai-agent-guide.md`
+6. `docs/reference/01-cli.md`
+7. `docs/roadmap/01-framework-plan.md`
 
 ## Current Priorities
 

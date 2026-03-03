@@ -243,7 +243,7 @@ This is a CLI command that will generate a route, model, and view for you. It's 
 Example:
 
 ```bash
-goship generate scaffold Post title:string content:text
+ship make:scaffold Post title:string content:text --migrate
 ```
 
 ##### Generated Model:
@@ -406,6 +406,7 @@ Last updated: 2026-03-03
 4. `A04` - `architecture/04-http-routes.md`: route inventory grouped by access level and purpose.
 5. `A05` - `architecture/05-data-model.md`: Ent entities and domain model coverage.
 6. `A06` - `architecture/06-known-gaps-and-risks.md`: confirmed implementation gaps and technical risks.
+7. `A07` - `architecture/07-core-interfaces.md`: backend-agnostic adapter seam contracts.
 
 ### Guides
 
@@ -435,6 +436,7 @@ Last updated: 2026-03-03
 - `cli/ship/cmd/ship/main.go`
 - `cli/ship/cli.go`
 - `pkg/services/container.go`
+- `pkg/core/interfaces.go`
 - `app/goship/router.go`
 - `app/goship/web/routes/*.go`
 - `pkg/tasks/*.go`
@@ -1076,6 +1078,85 @@ Impact:
 5. Align local stack docs with actual DB mode and compose services.
 
 ---
+FILE: docs/architecture/07-core-interfaces.md
+---
+# Core Interfaces
+
+This document defines the first stable adapter contracts for GoShip's backend-agnostic runtime.
+
+## Purpose
+
+GoShip should let app code stay stable while infrastructure choices vary by environment:
+
+- database (`postgres`, `mysql`, `sqlite`)
+- cache (`memory`, `redis`)
+- pubsub (`inproc`, `redis`, cloud)
+- jobs (`inproc`, `dbqueue`, `asynq`, cloud)
+- blob storage (`local`, `s3-compatible`)
+- mailer (provider-specific adapters)
+
+To enforce that, app and module code should depend on core interfaces instead of concrete clients.
+
+## Canonical Package
+
+- `pkg/core/interfaces.go`
+
+This package is the current source of truth for adapter seam contracts.
+
+## Current Contracts (v0)
+
+1. `Store`
+- `Ping(ctx)` for health checks
+- `WithTx(ctx, fn)` for transaction boundaries
+
+2. `Cache`
+- `Get`, `Set`, `Delete`, `InvalidatePrefix`, `Close`
+
+3. `PubSub`
+- `Publish`
+- `Subscribe` with `MessageHandler`
+- `Close`
+
+4. `Jobs`
+- `Register`, `Enqueue`
+- `StartWorker`, `StartScheduler`, `Stop`
+- `Capabilities`
+
+5. `BlobStorage`
+- `Put`, `Delete`, `PresignGet`
+
+6. `Mailer`
+- `Send(MailMessage)`
+
+## Capability Validation
+
+Jobs backends expose `JobCapabilities` (delayed, retries, cron, priority, dead-letter, dashboard).
+
+- `ValidateJobCapabilities(required, available)` fails fast at startup when runtime config requires unsupported features.
+- This is the first implementation of the "capability contract" rule from the framework plan.
+
+## Scope Boundaries
+
+These interfaces are runtime seams, not domain/repository APIs.
+
+- Do not force app repos to become generic CRUD wrappers.
+- Keep domain modeling in Ent + app/framework repos.
+- Use `pkg/core` only where backend swapability or startup validation is required.
+
+## Migration Plan
+
+1. Keep existing concrete packages running (`pkg/services`, `pkg/repos/*`).
+2. Add adapters that satisfy `pkg/core` contracts.
+3. Move container wiring to resolve adapters via config and capabilities.
+4. Gradually convert call sites from concrete clients to interfaces.
+
+## Follow-Ups
+
+1. Add adapter registry/factory by runtime config (`adapter:set` direction).
+2. Add core interface conformance tests per adapter package.
+3. Define module-level contracts for auth/billing/notifications once module extraction starts.
+
+---
 FILE: docs/guides/01-ai-agent-guide.md
 ---
 # AI Agent Guide
@@ -1554,8 +1635,13 @@ Generation:
 - `ship make:model <Name> [fields...] [--force]`
 - `ship make:controller <Name|NameController> [--actions index,show,create,update,destroy] [--auth public|auth] [--wire]`
 - `ship make:scaffold <Name> [fields...] [--path app/goship] [--views templ|none] [--auth public|auth] [--api] [--migrate] [--dry-run] [--force]`
-- `ship make:controller <Name|NameController> [--actions index,show,create,update,destroy] [--auth public|auth] [--wire]`
 - `ship destroy <generated-artifact>` (planned)
+
+Command grammar policy:
+
+1. Canonical commands are namespaced via colon (`db:*`, `make:*`, `infra:*`).
+2. Bare namespace commands (`ship db`, `ship make`, `ship infra`) show scoped help.
+3. Space-form subcommands (for example `ship db migrate`) are intentionally rejected with a hint to use colon form.
 
 ## Versioning Rules
 
@@ -1598,8 +1684,6 @@ If config resolves to embedded DB mode, `ship db:migrate`/`db:rollback` fail wit
 - `ship make:controller <Name>` -> generate controller/handler scaffold in `app/goship/web/routes`
 - `ship make:controller <Name> --actions ... --wire` -> wire generated routes into `app/goship/router.go` markers
 - `ship make:scaffold <Name> ...` -> orchestration command that composes `make:model`, `db:make`, `make:controller --wire`, and optionally `make:resource` / `db:migrate`
-- `ship make:controller <Name>` -> write controller/route handler scaffold under `app/goship/web/routes`
-- `ship make:controller <Name> --actions ... --wire` -> optionally wire generated routes idempotently in `app/goship/router.go` markers
 
 Field syntax for `make:model`:
 
@@ -1915,37 +1999,41 @@ To decide what runs in parallel (web/worker/scheduler) and with which adapters, 
 
 CLI responsibilities:
 
-1. `goship new` writes initial config set with sane defaults.
-2. `goship profile set <profile>` updates environment/process presets.
-3. `goship module add <name>` updates module manifest + initializer wiring.
-4. `goship jobs backend set <backend>` updates adapter config with capability checks.
-5. `goship new` should auto-install templ tooling and keep it current in generated projects (including `go get -u github.com/a-h/templ` as part of bootstrap/update workflow).
+1. `ship new` writes initial config set with sane defaults.
+2. `ship profile:set <profile>` updates environment/process presets.
+3. `ship module:add <name>` updates module manifest + initializer wiring.
+4. `ship jobs:backend:set <backend>` updates adapter config with capability checks.
+5. `ship new` should install templ tooling pinned to the project-declared version and provide an explicit update path.
 
 ### CLI Surface (Rails-Inspired)
 
 Primary command groups to match Rails ergonomics while staying Go-native:
 
 1. Project lifecycle:
-- `goship new <app>`
-- `goship upgrade`
-- `goship doctor`
+- `ship new <app>`
+- `ship upgrade`
+- `ship doctor`
 2. Runtime/developer workflow:
-- `goship dev` (web-only default)
-- `goship dev --worker`
-- `goship dev --all`
-- `goship test` (unit default)
-- `goship test --integration`
+- `ship dev` (web-only default)
+- `ship dev --worker`
+- `ship dev --all`
+- `ship test` (unit default)
+- `ship test --integration`
 3. Code generation:
-- `goship generate <resource|model|job|module>`
-- `goship destroy <generated-artifact>`
+- `ship make:resource`
+- `ship make:model`
+- `ship make:controller`
+- `ship make:scaffold`
+- `ship destroy:<artifact>`
 4. Modules/adapters:
-- `goship module add <name>`
-- `goship module remove <name>`
-- `goship adapter set <db|cache|jobs|pubsub|storage|mailer> <impl>`
+- `ship module:add <name>`
+- `ship module:remove <name>`
+- `ship adapter:set <db|cache|jobs|pubsub|storage|mailer> <impl>`
 5. Data/schema:
-- `goship db:migrate`
-- `goship db:rollback`
-- `goship db:seed`
+- `ship db:make <name>`
+- `ship db:migrate`
+- `ship db:rollback`
+- `ship db:seed`
 
 Rules for versioned tooling in generated apps:
 
@@ -2193,14 +2281,14 @@ Create stable contracts in `core` so app code is backend-agnostic:
 
 ## Rails-Like Capabilities to Implement First
 
-1. `goship new <app>` CLI with a 2-minute happy path.
+1. `ship new <app>` CLI with a 2-minute happy path.
 2. Generators:
-- `goship g model`
-- `goship g scaffold`
-- `goship g migration`
-- `goship g job`
-- `goship g mailer`
-- `goship g module install <name>`
+- `ship make:model`
+- `ship make:scaffold`
+- `ship db:make`
+- `ship make:job`
+- `ship make:mailer`
+- `ship module:add <name>`
 3. ActiveStorage-like file attachments:
 - attach files to entities;
 - support local + S3 backends;
@@ -2254,7 +2342,7 @@ No manual edits should be required for:
 - [ ] Support HTMX swap lifecycle: mount/unmount Svelte instances safely after partial swaps.
 - [ ] Benchmark before/after page payload and interaction latency.
 - [ ] Document "when to use Svelte vs Alpine vs vanilla vs pure HTMX" as framework guidance.
-- [ ] Add `goship g island <Name>` to generate component + entrypoint + registration with zero manual edits.
+- [ ] Add `ship make:island <Name>` to generate component + entrypoint + registration with zero manual edits.
 - [ ] Support colocated islands and central-library islands with the same discovery pipeline.
 - [ ] Add a watch mode that re-generates island manifest/registry automatically during development.
 
@@ -2448,7 +2536,7 @@ Test evidence:
 7. `R1.2` Minimal resource generator foundation.
 Status: `completed`
 Done when:
-- `ship generate resource <name>` scaffolds route handler (+ optional templ page);
+- `ship make:resource <name>` scaffolds route handler (+ optional templ page);
 - generator prints router insertion snippet instead of auto-editing `app/goship/router.go`;
 - generator logic is table-driven tested in `cli/ship`.
 Test evidence:
@@ -2457,7 +2545,7 @@ Test evidence:
 8. `R1.3` Optional safe router wiring mode for generator.
 Status: `completed`
 Done when:
-- `ship generate resource ... --wire` inserts generated snippet into `app/goship/router.go`;
+- `ship make:resource ... --wire` inserts generated snippet into `app/goship/router.go`;
 - insertion only occurs behind explicit marker pairs (`public` or `auth`);
 - operation is idempotent and tested (no duplicate insertion).
 Test evidence:
@@ -2467,7 +2555,7 @@ Test evidence:
 Status: `completed`
 Done when:
 - generator ensures `RouteName<Resource>` constant is present in `pkg/routing/routenames/routenames.go`;
-- `ship generate resource ... --dry-run` previews file/router/routename changes without writing;
+- `ship make:resource ... --dry-run` previews file/router/routename changes without writing;
 - wiring/import/constant insertion paths are idempotent and tested.
 Test evidence:
 - `go test ./cli/ship`
@@ -2511,9 +2599,9 @@ Test evidence:
 
 ## Immediate
 
-- [ ] Decide and document exact package naming convention (`goship/*`).
-- [ ] Choose CLI implementation approach (`cobra`, `urfave/cli`, or stdlib).
-- [ ] Draft `core` interface contracts in a design doc.
+- [x] Decide and document exact package naming convention (`github.com/leomorpho/goship/*`).
+- [x] Choose CLI implementation approach (stdlib `flag` + explicit command dispatch in `cli/ship`).
+- [x] Draft `core` interface contracts in a design doc and first package (`pkg/core`).
 - [ ] Define runtime config schema for adapter selection.
 - [ ] Specify module compatibility/version policy.
 - [ ] Create a developer-facing README + LLM-facing README/`llm.txt` split with one source of truth.
@@ -2538,7 +2626,7 @@ Test evidence:
 ## Mid-Term
 
 - [x] Release minimal `ship new` CLI command (v1 local scaffold, no network bootstrap).
-- [ ] Release `goship g model` and `goship g migration`.
+- [x] Release `ship make:model` and `ship db:make`.
 - [ ] Release `auth` and `storage` modules.
 - [ ] Release `admin` scaffolding MVP.
 - [ ] Add golden-path example apps for both runtime modes.
@@ -2555,7 +2643,7 @@ Test evidence:
 
 ## Definition of Success (v1)
 
-1. A developer can run `goship new myapp` and ship a working app quickly.
+1. A developer can run `ship new myapp` and ship a working app quickly.
 2. The same app code can run in single-node or distributed mode by config.
 3. Optional batteries are added via CLI without copy-paste.
 4. LLMs can reliably reason over framework structure using `llm.txt` + MCP.

@@ -235,7 +235,7 @@ This is a CLI command that will generate a route, model, and view for you. It's 
 Example:
 
 ```bash
-goship generate scaffold Post title:string content:text
+ship make:scaffold Post title:string content:text --migrate
 ```
 
 ##### Generated Model:

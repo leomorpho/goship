@@ -26,6 +26,7 @@ Last updated: 2026-03-03
 4. `A04` - `architecture/04-http-routes.md`: route inventory grouped by access level and purpose.
 5. `A05` - `architecture/05-data-model.md`: Ent entities and domain model coverage.
 6. `A06` - `architecture/06-known-gaps-and-risks.md`: confirmed implementation gaps and technical risks.
+7. `A07` - `architecture/07-core-interfaces.md`: backend-agnostic adapter seam contracts.
 
 ### Guides
 
@@ -55,6 +56,7 @@ Last updated: 2026-03-03
 - `cli/ship/cmd/ship/main.go`
 - `cli/ship/cli.go`
 - `pkg/services/container.go`
+- `pkg/core/interfaces.go`
 - `app/goship/router.go`
 - `app/goship/web/routes/*.go`
 - `pkg/tasks/*.go`

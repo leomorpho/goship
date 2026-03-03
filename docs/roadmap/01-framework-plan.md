@@ -97,37 +97,41 @@ To decide what runs in parallel (web/worker/scheduler) and with which adapters, 
 
 CLI responsibilities:
 
-1. `goship new` writes initial config set with sane defaults.
-2. `goship profile set <profile>` updates environment/process presets.
-3. `goship module add <name>` updates module manifest + initializer wiring.
-4. `goship jobs backend set <backend>` updates adapter config with capability checks.
-5. `goship new` should auto-install templ tooling and keep it current in generated projects (including `go get -u github.com/a-h/templ` as part of bootstrap/update workflow).
+1. `ship new` writes initial config set with sane defaults.
+2. `ship profile:set <profile>` updates environment/process presets.
+3. `ship module:add <name>` updates module manifest + initializer wiring.
+4. `ship jobs:backend:set <backend>` updates adapter config with capability checks.
+5. `ship new` should install templ tooling pinned to the project-declared version and provide an explicit update path.
 
 ### CLI Surface (Rails-Inspired)
 
 Primary command groups to match Rails ergonomics while staying Go-native:
 
 1. Project lifecycle:
-- `goship new <app>`
-- `goship upgrade`
-- `goship doctor`
+- `ship new <app>`
+- `ship upgrade`
+- `ship doctor`
 2. Runtime/developer workflow:
-- `goship dev` (web-only default)
-- `goship dev --worker`
-- `goship dev --all`
-- `goship test` (unit default)
-- `goship test --integration`
+- `ship dev` (web-only default)
+- `ship dev --worker`
+- `ship dev --all`
+- `ship test` (unit default)
+- `ship test --integration`
 3. Code generation:
-- `goship generate <resource|model|job|module>`
-- `goship destroy <generated-artifact>`
+- `ship make:resource`
+- `ship make:model`
+- `ship make:controller`
+- `ship make:scaffold`
+- `ship destroy:<artifact>`
 4. Modules/adapters:
-- `goship module add <name>`
-- `goship module remove <name>`
-- `goship adapter set <db|cache|jobs|pubsub|storage|mailer> <impl>`
+- `ship module:add <name>`
+- `ship module:remove <name>`
+- `ship adapter:set <db|cache|jobs|pubsub|storage|mailer> <impl>`
 5. Data/schema:
-- `goship db:migrate`
-- `goship db:rollback`
-- `goship db:seed`
+- `ship db:make <name>`
+- `ship db:migrate`
+- `ship db:rollback`
+- `ship db:seed`
 
 Rules for versioned tooling in generated apps:
 
@@ -375,14 +379,14 @@ Create stable contracts in `core` so app code is backend-agnostic:
 
 ## Rails-Like Capabilities to Implement First
 
-1. `goship new <app>` CLI with a 2-minute happy path.
+1. `ship new <app>` CLI with a 2-minute happy path.
 2. Generators:
-- `goship g model`
-- `goship g scaffold`
-- `goship g migration`
-- `goship g job`
-- `goship g mailer`
-- `goship g module install <name>`
+- `ship make:model`
+- `ship make:scaffold`
+- `ship db:make`
+- `ship make:job`
+- `ship make:mailer`
+- `ship module:add <name>`
 3. ActiveStorage-like file attachments:
 - attach files to entities;
 - support local + S3 backends;
@@ -436,7 +440,7 @@ No manual edits should be required for:
 - [ ] Support HTMX swap lifecycle: mount/unmount Svelte instances safely after partial swaps.
 - [ ] Benchmark before/after page payload and interaction latency.
 - [ ] Document "when to use Svelte vs Alpine vs vanilla vs pure HTMX" as framework guidance.
-- [ ] Add `goship g island <Name>` to generate component + entrypoint + registration with zero manual edits.
+- [ ] Add `ship make:island <Name>` to generate component + entrypoint + registration with zero manual edits.
 - [ ] Support colocated islands and central-library islands with the same discovery pipeline.
 - [ ] Add a watch mode that re-generates island manifest/registry automatically during development.
 
@@ -630,7 +634,7 @@ Test evidence:
 7. `R1.2` Minimal resource generator foundation.
 Status: `completed`
 Done when:
-- `ship generate resource <name>` scaffolds route handler (+ optional templ page);
+- `ship make:resource <name>` scaffolds route handler (+ optional templ page);
 - generator prints router insertion snippet instead of auto-editing `app/goship/router.go`;
 - generator logic is table-driven tested in `cli/ship`.
 Test evidence:
@@ -639,7 +643,7 @@ Test evidence:
 8. `R1.3` Optional safe router wiring mode for generator.
 Status: `completed`
 Done when:
-- `ship generate resource ... --wire` inserts generated snippet into `app/goship/router.go`;
+- `ship make:resource ... --wire` inserts generated snippet into `app/goship/router.go`;
 - insertion only occurs behind explicit marker pairs (`public` or `auth`);
 - operation is idempotent and tested (no duplicate insertion).
 Test evidence:
@@ -649,7 +653,7 @@ Test evidence:
 Status: `completed`
 Done when:
 - generator ensures `RouteName<Resource>` constant is present in `pkg/routing/routenames/routenames.go`;
-- `ship generate resource ... --dry-run` previews file/router/routename changes without writing;
+- `ship make:resource ... --dry-run` previews file/router/routename changes without writing;
 - wiring/import/constant insertion paths are idempotent and tested.
 Test evidence:
 - `go test ./cli/ship`
@@ -693,9 +697,9 @@ Test evidence:
 
 ## Immediate
 
-- [ ] Decide and document exact package naming convention (`goship/*`).
-- [ ] Choose CLI implementation approach (`cobra`, `urfave/cli`, or stdlib).
-- [ ] Draft `core` interface contracts in a design doc.
+- [x] Decide and document exact package naming convention (`github.com/leomorpho/goship/*`).
+- [x] Choose CLI implementation approach (stdlib `flag` + explicit command dispatch in `cli/ship`).
+- [x] Draft `core` interface contracts in a design doc and first package (`pkg/core`).
 - [ ] Define runtime config schema for adapter selection.
 - [ ] Specify module compatibility/version policy.
 - [ ] Create a developer-facing README + LLM-facing README/`llm.txt` split with one source of truth.
@@ -720,7 +724,7 @@ Test evidence:
 ## Mid-Term
 
 - [x] Release minimal `ship new` CLI command (v1 local scaffold, no network bootstrap).
-- [ ] Release `goship g model` and `goship g migration`.
+- [x] Release `ship make:model` and `ship db:make`.
 - [ ] Release `auth` and `storage` modules.
 - [ ] Release `admin` scaffolding MVP.
 - [ ] Add golden-path example apps for both runtime modes.
@@ -737,7 +741,7 @@ Test evidence:
 
 ## Definition of Success (v1)
 
-1. A developer can run `goship new myapp` and ship a working app quickly.
+1. A developer can run `ship new myapp` and ship a working app quickly.
 2. The same app code can run in single-node or distributed mode by config.
 3. Optional batteries are added via CLI without copy-paste.
 4. LLMs can reliably reason over framework structure using `llm.txt` + MCP.
