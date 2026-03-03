@@ -31,7 +31,8 @@ Use this placement rule for every new file:
 
 App web code is now app-scoped:
 
-- `app/goship/web/routes`: route composition + handlers
+- `app/goship/web/routes`: handlers
+- `app/goship/web/wiring.go`: HTTP wiring helpers (middleware/static/dependencies)
 - `app/goship/views`: templ components/layouts/pages/emails
 - `app/goship/views/**/gen`: generated templ Go files (same package names as source dirs)
 

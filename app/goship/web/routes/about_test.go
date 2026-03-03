@@ -1,4 +1,4 @@
-package routes
+package routes_test
 
 import (
 	"net/http"

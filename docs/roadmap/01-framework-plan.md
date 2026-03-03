@@ -616,6 +616,17 @@ Test evidence:
 5. `R0.5` Establish package-level coverage baselines and close highest-value test gaps.
 Status: `in_progress`
 
+6. `R1.1` Resource route registration refactor (prep for generator-driven resources).
+Status: `completed`
+Done when:
+- canonical router entrypoint remains `app/goship/router.go`;
+- route declarations are centralized in `app/goship/router.go`;
+- handler implementations remain in `app/goship/web/routes/*.go`;
+- realtime registration is feature-gated directly in the canonical router.
+Test evidence:
+- `go test ./cmd/web ./pkg/controller ./pkg/runtimeplan`
+- `go test -c ./app/goship/web/routes` (compile check in restricted env)
+
 ### Phase 1: Core Abstractions
 
 1. Define `core` interfaces for DB/cache/pubsub/jobs/storage.

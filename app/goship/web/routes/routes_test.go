@@ -1,4 +1,4 @@
-package routes
+package routes_test
 
 import (
 	"net/http"
@@ -8,6 +8,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/leomorpho/goship/app/goship"
 	"github.com/leomorpho/goship/config"
 	"github.com/leomorpho/goship/pkg/services"
 
@@ -34,7 +35,7 @@ func TestMain(m *testing.M) {
 	c = services.NewContainer()
 
 	// Start a test HTTP server
-	if err := BuildRouter(c); err != nil {
+	if err := goship.BuildRouter(c); err != nil {
 		panic(err)
 	}
 	srv = httptest.NewServer(c.Web)

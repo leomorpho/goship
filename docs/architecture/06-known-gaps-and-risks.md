@@ -18,15 +18,14 @@ Impact:
 - Potential nil-pointer panics on shutdown or during feature paths that rely on tasks/notifier/cache.
 - Web and worker behavior can diverge from intended architecture.
 
-## 2) Realtime SSE Route Not Wired (High for realtime features)
+## 2) Realtime Dependency Requirements (High for distributed realtime features)
 
-`app/goship/web/routes/realtime.go` has a full SSE handler, but router registration is commented out:
-
-- `sseRoutes(c, s, ctr)` is commented in `app/goship/web/routes/router.go`.
+`GET /auth/realtime` is now conditionally registered based on resolved runtime web features. If notifier/pubsub dependencies are unavailable, realtime routes are intentionally disabled.
 
 Impact:
 
-- Realtime endpoint is effectively disabled in web runtime.
+- Realtime is unavailable unless runtime adapters are configured correctly.
+- Misconfigured environments can appear healthy while silently missing realtime endpoints.
 
 ## 3) Notification Center Endpoints Partially Disabled (Medium)
 
@@ -74,7 +73,7 @@ Impact:
 ## Suggested Priority Order
 
 1. Fix container/service initialization and safe shutdown semantics.
-2. Decide and document realtime strategy: wire SSE or remove dead path.
+2. Harden adapter/config validation so realtime capability mismatch is explicit at startup.
 3. Re-enable or remove notification-center routes consistently.
 4. Refresh e2e tests to match current GoShip flows.
 5. Align local stack docs with actual DB mode and compose services.

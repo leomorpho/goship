@@ -45,6 +45,10 @@ hooks: ## Install git hooks via lefthook
 llm-txt: ## Generate root LLM.txt from README and docs markdown files
 	bash scripts/generate-llm-txt.sh
 
+.PHONY: check-compile
+check-compile: ## Compile app/packages and route tests without running tests
+	bash scripts/check-compile.sh
+
 .PHONY: templ-gen
 templ-gen: ## Generate templ code next to .templ files via ship CLI
 	go run ./cli/ship/cmd/ship templ generate --path app

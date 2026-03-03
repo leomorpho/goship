@@ -81,7 +81,9 @@ Task processor registration:
 
 Go tests:
 
-- `make test`
+- `make check-compile` (compile app/packages + route tests without execution)
+- `bash scripts/test-unit.sh` (Docker-free unit package set)
+- `make test` (broader suite; may include Docker-backed packages depending on environment)
 - `go run ./cli/ship/cmd/ship test`
 - `make cover`
 

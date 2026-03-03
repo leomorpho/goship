@@ -7,7 +7,8 @@ The application follows a layered structure:
 
 - `cmd/*`: process entrypoints (`web`, `worker`, `seed`)
 - `pkg/services`: dependency container and infrastructure clients
-- `app/goship/web/routes`: HTTP handlers and route composition
+- `app/goship/web/routes`: HTTP handlers
+- `app/goship/web/wiring.go`: HTTP stack wiring (middleware/static/deps)
 - `pkg/middleware`: auth/session/cache/onboarding/request middleware
 - `pkg/repos`: data access and external service adapters
 - `pkg/controller`: rendering, page object, redirect helpers
@@ -18,7 +19,7 @@ The application follows a layered structure:
 ## Web Runtime Flow
 
 1. `cmd/web/main.go` creates container via `services.NewContainer()`.
-2. `goship.BuildRouter(c)` is the canonical app router entrypoint and delegates to modular route composition.
+2. `goship.BuildRouter(c)` is the canonical app router entrypoint and contains the route manifest.
 3. Echo server starts with request timeout middleware (SSE-aware).
 4. Request path executes middleware chain, route handler, and page rendering.
 
@@ -54,7 +55,7 @@ This mismatch affects parts of the runtime that assume those dependencies exist.
 
 ## HTTP Middleware Stack
 
-Primary middleware set in `app/goship/web/routes/router.go` includes:
+Primary middleware set in `app/goship/web/wiring.go` includes:
 
 - Trailing slash normalization
 - Panic recovery
@@ -100,7 +101,7 @@ HTMX behavior is integrated in the page object (`Page.HTMX`) and controller rend
   - persistent DB notifications
   - pub/sub events for SSE
   - push channels (PWA + FCM)
-- SSE endpoint exists (`app/goship/web/routes/realtime.go`) but route wiring is currently disabled.
+- SSE endpoint (`app/goship/web/routes/realtime.go`) is registered conditionally based on runtime plan web features (notifier + pubsub dependency availability).
 
 ## Frontend Asset Architecture
 

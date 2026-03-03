@@ -461,7 +461,8 @@ The application follows a layered structure:
 
 - `cmd/*`: process entrypoints (`web`, `worker`, `seed`)
 - `pkg/services`: dependency container and infrastructure clients
-- `app/goship/web/routes`: HTTP handlers and route composition
+- `app/goship/web/routes`: HTTP handlers
+- `app/goship/web/wiring.go`: HTTP stack wiring (middleware/static/deps)
 - `pkg/middleware`: auth/session/cache/onboarding/request middleware
 - `pkg/repos`: data access and external service adapters
 - `pkg/controller`: rendering, page object, redirect helpers
@@ -472,7 +473,7 @@ The application follows a layered structure:
 ## Web Runtime Flow
 
 1. `cmd/web/main.go` creates container via `services.NewContainer()`.
-2. `goship.BuildRouter(c)` is the canonical app router entrypoint and delegates to modular route composition.
+2. `goship.BuildRouter(c)` is the canonical app router entrypoint and contains the route manifest.
 3. Echo server starts with request timeout middleware (SSE-aware).
 4. Request path executes middleware chain, route handler, and page rendering.
 
@@ -508,7 +509,7 @@ This mismatch affects parts of the runtime that assume those dependencies exist.
 
 ## HTTP Middleware Stack
 
-Primary middleware set in `app/goship/web/routes/router.go` includes:
+Primary middleware set in `app/goship/web/wiring.go` includes:
 
 - Trailing slash normalization
 - Panic recovery
@@ -554,7 +555,7 @@ HTMX behavior is integrated in the page object (`Page.HTMX`) and controller rend
   - persistent DB notifications
   - pub/sub events for SSE
   - push channels (PWA + FCM)
-- SSE endpoint exists (`app/goship/web/routes/realtime.go`) but route wiring is currently disabled.
+- SSE endpoint (`app/goship/web/routes/realtime.go`) is registered conditionally based on runtime plan web features (notifier + pubsub dependency availability).
 
 ## Frontend Asset Architecture
 
@@ -605,7 +606,8 @@ Use this placement rule for every new file:
 
 App web code is now app-scoped:
 
-- `app/goship/web/routes`: route composition + handlers
+- `app/goship/web/routes`: handlers
+- `app/goship/web/wiring.go`: HTTP wiring helpers (middleware/static/dependencies)
 - `app/goship/views`: templ components/layouts/pages/emails
 - `app/goship/views/**/gen`: generated templ Go files (same package names as source dirs)
 
@@ -781,7 +783,12 @@ FILE: docs/architecture/04-http-routes.md
 # HTTP Route Map
 <!-- FRONTEND_SYNC: Landing capability explorer in app/goship/views/web/pages/landing_page.templ links here for Routing and Controllers. Keep both landing copy and this doc aligned. -->
 
-Routes are wired through canonical `app/goship/router.go` and composed in `app/goship/web/routes/router.go`.
+Routes are wired through canonical `app/goship/router.go`.
+
+Ergonomic routing rule:
+
+- URL declarations live in one place: `app/goship/router.go`.
+- Handler implementations live in `app/goship/web/routes/*.go`.
 
 ## Public/General Routes
 
@@ -882,13 +889,13 @@ Registered only when not production:
 - `GET /error/404`
 - `GET /error/500`
 
-## Routes Present But Not Currently Wired
+## Conditional Routes
 
-SSE route function exists but registration is commented out:
+Realtime is conditionally wired:
 
-- `GET /auth/realtime`
+- `GET /auth/realtime` is registered only when runtime web features enable realtime (notifier + pubsub available).
 
-Notification center routes have implementations but are commented out in route wiring:
+Notification center routes have implementations but are still not wired:
 
 - list notifications
 - mark all read
@@ -1008,15 +1015,14 @@ Impact:
 - Potential nil-pointer panics on shutdown or during feature paths that rely on tasks/notifier/cache.
 - Web and worker behavior can diverge from intended architecture.
 
-## 2) Realtime SSE Route Not Wired (High for realtime features)
+## 2) Realtime Dependency Requirements (High for distributed realtime features)
 
-`app/goship/web/routes/realtime.go` has a full SSE handler, but router registration is commented out:
-
-- `sseRoutes(c, s, ctr)` is commented in `app/goship/web/routes/router.go`.
+`GET /auth/realtime` is now conditionally registered based on resolved runtime web features. If notifier/pubsub dependencies are unavailable, realtime routes are intentionally disabled.
 
 Impact:
 
-- Realtime endpoint is effectively disabled in web runtime.
+- Realtime is unavailable unless runtime adapters are configured correctly.
+- Misconfigured environments can appear healthy while silently missing realtime endpoints.
 
 ## 3) Notification Center Endpoints Partially Disabled (Medium)
 
@@ -1064,7 +1070,7 @@ Impact:
 ## Suggested Priority Order
 
 1. Fix container/service initialization and safe shutdown semantics.
-2. Decide and document realtime strategy: wire SSE or remove dead path.
+2. Harden adapter/config validation so realtime capability mismatch is explicit at startup.
 3. Re-enable or remove notification-center routes consistently.
 4. Refresh e2e tests to match current GoShip flows.
 5. Align local stack docs with actual DB mode and compose services.
@@ -1250,7 +1256,9 @@ Task processor registration:
 
 Go tests:
 
-- `make test`
+- `make check-compile` (compile app/packages + route tests without execution)
+- `bash scripts/test-unit.sh` (Docker-free unit package set)
+- `make test` (broader suite; may include Docker-backed packages depending on environment)
 - `go run ./cli/ship/cmd/ship test`
 - `make cover`
 
@@ -2345,6 +2353,17 @@ Test evidence:
 
 5. `R0.5` Establish package-level coverage baselines and close highest-value test gaps.
 Status: `in_progress`
+
+6. `R1.1` Resource route registration refactor (prep for generator-driven resources).
+Status: `completed`
+Done when:
+- canonical router entrypoint remains `app/goship/router.go`;
+- route declarations are centralized in `app/goship/router.go`;
+- handler implementations remain in `app/goship/web/routes/*.go`;
+- realtime registration is feature-gated directly in the canonical router.
+Test evidence:
+- `go test ./cmd/web ./pkg/controller ./pkg/runtimeplan`
+- `go test -c ./app/goship/web/routes` (compile check in restricted env)
 
 ### Phase 1: Core Abstractions
 

@@ -1,7 +1,12 @@
 # HTTP Route Map
 <!-- FRONTEND_SYNC: Landing capability explorer in app/goship/views/web/pages/landing_page.templ links here for Routing and Controllers. Keep both landing copy and this doc aligned. -->
 
-Routes are wired through canonical `app/goship/router.go` and composed in `app/goship/web/routes/router.go`.
+Routes are wired through canonical `app/goship/router.go`.
+
+Ergonomic routing rule:
+
+- URL declarations live in one place: `app/goship/router.go`.
+- Handler implementations live in `app/goship/web/routes/*.go`.
 
 ## Public/General Routes
 
@@ -102,13 +107,13 @@ Registered only when not production:
 - `GET /error/404`
 - `GET /error/500`
 
-## Routes Present But Not Currently Wired
+## Conditional Routes
 
-SSE route function exists but registration is commented out:
+Realtime is conditionally wired:
 
-- `GET /auth/realtime`
+- `GET /auth/realtime` is registered only when runtime web features enable realtime (notifier + pubsub available).
 
-Notification center routes have implementations but are commented out in route wiring:
+Notification center routes have implementations but are still not wired:
 
 - list notifications
 - mark all read
