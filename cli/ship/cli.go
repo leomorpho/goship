@@ -21,8 +21,18 @@ import (
 )
 
 const (
-	atlasDir     = "file://app/goship/ent/migrate/migrations"
-	entSchemaDir = "app/goship/ent/schema"
+	atlasDir     = "file://app/goship/db/migrate/migrations"
+	entSchemaDir = "app/goship/db/schema"
+	atlasGoRunRef = "ariga.io/atlas/cmd/atlas@v0.27.1"
+)
+
+var (
+	isExecRunnerFn = func(r CmdRunner) bool {
+		_, ok := r.(ExecRunner)
+		return ok
+	}
+	atlasLookPathFn = exec.LookPath
+	atlasInstallFn  = installAtlasBinary
 )
 
 type CmdRunner interface {
@@ -374,7 +384,7 @@ func (c CLI) runDB(args []string) int {
 			fmt.Fprintf(c.Err, "failed to resolve database URL: %v\n", err)
 			return 1
 		}
-		return c.runCmd("atlas", "migrate", "apply", "--dir", atlasDir, "--url", dbURL)
+		return c.runAtlasCmd("migrate", "apply", "--dir", atlasDir, "--url", dbURL)
 	case "rollback":
 		return c.runDBRollback(args[1:])
 	case "seed":
@@ -557,7 +567,7 @@ func (c CLI) runDBRollback(args []string) int {
 		return 1
 	}
 
-	return c.runCmd("atlas", "migrate", "down", "--dir", atlasDir, "--url", dbURL, amount)
+	return c.runAtlasCmd("migrate", "down", "--dir", atlasDir, "--url", dbURL, amount)
 }
 
 func (c CLI) runDBMake(args []string) int {
@@ -570,27 +580,84 @@ func (c CLI) runDBMake(args []string) int {
 		fmt.Fprintln(c.Err, "usage: ship db:make <migration_name>")
 		return 1
 	}
-	return c.runCmd(
-		"atlas",
+	return c.runAtlasCmd(
 		"migrate",
 		"diff",
 		name,
 		"--dir",
 		atlasDir,
 		"--to",
-		"ent://app/goship/ent/schema",
+		"ent://app/goship/db/schema",
 		"--dev-url",
 		"sqlite://file?mode=memory&_fk=1",
 	)
 }
 
+func (c CLI) runAtlasCmd(args ...string) int {
+	// For mocked runners in tests, keep behavior deterministic.
+	if !isExecRunnerFn(c.getRunner()) {
+		return c.runCmd("atlas", args...)
+	}
+	if _, err := atlasLookPathFn("atlas"); err == nil {
+		return c.runCmd("atlas", args...)
+	}
+
+	if atlasPath, err := atlasInstallFn(c.Out, c.Err); err == nil {
+		fmt.Fprintf(c.Out, "atlas not found in PATH; installed local pinned atlas at %s\n", atlasPath)
+		return c.runCmd(atlasPath, args...)
+	} else {
+		fmt.Fprintf(c.Err, "atlas auto-install failed, falling back to go run: %v\n", err)
+	}
+
+	// Final fallback when Atlas is not installed and auto-install failed.
+	fmt.Fprintf(c.Out, "atlas not found in PATH; running via go module %s\n", atlasGoRunRef)
+	goArgs := append([]string{"run", atlasGoRunRef}, args...)
+	return c.runCmd("go", goArgs...)
+}
+
+func installAtlasBinary(out io.Writer, errOut io.Writer) (string, error) {
+	toolsDir := filepath.Join(".cache", "tools", "bin")
+	if err := os.MkdirAll(toolsDir, 0o755); err != nil {
+		return "", fmt.Errorf("create tools dir: %w", err)
+	}
+
+	absToolsDir, err := filepath.Abs(toolsDir)
+	if err != nil {
+		return "", fmt.Errorf("resolve tools dir: %w", err)
+	}
+
+	cmd := exec.Command("go", "install", atlasGoRunRef)
+	cmd.Stdout = out
+	cmd.Stderr = errOut
+	cmd.Stdin = os.Stdin
+	cmd.Env = append(os.Environ(), "GOBIN="+absToolsDir)
+
+	if err := cmd.Run(); err != nil {
+		return "", fmt.Errorf("go install atlas: %w", err)
+	}
+
+	atlasBinary := filepath.Join(absToolsDir, "atlas")
+	if _, err := os.Stat(atlasBinary); err != nil {
+		return "", fmt.Errorf("atlas binary missing after install at %s: %w", atlasBinary, err)
+	}
+
+	return atlasBinary, nil
+}
+
 func (c CLI) runCmd(name string, args ...string) int {
-	code, err := c.Runner.Run(name, args...)
+	code, err := c.getRunner().Run(name, args...)
 	if err != nil {
 		fmt.Fprintf(c.Err, "failed to run command %q: %v\n", append([]string{name}, args...), err)
 		return 1
 	}
 	return code
+}
+
+func (c CLI) getRunner() CmdRunner {
+	if c.Runner == nil {
+		return ExecRunner{}
+	}
+	return c.Runner
 }
 
 func printRootHelp(w io.Writer) {

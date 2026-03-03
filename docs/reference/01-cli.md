@@ -95,9 +95,10 @@ These commands are implemented as wrappers over existing workflows:
 - `ship test --integration` -> `go test -tags=integration ./...`
 - `ship infra:up` -> detects `docker-compose`/`docker compose` and runs `up -d cache`, then attempts `up -d mailpit` (non-fatal if mailpit fails)
 - `ship infra:down` -> detects `docker-compose`/`docker compose` and runs `down`
-- `ship db:migrate` -> `atlas migrate apply --dir file://app/goship/ent/migrate/migrations --url <resolved>`
-- `ship db:make <migration_name>` -> `atlas migrate diff <migration_name> --dir file://app/goship/ent/migrate/migrations --to ent://app/goship/ent/schema --dev-url sqlite://file?mode=memory&_fk=1`
+- `ship db:migrate` -> `atlas migrate apply --dir file://app/goship/db/migrate/migrations --url <resolved>`
+- `ship db:make <migration_name>` -> `atlas migrate diff <migration_name> --dir file://app/goship/db/migrate/migrations --to ent://app/goship/db/schema --dev-url sqlite://file?mode=memory&_fk=1`
 - `ship db:rollback [amount]` -> `atlas migrate down ... [amount]`
+- Atlas is managed by `ship`: it uses `atlas` from `PATH` when present, otherwise auto-installs pinned `ariga.io/atlas/cmd/atlas@v0.27.1` to `.cache/tools/bin/atlas`, and finally falls back to `go run` for zero-friction operation.
 - `ship db:seed` -> `go run ./cmd/seed/main.go`
 
 DB URL resolution precedence for migrate/rollback:
@@ -113,7 +114,7 @@ If config resolves to embedded DB mode, `ship db:migrate`/`db:rollback` fail wit
 - `ship make:resource <name> --wire` -> also insert snippet behind ship markers in `app/goship/router.go`
 - `ship make:resource <name> --dry-run` -> preview all planned changes without writing files
 - `ship make:model <Name>` -> run Ent schema scaffolding (`ent new`) then ORM codegen (`ent generate`)
-- `ship make:model <Name> [fields...]` -> write `app/goship/ent/schema/<model>.go` with typed fields, then run ORM codegen (`ent generate`)
+- `ship make:model <Name> [fields...]` -> write `app/goship/db/schema/<model>.go` with typed fields, then run ORM codegen (`ent generate`)
 - `ship make:controller <Name>` -> generate controller/handler scaffold in `app/goship/web/routes`
 - `ship make:controller <Name> --actions ... --wire` -> wire generated routes into `app/goship/router.go` markers
 - `ship make:scaffold <Name> ...` -> orchestration command that composes `make:model`, `db:make`, `make:controller --wire`, and optionally `make:resource` / `db:migrate`

@@ -6,4 +6,4 @@
 ./pkg/repos/subscriptions
 ./seeder
 ./app/goship/services
-
+./cli/ship

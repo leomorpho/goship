@@ -1,7 +1,7 @@
 # Data Model
 <!-- FRONTEND_SYNC: Landing capability explorer in app/goship/views/web/pages/landing_page.templ links here for Models and ORM (Ent). Keep both landing copy and this doc aligned. -->
 
-Primary schema is defined in `app/goship/ent/schema/*.go` and compiled into generated Ent code in `ent/`.
+Primary schema is defined in `app/goship/db/schema/*.go` and compiled into generated Ent code in `ent/`.
 
 ## Core Entities
 

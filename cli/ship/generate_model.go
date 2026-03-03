@@ -45,7 +45,7 @@ func (c CLI) runGenerateModel(args []string) int {
 	}
 	fmt.Fprintf(c.Out, "Wrote schema: %s\n", schemaPath)
 
-	if code := c.runCmd("go", "run", "-mod=mod", "entgo.io/ent/cmd/ent", "generate", "--feature", "sql/upsert,sql/execquery", "--target", "./ent", "./"+entSchemaDir); code != 0 {
+	if code := c.runCmd("go", "run", "entgo.io/ent/cmd/ent", "generate", "--feature", "sql/upsert,sql/execquery", "--target", "./ent", "./"+entSchemaDir); code != 0 {
 		return code
 	}
 

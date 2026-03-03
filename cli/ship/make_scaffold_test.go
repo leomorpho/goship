@@ -127,7 +127,7 @@ func TestRunMakeScaffold_Integration(t *testing.T) {
 		t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
 	}
 
-	if !hasFile(filepath.Join(root, "app", "goship", "ent", "schema", "post.go")) {
+	if !hasFile(filepath.Join(root, "app", "goship", "db", "schema", "post.go")) {
 		t.Fatalf("missing scaffolded model schema")
 	}
 	if !hasFile(filepath.Join(root, "app", "goship", "web", "routes", "posts.go")) {

@@ -240,7 +240,7 @@ ship make:scaffold Post title:string content:text --migrate
 
 ##### Generated Model:
 ```go
-// app/goship/ent/schema/post.go
+// app/goship/db/schema/post.go
 package schema
 
 type Post struct {

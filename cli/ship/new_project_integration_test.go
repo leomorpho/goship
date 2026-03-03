@@ -29,11 +29,11 @@ func TestNewProjectIntegration_IncludesEntAndSupportsMakeModel(t *testing.T) {
 	}
 
 	projectRoot := filepath.Join(root, "demo")
-	entSchemaUser := filepath.Join(projectRoot, "app", "goship", "ent", "schema", "user.go")
+	entSchemaUser := filepath.Join(projectRoot, "app", "goship", "db", "schema", "user.go")
 	if _, err := os.Stat(entSchemaUser); err != nil {
 		t.Fatalf("expected ent schema scaffold at %s: %v", entSchemaUser, err)
 	}
-	entMigrationsKeep := filepath.Join(projectRoot, "app", "goship", "ent", "migrate", "migrations", ".gitkeep")
+	entMigrationsKeep := filepath.Join(projectRoot, "app", "goship", "db", "migrate", "migrations", ".gitkeep")
 	if _, err := os.Stat(entMigrationsKeep); err != nil {
 		t.Fatalf("expected migrations scaffold at %s: %v", entMigrationsKeep, err)
 	}
@@ -49,7 +49,7 @@ func TestNewProjectIntegration_IncludesEntAndSupportsMakeModel(t *testing.T) {
 		t.Fatalf("ship make:model failed: code=%d stderr=%s", code, errOut.String())
 	}
 
-	generatedSchema := filepath.Join(projectRoot, "app", "goship", "ent", "schema", "post.go")
+	generatedSchema := filepath.Join(projectRoot, "app", "goship", "db", "schema", "post.go")
 	b, err := os.ReadFile(generatedSchema)
 	if err != nil {
 		t.Fatalf("expected generated model schema at %s: %v", generatedSchema, err)
@@ -62,7 +62,7 @@ func TestNewProjectIntegration_IncludesEntAndSupportsMakeModel(t *testing.T) {
 		t.Fatalf("runner call count = %d, want 1", len(runner.calls))
 	}
 	got := strings.Join(runner.calls[0].args, " ")
-	if !strings.Contains(got, "--target ./ent ./app/goship/ent/schema") {
+	if !strings.Contains(got, "--target ./ent ./app/goship/db/schema") {
 		t.Fatalf("unexpected generate args: %v", runner.calls[0].args)
 	}
 }

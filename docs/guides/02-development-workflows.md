@@ -52,7 +52,7 @@ Templ generation:
 
 Entity schema source:
 
-- `app/goship/ent/schema/*.go`
+- `app/goship/db/schema/*.go`
 
 Common workflow:
 
