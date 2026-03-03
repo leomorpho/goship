@@ -1,0 +1,245 @@
+package ship
+
+import (
+	"bytes"
+	"errors"
+	"strings"
+	"testing"
+)
+
+type fakeCall struct {
+	name string
+	args []string
+}
+
+type fakeRunner struct {
+	calls    []fakeCall
+	code     int
+	err      error
+	nextCode map[string]int
+	nextErr  map[string]error
+}
+
+func (f *fakeRunner) Run(name string, args ...string) (int, error) {
+	f.calls = append(f.calls, fakeCall{name: name, args: args})
+	key := name + " " + strings.Join(args, " ")
+	if err, ok := f.nextErr[key]; ok {
+		return 1, err
+	}
+	if code, ok := f.nextCode[key]; ok {
+		return code, nil
+	}
+	return f.code, f.err
+}
+
+func TestRun_DispatchAndArgs(t *testing.T) {
+	tests := []struct {
+		name       string
+		args       []string
+		wantCode   int
+		wantCalls  []fakeCall
+		wantOut    string
+		wantErr    string
+		runnerCode int
+		runnerErr  error
+	}{
+		{
+			name:      "no args prints root help",
+			args:      nil,
+			wantCode:  0,
+			wantOut:   "ship - GoShip CLI",
+			wantCalls: nil,
+		},
+		{
+			name:      "unknown command",
+			args:      []string{"wat"},
+			wantCode:  1,
+			wantErr:   "unknown command: wat",
+			wantCalls: nil,
+		},
+		{
+			name:      "dev default",
+			args:      []string{"dev"},
+			wantCode:  0,
+			wantCalls: []fakeCall{{name: "make", args: []string{"dev"}}},
+		},
+		{
+			name:      "shipdev alias",
+			args:      []string{"shipdev"},
+			wantCode:  0,
+			wantCalls: []fakeCall{{name: "make", args: []string{"dev"}}},
+		},
+		{
+			name:      "dev worker positional",
+			args:      []string{"dev", "worker"},
+			wantCode:  0,
+			wantCalls: []fakeCall{{name: "make", args: []string{"dev-worker"}}},
+		},
+		{
+			name:      "dev all positional",
+			args:      []string{"dev", "all"},
+			wantCode:  0,
+			wantCalls: []fakeCall{{name: "make", args: []string{"dev-full"}}},
+		},
+		{
+			name:      "dev worker flag",
+			args:      []string{"dev", "--worker"},
+			wantCode:  0,
+			wantCalls: []fakeCall{{name: "make", args: []string{"dev-worker"}}},
+		},
+		{
+			name:      "dev all flag",
+			args:      []string{"dev", "--all"},
+			wantCode:  0,
+			wantCalls: []fakeCall{{name: "make", args: []string{"dev-full"}}},
+		},
+		{
+			name:     "dev both flags invalid",
+			args:     []string{"dev", "--all", "--worker"},
+			wantCode: 1,
+			wantErr:  "cannot set both --worker and --all",
+		},
+		{
+			name:     "dev unexpected arg invalid",
+			args:     []string{"dev", "worker", "extra"},
+			wantCode: 1,
+			wantErr:  "unexpected dev arguments",
+		},
+		{
+			name:     "dev help",
+			args:     []string{"dev", "--help"},
+			wantCode: 0,
+			wantOut:  "ship dev commands:",
+		},
+		{
+			name:      "test default",
+			args:      []string{"test"},
+			wantCode:  0,
+			wantCalls: []fakeCall{{name: "make", args: []string{"test"}}},
+		},
+		{
+			name:      "test integration",
+			args:      []string{"test", "--integration"},
+			wantCode:  0,
+			wantCalls: []fakeCall{{name: "make", args: []string{"test-integration"}}},
+		},
+		{
+			name:     "test invalid arg",
+			args:     []string{"test", "extra"},
+			wantCode: 1,
+			wantErr:  "unexpected test arguments",
+		},
+		{
+			name:     "test help",
+			args:     []string{"test", "--help"},
+			wantCode: 0,
+			wantOut:  "ship test commands:",
+		},
+		{
+			name:      "db create",
+			args:      []string{"db", "create"},
+			wantCode:  0,
+			wantCalls: []fakeCall{{name: "make", args: []string{"up"}}},
+		},
+		{
+			name:      "db migrate",
+			args:      []string{"db", "migrate"},
+			wantCode:  0,
+			wantCalls: []fakeCall{{name: "make", args: []string{"migrate"}}},
+		},
+		{
+			name:      "db seed",
+			args:      []string{"db", "seed"},
+			wantCode:  0,
+			wantCalls: []fakeCall{{name: "make", args: []string{"seed"}}},
+		},
+		{
+			name:     "db rollback default amount",
+			args:     []string{"db", "rollback"},
+			wantCode: 0,
+			wantCalls: []fakeCall{{
+				name: "atlas",
+				args: []string{"migrate", "down", "--dir", atlasDir, "--url", atlasURL, "1"},
+			}},
+		},
+		{
+			name:     "db rollback explicit amount",
+			args:     []string{"db", "rollback", "3"},
+			wantCode: 0,
+			wantCalls: []fakeCall{{
+				name: "atlas",
+				args: []string{"migrate", "down", "--dir", atlasDir, "--url", atlasURL, "3"},
+			}},
+		},
+		{
+			name:     "db rollback invalid amount",
+			args:     []string{"db", "rollback", "x"},
+			wantCode: 1,
+			wantErr:  "invalid rollback amount",
+		},
+		{
+			name:     "db rollback too many args",
+			args:     []string{"db", "rollback", "1", "2"},
+			wantCode: 1,
+			wantErr:  "usage: ship db rollback [amount]",
+		},
+		{
+			name:     "db missing subcommand",
+			args:     []string{"db"},
+			wantCode: 1,
+			wantErr:  "ship db commands:",
+		},
+		{
+			name:     "db help",
+			args:     []string{"db", "help"},
+			wantCode: 0,
+			wantOut:  "ship db commands:",
+		},
+		{
+			name:       "runner exit code is propagated",
+			args:       []string{"dev"},
+			wantCode:   7,
+			wantCalls:  []fakeCall{{name: "make", args: []string{"dev"}}},
+			runnerCode: 7,
+		},
+		{
+			name:      "runner error prints message",
+			args:      []string{"dev"},
+			wantCode:  1,
+			wantCalls: []fakeCall{{name: "make", args: []string{"dev"}}},
+			wantErr:   "failed to run command",
+			runnerErr: errors.New("boom"),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			out := &bytes.Buffer{}
+			errOut := &bytes.Buffer{}
+			runner := &fakeRunner{code: tt.runnerCode, err: tt.runnerErr}
+			cli := CLI{Out: out, Err: errOut, Runner: runner}
+
+			got := cli.Run(tt.args)
+			if got != tt.wantCode {
+				t.Fatalf("exit code = %d, want %d", got, tt.wantCode)
+			}
+			if tt.wantOut != "" && !strings.Contains(out.String(), tt.wantOut) {
+				t.Fatalf("stdout = %q, want contains %q", out.String(), tt.wantOut)
+			}
+			if tt.wantErr != "" && !strings.Contains(errOut.String(), tt.wantErr) {
+				t.Fatalf("stderr = %q, want contains %q", errOut.String(), tt.wantErr)
+			}
+			if len(runner.calls) != len(tt.wantCalls) {
+				t.Fatalf("calls len = %d, want %d", len(runner.calls), len(tt.wantCalls))
+			}
+			for i := range tt.wantCalls {
+				if runner.calls[i].name != tt.wantCalls[i].name {
+					t.Fatalf("call[%d] name = %q, want %q", i, runner.calls[i].name, tt.wantCalls[i].name)
+				}
+				if strings.Join(runner.calls[i].args, " ") != strings.Join(tt.wantCalls[i].args, " ") {
+					t.Fatalf("call[%d] args = %v, want %v", i, runner.calls[i].args, tt.wantCalls[i].args)
+				}
+			}
+		})
+	}
+}

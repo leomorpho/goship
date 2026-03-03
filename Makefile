@@ -44,11 +44,16 @@ hooks: ## Install git hooks via lefthook
 # Core workflow ------------------------------------------------------------------------------
 
 .PHONY: dev
-dev: ## Start local development (infra + Go processes; no JS/CSS build/watch)
+dev: ## Start local development (infra + web server only)
 	bash scripts/dev.sh "$(DCO_BIN)"
 
+.PHONY: dev-worker
+dev-worker: ## Start local development worker only (infra + worker process)
+	bash scripts/up.sh "$(DCO_BIN)"
+	overmind start -f Procfile.worker
+
 .PHONY: dev-full
-dev-full: ## Start local development including JS/CSS watchers
+dev-full: ## Start local development including web, worker, and JS/CSS watchers
 	bash scripts/up.sh "$(DCO_BIN)"
 	echo "Tip: run 'nvm use v18.20.7' if JS tooling fails."
 	overmind start

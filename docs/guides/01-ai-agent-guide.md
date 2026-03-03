@@ -4,7 +4,7 @@ This guide is for code agents making changes in this repository.
 
 ## Start Here
 
-1. Read `docs/project-scope-analysis.md` and `docs/known-gaps-and-risks.md`.
+1. Read `docs/architecture/03-project-scope-analysis.md` and `docs/architecture/06-known-gaps-and-risks.md`.
 2. Inspect route wiring in `app/goship/web/routes/router.go` before editing handlers.
 3. Inspect `pkg/services/container.go` before assuming a dependency is initialized.
 
@@ -83,6 +83,6 @@ UI and rendering:
 
 When code behavior changes, update at least:
 
-- `docs/project-scope-analysis.md` if capability changed
-- `docs/http-routes.md` if route surface changed
-- `docs/known-gaps-and-risks.md` if a risk was added/removed
+- `docs/architecture/03-project-scope-analysis.md` if capability changed
+- `docs/architecture/04-http-routes.md` if route surface changed
+- `docs/architecture/06-known-gaps-and-risks.md` if a risk was added/removed

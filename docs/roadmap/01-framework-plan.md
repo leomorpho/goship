@@ -26,9 +26,10 @@ Implementation and architecture documentation lives in `docs/`.
 
 Primary files for ongoing refactor work:
 
-1. `docs/structure-and-boundaries.md` (canonical placement rules)
-2. `docs/architecture.md` (runtime/system behavior)
-3. `docs/ai-agent-guide.md` (agent execution conventions)
+1. `docs/architecture/02-structure-and-boundaries.md` (canonical placement rules)
+2. `docs/architecture/01-architecture.md` (runtime/system behavior)
+3. `docs/guides/01-ai-agent-guide.md` (agent execution conventions)
+4. `docs/reference/01-cli.md` (living `ship` CLI contract)
 
 Primary framing:
 
@@ -95,6 +96,39 @@ CLI responsibilities:
 3. `goship module add <name>` updates module manifest + initializer wiring.
 4. `goship jobs backend set <backend>` updates adapter config with capability checks.
 5. `goship new` should auto-install templ tooling and keep it current in generated projects (including `go get -u github.com/a-h/templ` as part of bootstrap/update workflow).
+
+### CLI Surface (Rails-Inspired)
+
+Primary command groups to match Rails ergonomics while staying Go-native:
+
+1. Project lifecycle:
+- `goship new <app>`
+- `goship upgrade`
+- `goship doctor`
+2. Runtime/developer workflow:
+- `goship dev` (web-only default)
+- `goship dev --worker`
+- `goship dev --all`
+- `goship test` (unit default)
+- `goship test --integration`
+3. Code generation:
+- `goship generate <resource|model|job|module>`
+- `goship destroy <generated-artifact>`
+4. Modules/adapters:
+- `goship module add <name>`
+- `goship module remove <name>`
+- `goship adapter set <db|cache|jobs|pubsub|storage|mailer> <impl>`
+5. Data/schema:
+- `goship db:migrate`
+- `goship db:rollback`
+- `goship db:seed`
+
+Rules for versioned tooling in generated apps:
+
+1. CLI installs tool versions pinned to the project declaration.
+2. CLI does not auto-upgrade tools to latest on dev/test commands.
+3. `goship doctor` reports drift (e.g., templ CLI older/newer than project version) and provides fix commands.
+4. `goship upgrade` is the only command that intentionally bumps pinned tool/module versions.
 
 ## Core Product Goals
 
@@ -487,7 +521,7 @@ Proposed module boundaries:
 4. `packages/notifications`
 5. `packages/storage`
 6. `packages/admin`
-7. `cli/goship`
+7. `cli/ship`
 
 ## Priority Roadmap
 
