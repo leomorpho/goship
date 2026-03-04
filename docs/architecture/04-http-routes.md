@@ -1,12 +1,12 @@
 # HTTP Route Map
-<!-- FRONTEND_SYNC: Landing capability explorer in apps/site/views/web/pages/landing_page.templ links here for Routing and Controllers. Keep both landing copy and this doc aligned. -->
+<!-- FRONTEND_SYNC: Landing capability explorer in app/views/web/pages/landing_page.templ links here for Routing and Controllers. Keep both landing copy and this doc aligned. -->
 
-Routes are wired through canonical `apps/site/router.go`.
+Routes are wired through canonical `app/router.go`.
 
 Ergonomic routing rule:
 
-- URL declarations live in one place: `apps/site/router.go`.
-- Handler implementations live in `apps/site/web/controllers/*.go`.
+- URL declarations live in one place: `app/router.go`.
+- Handler implementations live in `app/web/controllers/*.go`.
 
 ## Public/General Routes
 

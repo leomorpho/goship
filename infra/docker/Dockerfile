@@ -19,11 +19,11 @@ ENV GOOS=linux
 ENV GOWORK=off
 
 # Build the application
-WORKDIR /app/apps
+WORKDIR /app
 RUN go mod download
-RUN go build -ldflags="-s -w" -gcflags=all=-l -o /apps/site-web ./cmd/web
-RUN go build -ldflags="-s -w" -gcflags=all=-l -o /apps/site-worker ./cmd/worker
-RUN go build -ldflags="-s -w" -gcflags=all=-l -o /apps/site-seed ./cmd/seed
+RUN go build -ldflags="-s -w" -gcflags=all=-l -o /app-web ./cmd/web
+RUN go build -ldflags="-s -w" -gcflags=all=-l -o /app-worker ./cmd/worker
+RUN go build -ldflags="-s -w" -gcflags=all=-l -o /app-seed ./cmd/seed
 
 # Install asynq tools
 RUN go install github.com/hibiken/asynq/tools/asynq@latest
@@ -38,15 +38,15 @@ RUN apt-get update && apt-get install -y \
     curl
 
 # Copy the compiled binaries from the builder image
-COPY --from=builder /apps/site-web /goship-web
-COPY --from=builder /apps/site-worker /goship-worker
-COPY --from=builder /apps/site-seed /goship-seed
+COPY --from=builder /app-web /goship-web
+COPY --from=builder /app-worker /goship-worker
+COPY --from=builder /app-seed /goship-seed
 
 # Copy asynq tool
 COPY --from=builder /go/bin/asynq /usr/local/bin/
 
 # Copy templ views
-COPY apps/site/views/ /app/apps/site/views/
+COPY app/views/ /app/views/
 
 # Optional: Bind to a TCP port (document the ports the application listens on)
 EXPOSE 8000
@@ -59,7 +59,7 @@ RUN chmod +x /entrypoint.sh
 COPY config/application.yaml ./config/application.yaml
 COPY config/processes.yaml ./config/processes.yaml
 COPY config/environments/ ./config/environments/
-COPY apps/site/static/ /app/apps/site/static/
+COPY app/static/ /app/static/
 
 # Below is only used if you need to use PWABuilder to make a native Android app
 # RUN mkdir pwabuilder-android-wrapper

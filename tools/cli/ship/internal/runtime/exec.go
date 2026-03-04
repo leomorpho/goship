@@ -88,8 +88,8 @@ func RunDevAll(out io.Writer, errOut io.Writer) int {
 		name string
 		args []string
 	}{
-		{name: "web", args: []string{"run", "./apps/cmd/web"}},
-		{name: "worker", args: []string{"run", "./apps/cmd/worker"}},
+		{name: "web", args: []string{"run", "./cmd/web"}},
+		{name: "worker", args: []string{"run", "./cmd/worker"}},
 	}
 
 	cmds := make([]*exec.Cmd, 0, len(processes))

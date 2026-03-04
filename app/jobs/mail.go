@@ -1,0 +1,98 @@
+package tasks
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+
+	"github.com/hibiken/asynq"
+	"github.com/labstack/echo/v4"
+	"github.com/leomorpho/goship/app/emailsubscriptions"
+	"github.com/leomorpho/goship/app/foundation"
+	"github.com/leomorpho/goship/app/views/emails/gen"
+	"github.com/leomorpho/goship/app/views/web/layouts/gen"
+	"github.com/leomorpho/goship/app/web/ui"
+	"github.com/leomorpho/goship/app/web/viewmodels"
+	"github.com/leomorpho/goship/config"
+	"github.com/leomorpho/goship/db/ent"
+	"github.com/leomorpho/goship/framework/repos/mailer"
+)
+
+// ////////////////////////////////////////////////////////////////////////////
+// Send email list confirmation email
+// ////////////////////////////////////////////////////////////////////////////
+
+const TypeEmailSubscriptionConfirmation = "email:email_subscription_confirmation"
+
+type (
+	EmailSubscriptionConfirmationProcessor struct {
+		mailer *mailer.MailClient
+		config *config.Config
+	}
+
+	EmailSubscriptionConfirmationPayload struct {
+		Email string `json:"to"`
+		Url   string `json:"url"`
+	}
+)
+
+func NewEmailSubscriptionConfirmationProcessor(
+	mailer *mailer.MailClient, config *config.Config,
+) *EmailSubscriptionConfirmationProcessor {
+	return &EmailSubscriptionConfirmationProcessor{mailer: mailer, config: config}
+}
+
+func (esc *EmailSubscriptionConfirmationProcessor) ProcessTask(ctx context.Context, t *asynq.Task) error {
+	var p EmailSubscriptionConfirmationPayload
+	if err := json.Unmarshal(t.Payload(), &p); err != nil {
+		fmt.Printf("Error unmarshalling payload: %v\n", err)
+		return err
+	}
+
+	fullUrl := fmt.Sprintf("%s%s", esc.config.HTTP.Domain, p.Url)
+
+	page := ui.NewPage(echo.New().AcquireContext())
+	page.Layout = layouts.Main
+	page.Data = viewmodels.EmailDefaultData{
+		AppName:          string(esc.config.App.Name),
+		ConfirmationLink: fullUrl,
+		SupportEmail:     esc.config.Mail.FromAddress,
+		Domain:           esc.config.HTTP.Domain,
+	}
+
+	err := esc.mailer.
+		Compose().
+		To(p.Email).
+		Subject("Confirm your email subscription for the app release anouncement.").
+		TemplateLayout(layouts.Email).
+		Component(emails.SubscriptionConfirmation(&page)).
+		Send(ctx)
+
+	return err
+}
+
+// ----------------------------------------------------------
+
+const TypeEmailUpdates = "email:email_updates"
+
+type (
+	EmailUpdateProcessor struct {
+		emailSender *emailsubscriptions.UpdateEmailSender
+	}
+)
+
+// TODO: no need for all the param this takes, some are in Container. Fix later.
+func NewEmailUpdateProcessor(
+	container *foundation.Container, orm *ent.Client,
+) *EmailUpdateProcessor {
+
+	updateEmailSender := emailsubscriptions.NewUpdateEmailSender(orm, container)
+
+	return &EmailUpdateProcessor{
+		emailSender: updateEmailSender,
+	}
+}
+
+func (e *EmailUpdateProcessor) ProcessTask(ctx context.Context, t *asynq.Task) error {
+	return e.emailSender.PrepareAndSendUpdateEmailForAll(ctx)
+}

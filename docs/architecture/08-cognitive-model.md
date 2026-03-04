@@ -9,26 +9,26 @@ The framework has one canonical flow per concern. If a change does not fit these
 
 `router -> controller -> app/<domain> -> web/viewmodels -> views`
 
-- Routing is declared in `apps/site/router.go`.
-- Controllers live in `apps/site/web/controllers`.
-- Domain logic lives in `apps/site/app/*`.
-- Template payload shapes live in `apps/site/web/viewmodels`.
-- Rendering helpers live in `apps/site/web/ui`.
-- Templ source lives in `apps/site/views`.
+- Routing is declared in `app/router.go`.
+- Controllers live in `app/web/controllers`.
+- Domain logic lives in `app/*`.
+- Template payload shapes live in `app/web/viewmodels`.
+- Rendering helpers live in `app/web/ui`.
+- Templ source lives in `app/views`.
 
 ## Async Flow (Always)
 
 `job -> app/<domain> -> adapters`
 
-- Jobs/processors live in `apps/site/jobs`.
-- Jobs delegate business logic to `apps/site/app/*`.
+- Jobs/processors live in `app/jobs`.
+- Jobs delegate business logic to `app/*`.
 - Infrastructure dependencies are provided through the container/adapters.
 
 ## Boot Flow (Always)
 
 `foundation -> adapters -> app/web/jobs`
 
-- Composition root is `apps/site/foundation/container.go`.
+- Composition root is `app/foundation/container.go`.
 - App wiring is explicit and deterministic.
 
 ## Tooling Rule
@@ -43,9 +43,9 @@ Use `ship` as the single mutation interface for common scaffolding.
 
 ## Non-Negotiable Conventions
 
-- One canonical app root: `apps/site`.
-- No legacy paths (`app/goship`, `apps/site/bootstrap`, `apps/site/domains`, etc.).
+- One canonical app root: `app`.
+- No legacy paths (`app/goship`, `app/bootstrap`, `app/domains`, etc.).
 - Package names match directory intent:
-  - `apps/site/web/ui` -> `package ui`
-  - `apps/site/web/viewmodels` -> `package viewmodels`
+  - `app/web/ui` -> `package ui`
+  - `app/web/viewmodels` -> `package viewmodels`
 - Route markers in router are preserved for safe generator wiring.

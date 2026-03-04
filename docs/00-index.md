@@ -52,23 +52,23 @@ Last updated: 2026-03-03
 
 ## Primary Source Files Used For This Analysis
 
-- `apps/cmd/web/main.go`
-- `apps/cmd/worker/main.go`
-- `apps/cmd/seed/main.go`
+- `cmd/web/main.go`
+- `cmd/worker/main.go`
+- `cmd/seed/main.go`
 - `tools/cli/ship/cmd/ship/main.go`
 - `tools/cli/ship/cli.go`
-- `apps/site/foundation/container.go`
+- `app/foundation/container.go`
 - `pkg/core/interfaces.go`
 - `pkg/core/adapters/registry.go`
 - `pkg/core/adapters/resolve.go`
-- `apps/site/foundation/core_cache_adapter.go`
-- `apps/site/foundation/core_jobs_adapter.go`
-- `apps/site/foundation/core_pubsub_adapter.go`
-- `apps/site/router.go`
-- `apps/site/web/controllers/*.go`
+- `app/foundation/core_cache_adapter.go`
+- `app/foundation/core_jobs_adapter.go`
+- `app/foundation/core_pubsub_adapter.go`
+- `app/router.go`
+- `app/web/controllers/*.go`
 - `pkg/tasks/*.go`
 - `pkg/repos/**/*.go`
-- `apps/db/schema/*.go`
+- `db/schema/*.go`
 - `config/config.go`
 - `config/application.yaml`
 - `config/environments/*.yaml`

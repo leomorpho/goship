@@ -55,7 +55,7 @@ func RunDB(args []string, d DBDeps) int {
 			fmt.Fprintln(d.Err, "usage: ship db:seed")
 			return 1
 		}
-		return d.RunCmd("go", "run", "./apps/cmd/seed/main.go")
+		return d.RunCmd("go", "run", "./cmd/seed/main.go")
 	case "help", "-h", "--help":
 		PrintDBHelp(d.Out)
 		return 0
@@ -132,7 +132,7 @@ func runReset(args []string, d DBDeps) int {
 		return code
 	}
 	if *seed {
-		return d.RunCmd("go", "run", "./apps/cmd/seed/main.go")
+		return d.RunCmd("go", "run", "./cmd/seed/main.go")
 	}
 	return 0
 }
@@ -307,7 +307,7 @@ func printPlan(w io.Writer, action, dbURL string, local bool, steps []string, se
 		fmt.Fprintf(w, "- step: %s\n", step)
 	}
 	if seed {
-		fmt.Fprintln(w, "- step: go run ./apps/cmd/seed/main.go")
+		fmt.Fprintln(w, "- step: go run ./cmd/seed/main.go")
 	}
 	if dryRun {
 		fmt.Fprintln(w, "- mode: dry-run (no commands executed)")

@@ -88,9 +88,9 @@ Current startup behavior:
 First migrated call site:
 
 - `pkg/tasks/notifications.go` now enqueues follow-up jobs through `core.Jobs` instead of `*services.TaskClient`.
-- `apps/site/app/notifications/notifier.go` now publishes/subscribes through `core.PubSub` with explicit SSE event payload encoding.
+- `app/notifications/notifier.go` now publishes/subscribes through `core.PubSub` with explicit SSE event payload encoding.
 - `pkg/tasks/notifications.go` now uses a small planned-notification source interface, enabling table-driven unit tests without DB/container boot.
-- `apps/site/app/notifications/notifier.go` now exposes notifier-owned `SSEEvent` payloads so route code no longer depends on pubsub package event types.
+- `app/notifications/notifier.go` now exposes notifier-owned `SSEEvent` payloads so route code no longer depends on pubsub package event types.
 
 ## Scope Boundaries
 
@@ -102,7 +102,7 @@ These interfaces are runtime seams, not domain/repository APIs.
 
 ## Migration Plan
 
-1. Keep existing concrete packages running (`apps/site/foundation`, `pkg/repos/*`).
+1. Keep existing concrete packages running (`app/foundation`, `pkg/repos/*`).
 2. Add adapters that satisfy `pkg/core` contracts.
 3. Move container wiring to resolve adapters via config and capabilities.
 4. Gradually convert call sites from concrete clients to interfaces.

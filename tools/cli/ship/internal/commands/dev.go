@@ -58,9 +58,9 @@ func RunDev(args []string, d DevDeps) int {
 
 	switch mode {
 	case "web":
-		return d.RunCmd("go", "run", "./apps/cmd/web")
+		return d.RunCmd("go", "run", "./cmd/web")
 	case "worker":
-		return d.RunCmd("go", "run", "./apps/cmd/worker")
+		return d.RunCmd("go", "run", "./cmd/worker")
 	case "all":
 		if d.RunDevAll != nil {
 			return d.RunDevAll()

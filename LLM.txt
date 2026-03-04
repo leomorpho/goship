@@ -66,9 +66,9 @@ Use docs as the source of truth for architecture, workflows, and plans:
 
 ## Repository Shape
 
-- `apps/site/`: app-specific code (routes, views, app router)
+- `app/`: app-specific code (routes, views, app router)
 - `pkg/`: reusable framework-level packages
-- `apps/cmd/`: process entrypoints (`web`, `worker`, `seed`)
+- `cmd/`: process entrypoints (`web`, `worker`, `seed`)
 - `tools/cli/ship/`: standalone `ship` CLI module
 - `tools/mcp/ship/`: standalone MCP module
 - `docs/`: maintained engineering documentation
@@ -95,7 +95,7 @@ The following methods are available:
 
 ## Paid/Free Subscriptions
 
-The `SubscriptionsRepo` handles the subscription logic and lives at `apps/site/app/subscriptions/subscriptions.go`. It uses Stripe under the hood to handle the subscription logic. Stripe webhooks are handled at `apps/site/web/controllers/payments.go`.
+The `SubscriptionsRepo` handles the subscription logic and lives at `app/subscriptions/subscriptions.go`. It uses Stripe under the hood to handle the subscription logic. Stripe webhooks are handled at `app/web/controllers/payments.go`.
 
 **Note:** currently, the only type of subscription implemented is a monthly subscription that is either paid or free. Feel free to expand on this!
 
@@ -111,7 +111,7 @@ The following methods are available:
 
 ## Regenerate Logo Image Assets 
 
-There is a python script in `tools/scripts/regen_logo_images.py` that should be run when the logo in `apps/site/static/logo.png` is updated.
+There is a python script in `tools/scripts/regen_logo_images.py` that should be run when the logo in `app/static/logo.png` is updated.
 This will regenerate the logo assets for different app icons and the favicon. It will also regenerate the correct iOS and Android app icons and place them in app-specific static wrapper directories.
 
 ```bash
@@ -248,7 +248,7 @@ ship make:scaffold Post title:string content:text --migrate
 
 ##### Generated Model:
 ```go
-// apps/db/schema/post.go
+// db/schema/post.go
 package schema
 
 type Post struct {
@@ -333,13 +333,13 @@ g.DELETE("/posts/:id", postRoute.Destroy).Name = "posts.destroy"
 
 ##### Generated views
 ```go
-// apps/site/views/posts.templ
+// app/views/posts.templ
 package pages
 
 import (
-	"github.com/leomorpho/goship/apps/site/web/ui"
-	"github.com/leomorpho/goship/apps/site/web/viewmodels"
-	"github.com/leomorpho/goship/apps/site/views/web/components"
+	"github.com/leomorpho/goship/app/web/ui"
+	"github.com/leomorpho/goship/app/web/viewmodels"
+	"github.com/leomorpho/goship/app/views/web/components"
 )
 
 templ PostsIndex(page *ui.Page) {
@@ -366,7 +366,7 @@ templ PostsDestroy(page *ui.Page) {
 ##### Generate Type Data Struct
 
 ```go
-// apps/site/web/viewmodels/post.go
+// app/web/viewmodels/post.go
 package viewmodels
 
 type Post struct {
@@ -432,23 +432,23 @@ Last updated: 2026-03-03
 
 ## Primary Source Files Used For This Analysis
 
-- `apps/cmd/web/main.go`
-- `apps/cmd/worker/main.go`
-- `apps/cmd/seed/main.go`
+- `cmd/web/main.go`
+- `cmd/worker/main.go`
+- `cmd/seed/main.go`
 - `tools/cli/ship/cmd/ship/main.go`
 - `tools/cli/ship/cli.go`
-- `apps/site/foundation/container.go`
+- `app/foundation/container.go`
 - `pkg/core/interfaces.go`
 - `pkg/core/adapters/registry.go`
 - `pkg/core/adapters/resolve.go`
-- `apps/site/foundation/core_cache_adapter.go`
-- `apps/site/foundation/core_jobs_adapter.go`
-- `apps/site/foundation/core_pubsub_adapter.go`
-- `apps/site/router.go`
-- `apps/site/web/controllers/*.go`
+- `app/foundation/core_cache_adapter.go`
+- `app/foundation/core_jobs_adapter.go`
+- `app/foundation/core_pubsub_adapter.go`
+- `app/router.go`
+- `app/web/controllers/*.go`
 - `pkg/tasks/*.go`
 - `pkg/repos/**/*.go`
-- `apps/db/schema/*.go`
+- `db/schema/*.go`
 - `config/config.go`
 - `config/application.yaml`
 - `config/environments/*.yaml`
@@ -462,40 +462,40 @@ Last updated: 2026-03-03
 FILE: docs/architecture/01-architecture.md
 ---
 # Architecture
-<!-- FRONTEND_SYNC: Landing capability explorer in apps/site/views/web/pages/landing_page.templ links here for Validation and Forms, Jobs and Scheduling, and Events and Realtime. Keep both landing copy and this doc aligned. -->
+<!-- FRONTEND_SYNC: Landing capability explorer in app/views/web/pages/landing_page.templ links here for Validation and Forms, Jobs and Scheduling, and Events and Realtime. Keep both landing copy and this doc aligned. -->
 
 ## High-Level Layout
 
 The application follows a layered structure:
 
-- `apps/cmd/*`: process entrypoints (`web`, `worker`, `seed`)
-- `apps/site/foundation`: app composition container and app-bound infrastructure adapters
-- `apps/site/web/controllers`: HTTP handlers
-- `apps/site/web/wiring.go`: HTTP stack wiring (middleware/static/deps)
+- `cmd/*`: process entrypoints (`web`, `worker`, `seed`)
+- `app/foundation`: app composition container and app-bound infrastructure adapters
+- `app/web/controllers`: HTTP handlers
+- `app/web/wiring.go`: HTTP stack wiring (middleware/static/deps)
 - `pkg/middleware`: auth/session/cache/onboarding/request middleware
 - `pkg/repos`: data access and external service adapters
-- `apps/site/web/ui`: rendering, page object, redirect helpers
-- `apps/site/views`: Templ source files (`.templ`) and generated Go (`gen/*_templ.go`)
+- `app/web/ui`: rendering, page object, redirect helpers
+- `app/views`: Templ source files (`.templ`) and generated Go (`gen/*_templ.go`)
 - `ent`: schema + generated ORM
 - `pkg/tasks`: Asynq task processors
 
 ## Web Runtime Flow
 
-1. `apps/cmd/web/main.go` creates container via `foundation.NewContainer()`.
+1. `cmd/web/main.go` creates container via `foundation.NewContainer()`.
 2. `goship.BuildRouter(c)` is the canonical app router entrypoint and contains the route manifest.
 3. Echo server starts with request timeout middleware (SSE-aware).
 4. Request path executes middleware chain, route handler, and page rendering.
 
 ## Worker Runtime Flow
 
-1. `apps/cmd/worker/main.go` creates app container and validates that jobs adapter is `asynq` via `c.Config`.
+1. `cmd/worker/main.go` creates app container and validates that jobs adapter is `asynq` via `c.Config`.
 2. Starts Asynq server from cache config and builds router (for reverse route URLs in tasks).
 3. Constructs repo instances needed by task processors.
 4. Registers handlers on Asynq mux and runs worker.
 
 ## Container Composition
 
-`apps/site/foundation/container.go` is the core app composition root.
+`app/foundation/container.go` is the core app composition root.
 
 Currently initialized in `NewContainer()`:
 
@@ -518,7 +518,7 @@ This mismatch affects parts of the runtime that assume those dependencies exist.
 
 ## HTTP Middleware Stack
 
-Primary middleware set in `apps/site/web/wiring.go` includes:
+Primary middleware set in `app/web/wiring.go` includes:
 
 - Trailing slash normalization
 - Panic recovery
@@ -543,11 +543,11 @@ Additional gatekeepers:
 
 The UI is server-rendered using Templ components.
 
-- Base page abstraction: `apps/site/web/ui/page.go`
-- Render orchestration: `apps/site/web/ui/controller.go`
-- Layout wrappers (source): `apps/site/views/web/layouts/*.templ`
-- Page components (source): `apps/site/views/web/pages/*.templ`
-- Generated packages: `apps/site/views/**/gen/*_templ.go`
+- Base page abstraction: `app/web/ui/page.go`
+- Render orchestration: `app/web/ui/controller.go`
+- Layout wrappers (source): `app/views/web/layouts/*.templ`
+- Page components (source): `app/views/web/pages/*.templ`
+- Generated packages: `app/views/**/gen/*_templ.go`
 
 HTMX behavior is integrated in the page object (`Page.HTMX`) and controller render logic.
 
@@ -564,18 +564,18 @@ HTMX behavior is integrated in the page object (`Page.HTMX`) and controller rend
   - persistent DB notifications
   - pub/sub events for SSE
   - push channels (PWA + FCM)
-- SSE endpoint (`apps/site/web/controllers/realtime.go`) is registered conditionally based on runtime plan web features (notifier + pubsub dependency availability).
+- SSE endpoint (`app/web/controllers/realtime.go`) is registered conditionally based on runtime plan web features (notifier + pubsub dependency availability).
 
 ## Frontend Asset Architecture
 
 - `frontend/build.mjs` bundles Svelte entrypoints under `frontend/javascript/svelte/*.js`
 - Also bundles vanilla JS from `frontend/javascript/vanilla/main.js`
-- Outputs static bundles and meta files in `apps/site/static/`
-- Tailwind build pipeline outputs `apps/site/static/styles_bundle.css`
+- Outputs static bundles and meta files in `app/static/`
+- Tailwind build pipeline outputs `app/static/styles_bundle.css`
 
 ## Deployment/Operations Shape
 
-- Local process orchestration via Overmind (`tools/procfiles/*`)
+- Local process orchestration via Overmind (`Procfile*` at project root; scaffolded by `ship new`)
 - Docker Compose for Redis + Mailpit in current config
 - Kamal deployment files present (`infra/deploy/`, `.kamal/`)
 
@@ -583,14 +583,14 @@ HTMX behavior is integrated in the page object (`Page.HTMX`) and controller rend
 FILE: docs/architecture/02-structure-and-boundaries.md
 ---
 # Structure and Boundaries
-<!-- FRONTEND_SYNC: Landing capability explorer in apps/site/views/web/pages/landing_page.templ links here for Views and Server UI. Keep both landing copy and this doc aligned. -->
+<!-- FRONTEND_SYNC: Landing capability explorer in app/views/web/pages/landing_page.templ links here for Views and Server UI. Keep both landing copy and this doc aligned. -->
 
 This document defines where code belongs as GoShip evolves into a Rails-like framework plus example app.
 
 ## Current Top-Level Shape (Single Repository)
 
-- `apps/site/`: app-specific code for the first-party GoShip app
-- `apps/cmd/`: runnable entrypoints for app processes (`web`, `worker`, `seed`)
+- `app/`: app-specific code for the first-party GoShip app
+- `cmd/`: runnable entrypoints for app processes (`web`, `worker`, `seed`)
 - `tools/cli/ship/`: standalone CLI module (`ship`) that lives in this same repository
 - `tools/mcp/ship/`: standalone MCP module (`ship-mcp`) for LLM-facing docs/CLI tooling
 - `framework/`: reusable framework-level libraries and adapters
@@ -600,8 +600,8 @@ This document defines where code belongs as GoShip evolves into a Rails-like fra
 - `frontend/`: frontend toolchain and source (`package.json`, `build.mjs`, JS/Svelte)
 - `tests/`: e2e and cross-package test assets
 - `config/`: runtime configuration
-- `apps/db/`: monolith-owned schema and migration history
-- `apps/db/ent/`: schema and generated ORM
+- `db/`: monolith-owned schema and migration history
+- `db/ent/`: schema and generated ORM
 - `docs/`: internal design and implementation documentation
 
 Monorepo note:
@@ -614,39 +614,39 @@ Monorepo note:
 
 Use this placement rule for every new file:
 
-- Put code in `apps/site/...` when it encodes product behavior/UI for the GoShip app.
+- Put code in `app/...` when it encodes product behavior/UI for the GoShip app.
 - Put code in `framework/...` when it is reusable as framework infrastructure across apps.
 
 ## Web Layer Layout
 
 App web code is now app-scoped:
 
-- `apps/site/web/controllers`: handlers
-- `apps/site/web/wiring.go`: HTTP wiring helpers (middleware/static/dependencies)
-- `apps/site/foundation`: app composition container and app-specific runtime adapters
-- `apps/site/views`: templ components/layouts/pages/emails
-- `apps/site/views/**/gen`: generated templ Go files (same package names as source dirs)
+- `app/web/controllers`: handlers
+- `app/web/wiring.go`: HTTP wiring helpers (middleware/static/dependencies)
+- `app/foundation`: app composition container and app-specific runtime adapters
+- `app/views`: templ components/layouts/pages/emails
+- `app/views/**/gen`: generated templ Go files (same package names as source dirs)
 
 Router source of truth:
 
-- `apps/site/router.go`
+- `app/router.go`
 
 HTTP boundary rule:
 
-- Route handlers in `apps/site/web/controllers` are the controller layer (Rails/Laravel equivalent at the HTTP boundary).
+- Route handlers in `app/web/controllers` are the controller layer (Rails/Laravel equivalent at the HTTP boundary).
 - Controllers should stay thin: parse request input, call service/use-case logic, map output to HTTP response.
 - Business logic should not live directly in controllers.
 
 Service/store rule:
 
-- App business logic should live in app-scoped domain/service packages under `apps/site/...`.
+- App business logic should live in app-scoped domain/service packages under `app/...`.
 - Services should depend on explicit interfaces (store ports) for persistence/external calls.
 - Concrete adapters may use Ent/SQL/clients directly, but those details stay behind service dependencies.
 - This keeps testability (mocks/fakes) without forcing repository pattern across every feature.
 
 Data ownership rule:
 
-- `apps/db/schema` and `apps/db/migrate/migrations` are monolith-level (workspace-global) data ownership, not per mini-app.
+- `db/schema` and `db/migrate/migrations` are monolith-level (workspace-global) data ownership, not per mini-app.
 - There is one migration history for the monolith.
 - Installable modules must integrate with this single DB history through explicit registration/wiring, not by owning separate histories.
 
@@ -654,15 +654,15 @@ Data ownership rule:
 
 Completed in this pass:
 
-- Moved routes from `pkg/routing/routes` to `apps/site/web/controllers`.
-- Moved templ views from `templates` to `apps/site/views`.
+- Moved routes from `pkg/routing/routes` to `app/web/controllers`.
+- Moved templ views from `templates` to `app/views`.
 - Updated imports and test package paths accordingly.
 
 Installable module extraction rule:
 
 A package should be treated as an installable official module only if all are true:
 
-1. It has no hard dependency on `apps/site/web/controllers` or app views/templates.
+1. It has no hard dependency on `app/web/controllers` or app views/templates.
 2. Its config surface is stable and documented.
 3. It can be wired through stable interfaces/adapters (no deep app internals required).
 4. It has dedicated tests and docs and can be enabled through `ship` install/wire commands.
@@ -681,7 +681,7 @@ Installable modules must integrate with the monolith through explicit boundaries
 2. Runtime boundary:
 - modules receive explicit ports (store/cache/jobs/pubsub/mailer/blob/config/logger) instead of global service locators.
 3. Data boundary:
-- module schema sources can live in module packages, but migration application is monolith-owned at `apps/db/migrate/migrations`.
+- module schema sources can live in module packages, but migration application is monolith-owned at `db/migrate/migrations`.
 - there is one DB and one migration history for the monolith.
 4. Policy boundary:
 - app-specific business rules are passed as callbacks/interfaces from app domain packages.
@@ -689,14 +689,14 @@ Installable modules must integrate with the monolith through explicit boundaries
 
 Classification policy for framework repos/adapters:
 
-- app-specific behavior => move to `apps/site/...` domain packages.
+- app-specific behavior => move to `app/...` domain packages.
 - reusable framework capability => keep/extract as framework module (installable by `ship`).
 
 ---
 FILE: docs/architecture/03-project-scope-analysis.md
 ---
 # Project Scope Analysis
-<!-- FRONTEND_SYNC: Landing capability explorer in apps/site/views/web/pages/landing_page.templ links here for Authentication and Authorization, Notifications and Mail, and File Storage. Keep both landing copy and this doc aligned. -->
+<!-- FRONTEND_SYNC: Landing capability explorer in app/views/web/pages/landing_page.templ links here for Authentication and Authorization, Notifications and Mail, and File Storage. Keep both landing copy and this doc aligned. -->
 
 ## What This Project Is
 
@@ -715,9 +715,9 @@ The repository still carries heritage from a related product domain ("Cherie"), 
 
 ## Runtime Programs
 
-- `apps/cmd/web/main.go`: main HTTP application server
-- `apps/cmd/worker/main.go`: asynchronous worker process for task handlers
-- `apps/cmd/seed/main.go`: seed runner for test/dev data
+- `cmd/web/main.go`: main HTTP application server
+- `cmd/worker/main.go`: asynchronous worker process for task handlers
+- `cmd/seed/main.go`: seed runner for test/dev data
 
 ## Feature Areas
 
@@ -725,11 +725,11 @@ The repository still carries heritage from a related product domain ("Cherie"), 
 
 Core flows implemented in routes and services:
 
-- Login/logout (`apps/site/web/controllers/login.go`, `logout.go`)
+- Login/logout (`app/web/controllers/login.go`, `logout.go`)
 - Register (`register.go`)
 - Forgot/reset password (`forgot_password.go`, `reset_password.go`)
 - Email verification (`verify_email.go`)
-- Auth middleware and session handling (`apps/site/web/middleware/auth.go`, `apps/site/foundation/auth.go`)
+- Auth middleware and session handling (`app/web/middleware/auth.go`, `app/foundation/auth.go`)
 
 Key implementation choices:
 
@@ -739,15 +739,15 @@ Key implementation choices:
 
 ## 2) Onboarding, Preferences, and Profile
 
-- Onboarding and preferences mostly in `apps/site/web/controllers/preferences.go`
+- Onboarding and preferences mostly in `app/web/controllers/preferences.go`
 - Profile page in `profile.go`
 - Mark onboarding completion (`/welcome/finish-onboarding`)
 - Profile photo and gallery image routes (`profile_photo.go`, `upload_photo.go`)
 
 ## 3) Payments and Subscription Lifecycle
 
-- Stripe checkout + customer portal + webhook in `apps/site/web/controllers/payments.go`
-- Local subscription state managed in `apps/site/app/subscriptions/subscriptions.go`
+- Stripe checkout + customer portal + webhook in `app/web/controllers/payments.go`
+- Local subscription state managed in `app/subscriptions/subscriptions.go`
 - Product model currently centered on free vs pro (`pkg/domain/enum.go`)
 
 Webhook flow currently handles:
@@ -774,9 +774,9 @@ Status of exposure:
 ## 5) Email Features
 
 - Newsletter-style email subscription flow (`email_subscribe.go`, `verify_email_subscription.go`)
-- Task processor for subscription confirmation emails (`apps/site/jobs/mail.go`)
+- Task processor for subscription confirmation emails (`app/jobs/mail.go`)
 - Reusable subscription repo module (`modules/emailsubscriptions`)
-- App-specific update email sender integration (`apps/site/app/emailsubscriptions`)
+- App-specific update email sender integration (`app/emailsubscriptions`)
 - Mail provider abstraction supports SMTP and Resend (`pkg/repos/mailer`)
 
 ## 6) File Storage and Images
@@ -788,7 +788,7 @@ Status of exposure:
 
 ## 7) Background Tasks
 
-Task processors under `apps/site/jobs`:
+Task processors under `app/jobs`:
 
 - Email subscription confirmation
 - Email updates
@@ -796,14 +796,14 @@ Task processors under `apps/site/jobs`:
 - Daily conversation notification orchestration
 - Stale notification cleanup
 
-Worker bootstrap and registration in `apps/cmd/worker/main.go`.
+Worker bootstrap and registration in `cmd/worker/main.go`.
 
 ## 8) Frontend Delivery Model
 
-- Server-rendered pages via Templ (`apps/site/views/` + `apps/site/web/ui`)
+- Server-rendered pages via Templ (`app/views/` + `app/web/ui`)
 - HTMX-enhanced interactions
-- Optional Svelte components bundled into `apps/site/static/svelte_bundle.js`
-- Optional vanilla JS bundle into `apps/site/static/vanilla_bundle.js`
+- Optional Svelte components bundled into `app/static/svelte_bundle.js`
+- Optional vanilla JS bundle into `app/static/vanilla_bundle.js`
 
 Build pipeline:
 
@@ -830,7 +830,7 @@ Storage modes:
 ## Operational Tooling
 
 - `Makefile` is the primary task runner (init, watch, test, migrations, worker)
-- `tools/procfiles/*` for multi-process dev with Overmind
+- `Procfile*` at project root for multi-process dev with Overmind (generated by `ship new`)
 - Docker Compose currently starts Redis + Mailpit; Postgres service is commented out
 
 ## Practical Summary
@@ -841,14 +841,14 @@ This codebase is a strong "production-ready starter" foundation with authenticat
 FILE: docs/architecture/04-http-routes.md
 ---
 # HTTP Route Map
-<!-- FRONTEND_SYNC: Landing capability explorer in apps/site/views/web/pages/landing_page.templ links here for Routing and Controllers. Keep both landing copy and this doc aligned. -->
+<!-- FRONTEND_SYNC: Landing capability explorer in app/views/web/pages/landing_page.templ links here for Routing and Controllers. Keep both landing copy and this doc aligned. -->
 
-Routes are wired through canonical `apps/site/router.go`.
+Routes are wired through canonical `app/router.go`.
 
 Ergonomic routing rule:
 
-- URL declarations live in one place: `apps/site/router.go`.
-- Handler implementations live in `apps/site/web/controllers/*.go`.
+- URL declarations live in one place: `app/router.go`.
+- Handler implementations live in `app/web/controllers/*.go`.
 
 ## Public/General Routes
 
@@ -966,9 +966,9 @@ Notification center routes have implementations but are still not wired:
 FILE: docs/architecture/05-data-model.md
 ---
 # Data Model
-<!-- FRONTEND_SYNC: Landing capability explorer in apps/site/views/web/pages/landing_page.templ links here for Models and ORM (Ent). Keep both landing copy and this doc aligned. -->
+<!-- FRONTEND_SYNC: Landing capability explorer in app/views/web/pages/landing_page.templ links here for Models and ORM (Ent). Keep both landing copy and this doc aligned. -->
 
-Primary schema is defined in `apps/db/schema/*.go` and compiled into generated Ent code in `apps/db/ent/`.
+Primary schema is defined in `db/schema/*.go` and compiled into generated Ent code in `db/ent/`.
 
 ## Core Entities
 
@@ -1056,13 +1056,13 @@ The storage repo generates presigned URLs and maps image sizes into frontend-fri
 FILE: docs/architecture/06-known-gaps-and-risks.md
 ---
 # Known Gaps and Risks
-<!-- FRONTEND_SYNC: Landing capability explorer in apps/site/views/web/pages/landing_page.templ links here for Events and Realtime. Keep both landing copy and this doc aligned. -->
+<!-- FRONTEND_SYNC: Landing capability explorer in app/views/web/pages/landing_page.templ links here for Events and Realtime. Keep both landing copy and this doc aligned. -->
 
 This list is based on direct code inspection and is intended to guide contributor priorities.
 
 ## 1) Container Initialization Mismatch (High)
 
-In `apps/site/foundation/container.go`, `NewContainer()` does not call:
+In `app/foundation/container.go`, `NewContainer()` does not call:
 
 - `initCache()`
 - `initNotifier()`
@@ -1086,7 +1086,7 @@ Impact:
 
 ## 3) Notification Center Endpoints Partially Disabled (Medium)
 
-Route handlers exist in `apps/site/web/controllers/notifications.go`, but several are commented out during route wiring.
+Route handlers exist in `app/web/controllers/notifications.go`, but several are commented out during route wiring.
 
 Impact:
 
@@ -1121,7 +1121,7 @@ Impact:
 
 ## 7) Some Feature Paths Still Use Placeholder Data (Low)
 
-Example: home feed button counts are hardcoded in `apps/site/web/controllers/home_feed.go`.
+Example: home feed button counts are hardcoded in `app/web/controllers/home_feed.go`.
 
 Impact:
 
@@ -1228,9 +1228,9 @@ Current startup behavior:
 First migrated call site:
 
 - `pkg/tasks/notifications.go` now enqueues follow-up jobs through `core.Jobs` instead of `*services.TaskClient`.
-- `apps/site/app/notifications/notifier.go` now publishes/subscribes through `core.PubSub` with explicit SSE event payload encoding.
+- `app/notifications/notifier.go` now publishes/subscribes through `core.PubSub` with explicit SSE event payload encoding.
 - `pkg/tasks/notifications.go` now uses a small planned-notification source interface, enabling table-driven unit tests without DB/container boot.
-- `apps/site/app/notifications/notifier.go` now exposes notifier-owned `SSEEvent` payloads so route code no longer depends on pubsub package event types.
+- `app/notifications/notifier.go` now exposes notifier-owned `SSEEvent` payloads so route code no longer depends on pubsub package event types.
 
 ## Scope Boundaries
 
@@ -1242,7 +1242,7 @@ These interfaces are runtime seams, not domain/repository APIs.
 
 ## Migration Plan
 
-1. Keep existing concrete packages running (`apps/site/foundation`, `pkg/repos/*`).
+1. Keep existing concrete packages running (`app/foundation`, `pkg/repos/*`).
 2. Add adapters that satisfy `pkg/core` contracts.
 3. Move container wiring to resolve adapters via config and capabilities.
 4. Gradually convert call sites from concrete clients to interfaces.
@@ -1267,26 +1267,26 @@ The framework has one canonical flow per concern. If a change does not fit these
 
 `router -> controller -> app/<domain> -> web/viewmodels -> views`
 
-- Routing is declared in `apps/site/router.go`.
-- Controllers live in `apps/site/web/controllers`.
-- Domain logic lives in `apps/site/app/*`.
-- Template payload shapes live in `apps/site/web/viewmodels`.
-- Rendering helpers live in `apps/site/web/ui`.
-- Templ source lives in `apps/site/views`.
+- Routing is declared in `app/router.go`.
+- Controllers live in `app/web/controllers`.
+- Domain logic lives in `app/*`.
+- Template payload shapes live in `app/web/viewmodels`.
+- Rendering helpers live in `app/web/ui`.
+- Templ source lives in `app/views`.
 
 ## Async Flow (Always)
 
 `job -> app/<domain> -> adapters`
 
-- Jobs/processors live in `apps/site/jobs`.
-- Jobs delegate business logic to `apps/site/app/*`.
+- Jobs/processors live in `app/jobs`.
+- Jobs delegate business logic to `app/*`.
 - Infrastructure dependencies are provided through the container/adapters.
 
 ## Boot Flow (Always)
 
 `foundation -> adapters -> app/web/jobs`
 
-- Composition root is `apps/site/foundation/container.go`.
+- Composition root is `app/foundation/container.go`.
 - App wiring is explicit and deterministic.
 
 ## Tooling Rule
@@ -1301,11 +1301,11 @@ Use `ship` as the single mutation interface for common scaffolding.
 
 ## Non-Negotiable Conventions
 
-- One canonical app root: `apps/site`.
-- No legacy paths (`app/goship`, `apps/site/bootstrap`, `apps/site/domains`, etc.).
+- One canonical app root: `app`.
+- No legacy paths (`app/goship`, `app/bootstrap`, `app/domains`, etc.).
 - Package names match directory intent:
-  - `apps/site/web/ui` -> `package ui`
-  - `apps/site/web/viewmodels` -> `package viewmodels`
+  - `app/web/ui` -> `package ui`
+  - `app/web/viewmodels` -> `package viewmodels`
 - Route markers in router are preserved for safe generator wiring.
 
 ---
@@ -1318,12 +1318,12 @@ This guide is for code agents making changes in this repository.
 ## Start Here
 
 1. Read `docs/architecture/03-project-scope-analysis.md` and `docs/architecture/06-known-gaps-and-risks.md`.
-2. Inspect route wiring in `apps/site/router.go` before editing handlers.
-3. Inspect `apps/site/foundation/container.go` before assuming a dependency is initialized.
+2. Inspect route wiring in `app/router.go` before editing handlers.
+3. Inspect `app/foundation/container.go` before assuming a dependency is initialized.
 
 ## Architectural Conventions
 
-- HTTP handlers live in `apps/site/web/controllers`.
+- HTTP handlers live in `app/web/controllers`.
 - Domain logic should prefer repository packages (`pkg/repos/...`) over route-level DB logic.
 - Rendering is typically done via `controller.Page` + templ components.
 - Enums/constants are centralized in `pkg/domain`.
@@ -1338,7 +1338,7 @@ This guide is for code agents making changes in this repository.
 
 2. Check for related tests:
 - `rg "func Test" pkg/...`
-- route tests in `apps/site/web/controllers/*_test.go`
+- route tests in `app/web/controllers/*_test.go`
 
 3. Implement minimal, local change first.
 4. Run targeted tests, then broader tests if needed.
@@ -1348,31 +1348,31 @@ This guide is for code agents making changes in this repository.
 
 Runtime bootstrap:
 
-- `apps/cmd/web/main.go`
-- `apps/cmd/worker/main.go`
-- `apps/cmd/seed/main.go`
+- `cmd/web/main.go`
+- `cmd/worker/main.go`
+- `cmd/seed/main.go`
 
 Dependency wiring:
 
-- `apps/site/foundation/container.go`
-- `apps/site/foundation/auth.go`
-- `apps/site/foundation/tasks.go`
+- `app/foundation/container.go`
+- `app/foundation/auth.go`
+- `app/foundation/tasks.go`
 
 Routing and middleware:
 
-- `apps/site/router.go`
+- `app/router.go`
 - `pkg/middleware/*.go`
 
 Data and domain:
 
-- `apps/db/schema/*.go`
+- `db/schema/*.go`
 - `pkg/repos/**/*.go`
 - `pkg/domain/*.go`
 
 UI and rendering:
 
-- `apps/site/web/ui/*.go`
-- `apps/site/views/**/*.templ`
+- `app/web/ui/*.go`
+- `app/views/**/*.templ`
 - `frontend/javascript/**/*`
 
 ## Common Pitfalls
@@ -1415,7 +1415,7 @@ When code behavior changes, update at least:
 FILE: docs/guides/02-development-workflows.md
 ---
 # Development Workflows
-<!-- FRONTEND_SYNC: Landing capability explorer in apps/site/views/web/pages/landing_page.templ links here for Database and Migrations and Testing. Keep both landing copy and this doc aligned. -->
+<!-- FRONTEND_SYNC: Landing capability explorer in app/views/web/pages/landing_page.templ links here for Database and Migrations and Testing. Keep both landing copy and this doc aligned. -->
 
 ## Local Startup
 
@@ -1456,7 +1456,7 @@ JS build:
 
 CSS build:
 
-- Tailwind CLI to `apps/site/static/styles_bundle.css`
+- Tailwind CLI to `app/static/styles_bundle.css`
 
 Templ generation:
 
@@ -1468,7 +1468,7 @@ Templ generation:
 
 Entity schema source:
 
-- `apps/db/schema/*.go`
+- `db/schema/*.go`
 
 Common workflow:
 
@@ -1494,7 +1494,7 @@ Asynq UI:
 
 Task processor registration:
 
-- `apps/cmd/worker/main.go`
+- `cmd/worker/main.go`
 
 ## Testing
 
@@ -1550,11 +1550,11 @@ Goal:
 
 Preconditions:
 - run from repo root.
-- `apps/site/router.go` has ship route markers.
+- `app/router.go` has ship route markers.
 
 Steps:
 ```bash
-go run ./tools/cli/ship/cmd/ship make:resource contact_form --path apps/site --auth public --views templ --wire
+go run ./tools/cli/ship/cmd/ship make:resource contact_form --path app --auth public --views templ --wire
 ```
 
 Validation:
@@ -1565,7 +1565,7 @@ go run ./tools/cli/ship/cmd/ship doctor
 - expect `ship doctor: OK`.
 
 Common failures:
-1. Missing markers in `apps/site/router.go`: restore marker pairs.
+1. Missing markers in `app/router.go`: restore marker pairs.
 2. Existing controller file: pick another name or remove conflicting file.
 3. Wrong auth group: use `--auth public|auth`.
 
@@ -1606,7 +1606,7 @@ Validation:
 go test ./tools/cli/ship -count=1
 go run ./tools/cli/ship/cmd/ship doctor
 ```
-- confirm one generated block in `apps/site/router.go`.
+- confirm one generated block in `app/router.go`.
 
 Common failures:
 1. Duplicate controller file: rename or delete existing file.
@@ -1619,16 +1619,16 @@ Goal:
 - add a jobs processor path and validate worker startup surface.
 
 Steps:
-1. add/update job logic under `apps/site/jobs`.
-2. wire dependencies via `apps/site/foundation/container.go` as needed.
+1. add/update job logic under `app/jobs`.
+2. wire dependencies via `app/foundation/container.go` as needed.
 3. run worker locally:
 ```bash
-go run ./apps/cmd/worker
+go run ./cmd/worker
 ```
 
 Validation:
 ```bash
-go test ./apps/site/jobs ./apps/cmd/worker -count=1
+go test ./app/jobs ./cmd/worker -count=1
 ```
 
 Common failures:
@@ -1669,7 +1669,7 @@ Goal:
 Steps:
 1. confirm interface contract in `pkg/core/interfaces.go`.
 2. implement adapter in `pkg/repos/<area>` or app-scoped package if app-specific.
-3. wire in `apps/site/foundation`.
+3. wire in `app/foundation`.
 4. validate with:
 ```bash
 go run ./tools/cli/ship/cmd/ship doctor
@@ -1754,7 +1754,7 @@ kamal traefik reboot -c infra/deploy/kamal/deploy.yml
 FILE: docs/policies/01-engineering-standards.md
 ---
 # Repository Requirements (Engineering Standards)
-<!-- FRONTEND_SYNC: Landing capability explorer in apps/site/views/web/pages/landing_page.templ links here for Testing. Keep both landing copy and this doc aligned. -->
+<!-- FRONTEND_SYNC: Landing capability explorer in app/views/web/pages/landing_page.templ links here for Testing. Keep both landing copy and this doc aligned. -->
 
 This file defines baseline requirements for any GoShip repository (framework, CLI, or app) to stay maintainable.
 
@@ -1922,10 +1922,10 @@ Database:
 Generation:
 
 - `ship templ generate [--path <dir>] [--file <file.templ>]`
-- `ship make:resource <name> [--path apps/site] [--auth public|auth] [--views templ|none] [--domain <name>] [--wire] [--dry-run]` (or `ship make` for help)
+- `ship make:resource <name> [--path app] [--auth public|auth] [--views templ|none] [--domain <name>] [--wire] [--dry-run]` (or `ship make` for help)
 - `ship make:model <Name> [fields...] [--force]`
 - `ship make:controller <Name|NameController> [--actions index,show,create,update,destroy] [--auth public|auth] [--domain <name>] [--wire]`
-- `ship make:scaffold <Name> [fields...] [--path apps/site] [--views templ|none] [--auth public|auth] [--api] [--migrate] [--dry-run] [--force]`
+- `ship make:scaffold <Name> [fields...] [--path app] [--views templ|none] [--auth public|auth] [--api] [--migrate] [--dry-run] [--force]`
 - `ship make:module <Name> [--path modules] [--module-base github.com/leomorpho/goship-modules] [--dry-run] [--force]`
 - `ship destroy <generated-artifact>` (planned)
 
@@ -1946,8 +1946,8 @@ Command grammar policy:
 
 These commands are implemented as wrappers over existing workflows:
 
-- `ship dev` -> `go run ./apps/cmd/web`
-- `ship dev --worker` -> `go run ./apps/cmd/worker`
+- `ship dev` -> `go run ./cmd/web`
+- `ship dev --worker` -> `go run ./cmd/worker`
 - `ship dev --all` -> starts both processes concurrently with prefixed logs (`[web]`, `[worker]`) and signal-aware shutdown
 - `ship check` -> `go test ./...` (compile + unit checks, no integration-tagged tests)
 - `ship test` -> `go test ./...` (integration-tagged tests are excluded by default)
@@ -1955,14 +1955,14 @@ These commands are implemented as wrappers over existing workflows:
 - `ship infra:up` -> detects `docker-compose`/`docker compose` and runs `up -d cache`, then attempts `up -d mailpit` (non-fatal if mailpit fails)
 - `ship infra:down` -> detects `docker-compose`/`docker compose` and runs `down`
 - `ship db:create` -> validates that target database URL is reachable (`atlas schema inspect --url <resolved>`)
-- `ship db:migrate` -> `atlas migrate apply --dir file://apps/db/migrate/migrations --url <resolved>`
-- `ship db:status` -> `atlas migrate status --dir file://apps/db/migrate/migrations --url <resolved>`
+- `ship db:migrate` -> `atlas migrate apply --dir file://db/migrate/migrations --url <resolved>`
+- `ship db:status` -> `atlas migrate status --dir file://db/migrate/migrations --url <resolved>`
 - `ship db:reset [--seed] [--force] [--yes] [--dry-run]` -> prints plan, runs `atlas schema clean --auto-approve`, then `atlas migrate apply`; optional seed
 - `ship db:drop [--force] [--yes] [--dry-run]` -> prints plan, runs `atlas schema clean --auto-approve`
-- `ship db:make <migration_name>` -> `atlas migrate diff <migration_name> --dir file://apps/db/migrate/migrations --to ent://apps/db/schema --dev-url sqlite://file?mode=memory&_fk=1`
+- `ship db:make <migration_name>` -> `atlas migrate diff <migration_name> --dir file://db/migrate/migrations --to ent://db/schema --dev-url sqlite://file?mode=memory&_fk=1`
 - `ship db:rollback [amount]` -> `atlas migrate down ... [amount]`
 - Atlas is managed by `ship`: it uses `atlas` from `PATH` when present, otherwise auto-installs pinned `ariga.io/atlas/cmd/atlas@v0.27.1` to `.cache/tools/bin/atlas`, and finally falls back to `go run` for zero-friction operation.
-- `ship db:seed` -> `go run ./apps/cmd/seed/main.go`
+- `ship db:seed` -> `go run ./cmd/seed/main.go`
 
 DB URL resolution precedence for db commands:
 
@@ -1986,15 +1986,15 @@ Safety matrix:
 - `ship agent:setup` -> generate per-agent allowlist artifacts from `tools/agent-policy/allowed-commands.yaml`
 - `ship agent:check` -> fail if generated artifacts drift from canonical allowlist (for pre-commit/CI parity)
 - `ship agent:status` -> show best-effort local Codex/Claude/Gemini install status vs repo policy
-- `ship make:resource <name>` -> scaffold handler (+ optional templ page), ensure route-name constant, and print route snippet for manual insertion in `apps/site/router.go`
+- `ship make:resource <name>` -> scaffold handler (+ optional templ page), ensure route-name constant, and print route snippet for manual insertion in `app/router.go`
 - `ship make:resource <name> --domain <name>` -> generate domain-aware constructor slot (`domainService any`) and route wiring using `nil` placeholder
-- `ship make:resource <name> --wire` -> also insert snippet behind ship markers in `apps/site/router.go`
+- `ship make:resource <name> --wire` -> also insert snippet behind ship markers in `app/router.go`
 - `ship make:resource <name> --dry-run` -> preview all planned changes without writing files
 - `ship make:model <Name>` -> run Ent schema scaffolding (`ent new`) then ORM codegen (`ent generate`)
-- `ship make:model <Name> [fields...]` -> write `apps/db/schema/<model>.go` with typed fields, then run ORM codegen (`ent generate`)
-- `ship make:controller <Name>` -> generate controller/handler scaffold in `apps/site/web/controllers`
+- `ship make:model <Name> [fields...]` -> write `db/schema/<model>.go` with typed fields, then run ORM codegen (`ent generate`)
+- `ship make:controller <Name>` -> generate controller/handler scaffold in `app/web/controllers`
 - `ship make:controller <Name> --domain <name>` -> generate domain-aware constructor slot (`domainService any`) and route wiring using `nil` placeholder
-- `ship make:controller <Name> --actions ... --wire` -> wire generated routes into `apps/site/router.go` markers
+- `ship make:controller <Name> --actions ... --wire` -> wire generated routes into `app/router.go` markers
 - `ship make:scaffold <Name> ...` -> orchestration command that composes `make:model`, `db:make`, `make:controller --domain <plural_model> --wire`, and optionally `make:resource --domain <plural_model>` / `db:migrate`
 - `ship make:module <Name>` -> generate isolated module scaffold in `modules/<name>` with its own `go.mod`, module-facing types/contracts, and service tests
 - `ship upgrade --to <version>` -> updates `atlasGoRunRef` pin in `tools/cli/ship/cli.go`
@@ -2003,7 +2003,7 @@ Safety matrix:
 
 Doctor checks (current):
 
-- validates canonical app/layout directories under `apps/site`
+- validates canonical app/layout directories under `app`
 - validates required files (router, container, routenames, core docs)
 - flags forbidden legacy paths from pre-refactor layout
 - validates router marker pairs used by `--wire` generators
@@ -2027,14 +2027,14 @@ Field syntax for `make:model`:
 2. Writes deterministic starter files:
 `go.mod`
 `config/modules.yaml` (workspace-level module enablement)
-`apps/site/router.go` (with route marker pairs for `--wire`)
-`apps/site/web/routenames/routenames.go`
-`apps/site/views/templates.go`
-`apps/site/foundation/container.go`
-`apps/site/app/*` (domain skeletons)
-`apps/site/web/{controllers,middleware,ui,viewmodels}`
-`apps/site/jobs/jobs.go`
-`apps/db/{schema,migrate/migrations}`
+`app/router.go` (with route marker pairs for `--wire`)
+`app/web/routenames/routenames.go`
+`app/views/templates.go`
+`app/foundation/container.go`
+`app/*` (domain skeletons)
+`app/web/{controllers,middleware,ui,viewmodels}`
+`app/jobs/jobs.go`
+`db/{schema,migrate/migrations}`
 `docs/00-index.md` and baseline architecture docs
 3. Supports `--dry-run` and `--force`.
 
@@ -2051,9 +2051,9 @@ Resource generator contract (v1 minimal):
 Markers:
 `// ship:routes:public:start ... // ship:routes:public:end`
 `// ship:routes:auth:start ... // ship:routes:auth:end`
-3. Creates `apps/site/web/controllers/<resource>.go`.
-4. Creates `apps/site/views/web/pages/<resource>.templ` when `--views templ`.
-5. Ensures `RouteName<Resource>` constant exists in `apps/site/web/routenames/routenames.go`.
+3. Creates `app/web/controllers/<resource>.go`.
+4. Creates `app/views/web/pages/<resource>.templ` when `--views templ`.
+5. Ensures `RouteName<Resource>` constant exists in `app/web/routenames/routenames.go`.
 6. Prints exact snippet target (`registerPublicRoutes` or `registerAuthRoutes`) when not wiring.
 
 Generated handler behavior:
@@ -2083,7 +2083,7 @@ CLI owns:
 
 App/framework owns:
 
-- actual runtime behavior in `apps/cmd/*`, `apps/site/*`, `framework/*`, and `config/*`.
+- actual runtime behavior in `cmd/*`, `app/*`, `framework/*`, and `config/*`.
 
 Rule:
 
@@ -2390,11 +2390,11 @@ Rules for versioned tooling in generated apps:
 
 ## Current Repository Shape (Post-Refactor)
 
-1. `apps/site/` contains app-specific web handlers and templ views.
+1. `app/` contains app-specific web handlers and templ views.
 2. `pkg/` currently remains the framework/infrastructure layer.
-3. `apps/cmd/` contains process entrypoints.
+3. `cmd/` contains process entrypoints.
 
-Note: app composition/runtime wiring has moved to `apps/site/foundation`. `pkg/repos` remains intentionally centralized for now and will be split into app-specific vs reusable framework modules in a dedicated follow-up pass.
+Note: app composition/runtime wiring has moved to `app/foundation`. `pkg/repos` remains intentionally centralized for now and will be split into app-specific vs reusable framework modules in a dedicated follow-up pass.
 
 ## Architecture Style (Pragmatic)
 
@@ -2597,7 +2597,7 @@ Rails/Laravel-inspired ergonomics in GoShip should use clear layer responsibilit
 
 A package is installable as an official `ship` module only if:
 
-1. It has no hard dependency on app route/view packages (`apps/site/web/controllers`, templ views).
+1. It has no hard dependency on app route/view packages (`app/web/controllers`, templ views).
 2. It has a stable, documented config surface.
 3. It is wired through stable interfaces/adapters.
 4. It has dedicated tests and module-level docs.
@@ -2856,7 +2856,7 @@ Done when:
 - `Container.Shutdown()` is nil-safe for optional services.
 - container unit tests compile and pass without external services.
 Test evidence:
-- `go test ./apps/site/foundation -run 'Test(NewContainer|ContainerShutdownNilSafe)$'`
+- `go test ./app/foundation -run 'Test(NewContainer|ContainerShutdownNilSafe)$'`
 
 2. `R0.2` Container initialization policy by runtime mode (`single-node` vs `distributed`), with explicit config contract.
 Status: `completed`
@@ -2891,19 +2891,19 @@ Status: `in_progress`
 6. `R1.1` Resource route registration refactor (prep for generator-driven resources).
 Status: `completed`
 Done when:
-- canonical router entrypoint remains `apps/site/router.go`;
-- route declarations are centralized in `apps/site/router.go`;
-- handler implementations remain in `apps/site/web/controllers/*.go`;
+- canonical router entrypoint remains `app/router.go`;
+- route declarations are centralized in `app/router.go`;
+- handler implementations remain in `app/web/controllers/*.go`;
 - realtime registration is feature-gated directly in the canonical router.
 Test evidence:
-- `go test ./apps/cmd/web ./apps/site/web/ui ./framework/runtimeplan`
-- `go test -c ./apps/site/web/controllers` (compile check in restricted env)
+- `go test ./cmd/web ./app/web/ui ./framework/runtimeplan`
+- `go test -c ./app/web/controllers` (compile check in restricted env)
 
 7. `R1.2` Minimal resource generator foundation.
 Status: `completed`
 Done when:
 - `ship make:resource <name>` scaffolds route handler (+ optional templ page);
-- generator prints router insertion snippet instead of auto-editing `apps/site/router.go`;
+- generator prints router insertion snippet instead of auto-editing `app/router.go`;
 - generator logic is table-driven tested in `tools/cli/ship`.
 Test evidence:
 - `go test ./tools/cli/ship`
@@ -2911,7 +2911,7 @@ Test evidence:
 8. `R1.3` Optional safe router wiring mode for generator.
 Status: `completed`
 Done when:
-- `ship make:resource ... --wire` inserts generated snippet into `apps/site/router.go`;
+- `ship make:resource ... --wire` inserts generated snippet into `app/router.go`;
 - insertion only occurs behind explicit marker pairs (`public` or `auth`);
 - operation is idempotent and tested (no duplicate insertion).
 Test evidence:
@@ -2920,7 +2920,7 @@ Test evidence:
 9. `R1.4` Route name automation and dry-run previews for resource generation.
 Status: `completed`
 Done when:
-- generator ensures `RouteName<Resource>` constant is present in `apps/site/web/routenames/routenames.go`;
+- generator ensures `RouteName<Resource>` constant is present in `app/web/routenames/routenames.go`;
 - `ship make:resource ... --dry-run` previews file/router/routename changes without writing;
 - wiring/import/constant insertion paths are idempotent and tested.
 Test evidence:
@@ -2942,7 +2942,7 @@ Current progress:
 2. Container exposes `CoreCache`, `CoreJobs`, and `CorePubSub`.
 3. First application call sites migrated to interface seams:
 - notifications fan-out enqueue in `pkg/tasks/notifications.go` now uses `core.Jobs`.
-- notifier publish/subscribe path in `apps/site/app/notifications/notifier.go` now uses `core.PubSub`.
+- notifier publish/subscribe path in `app/notifications/notifier.go` now uses `core.PubSub`.
 4. Domain testability improved:
 - notifications task processor now depends on a small planned-notification interface with table-driven unit tests.
 
@@ -3070,10 +3070,10 @@ Last updated: 2026-03-04
 ### P3
 
 - Updated `ship new` scaffold to canonical structure:
-  - `apps/site/app/*` (replaces legacy `domains/*`)
-  - `apps/site/foundation/container.go`
-  - `apps/site/web/{controllers,middleware,ui,viewmodels}`
-  - `apps/site/jobs/jobs.go`
+  - `app/*` (replaces legacy `domains/*`)
+  - `app/foundation/container.go`
+  - `app/web/{controllers,middleware,ui,viewmodels}`
+  - `app/jobs/jobs.go`
   - baseline docs (`docs/00-index.md`, architecture stubs)
 - Updated integration tests to validate fresh scaffold + `ship doctor`.
 
@@ -3086,7 +3086,7 @@ Last updated: 2026-03-04
 
 1. Added doctor checks for root binary artifact hygiene and `.gitignore` coverage.
 2. Added file-length budget enforcement for human-authored `.go` files.
-3. Excluded generated paths (`apps/db/ent/`, `**/gen`) and retained low-noise fix hints.
+3. Excluded generated paths (`db/ent/`, `**/gen`) and retained low-noise fix hints.
 
 ## P6 Scope (Next)
 

@@ -11,7 +11,7 @@ import (
 
 const (
 	scaffoldTestDBURL = "postgres://test-user:test-pass@localhost:5432/test_db?sslmode=disable"
-	scaffoldAtlasDir  = "file://apps/db/migrate/migrations"
+	scaffoldAtlasDir  = "file://db/migrate/migrations"
 )
 
 func TestParseMakeScaffoldArgs(t *testing.T) {
@@ -23,7 +23,7 @@ func TestParseMakeScaffoldArgs(t *testing.T) {
 	}{
 		{
 			name: "full flags",
-			args: []string{"Post", "title:string", "--api", "--migrate", "--dry-run", "--force", "--views=none", "--auth=auth", "--path=apps/site"},
+			args: []string{"Post", "title:string", "--api", "--migrate", "--dry-run", "--force", "--views=none", "--auth=auth", "--path=app"},
 			check: func(t *testing.T, opts ScaffoldMakeOptions) {
 				if opts.ModelName != "Post" || len(opts.Fields) != 1 {
 					t.Fatalf("unexpected parsed scaffold opts: %+v", opts)
@@ -125,16 +125,16 @@ func TestRunMakeScaffold_Integration(t *testing.T) {
 		t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
 	}
 
-	if !testHasFile(filepath.Join(root, "apps", "db", "schema", "post.go")) {
+	if !testHasFile(filepath.Join(root, "db", "schema", "post.go")) {
 		t.Fatalf("missing scaffolded model schema")
 	}
-	if !testHasFile(filepath.Join(root, "apps", "site", "web", "controllers", "posts.go")) {
+	if !testHasFile(filepath.Join(root, "app", "web", "controllers", "posts.go")) {
 		t.Fatalf("missing scaffolded controller file")
 	}
-	if !testHasFile(filepath.Join(root, "apps", "site", "web", "controllers", "post.go")) {
+	if !testHasFile(filepath.Join(root, "app", "web", "controllers", "post.go")) {
 		t.Fatalf("missing scaffolded resource route file")
 	}
-	if !testHasFile(filepath.Join(root, "apps", "site", "views", "web", "pages", "post.templ")) {
+	if !testHasFile(filepath.Join(root, "app", "views", "web", "pages", "post.templ")) {
 		t.Fatalf("missing scaffolded resource view")
 	}
 }
@@ -159,10 +159,10 @@ func TestRunMakeScaffold_IntegrationAPI_NoResourceArtifacts(t *testing.T) {
 	if code != 0 {
 		t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
 	}
-	if testHasFile(filepath.Join(root, "apps", "site", "web", "controllers", "post.go")) {
+	if testHasFile(filepath.Join(root, "app", "web", "controllers", "post.go")) {
 		t.Fatalf("resource route file should not exist in --api mode")
 	}
-	if testHasFile(filepath.Join(root, "apps", "site", "views", "web", "pages", "post.templ")) {
+	if testHasFile(filepath.Join(root, "app", "views", "web", "pages", "post.templ")) {
 		t.Fatalf("resource view should not exist in --api mode")
 	}
 }
@@ -246,14 +246,14 @@ func makeScaffoldDeps(out, errOut *bytes.Buffer, runner *fakeRunner, dbURL strin
 					return runner.RunCode(name, args...)
 				},
 				HasFile:      testHasFile,
-				EntSchemaDir: "apps/db/schema",
+				EntSchemaDir: "db/schema",
 			})
 		},
 		RunDBMake: func(args []string) int {
 			if len(args) != 1 {
 				return 1
 			}
-			return runner.RunCode("atlas", "migrate", "diff", args[0], "--dir", scaffoldAtlasDir, "--to", "ent://apps/db/schema", "--dev-url", "sqlite://file?mode=memory&_fk=1")
+			return runner.RunCode("atlas", "migrate", "diff", args[0], "--dir", scaffoldAtlasDir, "--to", "ent://db/schema", "--dev-url", "sqlite://file?mode=memory&_fk=1")
 		},
 		RunController: func(args []string) int {
 			return RunMakeController(args, ControllerDeps{
@@ -273,15 +273,15 @@ func makeScaffoldDeps(out, errOut *bytes.Buffer, runner *fakeRunner, dbURL strin
 
 func seedScaffoldTargets(t *testing.T, root string) {
 	t.Helper()
-	routerPath := filepath.Join(root, "apps", "site", "router.go")
+	routerPath := filepath.Join(root, "app", "router.go")
 	if err := os.MkdirAll(filepath.Dir(routerPath), 0o755); err != nil {
 		t.Fatal(err)
 	}
 	routerContent := `package goship
 
 import (
-	routeNames "github.com/leomorpho/goship/apps/site/web/routenames"
-	"github.com/leomorpho/goship/apps/site/web/controllers"
+	routeNames "github.com/leomorpho/goship/app/web/routenames"
+	"github.com/leomorpho/goship/app/web/controllers"
 )
 
 func registerPublicRoutes() {
@@ -297,7 +297,7 @@ func registerAuthRoutes() {
 	if err := os.WriteFile(routerPath, []byte(routerContent), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	routeNamesPath := filepath.Join(root, "apps", "site", "web", "routenames", "routenames.go")
+	routeNamesPath := filepath.Join(root, "app", "web", "routenames", "routenames.go")
 	if err := os.MkdirAll(filepath.Dir(routeNamesPath), 0o755); err != nil {
 		t.Fatal(err)
 	}

@@ -31,18 +31,18 @@ Naming normalization from roadmap:
 
 ## Architectural Placement Rules
 
-- App-specific web code: `apps/site/*`
-- HTTP handlers/routes: `apps/site/web/controllers/*`
-- Canonical app router entrypoint: `apps/site/router.go`
-- App composition container/adapters: `apps/site/foundation/*`
-- Web middleware: `apps/site/web/middleware/*`
-- View models: `apps/site/web/viewmodels/*`
-- Web rendering helpers: `apps/site/web/ui/*`
-- Background jobs/processors: `apps/site/jobs/*`
+- App-specific web code: `app/*`
+- HTTP handlers/routes: `app/web/controllers/*`
+- Canonical app router entrypoint: `app/router.go`
+- App composition container/adapters: `app/foundation/*`
+- Web middleware: `app/web/middleware/*`
+- View models: `app/web/viewmodels/*`
+- Web rendering helpers: `app/web/ui/*`
+- Background jobs/processors: `app/jobs/*`
 - Framework/infrastructure layer: `framework/*`
-- ORM schema: `apps/db/schema/*`
+- ORM schema: `db/schema/*`
 - Config: `config/*`
-- Templates: `apps/site/views/**/*.templ`
+- Templates: `app/views/**/*.templ`
 
 When in doubt, follow `docs/architecture/02-structure-and-boundaries.md`.
 

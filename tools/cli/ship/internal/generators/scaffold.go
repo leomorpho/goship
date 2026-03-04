@@ -101,9 +101,9 @@ func RunMakeScaffold(args []string, d ScaffoldDeps) int {
 }
 
 func ParseMakeScaffoldArgs(args []string) (ScaffoldMakeOptions, error) {
-	opts := ScaffoldMakeOptions{Path: "apps/site", Views: "templ", Auth: "public"}
+	opts := ScaffoldMakeOptions{Path: "app", Views: "templ", Auth: "public"}
 	if len(args) == 0 {
-		return opts, errors.New("usage: ship make:scaffold <Name> [fields...] [--path apps/site] [--views templ|none] [--auth public|auth] [--api] [--migrate] [--dry-run] [--force]")
+		return opts, errors.New("usage: ship make:scaffold <Name> [fields...] [--path app] [--views templ|none] [--auth public|auth] [--api] [--migrate] [--dry-run] [--force]")
 	}
 	opts.ModelName = strings.TrimSpace(args[0])
 	if !ModelNamePattern.MatchString(opts.ModelName) {

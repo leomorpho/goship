@@ -40,10 +40,10 @@ Last updated: 2026-03-04
 ### P3
 
 - Updated `ship new` scaffold to canonical structure:
-  - `apps/site/app/*` (replaces legacy `domains/*`)
-  - `apps/site/foundation/container.go`
-  - `apps/site/web/{controllers,middleware,ui,viewmodels}`
-  - `apps/site/jobs/jobs.go`
+  - `app/*` (replaces legacy `domains/*`)
+  - `app/foundation/container.go`
+  - `app/web/{controllers,middleware,ui,viewmodels}`
+  - `app/jobs/jobs.go`
   - baseline docs (`docs/00-index.md`, architecture stubs)
 - Updated integration tests to validate fresh scaffold + `ship doctor`.
 
@@ -56,7 +56,7 @@ Last updated: 2026-03-04
 
 1. Added doctor checks for root binary artifact hygiene and `.gitignore` coverage.
 2. Added file-length budget enforcement for human-authored `.go` files.
-3. Excluded generated paths (`apps/db/ent/`, `**/gen`) and retained low-noise fix hints.
+3. Excluded generated paths (`db/ent/`, `**/gen`) and retained low-noise fix hints.
 
 ## P6 Scope (Next)
 

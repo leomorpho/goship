@@ -10,9 +10,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/leomorpho/goship/apps/db/ent"
-	"github.com/leomorpho/goship/apps/db/ent/filestorage"
 	"github.com/leomorpho/goship/config"
+	"github.com/leomorpho/goship/db/ent"
+	"github.com/leomorpho/goship/db/ent/filestorage"
 	"github.com/leomorpho/goship/framework/domain"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"

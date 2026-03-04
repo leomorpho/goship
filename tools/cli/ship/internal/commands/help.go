@@ -54,9 +54,9 @@ func PrintTemplHelp(w io.Writer) {
 
 func PrintMakeHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship make commands:")
-	fmt.Fprintln(w, "  ship make:scaffold <Name> [fields...] [--path apps/site] [--views templ|none] [--auth public|auth] [--api] [--migrate] [--dry-run] [--force]")
+	fmt.Fprintln(w, "  ship make:scaffold <Name> [fields...] [--path app] [--views templ|none] [--auth public|auth] [--api] [--migrate] [--dry-run] [--force]")
 	fmt.Fprintln(w, "  ship make:controller <Name|NameController> [--actions index,show,create,update,destroy] [--auth public|auth] [--wire]")
-	fmt.Fprintln(w, "  ship make:resource <name> [--path apps/site] [--auth public|auth] [--views templ|none] [--wire] [--dry-run]")
+	fmt.Fprintln(w, "  ship make:resource <name> [--path app] [--auth public|auth] [--views templ|none] [--wire] [--dry-run]")
 	fmt.Fprintln(w, "  ship make:model <Name> [fields...]")
 	fmt.Fprintln(w, "  ship make:module <Name> [--path modules] [--module-base github.com/leomorpho/goship-modules] [--dry-run] [--force]")
 }

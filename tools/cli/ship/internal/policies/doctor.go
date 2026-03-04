@@ -65,17 +65,16 @@ func RunDoctorChecks(root string) []DoctorIssue {
 	issues := make([]DoctorIssue, 0)
 
 	requiredDirs := []string{
-		filepath.Join("apps", "site"),
-		filepath.Join("apps", "site", "app"),
-		filepath.Join("apps", "site", "foundation"),
-		filepath.Join("apps", "site", "web", "controllers"),
-		filepath.Join("apps", "site", "web", "middleware"),
-		filepath.Join("apps", "site", "web", "ui"),
-		filepath.Join("apps", "site", "web", "viewmodels"),
-		filepath.Join("apps", "site", "jobs"),
-		filepath.Join("apps", "site", "views"),
-		filepath.Join("apps", "db", "schema"),
-		filepath.Join("apps", "db", "migrate", "migrations"),
+		filepath.Join("app"),
+		filepath.Join("app", "foundation"),
+		filepath.Join("app", "web", "controllers"),
+		filepath.Join("app", "web", "middleware"),
+		filepath.Join("app", "web", "ui"),
+		filepath.Join("app", "web", "viewmodels"),
+		filepath.Join("app", "jobs"),
+		filepath.Join("app", "views"),
+		filepath.Join("db", "schema"),
+		filepath.Join("db", "migrate", "migrations"),
 	}
 	for _, rel := range requiredDirs {
 		if !isDir(filepath.Join(root, rel)) {
@@ -88,9 +87,9 @@ func RunDoctorChecks(root string) []DoctorIssue {
 	}
 
 	requiredFiles := []string{
-		filepath.Join("apps", "site", "router.go"),
-		filepath.Join("apps", "site", "foundation", "container.go"),
-		filepath.Join("apps", "site", "web", "routenames", "routenames.go"),
+		filepath.Join("app", "router.go"),
+		filepath.Join("app", "foundation", "container.go"),
+		filepath.Join("app", "web", "routenames", "routenames.go"),
 		filepath.Join("config", "modules.yaml"),
 		filepath.Join("docs", "00-index.md"),
 		filepath.Join("docs", "architecture", "01-architecture.md"),
@@ -108,12 +107,12 @@ func RunDoctorChecks(root string) []DoctorIssue {
 
 	forbidden := []string{
 		filepath.Join("app", "site"),
-		filepath.Join("apps", "site", "bootstrap"),
-		filepath.Join("apps", "site", "domains"),
-		filepath.Join("apps", "site", "tasks"),
-		filepath.Join("apps", "site", "types"),
-		filepath.Join("apps", "site", "webui"),
-		filepath.Join("apps", "site", "middleware"),
+		filepath.Join("app", "bootstrap"),
+		filepath.Join("app", "domains"),
+		filepath.Join("app", "tasks"),
+		filepath.Join("app", "types"),
+		filepath.Join("app", "webui"),
+		filepath.Join("app", "middleware"),
 	}
 	for _, rel := range forbidden {
 		if pathExists(filepath.Join(root, rel)) {
@@ -160,7 +159,7 @@ func RunDoctorChecks(root string) []DoctorIssue {
 		}
 	}
 
-	router := filepath.Join(root, "apps", "site", "router.go")
+	router := filepath.Join(root, "app", "router.go")
 	if hasFile(router) {
 		b, err := os.ReadFile(router)
 		if err != nil {
@@ -182,7 +181,7 @@ func RunDoctorChecks(root string) []DoctorIssue {
 					issues = append(issues, DoctorIssue{
 						Code:    "DX005",
 						Message: fmt.Sprintf("missing router marker: %s", marker),
-						Fix:     "restore route markers in apps/site/router.go to keep generator wiring deterministic",
+						Fix:     "restore route markers in app/router.go to keep generator wiring deterministic",
 					})
 				}
 			}
@@ -209,8 +208,8 @@ func RunDoctorChecks(root string) []DoctorIssue {
 		}
 	}
 
-	issues = append(issues, checkPackageNaming(root, filepath.Join("apps", "site", "web", "ui"), "ui")...)
-	issues = append(issues, checkPackageNaming(root, filepath.Join("apps", "site", "web", "viewmodels"), "viewmodels")...)
+	issues = append(issues, checkPackageNaming(root, filepath.Join("app", "web", "ui"), "ui")...)
+	issues = append(issues, checkPackageNaming(root, filepath.Join("app", "web", "viewmodels"), "viewmodels")...)
 	issues = append(issues, checkTopLevelDirs(root)...)
 	issues = append(issues, checkFileLengthBudget(root, 500)...)
 	issues = append(issues, checkCLIDocsCoverage(root)...)
@@ -305,10 +304,10 @@ func hasFile(path string) bool {
 func checkFileLengthBudget(root string, maxLines int) []DoctorIssue {
 	issues := make([]DoctorIssue, 0)
 	allowlist := map[string]struct{}{
-		filepath.ToSlash(filepath.Join("tools", "cli", "ship", "internal", "cli", "cli_test.go")):            {},
+		filepath.ToSlash(filepath.Join("tools", "cli", "ship", "internal", "cli", "cli_test.go")):             {},
 		filepath.ToSlash(filepath.Join("tools", "cli", "ship", "internal", "generators", "resource.go")):      {},
 		filepath.ToSlash(filepath.Join("tools", "cli", "ship", "internal", "policies", "doctor.go")):          {},
-		filepath.ToSlash(filepath.Join("apps", "site", "app", "profiles", "repo.go")):                          {},
+		filepath.ToSlash(filepath.Join("app", "profiles", "repo.go")):                                         {},
 		filepath.ToSlash(filepath.Join("tools", "cli", "ship", "internal", "commands", "project_new.go")):     {},
 		filepath.ToSlash(filepath.Join("tools", "cli", "ship", "internal", "commands", "project_upgrade.go")): {},
 	}
@@ -324,7 +323,7 @@ func checkFileLengthBudget(root string, maxLines int) []DoctorIssue {
 		rel = filepath.ToSlash(rel)
 
 		if d.IsDir() {
-			if rel == ".git" || rel == "node_modules" || rel == ".cache" || rel == filepath.ToSlash(filepath.Join("apps", "db", "ent")) || strings.HasPrefix(rel, filepath.ToSlash(filepath.Join("apps", "db", "ent"))+"/") {
+			if rel == ".git" || rel == "node_modules" || rel == ".cache" || rel == filepath.ToSlash(filepath.Join("db", "ent")) || strings.HasPrefix(rel, filepath.ToSlash(filepath.Join("db", "ent"))+"/") {
 				return filepath.SkipDir
 			}
 			if strings.HasSuffix(rel, "/gen") {
@@ -377,7 +376,8 @@ func checkTopLevelDirs(root string) []DoctorIssue {
 		".github":    {},
 		".kamal":     {},
 		".vscode":    {},
-		"apps":       {},
+		"app":        {},
+		"db":         {},
 		"cmd":        {},
 		"config":     {},
 		"data":       {},
@@ -403,7 +403,7 @@ func checkTopLevelDirs(root string) []DoctorIssue {
 			issues = append(issues, DoctorIssue{
 				Code:    "DX013",
 				Message: fmt.Sprintf("unexpected top-level directory: %s", name),
-				Fix:     "move it under apps/, modules/, framework/, tools/, infra/, tests/, or mark as intentional in doctor allow-list",
+				Fix:     "move it under app/, db/, cmd/, modules/, framework/, tools/, infra/, tests/, or mark as intentional in doctor allow-list",
 			})
 		}
 	}
@@ -725,7 +725,6 @@ func collectLocalReplaces(root string) []string {
 	seen := map[string]struct{}{}
 	goModFiles := []string{
 		filepath.Join(root, "go.mod"),
-		filepath.Join(root, "apps", "go.mod"),
 	}
 	for _, gm := range goModFiles {
 		if !hasFile(gm) {

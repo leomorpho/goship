@@ -119,7 +119,7 @@ func NormalizeDomainTarget(raw string) (NormalizedDomainTarget, error) {
 }
 
 func ParseMakeControllerArgs(args []string) (ControllerMakeOptions, error) {
-	opts := ControllerMakeOptions{Path: "apps/site", Actions: []string{"index"}, Auth: "public"}
+	opts := ControllerMakeOptions{Path: "app", Actions: []string{"index"}, Auth: "public"}
 	if len(args) == 0 {
 		return opts, errors.New("usage: ship make:controller <Name|NameController> [--actions index,show,create,update,destroy] [--auth public|auth] [--domain <name>] [--wire]")
 	}
@@ -248,7 +248,7 @@ func RenderControllerFile(names ControllerNames, actions []string, domain Normal
 		methodName := actionMethodName(action)
 		b.WriteString("func (c *" + names.VarName + ") " + methodName + "(ctx echo.Context) error {\n")
 		if domain.Name != "" {
-			b.WriteString("\t// TODO: delegate to domain service in apps/site/app/" + domain.Snake + "\n")
+			b.WriteString("\t// TODO: delegate to domain service in app/" + domain.Snake + "\n")
 		}
 		b.WriteString("\treturn ctx.String(http.StatusNotImplemented, \"TODO: " + names.BaseTitle + "." + methodName + "\")\n}\n\n")
 	}

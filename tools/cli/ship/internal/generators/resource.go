@@ -38,7 +38,7 @@ func RunGenerateResource(args []string, out io.Writer, errOut io.Writer) int {
 		return 1
 	}
 	if strings.TrimSpace(parsed.Name) == "" {
-		fmt.Fprintln(errOut, "usage: ship make:resource <name> [--path apps/site] [--auth public|auth] [--views templ|none] [--domain <name>] [--wire] [--dry-run]")
+		fmt.Fprintln(errOut, "usage: ship make:resource <name> [--path app] [--auth public|auth] [--views templ|none] [--domain <name>] [--wire] [--dry-run]")
 		return 1
 	}
 
@@ -89,7 +89,7 @@ func RunGenerateResource(args []string, out io.Writer, errOut io.Writer) int {
 
 func ParseGenerateResourceArgs(args []string) (ResourceGenerateOptions, error) {
 	opts := ResourceGenerateOptions{
-		Path:  "apps/site",
+		Path:  "app",
 		Auth:  "public",
 		Views: "templ",
 	}
@@ -269,7 +269,7 @@ func renderResourceBasicHandler(n NormalizedResourceName, domain NormalizedDomai
 		domainField = "\tdomainService any\n"
 		constructorArg = ", domainService any"
 		constructorAssign = ", domainService: domainService"
-		domainComment = "\t// TODO: delegate to domain service in apps/site/app/" + domain.Snake + "\n"
+		domainComment = "\t// TODO: delegate to domain service in app/" + domain.Snake + "\n"
 	}
 
 	return fmt.Sprintf(`package controllers
@@ -278,7 +278,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/apps/site/web/ui"
+	"github.com/leomorpho/goship/app/web/ui"
 )
 
 type %s struct {
@@ -305,17 +305,17 @@ func renderResourceTemplHandler(n NormalizedResourceName, domain NormalizedDomai
 		domainField = "\tdomainService any\n"
 		constructorArg = ", domainService any"
 		constructorAssign = ", domainService: domainService"
-		domainComment = "\t// TODO: delegate to domain service in apps/site/app/" + domain.Snake + "\n"
+		domainComment = "\t// TODO: delegate to domain service in app/" + domain.Snake + "\n"
 	}
 
 	return fmt.Sprintf(`package controllers
 
 import (
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/apps/site/views"
-	"github.com/leomorpho/goship/apps/site/views/web/layouts/gen"
-	"github.com/leomorpho/goship/apps/site/views/web/pages/gen"
-	"github.com/leomorpho/goship/apps/site/web/ui"
+	"github.com/leomorpho/goship/app/views"
+	"github.com/leomorpho/goship/app/views/web/layouts/gen"
+	"github.com/leomorpho/goship/app/views/web/pages/gen"
+	"github.com/leomorpho/goship/app/web/ui"
 )
 
 type %s struct {
@@ -342,7 +342,7 @@ func (r *%s) Get(ctx echo.Context) error {
 func renderResourceTempl(n NormalizedResourceName) string {
 	return fmt.Sprintf(`package pages
 
-import "github.com/leomorpho/goship/apps/site/web/ui"
+import "github.com/leomorpho/goship/app/web/ui"
 
 templ %sPage(page *ui.Page) {
 	<section>
@@ -482,7 +482,7 @@ func EnsureRouteNamesImport(routerPath string, dryRun bool) error {
 		return err
 	}
 	content := string(b)
-	if strings.Contains(content, `routeNames "github.com/leomorpho/goship/apps/site/web/routenames"`) {
+	if strings.Contains(content, `routeNames "github.com/leomorpho/goship/app/web/routenames"`) {
 		return nil
 	}
 
@@ -496,7 +496,7 @@ func EnsureRouteNamesImport(routerPath string, dryRun bool) error {
 	}
 	importEnd += importStart
 
-	line := "\trouteNames \"github.com/leomorpho/goship/apps/site/web/routenames\"\n"
+	line := "\trouteNames \"github.com/leomorpho/goship/app/web/routenames\"\n"
 	updated := content[:importEnd] + line + content[importEnd:]
 	if dryRun {
 		return nil

@@ -97,7 +97,7 @@ func TestRunCheck_UsesProjectPackageLists(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(root, "scripts", "test", "unit-packages.txt"), []byte("./framework/a\n#c\n./framework/b\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(root, "scripts", "test", "compile-packages.txt"), []byte("./app/x\n./apps/site/web/controllers\n"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(root, "scripts", "test", "compile-packages.txt"), []byte("./app/x\n./app/web/controllers\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -115,7 +115,7 @@ func TestRunCheck_UsesProjectPackageLists(t *testing.T) {
 		{name: "go", args: []string{"test", "./framework/a"}},
 		{name: "go", args: []string{"test", "./framework/b"}},
 		{name: "go", args: []string{"test", "-run", "^$", "./app/x"}},
-		{name: "go", args: []string{"test", "-run", "^$", "./apps/site/web/controllers"}},
+		{name: "go", args: []string{"test", "-run", "^$", "./app/web/controllers"}},
 	}
 	if len(runner.calls) != len(want) {
 		t.Fatalf("calls len=%d want=%d calls=%v", len(runner.calls), len(want), runner.calls)

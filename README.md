@@ -58,9 +58,9 @@ Use docs as the source of truth for architecture, workflows, and plans:
 
 ## Repository Shape
 
-- `apps/site/`: app-specific code (routes, views, app router)
+- `app/`: app-specific code (routes, views, app router)
 - `pkg/`: reusable framework-level packages
-- `apps/cmd/`: process entrypoints (`web`, `worker`, `seed`)
+- `cmd/`: process entrypoints (`web`, `worker`, `seed`)
 - `tools/cli/ship/`: standalone `ship` CLI module
 - `tools/mcp/ship/`: standalone MCP module
 - `docs/`: maintained engineering documentation
@@ -87,7 +87,7 @@ The following methods are available:
 
 ## Paid/Free Subscriptions
 
-The `SubscriptionsRepo` handles the subscription logic and lives at `apps/site/app/subscriptions/subscriptions.go`. It uses Stripe under the hood to handle the subscription logic. Stripe webhooks are handled at `apps/site/web/controllers/payments.go`.
+The `SubscriptionsRepo` handles the subscription logic and lives at `app/subscriptions/subscriptions.go`. It uses Stripe under the hood to handle the subscription logic. Stripe webhooks are handled at `app/web/controllers/payments.go`.
 
 **Note:** currently, the only type of subscription implemented is a monthly subscription that is either paid or free. Feel free to expand on this!
 
@@ -103,7 +103,7 @@ The following methods are available:
 
 ## Regenerate Logo Image Assets 
 
-There is a python script in `tools/scripts/regen_logo_images.py` that should be run when the logo in `apps/site/static/logo.png` is updated.
+There is a python script in `tools/scripts/regen_logo_images.py` that should be run when the logo in `app/static/logo.png` is updated.
 This will regenerate the logo assets for different app icons and the favicon. It will also regenerate the correct iOS and Android app icons and place them in app-specific static wrapper directories.
 
 ```bash
@@ -240,7 +240,7 @@ ship make:scaffold Post title:string content:text --migrate
 
 ##### Generated Model:
 ```go
-// apps/db/schema/post.go
+// db/schema/post.go
 package schema
 
 type Post struct {
@@ -325,13 +325,13 @@ g.DELETE("/posts/:id", postRoute.Destroy).Name = "posts.destroy"
 
 ##### Generated views
 ```go
-// apps/site/views/posts.templ
+// app/views/posts.templ
 package pages
 
 import (
-	"github.com/leomorpho/goship/apps/site/web/ui"
-	"github.com/leomorpho/goship/apps/site/web/viewmodels"
-	"github.com/leomorpho/goship/apps/site/views/web/components"
+	"github.com/leomorpho/goship/app/web/ui"
+	"github.com/leomorpho/goship/app/web/viewmodels"
+	"github.com/leomorpho/goship/app/views/web/components"
 )
 
 templ PostsIndex(page *ui.Page) {
@@ -358,7 +358,7 @@ templ PostsDestroy(page *ui.Page) {
 ##### Generate Type Data Struct
 
 ```go
-// apps/site/web/viewmodels/post.go
+// app/web/viewmodels/post.go
 package viewmodels
 
 type Post struct {

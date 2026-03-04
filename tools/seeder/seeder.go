@@ -8,13 +8,13 @@ import (
 	"time"
 
 	modemailsubscriptions "github.com/leomorpho/goship-modules/emailsubscriptions"
-	"github.com/leomorpho/goship/apps/db/ent"
-	"github.com/leomorpho/goship/apps/db/ent/user"
-	"github.com/leomorpho/goship/apps/site/app/emailsubscriptions"
-	"github.com/leomorpho/goship/apps/site/app/notifications"
-	"github.com/leomorpho/goship/apps/site/app/profiles"
-	"github.com/leomorpho/goship/apps/site/app/subscriptions"
-	"github.com/leomorpho/goship/apps/site/foundation"
+	"github.com/leomorpho/goship/db/ent"
+	"github.com/leomorpho/goship/db/ent/user"
+	"github.com/leomorpho/goship/app/emailsubscriptions"
+	"github.com/leomorpho/goship/app/notifications"
+	"github.com/leomorpho/goship/app/profiles"
+	"github.com/leomorpho/goship/app/subscriptions"
+	"github.com/leomorpho/goship/app/foundation"
 	"github.com/leomorpho/goship/config"
 	"github.com/leomorpho/goship/framework/domain"
 	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
@@ -173,13 +173,13 @@ func SeedUsers(cfg *config.Config, client *ent.Client, useS3 bool) error {
 		//////////////////////////////////////////
 		log.Printf("Uploading some photos...")
 
-		photo1, err := os.Open("apps/site/testdata/photos/1.jpg")
+		photo1, err := os.Open("app/testdata/photos/1.jpg")
 		if err != nil {
 			log.Fatal().Err(err).Msg("failed to open file")
 		}
 		defer photo1.Close()
 
-		photo2, err := os.Open("apps/site/testdata/photos/2.jpg")
+		photo2, err := os.Open("app/testdata/photos/2.jpg")
 		if err != nil {
 			log.Fatal().Err(err).Msg("failed to open file")
 		}

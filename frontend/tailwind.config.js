@@ -1,7 +1,7 @@
 module.exports = {
   content: [
     "./javascript/**/*.{js,svelte}",
-    "../apps/site/views/**/*.templ",
+    "../app/views/**/*.templ",
     "./node_modules/flowbite/**/*.js",
   ],
   theme: {

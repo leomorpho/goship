@@ -45,19 +45,19 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			name:      "dev default",
 			args:      []string{"dev"},
 			wantCode:  0,
-			wantCalls: []fakeCall{{name: "go", args: []string{"run", "./apps/cmd/web"}}},
+			wantCalls: []fakeCall{{name: "go", args: []string{"run", "./cmd/web"}}},
 		},
 		{
 			name:      "shipdev alias",
 			args:      []string{"shipdev"},
 			wantCode:  0,
-			wantCalls: []fakeCall{{name: "go", args: []string{"run", "./apps/cmd/web"}}},
+			wantCalls: []fakeCall{{name: "go", args: []string{"run", "./cmd/web"}}},
 		},
 		{
 			name:      "dev worker positional",
 			args:      []string{"dev", "worker"},
 			wantCode:  0,
-			wantCalls: []fakeCall{{name: "go", args: []string{"run", "./apps/cmd/worker"}}},
+			wantCalls: []fakeCall{{name: "go", args: []string{"run", "./cmd/worker"}}},
 		},
 		{
 			name:            "dev all positional",
@@ -71,7 +71,7 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			name:      "dev worker flag",
 			args:      []string{"dev", "--worker"},
 			wantCode:  0,
-			wantCalls: []fakeCall{{name: "go", args: []string{"run", "./apps/cmd/worker"}}},
+			wantCalls: []fakeCall{{name: "go", args: []string{"run", "./cmd/worker"}}},
 		},
 		{
 			name:            "dev all flag",
@@ -186,7 +186,7 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			name:      "db make",
 			args:      []string{"db:make", "add_posts"},
 			wantCode:  0,
-			wantCalls: []fakeCall{{name: "atlas", args: []string{"migrate", "diff", "add_posts", "--dir", atlasDir, "--to", "ent://apps/db/schema", "--dev-url", "sqlite://file?mode=memory&_fk=1"}}},
+			wantCalls: []fakeCall{{name: "atlas", args: []string{"migrate", "diff", "add_posts", "--dir", atlasDir, "--to", "ent://db/schema", "--dev-url", "sqlite://file?mode=memory&_fk=1"}}},
 		},
 		{
 			name:     "db make missing name",
@@ -198,7 +198,7 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			name:      "db seed",
 			args:      []string{"db:seed"},
 			wantCode:  0,
-			wantCalls: []fakeCall{{name: "go", args: []string{"run", "./apps/cmd/seed/main.go"}}},
+			wantCalls: []fakeCall{{name: "go", args: []string{"run", "./cmd/seed/main.go"}}},
 		},
 		{
 			name:     "db rollback default amount",
@@ -301,9 +301,9 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 		},
 		{
 			name:      "templ generate single file",
-			args:      []string{"templ", "generate", "--file", "apps/site/views/web/pages/home.templ"},
+			args:      []string{"templ", "generate", "--file", "app/views/web/pages/home.templ"},
 			wantCode:  0,
-			wantCalls: []fakeCall{{name: "templ", args: []string{"generate", "-f", "apps/site/views/web/pages/home.templ"}}},
+			wantCalls: []fakeCall{{name: "templ", args: []string{"generate", "-f", "app/views/web/pages/home.templ"}}},
 		},
 		{
 			name:     "templ generate invalid flag",
@@ -370,7 +370,7 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			args:     []string{"make:model", "Post"},
 			wantCode: 0,
 			wantCalls: []fakeCall{
-				{name: "go", args: []string{"run", "-mod=mod", "entgo.io/ent/cmd/ent", "generate", "--feature", "sql/upsert,sql/execquery", "--target", "./apps/db/ent", "./apps/db/schema"}},
+				{name: "go", args: []string{"run", "-mod=mod", "entgo.io/ent/cmd/ent", "generate", "--feature", "sql/upsert,sql/execquery", "--target", "./db/ent", "./db/schema"}},
 			},
 		},
 		{
@@ -378,7 +378,7 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			args:     []string{"make:model", "Post", "title:string"},
 			wantCode: 0,
 			wantCalls: []fakeCall{
-				{name: "go", args: []string{"run", "-mod=mod", "entgo.io/ent/cmd/ent", "generate", "--feature", "sql/upsert,sql/execquery", "--target", "./apps/db/ent", "./apps/db/schema"}},
+				{name: "go", args: []string{"run", "-mod=mod", "entgo.io/ent/cmd/ent", "generate", "--feature", "sql/upsert,sql/execquery", "--target", "./db/ent", "./db/schema"}},
 			},
 		},
 		{
@@ -391,14 +391,14 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			name:       "runner exit code is propagated",
 			args:       []string{"dev"},
 			wantCode:   7,
-			wantCalls:  []fakeCall{{name: "go", args: []string{"run", "./apps/cmd/web"}}},
+			wantCalls:  []fakeCall{{name: "go", args: []string{"run", "./cmd/web"}}},
 			runnerCode: 7,
 		},
 		{
 			name:      "runner error prints message",
 			args:      []string{"dev"},
 			wantCode:  1,
-			wantCalls: []fakeCall{{name: "go", args: []string{"run", "./apps/cmd/web"}}},
+			wantCalls: []fakeCall{{name: "go", args: []string{"run", "./cmd/web"}}},
 			wantErr:   "failed to run command",
 			runnerErr: errors.New("boom"),
 		},

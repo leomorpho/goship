@@ -146,7 +146,7 @@ ent-install: ## Install Ent code-generation module
 
 .PHONY: ent-gen
 ent-gen: ## Generate Ent code
-	go run entgo.io/ent/cmd/ent generate --feature sql/upsert,sql/execquery --target ./apps/db/ent ./apps/db/schema
+	go run entgo.io/ent/cmd/ent generate --feature sql/upsert,sql/execquery --target ./db/ent ./db/schema
 
 .PHONY: ent-new
 ent-new: ## Create a new Ent entity
@@ -170,7 +170,7 @@ down-volume: ensure-compose ## Stop Docker containers and delete volumes
 
 .PHONY: seed
 seed: ## Seed with data (must be clean to begin with or will die)
-	go run apps/cmd/seed/main.go
+	go run cmd/seed/main.go
 
 .PHONY: reset
 reset: down up ## Rebuild Docker containers to wipe all data
@@ -192,11 +192,11 @@ watch-js: ## Watch and rebuild JS/Svelte assets
 
 .PHONY: build-css
 build-css: ## Build CSS assets (auto reload changes)
-	$(TAILWIND) --config ./frontend/tailwind.config.js -i ./apps/site/styles/styles.css -o ./apps/site/static/styles_bundle.css
+	$(TAILWIND) --config ./frontend/tailwind.config.js -i ./app/styles/styles.css -o ./app/static/styles_bundle.css
 
 .PHONY: watch-css
 watch-css: ## Build CSS assets (auto reload changes)
-	$(TAILWIND) --config ./frontend/tailwind.config.js -i ./apps/site/styles/styles.css -o ./apps/site/static/styles_bundle.css --watch
+	$(TAILWIND) --config ./frontend/tailwind.config.js -i ./app/styles/styles.css -o ./app/static/styles_bundle.css --watch
 
 .PHONY: watch-go
 watch-go: ## Run the application with air (auto reload changes)
@@ -244,7 +244,7 @@ cover-treemap: ## Create a treemap view of the coverage report
 .PHONY: worker
 worker: ## Run the worker
 	clear
-	go run apps/cmd/worker/main.go
+	go run cmd/worker/main.go
 
 .PHONY: workerui
 workerui: ## Run the worker asynq dash
@@ -258,12 +258,12 @@ check-updates: ## Check for direct dependency updates
 # See https://tailwindcss.com/blog/standalone-cli
 .PHONY: tailwind-watch
 tailwind-watch: ## Start a Tailwind watcher
-	$(TAILWIND) --config ./frontend/tailwind.config.js -o apps/site/static/output.css --watch
+	$(TAILWIND) --config ./frontend/tailwind.config.js -o app/static/output.css --watch
 
 # See https://tailwindcss.com/blog/standalone-cli
 .PHONY: tailwind-compile
 tailwind-compile: ## Compile and minify your CSS for production
-	$(TAILWIND) --config ./frontend/tailwind.config.js -i apps/site/styles/styles.css -o apps/site/static/output.css --minify
+	$(TAILWIND) --config ./frontend/tailwind.config.js -i app/styles/styles.css -o app/static/output.css --minify
 
 .PHONY: deploy-cherie
 deploy-goship: ## Deploy new Goship version

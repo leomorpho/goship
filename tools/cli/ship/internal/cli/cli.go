@@ -14,8 +14,8 @@ import (
 )
 
 const (
-	atlasDir      = "file://apps/db/migrate/migrations"
-	entSchemaDir  = "apps/db/schema"
+	atlasDir      = "file://db/migrate/migrations"
+	entSchemaDir  = "db/schema"
 	atlasGoRunRef = "ariga.io/atlas/cmd/atlas@v0.27.1"
 )
 

@@ -1,11 +1,11 @@
 # Docker-free unit package set
 ./config
 ./framework/context
-./apps/site/web/ui
+./app/web/ui
 ./framework/funcmap
 ./framework/htmx
-./apps/site/web/middleware
+./app/web/middleware
 ./framework/repos/msg
 ./framework/runtimeplan
-./apps/site/foundation
+./app/foundation
 ./tools/cli/ship/...

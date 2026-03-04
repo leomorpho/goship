@@ -35,7 +35,7 @@ func TestMakeControllerIntegration_GeneratesControllerAndSnippet(t *testing.T) {
 		t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
 	}
 
-	controllerPath := filepath.Join(root, "apps", "site", "web", "controllers", "posts.go")
+	controllerPath := filepath.Join(root, "app", "web", "controllers", "posts.go")
 	content, err := os.ReadFile(controllerPath)
 	if err != nil {
 		t.Fatalf("read controller: %v", err)
@@ -63,15 +63,15 @@ func TestMakeControllerIntegration_WireIntoRouter(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	routerPath := filepath.Join(root, "apps", "site", "router.go")
+	routerPath := filepath.Join(root, "app", "router.go")
 	if err := os.MkdirAll(filepath.Dir(routerPath), 0o755); err != nil {
 		t.Fatal(err)
 	}
 	routerContent := `package goship
 
 import (
-	routeNames "github.com/leomorpho/goship/apps/site/web/routenames"
-	"github.com/leomorpho/goship/apps/site/web/controllers"
+	routeNames "github.com/leomorpho/goship/app/web/routenames"
+	"github.com/leomorpho/goship/app/web/controllers"
 )
 
 func registerPublicRoutes() {
@@ -141,12 +141,12 @@ func TestMakeControllerIntegration_WireStableAcrossMultipleRuns(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	routerPath := filepath.Join(projectRoot, "apps", "site", "router.go")
+	routerPath := filepath.Join(projectRoot, "app", "router.go")
 	router, err := os.ReadFile(routerPath)
 	if err != nil {
 		t.Fatal(err)
 	}
-	routerNoRouteNames := strings.ReplaceAll(string(router), "routeNames \"example.com/demo/apps/site/web/routenames\"\n", "")
+	routerNoRouteNames := strings.ReplaceAll(string(router), "routeNames \"example.com/demo/app/web/routenames\"\n", "")
 	if err := os.WriteFile(routerPath, []byte(routerNoRouteNames), 0o644); err != nil {
 		t.Fatal(err)
 	}
@@ -179,7 +179,7 @@ func TestMakeControllerIntegration_WireStableAcrossMultipleRuns(t *testing.T) {
 		t.Fatal(err)
 	}
 	routerText := string(updated)
-	if strings.Count(routerText, `routeNames "github.com/leomorpho/goship/apps/site/web/routenames"`) != 1 {
+	if strings.Count(routerText, `routeNames "github.com/leomorpho/goship/app/web/routenames"`) != 1 {
 		t.Fatalf("routeNames import should be inserted once, got router:\n%s", routerText)
 	}
 	if strings.Count(routerText, "ship:generated:posts") != 1 || strings.Count(routerText, "ship:generated:comments") != 1 {

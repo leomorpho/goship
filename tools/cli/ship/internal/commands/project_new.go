@@ -123,27 +123,30 @@ func ScaffoldNewProject(opts NewProjectOptions, d NewDeps) error {
 	}
 
 	files := map[string]string{
-		filepath.Join(opts.AppPath, "go.mod"):                                               renderGoMod(opts),
-		filepath.Join(opts.AppPath, "config", "modules.yaml"):                               renderModulesManifestSkeleton(),
-		filepath.Join(opts.AppPath, "apps", "site", "router.go"):                            renderRouterSkeleton(opts.Module),
-		filepath.Join(opts.AppPath, "apps", "site", "web", "routenames", "routenames.go"):   renderRouteNamesSkeleton(),
-		filepath.Join(opts.AppPath, "apps", "db", "schema", "user.go"):                      renderUserSchemaSkeleton(),
-		filepath.Join(opts.AppPath, "apps", "db", "migrate", "migrations", ".gitkeep"):      "",
-		filepath.Join(opts.AppPath, "apps", "site", "views", "templates.go"):                renderTemplatesSkeleton(),
-		filepath.Join(opts.AppPath, "apps", "site", "web", "controllers", "controllers.go"): renderControllersSkeleton(),
-		filepath.Join(opts.AppPath, "apps", "site", "web", "middleware", "middleware.go"):   renderMiddlewareSkeleton(),
-		filepath.Join(opts.AppPath, "apps", "site", "web", "ui", "ui.go"):                   renderUISkeleton(),
-		filepath.Join(opts.AppPath, "apps", "site", "web", "viewmodels", "viewmodels.go"):   renderViewModelsSkeleton(),
-		filepath.Join(opts.AppPath, "apps", "site", "jobs", "jobs.go"):                      renderJobsSkeleton(),
-		filepath.Join(opts.AppPath, "apps", "site", "foundation", "container.go"):           renderContainerSkeleton(),
-		filepath.Join(opts.AppPath, "apps", "site", "app", "profiles", "repo.go"):           renderProfilesDomainSkeleton(),
-		filepath.Join(opts.AppPath, "apps", "site", "app", "notifications", "notifier.go"):  renderNotificationsDomainSkeleton(),
-		filepath.Join(opts.AppPath, "apps", "site", "app", "subscriptions", "repo.go"):      renderSubscriptionsDomainSkeleton(),
-		filepath.Join(opts.AppPath, "apps", "site", "app", "emailsubscriptions", "repo.go"): renderEmailSubscriptionsDomainSkeleton(),
-		filepath.Join(opts.AppPath, "docs", "00-index.md"):                                  renderDocsIndexSkeleton(),
-		filepath.Join(opts.AppPath, "docs", "architecture", "01-architecture.md"):           renderArchitectureSkeleton(),
-		filepath.Join(opts.AppPath, "docs", "architecture", "08-cognitive-model.md"):        renderCognitiveModelSkeleton(),
-		filepath.Join(opts.AppPath, "cmd", "web", "main.go"):                                renderWebMain(),
+		filepath.Join(opts.AppPath, "go.mod"):                                        renderGoMod(opts),
+		filepath.Join(opts.AppPath, "Procfile"):                                      renderProcfile(),
+		filepath.Join(opts.AppPath, "Procfile.dev"):                                  renderProcfileDev(),
+		filepath.Join(opts.AppPath, "Procfile.worker"):                               renderProcfileWorker(),
+		filepath.Join(opts.AppPath, "config", "modules.yaml"):                        renderModulesManifestSkeleton(),
+		filepath.Join(opts.AppPath, "app", "router.go"):                              renderRouterSkeleton(opts.Module),
+		filepath.Join(opts.AppPath, "app", "web", "routenames", "routenames.go"):     renderRouteNamesSkeleton(),
+		filepath.Join(opts.AppPath, "db", "schema", "user.go"):                       renderUserSchemaSkeleton(),
+		filepath.Join(opts.AppPath, "db", "migrate", "migrations", ".gitkeep"):       "",
+		filepath.Join(opts.AppPath, "app", "views", "templates.go"):                  renderTemplatesSkeleton(),
+		filepath.Join(opts.AppPath, "app", "web", "controllers", "controllers.go"):   renderControllersSkeleton(),
+		filepath.Join(opts.AppPath, "app", "web", "middleware", "middleware.go"):     renderMiddlewareSkeleton(),
+		filepath.Join(opts.AppPath, "app", "web", "ui", "ui.go"):                     renderUISkeleton(),
+		filepath.Join(opts.AppPath, "app", "web", "viewmodels", "viewmodels.go"):     renderViewModelsSkeleton(),
+		filepath.Join(opts.AppPath, "app", "jobs", "jobs.go"):                        renderJobsSkeleton(),
+		filepath.Join(opts.AppPath, "app", "foundation", "container.go"):             renderContainerSkeleton(),
+		filepath.Join(opts.AppPath, "app", "profiles", "repo.go"):                    renderProfilesDomainSkeleton(),
+		filepath.Join(opts.AppPath, "app", "notifications", "notifier.go"):           renderNotificationsDomainSkeleton(),
+		filepath.Join(opts.AppPath, "app", "subscriptions", "repo.go"):               renderSubscriptionsDomainSkeleton(),
+		filepath.Join(opts.AppPath, "app", "emailsubscriptions", "repo.go"):          renderEmailSubscriptionsDomainSkeleton(),
+		filepath.Join(opts.AppPath, "docs", "00-index.md"):                           renderDocsIndexSkeleton(),
+		filepath.Join(opts.AppPath, "docs", "architecture", "01-architecture.md"):    renderArchitectureSkeleton(),
+		filepath.Join(opts.AppPath, "docs", "architecture", "08-cognitive-model.md"): renderCognitiveModelSkeleton(),
+		filepath.Join(opts.AppPath, "cmd", "web", "main.go"):                         renderWebMain(),
 	}
 	policyYAML := renderScaffoldAgentPolicyYAML()
 	files[filepath.Join(opts.AppPath, d.AgentPolicyFilePath)] = policyYAML
@@ -196,6 +199,24 @@ modules: []
 `
 }
 
+func renderProcfile() string {
+	return `watch-js: make watch-js
+watch-go: make watch-go
+watch-css: make watch-css
+watch-go-worker: make worker
+`
+}
+
+func renderProcfileDev() string {
+	return `watch-go: make watch-go
+`
+}
+
+func renderProcfileWorker() string {
+	return `watch-go-worker: make worker
+`
+}
+
 func renderScaffoldAgentPolicyYAML() string {
 	return `version: 1
 commands:
@@ -209,8 +230,8 @@ func renderRouterSkeleton(module string) string {
 	return fmt.Sprintf(`package goship
 
 import (
-	routeNames "%s/apps/site/web/routenames"
-	"%s/apps/site/web/controllers"
+	routeNames "%s/app/web/routenames"
+	"%s/app/web/controllers"
 )
 
 func registerPublicRoutes() {

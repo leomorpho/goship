@@ -5,7 +5,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/leomorpho/goship/apps/db/ent"
+	"github.com/leomorpho/goship/db/ent"
 	"github.com/leomorpho/goship/framework/domain"
 	"github.com/leomorpho/goship/framework/repos/pubsub"
 	"github.com/stretchr/testify/mock"

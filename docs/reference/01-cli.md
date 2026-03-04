@@ -72,10 +72,10 @@ Database:
 Generation:
 
 - `ship templ generate [--path <dir>] [--file <file.templ>]`
-- `ship make:resource <name> [--path apps/site] [--auth public|auth] [--views templ|none] [--domain <name>] [--wire] [--dry-run]` (or `ship make` for help)
+- `ship make:resource <name> [--path app] [--auth public|auth] [--views templ|none] [--domain <name>] [--wire] [--dry-run]` (or `ship make` for help)
 - `ship make:model <Name> [fields...] [--force]`
 - `ship make:controller <Name|NameController> [--actions index,show,create,update,destroy] [--auth public|auth] [--domain <name>] [--wire]`
-- `ship make:scaffold <Name> [fields...] [--path apps/site] [--views templ|none] [--auth public|auth] [--api] [--migrate] [--dry-run] [--force]`
+- `ship make:scaffold <Name> [fields...] [--path app] [--views templ|none] [--auth public|auth] [--api] [--migrate] [--dry-run] [--force]`
 - `ship make:module <Name> [--path modules] [--module-base github.com/leomorpho/goship-modules] [--dry-run] [--force]`
 - `ship destroy <generated-artifact>` (planned)
 
@@ -96,8 +96,8 @@ Command grammar policy:
 
 These commands are implemented as wrappers over existing workflows:
 
-- `ship dev` -> `go run ./apps/cmd/web`
-- `ship dev --worker` -> `go run ./apps/cmd/worker`
+- `ship dev` -> `go run ./cmd/web`
+- `ship dev --worker` -> `go run ./cmd/worker`
 - `ship dev --all` -> starts both processes concurrently with prefixed logs (`[web]`, `[worker]`) and signal-aware shutdown
 - `ship check` -> `go test ./...` (compile + unit checks, no integration-tagged tests)
 - `ship test` -> `go test ./...` (integration-tagged tests are excluded by default)
@@ -105,14 +105,14 @@ These commands are implemented as wrappers over existing workflows:
 - `ship infra:up` -> detects `docker-compose`/`docker compose` and runs `up -d cache`, then attempts `up -d mailpit` (non-fatal if mailpit fails)
 - `ship infra:down` -> detects `docker-compose`/`docker compose` and runs `down`
 - `ship db:create` -> validates that target database URL is reachable (`atlas schema inspect --url <resolved>`)
-- `ship db:migrate` -> `atlas migrate apply --dir file://apps/db/migrate/migrations --url <resolved>`
-- `ship db:status` -> `atlas migrate status --dir file://apps/db/migrate/migrations --url <resolved>`
+- `ship db:migrate` -> `atlas migrate apply --dir file://db/migrate/migrations --url <resolved>`
+- `ship db:status` -> `atlas migrate status --dir file://db/migrate/migrations --url <resolved>`
 - `ship db:reset [--seed] [--force] [--yes] [--dry-run]` -> prints plan, runs `atlas schema clean --auto-approve`, then `atlas migrate apply`; optional seed
 - `ship db:drop [--force] [--yes] [--dry-run]` -> prints plan, runs `atlas schema clean --auto-approve`
-- `ship db:make <migration_name>` -> `atlas migrate diff <migration_name> --dir file://apps/db/migrate/migrations --to ent://apps/db/schema --dev-url sqlite://file?mode=memory&_fk=1`
+- `ship db:make <migration_name>` -> `atlas migrate diff <migration_name> --dir file://db/migrate/migrations --to ent://db/schema --dev-url sqlite://file?mode=memory&_fk=1`
 - `ship db:rollback [amount]` -> `atlas migrate down ... [amount]`
 - Atlas is managed by `ship`: it uses `atlas` from `PATH` when present, otherwise auto-installs pinned `ariga.io/atlas/cmd/atlas@v0.27.1` to `.cache/tools/bin/atlas`, and finally falls back to `go run` for zero-friction operation.
-- `ship db:seed` -> `go run ./apps/cmd/seed/main.go`
+- `ship db:seed` -> `go run ./cmd/seed/main.go`
 
 DB URL resolution precedence for db commands:
 
@@ -136,15 +136,15 @@ Safety matrix:
 - `ship agent:setup` -> generate per-agent allowlist artifacts from `tools/agent-policy/allowed-commands.yaml`
 - `ship agent:check` -> fail if generated artifacts drift from canonical allowlist (for pre-commit/CI parity)
 - `ship agent:status` -> show best-effort local Codex/Claude/Gemini install status vs repo policy
-- `ship make:resource <name>` -> scaffold handler (+ optional templ page), ensure route-name constant, and print route snippet for manual insertion in `apps/site/router.go`
+- `ship make:resource <name>` -> scaffold handler (+ optional templ page), ensure route-name constant, and print route snippet for manual insertion in `app/router.go`
 - `ship make:resource <name> --domain <name>` -> generate domain-aware constructor slot (`domainService any`) and route wiring using `nil` placeholder
-- `ship make:resource <name> --wire` -> also insert snippet behind ship markers in `apps/site/router.go`
+- `ship make:resource <name> --wire` -> also insert snippet behind ship markers in `app/router.go`
 - `ship make:resource <name> --dry-run` -> preview all planned changes without writing files
 - `ship make:model <Name>` -> run Ent schema scaffolding (`ent new`) then ORM codegen (`ent generate`)
-- `ship make:model <Name> [fields...]` -> write `apps/db/schema/<model>.go` with typed fields, then run ORM codegen (`ent generate`)
-- `ship make:controller <Name>` -> generate controller/handler scaffold in `apps/site/web/controllers`
+- `ship make:model <Name> [fields...]` -> write `db/schema/<model>.go` with typed fields, then run ORM codegen (`ent generate`)
+- `ship make:controller <Name>` -> generate controller/handler scaffold in `app/web/controllers`
 - `ship make:controller <Name> --domain <name>` -> generate domain-aware constructor slot (`domainService any`) and route wiring using `nil` placeholder
-- `ship make:controller <Name> --actions ... --wire` -> wire generated routes into `apps/site/router.go` markers
+- `ship make:controller <Name> --actions ... --wire` -> wire generated routes into `app/router.go` markers
 - `ship make:scaffold <Name> ...` -> orchestration command that composes `make:model`, `db:make`, `make:controller --domain <plural_model> --wire`, and optionally `make:resource --domain <plural_model>` / `db:migrate`
 - `ship make:module <Name>` -> generate isolated module scaffold in `modules/<name>` with its own `go.mod`, module-facing types/contracts, and service tests
 - `ship upgrade --to <version>` -> updates `atlasGoRunRef` pin in `tools/cli/ship/cli.go`
@@ -153,7 +153,7 @@ Safety matrix:
 
 Doctor checks (current):
 
-- validates canonical app/layout directories under `apps/site`
+- validates canonical app/layout directories under `app`
 - validates required files (router, container, routenames, core docs)
 - flags forbidden legacy paths from pre-refactor layout
 - validates router marker pairs used by `--wire` generators
@@ -177,14 +177,14 @@ Field syntax for `make:model`:
 2. Writes deterministic starter files:
 `go.mod`
 `config/modules.yaml` (workspace-level module enablement)
-`apps/site/router.go` (with route marker pairs for `--wire`)
-`apps/site/web/routenames/routenames.go`
-`apps/site/views/templates.go`
-`apps/site/foundation/container.go`
-`apps/site/app/*` (domain skeletons)
-`apps/site/web/{controllers,middleware,ui,viewmodels}`
-`apps/site/jobs/jobs.go`
-`apps/db/{schema,migrate/migrations}`
+`app/router.go` (with route marker pairs for `--wire`)
+`app/web/routenames/routenames.go`
+`app/views/templates.go`
+`app/foundation/container.go`
+`app/*` (domain skeletons)
+`app/web/{controllers,middleware,ui,viewmodels}`
+`app/jobs/jobs.go`
+`db/{schema,migrate/migrations}`
 `docs/00-index.md` and baseline architecture docs
 3. Supports `--dry-run` and `--force`.
 
@@ -201,9 +201,9 @@ Resource generator contract (v1 minimal):
 Markers:
 `// ship:routes:public:start ... // ship:routes:public:end`
 `// ship:routes:auth:start ... // ship:routes:auth:end`
-3. Creates `apps/site/web/controllers/<resource>.go`.
-4. Creates `apps/site/views/web/pages/<resource>.templ` when `--views templ`.
-5. Ensures `RouteName<Resource>` constant exists in `apps/site/web/routenames/routenames.go`.
+3. Creates `app/web/controllers/<resource>.go`.
+4. Creates `app/views/web/pages/<resource>.templ` when `--views templ`.
+5. Ensures `RouteName<Resource>` constant exists in `app/web/routenames/routenames.go`.
 6. Prints exact snippet target (`registerPublicRoutes` or `registerAuthRoutes`) when not wiring.
 
 Generated handler behavior:
@@ -233,7 +233,7 @@ CLI owns:
 
 App/framework owns:
 
-- actual runtime behavior in `apps/cmd/*`, `apps/site/*`, `framework/*`, and `config/*`.
+- actual runtime behavior in `cmd/*`, `app/*`, `framework/*`, and `config/*`.
 
 Rule:
 
