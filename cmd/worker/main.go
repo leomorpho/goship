@@ -67,12 +67,11 @@ func main() {
 		c.Web.Logger.Fatalf("failed to build router: %v", err)
 	}
 
-	storageRepo := storagerepo.NewStorageClient(c.Config, c.ORM)
-	subscriptionsRepo := paidSubscriptionsService
-	profileRepo := profiles.NewProfileRepo(c.ORM, storageRepo, subscriptionsRepo)
+	storageClient := storagerepo.NewStorageClient(c.Config, c.ORM)
+	profileRepo := profiles.NewProfileRepo(c.ORM, storageClient, paidSubscriptionsService)
 
-	plannedNotificationRepo := notifications.NewPlannedNotificationsRepo(
-		c.ORM, subscriptionsRepo)
+	plannedNotificationsRepo := notifications.NewPlannedNotificationsRepo(
+		c.ORM, paidSubscriptionsService)
 
 	emailSubscriptionConfirmationProcessor := tasks.NewEmailSubscriptionConfirmationProcessor(
 		c.Mail, c.Config,
@@ -80,9 +79,9 @@ func main() {
 
 	emailUpdateProcessor := tasks.NewEmailUpdateProcessor(c, c.ORM)
 
-	deactivateExpiredSubscriptionsProcessor := tasks.NewDeactivateExpiredSubscriptionsProcessor(subscriptionsRepo)
-	allDailyConvoNotificationsProcessor := tasks.NewAllDailyConvoNotificationsProcessor(c.ORM, profileRepo, plannedNotificationRepo, c.CoreJobs, 30)
-	dailyConvoNotificationsProcessor := tasks.NewDailyConvoNotificationsProcessor(c.Notifier, c.Web, subscriptionsRepo, plannedNotificationRepo)
+	deactivateExpiredSubscriptionsProcessor := tasks.NewDeactivateExpiredSubscriptionsProcessor(paidSubscriptionsService)
+	allDailyConvoNotificationsProcessor := tasks.NewAllDailyConvoNotificationsProcessor(c.ORM, profileRepo, plannedNotificationsRepo, c.CoreJobs, 30)
+	dailyConvoNotificationsProcessor := tasks.NewDailyConvoNotificationsProcessor(c.Notifier, c.Web, paidSubscriptionsService, plannedNotificationsRepo)
 	deleteStaleNotificationsProcessor := tasks.NewDeleteStaleNotificationsProcessor(
 		c.ORM, c.Config.App.OperationalConstants.DeleteStaleNotificationAfterDays,
 	)
