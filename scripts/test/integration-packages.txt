@@ -1,9 +1,9 @@
 # Packages with infrastructure-heavy tests
-./app/goship/web/controllers
-./app/goship/repos/emailsmanager
-./pkg/repos/notifierrepo
-./pkg/repos/profilerepo
-./pkg/repos/subscriptions
+./apps/goship/web/controllers
+./apps/goship/app/emailsubscriptions
+./apps/goship/app/notifications
+./apps/goship/app/profiles
+./apps/goship/app/subscriptions
 ./seeder
-./app/goship/services
+./apps/goship/foundation
 ./cli/ship

@@ -28,7 +28,7 @@ func TestMakeControllerIntegration_GeneratesControllerAndSnippet(t *testing.T) {
 		t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
 	}
 
-	controllerPath := filepath.Join(root, "app", "goship", "web", "routes", "posts.go")
+	controllerPath := filepath.Join(root, "apps", "goship", "web", "controllers", "posts.go")
 	content, err := os.ReadFile(controllerPath)
 	if err != nil {
 		t.Fatalf("read controller: %v", err)
@@ -56,15 +56,15 @@ func TestMakeControllerIntegration_WireIntoRouter(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	routerPath := filepath.Join(root, "app", "goship", "router.go")
+	routerPath := filepath.Join(root, "apps", "goship", "router.go")
 	if err := os.MkdirAll(filepath.Dir(routerPath), 0o755); err != nil {
 		t.Fatal(err)
 	}
 	routerContent := `package goship
 
 import (
-	routeNames "github.com/leomorpho/goship/app/goship/web/routenames"
-	"github.com/leomorpho/goship/app/goship/web/controllers"
+	routeNames "github.com/leomorpho/goship/apps/goship/web/routenames"
+	"github.com/leomorpho/goship/apps/goship/web/controllers"
 )
 
 func registerPublicRoutes() {

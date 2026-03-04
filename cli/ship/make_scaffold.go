@@ -27,15 +27,16 @@ func (c CLI) runMakeScaffold(args []string) int {
 
 	controllerName := pluralizeBasic(opts.ModelName)
 	resourceName := modelFileName(opts.ModelName)
+	domainName := pluralizeBasic(modelFileName(opts.ModelName))
 	migrationName := "add_" + pluralizeBasic(modelFileName(opts.ModelName))
 
 	steps := []string{
 		"ship make:model " + opts.ModelName + " " + strings.Join(opts.Fields, " "),
 		"ship db:make " + migrationName,
-		"ship make:controller " + controllerName + " --actions index,show,create,update,destroy --auth " + opts.Auth + " --wire --path " + opts.Path,
+		"ship make:controller " + controllerName + " --actions index,show,create,update,destroy --auth " + opts.Auth + " --domain " + domainName + " --wire --path " + opts.Path,
 	}
 	if !opts.API {
-		steps = append(steps, "ship make:resource "+resourceName+" --path "+opts.Path+" --auth "+opts.Auth+" --views "+opts.Views+" --wire")
+		steps = append(steps, "ship make:resource "+resourceName+" --path "+opts.Path+" --auth "+opts.Auth+" --views "+opts.Views+" --domain "+domainName+" --wire")
 	}
 	if opts.Migrate {
 		steps = append(steps, "ship db:migrate")
@@ -62,13 +63,13 @@ func (c CLI) runMakeScaffold(args []string) int {
 		return code
 	}
 
-	controllerArgs := []string{controllerName, "--actions", "index,show,create,update,destroy", "--auth", opts.Auth, "--wire", "--path", opts.Path}
+	controllerArgs := []string{controllerName, "--actions", "index,show,create,update,destroy", "--auth", opts.Auth, "--domain", domainName, "--wire", "--path", opts.Path}
 	if code := c.runMakeController(controllerArgs); code != 0 {
 		return code
 	}
 
 	if !opts.API {
-		resourceArgs := []string{resourceName, "--path", opts.Path, "--auth", opts.Auth, "--views", opts.Views, "--wire"}
+		resourceArgs := []string{resourceName, "--path", opts.Path, "--auth", opts.Auth, "--views", opts.Views, "--domain", domainName, "--wire"}
 		if code := c.runGenerateResource(resourceArgs); code != 0 {
 			return code
 		}
@@ -89,12 +90,12 @@ func (c CLI) runMakeScaffold(args []string) int {
 
 func parseMakeScaffoldArgs(args []string) (scaffoldMakeOptions, error) {
 	opts := scaffoldMakeOptions{
-		Path:  "app/goship",
+		Path:  "apps/goship",
 		Views: "templ",
 		Auth:  "public",
 	}
 	if len(args) == 0 {
-		return opts, errors.New("usage: ship make:scaffold <Name> [fields...] [--path app/goship] [--views templ|none] [--auth public|auth] [--api] [--migrate] [--dry-run] [--force]")
+		return opts, errors.New("usage: ship make:scaffold <Name> [fields...] [--path apps/goship] [--views templ|none] [--auth public|auth] [--api] [--migrate] [--dry-run] [--force]")
 	}
 	opts.ModelName = strings.TrimSpace(args[0])
 	if !modelNamePattern.MatchString(opts.ModelName) {

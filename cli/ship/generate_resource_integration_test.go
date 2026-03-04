@@ -32,17 +32,17 @@ func TestGenerateResourceIntegration_FullGenerationExactOutput(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	routerPath := filepath.Join(projectRoot, "app", "goship", "router.go")
-	routeNamesPath := filepath.Join(projectRoot, "pkg", "routing", "routenames", "routenames.go")
+	routerPath := filepath.Join(projectRoot, "apps", "goship", "router.go")
+	routeNamesPath := filepath.Join(projectRoot, "apps", "goship", "web", "routenames", "routenames.go")
 
 	out.Reset()
 	errOut.Reset()
-	code = cli.Run([]string{"make:resource", "contact_form", "--path", "app/goship", "--auth", "public", "--views", "templ", "--wire"})
+	code = cli.Run([]string{"make:resource", "contact_form", "--path", "apps/goship", "--auth", "public", "--views", "templ", "--wire"})
 	if code != 0 {
 		t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
 	}
 
-	handlerPath := filepath.Join(projectRoot, "app", "goship", "web", "routes", "contact_form.go")
+	handlerPath := filepath.Join(projectRoot, "apps", "goship", "web", "controllers", "contact_form.go")
 	handlerBytes, err := os.ReadFile(handlerPath)
 	if err != nil {
 		t.Fatalf("read handler: %v", err)
@@ -51,22 +51,22 @@ func TestGenerateResourceIntegration_FullGenerationExactOutput(t *testing.T) {
 
 import (
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/app/goship/views"
-	"github.com/leomorpho/goship/app/goship/views/web/layouts/gen"
-	"github.com/leomorpho/goship/app/goship/views/web/pages/gen"
-	"github.com/leomorpho/goship/app/goship/webui"
+	"github.com/leomorpho/goship/apps/goship/views"
+	"github.com/leomorpho/goship/apps/goship/views/web/layouts/gen"
+	"github.com/leomorpho/goship/apps/goship/views/web/pages/gen"
+	"github.com/leomorpho/goship/apps/goship/web/ui"
 )
 
 type contactForm struct {
-	ctr webui.Controller
+	ctr ui.Controller
 }
 
-func NewContactFormRoute(ctr webui.Controller) *contactForm {
+func NewContactFormRoute(ctr ui.Controller) *contactForm {
 	return &contactForm{ctr: ctr}
 }
 
 func (r *contactForm) Get(ctx echo.Context) error {
-	page := webui.NewPage(ctx)
+	page := ui.NewPage(ctx)
 	page.Layout = layouts.Main
 	page.Name = templates.Page("contact-form")
 	page.Title = "ContactForm"
@@ -80,16 +80,16 @@ func (r *contactForm) Get(ctx echo.Context) error {
 		t.Fatalf("handler mismatch\n--- got ---\n%s\n--- want ---\n%s", string(handlerBytes), handlerExpected)
 	}
 
-	templPath := filepath.Join(projectRoot, "app", "goship", "views", "web", "pages", "contact_form.templ")
+	templPath := filepath.Join(projectRoot, "apps", "goship", "views", "web", "pages", "contact_form.templ")
 	templBytes, err := os.ReadFile(templPath)
 	if err != nil {
 		t.Fatalf("read templ: %v", err)
 	}
 	templExpected := `package pages
 
-import "github.com/leomorpho/goship/app/goship/webui"
+import "github.com/leomorpho/goship/apps/goship/web/ui"
 
-templ ContactFormPage(page *webui.Page) {
+templ ContactFormPage(page *ui.Page) {
 	<section>
 		<h1>ContactForm</h1>
 		<p>TODO: implement contact-form page.</p>

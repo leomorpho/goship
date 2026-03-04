@@ -68,10 +68,10 @@ Database:
 Generation:
 
 - `ship templ generate [--path <dir>] [--file <file.templ>]`
-- `ship make:resource <name> [--path app/goship] [--auth public|auth] [--views templ|none] [--wire] [--dry-run]` (or `ship make` for help)
+- `ship make:resource <name> [--path apps/goship] [--auth public|auth] [--views templ|none] [--domain <name>] [--wire] [--dry-run]` (or `ship make` for help)
 - `ship make:model <Name> [fields...] [--force]`
-- `ship make:controller <Name|NameController> [--actions index,show,create,update,destroy] [--auth public|auth] [--wire]`
-- `ship make:scaffold <Name> [fields...] [--path app/goship] [--views templ|none] [--auth public|auth] [--api] [--migrate] [--dry-run] [--force]`
+- `ship make:controller <Name|NameController> [--actions index,show,create,update,destroy] [--auth public|auth] [--domain <name>] [--wire]`
+- `ship make:scaffold <Name> [fields...] [--path apps/goship] [--views templ|none] [--auth public|auth] [--api] [--migrate] [--dry-run] [--force]`
 - `ship destroy <generated-artifact>` (planned)
 
 Command grammar policy:
@@ -100,11 +100,11 @@ These commands are implemented as wrappers over existing workflows:
 - `ship infra:up` -> detects `docker-compose`/`docker compose` and runs `up -d cache`, then attempts `up -d mailpit` (non-fatal if mailpit fails)
 - `ship infra:down` -> detects `docker-compose`/`docker compose` and runs `down`
 - `ship db:create` -> validates that target database URL is reachable (`atlas schema inspect --url <resolved>`)
-- `ship db:migrate` -> `atlas migrate apply --dir file://app/goship/db/migrate/migrations --url <resolved>`
-- `ship db:status` -> `atlas migrate status --dir file://app/goship/db/migrate/migrations --url <resolved>`
+- `ship db:migrate` -> `atlas migrate apply --dir file://apps/goship/db/migrate/migrations --url <resolved>`
+- `ship db:status` -> `atlas migrate status --dir file://apps/goship/db/migrate/migrations --url <resolved>`
 - `ship db:reset [--seed] [--force] [--yes] [--dry-run]` -> prints plan, runs `atlas schema clean --auto-approve`, then `atlas migrate apply`; optional seed
 - `ship db:drop [--force] [--yes] [--dry-run]` -> prints plan, runs `atlas schema clean --auto-approve`
-- `ship db:make <migration_name>` -> `atlas migrate diff <migration_name> --dir file://app/goship/db/migrate/migrations --to ent://app/goship/db/schema --dev-url sqlite://file?mode=memory&_fk=1`
+- `ship db:make <migration_name>` -> `atlas migrate diff <migration_name> --dir file://apps/goship/db/migrate/migrations --to ent://apps/goship/db/schema --dev-url sqlite://file?mode=memory&_fk=1`
 - `ship db:rollback [amount]` -> `atlas migrate down ... [amount]`
 - Atlas is managed by `ship`: it uses `atlas` from `PATH` when present, otherwise auto-installs pinned `ariga.io/atlas/cmd/atlas@v0.27.1` to `.cache/tools/bin/atlas`, and finally falls back to `go run` for zero-friction operation.
 - `ship db:seed` -> `go run ./cmd/seed/main.go`
@@ -128,14 +128,16 @@ Safety matrix:
 | `db:create` | safe; supports `--dry-run` | safe; supports `--dry-run` | safe; supports `--dry-run` |
 - `ship templ generate --path app` -> `templ generate -path app`, then move each `*_templ.go` into sibling `gen/` directory
 - `ship new <app>` -> create minimal deterministic project scaffold in a new directory (no network calls)
-- `ship make:resource <name>` -> scaffold handler (+ optional templ page), ensure route-name constant, and print route snippet for manual insertion in `app/goship/router.go`
-- `ship make:resource <name> --wire` -> also insert snippet behind ship markers in `app/goship/router.go`
+- `ship make:resource <name>` -> scaffold handler (+ optional templ page), ensure route-name constant, and print route snippet for manual insertion in `apps/goship/router.go`
+- `ship make:resource <name> --domain <name>` -> generate domain-aware constructor slot (`domainService any`) and route wiring using `nil` placeholder
+- `ship make:resource <name> --wire` -> also insert snippet behind ship markers in `apps/goship/router.go`
 - `ship make:resource <name> --dry-run` -> preview all planned changes without writing files
 - `ship make:model <Name>` -> run Ent schema scaffolding (`ent new`) then ORM codegen (`ent generate`)
-- `ship make:model <Name> [fields...]` -> write `app/goship/db/schema/<model>.go` with typed fields, then run ORM codegen (`ent generate`)
-- `ship make:controller <Name>` -> generate controller/handler scaffold in `app/goship/web/controllers`
-- `ship make:controller <Name> --actions ... --wire` -> wire generated routes into `app/goship/router.go` markers
-- `ship make:scaffold <Name> ...` -> orchestration command that composes `make:model`, `db:make`, `make:controller --wire`, and optionally `make:resource` / `db:migrate`
+- `ship make:model <Name> [fields...]` -> write `apps/goship/db/schema/<model>.go` with typed fields, then run ORM codegen (`ent generate`)
+- `ship make:controller <Name>` -> generate controller/handler scaffold in `apps/goship/web/controllers`
+- `ship make:controller <Name> --domain <name>` -> generate domain-aware constructor slot (`domainService any`) and route wiring using `nil` placeholder
+- `ship make:controller <Name> --actions ... --wire` -> wire generated routes into `apps/goship/router.go` markers
+- `ship make:scaffold <Name> ...` -> orchestration command that composes `make:model`, `db:make`, `make:controller --domain <plural_model> --wire`, and optionally `make:resource --domain <plural_model>` / `db:migrate`
 
 Field syntax for `make:model`:
 
@@ -148,9 +150,9 @@ Field syntax for `make:model`:
 1. Creates a local scaffold only (no external downloads or package installs).
 2. Writes deterministic starter files:
 `go.mod`
-`app/goship/router.go` (with route marker pairs for `--wire`)
-`app/goship/web/routenames/routenames.go`
-`app/goship/views/templates.go`
+`apps/goship/router.go` (with route marker pairs for `--wire`)
+`apps/goship/web/routenames/routenames.go`
+`apps/goship/views/templates.go`
 3. Supports `--dry-run` and `--force`.
 
 Generated project workflow:
@@ -166,9 +168,9 @@ Resource generator contract (v1 minimal):
 Markers:
 `// ship:routes:public:start ... // ship:routes:public:end`
 `// ship:routes:auth:start ... // ship:routes:auth:end`
-3. Creates `app/goship/web/controllers/<resource>.go`.
-4. Creates `app/goship/views/web/pages/<resource>.templ` when `--views templ`.
-5. Ensures `RouteName<Resource>` constant exists in `app/goship/web/routenames/routenames.go`.
+3. Creates `apps/goship/web/controllers/<resource>.go`.
+4. Creates `apps/goship/views/web/pages/<resource>.templ` when `--views templ`.
+5. Ensures `RouteName<Resource>` constant exists in `apps/goship/web/routenames/routenames.go`.
 6. Prints exact snippet target (`registerPublicRoutes` or `registerAuthRoutes`) when not wiring.
 
 Generated handler behavior:
@@ -196,7 +198,7 @@ CLI owns:
 
 App/framework owns:
 
-- actual runtime behavior in `cmd/*`, `app/goship/*`, `pkg/*`, and `config/*`.
+- actual runtime behavior in `cmd/*`, `apps/goship/*`, `pkg/*`, and `config/*`.
 
 Rule:
 

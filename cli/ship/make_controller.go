@@ -18,6 +18,7 @@ type controllerMakeOptions struct {
 	Actions []string
 	Auth    string
 	Wire    bool
+	Domain  string
 }
 
 type controllerNames struct {
@@ -41,13 +42,19 @@ func (c CLI) runMakeController(args []string) int {
 		return 1
 	}
 
-	controllerPath := filepath.Join(opts.Path, "web", "routes", names.FileName)
+	controllerPath := filepath.Join(opts.Path, "web", "controllers", names.FileName)
 	if hasFile(controllerPath) {
 		fmt.Fprintf(c.Err, "refusing to overwrite existing controller file: %s\n", controllerPath)
 		return 1
 	}
 
-	content, err := renderControllerFile(names, opts.Actions)
+	domain, err := normalizeDomainTarget(opts.Domain)
+	if err != nil {
+		fmt.Fprintf(c.Err, "invalid --domain value: %v\n", err)
+		return 1
+	}
+
+	content, err := renderControllerFile(names, opts.Actions, domain)
 	if err != nil {
 		fmt.Fprintf(c.Err, "failed to render controller: %v\n", err)
 		return 1
@@ -63,7 +70,7 @@ func (c CLI) runMakeController(args []string) int {
 
 	fmt.Fprintf(c.Out, "Generated controller: %s\n", controllerPath)
 
-	routeSnippet := renderControllerRouteSnippet(names, opts.Actions, opts.Auth)
+	routeSnippet := renderControllerRouteSnippet(names, opts.Actions, opts.Auth, domain.Name != "")
 	if opts.Wire {
 		routerPath := filepath.Join(opts.Path, "router.go")
 		if err := ensureRouteNamesImport(routerPath, false); err != nil {
@@ -85,16 +92,16 @@ func (c CLI) runMakeController(args []string) int {
 
 func parseMakeControllerArgs(args []string) (controllerMakeOptions, error) {
 	opts := controllerMakeOptions{
-		Path:    "app/goship",
+		Path:    "apps/goship",
 		Actions: []string{"index"},
 		Auth:    "public",
 	}
 	if len(args) == 0 {
-		return opts, errors.New("usage: ship make:controller <Name|NameController> [--actions index,show,create,update,destroy] [--auth public|auth] [--wire]")
+		return opts, errors.New("usage: ship make:controller <Name|NameController> [--actions index,show,create,update,destroy] [--auth public|auth] [--domain <name>] [--wire]")
 	}
 	opts.Name = strings.TrimSpace(args[0])
 	if opts.Name == "" {
-		return opts, errors.New("usage: ship make:controller <Name|NameController> [--actions index,show,create,update,destroy] [--auth public|auth] [--wire]")
+		return opts, errors.New("usage: ship make:controller <Name|NameController> [--actions index,show,create,update,destroy] [--auth public|auth] [--domain <name>] [--wire]")
 	}
 
 	for i := 1; i < len(args); i++ {
@@ -124,6 +131,14 @@ func parseMakeControllerArgs(args []string) (controllerMakeOptions, error) {
 				return opts, err
 			}
 			opts.Actions = actions
+		case strings.HasPrefix(args[i], "--domain="):
+			opts.Domain = strings.TrimSpace(strings.TrimPrefix(args[i], "--domain="))
+		case args[i] == "--domain":
+			if i+1 >= len(args) {
+				return opts, errors.New("missing value for --domain")
+			}
+			i++
+			opts.Domain = strings.TrimSpace(args[i])
 		case args[i] == "--actions":
 			if i+1 >= len(args) {
 				return opts, errors.New("missing value for --actions")
@@ -193,7 +208,29 @@ func normalizeControllerName(raw string) (controllerNames, error) {
 	}, nil
 }
 
-func renderControllerFile(names controllerNames, actions []string) (string, error) {
+type normalizedDomainTarget struct {
+	Name   string
+	Snake  string
+	Pascal string
+}
+
+func normalizeDomainTarget(raw string) (normalizedDomainTarget, error) {
+	name := strings.TrimSpace(raw)
+	if name == "" {
+		return normalizedDomainTarget{}, nil
+	}
+	parts := splitWords(name)
+	if len(parts) == 0 {
+		return normalizedDomainTarget{}, errors.New("domain must contain letters or numbers")
+	}
+	return normalizedDomainTarget{
+		Name:   name,
+		Snake:  strings.Join(parts, "_"),
+		Pascal: toPascalFromParts(parts),
+	}, nil
+}
+
+func renderControllerFile(names controllerNames, actions []string, domain normalizedDomainTarget) (string, error) {
 	var b strings.Builder
 	b.WriteString("package controllers\n\n")
 	b.WriteString("import (\n")
@@ -202,17 +239,33 @@ func renderControllerFile(names controllerNames, actions []string) (string, erro
 	b.WriteString(")\n\n")
 	b.WriteString("type ")
 	b.WriteString(names.VarName)
-	b.WriteString(" struct{}\n\n")
+	b.WriteString(" struct {\n")
+	if domain.Name != "" {
+		b.WriteString("\tdomainService any\n")
+	}
+	b.WriteString("}\n\n")
 	b.WriteString("func New")
 	b.WriteString(names.BaseTitle)
-	b.WriteString("Controller() *")
-	b.WriteString(names.VarName)
-	b.WriteString(" {\n")
-	b.WriteString("\treturn &")
-	b.WriteString(names.VarName)
-	b.WriteString("{}\n")
-	b.WriteString("}\n\n")
-
+	b.WriteString("Controller(")
+	if domain.Name != "" {
+		b.WriteString("domainService any")
+	}
+	b.WriteString(") *")
+	if domain.Name != "" {
+		b.WriteString(names.VarName)
+		b.WriteString(" {\n")
+		b.WriteString("\treturn &")
+		b.WriteString(names.VarName)
+		b.WriteString("{domainService: domainService}\n")
+		b.WriteString("}\n\n")
+	} else {
+		b.WriteString(names.VarName)
+		b.WriteString(" {\n")
+		b.WriteString("\treturn &")
+		b.WriteString(names.VarName)
+		b.WriteString("{}\n")
+		b.WriteString("}\n\n")
+	}
 	for _, action := range actions {
 		methodName := actionMethodName(action)
 		b.WriteString("func (c *")
@@ -220,6 +273,11 @@ func renderControllerFile(names controllerNames, actions []string) (string, erro
 		b.WriteString(") ")
 		b.WriteString(methodName)
 		b.WriteString("(ctx echo.Context) error {\n")
+		if domain.Name != "" {
+			b.WriteString("\t// TODO: delegate to domain service in apps/goship/app/")
+			b.WriteString(domain.Snake)
+			b.WriteString("\n")
+		}
 		b.WriteString("\treturn ctx.String(http.StatusNotImplemented, \"TODO: ")
 		b.WriteString(names.BaseTitle)
 		b.WriteString(".")
@@ -235,7 +293,7 @@ func renderControllerFile(names controllerNames, actions []string) (string, erro
 	return string(src), nil
 }
 
-func renderControllerRouteSnippet(names controllerNames, actions []string, auth string) string {
+func renderControllerRouteSnippet(names controllerNames, actions []string, auth string, withDomain bool) string {
 	var b bytes.Buffer
 	b.WriteString("\t// ship:generated:")
 	b.WriteString(names.BaseSnake)
@@ -244,7 +302,11 @@ func renderControllerRouteSnippet(names controllerNames, actions []string, auth 
 	b.WriteString(names.VarName)
 	b.WriteString(" := controllers.New")
 	b.WriteString(names.BaseTitle)
-	b.WriteString("Controller()\n")
+	b.WriteString("Controller(")
+	if withDomain {
+		b.WriteString("nil")
+	}
+	b.WriteString(")\n")
 	for _, action := range actions {
 		line := actionRouteLine(names, action, auth)
 		if line != "" {

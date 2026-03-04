@@ -58,7 +58,7 @@ Use docs as the source of truth for architecture, workflows, and plans:
 
 ## Repository Shape
 
-- `app/goship/`: app-specific code (routes, views, app router)
+- `apps/goship/`: app-specific code (routes, views, app router)
 - `pkg/`: reusable framework-level packages
 - `cmd/`: process entrypoints (`web`, `worker`, `seed`)
 - `cli/ship/`: standalone `ship` CLI module
@@ -87,7 +87,7 @@ The following methods are available:
 
 ## Paid/Free Subscriptions
 
-The `SubscriptionsRepo` handles the subscription logic and lives at `pkg/repos/subscriptions/subscriptions.go`. It uses Stripe under the hood to handle the subscription logic. If you'd like to see the stripe webhooks, they live at `pkg/routes/payments.go`.
+The `SubscriptionsRepo` handles the subscription logic and lives at `apps/goship/app/subscriptions/subscriptions.go`. It uses Stripe under the hood to handle the subscription logic. Stripe webhooks are handled at `apps/goship/web/controllers/payments.go`.
 
 **Note:** currently, the only type of subscription implemented is a monthly subscription that is either paid or free. Feel free to expand on this!
 
@@ -103,7 +103,7 @@ The following methods are available:
 
 ## Regenerate Logo Image Assets 
 
-There is a python script in `scripts/regen_logo_images.py` that should be run when the logo in `app/goship/static/logo.png` is updated.
+There is a python script in `scripts/regen_logo_images.py` that should be run when the logo in `apps/goship/static/logo.png` is updated.
 This will regenerate the logo assets for different app icons and the favicon. It will also regenerate the correct iOS and Android app icons and place them in app-specific static wrapper directories.
 
 ```bash
@@ -240,7 +240,7 @@ ship make:scaffold Post title:string content:text --migrate
 
 ##### Generated Model:
 ```go
-// app/goship/db/schema/post.go
+// apps/goship/db/schema/post.go
 package schema
 
 type Post struct {
@@ -325,41 +325,41 @@ g.DELETE("/posts/:id", postRoute.Destroy).Name = "posts.destroy"
 
 ##### Generated views
 ```go
-// app/goship/views/posts.templ
+// apps/goship/views/posts.templ
 package pages
 
 import (
-	"github.com/leomorpho/goship/app/goship/webui"
-	"github.com/leomorpho/goship/app/goship/types"
-	"github.com/leomorpho/goship/app/goship/views/web/components"
+	"github.com/leomorpho/goship/apps/goship/web/ui"
+	"github.com/leomorpho/goship/apps/goship/web/viewmodels"
+	"github.com/leomorpho/goship/apps/goship/views/web/components"
 )
 
-templ PostsIndex(page *controller.Page) {
+templ PostsIndex(page *ui.Page) {
 }
 
-templ PostsShow(page *controller.Page) {
+templ PostsShow(page *ui.Page) {
 }
 
-templ PostsNew(page *controller.Page) {
+templ PostsNew(page *ui.Page) {
 }
 
-templ PostsEdit(page *controller.Page) {
+templ PostsEdit(page *ui.Page) {
 }
 
-templ PostsCreate(page *controller.Page) {
+templ PostsCreate(page *ui.Page) {
 }
 
-templ PostsUpdate(page *controller.Page) {
+templ PostsUpdate(page *ui.Page) {
 }
 
-templ PostsDestroy(page *controller.Page) {
+templ PostsDestroy(page *ui.Page) {
 }
 ```
 ##### Generate Type Data Struct
 
 ```go
-// types/post.go
-package types
+// apps/goship/web/viewmodels/post.go
+package viewmodels
 
 type Post struct {
   Title string

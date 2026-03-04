@@ -75,7 +75,7 @@ func TestRunGenerateModel_WithFieldsWritesSchema(t *testing.T) {
 		t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
 	}
 
-	schemaPath := filepath.Join(root, "app", "goship", "db", "schema", "post.go")
+	schemaPath := filepath.Join(root, "apps", "goship", "db", "schema", "post.go")
 	b, err := os.ReadFile(schemaPath)
 	if err != nil {
 		t.Fatalf("read schema: %v", err)
@@ -101,7 +101,7 @@ func TestRunGenerateModel_RefuseOverwriteWithoutForce(t *testing.T) {
 	if err := os.Chdir(root); err != nil {
 		t.Fatal(err)
 	}
-	schemaPath := filepath.Join(root, "app", "goship", "db", "schema", "post.go")
+	schemaPath := filepath.Join(root, "apps", "goship", "db", "schema", "post.go")
 	if err := os.MkdirAll(filepath.Dir(schemaPath), 0o755); err != nil {
 		t.Fatal(err)
 	}

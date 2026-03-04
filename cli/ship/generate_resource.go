@@ -17,6 +17,7 @@ type resourceGenerateOptions struct {
 	Views  string
 	Wire   bool
 	DryRun bool
+	Domain string
 }
 
 type resourceGenerateResult struct {
@@ -36,7 +37,7 @@ func (c CLI) runGenerateResource(args []string) int {
 		return 1
 	}
 	if strings.TrimSpace(parsed.Name) == "" {
-		fmt.Fprintln(c.Err, "usage: ship make:resource <name> [--path app/goship] [--auth public|auth] [--views templ|none] [--wire] [--dry-run]")
+		fmt.Fprintln(c.Err, "usage: ship make:resource <name> [--path apps/goship] [--auth public|auth] [--views templ|none] [--domain <name>] [--wire] [--dry-run]")
 		return 1
 	}
 
@@ -87,7 +88,7 @@ func (c CLI) runGenerateResource(args []string) int {
 
 func parseGenerateResourceArgs(args []string) (resourceGenerateOptions, error) {
 	opts := resourceGenerateOptions{
-		Path:  "app/goship",
+		Path:  "apps/goship",
 		Auth:  "public",
 		Views: "templ",
 	}
@@ -111,7 +112,9 @@ func parseGenerateResourceArgs(args []string) (resourceGenerateOptions, error) {
 			opts.Auth = strings.TrimPrefix(arg, "--auth=")
 		case strings.HasPrefix(arg, "--views="):
 			opts.Views = strings.TrimPrefix(arg, "--views=")
-		case arg == "--path" || arg == "--auth" || arg == "--views":
+		case strings.HasPrefix(arg, "--domain="):
+			opts.Domain = strings.TrimPrefix(arg, "--domain=")
+		case arg == "--path" || arg == "--auth" || arg == "--views" || arg == "--domain":
 			if i+1 >= len(args) {
 				return opts, fmt.Errorf("missing value for %s", arg)
 			}
@@ -123,6 +126,8 @@ func parseGenerateResourceArgs(args []string) (resourceGenerateOptions, error) {
 				opts.Auth = args[i]
 			case "--views":
 				opts.Views = args[i]
+			case "--domain":
+				opts.Domain = args[i]
 			}
 		default:
 			return opts, fmt.Errorf("unknown option: %s", arg)
@@ -155,10 +160,14 @@ func generateResourceScaffold(opts resourceGenerateOptions) (resourceGenerateRes
 	if err != nil {
 		return result, err
 	}
+	domain, err := normalizeDomainTarget(opts.Domain)
+	if err != nil {
+		return result, fmt.Errorf("invalid --domain value: %w", err)
+	}
 
-	handlerDir := filepath.Join(opts.Path, "web", "routes")
+	handlerDir := filepath.Join(opts.Path, "web", "controllers")
 	handlerFile := filepath.Join(handlerDir, norm.Snake+".go")
-	if err := writeFile(handlerFile, renderResourceHandler(norm, opts.Views), opts.DryRun); err != nil {
+	if err := writeFile(handlerFile, renderResourceHandler(norm, opts.Views, domain), opts.DryRun); err != nil {
 		return result, err
 	}
 	result.CreatedFiles = append(result.CreatedFiles, handlerFile)
@@ -173,9 +182,9 @@ func generateResourceScaffold(opts resourceGenerateOptions) (resourceGenerateRes
 	}
 
 	result.RouterPath = filepath.Join(opts.Path, "router.go")
-	result.RouteSnippet = renderRouteSnippet(norm, opts.Auth)
-	result.RouteInsertSnippet = renderRouteInsertSnippet(norm, opts.Auth)
-	result.RouteNamePath = filepath.Join("pkg", "routing", "routenames", "routenames.go")
+	result.RouteSnippet = renderRouteSnippet(norm, opts.Auth, domain.Name != "")
+	result.RouteInsertSnippet = renderRouteInsertSnippet(norm, opts.Auth, domain.Name != "")
+	result.RouteNamePath = filepath.Join(opts.Path, "web", "routenames", "routenames.go")
 	result.RouteNameConst = "RouteName" + norm.Pascal
 	result.RouteNameValue = norm.Snake
 	return result, nil
@@ -243,59 +252,81 @@ func tokenizeResourceName(raw string) []string {
 	return tokens
 }
 
-func renderResourceHandler(n normalizedResourceName, views string) string {
+func renderResourceHandler(n normalizedResourceName, views string, domain normalizedDomainTarget) string {
 	if views == "templ" {
-		return renderResourceTemplHandler(n)
+		return renderResourceTemplHandler(n, domain)
 	}
-	return renderResourceBasicHandler(n)
+	return renderResourceBasicHandler(n, domain)
 }
 
-func renderResourceBasicHandler(n normalizedResourceName) string {
+func renderResourceBasicHandler(n normalizedResourceName, domain normalizedDomainTarget) string {
+	domainField := ""
+	constructorArg := ""
+	constructorAssign := ""
+	domainComment := ""
+	if domain.Name != "" {
+		domainField = "\tdomainService any\n"
+		constructorArg = ", domainService any"
+		constructorAssign = ", domainService: domainService"
+		domainComment = "\t// TODO: delegate to domain service in apps/goship/app/" + domain.Snake + "\n"
+	}
+
 	return fmt.Sprintf(`package controllers
 
 import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/app/goship/webui"
+	"github.com/leomorpho/goship/apps/goship/web/ui"
 )
 
 type %s struct {
-	ctr webui.Controller
-}
+	ctr ui.Controller
+%s}
 
-func New%sRoute(ctr webui.Controller) *%s {
-	return &%s{ctr: ctr}
+func New%sRoute(ctr ui.Controller%s) *%s {
+	return &%s{ctr: ctr%s}
 }
 
 func (r *%s) Get(ctx echo.Context) error {
-	// TODO: Replace with templ/page rendering or real handler logic.
+%s	// TODO: Replace with templ/page rendering or real handler logic.
 	return ctx.String(http.StatusOK, "%s resource")
 }
-`, n.LowerCamel, n.Pascal, n.LowerCamel, n.LowerCamel, n.LowerCamel, n.Kebab)
+`, n.LowerCamel, domainField, n.Pascal, constructorArg, n.LowerCamel, n.LowerCamel, constructorAssign, n.LowerCamel, domainComment, n.Kebab)
 }
 
-func renderResourceTemplHandler(n normalizedResourceName) string {
+func renderResourceTemplHandler(n normalizedResourceName, domain normalizedDomainTarget) string {
+	domainField := ""
+	constructorArg := ""
+	constructorAssign := ""
+	domainComment := ""
+	if domain.Name != "" {
+		domainField = "\tdomainService any\n"
+		constructorArg = ", domainService any"
+		constructorAssign = ", domainService: domainService"
+		domainComment = "\t// TODO: delegate to domain service in apps/goship/app/" + domain.Snake + "\n"
+	}
+
 	return fmt.Sprintf(`package controllers
 
 import (
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/app/goship/views"
-	"github.com/leomorpho/goship/app/goship/views/web/layouts/gen"
-	"github.com/leomorpho/goship/app/goship/views/web/pages/gen"
-	"github.com/leomorpho/goship/app/goship/webui"
+	"github.com/leomorpho/goship/apps/goship/views"
+	"github.com/leomorpho/goship/apps/goship/views/web/layouts/gen"
+	"github.com/leomorpho/goship/apps/goship/views/web/pages/gen"
+	"github.com/leomorpho/goship/apps/goship/web/ui"
 )
 
 type %s struct {
-	ctr webui.Controller
-}
+	ctr ui.Controller
+%s}
 
-func New%sRoute(ctr webui.Controller) *%s {
-	return &%s{ctr: ctr}
+func New%sRoute(ctr ui.Controller%s) *%s {
+	return &%s{ctr: ctr%s}
 }
 
 func (r *%s) Get(ctx echo.Context) error {
-	page := webui.NewPage(ctx)
+%s	page := ui.NewPage(ctx)
 	page.Layout = layouts.Main
 	page.Name = templates.Page("%s")
 	page.Title = "%s"
@@ -304,15 +335,15 @@ func (r *%s) Get(ctx echo.Context) error {
 
 	return r.ctr.RenderPage(ctx, page)
 }
-`, n.LowerCamel, n.Pascal, n.LowerCamel, n.LowerCamel, n.LowerCamel, n.Kebab, n.Pascal, n.Pascal)
+`, n.LowerCamel, domainField, n.Pascal, constructorArg, n.LowerCamel, n.LowerCamel, constructorAssign, n.LowerCamel, domainComment, n.Kebab, n.Pascal, n.Pascal)
 }
 
 func renderResourceTempl(n normalizedResourceName) string {
 	return fmt.Sprintf(`package pages
 
-import "github.com/leomorpho/goship/app/goship/webui"
+import "github.com/leomorpho/goship/apps/goship/web/ui"
 
-templ %sPage(page *webui.Page) {
+templ %sPage(page *ui.Page) {
 	<section>
 		<h1>%s</h1>
 		<p>TODO: implement %s page.</p>
@@ -321,26 +352,30 @@ templ %sPage(page *webui.Page) {
 `, n.Pascal, n.Pascal, n.Kebab)
 }
 
-func renderRouteSnippet(n normalizedResourceName, auth string) string {
+func renderRouteSnippet(n normalizedResourceName, auth string, withDomain bool) string {
 	targetFn := "registerPublicRoutes"
 	if auth == "auth" {
 		targetFn = "registerAuthRoutes"
 	}
 
 	return fmt.Sprintf(`// In %s:
-%s`, targetFn, strings.TrimSpace(renderRouteInsertSnippet(n, auth)))
+%s`, targetFn, strings.TrimSpace(renderRouteInsertSnippet(n, auth, withDomain)))
 }
 
-func renderRouteInsertSnippet(n normalizedResourceName, auth string) string {
+func renderRouteInsertSnippet(n normalizedResourceName, auth string, withDomain bool) string {
 	targetGroup := "g"
 	if auth == "auth" {
 		targetGroup = "onboardedGroup"
 	}
+	constructorArg := ""
+	if withDomain {
+		constructorArg = ", nil"
+	}
 
 	return fmt.Sprintf(`	// ship:generated:%s
-	%s := controllers.New%sRoute(ctr)
+	%s := controllers.New%sRoute(ctr%s)
 	%s.GET("/%s", %s.Get).Name = routeNames.RouteName%s
-`, n.Snake, n.LowerCamel, n.Pascal, targetGroup, n.Kebab, n.LowerCamel, n.Pascal)
+`, n.Snake, n.LowerCamel, n.Pascal, constructorArg, targetGroup, n.Kebab, n.LowerCamel, n.Pascal)
 }
 
 func writeFile(path string, content string, dryRun bool) error {
@@ -446,7 +481,7 @@ func ensureRouteNamesImport(routerPath string, dryRun bool) error {
 		return err
 	}
 	content := string(b)
-	if strings.Contains(content, `routeNames "github.com/leomorpho/goship/app/goship/web/routenames"`) {
+	if strings.Contains(content, `routeNames "github.com/leomorpho/goship/apps/goship/web/routenames"`) {
 		return nil
 	}
 
@@ -460,7 +495,7 @@ func ensureRouteNamesImport(routerPath string, dryRun bool) error {
 	}
 	importEnd += importStart
 
-	line := "\trouteNames \"github.com/leomorpho/goship/app/goship/web/routenames\"\n"
+	line := "\trouteNames \"github.com/leomorpho/goship/apps/goship/web/routenames\"\n"
 	updated := content[:importEnd] + line + content[importEnd:]
 	if dryRun {
 		return nil

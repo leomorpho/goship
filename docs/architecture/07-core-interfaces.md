@@ -72,19 +72,19 @@ Container startup validates:
 Current startup behavior:
 
 - invalid selection or capability mismatch fails fast at startup.
-- resolved adapter metadata is stored in `services.Container.Adapters` for downstream wiring.
-- `services.Container` initializes backend-agnostic seams:
-  - `CoreCache` (`core.Cache`) via `services.CoreCacheAdapter`
-  - `CoreJobs` (`core.Jobs`) via `services.CoreJobsAdapter`
-  - `CorePubSub` (`core.PubSub`) via `services.CorePubSubAdapter`
+- resolved adapter metadata is stored in `foundation.Container.Adapters` for downstream wiring.
+- `foundation.Container` initializes backend-agnostic seams:
+  - `CoreCache` (`core.Cache`) via `foundation.CoreCacheAdapter`
+  - `CoreJobs` (`core.Jobs`) via `foundation.CoreJobsAdapter`
+  - `CorePubSub` (`core.PubSub`) via `foundation.CorePubSubAdapter`
 - container no longer needs to expose a concrete pubsub client field for application wiring.
 
 First migrated call site:
 
 - `pkg/tasks/notifications.go` now enqueues follow-up jobs through `core.Jobs` instead of `*services.TaskClient`.
-- `pkg/repos/notifierrepo/notifier.go` now publishes/subscribes through `core.PubSub` with explicit SSE event payload encoding.
+- `apps/goship/app/notifications/notifier.go` now publishes/subscribes through `core.PubSub` with explicit SSE event payload encoding.
 - `pkg/tasks/notifications.go` now uses a small planned-notification source interface, enabling table-driven unit tests without DB/container boot.
-- `pkg/repos/notifierrepo/notifier.go` now exposes notifier-owned `SSEEvent` payloads so route code no longer depends on pubsub package event types.
+- `apps/goship/app/notifications/notifier.go` now exposes notifier-owned `SSEEvent` payloads so route code no longer depends on pubsub package event types.
 
 ## Scope Boundaries
 
@@ -96,7 +96,7 @@ These interfaces are runtime seams, not domain/repository APIs.
 
 ## Migration Plan
 
-1. Keep existing concrete packages running (`app/goship/services`, `pkg/repos/*`).
+1. Keep existing concrete packages running (`apps/goship/foundation`, `pkg/repos/*`).
 2. Add adapters that satisfy `pkg/core` contracts.
 3. Move container wiring to resolve adapters via config and capabilities.
 4. Gradually convert call sites from concrete clients to interfaces.

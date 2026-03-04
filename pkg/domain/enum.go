@@ -29,7 +29,7 @@ var (
 	)
 )
 
-// TODO: move to notifierrepo
+// TODO: move to notifications
 type NotificationPermissionType enum.Member[string]
 
 var (
@@ -42,7 +42,7 @@ var (
 	)
 )
 
-// TODO: move to notifierrepo
+// TODO: move to notifications
 type NotificationPlatform enum.Member[string]
 
 var (

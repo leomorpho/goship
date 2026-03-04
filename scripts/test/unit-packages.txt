@@ -1,11 +1,11 @@
 # Docker-free unit package set
 ./config
 ./pkg/context
-./app/goship/webui
+./apps/goship/web/ui
 ./pkg/funcmap
 ./pkg/htmx
-./app/goship/middleware
+./apps/goship/web/middleware
 ./pkg/repos/msg
 ./pkg/runtimeplan
-./app/goship/services
+./apps/goship/foundation
 ./cli/ship

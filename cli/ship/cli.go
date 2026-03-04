@@ -21,8 +21,8 @@ import (
 )
 
 const (
-	atlasDir      = "file://app/goship/db/migrate/migrations"
-	entSchemaDir  = "app/goship/db/schema"
+	atlasDir      = "file://apps/goship/db/migrate/migrations"
+	entSchemaDir  = "apps/goship/db/schema"
 	atlasGoRunRef = "ariga.io/atlas/cmd/atlas@v0.27.1"
 )
 
@@ -323,8 +323,8 @@ func (c CLI) runCheck(args []string) int {
 					return fmt.Errorf("compile check for %s failed with exit code %d", pkg, code)
 				}
 			}
-			if hasFile(filepath.Join("app", "goship", "web", "routes", "controllers_test.go")) {
-				if code := c.runCmd("go", "test", "-c", "./app/goship/web/controllers"); code != 0 {
+			if hasFile(filepath.Join("apps", "goship", "web", "routes", "controllers_test.go")) {
+				if code := c.runCmd("go", "test", "-c", "./apps/goship/web/controllers"); code != 0 {
 					return fmt.Errorf("route test compile check failed with exit code %d", code)
 				}
 				_ = os.Remove("controllers.test")
@@ -802,7 +802,7 @@ func (c CLI) runDBMake(args []string) int {
 		"--dir",
 		atlasDir,
 		"--to",
-		"ent://app/goship/db/schema",
+		"ent://apps/goship/db/schema",
 		"--dev-url",
 		"sqlite://file?mode=memory&_fk=1",
 	)
@@ -955,9 +955,9 @@ func printTemplHelp(w io.Writer) {
 
 func printMakeHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship make commands:")
-	fmt.Fprintln(w, "  ship make:scaffold <Name> [fields...] [--path app/goship] [--views templ|none] [--auth public|auth] [--api] [--migrate] [--dry-run] [--force]")
+	fmt.Fprintln(w, "  ship make:scaffold <Name> [fields...] [--path apps/goship] [--views templ|none] [--auth public|auth] [--api] [--migrate] [--dry-run] [--force]")
 	fmt.Fprintln(w, "  ship make:controller <Name|NameController> [--actions index,show,create,update,destroy] [--auth public|auth] [--wire]")
-	fmt.Fprintln(w, "  ship make:resource <name> [--path app/goship] [--auth public|auth] [--views templ|none] [--wire] [--dry-run]")
+	fmt.Fprintln(w, "  ship make:resource <name> [--path apps/goship] [--auth public|auth] [--views templ|none] [--wire] [--dry-run]")
 	fmt.Fprintln(w, "  ship make:model <Name> [fields...]")
 }
 

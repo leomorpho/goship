@@ -112,14 +112,18 @@ func scaffoldNewProject(opts newProjectOptions) error {
 	}
 
 	files := map[string]string{
-		filepath.Join(opts.AppPath, "go.mod"):                                                   renderGoMod(opts),
-		filepath.Join(opts.AppPath, "app", "goship", "router.go"):                               renderRouterSkeleton(),
-		filepath.Join(opts.AppPath, "pkg", "routing", "routenames", "routenames.go"):            renderRouteNamesSkeleton(),
-		filepath.Join(opts.AppPath, "app", "goship", "db", "schema", "user.go"):                 renderUserSchemaSkeleton(),
-		filepath.Join(opts.AppPath, "app", "goship", "db", "migrate", "migrations", ".gitkeep"): "",
-		filepath.Join(opts.AppPath, "app", "goship", "views", "templates.go"):                   renderTemplatesSkeleton(),
-		filepath.Join(opts.AppPath, "app", "goship", "web", "routes", "controllers.go"):         renderRoutesSkeleton(),
-		filepath.Join(opts.AppPath, "cmd", "web", "main.go"):                                    renderWebMain(),
+		filepath.Join(opts.AppPath, "go.mod"):                                                    renderGoMod(opts),
+		filepath.Join(opts.AppPath, "apps", "goship", "router.go"):                                renderRouterSkeleton(),
+		filepath.Join(opts.AppPath, "apps", "goship", "web", "routenames", "routenames.go"):       renderRouteNamesSkeleton(),
+		filepath.Join(opts.AppPath, "apps", "goship", "db", "schema", "user.go"):                  renderUserSchemaSkeleton(),
+		filepath.Join(opts.AppPath, "apps", "goship", "db", "migrate", "migrations", ".gitkeep"):  "",
+		filepath.Join(opts.AppPath, "apps", "goship", "views", "templates.go"):                    renderTemplatesSkeleton(),
+		filepath.Join(opts.AppPath, "apps", "goship", "web", "controllers", "controllers.go"):     renderControllersSkeleton(),
+		filepath.Join(opts.AppPath, "apps", "goship", "domains", "profiles", "repo.go"):           renderProfilesDomainSkeleton(),
+		filepath.Join(opts.AppPath, "apps", "goship", "domains", "notifications", "notifier.go"):  renderNotificationsDomainSkeleton(),
+		filepath.Join(opts.AppPath, "apps", "goship", "domains", "subscriptions", "repo.go"):      renderSubscriptionsDomainSkeleton(),
+		filepath.Join(opts.AppPath, "apps", "goship", "domains", "emailsubscriptions", "repo.go"): renderEmailSubscriptionsDomainSkeleton(),
+		filepath.Join(opts.AppPath, "cmd", "web", "main.go"):                                     renderWebMain(),
 	}
 
 	for path, content := range files {
@@ -156,8 +160,8 @@ func renderRouterSkeleton() string {
 	return `package goship
 
 import (
-	routeNames "github.com/leomorpho/goship/app/goship/web/routenames"
-	"github.com/leomorpho/goship/app/goship/web/controllers"
+	routeNames "github.com/leomorpho/goship/apps/goship/web/routenames"
+	"github.com/leomorpho/goship/apps/goship/web/controllers"
 )
 
 func registerPublicRoutes() {
@@ -192,7 +196,7 @@ type (
 `
 }
 
-func renderRoutesSkeleton() string {
+func renderControllersSkeleton() string {
 	return `package controllers
 
 type landingPage struct{}
@@ -200,6 +204,34 @@ type landingPage struct{}
 func NewLandingPageRoute() landingPage {
 	return landingPage{}
 }
+`
+}
+
+func renderProfilesDomainSkeleton() string {
+	return `package profiles
+
+type Repo struct{}
+`
+}
+
+func renderNotificationsDomainSkeleton() string {
+	return `package notifications
+
+type Notifier struct{}
+`
+}
+
+func renderSubscriptionsDomainSkeleton() string {
+	return `package subscriptions
+
+type Repo struct{}
+`
+}
+
+func renderEmailSubscriptionsDomainSkeleton() string {
+	return `package emailsubscriptions
+
+type Repo struct{}
 `
 }
 

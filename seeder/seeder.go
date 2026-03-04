@@ -7,16 +7,16 @@ import (
 	"os"
 	"time"
 
-	"github.com/leomorpho/goship/app/goship/repos/emailsmanager"
-	"github.com/leomorpho/goship/app/goship/services"
+	"github.com/leomorpho/goship/apps/goship/foundation"
+	"github.com/leomorpho/goship/apps/goship/app/emailsubscriptions"
+	"github.com/leomorpho/goship/apps/goship/app/notifications"
+	"github.com/leomorpho/goship/apps/goship/app/profiles"
+	"github.com/leomorpho/goship/apps/goship/app/subscriptions"
 	"github.com/leomorpho/goship/config"
 	"github.com/leomorpho/goship/ent"
 	"github.com/leomorpho/goship/ent/user"
 	"github.com/leomorpho/goship/pkg/domain"
-	"github.com/leomorpho/goship/pkg/repos/notifierrepo"
-	"github.com/leomorpho/goship/pkg/repos/profilerepo"
 	storagerepo "github.com/leomorpho/goship/pkg/repos/storage"
-	"github.com/leomorpho/goship/pkg/repos/subscriptions"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -26,7 +26,7 @@ var ErrObjectExists = errors.New("object already exists")
 // RunIdempotentSeeder seeds all regular objects that the app needs to run smoothly
 func RunIdempotentSeeder(cfg *config.Config, client *ent.Client) error {
 	ctx := context.Background()
-	emailRepo := emailsmanager.NewEmailSubscriptionRepo(client)
+	emailRepo := emailsubscriptions.NewEmailSubscriptionRepo(client)
 
 	err := emailRepo.CreateNewSubscriptionList(ctx, domain.EmailNewsletter)
 	if err != nil {
@@ -97,9 +97,9 @@ func SeedUsers(cfg *config.Config, client *ent.Client, useS3 bool) error {
 	if useS3 {
 		storageClient = storagerepo.NewStorageClient(cfg, client)
 	}
-	profileRepo := profilerepo.NewProfileRepo(client, storageClient, nil)
+	profileRepo := profiles.NewProfileRepo(client, storageClient, nil)
 	subscriptionsRepo := subscriptions.NewSubscriptionsRepo(client, 3, 3)
-	notificationSendPermissionRepo := notifierrepo.NewNotificationSendPermissionRepo(client)
+	notificationSendPermissionRepo := notifications.NewNotificationSendPermissionRepo(client)
 
 	createProfile := func(
 		user *ent.User,
@@ -172,13 +172,13 @@ func SeedUsers(cfg *config.Config, client *ent.Client, useS3 bool) error {
 		//////////////////////////////////////////
 		log.Printf("Uploading some photos...")
 
-		photo1, err := os.Open("app/goship/testdata/photos/1.jpg")
+		photo1, err := os.Open("apps/goship/testdata/photos/1.jpg")
 		if err != nil {
 			log.Fatal().Err(err).Msg("failed to open file")
 		}
 		defer photo1.Close()
 
-		photo2, err := os.Open("app/goship/testdata/photos/2.jpg")
+		photo2, err := os.Open("apps/goship/testdata/photos/2.jpg")
 		if err != nil {
 			log.Fatal().Err(err).Msg("failed to open file")
 		}
@@ -244,7 +244,7 @@ func SeedUsers(cfg *config.Config, client *ent.Client, useS3 bool) error {
 		ExecX(ctx)
 
 	// Create a lot of notifs for one person (to test infinite load)
-	c := services.NewContainer()
+	c := foundation.NewContainer()
 	for i := 0; i < 500; i++ {
 		c.Notifier.PublishNotification(ctx, domain.Notification{
 			Type:      domain.NotificationTypePlatformUpdate,

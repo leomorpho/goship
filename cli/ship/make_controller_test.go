@@ -6,7 +6,7 @@ import (
 )
 
 func TestParseMakeControllerArgs(t *testing.T) {
-	opts, err := parseMakeControllerArgs([]string{"Posts", "--actions", "index,show", "--auth", "auth", "--wire"})
+	opts, err := parseMakeControllerArgs([]string{"Posts", "--actions", "index,show", "--auth", "auth", "--domain", "notifications", "--wire"})
 	if err != nil {
 		t.Fatalf("parseMakeControllerArgs error = %v", err)
 	}
@@ -21,6 +21,9 @@ func TestParseMakeControllerArgs(t *testing.T) {
 	}
 	if !opts.Wire {
 		t.Fatal("wire = false, want true")
+	}
+	if opts.Domain != "notifications" {
+		t.Fatalf("domain = %q, want notifications", opts.Domain)
 	}
 }
 
@@ -51,7 +54,7 @@ func TestRenderControllerRouteSnippet(t *testing.T) {
 		BaseTitle: "Posts",
 		VarName:   "posts",
 	}
-	snippet := renderControllerRouteSnippet(names, []string{"index", "show", "create"}, "public")
+	snippet := renderControllerRouteSnippet(names, []string{"index", "show", "create"}, "public", false)
 	if !strings.Contains(snippet, `g.GET("/posts", posts.Index)`) {
 		t.Fatalf("missing index route:\n%s", snippet)
 	}
@@ -60,5 +63,18 @@ func TestRenderControllerRouteSnippet(t *testing.T) {
 	}
 	if !strings.Contains(snippet, `g.POST("/posts", posts.Create)`) {
 		t.Fatalf("missing create route:\n%s", snippet)
+	}
+}
+
+func TestRenderControllerRouteSnippet_WithDomainConstructorArg(t *testing.T) {
+	names := controllerNames{
+		BaseSnake: "posts",
+		BaseKebab: "posts",
+		BaseTitle: "Posts",
+		VarName:   "posts",
+	}
+	snippet := renderControllerRouteSnippet(names, []string{"index"}, "public", true)
+	if !strings.Contains(snippet, "controllers.NewPostsController(nil)") {
+		t.Fatalf("expected nil domain constructor arg, got:\n%s", snippet)
 	}
 }

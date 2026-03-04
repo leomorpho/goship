@@ -150,11 +150,11 @@ Rules for versioned tooling in generated apps:
 
 ## Current Repository Shape (Post-Refactor)
 
-1. `app/goship/` contains app-specific web handlers and templ views.
+1. `apps/goship/` contains app-specific web handlers and templ views.
 2. `pkg/` currently remains the framework/infrastructure layer.
 3. `cmd/` contains process entrypoints.
 
-Note: app composition/runtime wiring has moved to `app/goship/services`. `pkg/repos` remains intentionally centralized for now and will be split into app-specific vs reusable framework modules in a dedicated follow-up pass.
+Note: app composition/runtime wiring has moved to `apps/goship/foundation`. `pkg/repos` remains intentionally centralized for now and will be split into app-specific vs reusable framework modules in a dedicated follow-up pass.
 
 ## Architecture Style (Pragmatic)
 
@@ -357,7 +357,7 @@ Rails/Laravel-inspired ergonomics in GoShip should use clear layer responsibilit
 
 A package is installable as an official `ship` module only if:
 
-1. It has no hard dependency on app route/view packages (`app/goship/web/controllers`, templ views).
+1. It has no hard dependency on app route/view packages (`apps/goship/web/controllers`, templ views).
 2. It has a stable, documented config surface.
 3. It is wired through stable interfaces/adapters.
 4. It has dedicated tests and module-level docs.
@@ -616,7 +616,7 @@ Done when:
 - `Container.Shutdown()` is nil-safe for optional services.
 - container unit tests compile and pass without external services.
 Test evidence:
-- `go test ./app/goship/services -run 'Test(NewContainer|ContainerShutdownNilSafe)$'`
+- `go test ./apps/goship/foundation -run 'Test(NewContainer|ContainerShutdownNilSafe)$'`
 
 2. `R0.2` Container initialization policy by runtime mode (`single-node` vs `distributed`), with explicit config contract.
 Status: `completed`
@@ -651,19 +651,19 @@ Status: `in_progress`
 6. `R1.1` Resource route registration refactor (prep for generator-driven resources).
 Status: `completed`
 Done when:
-- canonical router entrypoint remains `app/goship/router.go`;
-- route declarations are centralized in `app/goship/router.go`;
-- handler implementations remain in `app/goship/web/controllers/*.go`;
+- canonical router entrypoint remains `apps/goship/router.go`;
+- route declarations are centralized in `apps/goship/router.go`;
+- handler implementations remain in `apps/goship/web/controllers/*.go`;
 - realtime registration is feature-gated directly in the canonical router.
 Test evidence:
-- `go test ./cmd/web ./app/goship/webui ./pkg/runtimeplan`
-- `go test -c ./app/goship/web/controllers` (compile check in restricted env)
+- `go test ./cmd/web ./apps/goship/web/ui ./pkg/runtimeplan`
+- `go test -c ./apps/goship/web/controllers` (compile check in restricted env)
 
 7. `R1.2` Minimal resource generator foundation.
 Status: `completed`
 Done when:
 - `ship make:resource <name>` scaffolds route handler (+ optional templ page);
-- generator prints router insertion snippet instead of auto-editing `app/goship/router.go`;
+- generator prints router insertion snippet instead of auto-editing `apps/goship/router.go`;
 - generator logic is table-driven tested in `cli/ship`.
 Test evidence:
 - `go test ./cli/ship`
@@ -671,7 +671,7 @@ Test evidence:
 8. `R1.3` Optional safe router wiring mode for generator.
 Status: `completed`
 Done when:
-- `ship make:resource ... --wire` inserts generated snippet into `app/goship/router.go`;
+- `ship make:resource ... --wire` inserts generated snippet into `apps/goship/router.go`;
 - insertion only occurs behind explicit marker pairs (`public` or `auth`);
 - operation is idempotent and tested (no duplicate insertion).
 Test evidence:
@@ -680,7 +680,7 @@ Test evidence:
 9. `R1.4` Route name automation and dry-run previews for resource generation.
 Status: `completed`
 Done when:
-- generator ensures `RouteName<Resource>` constant is present in `app/goship/web/routenames/routenames.go`;
+- generator ensures `RouteName<Resource>` constant is present in `apps/goship/web/routenames/routenames.go`;
 - `ship make:resource ... --dry-run` previews file/router/routename changes without writing;
 - wiring/import/constant insertion paths are idempotent and tested.
 Test evidence:
@@ -702,7 +702,7 @@ Current progress:
 2. Container exposes `CoreCache`, `CoreJobs`, and `CorePubSub`.
 3. First application call sites migrated to interface seams:
 - notifications fan-out enqueue in `pkg/tasks/notifications.go` now uses `core.Jobs`.
-- notifier publish/subscribe path in `pkg/repos/notifierrepo/notifier.go` now uses `core.PubSub`.
+- notifier publish/subscribe path in `apps/goship/app/notifications/notifier.go` now uses `core.PubSub`.
 4. Domain testability improved:
 - notifications task processor now depends on a small planned-notification interface with table-driven unit tests.
 

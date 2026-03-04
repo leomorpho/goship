@@ -209,7 +209,7 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			name:      "db make",
 			args:      []string{"db:make", "add_posts"},
 			wantCode:  0,
-			wantCalls: []fakeCall{{name: "atlas", args: []string{"migrate", "diff", "add_posts", "--dir", atlasDir, "--to", "ent://app/goship/db/schema", "--dev-url", "sqlite://file?mode=memory&_fk=1"}}},
+			wantCalls: []fakeCall{{name: "atlas", args: []string{"migrate", "diff", "add_posts", "--dir", atlasDir, "--to", "ent://apps/goship/db/schema", "--dev-url", "sqlite://file?mode=memory&_fk=1"}}},
 		},
 		{
 			name:     "db make missing name",
@@ -324,9 +324,9 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 		},
 		{
 			name:      "templ generate single file",
-			args:      []string{"templ", "generate", "--file", "app/goship/views/web/pages/home.templ"},
+			args:      []string{"templ", "generate", "--file", "apps/goship/views/web/pages/home.templ"},
 			wantCode:  0,
-			wantCalls: []fakeCall{{name: "templ", args: []string{"generate", "-f", "app/goship/views/web/pages/home.templ"}}},
+			wantCalls: []fakeCall{{name: "templ", args: []string{"generate", "-f", "apps/goship/views/web/pages/home.templ"}}},
 		},
 		{
 			name:     "templ generate invalid flag",
@@ -393,7 +393,7 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			args:     []string{"make:model", "Post"},
 			wantCode: 0,
 			wantCalls: []fakeCall{
-				{name: "go", args: []string{"run", "-mod=mod", "entgo.io/ent/cmd/ent", "generate", "--feature", "sql/upsert,sql/execquery", "--target", "./ent", "./app/goship/db/schema"}},
+				{name: "go", args: []string{"run", "-mod=mod", "entgo.io/ent/cmd/ent", "generate", "--feature", "sql/upsert,sql/execquery", "--target", "./ent", "./apps/goship/db/schema"}},
 			},
 		},
 		{
@@ -401,7 +401,7 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			args:     []string{"make:model", "Post", "title:string"},
 			wantCode: 0,
 			wantCalls: []fakeCall{
-				{name: "go", args: []string{"run", "-mod=mod", "entgo.io/ent/cmd/ent", "generate", "--feature", "sql/upsert,sql/execquery", "--target", "./ent", "./app/goship/db/schema"}},
+				{name: "go", args: []string{"run", "-mod=mod", "entgo.io/ent/cmd/ent", "generate", "--feature", "sql/upsert,sql/execquery", "--target", "./ent", "./apps/goship/db/schema"}},
 			},
 		},
 		{
@@ -572,7 +572,7 @@ func TestRunCheck_UsesProjectPackageLists(t *testing.T) {
 	if err := os.MkdirAll(filepath.Join(root, "scripts", "test"), 0o755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.MkdirAll(filepath.Join(root, "app", "goship", "web", "routes"), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Join(root, "apps", "goship", "web", "routes"), 0o755); err != nil {
 		t.Fatal(err)
 	}
 	if err := os.WriteFile(filepath.Join(root, "scripts", "test", "unit-packages.txt"), []byte("./pkg/a\n#c\n./pkg/b\n"), 0o644); err != nil {
@@ -581,7 +581,7 @@ func TestRunCheck_UsesProjectPackageLists(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(root, "scripts", "test", "compile-packages.txt"), []byte("./app/x\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(root, "app", "goship", "web", "routes", "controllers_test.go"), []byte("package controllers_test\n"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(root, "apps", "goship", "web", "routes", "controllers_test.go"), []byte("package controllers_test\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -599,7 +599,7 @@ func TestRunCheck_UsesProjectPackageLists(t *testing.T) {
 		{name: "go", args: []string{"test", "./pkg/a"}},
 		{name: "go", args: []string{"test", "./pkg/b"}},
 		{name: "go", args: []string{"test", "-run", "^$", "./app/x"}},
-		{name: "go", args: []string{"test", "-c", "./app/goship/web/controllers"}},
+		{name: "go", args: []string{"test", "-c", "./apps/goship/web/controllers"}},
 	}
 	if len(runner.calls) != len(want) {
 		t.Fatalf("calls len=%d want=%d calls=%v", len(runner.calls), len(want), runner.calls)

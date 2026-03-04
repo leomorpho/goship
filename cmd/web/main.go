@@ -10,8 +10,8 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/leomorpho/goship/app/goship"
-	"github.com/leomorpho/goship/app/goship/services"
+	"github.com/leomorpho/goship/apps/goship"
+	"github.com/leomorpho/goship/apps/goship/foundation"
 )
 
 func timeoutMiddleware(next http.Handler, writeTimeout time.Duration) http.Handler {
@@ -32,7 +32,7 @@ func timeoutMiddleware(next http.Handler, writeTimeout time.Duration) http.Handl
 
 func main() {
 	// Start a new container
-	c := services.NewContainer()
+	c := foundation.NewContainer()
 	defer func() {
 		if err := c.Shutdown(); err != nil {
 			c.Web.Logger.Fatal(err)

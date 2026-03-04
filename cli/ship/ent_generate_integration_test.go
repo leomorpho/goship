@@ -49,7 +49,7 @@ func TestEntGenerateFromDBSchemaPath(t *testing.T) {
 		"generate",
 		"--feature", "sql/upsert,sql/execquery",
 		"--target", "./"+filepath.ToSlash(outRel),
-		"./app/goship/db/schema",
+		"./apps/goship/db/schema",
 	)
 	cmd.Dir = repoRoot
 	cmd.Env = append(os.Environ(), "GOMODCACHE="+modCache)

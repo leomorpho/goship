@@ -6,18 +6,18 @@ import (
 	"strings"
 
 	"github.com/hibiken/asynq"
-	"github.com/leomorpho/goship/app/goship"
-	"github.com/leomorpho/goship/app/goship/services"
-	"github.com/leomorpho/goship/app/goship/tasks"
-	"github.com/leomorpho/goship/pkg/repos/notifierrepo"
-	"github.com/leomorpho/goship/pkg/repos/profilerepo"
+	"github.com/leomorpho/goship/apps/goship"
+	"github.com/leomorpho/goship/apps/goship/foundation"
+	"github.com/leomorpho/goship/apps/goship/app/notifications"
+	"github.com/leomorpho/goship/apps/goship/app/profiles"
+	"github.com/leomorpho/goship/apps/goship/app/subscriptions"
+	"github.com/leomorpho/goship/apps/goship/jobs"
 	storagerepo "github.com/leomorpho/goship/pkg/repos/storage"
-	"github.com/leomorpho/goship/pkg/repos/subscriptions"
 )
 
 func main() {
 	// Start a new container
-	c := services.NewContainer()
+	c := foundation.NewContainer()
 	defer func() {
 		if err := c.Shutdown(); err != nil {
 			c.Web.Logger.Fatal(err)
@@ -65,9 +65,9 @@ func main() {
 	subscriptionsRepo := subscriptions.NewSubscriptionsRepo(
 		c.ORM, c.Config.App.OperationalConstants.ProTrialTimespanInDays,
 		c.Config.App.OperationalConstants.PaymentFailedGracePeriodInDays)
-	profileRepo := profilerepo.NewProfileRepo(c.ORM, storageRepo, subscriptionsRepo)
+	profileRepo := profiles.NewProfileRepo(c.ORM, storageRepo, subscriptionsRepo)
 
-	plannedNotificationRepo := notifierrepo.NewPlannedNotificationsRepo(
+	plannedNotificationRepo := notifications.NewPlannedNotificationsRepo(
 		c.ORM, subscriptionsRepo)
 
 	emailSubscriptionConfirmationProcessor := tasks.NewEmailSubscriptionConfirmationProcessor(
