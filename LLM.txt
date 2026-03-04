@@ -1830,6 +1830,7 @@ Doctor checks (current):
 - validates required files (router, container, routenames, core docs)
 - flags forbidden legacy paths from pre-refactor layout
 - validates router marker pairs used by `--wire` generators
+- validates router marker ordering (`start` before `end`) for `public` and `auth` sections
 - validates package naming conventions in `web/ui` and `web/viewmodels`
 - flags unexpected root build artifacts (`web`, `worker`, `seed`, `ship`, `ship-mcp`)
 - validates `.gitignore` includes root binary artifact ignore entries
@@ -2911,6 +2912,10 @@ Last updated: 2026-03-04
 1. Ensure all generators are deterministic and path-safe.
 2. Expand `--wire` safety checks (idempotency, markers, import insertion stability).
 3. Add integration tests for generator workflows on fresh scaffold.
+
+Progress note:
+
+- Added router marker-order validation in `ship doctor` (`DX011`) to catch broken `--wire` blocks early.
 
 ## P7 Scope (Next)
 

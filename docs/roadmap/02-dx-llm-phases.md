@@ -64,6 +64,10 @@ Last updated: 2026-03-04
 2. Expand `--wire` safety checks (idempotency, markers, import insertion stability).
 3. Add integration tests for generator workflows on fresh scaffold.
 
+Progress note:
+
+- Added router marker-order validation in `ship doctor` (`DX011`) to catch broken `--wire` blocks early.
+
 ## P7 Scope (Next)
 
 1. Add practical docs coverage checks for core command behavior.

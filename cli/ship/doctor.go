@@ -176,6 +176,26 @@ func runDoctorChecks(root string) []doctorIssue {
 					})
 				}
 			}
+
+			type markerPair struct {
+				start string
+				end   string
+			}
+			pairs := []markerPair{
+				{start: "// ship:routes:public:start", end: "// ship:routes:public:end"},
+				{start: "// ship:routes:auth:start", end: "// ship:routes:auth:end"},
+			}
+			for _, pair := range pairs {
+				startIdx := strings.Index(content, pair.start)
+				endIdx := strings.Index(content, pair.end)
+				if startIdx >= 0 && endIdx >= 0 && startIdx > endIdx {
+					issues = append(issues, doctorIssue{
+						Code:    "DX011",
+						Message: fmt.Sprintf("router marker order invalid: %s appears after %s", pair.start, pair.end),
+						Fix:     "place start marker before end marker to keep --wire deterministic",
+					})
+				}
+			}
 		}
 	}
 

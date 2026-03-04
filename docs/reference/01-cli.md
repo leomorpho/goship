@@ -145,6 +145,7 @@ Doctor checks (current):
 - validates required files (router, container, routenames, core docs)
 - flags forbidden legacy paths from pre-refactor layout
 - validates router marker pairs used by `--wire` generators
+- validates router marker ordering (`start` before `end`) for `public` and `auth` sections
 - validates package naming conventions in `web/ui` and `web/viewmodels`
 - flags unexpected root build artifacts (`web`, `worker`, `seed`, `ship`, `ship-mcp`)
 - validates `.gitignore` includes root binary artifact ignore entries
