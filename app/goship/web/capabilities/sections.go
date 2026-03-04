@@ -9,7 +9,7 @@ func LandingSections() []types.CapabilitySection {
 			Title:       "Routing and Controllers",
 			Description: "Define routes in one canonical router and wire them to handlers that own request flow, params, responses, and page rendering.",
 			Docs: []types.CapabilityDocLink{
-				{Path: "docs/architecture/04-http-routes.md", Label: "HTTP Route Map"},
+				{Path: "docs/architecture/04-http-controllers.md", Label: "HTTP Route Map"},
 			},
 		},
 		{

@@ -31,7 +31,7 @@ Use this placement rule for every new file:
 
 App web code is now app-scoped:
 
-- `app/goship/web/routes`: handlers
+- `app/goship/web/controllers`: handlers
 - `app/goship/web/wiring.go`: HTTP wiring helpers (middleware/static/dependencies)
 - `app/goship/services`: app composition container and app-specific runtime adapters
 - `app/goship/views`: templ components/layouts/pages/emails
@@ -41,19 +41,37 @@ Router source of truth:
 
 - `app/goship/router.go`
 
+HTTP boundary rule:
+
+- Route handlers in `app/goship/web/controllers` are the controller layer (Rails/Laravel equivalent at the HTTP boundary).
+- Controllers should stay thin: parse request input, call service/use-case logic, map output to HTTP response.
+- Business logic should not live directly in controllers.
+
+Service/store rule:
+
+- App business logic should live in app-scoped domain/service packages under `app/goship/...`.
+- Services should depend on explicit interfaces (store ports) for persistence/external calls.
+- Concrete adapters may use Ent/SQL/clients directly, but those details stay behind service dependencies.
+- This keeps testability (mocks/fakes) without forcing repository pattern across every feature.
+
 ## Refactor Status
 
 Completed in this pass:
 
-- Moved routes from `pkg/routing/routes` to `app/goship/web/routes`.
+- Moved routes from `pkg/routing/routes` to `app/goship/web/controllers`.
 - Moved templ views from `templates` to `app/goship/views`.
 - Updated imports and test package paths accordingly.
 
-Still intentionally centralized (next phase):
+Installable module extraction rule:
 
-- `pkg/repos`
+A package should be treated as an installable official module only if all are true:
 
-These remain framework-level until each package is classified as either:
+1. It has no hard dependency on `app/goship/web/controllers` or app views/templates.
+2. Its config surface is stable and documented.
+3. It can be wired through stable interfaces/adapters (no deep app internals required).
+4. It has dedicated tests and docs and can be enabled through `ship` install/wire commands.
 
-- app-specific (move under `app/goship/...`), or
-- reusable framework module (stay in `pkg/...` or move to future dedicated framework modules).
+Classification policy for current `pkg/repos/*`:
+
+- app-specific behavior => move to `app/goship/...` domain packages.
+- reusable framework capability => keep/extract as framework module (installable by `ship`).

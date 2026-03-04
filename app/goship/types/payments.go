@@ -3,7 +3,7 @@ package types
 import (
 	"time"
 
-	"github.com/leomorpho/goship/app/goship/controller"
+	"github.com/leomorpho/goship/app/goship/webui"
 	"github.com/leomorpho/goship/pkg/domain"
 )
 
@@ -13,7 +13,7 @@ type (
 	}
 
 	CreateCheckoutSessionForm struct {
-		Submission controller.FormSubmission
+		Submission webui.FormSubmission
 		PriceID    string `form:"price_id", validate:required`
 	}
 

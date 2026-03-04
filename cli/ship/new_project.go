@@ -112,14 +112,14 @@ func scaffoldNewProject(opts newProjectOptions) error {
 	}
 
 	files := map[string]string{
-		filepath.Join(opts.AppPath, "go.mod"):                                        renderGoMod(opts),
-		filepath.Join(opts.AppPath, "app", "goship", "router.go"):                    renderRouterSkeleton(),
-		filepath.Join(opts.AppPath, "pkg", "routing", "routenames", "routenames.go"): renderRouteNamesSkeleton(),
-		filepath.Join(opts.AppPath, "app", "goship", "db", "schema", "user.go"):       renderUserSchemaSkeleton(),
-		filepath.Join(opts.AppPath, "app", "goship", "db", "migrate", "migrations", ".gitkeep"):   "",
-		filepath.Join(opts.AppPath, "app", "goship", "views", "templates.go"):        renderTemplatesSkeleton(),
-		filepath.Join(opts.AppPath, "app", "goship", "web", "routes", "routes.go"):   renderRoutesSkeleton(),
-		filepath.Join(opts.AppPath, "cmd", "web", "main.go"):                         renderWebMain(),
+		filepath.Join(opts.AppPath, "go.mod"):                                                   renderGoMod(opts),
+		filepath.Join(opts.AppPath, "app", "goship", "router.go"):                               renderRouterSkeleton(),
+		filepath.Join(opts.AppPath, "pkg", "routing", "routenames", "routenames.go"):            renderRouteNamesSkeleton(),
+		filepath.Join(opts.AppPath, "app", "goship", "db", "schema", "user.go"):                 renderUserSchemaSkeleton(),
+		filepath.Join(opts.AppPath, "app", "goship", "db", "migrate", "migrations", ".gitkeep"): "",
+		filepath.Join(opts.AppPath, "app", "goship", "views", "templates.go"):                   renderTemplatesSkeleton(),
+		filepath.Join(opts.AppPath, "app", "goship", "web", "routes", "controllers.go"):         renderRoutesSkeleton(),
+		filepath.Join(opts.AppPath, "cmd", "web", "main.go"):                                    renderWebMain(),
 	}
 
 	for path, content := range files {
@@ -157,12 +157,12 @@ func renderRouterSkeleton() string {
 
 import (
 	routeNames "github.com/leomorpho/goship/app/goship/web/routenames"
-	"github.com/leomorpho/goship/app/goship/web/routes"
+	"github.com/leomorpho/goship/app/goship/web/controllers"
 )
 
 func registerPublicRoutes() {
 	_ = routeNames.RouteNameLandingPage
-	_ = routes.NewLandingPageRoute
+	_ = controllers.NewLandingPageRoute
 	// ship:routes:public:start
 	// ship:routes:public:end
 }
@@ -193,7 +193,7 @@ type (
 }
 
 func renderRoutesSkeleton() string {
-	return `package routes
+	return `package controllers
 
 type landingPage struct{}
 

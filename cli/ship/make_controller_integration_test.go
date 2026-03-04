@@ -64,7 +64,7 @@ func TestMakeControllerIntegration_WireIntoRouter(t *testing.T) {
 
 import (
 	routeNames "github.com/leomorpho/goship/app/goship/web/routenames"
-	"github.com/leomorpho/goship/app/goship/web/routes"
+	"github.com/leomorpho/goship/app/goship/web/controllers"
 )
 
 func registerPublicRoutes() {

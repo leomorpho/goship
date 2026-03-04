@@ -10,15 +10,15 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"fmt"
-	"github.com/leomorpho/goship/app/goship/controller"
 	"github.com/leomorpho/goship/app/goship/types"
 	"github.com/leomorpho/goship/app/goship/views/web/components/gen"
 	"github.com/leomorpho/goship/app/goship/web/routenames"
+	"github.com/leomorpho/goship/app/goship/webui"
 	"github.com/leomorpho/goship/pkg/domain"
 	"time"
 )
 
-func Settings(page *controller.Page) templ.Component {
+func Settings(page *webui.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -140,7 +140,7 @@ func firstWelcome() templ.Component {
 	})
 }
 
-func DisplayName(page *controller.Page) templ.Component {
+func DisplayName(page *webui.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -240,7 +240,7 @@ func DisplayName(page *controller.Page) templ.Component {
 	})
 }
 
-func NotificationPermissions(page *controller.Page, data types.NotificationPermissionsData) templ.Component {
+func NotificationPermissions(page *webui.Page, data types.NotificationPermissionsData) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -323,7 +323,7 @@ func initPermissions(componentID string, d types.NotificationPermissionsData) te
 	}
 }
 
-func subscription(page *controller.Page, fullyOnboarded bool, plan domain.ProductType, expiryTimestap *time.Time, isTrial bool) templ.Component {
+func subscription(page *webui.Page, fullyOnboarded bool, plan domain.ProductType, expiryTimestap *time.Time, isTrial bool) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -503,7 +503,7 @@ func initNotificationPermissions(componentID, vapidPublicKey, addSubscriptionEnd
 	}
 }
 
-func deleteAccountAndData(page *controller.Page) templ.Component {
+func deleteAccountAndData(page *webui.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -545,7 +545,7 @@ func deleteAccountAndData(page *controller.Page) templ.Component {
 	})
 }
 
-func AboutMe(page *controller.Page) templ.Component {
+func AboutMe(page *webui.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -623,7 +623,7 @@ func AboutMe(page *controller.Page) templ.Component {
 	})
 }
 
-func birthdate(page *controller.Page) templ.Component {
+func birthdate(page *webui.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -680,7 +680,7 @@ func birthdate(page *controller.Page) templ.Component {
 	})
 }
 
-func saveAndReloadPrefsPage(page *controller.Page) templ.Component {
+func saveAndReloadPrefsPage(page *webui.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -755,7 +755,7 @@ func phoneNumberField(phoneNumberInE164Format, countryCode string) templ.Compone
 	})
 }
 
-func finishOnboarding(page *controller.Page) templ.Component {
+func finishOnboarding(page *webui.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -797,7 +797,7 @@ func finishOnboarding(page *controller.Page) templ.Component {
 	})
 }
 
-func savePrefs(page *controller.Page) templ.Component {
+func savePrefs(page *webui.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -839,7 +839,7 @@ func savePrefs(page *controller.Page) templ.Component {
 	})
 }
 
-func phoneNumber(page *controller.Page, phone string) templ.Component {
+func phoneNumber(page *webui.Page, phone string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {

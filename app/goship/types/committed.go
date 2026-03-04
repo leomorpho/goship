@@ -1,6 +1,6 @@
 package types
 
-import "github.com/leomorpho/goship/app/goship/controller"
+import "github.com/leomorpho/goship/app/goship/webui"
 
 type (
 	DropdownIterable struct {
@@ -16,6 +16,6 @@ type (
 
 	UpdateInAppModeForm struct {
 		MatchProfileID int `form:"match_id" validate:"required"`
-		Submission     controller.FormSubmission
+		Submission     webui.FormSubmission
 	}
 )

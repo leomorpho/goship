@@ -21,8 +21,8 @@ import (
 )
 
 const (
-	atlasDir     = "file://app/goship/db/migrate/migrations"
-	entSchemaDir = "app/goship/db/schema"
+	atlasDir      = "file://app/goship/db/migrate/migrations"
+	entSchemaDir  = "app/goship/db/schema"
 	atlasGoRunRef = "ariga.io/atlas/cmd/atlas@v0.27.1"
 )
 
@@ -323,11 +323,11 @@ func (c CLI) runCheck(args []string) int {
 					return fmt.Errorf("compile check for %s failed with exit code %d", pkg, code)
 				}
 			}
-			if hasFile(filepath.Join("app", "goship", "web", "routes", "routes_test.go")) {
-				if code := c.runCmd("go", "test", "-c", "./app/goship/web/routes"); code != 0 {
+			if hasFile(filepath.Join("app", "goship", "web", "routes", "controllers_test.go")) {
+				if code := c.runCmd("go", "test", "-c", "./app/goship/web/controllers"); code != 0 {
 					return fmt.Errorf("route test compile check failed with exit code %d", code)
 				}
-				_ = os.Remove("routes.test")
+				_ = os.Remove("controllers.test")
 			}
 			return nil
 		}); err != nil {

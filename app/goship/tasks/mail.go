@@ -7,15 +7,15 @@ import (
 
 	"github.com/hibiken/asynq"
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/app/goship/controller"
 	"github.com/leomorpho/goship/app/goship/repos/emailsmanager"
 	"github.com/leomorpho/goship/app/goship/services"
+	"github.com/leomorpho/goship/app/goship/types"
 	"github.com/leomorpho/goship/app/goship/views/emails/gen"
 	"github.com/leomorpho/goship/app/goship/views/web/layouts/gen"
+	"github.com/leomorpho/goship/app/goship/webui"
 	"github.com/leomorpho/goship/config"
 	"github.com/leomorpho/goship/ent"
 	"github.com/leomorpho/goship/pkg/repos/mailer"
-	"github.com/leomorpho/goship/app/goship/types"
 )
 
 // ////////////////////////////////////////////////////////////////////////////
@@ -51,7 +51,7 @@ func (esc *EmailSubscriptionConfirmationProcessor) ProcessTask(ctx context.Conte
 
 	fullUrl := fmt.Sprintf("%s%s", esc.config.HTTP.Domain, p.Url)
 
-	page := controller.NewPage(echo.New().AcquireContext())
+	page := webui.NewPage(echo.New().AcquireContext())
 	page.Layout = layouts.Main
 	page.Data = types.EmailDefaultData{
 		AppName:          string(esc.config.App.Name),

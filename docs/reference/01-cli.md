@@ -133,7 +133,7 @@ Safety matrix:
 - `ship make:resource <name> --dry-run` -> preview all planned changes without writing files
 - `ship make:model <Name>` -> run Ent schema scaffolding (`ent new`) then ORM codegen (`ent generate`)
 - `ship make:model <Name> [fields...]` -> write `app/goship/db/schema/<model>.go` with typed fields, then run ORM codegen (`ent generate`)
-- `ship make:controller <Name>` -> generate controller/handler scaffold in `app/goship/web/routes`
+- `ship make:controller <Name>` -> generate controller/handler scaffold in `app/goship/web/controllers`
 - `ship make:controller <Name> --actions ... --wire` -> wire generated routes into `app/goship/router.go` markers
 - `ship make:scaffold <Name> ...` -> orchestration command that composes `make:model`, `db:make`, `make:controller --wire`, and optionally `make:resource` / `db:migrate`
 
@@ -166,7 +166,7 @@ Resource generator contract (v1 minimal):
 Markers:
 `// ship:routes:public:start ... // ship:routes:public:end`
 `// ship:routes:auth:start ... // ship:routes:auth:end`
-3. Creates `app/goship/web/routes/<resource>.go`.
+3. Creates `app/goship/web/controllers/<resource>.go`.
 4. Creates `app/goship/views/web/pages/<resource>.templ` when `--views templ`.
 5. Ensures `RouteName<Resource>` constant exists in `app/goship/web/routenames/routenames.go`.
 6. Prints exact snippet target (`registerPublicRoutes` or `registerAuthRoutes`) when not wiring.

@@ -31,7 +31,7 @@ Naming normalization from roadmap:
 ## Architectural Placement Rules
 
 - App-specific web code: `app/goship/*`
-- HTTP handlers/routes: `app/goship/web/routes/*`
+- HTTP handlers/routes: `app/goship/web/controllers/*`
 - Canonical app router entrypoint: `app/goship/router.go`
 - App composition container/adapters: `app/goship/services/*`
 - Framework/infrastructure layer: `pkg/*`

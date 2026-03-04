@@ -8,12 +8,12 @@ import (
 	"strings"
 
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/app/goship/controller"
 	"github.com/leomorpho/goship/app/goship/middleware"
 	"github.com/leomorpho/goship/app/goship/services"
 	appweb "github.com/leomorpho/goship/app/goship/web"
+	"github.com/leomorpho/goship/app/goship/web/controllers"
 	routeNames "github.com/leomorpho/goship/app/goship/web/routenames"
-	"github.com/leomorpho/goship/app/goship/web/routes"
+	"github.com/leomorpho/goship/app/goship/webui"
 	"github.com/leomorpho/goship/config"
 	"github.com/leomorpho/goship/pkg/repos/notifierrepo"
 	"github.com/leomorpho/goship/pkg/runtimeplan"
@@ -60,8 +60,8 @@ func BuildRouter(c *services.Container) error {
 	appweb.ApplyRealtimeMiddleware(c, s, deps)
 	appweb.ApplyExternalMiddleware(c, e, deps)
 
-	ctr := controller.NewController(c)
-	errorHandler := routes.NewErrorHandler(ctr)
+	ctr := webui.NewController(c)
+	errorHandler := controllers.NewErrorHandler(ctr)
 	c.Web.HTTPErrorHandler = errorHandler.Get
 
 	if err := registerPublicRoutes(c, g, ctr, deps); err != nil {
@@ -90,14 +90,14 @@ func BuildRouter(c *services.Container) error {
 	return nil
 }
 
-func registerPublicRoutes(c *services.Container, g *echo.Group, ctr controller.Controller, deps *appweb.RouteDeps) error {
-	landingPage := routes.NewLandingPageRoute(ctr)
+func registerPublicRoutes(c *services.Container, g *echo.Group, ctr webui.Controller, deps *appweb.RouteDeps) error {
+	landingPage := controllers.NewLandingPageRoute(ctr)
 	g.GET("/", landingPage.Get).Name = routeNames.RouteNameLandingPage
 
-	clearCookie := routes.NewClearCookiesRoute(ctr)
+	clearCookie := controllers.NewClearCookiesRoute(ctr)
 	g.GET("/clear-cookie", clearCookie.Get).Name = routeNames.RouteNameClearCookie
 
-	healthcheck := routes.NewHealthCheckRoute(ctr)
+	healthcheck := controllers.NewHealthCheckRoute(ctr)
 	g.GET("/up", healthcheck.Get).Name = routeNames.RouteNameHealthcheck
 
 	// TODO: remove once sentry is stable.
@@ -105,33 +105,33 @@ func registerPublicRoutes(c *services.Container, g *echo.Group, ctr controller.C
 		panic("Test error for Sentry")
 	})
 
-	emailSubscribe := routes.NewEmailSubscribeRoute(ctr, *deps.EmailSubscriptionRepo, *c.Config)
+	emailSubscribe := controllers.NewEmailSubscribeRoute(ctr, *deps.EmailSubscriptionRepo, *c.Config)
 	g.GET("/emailSubscribe", emailSubscribe.Get).Name = routeNames.RouteNameEmailSubscribe
 	g.POST("/emailSubscribe", emailSubscribe.Post).Name = routeNames.RouteNameEmailSubscribeSubmit
 
-	verifyEmailSubscription := routes.NewVerifyEmailSubscriptionRoute(ctr, *deps.EmailSubscriptionRepo)
+	verifyEmailSubscription := controllers.NewVerifyEmailSubscriptionRoute(ctr, *deps.EmailSubscriptionRepo)
 	g.GET("/email/subscription/:token", verifyEmailSubscription.Get).Name = routeNames.RouteNameVerifyEmailSubscription
 
-	installApp := routes.NewInstallAppRoute(ctr)
+	installApp := controllers.NewInstallAppRoute(ctr)
 	g.GET("/install-app", installApp.GetInstallPage).Name = routeNames.RouteNameInstallApp
 
-	about := routes.NewAboutUsRoute(ctr)
+	about := controllers.NewAboutUsRoute(ctr)
 	g.GET("/about", about.Get).Name = routeNames.RouteNameAboutUs
 
-	privacyPolicy := routes.NewPrivacyPolicyRoute(ctr)
+	privacyPolicy := controllers.NewPrivacyPolicyRoute(ctr)
 	g.GET("/privacy-policy", privacyPolicy.Get).Name = routeNames.RouteNamePrivacyPolicy
 
 	userGroup := g.Group("/user", middleware.RequireNoAuthentication())
 
-	login := routes.NewLoginRoute(ctr)
+	login := controllers.NewLoginRoute(ctr)
 	userGroup.GET("/login", login.Get).Name = routeNames.RouteNameLogin
 	userGroup.POST("/login", login.Post).Name = routeNames.RouteNameLoginSubmit
 
-	register := routes.NewRegisterRoute(ctr, *deps.ProfileRepo, *deps.SubscriptionsRepo, deps.NotificationSendPermissionRepo)
+	register := controllers.NewRegisterRoute(ctr, *deps.ProfileRepo, *deps.SubscriptionsRepo, deps.NotificationSendPermissionRepo)
 	userGroup.GET("/register", register.Get).Name = routeNames.RouteNameRegister
 	userGroup.POST("/register", register.Post).Name = routeNames.RouteNameRegisterSubmit
 
-	forgot := routes.NewForgotPasswordRoute(ctr)
+	forgot := controllers.NewForgotPasswordRoute(ctr)
 	userGroup.GET("/password", forgot.Get).Name = routeNames.RouteNameForgotPassword
 	userGroup.POST("/password", forgot.Post).Name = routeNames.RouteNameForgotPasswordSubmit
 
@@ -139,12 +139,12 @@ func registerPublicRoutes(c *services.Container, g *echo.Group, ctr controller.C
 		middleware.LoadUser(c.ORM),
 		middleware.LoadValidPasswordToken(c.Auth),
 	)
-	reset := routes.NewResetPasswordRoute(ctr)
+	reset := controllers.NewResetPasswordRoute(ctr)
 	resetGroup.GET("/token/:user/:password_token/:token", reset.Get).Name = routeNames.RouteNameResetPassword
 	resetGroup.POST("/token/:user/:password_token/:token", reset.Post).Name = routeNames.RouteNameResetPasswordSubmit
 
 	if ctr.Container.Config.App.Environment != config.EnvProduction {
-		errHandler := routes.NewErrorHandler(ctr)
+		errHandler := controllers.NewErrorHandler(ctr)
 		g.GET("/error/400", errHandler.GetHttp400BadRequest)
 		g.GET("/error/401", errHandler.GetHttp401Unauthorized)
 		g.GET("/error/403", errHandler.GetHttp403Forbidden)
@@ -158,8 +158,8 @@ func registerPublicRoutes(c *services.Container, g *echo.Group, ctr controller.C
 	return nil
 }
 
-func registerDocsRoutes(g *echo.Group, ctr controller.Controller) error {
-	docsRoute := routes.NewDocsRoute(ctr)
+func registerDocsRoutes(g *echo.Group, ctr webui.Controller) error {
+	docsRoute := controllers.NewDocsRoute(ctr)
 	g.GET("/docs", docsRoute.GetDocsHome).Name = routeNames.RouteNameDocs
 	g.GET("/docs/gettingStarted", docsRoute.GetDocsGettingStarted).Name = routeNames.RouteNameDocsGettingStarted
 	g.GET("/docs/guidedTour", docsRoute.GetDocsGuidedTour).Name = routeNames.RouteNameDocsGuidedTour
@@ -167,7 +167,7 @@ func registerDocsRoutes(g *echo.Group, ctr controller.Controller) error {
 	return nil
 }
 
-func registerAuthRoutes(c *services.Container, g *echo.Group, ctr controller.Controller, deps *appweb.RouteDeps) error {
+func registerAuthRoutes(c *services.Container, g *echo.Group, ctr webui.Controller, deps *appweb.RouteDeps) error {
 	pwaPushNotificationsRepo := notifierrepo.NewPwaPushNotificationsRepo(
 		c.ORM,
 		c.Config.App.VapidPublicKey,
@@ -199,7 +199,7 @@ func registerAuthRoutes(c *services.Container, g *echo.Group, ctr controller.Con
 	}
 
 	onboardingGroup := g.Group("/welcome", middleware.RequireAuthentication())
-	preferences := routes.NewPreferencesRoute(
+	preferences := controllers.NewPreferencesRoute(
 		ctr,
 		deps.ProfileRepo,
 		pwaPushNotificationsRepo,
@@ -215,52 +215,52 @@ func registerAuthRoutes(c *services.Container, g *echo.Group, ctr controller.Con
 	onboardingGroup.GET("/preferences/display-name/get", preferences.GetDisplayName).Name = routeNames.RouteNameGetDisplayName
 	onboardingGroup.POST("/preferences/display-name/save", preferences.SaveDisplayName).Name = routeNames.RouteNameUpdateDisplayName
 
-	deleteAccountRoute := routes.NewDeleteAccountRoute(ctr, deps.ProfileRepo, deps.SubscriptionsRepo)
+	deleteAccountRoute := controllers.NewDeleteAccountRoute(ctr, deps.ProfileRepo, deps.SubscriptionsRepo)
 	onboardingGroup.GET("/preferences/delete-account", deleteAccountRoute.DeleteAccountPage).Name = routeNames.RouteNameDeleteAccountPage
 	onboardingGroup.GET("/preferences/delete-account/now", deleteAccountRoute.DeleteAccountRequest).Name = routeNames.RouteNameDeleteAccountRequest
 
-	finishOnboarding := routes.NewOnboardingRoute(ctr, c.ORM)
+	finishOnboarding := controllers.NewOnboardingRoute(ctr, c.ORM)
 	onboardingGroup.GET("/finish-onboarding", finishOnboarding.Get).Name = routeNames.RouteNameFinishOnboarding
 
-	profilePrefs := routes.NewProfilePrefsRoute(ctr, c.ORM)
+	profilePrefs := controllers.NewProfilePrefsRoute(ctr, c.ORM)
 	onboardingGroup.GET("/profileBio", profilePrefs.GetBio).Name = routeNames.RouteNameGetBio
 	onboardingGroup.POST("/profileBio/update", profilePrefs.UpdateBio).Name = routeNames.RouteNameUpdateBio
 
-	outgoingNotifications := routes.NewPushNotifsRoute(ctr, pwaPushNotificationsRepo, fcmPushNotificationsRepo, deps.NotificationSendPermissionRepo)
+	outgoingNotifications := controllers.NewPushNotifsRoute(ctr, pwaPushNotificationsRepo, fcmPushNotificationsRepo, deps.NotificationSendPermissionRepo)
 	onboardingGroup.GET("/subscription/push", outgoingNotifications.GetPushSubscriptions).Name = routeNames.RouteNameGetPushSubscriptions
 	onboardingGroup.POST("/subscription/:platform", outgoingNotifications.RegisterSubscription).Name = routeNames.RouteNameRegisterSubscription
 	onboardingGroup.DELETE("/subscription/:platform", outgoingNotifications.DeleteSubscription).Name = routeNames.RouteNameDeleteSubscription
 	onboardingGroup.GET("/email-subscription/unsubscribe/:permission/:token", outgoingNotifications.DeleteEmailSubscription).Name = routeNames.RouteNameDeleteEmailSubscriptionWithToken
 
 	allGroup := g.Group("/auth", middleware.RequireAuthentication())
-	logout := routes.NewLogoutRoute(ctr)
+	logout := controllers.NewLogoutRoute(ctr)
 	allGroup.GET("/logout", logout.Get, middleware.RequireAuthentication()).Name = routeNames.RouteNameLogout
 
 	onboardedGroup := g.Group("/auth", middleware.RequireAuthentication(), middleware.RedirectToOnboardingIfNotComplete())
 
-	verifyEmail := routes.NewVerifyEmailRoute(ctr)
+	verifyEmail := controllers.NewVerifyEmailRoute(ctr)
 	g.GET("/email/verify/:token", verifyEmail.Get).Name = routeNames.RouteNameVerifyEmail
 
-	homeFeed := routes.NewHomeFeedRoute(ctr, *deps.ProfileRepo, &c.Config.App.PageSize)
+	homeFeed := controllers.NewHomeFeedRoute(ctr, *deps.ProfileRepo, &c.Config.App.PageSize)
 	onboardedGroup.GET("/homeFeed", homeFeed.Get, middleware.SetLastSeenOnline(c.Auth)).Name = routeNames.RouteNameHomeFeed
 	onboardedGroup.GET("/homeFeed/buttons", homeFeed.GetHomeButtons).Name = routeNames.RouteNameGetHomeFeedButtons
 
-	singleProfile := routes.NewProfileRoutes(ctr, deps.ProfileRepo)
+	singleProfile := controllers.NewProfileRoutes(ctr, deps.ProfileRepo)
 	onboardedGroup.GET("/profile", singleProfile.Get).Name = routeNames.RouteNameProfile
 
-	uploadPhoto := routes.NewUploadPhotoRoutes(ctr, deps.ProfileRepo, deps.StorageRepo, c.Config.Storage.PhotosMaxFileSizeMB)
+	uploadPhoto := controllers.NewUploadPhotoRoutes(ctr, deps.ProfileRepo, deps.StorageRepo, c.Config.Storage.PhotosMaxFileSizeMB)
 	onboardedGroup.GET("/uploadPhoto", uploadPhoto.Get).Name = routeNames.RouteNameUploadPhoto
 	onboardedGroup.POST("/uploadPhoto", uploadPhoto.Post).Name = routeNames.RouteNameUploadPhotoSubmit
 	onboardedGroup.DELETE("/uploadPhoto/:image_id", uploadPhoto.Delete).Name = routeNames.RouteNameUploadPhotoDelete
 
-	currProfilePhoto := routes.NewCurrProfilePhotoRoutes(ctr, deps.ProfileRepo, deps.StorageRepo, c.Config.Storage.PhotosMaxFileSizeMB)
+	currProfilePhoto := controllers.NewCurrProfilePhotoRoutes(ctr, deps.ProfileRepo, deps.StorageRepo, c.Config.Storage.PhotosMaxFileSizeMB)
 	onboardedGroup.GET("/currProfilePhoto", currProfilePhoto.Get).Name = routeNames.RouteNameCurrentProfilePhoto
 	onboardedGroup.POST("/currProfilePhoto", currProfilePhoto.Post).Name = routeNames.RouteNameCurrentProfilePhotoSubmit
 
-	normalNotificationsCount := routes.NewNormalNotificationsCountRoute(ctr, *deps.ProfileRepo)
+	normalNotificationsCount := controllers.NewNormalNotificationsCountRoute(ctr, *deps.ProfileRepo)
 	onboardedGroup.GET("/notifications/normalNotificationsCount", normalNotificationsCount.Get).Name = routeNames.RouteNameNormalNotificationsCount
 
-	payments := routes.NewPaymentsRoute(ctr, c.ORM, deps.SubscriptionsRepo)
+	payments := controllers.NewPaymentsRoute(ctr, c.ORM, deps.SubscriptionsRepo)
 	onboardedGroup.GET("/payments/get-public-key", payments.GetPaymentProcessorPublickey).Name = routeNames.RouteNamePaymentProcessorGetPublicKey
 	onboardedGroup.POST("/payments/create-checkout-session", payments.CreateCheckoutSession).Name = routeNames.RouteNameCreateCheckoutSession
 	onboardedGroup.POST("/payments/create-portal-session", payments.CreatePortalSession).Name = routeNames.RouteNameCreatePortalSession
@@ -273,19 +273,19 @@ func registerAuthRoutes(c *services.Container, g *echo.Group, ctr controller.Con
 	return nil
 }
 
-func registerExternalRoutes(c *services.Container, e *echo.Group, ctr controller.Controller, deps *appweb.RouteDeps) error {
-	payments := routes.NewPaymentsRoute(ctr, c.ORM, deps.SubscriptionsRepo)
+func registerExternalRoutes(c *services.Container, e *echo.Group, ctr webui.Controller, deps *appweb.RouteDeps) error {
+	payments := controllers.NewPaymentsRoute(ctr, c.ORM, deps.SubscriptionsRepo)
 	e.POST(deps.StripeWebhookPath, payments.HandleWebhook).Name = routeNames.RouteNamePaymentProcessorWebhook
 	return nil
 }
 
-func registerRealtimeRoutes(c *services.Container, s *echo.Group, ctr controller.Controller) error {
+func registerRealtimeRoutes(c *services.Container, s *echo.Group, ctr webui.Controller) error {
 	if c.Notifier == nil {
 		return errors.New("cannot register realtime routes: notifier is nil")
 	}
 
 	onboardedGroup := s.Group("/auth", middleware.RequireAuthentication())
-	realtime := routes.NewRealtimeRoute(ctr, *c.Notifier)
+	realtime := controllers.NewRealtimeRoute(ctr, *c.Notifier)
 	onboardedGroup.GET("/realtime", realtime.Get).Name = routeNames.RouteNameRealtime
 	return nil
 }

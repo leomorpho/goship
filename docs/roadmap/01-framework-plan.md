@@ -343,6 +343,34 @@ Policy:
 2. Backend selection happens in config + runtime wiring.
 3. Application/business code must not depend directly on concrete infra clients.
 
+## Controller and Domain Layer Rules
+
+Rails/Laravel-inspired ergonomics in GoShip should use clear layer responsibilities:
+
+1. Controllers (route handlers) are HTTP adapters, not business logic containers.
+2. Controllers should only orchestrate request/response concerns and call service/use-case code.
+3. Business logic should live in app domain/service packages.
+4. Domain/service packages should depend on small interfaces (store ports) so behavior is testable via mocks/fakes.
+5. Do not force repository pattern everywhere; use explicit interfaces where they improve clarity/testability.
+
+## Installable Module Extraction Rule
+
+A package is installable as an official `ship` module only if:
+
+1. It has no hard dependency on app route/view packages (`app/goship/web/controllers`, templ views).
+2. It has a stable, documented config surface.
+3. It is wired through stable interfaces/adapters.
+4. It has dedicated tests and module-level docs.
+5. It can be enabled/installed through `ship` with deterministic wiring.
+
+Initial candidate official modules:
+
+- storage
+- mailer
+- notifications
+- jobs adapters
+- subscriptions/billing
+
 ## Routing Organization (Rails-Inspired, Pragmatic)
 
 Target:
@@ -625,11 +653,11 @@ Status: `completed`
 Done when:
 - canonical router entrypoint remains `app/goship/router.go`;
 - route declarations are centralized in `app/goship/router.go`;
-- handler implementations remain in `app/goship/web/routes/*.go`;
+- handler implementations remain in `app/goship/web/controllers/*.go`;
 - realtime registration is feature-gated directly in the canonical router.
 Test evidence:
-- `go test ./cmd/web ./app/goship/controller ./pkg/runtimeplan`
-- `go test -c ./app/goship/web/routes` (compile check in restricted env)
+- `go test ./cmd/web ./app/goship/webui ./pkg/runtimeplan`
+- `go test -c ./app/goship/web/controllers` (compile check in restricted env)
 
 7. `R1.2` Minimal resource generator foundation.
 Status: `completed`

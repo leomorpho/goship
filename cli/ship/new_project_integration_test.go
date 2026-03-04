@@ -66,4 +66,3 @@ func TestNewProjectIntegration_IncludesEntAndSupportsMakeModel(t *testing.T) {
 		t.Fatalf("unexpected generate args: %v", runner.calls[0].args)
 	}
 }
-

@@ -117,7 +117,7 @@ func TestSendUpdateNotifsForSeededProfiles(t *testing.T) {
 	// config := config.Config{}
 
 	// c := services.NewContainer()
-	// routes.BuildRouter(c)
+	// controllers.BuildRouter(c)
 
 	// emailUpdateSender := emailsmanager.NewUpdateEmailSender(c.ORM, c)
 

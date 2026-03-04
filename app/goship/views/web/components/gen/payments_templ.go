@@ -9,12 +9,12 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	"github.com/leomorpho/goship/app/goship/controller"
 	"github.com/leomorpho/goship/app/goship/web/routenames"
+	"github.com/leomorpho/goship/app/goship/webui"
 	"github.com/leomorpho/goship/pkg/domain"
 )
 
-func ManageSubscriptionButton(page *controller.Page, subscription domain.ProductType, isTrial bool) templ.Component {
+func ManageSubscriptionButton(page *webui.Page, subscription domain.ProductType, isTrial bool) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -54,7 +54,7 @@ func ManageSubscriptionButton(page *controller.Page, subscription domain.Product
 	})
 }
 
-func PricingPage(page *controller.Page) templ.Component {
+func PricingPage(page *webui.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -96,7 +96,7 @@ func PricingPage(page *controller.Page) templ.Component {
 	})
 }
 
-func StripePortal(page *controller.Page) templ.Component {
+func StripePortal(page *webui.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {

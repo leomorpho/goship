@@ -1,6 +1,6 @@
 package types
 
-import "github.com/leomorpho/goship/app/goship/controller"
+import "github.com/leomorpho/goship/app/goship/webui"
 
 type (
 	EmailSubscriptionData struct {
@@ -14,6 +14,6 @@ type (
 		Email      string  `form:"email" validate:"required"`
 		Latitude   float64 `form:"latitude" validate:"required"`
 		Longitude  float64 `form:"longitude" validate:"required"`
-		Submission controller.FormSubmission
+		Submission webui.FormSubmission
 	}
 )

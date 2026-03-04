@@ -3,7 +3,7 @@ package types
 import (
 	"time"
 
-	"github.com/leomorpho/goship/app/goship/controller"
+	"github.com/leomorpho/goship/app/goship/webui"
 	"github.com/leomorpho/goship/pkg/domain"
 )
 
@@ -65,12 +65,12 @@ type (
 		Bio                     string `form:"bio"`
 		SelfBirthdate           string `form:"birthdate"`
 		FinishOnboardingRequest bool   `form:"finish_onboarding"`
-		Submission              controller.FormSubmission
+		Submission              webui.FormSubmission
 	}
 
 	ProfileBioFormData struct {
 		Bio        string `form:"bio" validate:"required"`
-		Submission controller.FormSubmission
+		Submission webui.FormSubmission
 	}
 
 	PhoneNumber struct {
@@ -81,7 +81,7 @@ type (
 
 	PhoneNumberVerification struct {
 		VerificationCode string `form:"verification_code" validate:"required"`
-		Submission       controller.FormSubmission
+		Submission       webui.FormSubmission
 	}
 
 	SmsVerificationCodeInfo struct {
@@ -90,6 +90,6 @@ type (
 
 	DisplayNameForm struct {
 		DisplayName string `form:"name" validate:"required"`
-		Submission  controller.FormSubmission
+		Submission  webui.FormSubmission
 	}
 )

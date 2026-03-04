@@ -268,7 +268,7 @@ func (UsPoster) Edges() []ent.Edge {
 ##### Route
 ```go
 // app/controllers/post_controller.go
-package routes
+package controllers
 
 type postRoute struct {}
 
@@ -329,7 +329,7 @@ g.DELETE("/posts/:id", postRoute.Destroy).Name = "posts.destroy"
 package pages
 
 import (
-	"github.com/leomorpho/goship/app/goship/controller"
+	"github.com/leomorpho/goship/app/goship/webui"
 	"github.com/leomorpho/goship/app/goship/types"
 	"github.com/leomorpho/goship/app/goship/views/web/components"
 )

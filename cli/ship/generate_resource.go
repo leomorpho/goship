@@ -251,20 +251,20 @@ func renderResourceHandler(n normalizedResourceName, views string) string {
 }
 
 func renderResourceBasicHandler(n normalizedResourceName) string {
-	return fmt.Sprintf(`package routes
+	return fmt.Sprintf(`package controllers
 
 import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/app/goship/controller"
+	"github.com/leomorpho/goship/app/goship/webui"
 )
 
 type %s struct {
-	ctr controller.Controller
+	ctr webui.Controller
 }
 
-func New%sRoute(ctr controller.Controller) *%s {
+func New%sRoute(ctr webui.Controller) *%s {
 	return &%s{ctr: ctr}
 }
 
@@ -276,26 +276,26 @@ func (r *%s) Get(ctx echo.Context) error {
 }
 
 func renderResourceTemplHandler(n normalizedResourceName) string {
-	return fmt.Sprintf(`package routes
+	return fmt.Sprintf(`package controllers
 
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/leomorpho/goship/app/goship/views"
 	"github.com/leomorpho/goship/app/goship/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/goship/views/web/pages/gen"
-	"github.com/leomorpho/goship/app/goship/controller"
+	"github.com/leomorpho/goship/app/goship/webui"
 )
 
 type %s struct {
-	ctr controller.Controller
+	ctr webui.Controller
 }
 
-func New%sRoute(ctr controller.Controller) *%s {
+func New%sRoute(ctr webui.Controller) *%s {
 	return &%s{ctr: ctr}
 }
 
 func (r *%s) Get(ctx echo.Context) error {
-	page := controller.NewPage(ctx)
+	page := webui.NewPage(ctx)
 	page.Layout = layouts.Main
 	page.Name = templates.Page("%s")
 	page.Title = "%s"
@@ -310,9 +310,9 @@ func (r *%s) Get(ctx echo.Context) error {
 func renderResourceTempl(n normalizedResourceName) string {
 	return fmt.Sprintf(`package pages
 
-import "github.com/leomorpho/goship/app/goship/controller"
+import "github.com/leomorpho/goship/app/goship/webui"
 
-templ %sPage(page *controller.Page) {
+templ %sPage(page *webui.Page) {
 	<section>
 		<h1>%s</h1>
 		<p>TODO: implement %s page.</p>
@@ -338,7 +338,7 @@ func renderRouteInsertSnippet(n normalizedResourceName, auth string) string {
 	}
 
 	return fmt.Sprintf(`	// ship:generated:%s
-	%s := routes.New%sRoute(ctr)
+	%s := controllers.New%sRoute(ctr)
 	%s.GET("/%s", %s.Get).Name = routeNames.RouteName%s
 `, n.Snake, n.LowerCamel, n.Pascal, targetGroup, n.Kebab, n.LowerCamel, n.Pascal)
 }

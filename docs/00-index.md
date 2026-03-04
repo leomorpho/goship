@@ -63,7 +63,7 @@ Last updated: 2026-03-03
 - `app/goship/services/core_jobs_adapter.go`
 - `app/goship/services/core_pubsub_adapter.go`
 - `app/goship/router.go`
-- `app/goship/web/routes/*.go`
+- `app/goship/web/controllers/*.go`
 - `pkg/tasks/*.go`
 - `pkg/repos/**/*.go`
 - `app/goship/db/schema/*.go`

@@ -3,6 +3,6 @@
 ./cmd/web
 ./cmd/worker
 ./cmd/seed
-./app/goship/controller
+./app/goship/webui
 ./pkg/runtimeplan
 ./app/goship/services

@@ -29,7 +29,7 @@ Impact:
 
 ## 3) Notification Center Endpoints Partially Disabled (Medium)
 
-Route handlers exist in `app/goship/web/routes/notifications.go`, but several are commented out during route wiring.
+Route handlers exist in `app/goship/web/controllers/notifications.go`, but several are commented out during route wiring.
 
 Impact:
 
@@ -64,7 +64,7 @@ Impact:
 
 ## 7) Some Feature Paths Still Use Placeholder Data (Low)
 
-Example: home feed button counts are hardcoded in `app/goship/web/routes/home_feed.go`.
+Example: home feed button counts are hardcoded in `app/goship/web/controllers/home_feed.go`.
 
 Impact:
 

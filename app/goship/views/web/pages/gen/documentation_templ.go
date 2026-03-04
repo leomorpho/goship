@@ -9,12 +9,12 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	"github.com/leomorpho/goship/app/goship/controller"
 	"github.com/leomorpho/goship/app/goship/views/web/components/gen"
 	"github.com/leomorpho/goship/app/goship/web/capabilities"
+	"github.com/leomorpho/goship/app/goship/webui"
 )
 
-func DocumentationLandingPage(page *controller.Page) templ.Component {
+func DocumentationLandingPage(page *webui.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -73,7 +73,7 @@ func DocumentationLandingPage(page *controller.Page) templ.Component {
 	})
 }
 
-func docsPageLayout(page *controller.Page) templ.Component {
+func docsPageLayout(page *webui.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {

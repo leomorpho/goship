@@ -195,7 +195,7 @@ func normalizeControllerName(raw string) (controllerNames, error) {
 
 func renderControllerFile(names controllerNames, actions []string) (string, error) {
 	var b strings.Builder
-	b.WriteString("package routes\n\n")
+	b.WriteString("package controllers\n\n")
 	b.WriteString("import (\n")
 	b.WriteString("\t\"net/http\"\n\n")
 	b.WriteString("\t\"github.com/labstack/echo/v4\"\n")
@@ -242,7 +242,7 @@ func renderControllerRouteSnippet(names controllerNames, actions []string, auth 
 	b.WriteString("\n")
 	b.WriteString("\t")
 	b.WriteString(names.VarName)
-	b.WriteString(" := routes.New")
+	b.WriteString(" := controllers.New")
 	b.WriteString(names.BaseTitle)
 	b.WriteString("Controller()\n")
 	for _, action := range actions {

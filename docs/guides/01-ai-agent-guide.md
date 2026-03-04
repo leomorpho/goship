@@ -10,7 +10,7 @@ This guide is for code agents making changes in this repository.
 
 ## Architectural Conventions
 
-- HTTP handlers live in `app/goship/web/routes`.
+- HTTP handlers live in `app/goship/web/controllers`.
 - Domain logic should prefer repository packages (`pkg/repos/...`) over route-level DB logic.
 - Rendering is typically done via `controller.Page` + templ components.
 - Enums/constants are centralized in `pkg/domain`.
@@ -25,7 +25,7 @@ This guide is for code agents making changes in this repository.
 
 2. Check for related tests:
 - `rg "func Test" pkg/...`
-- route tests in `app/goship/web/routes/*_test.go`
+- route tests in `app/goship/web/controllers/*_test.go`
 
 3. Implement minimal, local change first.
 4. Run targeted tests, then broader tests if needed.
@@ -58,7 +58,7 @@ Data and domain:
 
 UI and rendering:
 
-- `pkg/controller/*.go`
+- `app/goship/webui/*.go`
 - `app/goship/views/**/*.templ`
 - `javascript/**/*`
 

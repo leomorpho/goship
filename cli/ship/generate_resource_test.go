@@ -80,7 +80,7 @@ func TestGenerateResourceScaffold(t *testing.T) {
 		t.Fatalf("read handler file: %v", err)
 	}
 	handlerText := string(handlerContent)
-	if !strings.Contains(handlerText, "controller.NewPage(ctx)") {
+	if !strings.Contains(handlerText, "webui.NewPage(ctx)") {
 		t.Fatalf("expected templ handler to build page object, got:\n%s", handlerText)
 	}
 	if !strings.Contains(handlerText, "return r.ctr.RenderPage(ctx, page)") {
@@ -93,8 +93,8 @@ func TestGenerateResourceScaffold(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read templ file: %v", err)
 	}
-	if !strings.Contains(string(viewContent), "templ ContactFormPage(page *controller.Page)") {
-		t.Fatalf("expected templ page signature with controller.Page, got:\n%s", string(viewContent))
+	if !strings.Contains(string(viewContent), "templ ContactFormPage(page *webui.Page)") {
+		t.Fatalf("expected templ page signature with webui.Page, got:\n%s", string(viewContent))
 	}
 	if len(result.CreatedFiles) != 2 {
 		t.Fatalf("created files = %d, want 2", len(result.CreatedFiles))
@@ -185,7 +185,7 @@ func registerAuthRoutes() {
 		t.Fatal(err)
 	}
 
-	publicSnippet := "\t// ship:generated:contact\n\tcontact := routes.NewContactRoute(ctr)\n\tg.GET(\"/contact\", contact.Get).Name = routeNames.RouteNameContact\n"
+	publicSnippet := "\t// ship:generated:contact\n\tcontact := controllers.NewContactRoute(ctr)\n\tg.GET(\"/contact\", contact.Get).Name = routeNames.RouteNameContact\n"
 	if err := wireRouteSnippet(routerPath, "public", publicSnippet, false); err != nil {
 		t.Fatalf("wire public failed: %v", err)
 	}
@@ -194,7 +194,7 @@ func registerAuthRoutes() {
 		t.Fatalf("wire public second call failed: %v", err)
 	}
 
-	authSnippet := "\t// ship:generated:inbox\n\tinbox := routes.NewInboxRoute(ctr)\n\tonboardedGroup.GET(\"/inbox\", inbox.Get).Name = routeNames.RouteNameInbox\n"
+	authSnippet := "\t// ship:generated:inbox\n\tinbox := controllers.NewInboxRoute(ctr)\n\tonboardedGroup.GET(\"/inbox\", inbox.Get).Name = routeNames.RouteNameInbox\n"
 	if err := wireRouteSnippet(routerPath, "auth", authSnippet, false); err != nil {
 		t.Fatalf("wire auth failed: %v", err)
 	}
@@ -359,7 +359,7 @@ func TestRunGenerateResourceWireWritesExpected(t *testing.T) {
 import (
 	"fmt"
 	routeNames "github.com/leomorpho/goship/app/goship/web/routenames"
-	"github.com/leomorpho/goship/app/goship/web/routes"
+	"github.com/leomorpho/goship/app/goship/web/controllers"
 )
 
 func registerPublicRoutes() {

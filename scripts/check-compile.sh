@@ -15,8 +15,8 @@ while IFS= read -r pkg; do
   go test -run '^$' "${pkg}"
 done < "${PKG_FILE}"
 
-# Compile route tests without executing TestMain/httptest server startup.
-go test -c ./app/goship/web/routes
+# Compile controller tests without executing TestMain/httptest server startup.
+go test -c ./app/goship/web/controllers
 rm -f "${ROOT_DIR}/routes.test"
 
 echo "Compile checks passed."

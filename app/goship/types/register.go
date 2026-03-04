@@ -1,6 +1,6 @@
 package types
 
-import "github.com/leomorpho/goship/app/goship/controller"
+import "github.com/leomorpho/goship/app/goship/webui"
 
 type (
 	RegisterForm struct {
@@ -9,7 +9,7 @@ type (
 		Email              string `form:"email" validate:"required,email"`
 		Password           string `form:"password" validate:"required"`
 		Birthdate          string `form:"birthdate" validate:"required"`
-		Submission         controller.FormSubmission
+		Submission         webui.FormSubmission
 	}
 
 	RegisterData struct {

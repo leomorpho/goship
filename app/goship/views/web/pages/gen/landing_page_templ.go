@@ -10,14 +10,14 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"fmt"
-	"github.com/leomorpho/goship/app/goship/controller"
 	"github.com/leomorpho/goship/app/goship/types"
 	"github.com/leomorpho/goship/app/goship/views/web/components/gen"
 	"github.com/leomorpho/goship/app/goship/web/capabilities"
 	"github.com/leomorpho/goship/app/goship/web/routenames"
+	"github.com/leomorpho/goship/app/goship/webui"
 )
 
-func LandingPage(page *controller.Page) templ.Component {
+func LandingPage(page *webui.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -176,7 +176,7 @@ func LandingPage(page *controller.Page) templ.Component {
 	})
 }
 
-func nativeMobileLoginButton(page *controller.Page) templ.Component {
+func nativeMobileLoginButton(page *webui.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -279,7 +279,7 @@ func AnimateOnScrollLibrary() templ.Component {
 	})
 }
 
-func welcomeScreen(page *controller.Page, d types.LandingPage) templ.Component {
+func welcomeScreen(page *webui.Page, d types.LandingPage) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -444,7 +444,7 @@ func builtAndShipsWith() templ.Component {
 	})
 }
 
-func getStartedButton(page *controller.Page) templ.Component {
+func getStartedButton(page *webui.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -628,7 +628,7 @@ func verticalSpacer(height string) templ.Component {
 	})
 }
 
-func newsletterRegistration(page *controller.Page) templ.Component {
+func newsletterRegistration(page *webui.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -672,7 +672,7 @@ func newsletterRegistration(page *controller.Page) templ.Component {
 	})
 }
 
-func pricingForLandingPage(page *controller.Page, data types.LandingPage) templ.Component {
+func pricingForLandingPage(page *webui.Page, data types.LandingPage) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {

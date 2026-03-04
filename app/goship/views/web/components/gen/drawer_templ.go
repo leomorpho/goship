@@ -9,11 +9,11 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	"github.com/leomorpho/goship/app/goship/controller"
 	"github.com/leomorpho/goship/app/goship/web/routenames"
+	"github.com/leomorpho/goship/app/goship/webui"
 )
 
-func Drawer(page *controller.Page, showTopBar bool) templ.Component {
+func Drawer(page *webui.Page, showTopBar bool) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -81,7 +81,7 @@ func Drawer(page *controller.Page, showTopBar bool) templ.Component {
 	})
 }
 
-func drawerButtonToggle(page *controller.Page) templ.Component {
+func drawerButtonToggle(page *webui.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -133,7 +133,7 @@ func drawerButtonToggle(page *controller.Page) templ.Component {
 	})
 }
 
-func drawerPanel(page *controller.Page, showTopBar bool) templ.Component {
+func drawerPanel(page *webui.Page, showTopBar bool) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -176,7 +176,7 @@ func drawerPanel(page *controller.Page, showTopBar bool) templ.Component {
 	})
 }
 
-func drawerMenu(page *controller.Page) templ.Component {
+func drawerMenu(page *webui.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -383,7 +383,7 @@ func drawerMenu(page *controller.Page) templ.Component {
 	})
 }
 
-func drawerTopBar(page *controller.Page) templ.Component {
+func drawerTopBar(page *webui.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -466,7 +466,7 @@ func drawerTopBar(page *controller.Page) templ.Component {
 	})
 }
 
-func profile(page *controller.Page) templ.Component {
+func profile(page *webui.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -571,7 +571,7 @@ func overlay() templ.Component {
 	})
 }
 
-func SidebarSharedFields(page *controller.Page) templ.Component {
+func SidebarSharedFields(page *webui.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {

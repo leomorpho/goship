@@ -1,5 +1,5 @@
 # Packages with infrastructure-heavy tests
-./app/goship/web/routes
+./app/goship/web/controllers
 ./app/goship/repos/emailsmanager
 ./pkg/repos/notifierrepo
 ./pkg/repos/profilerepo

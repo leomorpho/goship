@@ -28,7 +28,7 @@ The repository still carries heritage from a related product domain ("Cherie"), 
 
 Core flows implemented in routes and services:
 
-- Login/logout (`app/goship/web/routes/login.go`, `logout.go`)
+- Login/logout (`app/goship/web/controllers/login.go`, `logout.go`)
 - Register (`register.go`)
 - Forgot/reset password (`forgot_password.go`, `reset_password.go`)
 - Email verification (`verify_email.go`)
@@ -42,14 +42,14 @@ Key implementation choices:
 
 ## 2) Onboarding, Preferences, and Profile
 
-- Onboarding and preferences mostly in `app/goship/web/routes/preferences.go`
+- Onboarding and preferences mostly in `app/goship/web/controllers/preferences.go`
 - Profile page in `profile.go`
 - Mark onboarding completion (`/welcome/finish-onboarding`)
 - Profile photo and gallery image routes (`profile_photo.go`, `upload_photo.go`)
 
 ## 3) Payments and Subscription Lifecycle
 
-- Stripe checkout + customer portal + webhook in `app/goship/web/routes/payments.go`
+- Stripe checkout + customer portal + webhook in `app/goship/web/controllers/payments.go`
 - Local subscription state managed in `pkg/repos/subscriptions/subscriptions.go`
 - Product model currently centered on free vs pro (`pkg/domain/enum.go`)
 
@@ -102,7 +102,7 @@ Worker bootstrap and registration in `cmd/worker/main.go`.
 
 ## 8) Frontend Delivery Model
 
-- Server-rendered pages via Templ (`app/goship/views/` + `pkg/controller`)
+- Server-rendered pages via Templ (`app/goship/views/` + `app/goship/webui`)
 - HTMX-enhanced interactions
 - Optional Svelte components bundled into `app/goship/static/svelte_bundle.js`
 - Optional vanilla JS bundle into `app/goship/static/vanilla_bundle.js`

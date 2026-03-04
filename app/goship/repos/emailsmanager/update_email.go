@@ -10,18 +10,18 @@ import (
 
 	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/app/goship/controller"
 	"github.com/leomorpho/goship/app/goship/services"
+	"github.com/leomorpho/goship/app/goship/types"
 	"github.com/leomorpho/goship/app/goship/views/emails/gen"
 	"github.com/leomorpho/goship/app/goship/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/goship/web/routenames"
+	"github.com/leomorpho/goship/app/goship/webui"
 	"github.com/leomorpho/goship/ent"
 	"github.com/leomorpho/goship/ent/notification"
 	"github.com/leomorpho/goship/ent/notificationpermission"
 	"github.com/leomorpho/goship/ent/profile"
 	"github.com/leomorpho/goship/ent/sentemail"
 	"github.com/leomorpho/goship/pkg/domain"
-	"github.com/leomorpho/goship/app/goship/types"
 	"github.com/rs/zerolog/log"
 )
 
@@ -227,7 +227,7 @@ func (e *UpdateEmailSender) SendUpdateEmail(
 		domain.NotificationPermissionNewFriendActivity.Value, partnerUpdatePermissionToken)
 	unsubscribePartnerActivityLink := fmt.Sprintf("%s%s", e.container.Config.HTTP.Domain, url)
 
-	page := controller.NewPage(echoCtx)
+	page := webui.NewPage(echoCtx)
 	page.Layout = layouts.Main
 	page.Data = types.EmailUpdate{
 		SelfName:                                 selfName,

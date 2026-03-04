@@ -8,10 +8,10 @@ package components
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "github.com/leomorpho/goship/app/goship/controller"
+import "github.com/leomorpho/goship/app/goship/webui"
 import "github.com/leomorpho/goship/app/goship/web/routenames"
 
-func InstallButtonRedirectsToInstallPage(page *controller.Page, classes string) templ.Component {
+func InstallButtonRedirectsToInstallPage(page *webui.Page, classes string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -71,7 +71,7 @@ func InstallButtonRedirectsToInstallPage(page *controller.Page, classes string) 
 	})
 }
 
-func NavbarPWAMobileInstallButton(page *controller.Page) templ.Component {
+func NavbarPWAMobileInstallButton(page *webui.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -112,7 +112,7 @@ func NavbarPWAMobileInstallButton(page *controller.Page) templ.Component {
 	})
 }
 
-func PWAMobileInstallButton(page *controller.Page) templ.Component {
+func PWAMobileInstallButton(page *webui.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {

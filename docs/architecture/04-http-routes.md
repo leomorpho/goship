@@ -6,7 +6,7 @@ Routes are wired through canonical `app/goship/router.go`.
 Ergonomic routing rule:
 
 - URL declarations live in one place: `app/goship/router.go`.
-- Handler implementations live in `app/goship/web/routes/*.go`.
+- Handler implementations live in `app/goship/web/controllers/*.go`.
 
 ## Public/General Routes
 

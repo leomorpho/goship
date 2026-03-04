@@ -47,26 +47,26 @@ func TestGenerateResourceIntegration_FullGenerationExactOutput(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read handler: %v", err)
 	}
-	handlerExpected := `package routes
+	handlerExpected := `package controllers
 
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/leomorpho/goship/app/goship/views"
 	"github.com/leomorpho/goship/app/goship/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/goship/views/web/pages/gen"
-	"github.com/leomorpho/goship/app/goship/controller"
+	"github.com/leomorpho/goship/app/goship/webui"
 )
 
 type contactForm struct {
-	ctr controller.Controller
+	ctr webui.Controller
 }
 
-func NewContactFormRoute(ctr controller.Controller) *contactForm {
+func NewContactFormRoute(ctr webui.Controller) *contactForm {
 	return &contactForm{ctr: ctr}
 }
 
 func (r *contactForm) Get(ctx echo.Context) error {
-	page := controller.NewPage(ctx)
+	page := webui.NewPage(ctx)
 	page.Layout = layouts.Main
 	page.Name = templates.Page("contact-form")
 	page.Title = "ContactForm"
@@ -87,9 +87,9 @@ func (r *contactForm) Get(ctx echo.Context) error {
 	}
 	templExpected := `package pages
 
-import "github.com/leomorpho/goship/app/goship/controller"
+import "github.com/leomorpho/goship/app/goship/webui"
 
-templ ContactFormPage(page *controller.Page) {
+templ ContactFormPage(page *webui.Page) {
 	<section>
 		<h1>ContactForm</h1>
 		<p>TODO: implement contact-form page.</p>

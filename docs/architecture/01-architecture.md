@@ -7,11 +7,11 @@ The application follows a layered structure:
 
 - `cmd/*`: process entrypoints (`web`, `worker`, `seed`)
 - `app/goship/services`: app composition container and app-bound infrastructure adapters
-- `app/goship/web/routes`: HTTP handlers
+- `app/goship/web/controllers`: HTTP handlers
 - `app/goship/web/wiring.go`: HTTP stack wiring (middleware/static/deps)
 - `pkg/middleware`: auth/session/cache/onboarding/request middleware
 - `pkg/repos`: data access and external service adapters
-- `pkg/controller`: rendering, page object, redirect helpers
+- `app/goship/webui`: rendering, page object, redirect helpers
 - `app/goship/views`: Templ source files (`.templ`) and generated Go (`gen/*_templ.go`)
 - `ent`: schema + generated ORM
 - `pkg/tasks`: Asynq task processors
@@ -80,8 +80,8 @@ Additional gatekeepers:
 
 The UI is server-rendered using Templ components.
 
-- Base page abstraction: `pkg/controller/page.go`
-- Render orchestration: `pkg/controller/controller.go`
+- Base page abstraction: `app/goship/webui/page.go`
+- Render orchestration: `app/goship/webui/controller.go`
 - Layout wrappers (source): `app/goship/views/web/layouts/*.templ`
 - Page components (source): `app/goship/views/web/pages/*.templ`
 - Generated packages: `app/goship/views/**/gen/*_templ.go`
@@ -101,7 +101,7 @@ HTMX behavior is integrated in the page object (`Page.HTMX`) and controller rend
   - persistent DB notifications
   - pub/sub events for SSE
   - push channels (PWA + FCM)
-- SSE endpoint (`app/goship/web/routes/realtime.go`) is registered conditionally based on runtime plan web features (notifier + pubsub dependency availability).
+- SSE endpoint (`app/goship/web/controllers/realtime.go`) is registered conditionally based on runtime plan web features (notifier + pubsub dependency availability).
 
 ## Frontend Asset Architecture
 

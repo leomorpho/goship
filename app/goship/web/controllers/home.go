@@ -1,0 +1,54 @@
+package controllers
+
+import (
+	"fmt"
+
+	"github.com/leomorpho/goship/app/goship/types"
+	"github.com/leomorpho/goship/app/goship/views"
+	"github.com/leomorpho/goship/app/goship/views/web/layouts/gen"
+	"github.com/leomorpho/goship/app/goship/views/web/pages/gen"
+	"github.com/leomorpho/goship/app/goship/webui"
+
+	"github.com/labstack/echo/v4"
+)
+
+type (
+	home struct {
+		webui.Controller
+	}
+)
+
+func (c *home) Get(ctx echo.Context) error {
+	page := webui.NewPage(ctx)
+
+	if page.AuthUser != nil {
+		return c.Redirect(ctx, "dashboard")
+
+	}
+
+	page.Layout = layouts.Main
+	page.Name = templates.PageHome
+	page.Metatags.Description = "Welcome to the homepage."
+	page.Metatags.Keywords = []string{"Go", "MVC", "Web", "Software"}
+	page.Pager = webui.NewPager(ctx, 4)
+	page.Data = c.fetchPosts(&page.Pager)
+	page.Component = pages.Home(&page)
+	page.HTMX.Request.Boosted = true
+
+	return c.RenderPage(ctx, page)
+}
+
+// fetchPosts is an mock example of fetching posts to illustrate how paging works
+func (c *home) fetchPosts(pager *webui.Pager) []types.Post {
+	pager.SetItems(20)
+	posts := make([]types.Post, 20)
+
+	for k := range posts {
+		posts[k] = types.Post{
+			Title: fmt.Sprintf("Post example #%d", k+1),
+			Body:  fmt.Sprintf("Lorem ipsum example #%d ddolor sit amet, consectetur adipiscing elit. Nam elementum vulputate tristique.", k+1),
+		}
+	}
+
+	return posts[pager.GetOffset() : pager.GetOffset()+pager.ItemsPerPage]
+}

@@ -252,7 +252,7 @@ func seedScaffoldTargets(t *testing.T, root string) {
 
 import (
 	routeNames "github.com/leomorpho/goship/app/goship/web/routenames"
-	"github.com/leomorpho/goship/app/goship/web/routes"
+	"github.com/leomorpho/goship/app/goship/web/controllers"
 )
 
 func registerPublicRoutes() {
