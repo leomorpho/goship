@@ -10,6 +10,7 @@ import (
 	"os/signal"
 	"time"
 
+	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/app"
 	"github.com/leomorpho/goship/app/foundation"
 )
@@ -39,8 +40,14 @@ func main() {
 		}
 	}()
 
+	paidSubscriptionsService := paidsubscriptions.New(paidsubscriptions.NewEntStore(
+		c.ORM,
+		c.Config.App.OperationalConstants.ProTrialTimespanInDays,
+		c.Config.App.OperationalConstants.PaymentFailedGracePeriodInDays,
+	))
+
 	// Build the router
-	if err := goship.BuildRouter(c); err != nil {
+	if err := goship.BuildRouter(c, goship.RouterModules{PaidSubscriptions: paidSubscriptionsService}); err != nil {
 		c.Web.Logger.Fatalf("failed to build router: %v", err)
 	}
 

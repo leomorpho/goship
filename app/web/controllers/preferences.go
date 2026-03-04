@@ -95,7 +95,7 @@ type preferences struct {
 	profileRepo                    profiles.ProfileRepo
 	pushNotificationsRepo          *notifications.PwaPushNotificationsRepo
 	notificationSendPermissionRepo *notifications.NotificationSendPermissionRepo
-	subscriptionsRepo              *paidsubscriptions.SubscriptionsRepo
+	subscriptionsRepo              *paidsubscriptions.Service
 	smsSenderRepo                  *notifications.SMSSender
 }
 
@@ -104,7 +104,7 @@ func NewPreferencesRoute(
 	profileRepo *profiles.ProfileRepo,
 	pushNotificationsRepo *notifications.PwaPushNotificationsRepo,
 	notificationSendPermissionRepo *notifications.NotificationSendPermissionRepo,
-	subscriptionsRepo *paidsubscriptions.SubscriptionsRepo,
+	subscriptionsRepo *paidsubscriptions.Service,
 	smsSenderRepo *notifications.SMSSender,
 ) preferences {
 	return preferences{

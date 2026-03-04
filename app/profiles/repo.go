@@ -32,10 +32,10 @@ var ErrContactRequestAlreadyExists = errors.New("contact request already exists"
 type ProfileRepo struct {
 	orm              *ent.Client
 	storageRepo      storagerepo.StorageClientInterface
-	subscriptionRepo *paidsubscriptions.SubscriptionsRepo
+	subscriptionRepo *paidsubscriptions.Service
 }
 
-func NewProfileRepo(orm *ent.Client, storageRepo storagerepo.StorageClientInterface, subscriptionRepo *paidsubscriptions.SubscriptionsRepo) *ProfileRepo {
+func NewProfileRepo(orm *ent.Client, storageRepo storagerepo.StorageClientInterface, subscriptionRepo *paidsubscriptions.Service) *ProfileRepo {
 	return &ProfileRepo{
 		orm:              orm,
 		storageRepo:      storageRepo,

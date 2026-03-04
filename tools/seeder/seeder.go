@@ -98,7 +98,7 @@ func SeedUsers(cfg *config.Config, client *ent.Client, useS3 bool) error {
 		storageClient = storagerepo.NewStorageClient(cfg, client)
 	}
 	profileRepo := profiles.NewProfileRepo(client, storageClient, nil)
-	subscriptionsRepo := paidsubscriptions.NewSubscriptionsRepo(client, 3, 3)
+	subscriptionsRepo := paidsubscriptions.New(paidsubscriptions.NewEntStore(client, 3, 3))
 	notificationSendPermissionRepo := notifications.NewNotificationSendPermissionRepo(client)
 
 	createProfile := func(

@@ -56,15 +56,19 @@ func main() {
 		},
 	)
 
+	paidSubscriptionsService := paidsubscriptions.New(paidsubscriptions.NewEntStore(
+		c.ORM,
+		c.Config.App.OperationalConstants.ProTrialTimespanInDays,
+		c.Config.App.OperationalConstants.PaymentFailedGracePeriodInDays,
+	))
+
 	// Build the router, which is needed to get the reverse of routes by name in some tasks.
-	if err := goship.BuildRouter(c); err != nil {
+	if err := goship.BuildRouter(c, goship.RouterModules{PaidSubscriptions: paidSubscriptionsService}); err != nil {
 		c.Web.Logger.Fatalf("failed to build router: %v", err)
 	}
 
 	storageRepo := storagerepo.NewStorageClient(c.Config, c.ORM)
-	subscriptionsRepo := paidsubscriptions.NewSubscriptionsRepo(
-		c.ORM, c.Config.App.OperationalConstants.ProTrialTimespanInDays,
-		c.Config.App.OperationalConstants.PaymentFailedGracePeriodInDays)
+	subscriptionsRepo := paidSubscriptionsService
 	profileRepo := profiles.NewProfileRepo(c.ORM, storageRepo, subscriptionsRepo)
 
 	plannedNotificationRepo := notifications.NewPlannedNotificationsRepo(

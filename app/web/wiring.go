@@ -34,7 +34,7 @@ type RouteDeps struct {
 	EmailSubscriptions             *modemailsubscriptions.Service
 	StorageRepo                    *storagerepo.StorageClient
 	ProfileRepo                    *profiles.ProfileRepo
-	SubscriptionsRepo              *paidsubscriptions.SubscriptionsRepo
+	SubscriptionsRepo              *paidsubscriptions.Service
 	NotificationSendPermissionRepo *notifications.NotificationSendPermissionRepo
 	StripeWebhookPath              string
 }
@@ -44,15 +44,11 @@ func sseSkipper(c echo.Context) bool {
 	return c.Path() == "/auth/realtime"
 }
 
-func NewRouteDeps(c *foundation.Container) (*RouteDeps, error) {
+func NewRouteDeps(c *foundation.Container, paidSubscriptions *paidsubscriptions.Service) (*RouteDeps, error) {
 	deps := &RouteDeps{}
 	deps.EmailSubscriptions = modemailsubscriptions.New(modemailsubscriptions.NewEntStore(c.ORM))
 	deps.StorageRepo = storagerepo.NewStorageClient(c.Config, c.ORM)
-	deps.SubscriptionsRepo = paidsubscriptions.NewSubscriptionsRepo(
-		c.ORM,
-		c.Config.App.OperationalConstants.ProTrialTimespanInDays,
-		c.Config.App.OperationalConstants.PaymentFailedGracePeriodInDays,
-	)
+	deps.SubscriptionsRepo = paidSubscriptions
 	deps.ProfileRepo = profiles.NewProfileRepo(c.ORM, deps.StorageRepo, deps.SubscriptionsRepo)
 	deps.NotificationSendPermissionRepo = notifications.NewNotificationSendPermissionRepo(c.ORM)
 

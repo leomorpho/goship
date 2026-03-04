@@ -19,7 +19,7 @@ import (
 
 // LoadAuthenticatedUser loads the authenticated user, if one, and stores in context
 func LoadAuthenticatedUser(
-	authClient *foundation.AuthClient, profileRepo *profiles.ProfileRepo, subscriptionsRepo *paidsubscriptions.SubscriptionsRepo,
+	authClient *foundation.AuthClient, profileRepo *profiles.ProfileRepo, subscriptionsRepo *paidsubscriptions.Service,
 ) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {

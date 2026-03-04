@@ -21,14 +21,14 @@ type (
 	deleteAccount struct {
 		ctr               ui.Controller
 		profileRepo       *profiles.ProfileRepo
-		subscriptionsRepo *paidsubscriptions.SubscriptionsRepo
+		subscriptionsRepo *paidsubscriptions.Service
 	}
 )
 
 func NewDeleteAccountRoute(
 	ctr ui.Controller,
 	profileRepo *profiles.ProfileRepo,
-	subscriptionsRepo *paidsubscriptions.SubscriptionsRepo,
+	subscriptionsRepo *paidsubscriptions.Service,
 ) deleteAccount {
 
 	return deleteAccount{

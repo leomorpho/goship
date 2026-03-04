@@ -30,12 +30,12 @@ type (
 	paymentsRoute struct {
 		ctr               ui.Controller
 		orm               *ent.Client
-		subscriptionsRepo *paidsubscriptions.SubscriptionsRepo
+		subscriptionsRepo *paidsubscriptions.Service
 	}
 )
 
 func NewPaymentsRoute(
-	ctr ui.Controller, orm *ent.Client, subscriptionsRepo *paidsubscriptions.SubscriptionsRepo,
+	ctr ui.Controller, orm *ent.Client, subscriptionsRepo *paidsubscriptions.Service,
 ) paymentsRoute {
 	return paymentsRoute{
 		ctr:               ctr,

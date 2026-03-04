@@ -1,0 +1,6 @@
+# Temporary exceptions: module adapters that still bind to app/framework internals.
+modules/emailsubscriptions/store_ent.go
+modules/emailsubscriptions/update_email.go
+modules/paidsubscriptions/contracts.go
+modules/paidsubscriptions/service.go
+modules/paidsubscriptions/store_ent.go

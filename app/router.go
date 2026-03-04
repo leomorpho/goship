@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/labstack/echo/v4"
+	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/app/foundation"
 	"github.com/leomorpho/goship/app/notifications"
 	appweb "github.com/leomorpho/goship/app/web"
@@ -20,9 +21,17 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+type RouterModules struct {
+	PaidSubscriptions *paidsubscriptions.Service
+}
+
 // BuildRouter is the canonical app-level router entrypoint.
-func BuildRouter(c *foundation.Container) error {
-	deps, err := appweb.NewRouteDeps(c)
+func BuildRouter(c *foundation.Container, modules RouterModules) error {
+	if modules.PaidSubscriptions == nil {
+		return errors.New("missing paid subscriptions module")
+	}
+
+	deps, err := appweb.NewRouteDeps(c, modules.PaidSubscriptions)
 	if err != nil {
 		return err
 	}
@@ -127,7 +136,7 @@ func registerPublicRoutes(c *foundation.Container, g *echo.Group, ctr ui.Control
 	userGroup.GET("/login", login.Get).Name = routeNames.RouteNameLogin
 	userGroup.POST("/login", login.Post).Name = routeNames.RouteNameLoginSubmit
 
-	register := controllers.NewRegisterRoute(ctr, *deps.ProfileRepo, *deps.SubscriptionsRepo, deps.NotificationSendPermissionRepo)
+	register := controllers.NewRegisterRoute(ctr, *deps.ProfileRepo, deps.SubscriptionsRepo, deps.NotificationSendPermissionRepo)
 	userGroup.GET("/register", register.Get).Name = routeNames.RouteNameRegister
 	userGroup.POST("/register", register.Post).Name = routeNames.RouteNameRegisterSubmit
 

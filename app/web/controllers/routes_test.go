@@ -10,6 +10,7 @@ import (
 	"os"
 	"testing"
 
+	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/app"
 	"github.com/leomorpho/goship/app/foundation"
 	"github.com/leomorpho/goship/config"
@@ -35,9 +36,14 @@ func TestMain(m *testing.M) {
 
 	// Start a new container
 	c = foundation.NewContainer()
+	paidSubscriptions := paidsubscriptions.New(paidsubscriptions.NewEntStore(
+		c.ORM,
+		c.Config.App.OperationalConstants.ProTrialTimespanInDays,
+		c.Config.App.OperationalConstants.PaymentFailedGracePeriodInDays,
+	))
 
 	// Start a test HTTP server
-	if err := goship.BuildRouter(c); err != nil {
+	if err := goship.BuildRouter(c, goship.RouterModules{PaidSubscriptions: paidSubscriptions}); err != nil {
 		panic(err)
 	}
 	srv = httptest.NewServer(c.Web)

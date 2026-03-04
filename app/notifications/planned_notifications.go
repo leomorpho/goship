@@ -19,11 +19,11 @@ import (
 
 type PlannedNotificationsRepo struct {
 	orm              *ent.Client
-	subscriptionRepo *paidsubscriptions.SubscriptionsRepo
+	subscriptionRepo *paidsubscriptions.Service
 }
 
 func NewPlannedNotificationsRepo(
-	orm *ent.Client, subscriptionRepo *paidsubscriptions.SubscriptionsRepo,
+	orm *ent.Client, subscriptionRepo *paidsubscriptions.Service,
 ) *PlannedNotificationsRepo {
 
 	return &PlannedNotificationsRepo{

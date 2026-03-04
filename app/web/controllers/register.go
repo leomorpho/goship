@@ -30,7 +30,7 @@ type (
 	register struct {
 		ctr                            ui.Controller
 		profileRepo                    profiles.ProfileRepo
-		subscriptionsRepo              paidsubscriptions.SubscriptionsRepo
+		subscriptionsRepo              *paidsubscriptions.Service
 		notificationSendPermissionRepo *notifications.NotificationSendPermissionRepo
 	}
 )
@@ -38,7 +38,7 @@ type (
 func NewRegisterRoute(
 	ctr ui.Controller,
 	profileRepo profiles.ProfileRepo,
-	subscriptionsRepo paidsubscriptions.SubscriptionsRepo,
+	subscriptionsRepo *paidsubscriptions.Service,
 	notificationSendPermissionRepo *notifications.NotificationSendPermissionRepo,
 ) register {
 	return register{

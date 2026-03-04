@@ -113,7 +113,7 @@ type (
 		orm                     *ent.Client
 		notifierRepo            *notifications.NotifierRepo
 		echoServer              *echo.Echo
-		subscriptionRepo        *paidsubscriptions.SubscriptionsRepo
+		subscriptionRepo        *paidsubscriptions.Service
 		plannedNotificationRepo plannedNotificationSource
 	}
 
@@ -125,7 +125,7 @@ type (
 func NewDailyConvoNotificationsProcessor(
 	notifierRepo *notifications.NotifierRepo,
 	e *echo.Echo,
-	subscriptionRepo *paidsubscriptions.SubscriptionsRepo,
+	subscriptionRepo *paidsubscriptions.Service,
 	plannedNotificationRepo plannedNotificationSource,
 ) *DailyConvoNotificationsProcessor {
 
