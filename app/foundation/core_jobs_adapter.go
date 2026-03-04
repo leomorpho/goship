@@ -3,40 +3,37 @@ package foundation
 import (
 	"context"
 	"errors"
-	"sync"
-	"time"
-
-	"github.com/hibiken/asynq"
 	"github.com/leomorpho/goship/config"
 	"github.com/leomorpho/goship/framework/core"
 	coreadapters "github.com/leomorpho/goship/framework/core/adapters"
+	"sync"
 )
 
 var _ core.Jobs = (*CoreJobsAdapter)(nil)
 
-// CoreJobsAdapter adapts TaskClient to the core.Jobs interface.
+// CoreJobsAdapter provides a capability-aware fallback/delegating core.Jobs adapter.
 type CoreJobsAdapter struct {
-	client       *TaskClient
+	delegate     core.Jobs
 	capabilities core.JobCapabilities
 
 	mu       sync.RWMutex
 	handlers map[string]core.JobHandler
 }
 
-func NewCoreJobsAdapter(client *TaskClient, capabilities core.JobCapabilities) *CoreJobsAdapter {
+func NewCoreJobsAdapter(delegate core.Jobs, capabilities core.JobCapabilities) *CoreJobsAdapter {
 	return &CoreJobsAdapter{
-		client:       client,
+		delegate:     delegate,
 		capabilities: capabilities,
 		handlers:     make(map[string]core.JobHandler),
 	}
 }
 
-func NewCoreJobsAdapterFromConfig(client *TaskClient, cfg *config.Config) (*CoreJobsAdapter, error) {
+func NewCoreJobsAdapterFromConfig(delegate core.Jobs, cfg *config.Config) (*CoreJobsAdapter, error) {
 	resolved, err := coreadapters.ResolveFromConfig(cfg)
 	if err != nil {
 		return nil, err
 	}
-	return NewCoreJobsAdapter(client, resolved.JobsCapabilities), nil
+	return NewCoreJobsAdapter(delegate, resolved.JobsCapabilities), nil
 }
 
 func (a *CoreJobsAdapter) Register(name string, handler core.JobHandler) error {
@@ -53,15 +50,10 @@ func (a *CoreJobsAdapter) Register(name string, handler core.JobHandler) error {
 }
 
 func (a *CoreJobsAdapter) Enqueue(ctx context.Context, name string, payload []byte, opts core.EnqueueOptions) (string, error) {
-	if a == nil || a.client == nil || a.client.client == nil {
+	if a == nil || a.delegate == nil {
 		return "", errors.New("jobs client is not initialized")
 	}
-	task := asynq.NewTask(name, payload, toAsynqOptions(opts)...)
-	info, err := a.client.client.EnqueueContext(ctx, task)
-	if err != nil {
-		return "", err
-	}
-	return info.ID, nil
+	return a.delegate.Enqueue(ctx, name, payload, opts)
 }
 
 func (a *CoreJobsAdapter) StartWorker(context.Context) error {
@@ -69,18 +61,18 @@ func (a *CoreJobsAdapter) StartWorker(context.Context) error {
 	return nil
 }
 
-func (a *CoreJobsAdapter) StartScheduler(context.Context) error {
-	if a == nil || a.client == nil || a.client.scheduler == nil {
+func (a *CoreJobsAdapter) StartScheduler(ctx context.Context) error {
+	if a == nil || a.delegate == nil {
 		return errors.New("jobs scheduler is not initialized")
 	}
-	return a.client.StartScheduler()
+	return a.delegate.StartScheduler(ctx)
 }
 
-func (a *CoreJobsAdapter) Stop(context.Context) error {
-	if a == nil || a.client == nil {
+func (a *CoreJobsAdapter) Stop(ctx context.Context) error {
+	if a == nil || a.delegate == nil {
 		return nil
 	}
-	return a.client.Close()
+	return a.delegate.Stop(ctx)
 }
 
 func (a *CoreJobsAdapter) Capabilities() core.JobCapabilities {
@@ -88,41 +80,4 @@ func (a *CoreJobsAdapter) Capabilities() core.JobCapabilities {
 		return core.JobCapabilities{}
 	}
 	return a.capabilities
-}
-
-func toAsynqOptions(opts core.EnqueueOptions) []asynq.Option {
-	converted := make([]asynq.Option, 0, 5)
-
-	if opts.Queue != "" {
-		converted = append(converted, asynq.Queue(opts.Queue))
-	} else if opts.Priority > 0 {
-		converted = append(converted, asynq.Queue(priorityToQueue(opts.Priority)))
-	}
-	if opts.MaxRetries > 0 {
-		converted = append(converted, asynq.MaxRetry(opts.MaxRetries))
-	}
-	if opts.Timeout > 0 {
-		converted = append(converted, asynq.Timeout(opts.Timeout))
-	}
-	if opts.Retention > 0 {
-		converted = append(converted, asynq.Retention(opts.Retention))
-	}
-	if !opts.RunAt.IsZero() {
-		delay := time.Until(opts.RunAt)
-		if delay > 0 {
-			converted = append(converted, asynq.ProcessIn(delay))
-		}
-	}
-	return converted
-}
-
-func priorityToQueue(priority int) string {
-	switch {
-	case priority >= 90:
-		return "critical"
-	case priority >= 50:
-		return "default"
-	default:
-		return "low"
-	}
 }

@@ -3,7 +3,7 @@
 This `docs/` directory is internal and implementation-focused.
 It is not intended as user-facing product documentation.
 
-Last updated: 2026-03-03
+Last updated: 2026-03-04
 
 ## Goals
 
@@ -35,6 +35,7 @@ Last updated: 2026-03-03
 2. `G02` - `guides/02-development-workflows.md`: day-to-day run/build/test/migration workflows.
 3. `G03` - `guides/03-how-to-playbook.md`: prioritized how-to guide backlog and writing template.
 4. `G04` - `guides/04-deployment-kamal.md`: current deployment workflow via Kamal.
+5. `G05` - `guides/05-jobs-module.md`: jobs module install/wiring contract, backend rules, and migration notes.
 
 ### Reference
 
@@ -48,7 +49,6 @@ Last updated: 2026-03-03
 ### Roadmap
 
 1. `M01` - `roadmap/01-framework-plan.md`: long-term framework strategy and execution tracker.
-2. `M02` - `roadmap/02-dx-llm-phases.md`: active multi-phase DX + LLM reliability execution tracker.
 
 ## Primary Source Files Used For This Analysis
 

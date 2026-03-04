@@ -64,6 +64,36 @@ type JobCapabilities struct {
 	Dashboard  bool
 }
 
+type JobStatus string
+
+const (
+	JobStatusQueued  JobStatus = "queued"
+	JobStatusRunning JobStatus = "running"
+	JobStatusDone    JobStatus = "done"
+	JobStatusFailed  JobStatus = "failed"
+)
+
+type JobRecord struct {
+	ID         string
+	Queue      string
+	Name       string
+	Payload    []byte
+	Status     JobStatus
+	Attempt    int
+	MaxRetries int
+	RunAt      time.Time
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
+	LastError  string
+}
+
+type JobListFilter struct {
+	Queue    string
+	Statuses []JobStatus
+	Limit    int
+	Offset   int
+}
+
 // Missing returns required capability names not supported by the current backend.
 func (c JobCapabilities) Missing(required JobCapabilities) []string {
 	missing := make([]string, 0, 6)
@@ -105,6 +135,11 @@ type Jobs interface {
 	StartScheduler(ctx context.Context) error
 	Stop(ctx context.Context) error
 	Capabilities() JobCapabilities
+}
+
+type JobsInspector interface {
+	List(ctx context.Context, filter JobListFilter) ([]JobRecord, error)
+	Get(ctx context.Context, id string) (JobRecord, bool, error)
 }
 
 // PutObjectInput describes an object upload request.

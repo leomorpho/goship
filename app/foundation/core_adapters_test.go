@@ -90,21 +90,14 @@ func TestNewCoreJobsAdapterFromConfig(t *testing.T) {
 	}
 }
 
-func TestPriorityToQueue(t *testing.T) {
+func TestCoreJobsInspectorAdapterNilDelegate(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct {
-		priority int
-		want     string
-	}{
-		{priority: 95, want: "critical"},
-		{priority: 60, want: "default"},
-		{priority: 10, want: "low"},
+	adapter := NewCoreJobsInspectorAdapter(nil)
+	if _, err := adapter.List(context.Background(), core.JobListFilter{}); err == nil {
+		t.Fatal("expected list error for uninitialized inspector")
 	}
-
-	for _, tt := range tests {
-		if got := priorityToQueue(tt.priority); got != tt.want {
-			t.Fatalf("priority %d: got=%q want=%q", tt.priority, got, tt.want)
-		}
+	if _, _, err := adapter.Get(context.Background(), "missing"); err == nil {
+		t.Fatal("expected get error for uninitialized inspector")
 	}
 }

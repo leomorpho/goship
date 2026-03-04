@@ -81,13 +81,12 @@ type Container struct {
 	// Notifier handles all notifications to clients
 	Notifier *notifications.NotifierService
 
-	// Tasks stores the task client
-	Tasks *TaskClient
-
 	// CoreCache exposes cache via the backend-agnostic core seam.
 	CoreCache core.Cache
 	// CoreJobs exposes jobs via the backend-agnostic core seam.
 	CoreJobs core.Jobs
+	// CoreJobsInspector exposes jobs inspection via the backend-agnostic core seam.
+	CoreJobsInspector core.JobsInspector
 	// CorePubSub exposes pubsub via the backend-agnostic core seam.
 	CorePubSub core.PubSub
 
@@ -128,17 +127,13 @@ func (c *Container) validateAdapterPlan() {
 
 func (c *Container) initCoreAdapters() {
 	c.CoreCache = NewCoreCacheAdapter(c.Cache)
-	c.CoreJobs = NewCoreJobsAdapter(c.Tasks, c.Adapters.JobsCapabilities)
+	c.CoreJobs = NewCoreJobsAdapter(nil, c.Adapters.JobsCapabilities)
+	c.CoreJobsInspector = NewCoreJobsInspectorAdapter(nil)
 	c.CorePubSub = NewCorePubSubAdapter(nil)
 }
 
 // Shutdown shuts the Container down and disconnects all connections
 func (c *Container) Shutdown() error {
-	if c.Tasks != nil {
-		if err := c.Tasks.Close(); err != nil {
-			return err
-		}
-	}
 	if c.Cache != nil {
 		if err := c.Cache.Close(); err != nil {
 			return err
@@ -419,9 +414,4 @@ func (c *Container) initMail() {
 
 func (c *Container) initPaymentProcessor() {
 	stripe.Key = c.Config.App.PrivateStripeKey
-}
-
-// initTasks initializes the task client
-func (c *Container) initTasks() {
-	c.Tasks = NewTaskClient(c.Config)
 }

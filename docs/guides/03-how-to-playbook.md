@@ -145,4 +145,4 @@ Common failures:
 - `docs/reference/01-cli.md`
 - `docs/architecture/02-structure-and-boundaries.md`
 - `docs/architecture/08-cognitive-model.md`
-- `docs/roadmap/02-dx-llm-phases.md`
+- `docs/guides/05-jobs-module.md`

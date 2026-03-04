@@ -383,7 +383,7 @@ FILE: docs/00-index.md
 This `docs/` directory is internal and implementation-focused.
 It is not intended as user-facing product documentation.
 
-Last updated: 2026-03-03
+Last updated: 2026-03-04
 
 ## Goals
 
@@ -415,6 +415,7 @@ Last updated: 2026-03-03
 2. `G02` - `guides/02-development-workflows.md`: day-to-day run/build/test/migration workflows.
 3. `G03` - `guides/03-how-to-playbook.md`: prioritized how-to guide backlog and writing template.
 4. `G04` - `guides/04-deployment-kamal.md`: current deployment workflow via Kamal.
+5. `G05` - `guides/05-jobs-module.md`: jobs module install/wiring contract, backend rules, and migration notes.
 
 ### Reference
 
@@ -428,7 +429,6 @@ Last updated: 2026-03-03
 ### Roadmap
 
 1. `M01` - `roadmap/01-framework-plan.md`: long-term framework strategy and execution tracker.
-2. `M02` - `roadmap/02-dx-llm-phases.md`: active multi-phase DX + LLM reliability execution tracker.
 
 ## Primary Source Files Used For This Analysis
 
@@ -1695,7 +1695,7 @@ Common failures:
 - `docs/reference/01-cli.md`
 - `docs/architecture/02-structure-and-boundaries.md`
 - `docs/architecture/08-cognitive-model.md`
-- `docs/roadmap/02-dx-llm-phases.md`
+- `docs/guides/05-jobs-module.md`
 
 ---
 FILE: docs/guides/04-deployment-kamal.md
@@ -1758,6 +1758,93 @@ kamal traefik reboot -c infra/deploy/kamal/deploy.yml
 - Worker and cache topology depends on your runtime profile.
 - If using Redis-backed async/realtime paths, ensure Redis is reachable from deployed processes.
 - Keep deployment docs in sync with `docs/roadmap/01-framework-plan.md` as runtime modes evolve.
+
+---
+FILE: docs/guides/05-jobs-module.md
+---
+# Jobs Module Guide
+
+This guide defines the install/wiring contract for `modules/jobs`.
+
+Last updated: 2026-03-04
+
+## Goal
+
+- Provide one backend-agnostic jobs seam (`framework/core.Jobs`) with strict runtime backend selection.
+- Support exactly one backend at a time:
+  - `redis` (Asynq driver)
+  - `sql` (Ent/DB-backed queue)
+
+## Runtime Contract
+
+`modules/jobs` exposes:
+
+- `Module.Jobs() core.Jobs`
+- `Module.Inspector() core.JobsInspector`
+
+The module is composed in `cmd/*`, not in `app/*`:
+
+- [cmd/web/main.go](/Users/leoaudibert/Workspace/pagoda-based/goship/cmd/web/main.go)
+- [cmd/worker/main.go](/Users/leoaudibert/Workspace/pagoda-based/goship/cmd/worker/main.go)
+
+Container seam fields:
+
+- [container.go](/Users/leoaudibert/Workspace/pagoda-based/goship/app/foundation/container.go)
+  - `CoreJobs core.Jobs`
+  - `CoreJobsInspector core.JobsInspector`
+
+## Backend Selection Rules
+
+`modules/jobs/config.go` enforces strict XOR config:
+
+- `BackendSQL` requires `EntClient` and forbids redis settings.
+- `BackendRedis` requires `Redis.Addr` and forbids `EntClient`.
+
+Validation tests:
+
+- [config_test.go](/Users/leoaudibert/Workspace/pagoda-based/goship/modules/jobs/config_test.go)
+
+## SQL Backend Baseline
+
+Implemented in:
+
+- [client.go](/Users/leoaudibert/Workspace/pagoda-based/goship/modules/jobs/drivers/sql/client.go)
+- [core_jobs_sql.go](/Users/leoaudibert/Workspace/pagoda-based/goship/modules/jobs/core_jobs_sql.go)
+- [core_jobs_inspector_sql.go](/Users/leoaudibert/Workspace/pagoda-based/goship/modules/jobs/core_jobs_inspector_sql.go)
+
+Current behavior:
+
+- Enqueue persists to `goship_jobs`.
+- Worker loop supports claim -> handle -> done/retry/failed.
+- Retry uses bounded quadratic backoff.
+- Inspector supports normalized list/get via `core.JobRecord`.
+- Scheduler is a no-op for now (`Cron=false` capability on SQL backend).
+
+## Redis Backend Baseline
+
+Implemented in:
+
+- [client.go](/Users/leoaudibert/Workspace/pagoda-based/goship/modules/jobs/drivers/redis/client.go)
+- [core_jobs_redis.go](/Users/leoaudibert/Workspace/pagoda-based/goship/modules/jobs/core_jobs_redis.go)
+
+Current behavior:
+
+- Enqueue + scheduler delegates to Asynq.
+- Worker runtime is still Asynq server wiring in `cmd/worker`.
+- Inspector exists as a seam but currently returns "not implemented".
+
+## Migration Notes
+
+- Legacy `app/foundation/tasks.go` ownership was removed.
+- Job infrastructure now lives in `modules/jobs`.
+- App code should depend on `core.Jobs` (and `core.JobsInspector` if read access is required), not Asynq types.
+
+## Non-Negotiable Rules
+
+- No Asynq imports outside `modules/jobs/drivers/redis`.
+- No direct job infra construction inside `app/*`.
+- Module wiring happens in `cmd/*` and writes to container core seams.
+- New admin/job UI code must read through `core.JobsInspector`, not backend-specific APIs.
 
 ---
 FILE: docs/policies/01-engineering-standards.md
@@ -3033,135 +3120,4 @@ Current progress:
 3. Optional batteries are added via CLI without copy-paste.
 4. LLMs can reliably reason over framework structure using `llm.txt` + MCP.
 5. Cherie can upgrade to current GoShip with a documented, repeatable process.
-
----
-FILE: docs/roadmap/02-dx-llm-phases.md
----
-# DX + LLM Reliability Phases
-
-Track the multi-phase execution plan for maximizing developer ergonomics and agent reliability.
-
-Last updated: 2026-03-04
-
-## Status Legend
-
-- `done`: implemented and verified
-- `in_progress`: currently being implemented
-- `next`: queued next, not started
-- `later`: explicitly deferred
-
-## Phases
-
-1. `P1` `done` - Establish cognitive model and guardrails docs.
-2. `P2` `done` - Implement `ship doctor` baseline checks (layout, markers, package conventions).
-3. `P3` `done` - Align `ship new` scaffold to canonical app layout so fresh apps pass doctor.
-4. `P4` `done` - Remove legacy `ship check` route compile special-case; rely on explicit package lists.
-5. `P5` `done` - Expand enforceable guardrails in `ship doctor` and quality gates.
-6. `P6` `done` - Strengthen generator deterministic behavior and wire-safety.
-7. `P7` `done` - Add richer docs-to-code sync checks and contributor-facing runbooks.
-8. `P8` `done` - Add project upgrade workflows (`ship upgrade`) for explicit pin updates.
-
-## Implemented in this phase stream
-
-### P1
-
-- Added cognitive model architecture doc:
-  - `docs/architecture/08-cognitive-model.md`
-
-### P2
-
-- Added `ship doctor` command and tests:
-  - `tools/cli/ship/doctor.go`
-  - `tools/cli/ship/doctor_test.go`
-- Wired doctor command/help:
-  - `tools/cli/ship/cli.go`
-
-### P3
-
-- Updated `ship new` scaffold to canonical structure:
-  - `app/*` (replaces legacy `domains/*`)
-  - `app/foundation/container.go`
-  - `app/web/{controllers,middleware,ui,viewmodels}`
-  - `app/jobs/jobs.go`
-  - baseline docs (`docs/00-index.md`, architecture stubs)
-- Updated integration tests to validate fresh scaffold + `ship doctor`.
-
-### P4
-
-- Removed legacy special-case compile path from `ship check`.
-- Explicit package list now controls compile checks.
-
-## P5 Scope (Current)
-
-1. Added doctor checks for root binary artifact hygiene and `.gitignore` coverage.
-2. Added file-length budget enforcement for human-authored `.go` files.
-3. Excluded generated paths (`db/ent/`, `**/gen`) and retained low-noise fix hints.
-
-## P6 Scope (Next)
-
-1. Ensure all generators are deterministic and path-safe.
-2. Expand `--wire` safety checks (idempotency, markers, import insertion stability).
-3. Add integration tests for generator workflows on fresh scaffold.
-
-Progress note:
-
-- Added router marker-order validation in `ship doctor` (`DX011`) to catch broken `--wire` blocks early.
-- Added integration coverage for multi-run `--wire` stability across resource/controller generators.
-- Added integration guard that duplicate generation attempts fail without mutating router/route-name wiring.
-
-## P7 Scope
-
-1. Add practical docs coverage checks for core command behavior.
-2. Ensure CLI docs + `LLM.txt` stay aligned by default workflow.
-3. Expand how-to guides for high-frequency tasks.
-
-Progress note:
-
-- Added `ship doctor` docs-token coverage checks to ensure core CLI commands remain documented in `docs/reference/01-cli.md`.
-- Added `ship doctor` required-section coverage checks for `docs/reference/01-cli.md`.
-- Replaced `docs/guides/03-how-to-playbook.md` backlog with concrete high-frequency how-to runbooks.
-
-## P8 Scope
-
-1. Implement explicit `ship upgrade` command for pinned tool version updates.
-2. Keep upgrades intentional (`--to <version>`) and auditable (`--dry-run`).
-3. Cover upgrade flows with CLI tests and docs updates.
-
-Progress note:
-
-- Implemented `ship upgrade --to <version> [--dry-run]` (Atlas pin only for now).
-- Added tests for rewrite behavior, validation, dry-run, and write paths.
-
-## App Organization Cleanup (5 Phases)
-
-Status: `in_progress`
-
-Goal:
-
-- Make `app/` intuitive and feature-first (Rails/Laravel-inspired DX), while keeping Go clarity.
-- Avoid generic buckets (`app/services`, `app/repos`) that become junk drawers.
-
-Phases:
-
-1. `A1` `done` - Define and enforce target app structure and naming rules.
-2. `A2` `done` - Move profile feature to `app/profile` and remove generic service bucket usage.
-3. `A3` `done` - Normalize app layer naming (`Service`/`Store`/`Policy`) and remove app-layer `Repo` naming.
-4. `A4` `done` - Extract notifications from app to `modules/notifications` with composition-root wiring.
-5. `A5` `next` - Enforce layout through doctor/CI/generators and finalize migration notes.
-
-Progress note:
-
-- Completed `app/profiles` to `app/profile` migration with `ProfileService` naming, including call sites and tests.
-- Removed generic app service bucket usage and kept feature logic under `app/<feature>`.
-- Completed app-layer naming cleanup in notifications (`NotificationStore`, `NotifierService`, `NotificationPermissionService`, `PlannedNotificationsService`, `PwaPushService`, `FcmPushService`).
-- Extracted notifications implementation from `app/notifications` to `modules/notifications` and switched app imports to `github.com/leomorpho/goship-modules/notifications`.
-- Registered `modules/notifications` in `go.work` and module checks (`tools/scripts/test/module-isolation-allowlist.txt`).
-- Added `modules/notifications` composition entrypoint (`notifications.New(...)`) and moved notification service construction out of `app/router.go` into `cmd/web` and `cmd/worker`.
-
-Non-negotiable rules for this stream:
-
-- `app/<feature>` for app-owned business logic.
-- No generic `app/services` directory.
-- No module construction in `app/foundation`; compose modules in `cmd/*`.
-- Optional capabilities should become installable `modules/*`.
 

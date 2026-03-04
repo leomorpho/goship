@@ -10,6 +10,7 @@ import (
 	"os/signal"
 	"time"
 
+	jobsmodule "github.com/leomorpho/goship-modules/jobs"
 	"github.com/leomorpho/goship-modules/notifications"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/app"
@@ -48,6 +49,10 @@ func main() {
 		c.Config.App.OperationalConstants.ProTrialTimespanInDays,
 		c.Config.App.OperationalConstants.PaymentFailedGracePeriodInDays,
 	))
+
+	if err := wireJobsModule(c); err != nil {
+		c.Web.Logger.Fatalf("failed to initialize jobs module: %v", err)
+	}
 	storageClient := storagerepo.NewStorageClient(c.Config, c.ORM)
 	profileService := profilesvc.NewProfileService(c.ORM, storageClient, paidSubscriptionsService)
 
@@ -159,5 +164,39 @@ func main() {
 	defer cancel()
 	if err := c.Web.Shutdown(ctx); err != nil {
 		c.Web.Logger.Fatal(err)
+	}
+}
+
+func wireJobsModule(c *foundation.Container) error {
+	switch c.Config.Adapters.Jobs {
+	case "asynq":
+		mod, err := jobsmodule.New(jobsmodule.Config{
+			Backend: jobsmodule.BackendRedis,
+			Redis: jobsmodule.RedisConfig{
+				Addr:     fmt.Sprintf("%s:%d", c.Config.Cache.Hostname, c.Config.Cache.Port),
+				Password: c.Config.Cache.Password,
+				DB:       c.Config.Cache.Database,
+			},
+		})
+		if err != nil {
+			return err
+		}
+		c.CoreJobs = mod.Jobs()
+		c.CoreJobsInspector = mod.Inspector()
+		return nil
+	case "dbqueue":
+		mod, err := jobsmodule.New(jobsmodule.Config{
+			Backend:   jobsmodule.BackendSQL,
+			EntClient: c.ORM,
+		})
+		if err == nil {
+			c.CoreJobs = mod.Jobs()
+			c.CoreJobsInspector = mod.Inspector()
+		}
+		return err
+	case "inproc":
+		return nil
+	default:
+		return fmt.Errorf("unsupported jobs adapter %q", c.Config.Adapters.Jobs)
 	}
 }
