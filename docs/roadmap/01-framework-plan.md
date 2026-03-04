@@ -137,8 +137,8 @@ Rules for versioned tooling in generated apps:
 
 1. CLI installs tool versions pinned to the project declaration.
 2. CLI does not auto-upgrade tools to latest on dev/test commands.
-3. `goship doctor` reports drift (e.g., templ CLI older/newer than project version) and provides fix commands.
-4. `goship upgrade` is the only command that intentionally bumps pinned tool/module versions.
+3. `ship doctor` reports drift (e.g., templ CLI older/newer than project version) and provides fix commands.
+4. `ship upgrade` is the only command that intentionally bumps pinned tool/module versions.
 
 ## Core Product Goals
 

@@ -27,6 +27,7 @@ Last updated: 2026-03-03
 5. `A05` - `architecture/05-data-model.md`: Ent entities and domain model coverage.
 6. `A06` - `architecture/06-known-gaps-and-risks.md`: confirmed implementation gaps and technical risks.
 7. `A07` - `architecture/07-core-interfaces.md`: backend-agnostic adapter seam contracts.
+8. `A08` - `architecture/08-cognitive-model.md`: cognitive model and DX/LLM reliability guardrails.
 
 ### Guides
 

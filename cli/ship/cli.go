@@ -98,6 +98,8 @@ func (c CLI) Run(args []string) int {
 		return c.runNew(args[1:])
 	case "check":
 		return c.runCheck(args[1:])
+	case "doctor":
+		return c.runDoctor(args[1:])
 	case "test":
 		return c.runTest(args[1:])
 	case "db":
@@ -882,6 +884,7 @@ func printRootHelp(w io.Writer) {
 	fmt.Fprintln(w, "  ship new <app> [--module <module-path>] [--dry-run] [--force]")
 	fmt.Fprintln(w, "  ship dev [worker|all] [--worker|--all]")
 	fmt.Fprintln(w, "  ship check")
+	fmt.Fprintln(w, "  ship doctor")
 	fmt.Fprintln(w, "  ship test [--integration]")
 	fmt.Fprintln(w, "  ship db:<create|make|migrate|status|reset|drop|rollback|seed>  (or ship db for help)")
 	fmt.Fprintln(w, "  ship infra:<up|down>                  (or ship infra for help)")
@@ -892,6 +895,7 @@ func printRootHelp(w io.Writer) {
 	fmt.Fprintln(w, "  ship new demo")
 	fmt.Fprintln(w, "  ship dev")
 	fmt.Fprintln(w, "  ship check")
+	fmt.Fprintln(w, "  ship doctor")
 	fmt.Fprintln(w, "  ship dev worker")
 	fmt.Fprintln(w, "  ship dev --all")
 	fmt.Fprintln(w, "  ship test --integration")
@@ -945,6 +949,12 @@ func printTestHelp(w io.Writer) {
 func printCheckHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship check commands:")
 	fmt.Fprintln(w, "  ship check")
+}
+
+func printDoctorHelp(w io.Writer) {
+	fmt.Fprintln(w, "ship doctor commands:")
+	fmt.Fprintln(w, "  ship doctor")
+	fmt.Fprintln(w, "  (validates canonical app structure and LLM/DX conventions)")
 }
 
 func printTemplHelp(w io.Writer) {

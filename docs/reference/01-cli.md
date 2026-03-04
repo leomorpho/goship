@@ -38,7 +38,7 @@ Design constraints:
 Project lifecycle:
 
 - `ship new <app> [--module <module-path>] [--dry-run] [--force]`
-- `ship doctor` (planned)
+- `ship doctor`
 
 Local runtime:
 
@@ -94,7 +94,7 @@ These commands are implemented as wrappers over existing workflows:
 - `ship dev` -> `go run ./cmd/web`
 - `ship dev --worker` -> `go run ./cmd/worker`
 - `ship dev --all` -> starts both processes concurrently with prefixed logs (`[web]`, `[worker]`) and signal-aware shutdown
-- `ship check` -> runs Go checks directly; uses package lists in `scripts/test/*.txt` when present, otherwise `go test ./...`
+- `ship check` -> `go test ./...` (compile + unit checks, no integration-tagged tests)
 - `ship test` -> `go test ./...` (integration-tagged tests are excluded by default)
 - `ship test --integration` -> `go test -tags=integration ./...`
 - `ship infra:up` -> detects `docker-compose`/`docker compose` and runs `up -d cache`, then attempts `up -d mailpit` (non-fatal if mailpit fails)
@@ -138,6 +138,14 @@ Safety matrix:
 - `ship make:controller <Name> --domain <name>` -> generate domain-aware constructor slot (`domainService any`) and route wiring using `nil` placeholder
 - `ship make:controller <Name> --actions ... --wire` -> wire generated routes into `apps/goship/router.go` markers
 - `ship make:scaffold <Name> ...` -> orchestration command that composes `make:model`, `db:make`, `make:controller --domain <plural_model> --wire`, and optionally `make:resource --domain <plural_model>` / `db:migrate`
+
+Doctor checks (current):
+
+- validates canonical app/layout directories under `apps/goship`
+- validates required files (router, container, routenames, core docs)
+- flags forbidden legacy paths from pre-refactor layout
+- validates router marker pairs used by `--wire` generators
+- validates package naming conventions in `web/ui` and `web/viewmodels`
 
 Field syntax for `make:model`:
 
