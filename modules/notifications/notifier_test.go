@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/leomorpho/goship/app/notifications"
+	"github.com/leomorpho/goship-modules/notifications"
 	"github.com/leomorpho/goship/framework/core"
 	"github.com/leomorpho/goship/framework/domain"
 	"github.com/stretchr/testify/assert"
@@ -49,53 +49,53 @@ func (s *mockSubscription) Close() error {
 	return args.Error(0)
 }
 
-type MockNotificationStorageRepo struct {
+type MockNotificationStore struct {
 	mock.Mock
 }
 
-func (m *MockNotificationStorageRepo) CreateNotification(
+func (m *MockNotificationStore) CreateNotification(
 	ctx context.Context, n domain.Notification,
 ) (*domain.Notification, error) {
 	args := m.Called(ctx, n)
 	return args.Get(0).(*domain.Notification), args.Error(1)
 }
 
-func (m *MockNotificationStorageRepo) GetNotificationsByProfileID(
+func (m *MockNotificationStore) GetNotificationsByProfileID(
 	ctx context.Context, profileID int, onlyUnread bool, beforeTimestamp *time.Time, pageSize *int,
 ) ([]*domain.Notification, error) {
 	args := m.Called(ctx, profileID, onlyUnread)
 	return args.Get(0).([]*domain.Notification), args.Error(1)
 }
 
-func (m *MockNotificationStorageRepo) MarkNotificationAsRead(
+func (m *MockNotificationStore) MarkNotificationAsRead(
 	ctx context.Context, notificationID int, profileID *int,
 ) error {
 	args := m.Called(ctx, notificationID)
 	return args.Error(0)
 }
 
-func (m *MockNotificationStorageRepo) MarkAllNotificationAsRead(
+func (m *MockNotificationStore) MarkAllNotificationAsRead(
 	ctx context.Context, profileID int,
 ) error {
 	args := m.Called(ctx, profileID)
 	return args.Error(0)
 }
 
-func (m *MockNotificationStorageRepo) MarkNotificationAsUnread(
+func (m *MockNotificationStore) MarkNotificationAsUnread(
 	ctx context.Context, notificationID int, profileID *int,
 ) error {
 	args := m.Called(ctx, notificationID)
 	return args.Error(0)
 }
 
-func (m *MockNotificationStorageRepo) DeleteNotification(
+func (m *MockNotificationStore) DeleteNotification(
 	ctx context.Context, notificationID int, profileID *int,
 ) error {
 	args := m.Called(ctx, notificationID)
 	return args.Error(0)
 }
 
-func (m *MockNotificationStorageRepo) HasNotificationForResourceAndPerson(
+func (m *MockNotificationStore) HasNotificationForResourceAndPerson(
 	ctx context.Context, notifType domain.NotificationType, profileIDWhoCausedNotif, resourceID *int, maxAge time.Duration,
 ) (bool, error) {
 	args := m.Called(ctx, notifType, profileIDWhoCausedNotif, resourceID, maxAge)
@@ -118,11 +118,11 @@ func TestCreateNotification(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			mockPubSubClient := new(MockPubSubClient)
-			mockNotificationStorageRepo := new(MockNotificationStorageRepo)
+			mockNotificationStore := new(MockNotificationStore)
 
 			// Setting expectations based on the test case
 			if tc.expectCreate {
-				mockNotificationStorageRepo.
+				mockNotificationStore.
 					On("CreateNotification", ctx, notification).
 					Return(&notification, nil)
 			}
@@ -131,14 +131,14 @@ func TestCreateNotification(t *testing.T) {
 				Return(nil)
 
 			// Create notifier repo
-			notifierRepo := notifications.NewNotifierRepo(mockPubSubClient, mockNotificationStorageRepo, nil, nil, nil)
+			notifierService := notifications.NewNotifierService(mockPubSubClient, mockNotificationStore, nil, nil, nil)
 
 			// Test CreateNotification
-			err := notifierRepo.PublishNotification(ctx, notification, tc.storeInDB, false)
+			err := notifierService.PublishNotification(ctx, notification, tc.storeInDB, false)
 			assert.NoError(t, err)
 
 			if tc.expectCreate {
-				mockNotificationStorageRepo.AssertExpectations(t)
+				mockNotificationStore.AssertExpectations(t)
 			}
 			mockPubSubClient.AssertExpectations(t)
 		})
@@ -148,41 +148,41 @@ func TestCreateNotification(t *testing.T) {
 func TestGetNotifications(t *testing.T) {
 	ctx := context.Background()
 	mockPubSubClient := new(MockPubSubClient)
-	mockNotificationStorageRepo := new(MockNotificationStorageRepo)
+	mockNotificationStore := new(MockNotificationStore)
 	profileID := 1
 	notificationList := []*domain.Notification{{ID: 1, ProfileID: profileID, Type: domain.NotificationTypeNewPrivateMessage, Text: "Test Notification"}}
 
 	// Set expectations
-	mockNotificationStorageRepo.On("GetNotificationsByProfileID", ctx, profileID, false).Return(notificationList, nil)
+	mockNotificationStore.On("GetNotificationsByProfileID", ctx, profileID, false).Return(notificationList, nil)
 
 	// Create notifier repo
-	notifierRepo := notifications.NewNotifierRepo(mockPubSubClient, mockNotificationStorageRepo, nil, nil, nil)
+	notifierService := notifications.NewNotifierService(mockPubSubClient, mockNotificationStore, nil, nil, nil)
 
 	// Test GetNotifications
-	result, err := notifierRepo.GetNotifications(ctx, profileID, false, nil, nil)
+	result, err := notifierService.GetNotifications(ctx, profileID, false, nil, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, notificationList, result)
 
-	mockNotificationStorageRepo.AssertExpectations(t)
+	mockNotificationStore.AssertExpectations(t)
 }
 
 func TestMarkNotificationRead(t *testing.T) {
 	ctx := context.Background()
 	mockPubSubClient := new(MockPubSubClient)
-	mockNotificationStorageRepo := new(MockNotificationStorageRepo)
+	mockNotificationStore := new(MockNotificationStore)
 	notificationID := 1
 
 	// Set expectations
-	mockNotificationStorageRepo.On("MarkNotificationAsRead", ctx, notificationID).Return(nil)
+	mockNotificationStore.On("MarkNotificationAsRead", ctx, notificationID).Return(nil)
 
 	// Create notifier repo
-	notifierRepo := notifications.NewNotifierRepo(mockPubSubClient, mockNotificationStorageRepo, nil, nil, nil)
+	notifierService := notifications.NewNotifierService(mockPubSubClient, mockNotificationStore, nil, nil, nil)
 
 	// Test MarkNotificationRead
-	err := notifierRepo.MarkNotificationRead(ctx, notificationID, nil)
+	err := notifierService.MarkNotificationRead(ctx, notificationID, nil)
 	assert.NoError(t, err)
 
-	mockNotificationStorageRepo.AssertExpectations(t)
+	mockNotificationStore.AssertExpectations(t)
 }
 
 func TestSubscribe(t *testing.T) {
@@ -190,7 +190,7 @@ func TestSubscribe(t *testing.T) {
 	defer cancel() // Ensure the context gets cancelled to clean up resources
 
 	mockPubSubClient := new(MockPubSubClient)
-	mockNotificationStorageRepo := new(MockNotificationStorageRepo)
+	mockNotificationStore := new(MockNotificationStore)
 	topic := "someTopic"
 	mockSub := new(mockSubscription)
 
@@ -209,10 +209,10 @@ func TestSubscribe(t *testing.T) {
 		Return(core.Subscription(mockSub), nil)
 
 	// Create notifier repo
-	notifierRepo := notifications.NewNotifierRepo(mockPubSubClient, mockNotificationStorageRepo, nil, nil, nil)
+	notifierService := notifications.NewNotifierService(mockPubSubClient, mockNotificationStore, nil, nil, nil)
 
 	// Test SSESubscribe
-	receivedCh, err := notifierRepo.SSESubscribe(ctx, topic)
+	receivedCh, err := notifierService.SSESubscribe(ctx, topic)
 	assert.NoError(t, err)
 	assert.NotNil(t, receivedCh)
 

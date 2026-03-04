@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/app/profiles"
+	profilesvc "github.com/leomorpho/goship/app/profile"
 	"github.com/leomorpho/goship/app/views"
 	"github.com/leomorpho/goship/app/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/views/web/pages/gen"
@@ -19,22 +19,22 @@ import (
 
 type (
 	homeFeed struct {
-		ctr         ui.Controller
-		profileRepo profiles.ProfileRepo
-		pageSize    *int
+		ctr            ui.Controller
+		profileService profilesvc.ProfileService
+		pageSize       *int
 	}
 )
 
 func NewHomeFeedRoute(
 	ctr ui.Controller,
-	profileRepo profiles.ProfileRepo,
+	profileService profilesvc.ProfileService,
 	pageSize *int,
 ) homeFeed {
 
 	return homeFeed{
-		ctr:         ctr,
-		profileRepo: profileRepo,
-		pageSize:    pageSize,
+		ctr:            ctr,
+		profileService: profileService,
+		pageSize:       pageSize,
 	}
 }
 

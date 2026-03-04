@@ -8,7 +8,7 @@ import (
 
 	"github.com/janberktold/sse"
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/app/notifications"
+	"github.com/leomorpho/goship-modules/notifications"
 	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/db/ent"
 	customContext "github.com/leomorpho/goship/framework/context"
@@ -17,12 +17,12 @@ import (
 
 type realtime struct {
 	ctr      ui.Controller
-	notifier notifications.NotifierRepo
+	notifier notifications.NotifierService
 }
 
 func NewRealtimeRoute(
 	ctr ui.Controller,
-	notifier notifications.NotifierRepo,
+	notifier notifications.NotifierService,
 ) *realtime {
 	return &realtime{
 		ctr:      ctr,

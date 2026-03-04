@@ -10,7 +10,7 @@ import (
 	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
 
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
-	"github.com/leomorpho/goship/app/profiles"
+	profilesvc "github.com/leomorpho/goship/app/profile"
 	"github.com/leomorpho/goship/app/views"
 	"github.com/leomorpho/goship/app/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/views/web/pages/gen"
@@ -19,22 +19,22 @@ import (
 
 type (
 	deleteAccount struct {
-		ctr               ui.Controller
-		profileRepo       *profiles.ProfileRepo
-		subscriptionsRepo *paidsubscriptions.Service
+		ctr                  ui.Controller
+		profileService       *profilesvc.ProfileService
+		subscriptionsService *paidsubscriptions.Service
 	}
 )
 
 func NewDeleteAccountRoute(
 	ctr ui.Controller,
-	profileRepo *profiles.ProfileRepo,
-	subscriptionsRepo *paidsubscriptions.Service,
+	profileService *profilesvc.ProfileService,
+	subscriptionsService *paidsubscriptions.Service,
 ) deleteAccount {
 
 	return deleteAccount{
-		ctr:               ctr,
-		profileRepo:       profileRepo,
-		subscriptionsRepo: subscriptionsRepo,
+		ctr:                  ctr,
+		profileService:       profileService,
+		subscriptionsService: subscriptionsService,
 	}
 }
 
@@ -44,7 +44,7 @@ func (c *deleteAccount) DeleteAccountPage(ctx echo.Context) error {
 	usr := ctx.Get(context.AuthenticatedUserKey).(*ent.User)
 	profile := usr.QueryProfile().FirstX(ctx.Request().Context())
 
-	activePlan, subscriptionExpiredOn, isTrial, err := c.subscriptionsRepo.GetCurrentlyActiveProduct(
+	activePlan, subscriptionExpiredOn, isTrial, err := c.subscriptionsService.GetCurrentlyActiveProduct(
 		ctx.Request().Context(), profile.ID,
 	)
 
@@ -69,7 +69,7 @@ func (c *deleteAccount) DeleteAccountRequest(ctx echo.Context) error {
 	usr := ctx.Get(context.AuthenticatedUserKey).(*ent.User)
 	profileId := usr.QueryProfile().FirstX(ctx.Request().Context()).ID
 
-	err := c.profileRepo.DeleteUserData(ctx.Request().Context(), profileId)
+	err := c.profileService.DeleteUserData(ctx.Request().Context(), profileId)
 	if err != nil {
 		return err
 	}

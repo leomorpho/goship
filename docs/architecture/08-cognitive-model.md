@@ -44,6 +44,9 @@ Use `ship` as the single mutation interface for common scaffolding.
 ## Non-Negotiable Conventions
 
 - One canonical app root: `app`.
+- App business logic lives in `app/<feature>` (for example `app/profile`), not generic buckets.
+- No generic `app/services` or `app/repos` directory.
+- Optional capabilities belong in `modules/*` and are composed in `cmd/*`.
 - No legacy paths (`app/goship`, `app/bootstrap`, `app/domains`, etc.).
 - Package names match directory intent:
   - `app/web/ui` -> `package ui`

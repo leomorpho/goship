@@ -14,9 +14,9 @@ import (
 	"github.com/leomorpho/goship/framework/domain"
 	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
 
+	"github.com/leomorpho/goship-modules/notifications"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
-	"github.com/leomorpho/goship/app/notifications"
-	"github.com/leomorpho/goship/app/profiles"
+	profilesvc "github.com/leomorpho/goship/app/profile"
 	"github.com/leomorpho/goship/app/views"
 	"github.com/leomorpho/goship/app/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/views/web/pages/gen"
@@ -91,29 +91,29 @@ func (p *profilePrefsRoute) UpdateBio(ctx echo.Context) error {
 }
 
 type preferences struct {
-	ctr                            ui.Controller
-	profileRepo                    profiles.ProfileRepo
-	pushNotificationsRepo          *notifications.PwaPushNotificationsRepo
-	notificationSendPermissionRepo *notifications.NotificationSendPermissionRepo
-	subscriptionsRepo              *paidsubscriptions.Service
-	smsSenderRepo                  *notifications.SMSSender
+	ctr                           ui.Controller
+	profileService                profilesvc.ProfileService
+	pushNotificationsRepo         *notifications.PwaPushService
+	notificationPermissionService *notifications.NotificationPermissionService
+	subscriptionsService          *paidsubscriptions.Service
+	smsSenderService              *notifications.SMSSender
 }
 
 func NewPreferencesRoute(
 	ctr ui.Controller,
-	profileRepo *profiles.ProfileRepo,
-	pushNotificationsRepo *notifications.PwaPushNotificationsRepo,
-	notificationSendPermissionRepo *notifications.NotificationSendPermissionRepo,
-	subscriptionsRepo *paidsubscriptions.Service,
-	smsSenderRepo *notifications.SMSSender,
+	profileService *profilesvc.ProfileService,
+	pushNotificationsRepo *notifications.PwaPushService,
+	notificationPermissionService *notifications.NotificationPermissionService,
+	subscriptionsService *paidsubscriptions.Service,
+	smsSenderService *notifications.SMSSender,
 ) preferences {
 	return preferences{
-		ctr:                            ctr,
-		profileRepo:                    *profileRepo,
-		pushNotificationsRepo:          pushNotificationsRepo,
-		notificationSendPermissionRepo: notificationSendPermissionRepo,
-		subscriptionsRepo:              subscriptionsRepo,
-		smsSenderRepo:                  smsSenderRepo,
+		ctr:                           ctr,
+		profileService:                *profileService,
+		pushNotificationsRepo:         pushNotificationsRepo,
+		notificationPermissionService: notificationPermissionService,
+		subscriptionsService:          subscriptionsService,
+		smsSenderService:              smsSenderService,
 	}
 }
 
@@ -168,7 +168,7 @@ func (g *preferences) Get(ctx echo.Context) error {
 		g.ctr.Container.Config.HTTP.Domain, ctx.Echo().Reverse(
 			routeNames.RouteNameDeleteSubscription, domain.NotificationPlatformSMS.Value)) + "?csrf=" + page.CSRF
 
-	permissions, err := g.notificationSendPermissionRepo.GetPermissions(ctx.Request().Context(), profile.ID)
+	permissions, err := g.notificationPermissionService.GetPermissions(ctx.Request().Context(), profile.ID)
 	if err != nil {
 		return err
 	}
@@ -216,7 +216,7 @@ func (g *preferences) getCurrPreferencesData(ctx echo.Context) (*viewmodels.Pref
 	// Make sure to check if birthdate is non-nil
 	birthdateStr := profile.Birthdate.UTC().Format("2006-01-02")
 
-	activePlan, subscriptionExpiredOn, isTrial, err := g.subscriptionsRepo.GetCurrentlyActiveProduct(
+	activePlan, subscriptionExpiredOn, isTrial, err := g.subscriptionsService.GetCurrentlyActiveProduct(
 		ctx.Request().Context(), profile.ID,
 	)
 
@@ -229,7 +229,7 @@ func (g *preferences) getCurrPreferencesData(ctx echo.Context) (*viewmodels.Pref
 		PhoneNumberInE164Format: profile.PhoneNumberE164,
 		CountryCode:             profile.CountryCode,
 		SelfBirthdate:           birthdateStr,
-		IsProfileFullyOnboarded: profiles.IsProfileFullyOnboarded(profile),
+		IsProfileFullyOnboarded: profilesvc.IsProfileFullyOnboarded(profile),
 		DefaultBio:              domain.DefaultBio,
 		DefaultBirthdate:        domain.DefaultBirthdate.Format("2006-01-02"),
 
@@ -281,7 +281,7 @@ func (p *preferences) GetPhoneVerificationComponent(ctx echo.Context) error {
 		page.Form = form.(*viewmodels.PhoneNumberVerification)
 	}
 
-	_, err := p.smsSenderRepo.CreateConfirmationCode(ctx.Request().Context(), profile.ID, profile.PhoneNumberE164)
+	_, err := p.smsSenderService.CreateConfirmationCode(ctx.Request().Context(), profile.ID, profile.PhoneNumberE164)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to send verification code.")
 		uxflashmessages.Danger(ctx, "Failed to send verification code 😨")
@@ -318,7 +318,7 @@ func (p *preferences) SubmitPhoneVerificationCode(ctx echo.Context) error {
 	usr := ctx.Get(context.AuthenticatedUserKey).(*ent.User)
 	profile := usr.QueryProfile().FirstX(ctx.Request().Context())
 
-	valid, err := p.smsSenderRepo.VerifyConfirmationCode(ctx.Request().Context(), profile.ID, form.VerificationCode)
+	valid, err := p.smsSenderService.VerifyConfirmationCode(ctx.Request().Context(), profile.ID, form.VerificationCode)
 	if err != nil || !valid {
 
 		form.Submission.SetFieldError("VerificationCode", "Invalid code")

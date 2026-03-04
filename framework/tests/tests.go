@@ -137,7 +137,7 @@ func LinkFriends(ctx context.Context, client *ent.Client, profileID int, matchID
 		panic(fmt.Sprintf("Failed fetching profile for linking matches: %v", err))
 	}
 
-	// Link the profiles.
+	// Link the services.
 	for _, matchID := range matchIDs {
 		err := client.Profile.
 			UpdateOneID(profile.ID).

@@ -13,9 +13,9 @@ import (
 	"github.com/leomorpho/goship/framework/domain"
 	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
 
+	"github.com/leomorpho/goship-modules/notifications"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
-	"github.com/leomorpho/goship/app/notifications"
-	"github.com/leomorpho/goship/app/profiles"
+	profilesvc "github.com/leomorpho/goship/app/profile"
 	"github.com/leomorpho/goship/app/views"
 	"github.com/leomorpho/goship/app/views/emails/gen"
 	"github.com/leomorpho/goship/app/views/web/layouts/gen"
@@ -28,24 +28,24 @@ import (
 
 type (
 	register struct {
-		ctr                            ui.Controller
-		profileRepo                    profiles.ProfileRepo
-		subscriptionsRepo              *paidsubscriptions.Service
-		notificationSendPermissionRepo *notifications.NotificationSendPermissionRepo
+		ctr                           ui.Controller
+		profileService                profilesvc.ProfileService
+		subscriptionsService          *paidsubscriptions.Service
+		notificationPermissionService *notifications.NotificationPermissionService
 	}
 )
 
 func NewRegisterRoute(
 	ctr ui.Controller,
-	profileRepo profiles.ProfileRepo,
-	subscriptionsRepo *paidsubscriptions.Service,
-	notificationSendPermissionRepo *notifications.NotificationSendPermissionRepo,
+	profileService profilesvc.ProfileService,
+	subscriptionsService *paidsubscriptions.Service,
+	notificationPermissionService *notifications.NotificationPermissionService,
 ) register {
 	return register{
-		ctr:                            ctr,
-		profileRepo:                    profileRepo,
-		subscriptionsRepo:              subscriptionsRepo,
-		notificationSendPermissionRepo: notificationSendPermissionRepo,
+		ctr:                           ctr,
+		profileService:                profileService,
+		subscriptionsService:          subscriptionsService,
+		notificationPermissionService: notificationPermissionService,
 	}
 }
 
@@ -148,7 +148,7 @@ func (c *register) Post(ctx echo.Context) error {
 		SetUser(u).
 		SetBio(domain.DefaultBio).
 		SetBirthdate(birthdate).
-		SetAge(profiles.CalculateAge(birthdate)).
+		SetAge(profilesvc.CalculateAge(birthdate)).
 		Save(ctx.Request().Context())
 
 	if err != nil {
@@ -158,7 +158,7 @@ func (c *register) Post(ctx echo.Context) error {
 		return c.ctr.Redirect(ctx, routenames.RouteNameLogin)
 	}
 
-	err = c.subscriptionsRepo.CreateSubscription(ctx.Request().Context(), tx, profile.ID)
+	err = c.subscriptionsService.CreateSubscription(ctx.Request().Context(), tx, profile.ID)
 	if err != nil {
 		tx.Rollback()
 		ctx.Logger().Errorf("failed to create trial pro subscription for profile: %v", err)
@@ -173,7 +173,7 @@ func (c *register) Post(ctx echo.Context) error {
 	ctx.Logger().Infof("user and profile created successfully: %s", u.Name)
 
 	for _, perm := range domain.NotificationPermissions.Members() {
-		err := c.notificationSendPermissionRepo.CreatePermission(
+		err := c.notificationPermissionService.CreatePermission(
 			ctx.Request().Context(), profile.ID, perm, &domain.NotificationPlatformEmail)
 		if err != nil {
 			log.Error().Err(err).Int("profileID", profile.ID).Msg("failed to create notification permission")

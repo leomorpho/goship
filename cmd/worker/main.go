@@ -6,12 +6,12 @@ import (
 	"strings"
 
 	"github.com/hibiken/asynq"
+	"github.com/leomorpho/goship-modules/notifications"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/app"
 	"github.com/leomorpho/goship/app/foundation"
 	"github.com/leomorpho/goship/app/jobs"
-	"github.com/leomorpho/goship/app/notifications"
-	"github.com/leomorpho/goship/app/profiles"
+	profilesvc "github.com/leomorpho/goship/app/profile"
 	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
 )
 
@@ -68,9 +68,9 @@ func main() {
 	}
 
 	storageClient := storagerepo.NewStorageClient(c.Config, c.ORM)
-	profileRepo := profiles.NewProfileRepo(c.ORM, storageClient, paidSubscriptionsService)
+	profileService := profilesvc.NewProfileService(c.ORM, storageClient, paidSubscriptionsService)
 
-	plannedNotificationsRepo := notifications.NewPlannedNotificationsRepo(
+	plannedNotificationsService := notifications.NewPlannedNotificationsService(
 		c.ORM, paidSubscriptionsService)
 
 	emailSubscriptionConfirmationProcessor := tasks.NewEmailSubscriptionConfirmationProcessor(
@@ -80,8 +80,8 @@ func main() {
 	emailUpdateProcessor := tasks.NewEmailUpdateProcessor(c, c.ORM)
 
 	deactivateExpiredSubscriptionsProcessor := tasks.NewDeactivateExpiredSubscriptionsProcessor(paidSubscriptionsService)
-	allDailyConvoNotificationsProcessor := tasks.NewAllDailyConvoNotificationsProcessor(c.ORM, profileRepo, plannedNotificationsRepo, c.CoreJobs, 30)
-	dailyConvoNotificationsProcessor := tasks.NewDailyConvoNotificationsProcessor(c.Notifier, c.Web, paidSubscriptionsService, plannedNotificationsRepo)
+	allDailyConvoNotificationsProcessor := tasks.NewAllDailyConvoNotificationsProcessor(c.ORM, profileService, plannedNotificationsService, c.CoreJobs, 30)
+	dailyConvoNotificationsProcessor := tasks.NewDailyConvoNotificationsProcessor(c.Notifier, c.Web, paidSubscriptionsService, plannedNotificationsService)
 	deleteStaleNotificationsProcessor := tasks.NewDeleteStaleNotificationsProcessor(
 		c.ORM, c.Config.App.OperationalConstants.DeleteStaleNotificationAfterDays,
 	)

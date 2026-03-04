@@ -92,3 +92,35 @@ Progress note:
 
 - Implemented `ship upgrade --to <version> [--dry-run]` (Atlas pin only for now).
 - Added tests for rewrite behavior, validation, dry-run, and write paths.
+
+## App Organization Cleanup (5 Phases)
+
+Status: `in_progress`
+
+Goal:
+
+- Make `app/` intuitive and feature-first (Rails/Laravel-inspired DX), while keeping Go clarity.
+- Avoid generic buckets (`app/services`, `app/repos`) that become junk drawers.
+
+Phases:
+
+1. `A1` `done` - Define and enforce target app structure and naming rules.
+2. `A2` `done` - Move profile feature to `app/profile` and remove generic service bucket usage.
+3. `A3` `done` - Normalize app layer naming (`Service`/`Store`/`Policy`) and remove app-layer `Repo` naming.
+4. `A4` `in_progress` - Extract notifications from app to `modules/notifications` with composition-root wiring.
+5. `A5` `next` - Enforce layout through doctor/CI/generators and finalize migration notes.
+
+Progress note:
+
+- Completed `app/profiles` to `app/profile` migration with `ProfileService` naming, including call sites and tests.
+- Removed generic app service bucket usage and kept feature logic under `app/<feature>`.
+- Completed app-layer naming cleanup in notifications (`NotificationStore`, `NotifierService`, `NotificationPermissionService`, `PlannedNotificationsService`, `PwaPushService`, `FcmPushService`).
+- Extracted notifications implementation from `app/notifications` to `modules/notifications` and switched app imports to `github.com/leomorpho/goship-modules/notifications`.
+- Registered `modules/notifications` in `go.work` and module checks (`tools/scripts/test/module-isolation-allowlist.txt`).
+
+Non-negotiable rules for this stream:
+
+- `app/<feature>` for app-owned business logic.
+- No generic `app/services` directory.
+- No module construction in `app/foundation`; compose modules in `cmd/*`.
+- Optional capabilities should become installable `modules/*`.

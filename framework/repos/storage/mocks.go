@@ -51,40 +51,40 @@ func (msc *MockStorageClient) GetImageObjectsFromFiles(files []*ent.Image) ([]do
 	return nil, nil
 }
 
-// MockNotifierRepo is a mock of NotifierRepo interface
-type MockNotifierRepo struct {
+// MockNotifierService is a mock of NotifierService interface
+type MockNotifierService struct {
 	mock.Mock
 }
 
-func NewMockNotifierRepo() *MockNotifierRepo {
-	return &MockNotifierRepo{}
+func NewMockNotifierService() *MockNotifierService {
+	return &MockNotifierService{}
 }
 
-func (m *MockNotifierRepo) CreateNotification(ctx context.Context, notification domain.Notification) error {
+func (m *MockNotifierService) CreateNotification(ctx context.Context, notification domain.Notification) error {
 	args := m.Called(ctx, notification)
 	return args.Error(0)
 }
 
-func (m *MockNotifierRepo) GetNotifications(ctx context.Context, profileID int, onlyUnread bool) ([]*domain.Notification, error) {
+func (m *MockNotifierService) GetNotifications(ctx context.Context, profileID int, onlyUnread bool) ([]*domain.Notification, error) {
 	args := m.Called(ctx, profileID, onlyUnread)
 	return args.Get(0).([]*domain.Notification), args.Error(1)
 }
 
-func (m *MockNotifierRepo) MarkNotificationRead(ctx context.Context, notificationID int, profileID *int) error {
+func (m *MockNotifierService) MarkNotificationRead(ctx context.Context, notificationID int, profileID *int) error {
 	args := m.Called(ctx, notificationID)
 	return args.Error(0)
 }
-func (m *MockNotifierRepo) MarkNotificationUnread(ctx context.Context, notificationID int, profileID *int) error {
+func (m *MockNotifierService) MarkNotificationUnread(ctx context.Context, notificationID int, profileID *int) error {
 	args := m.Called(ctx, notificationID)
 	return args.Error(0)
 }
 
-func (m *MockNotifierRepo) SSESubscribe(ctx context.Context, topic string, handler pubsub.MessageHandler) error {
+func (m *MockNotifierService) SSESubscribe(ctx context.Context, topic string, handler pubsub.MessageHandler) error {
 	args := m.Called(ctx, topic, handler)
 	return args.Error(0)
 }
 
-func (m *MockNotifierRepo) SSEUnsubscribe(ctx context.Context, topic string) error {
+func (m *MockNotifierService) SSEUnsubscribe(ctx context.Context, topic string) error {
 	args := m.Called(ctx, topic)
 	return args.Error(0)
 }

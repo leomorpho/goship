@@ -8,9 +8,9 @@ import (
 	"strings"
 
 	"github.com/labstack/echo/v4"
+	"github.com/leomorpho/goship-modules/notifications"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/app/foundation"
-	"github.com/leomorpho/goship/app/notifications"
 	appweb "github.com/leomorpho/goship/app/web"
 	"github.com/leomorpho/goship/app/web/controllers"
 	"github.com/leomorpho/goship/app/web/middleware"
@@ -136,7 +136,7 @@ func registerPublicRoutes(c *foundation.Container, g *echo.Group, ctr ui.Control
 	userGroup.GET("/login", login.Get).Name = routeNames.RouteNameLogin
 	userGroup.POST("/login", login.Post).Name = routeNames.RouteNameLoginSubmit
 
-	register := controllers.NewRegisterRoute(ctr, *deps.ProfileRepo, deps.SubscriptionsRepo, deps.NotificationSendPermissionRepo)
+	register := controllers.NewRegisterRoute(ctr, *deps.ProfileService, deps.SubscriptionsRepo, deps.NotificationPermissionService)
 	userGroup.GET("/register", register.Get).Name = routeNames.RouteNameRegister
 	userGroup.POST("/register", register.Post).Name = routeNames.RouteNameRegisterSubmit
 
@@ -177,7 +177,7 @@ func registerDocsRoutes(g *echo.Group, ctr ui.Controller) error {
 }
 
 func registerAuthRoutes(c *foundation.Container, g *echo.Group, ctr ui.Controller, deps *appweb.RouteDeps) error {
-	pwaPushNotificationsRepo := notifications.NewPwaPushNotificationsRepo(
+	pwaPushService := notifications.NewPwaPushService(
 		c.ORM,
 		c.Config.App.VapidPublicKey,
 		c.Config.App.VapidPrivateKey,
@@ -188,7 +188,7 @@ func registerAuthRoutes(c *foundation.Container, g *echo.Group, ctr ui.Controlle
 	if len(c.Config.App.FirebaseJSONAccessKeys) > 0 {
 		firebaseJSONAccessKeys = &c.Config.App.FirebaseJSONAccessKeys
 	}
-	fcmPushNotificationsRepo, err := notifications.NewFcmPushNotificationsRepo(c.ORM, firebaseJSONAccessKeys)
+	fcmPushService, err := notifications.NewFcmPushService(c.ORM, firebaseJSONAccessKeys)
 	if err != nil {
 		return fmt.Errorf("build fcm notifications repo: %w", err)
 	}
@@ -197,7 +197,7 @@ func registerAuthRoutes(c *foundation.Container, g *echo.Group, ctr ui.Controlle
 	if region == "" {
 		region = "us-east-1"
 	}
-	smsSenderRepo, err := notifications.NewSMSSender(
+	smsSenderService, err := notifications.NewSMSSender(
 		c.ORM,
 		region,
 		c.Config.Phone.SenderID,
@@ -210,11 +210,11 @@ func registerAuthRoutes(c *foundation.Container, g *echo.Group, ctr ui.Controlle
 	onboardingGroup := g.Group("/welcome", middleware.RequireAuthentication())
 	preferences := controllers.NewPreferencesRoute(
 		ctr,
-		deps.ProfileRepo,
-		pwaPushNotificationsRepo,
-		deps.NotificationSendPermissionRepo,
+		deps.ProfileService,
+		pwaPushService,
+		deps.NotificationPermissionService,
 		deps.SubscriptionsRepo,
-		smsSenderRepo,
+		smsSenderService,
 	)
 	onboardingGroup.GET("/preferences", preferences.Get).Name = routeNames.RouteNamePreferences
 	onboardingGroup.GET("/preferences/phone", preferences.GetPhoneComponent).Name = routeNames.RouteNameGetPhone
@@ -224,7 +224,7 @@ func registerAuthRoutes(c *foundation.Container, g *echo.Group, ctr ui.Controlle
 	onboardingGroup.GET("/preferences/display-name/get", preferences.GetDisplayName).Name = routeNames.RouteNameGetDisplayName
 	onboardingGroup.POST("/preferences/display-name/save", preferences.SaveDisplayName).Name = routeNames.RouteNameUpdateDisplayName
 
-	deleteAccountRoute := controllers.NewDeleteAccountRoute(ctr, deps.ProfileRepo, deps.SubscriptionsRepo)
+	deleteAccountRoute := controllers.NewDeleteAccountRoute(ctr, deps.ProfileService, deps.SubscriptionsRepo)
 	onboardingGroup.GET("/preferences/delete-account", deleteAccountRoute.DeleteAccountPage).Name = routeNames.RouteNameDeleteAccountPage
 	onboardingGroup.GET("/preferences/delete-account/now", deleteAccountRoute.DeleteAccountRequest).Name = routeNames.RouteNameDeleteAccountRequest
 
@@ -235,7 +235,7 @@ func registerAuthRoutes(c *foundation.Container, g *echo.Group, ctr ui.Controlle
 	onboardingGroup.GET("/profileBio", profilePrefs.GetBio).Name = routeNames.RouteNameGetBio
 	onboardingGroup.POST("/profileBio/update", profilePrefs.UpdateBio).Name = routeNames.RouteNameUpdateBio
 
-	outgoingNotifications := controllers.NewPushNotifsRoute(ctr, pwaPushNotificationsRepo, fcmPushNotificationsRepo, deps.NotificationSendPermissionRepo)
+	outgoingNotifications := controllers.NewPushNotifsRoute(ctr, pwaPushService, fcmPushService, deps.NotificationPermissionService)
 	onboardingGroup.GET("/subscription/push", outgoingNotifications.GetPushSubscriptions).Name = routeNames.RouteNameGetPushSubscriptions
 	onboardingGroup.POST("/subscription/:platform", outgoingNotifications.RegisterSubscription).Name = routeNames.RouteNameRegisterSubscription
 	onboardingGroup.DELETE("/subscription/:platform", outgoingNotifications.DeleteSubscription).Name = routeNames.RouteNameDeleteSubscription
@@ -250,23 +250,23 @@ func registerAuthRoutes(c *foundation.Container, g *echo.Group, ctr ui.Controlle
 	verifyEmail := controllers.NewVerifyEmailRoute(ctr)
 	g.GET("/email/verify/:token", verifyEmail.Get).Name = routeNames.RouteNameVerifyEmail
 
-	homeFeed := controllers.NewHomeFeedRoute(ctr, *deps.ProfileRepo, &c.Config.App.PageSize)
+	homeFeed := controllers.NewHomeFeedRoute(ctr, *deps.ProfileService, &c.Config.App.PageSize)
 	onboardedGroup.GET("/homeFeed", homeFeed.Get, middleware.SetLastSeenOnline(c.Auth)).Name = routeNames.RouteNameHomeFeed
 	onboardedGroup.GET("/homeFeed/buttons", homeFeed.GetHomeButtons).Name = routeNames.RouteNameGetHomeFeedButtons
 
-	singleProfile := controllers.NewProfileRoutes(ctr, deps.ProfileRepo)
+	singleProfile := controllers.NewProfileRoutes(ctr, deps.ProfileService)
 	onboardedGroup.GET("/profile", singleProfile.Get).Name = routeNames.RouteNameProfile
 
-	uploadPhoto := controllers.NewUploadPhotoRoutes(ctr, deps.ProfileRepo, deps.StorageRepo, c.Config.Storage.PhotosMaxFileSizeMB)
+	uploadPhoto := controllers.NewUploadPhotoRoutes(ctr, deps.ProfileService, deps.StorageRepo, c.Config.Storage.PhotosMaxFileSizeMB)
 	onboardedGroup.GET("/uploadPhoto", uploadPhoto.Get).Name = routeNames.RouteNameUploadPhoto
 	onboardedGroup.POST("/uploadPhoto", uploadPhoto.Post).Name = routeNames.RouteNameUploadPhotoSubmit
 	onboardedGroup.DELETE("/uploadPhoto/:image_id", uploadPhoto.Delete).Name = routeNames.RouteNameUploadPhotoDelete
 
-	currProfilePhoto := controllers.NewCurrProfilePhotoRoutes(ctr, deps.ProfileRepo, deps.StorageRepo, c.Config.Storage.PhotosMaxFileSizeMB)
+	currProfilePhoto := controllers.NewCurrProfilePhotoRoutes(ctr, deps.ProfileService, deps.StorageRepo, c.Config.Storage.PhotosMaxFileSizeMB)
 	onboardedGroup.GET("/currProfilePhoto", currProfilePhoto.Get).Name = routeNames.RouteNameCurrentProfilePhoto
 	onboardedGroup.POST("/currProfilePhoto", currProfilePhoto.Post).Name = routeNames.RouteNameCurrentProfilePhotoSubmit
 
-	normalNotificationsCount := controllers.NewNormalNotificationsCountRoute(ctr, *deps.ProfileRepo)
+	normalNotificationsCount := controllers.NewNormalNotificationsCountRoute(ctr, *deps.ProfileService)
 	onboardedGroup.GET("/notifications/normalNotificationsCount", normalNotificationsCount.Get).Name = routeNames.RouteNameNormalNotificationsCount
 
 	payments := controllers.NewPaymentsRoute(ctr, c.ORM, deps.SubscriptionsRepo)

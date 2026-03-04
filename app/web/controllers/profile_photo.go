@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/leomorpho/goship/app/profiles"
+	profilesvc "github.com/leomorpho/goship/app/profile"
 	"github.com/leomorpho/goship/app/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/db/ent"
@@ -22,22 +22,22 @@ import (
 
 type (
 	currProfilePhoto struct {
-		ctr           ui.Controller
-		profileRepo   *profiles.ProfileRepo
-		storageClient *storagerepo.StorageClient
-		maxFileSizeMB int64 // MB
+		ctr            ui.Controller
+		profileService *profilesvc.ProfileService
+		storageClient  *storagerepo.StorageClient
+		maxFileSizeMB  int64 // MB
 	}
 )
 
 func NewCurrProfilePhotoRoutes(
-	ctr ui.Controller, profileRepo *profiles.ProfileRepo, storageClient *storagerepo.StorageClient, maxFileSizeMB int64,
+	ctr ui.Controller, profileService *profilesvc.ProfileService, storageClient *storagerepo.StorageClient, maxFileSizeMB int64,
 ) currProfilePhoto {
 
 	return currProfilePhoto{
-		ctr:           ctr,
-		profileRepo:   profileRepo,
-		storageClient: storageClient,
-		maxFileSizeMB: maxFileSizeMB,
+		ctr:            ctr,
+		profileService: profileService,
+		storageClient:  storageClient,
+		maxFileSizeMB:  maxFileSizeMB,
 	}
 }
 
@@ -103,7 +103,7 @@ func (p *currProfilePhoto) Post(ctx echo.Context) error {
 		return err
 	}
 
-	if err := p.profileRepo.SetProfilePhoto(
+	if err := p.profileService.SetProfilePhoto(
 		ctx.Request().Context(), profile.ID, src, file.Filename,
 	); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError,

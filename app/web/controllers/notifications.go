@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/leomorpho/goship/app/notifications"
-	"github.com/leomorpho/goship/app/profiles"
+	"github.com/leomorpho/goship-modules/notifications"
+	profilesvc "github.com/leomorpho/goship/app/profile"
 	"github.com/leomorpho/goship/app/views"
 	"github.com/leomorpho/goship/app/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/views/web/pages/gen"
@@ -25,23 +25,23 @@ const NOTIFICATION_QUERY_PARAM = "notif"
 
 type (
 	normalNotificationsCount struct {
-		ctr         ui.Controller
-		profileRepo profiles.ProfileRepo
+		ctr            ui.Controller
+		profileService profilesvc.ProfileService
 	}
 
 	normalNotifications struct {
-		ctr          ui.Controller
-		notifierRepo *notifications.NotifierRepo
+		ctr             ui.Controller
+		notifierService *notifications.NotifierService
 	}
 )
 
 func NewNormalNotificationsCountRoute(
 	ctr ui.Controller,
-	profileRepo profiles.ProfileRepo,
+	profileService profilesvc.ProfileService,
 ) *normalNotificationsCount {
 	return &normalNotificationsCount{
-		ctr:         ctr,
-		profileRepo: profileRepo,
+		ctr:            ctr,
+		profileService: profileService,
 	}
 }
 
@@ -49,7 +49,7 @@ func (c *normalNotificationsCount) Get(ctx echo.Context) error {
 	usr := ctx.Get(context.AuthenticatedUserKey).(*ent.User)
 	profile := usr.QueryProfile().FirstX(ctx.Request().Context())
 
-	num, err := c.profileRepo.GetCountOfUnseenNotifications(ctx.Request().Context(), profile.ID)
+	num, err := c.profileService.GetCountOfUnseenNotifications(ctx.Request().Context(), profile.ID)
 	if err != nil {
 		return err
 	}
@@ -66,11 +66,11 @@ func (c *normalNotificationsCount) Get(ctx echo.Context) error {
 
 func NewNormalNotificationsRoute(
 	ctr ui.Controller,
-	notifierRepo *notifications.NotifierRepo,
+	notifierService *notifications.NotifierService,
 ) *normalNotifications {
 	return &normalNotifications{
-		ctr:          ctr,
-		notifierRepo: notifierRepo,
+		ctr:             ctr,
+		notifierService: notifierService,
 	}
 }
 
@@ -98,7 +98,7 @@ func (n *normalNotifications) Get(ctx echo.Context) error {
 	usr := ctx.Get(context.AuthenticatedUserKey).(*ent.User)
 	profile := usr.QueryProfile().FirstX(ctx.Request().Context())
 
-	notifications, err := n.notifierRepo.GetNotifications(ctx.Request().Context(), profile.ID, false, timestamp, &n.ctr.Container.Config.App.PageSize)
+	notifications, err := n.notifierService.GetNotifications(ctx.Request().Context(), profile.ID, false, timestamp, &n.ctr.Container.Config.App.PageSize)
 	if err != nil {
 		return err
 	}
@@ -138,7 +138,7 @@ func (n *normalNotifications) MarkAllAsRead(ctx echo.Context) error {
 	usr := ctx.Get(context.AuthenticatedUserKey).(*ent.User)
 	profile := usr.QueryProfile().FirstX(ctx.Request().Context())
 
-	err := n.notifierRepo.MarkAllNotificationRead(ctx.Request().Context(), profile.ID)
+	err := n.notifierService.MarkAllNotificationRead(ctx.Request().Context(), profile.ID)
 	if err != nil {
 		return err
 	}
@@ -156,7 +156,7 @@ func (n *normalNotifications) Delete(ctx echo.Context) error {
 	usr := ctx.Get(context.AuthenticatedUserKey).(*ent.User)
 	profile := usr.QueryProfile().FirstX(ctx.Request().Context())
 
-	err = n.notifierRepo.DeleteNotification(ctx.Request().Context(), notificationID, &profile.ID)
+	err = n.notifierService.DeleteNotification(ctx.Request().Context(), notificationID, &profile.ID)
 	if err != nil {
 		return err
 	}
@@ -165,16 +165,16 @@ func (n *normalNotifications) Delete(ctx echo.Context) error {
 }
 
 type markNormalNotificationRead struct {
-	ctr          ui.Controller
-	notifierRepo *notifications.NotifierRepo
+	ctr             ui.Controller
+	notifierService *notifications.NotifierService
 }
 
 func NewMarkNormalNotificationReadRoute(
-	ctr ui.Controller, notifierRepo *notifications.NotifierRepo,
+	ctr ui.Controller, notifierService *notifications.NotifierService,
 ) *markNormalNotificationRead {
 	return &markNormalNotificationRead{
-		ctr:          ctr,
-		notifierRepo: notifierRepo,
+		ctr:             ctr,
+		notifierService: notifierService,
 	}
 }
 
@@ -190,7 +190,7 @@ func (c *markNormalNotificationRead) Post(ctx echo.Context) error {
 	profileId := usr.QueryProfile().
 		FirstX(ctx.Request().Context()).ID
 
-	err = c.notifierRepo.MarkNotificationRead(ctx.Request().Context(), notifID, &profileId)
+	err = c.notifierService.MarkNotificationRead(ctx.Request().Context(), notifID, &profileId)
 	if err != nil {
 		return err
 	}
@@ -199,16 +199,16 @@ func (c *markNormalNotificationRead) Post(ctx echo.Context) error {
 }
 
 type markNormalNotificationUnread struct {
-	ctr          ui.Controller
-	notifierRepo *notifications.NotifierRepo
+	ctr             ui.Controller
+	notifierService *notifications.NotifierService
 }
 
 func NewMarkNormalNotificationUnreadRoute(
-	ctr ui.Controller, notifierRepo *notifications.NotifierRepo,
+	ctr ui.Controller, notifierService *notifications.NotifierService,
 ) *markNormalNotificationUnread {
 	return &markNormalNotificationUnread{
-		ctr:          ctr,
-		notifierRepo: notifierRepo,
+		ctr:             ctr,
+		notifierService: notifierService,
 	}
 }
 
@@ -228,7 +228,7 @@ func (c *markNormalNotificationUnread) Post(ctx echo.Context) error {
 	profileId := usr.QueryProfile().
 		FirstX(ctx.Request().Context()).ID
 
-	err := c.notifierRepo.MarkNotificationUnread(ctx.Request().Context(), req.ID, &profileId)
+	err := c.notifierService.MarkNotificationUnread(ctx.Request().Context(), req.ID, &profileId)
 	if err != nil {
 		return err
 	}

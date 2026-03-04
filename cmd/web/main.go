@@ -103,7 +103,7 @@ func main() {
 	// 	c.Web.Logger.Fatalf("failed to register scheduler task: %v", err)
 	// }
 	// // NOTE: we run the following task every 30 minutes, but it will check if the same notif type has
-	// // not already been sent to profiles.
+	// // not already been sent to services.
 	// if err := c.Tasks.
 	// 	New(tasks.TypeAllDailyConvoNotifications).
 	// 	Periodic("@every 30m").

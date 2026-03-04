@@ -23,7 +23,7 @@ type NotificationStorage interface {
 	HasNotificationForResourceAndPerson(ctx context.Context, notifType domain.NotificationType, profileIDWhoCausedNotif, resourceID *int, maxAge time.Duration) (exists bool, err error)
 }
 
-type NotificationStorageRepo struct {
+type NotificationStore struct {
 	NotificationStorage
 	orm *ent.Client
 }
@@ -55,14 +55,14 @@ func ConvertEntToDomain(e *ent.Notification) *domain.Notification {
 	return notification
 }
 
-func NewNotificationStorageRepo(orm *ent.Client) *NotificationStorageRepo {
-	return &NotificationStorageRepo{
+func NewNotificationStore(orm *ent.Client) *NotificationStore {
+	return &NotificationStore{
 		orm: orm,
 	}
 }
 
 // CreateNotification creates a new notification.
-func (r *NotificationStorageRepo) CreateNotification(ctx context.Context, n domain.Notification) (*domain.Notification, error) {
+func (r *NotificationStore) CreateNotification(ctx context.Context, n domain.Notification) (*domain.Notification, error) {
 	created, err := r.orm.Notification.
 		Create().
 		SetType(notification.Type(n.Type.Value)).
@@ -77,7 +77,7 @@ func (r *NotificationStorageRepo) CreateNotification(ctx context.Context, n doma
 		Save(ctx)
 
 	if err != nil {
-		log.Error().AnErr("NewNotificationStorageRepo", err).Msg("Error creating a notification in DB")
+		log.Error().AnErr("NewNotificationStore", err).Msg("Error creating a notification in DB")
 		return nil, err
 	}
 
@@ -95,7 +95,7 @@ func (r *NotificationStorageRepo) CreateNotification(ctx context.Context, n doma
 
 // HasNotificationForResourceAndPerson returns true if there is an existing
 // notification for a resource
-func (r *NotificationStorageRepo) HasNotificationForResourceAndPerson(
+func (r *NotificationStore) HasNotificationForResourceAndPerson(
 	ctx context.Context, notifType domain.NotificationType, profileIDWhoCausedNotif, resourceID *int, maxAge time.Duration,
 ) (exists bool, err error) {
 	cutoff := time.Now().Add(-maxAge) // Calculate the cutoff timestamp
@@ -122,7 +122,7 @@ func (r *NotificationStorageRepo) HasNotificationForResourceAndPerson(
 
 // GetNotificationsByProfileID retrieves all notifications for a given profile ID.
 // If onlyUnread is true, it fetches only those notifications that haven't been read.
-func (r *NotificationStorageRepo) GetNotificationsByProfileID(
+func (r *NotificationStore) GetNotificationsByProfileID(
 	ctx context.Context, profileID int, onlyUnread bool, beforeTimestamp *time.Time, pageSize *int,
 ) ([]*domain.Notification, error) {
 	query := r.orm.Notification.
@@ -160,7 +160,7 @@ func (r *NotificationStorageRepo) GetNotificationsByProfileID(
 }
 
 // MarkNotificationAsRead updates the specified notification's read status to true.
-func (r *NotificationStorageRepo) MarkNotificationAsRead(
+func (r *NotificationStore) MarkNotificationAsRead(
 	ctx context.Context, notificationID int, profileID *int,
 ) error {
 	// If profileID is provided, check that the notification belongs to this profile
@@ -198,7 +198,7 @@ func (r *NotificationStorageRepo) MarkNotificationAsRead(
 }
 
 // MarkAllNotificationAsRead updates all notifications' read status to true for a given profile ID.
-func (r *NotificationStorageRepo) MarkAllNotificationAsRead(
+func (r *NotificationStore) MarkAllNotificationAsRead(
 	ctx context.Context, profileID int,
 ) error {
 	// Perform the update in the database
@@ -216,7 +216,7 @@ func (r *NotificationStorageRepo) MarkAllNotificationAsRead(
 }
 
 // MarkNotificationAsRead updates the specified notification's read status to true.
-func (r *NotificationStorageRepo) MarkNotificationAsUnread(
+func (r *NotificationStore) MarkNotificationAsUnread(
 	ctx context.Context, notificationID int, profileID *int,
 ) error {
 	// If profileID is provided, check that the notification belongs to this profile
@@ -236,7 +236,7 @@ func (r *NotificationStorageRepo) MarkNotificationAsUnread(
 }
 
 // DeleteNotification deletes a notification by its ID.
-func (r *NotificationStorageRepo) DeleteNotification(
+func (r *NotificationStore) DeleteNotification(
 	ctx context.Context, notificationID int, profileID *int,
 ) error {
 	// If profileID is provided, check that the notification belongs to this profile
@@ -257,7 +257,7 @@ func (r *NotificationStorageRepo) DeleteNotification(
 	return err
 }
 
-func (r NotificationStorageRepo) checkNotificationBelongsToProfile(
+func (r NotificationStore) checkNotificationBelongsToProfile(
 	ctx context.Context, profileID, notificationID int,
 ) error {
 	count, err := r.orm.Notification.

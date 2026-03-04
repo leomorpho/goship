@@ -17,22 +17,22 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type PlannedNotificationsRepo struct {
+type PlannedNotificationsService struct {
 	orm              *ent.Client
 	subscriptionRepo *paidsubscriptions.Service
 }
 
-func NewPlannedNotificationsRepo(
+func NewPlannedNotificationsService(
 	orm *ent.Client, subscriptionRepo *paidsubscriptions.Service,
-) *PlannedNotificationsRepo {
+) *PlannedNotificationsService {
 
-	return &PlannedNotificationsRepo{
+	return &PlannedNotificationsService{
 		orm:              orm,
 		subscriptionRepo: subscriptionRepo,
 	}
 }
 
-func (p *PlannedNotificationsRepo) CreateNotificationTimeObjects(
+func (p *PlannedNotificationsService) CreateNotificationTimeObjects(
 	ctx context.Context,
 	notifType domain.NotificationType,
 	permission domain.NotificationPermissionType,
@@ -73,7 +73,7 @@ func (p *PlannedNotificationsRepo) CreateNotificationTimeObjects(
 	return nil
 }
 
-func (p *PlannedNotificationsRepo) DeleteStaleLastSeenObjects(ctx context.Context) {
+func (p *PlannedNotificationsService) DeleteStaleLastSeenObjects(ctx context.Context) {
 	const TIME_TO_KEEP_DAYS = 30
 	deleteBeforeTime := time.Now().Add(time.Hour * 24 * -TIME_TO_KEEP_DAYS)
 	// Make sure all users have a NotificationTime
@@ -88,7 +88,7 @@ func (p *PlannedNotificationsRepo) DeleteStaleLastSeenObjects(ctx context.Contex
 
 }
 
-func (p *PlannedNotificationsRepo) UpsertNotificationTime(
+func (p *PlannedNotificationsService) UpsertNotificationTime(
 	ctx context.Context, profileID int, notificationType domain.NotificationType,
 ) (int, error) {
 
@@ -170,12 +170,12 @@ func (p *PlannedNotificationsRepo) UpsertNotificationTime(
 }
 
 // GetMinutesFromMidnight returns the number of minutes from midnight given a timestamp
-func (p *PlannedNotificationsRepo) GetMinutesFromMidnight(t time.Time) int {
+func (p *PlannedNotificationsService) GetMinutesFromMidnight(t time.Time) int {
 	return t.Hour()*60 + t.Minute()
 }
 
 // GetTimestampFromMinutes returns a timestamp for today at the given minutes from midnight
-func (p *PlannedNotificationsRepo) GetTimestampFromMinutes(minutes int) time.Time {
+func (p *PlannedNotificationsService) GetTimestampFromMinutes(minutes int) time.Time {
 	now := time.Now()
 	hour := minutes / 60
 	minute := minutes % 60
@@ -183,7 +183,7 @@ func (p *PlannedNotificationsRepo) GetTimestampFromMinutes(minutes int) time.Tim
 }
 
 // ProfileIDsCanGetNotificatiedNow returns the profile IDs who can get notified now for a notification type
-func (p *PlannedNotificationsRepo) ProfileIDsCanGetPlannedNotificationNow(
+func (p *PlannedNotificationsService) ProfileIDsCanGetPlannedNotificationNow(
 	ctx context.Context, timestamp time.Time, notifType domain.NotificationType, profileIDs *[]int,
 ) ([]int, error) {
 

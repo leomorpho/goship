@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/leomorpho/goship/app/profiles"
+	profilesvc "github.com/leomorpho/goship/app/profile"
 	"github.com/leomorpho/goship/app/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/app/web/ui"
@@ -20,10 +20,10 @@ import (
 
 type (
 	uploadPhoto struct {
-		ctr           ui.Controller
-		profileRepo   *profiles.ProfileRepo
-		storageClient *storagerepo.StorageClient
-		maxFileSizeMB int64 // MB
+		ctr            ui.Controller
+		profileService *profilesvc.ProfileService
+		storageClient  *storagerepo.StorageClient
+		maxFileSizeMB  int64 // MB
 	}
 
 	photoData struct {
@@ -32,14 +32,14 @@ type (
 )
 
 func NewUploadPhotoRoutes(
-	ctr ui.Controller, profileRepo *profiles.ProfileRepo, storageClient *storagerepo.StorageClient, maxFileSizeMB int64,
+	ctr ui.Controller, profileService *profilesvc.ProfileService, storageClient *storagerepo.StorageClient, maxFileSizeMB int64,
 ) uploadPhoto {
 
 	return uploadPhoto{
-		ctr:           ctr,
-		profileRepo:   profileRepo,
-		storageClient: storageClient,
-		maxFileSizeMB: maxFileSizeMB,
+		ctr:            ctr,
+		profileService: profileService,
+		storageClient:  storageClient,
+		maxFileSizeMB:  maxFileSizeMB,
 	}
 }
 
@@ -100,7 +100,7 @@ func (p *uploadPhoto) Post(ctx echo.Context) error {
 		return err
 	}
 
-	if err := p.profileRepo.UploadPhoto(
+	if err := p.profileService.UploadPhoto(
 		ctx.Request().Context(), profile.ID, src, file.Filename,
 	); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError,
@@ -122,7 +122,7 @@ func (p *uploadPhoto) Delete(ctx echo.Context) error {
 	usr := ctx.Get(context.AuthenticatedUserKey).(*ent.User)
 	profileID := usr.QueryProfile().FirstX(ctx.Request().Context()).ID
 
-	err = p.profileRepo.DeletePhoto(ctx.Request().Context(), imageID, &profileID)
+	err = p.profileService.DeletePhoto(ctx.Request().Context(), imageID, &profileID)
 	if err != nil {
 		// Handle error, e.g., photo not found, database error, etc.
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())

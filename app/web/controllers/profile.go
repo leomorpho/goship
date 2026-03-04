@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/leomorpho/goship/app/profiles"
+	profilesvc "github.com/leomorpho/goship/app/profile"
 	"github.com/leomorpho/goship/app/views"
 	"github.com/leomorpho/goship/app/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/views/web/pages/gen"
@@ -22,18 +22,18 @@ import (
 // TODO: currProfilePage and otherProfilePage should really be one. Return self if profile_id is not present in current otherProfilePage
 type (
 	singleProfile struct {
-		ctr         ui.Controller
-		profileRepo *profiles.ProfileRepo
+		ctr            ui.Controller
+		profileService *profilesvc.ProfileService
 	}
 )
 
 func NewProfileRoutes(
-	ctr ui.Controller, profileRepo *profiles.ProfileRepo,
+	ctr ui.Controller, profileService *profilesvc.ProfileService,
 ) singleProfile {
 
 	return singleProfile{
-		ctr:         ctr,
-		profileRepo: profileRepo,
+		ctr:            ctr,
+		profileService: profileService,
 	}
 }
 
@@ -57,12 +57,12 @@ func (c *singleProfile) Get(ctx echo.Context) error {
 		if err != nil {
 			return err
 		}
-		profileData, err = c.profileRepo.GetProfileByID(
+		profileData, err = c.profileService.GetProfileByID(
 			ctx.Request().Context(), otherProfileID, &selfProfileID,
 		)
 		isSelf = false
 	} else {
-		profileData, err = c.profileRepo.GetProfileByID(
+		profileData, err = c.profileService.GetProfileByID(
 			ctx.Request().Context(), selfProfileID, nil,
 		)
 		isSelf = true

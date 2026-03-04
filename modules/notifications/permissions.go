@@ -12,17 +12,17 @@ import (
 	"github.com/leomorpho/goship/framework/domain"
 )
 
-type NotificationSendPermissionRepo struct {
+type NotificationPermissionService struct {
 	orm *ent.Client
 }
 
-func NewNotificationSendPermissionRepo(orm *ent.Client) *NotificationSendPermissionRepo {
-	return &NotificationSendPermissionRepo{
+func NewNotificationPermissionService(orm *ent.Client) *NotificationPermissionService {
+	return &NotificationPermissionService{
 		orm: orm,
 	}
 }
 
-func (p *NotificationSendPermissionRepo) deleteAllPermissions(
+func (p *NotificationPermissionService) deleteAllPermissions(
 	ctx context.Context, profileID int, platform *domain.NotificationPlatform) error {
 
 	query := p.orm.NotificationPermission.
@@ -44,7 +44,7 @@ func (p *NotificationSendPermissionRepo) deleteAllPermissions(
 }
 
 // GetPermissions returns all permissions specifying which ones the profile has or not.
-func (p *NotificationSendPermissionRepo) GetPermissions(
+func (p *NotificationPermissionService) GetPermissions(
 	ctx context.Context, profileID int,
 ) (map[domain.NotificationPermissionType]domain.NotificationPermission, error) {
 
@@ -115,7 +115,7 @@ func (p *NotificationSendPermissionRepo) GetPermissions(
 }
 
 // CreatePermission create a permission type for one or all platforms.
-func (p *NotificationSendPermissionRepo) CreatePermission(
+func (p *NotificationPermissionService) CreatePermission(
 	ctx context.Context, profileID int, permission domain.NotificationPermissionType, platform *domain.NotificationPlatform,
 ) (err error) {
 	if platform != nil {
@@ -156,7 +156,7 @@ func (p *NotificationSendPermissionRepo) CreatePermission(
 }
 
 // DeletePermission deletes a permission type for one or all platforms.
-func (p *NotificationSendPermissionRepo) DeletePermission(
+func (p *NotificationPermissionService) DeletePermission(
 	ctx context.Context,
 	profileID int,
 	permission domain.NotificationPermissionType,
@@ -189,7 +189,7 @@ func (p *NotificationSendPermissionRepo) DeletePermission(
 }
 
 // HasPermission checks whether a user still has notification permission for a specific notification platform.
-func (p *NotificationSendPermissionRepo) HasPermissionsForPlatform(
+func (p *NotificationPermissionService) HasPermissionsForPlatform(
 	ctx context.Context,
 	profileID int,
 	platform domain.NotificationPlatform,

@@ -639,7 +639,8 @@ HTTP boundary rule:
 
 Service/store rule:
 
-- App business logic should live in app-scoped domain/service packages under `app/...`.
+- App business logic should live in feature packages under `app/<feature>` (for example `app/profile`).
+- Avoid generic buckets like `app/services` and `app/repos`.
 - Services should depend on explicit interfaces (store ports) for persistence/external calls.
 - Concrete adapters may use Ent/SQL/clients directly, but those details stay behind service dependencies.
 - This keeps testability (mocks/fakes) without forcing repository pattern across every feature.
@@ -691,6 +692,10 @@ Classification policy for framework repos/adapters:
 
 - app-specific behavior => move to `app/...` domain packages.
 - reusable framework capability => keep/extract as framework module (installable by `ship`).
+
+Current extraction note:
+
+- Notifications capability now lives under `modules/notifications` and is consumed from app wiring via module imports, not `app/notifications`.
 
 ---
 FILE: docs/architecture/03-project-scope-analysis.md
@@ -1302,6 +1307,9 @@ Use `ship` as the single mutation interface for common scaffolding.
 ## Non-Negotiable Conventions
 
 - One canonical app root: `app`.
+- App business logic lives in `app/<feature>` (for example `app/profile`), not generic buckets.
+- No generic `app/services` or `app/repos` directory.
+- Optional capabilities belong in `modules/*` and are composed in `cmd/*`.
 - No legacy paths (`app/goship`, `app/bootstrap`, `app/domains`, etc.).
 - Package names match directory intent:
   - `app/web/ui` -> `package ui`
@@ -3122,4 +3130,36 @@ Progress note:
 
 - Implemented `ship upgrade --to <version> [--dry-run]` (Atlas pin only for now).
 - Added tests for rewrite behavior, validation, dry-run, and write paths.
+
+## App Organization Cleanup (5 Phases)
+
+Status: `in_progress`
+
+Goal:
+
+- Make `app/` intuitive and feature-first (Rails/Laravel-inspired DX), while keeping Go clarity.
+- Avoid generic buckets (`app/services`, `app/repos`) that become junk drawers.
+
+Phases:
+
+1. `A1` `done` - Define and enforce target app structure and naming rules.
+2. `A2` `done` - Move profile feature to `app/profile` and remove generic service bucket usage.
+3. `A3` `done` - Normalize app layer naming (`Service`/`Store`/`Policy`) and remove app-layer `Repo` naming.
+4. `A4` `in_progress` - Extract notifications from app to `modules/notifications` with composition-root wiring.
+5. `A5` `next` - Enforce layout through doctor/CI/generators and finalize migration notes.
+
+Progress note:
+
+- Completed `app/profiles` to `app/profile` migration with `ProfileService` naming, including call sites and tests.
+- Removed generic app service bucket usage and kept feature logic under `app/<feature>`.
+- Completed app-layer naming cleanup in notifications (`NotificationStore`, `NotifierService`, `NotificationPermissionService`, `PlannedNotificationsService`, `PwaPushService`, `FcmPushService`).
+- Extracted notifications implementation from `app/notifications` to `modules/notifications` and switched app imports to `github.com/leomorpho/goship-modules/notifications`.
+- Registered `modules/notifications` in `go.work` and module checks (`tools/scripts/test/module-isolation-allowlist.txt`).
+
+Non-negotiable rules for this stream:
+
+- `app/<feature>` for app-owned business logic.
+- No generic `app/services` directory.
+- No module construction in `app/foundation`; compose modules in `cmd/*`.
+- Optional capabilities should become installable `modules/*`.
 

@@ -7,13 +7,15 @@ This directory is the reference application that demonstrates how to use the GoS
 - `router.go`: canonical app router entrypoint (single place to scan route registration).
 - `foundation/`: app composition root and runtime adapter wiring.
 - `web/`: HTTP-facing presentation layer.
-- `app/`: app-specific domain logic.
-- `db/`: schema and migrations.
+- `profile/`: app-specific domain logic example.
+- `db/`: schema and migrations (repository-level, outside `app/`).
 - `views/`: Templ source files and generated view code.
 - `jobs/`: background task processors.
 - `static/`: public static assets served by the app.
 - `styles/`: source stylesheets compiled into `static/`.
 - `testdata/`: app-scoped fixture data.
+
+Optional capabilities (notifications, subscriptions, etc.) are being extracted to `modules/*` and consumed via explicit app wiring.
 
 ## Web Layer
 

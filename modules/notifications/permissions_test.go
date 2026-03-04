@@ -8,8 +8,8 @@ import (
 
 	"github.com/gofrs/uuid"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
-	"github.com/leomorpho/goship/app/notifications"
-	"github.com/leomorpho/goship/app/profiles"
+	"github.com/leomorpho/goship-modules/notifications"
+	profilesvc "github.com/leomorpho/goship/app/profile"
 	"github.com/leomorpho/goship/db/ent/notificationpermission"
 	"github.com/leomorpho/goship/framework/domain"
 	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
@@ -31,11 +31,11 @@ func TestGetPermissions(t *testing.T) {
 
 	// Create user and profile.
 	user1 := tests.CreateUser(ctx, client, "User", "user1@example.com", "password", true)
-	subscriptionsRepo := paidsubscriptions.NewSubscriptionsRepo(client, 10, 10)
-	profileRepo := profiles.NewProfileRepo(client, storagerepo.NewMockStorageClient(), subscriptionsRepo)
-	notifSendPermissionRepo := notifications.NewNotificationSendPermissionRepo(client)
+	subscriptionsService := paidsubscriptions.NewSubscriptionsRepo(client, 10, 10)
+	profileService := profilesvc.NewProfileService(client, storagerepo.NewMockStorageClient(), subscriptionsService)
+	notificationPermissionService := notifications.NewNotificationPermissionService(client)
 
-	profile1, err := profileRepo.CreateProfile(
+	profile1, err := profileService.CreateProfile(
 		ctx, user1, "bio",
 		time.Now().AddDate(-25, 0, 0), nil, nil,
 	)
@@ -53,7 +53,7 @@ func TestGetPermissions(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Test getting permissions
-	permissions, err := notifSendPermissionRepo.GetPermissions(ctx, profile1.ID)
+	permissions, err := notificationPermissionService.GetPermissions(ctx, profile1.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, 2, len(permissions))
 
@@ -117,24 +117,24 @@ func TestCreatePermission(t *testing.T) {
 
 	// Create user and profile.
 	user1 := tests.CreateUser(ctx, client, "User", "user1@example.com", "password", true)
-	subscriptionsRepo := paidsubscriptions.NewSubscriptionsRepo(client, 10, 10)
-	profileRepo := profiles.NewProfileRepo(client, storagerepo.NewMockStorageClient(), subscriptionsRepo)
+	subscriptionsService := paidsubscriptions.NewSubscriptionsRepo(client, 10, 10)
+	profileService := profilesvc.NewProfileService(client, storagerepo.NewMockStorageClient(), subscriptionsService)
 
-	notifSendPermissionRepo := notifications.NewNotificationSendPermissionRepo(client)
+	notificationPermissionService := notifications.NewNotificationPermissionService(client)
 
-	profile1, err := profileRepo.CreateProfile(
+	profile1, err := profileService.CreateProfile(
 		ctx, user1, "bio",
 		time.Now().AddDate(-25, 0, 0), nil, nil,
 	)
 	assert.Nil(t, err)
 
 	// Test creating a permission
-	err = notifSendPermissionRepo.CreatePermission(
+	err = notificationPermissionService.CreatePermission(
 		ctx, profile1.ID, domain.NotificationPermissionDailyReminder, &domain.NotificationPlatformPush)
 	assert.Nil(t, err)
 
 	// Validate the permission was created
-	permissions, err := notifSendPermissionRepo.GetPermissions(ctx, profile1.ID)
+	permissions, err := notificationPermissionService.GetPermissions(ctx, profile1.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, 2, len(permissions))
 
@@ -183,12 +183,12 @@ func TestDeletePermission(t *testing.T) {
 
 	// Create user and profile.
 	user1 := tests.CreateUser(ctx, client, "User", "user1@example.com", "password", true)
-	subscriptionsRepo := paidsubscriptions.NewSubscriptionsRepo(client, 10, 10)
-	profileRepo := profiles.NewProfileRepo(client, storagerepo.NewMockStorageClient(), subscriptionsRepo)
+	subscriptionsService := paidsubscriptions.NewSubscriptionsRepo(client, 10, 10)
+	profileService := profilesvc.NewProfileService(client, storagerepo.NewMockStorageClient(), subscriptionsService)
 
-	notifSendPermissionRepo := notifications.NewNotificationSendPermissionRepo(client)
+	notificationPermissionService := notifications.NewNotificationPermissionService(client)
 
-	profile1, err := profileRepo.CreateProfile(
+	profile1, err := profileService.CreateProfile(
 		ctx, user1, "bio",
 		time.Now().AddDate(-25, 0, 0), nil, nil,
 	)
@@ -208,7 +208,7 @@ func TestDeletePermission(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Validate the permission was created
-	permissions, err := notifSendPermissionRepo.GetPermissions(ctx, profile1.ID)
+	permissions, err := notificationPermissionService.GetPermissions(ctx, profile1.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, 2, len(permissions))
 
@@ -253,12 +253,12 @@ func TestDeletePermission(t *testing.T) {
 	assert.Equal(t, expectedMap, actualMap)
 
 	// Test deleting the permission
-	err = notifSendPermissionRepo.DeletePermission(
+	err = notificationPermissionService.DeletePermission(
 		ctx, profile1.ID, domain.NotificationPermissionDailyReminder, &domain.NotificationPlatformPush, &uuidTokenStr)
 	assert.Nil(t, err)
 
 	// Validate the permission was deleted
-	permissions, err = notifSendPermissionRepo.GetPermissions(ctx, profile1.ID)
+	permissions, err = notificationPermissionService.GetPermissions(ctx, profile1.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, 2, len(permissions))
 

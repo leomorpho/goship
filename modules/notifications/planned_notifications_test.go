@@ -10,8 +10,8 @@ import (
 
 	"github.com/gofrs/uuid"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
-	"github.com/leomorpho/goship/app/notifications"
-	"github.com/leomorpho/goship/app/profiles"
+	"github.com/leomorpho/goship-modules/notifications"
+	profilesvc "github.com/leomorpho/goship/app/profile"
 	"github.com/leomorpho/goship/db/ent"
 	"github.com/leomorpho/goship/db/ent/lastseenonline"
 	"github.com/leomorpho/goship/db/ent/notification"
@@ -36,13 +36,13 @@ func TestUpsertNotificationTime(t *testing.T) {
 	client, ctx := tests.CreateTestContainerPostgresEntClient(t)
 	defer client.Close()
 
-	// Create users and profiles.
+	// Create users and profilesvc.
 	user1 := tests.CreateUser(ctx, client, "User", "user1@example.com", "password", true)
-	subscriptionsRepo := paidsubscriptions.NewSubscriptionsRepo(client, 10, 10)
-	profileRepo := profiles.NewProfileRepo(client, storagerepo.NewMockStorageClient(), subscriptionsRepo)
+	subscriptionsService := paidsubscriptions.NewSubscriptionsRepo(client, 10, 10)
+	profileService := profilesvc.NewProfileService(client, storagerepo.NewMockStorageClient(), subscriptionsService)
 
-	plannedNotifsRepo := notifications.NewPlannedNotificationsRepo(client, subscriptionsRepo)
-	profile1, err := profileRepo.CreateProfile(
+	plannedNotifsRepo := notifications.NewPlannedNotificationsService(client, subscriptionsService)
+	profile1, err := profileService.CreateProfile(
 		ctx, user1, "bio",
 		time.Now().AddDate(-25, 0, 0), nil, nil,
 	)
@@ -95,20 +95,20 @@ func TestCreateNotificationTimeObjects(t *testing.T) {
 	client, ctx := tests.CreateTestContainerPostgresEntClient(t)
 	defer client.Close()
 
-	// Create users and profiles.
+	// Create users and profilesvc.
 	user1 := tests.CreateUser(ctx, client, "User", "user1@example.com", "password", true)
 	user2 := tests.CreateUser(ctx, client, "User", "user2@example.com", "password", true)
-	subscriptionsRepo := paidsubscriptions.NewSubscriptionsRepo(client, 10, 10)
-	profileRepo := profiles.NewProfileRepo(client, storagerepo.NewMockStorageClient(), subscriptionsRepo)
+	subscriptionsService := paidsubscriptions.NewSubscriptionsRepo(client, 10, 10)
+	profileService := profilesvc.NewProfileService(client, storagerepo.NewMockStorageClient(), subscriptionsService)
 
-	plannedNotifsRepo := notifications.NewPlannedNotificationsRepo(client, subscriptionsRepo)
+	plannedNotifsRepo := notifications.NewPlannedNotificationsService(client, subscriptionsService)
 
-	profile1, err := profileRepo.CreateProfile(
+	profile1, err := profileService.CreateProfile(
 		ctx, user1, "bio1",
 		time.Now().AddDate(-25, 0, 0), nil, nil,
 	)
 	assert.Nil(t, err)
-	profile2, err := profileRepo.CreateProfile(
+	profile2, err := profileService.CreateProfile(
 		ctx, user2, "bio2",
 		time.Now().AddDate(-25, 0, 0), nil, nil,
 	)
@@ -193,13 +193,13 @@ func TestDeleteStaleLastSeenObjects(t *testing.T) {
 	client, ctx := tests.CreateTestContainerPostgresEntClient(t)
 	defer client.Close()
 
-	// Create user and profiles.
+	// Create user and profilesvc.
 	user1 := tests.CreateUser(ctx, client, "User", "user1@example.com", "password", true)
-	subscriptionsRepo := paidsubscriptions.NewSubscriptionsRepo(client, 10, 10)
-	profileRepo := profiles.NewProfileRepo(client, storagerepo.NewMockStorageClient(), subscriptionsRepo)
+	subscriptionsService := paidsubscriptions.NewSubscriptionsRepo(client, 10, 10)
+	profileService := profilesvc.NewProfileService(client, storagerepo.NewMockStorageClient(), subscriptionsService)
 
-	plannedNotifsRepo := notifications.NewPlannedNotificationsRepo(client, subscriptionsRepo)
-	_, err := profileRepo.CreateProfile(
+	plannedNotifsRepo := notifications.NewPlannedNotificationsService(client, subscriptionsService)
+	_, err := profileService.CreateProfile(
 		ctx, user1, "bio",
 		time.Now().AddDate(-25, 0, 0), nil, nil,
 	)
@@ -239,33 +239,33 @@ func TestProfileIDsCanGetPlannedNotificationNow(t *testing.T) {
 	client, ctx := tests.CreateTestContainerPostgresEntClient(t)
 	defer client.Close()
 
-	// Step 1: Create users and profiles.
+	// Step 1: Create users and profilesvc.
 	user1 := tests.CreateUser(ctx, client, "User", "user1@example.com", "password", true)
 	user2 := tests.CreateUser(ctx, client, "User", "user2@example.com", "password", true)
 	user3 := tests.CreateUser(ctx, client, "User", "user3@example.com", "password", true)
 	user4 := tests.CreateUser(ctx, client, "User", "user4@example.com", "password", true)
-	subscriptionsRepo := paidsubscriptions.NewSubscriptionsRepo(client, 10, 10)
-	profileRepo := profiles.NewProfileRepo(client, storagerepo.NewMockStorageClient(), subscriptionsRepo)
+	subscriptionsService := paidsubscriptions.NewSubscriptionsRepo(client, 10, 10)
+	profileService := profilesvc.NewProfileService(client, storagerepo.NewMockStorageClient(), subscriptionsService)
 
-	plannedNotifsRepo := notifications.NewPlannedNotificationsRepo(client, subscriptionsRepo)
+	plannedNotifsRepo := notifications.NewPlannedNotificationsService(client, subscriptionsService)
 
 	// Create profiles with different notification times.
-	profile1, err := profileRepo.CreateProfile(
+	profile1, err := profileService.CreateProfile(
 		ctx, user1, "bio1",
 		time.Now().AddDate(-25, 0, 0), nil, nil,
 	)
 	assert.Nil(t, err)
-	profile2, err := profileRepo.CreateProfile(
+	profile2, err := profileService.CreateProfile(
 		ctx, user2, "bio2",
 		time.Now().AddDate(-25, 0, 0), nil, nil,
 	)
 	assert.Nil(t, err)
-	profile3, err := profileRepo.CreateProfile(
+	profile3, err := profileService.CreateProfile(
 		ctx, user3, "bio3",
 		time.Now().AddDate(-25, 0, 0), nil, nil,
 	)
 	assert.Nil(t, err)
-	profile4, err := profileRepo.CreateProfile(
+	profile4, err := profileService.CreateProfile(
 		ctx, user4, "bio4",
 		time.Now().AddDate(-25, 0, 0), nil, nil,
 	)

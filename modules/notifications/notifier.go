@@ -13,17 +13,17 @@ import (
 )
 
 /*
-NotifierRepo manages the full lifecycle of notifications. That includes:
+NotifierService manages the full lifecycle of notifications. That includes:
 - Storage in DB.
 - Publishing to event stream (pubsub).
 - Create push notifications (TODO) for mobile apps.
 */
-type NotifierRepo struct {
-	pubSubClient             core.PubSub
-	notificationStorageRepo  NotificationStorage
-	pwaPushNotificationsRepo *PwaPushNotificationsRepo
-	fcmPushNotificationsRepo *FcmPushNotificationsRepo
-	getNumNotifsCount        func(context.Context, int) (int, error)
+type NotifierService struct {
+	pubSubClient      core.PubSub
+	notificationStore NotificationStorage
+	pwaPushService    *PwaPushService
+	fcmPushService    *FcmPushService
+	getNumNotifsCount func(context.Context, int) (int, error)
 }
 
 // SSEEvent is the notifier-level realtime event payload exposed to callers.
@@ -32,24 +32,24 @@ type SSEEvent struct {
 	Data string `json:"data"`
 }
 
-func NewNotifierRepo(
+func NewNotifierService(
 	pubSubClient core.PubSub,
-	notificationStorageRepo NotificationStorage,
-	pwaPushNotificationsRepo *PwaPushNotificationsRepo,
-	fcmPushNotificationsRepo *FcmPushNotificationsRepo,
+	notificationStore NotificationStorage,
+	pwaPushService *PwaPushService,
+	fcmPushService *FcmPushService,
 	getNumNotifsCount func(context.Context, int) (int, error),
-) *NotifierRepo {
-	return &NotifierRepo{
-		pubSubClient:             pubSubClient,
-		notificationStorageRepo:  notificationStorageRepo,
-		pwaPushNotificationsRepo: pwaPushNotificationsRepo,
-		fcmPushNotificationsRepo: fcmPushNotificationsRepo,
-		getNumNotifsCount:        getNumNotifsCount,
+) *NotifierService {
+	return &NotifierService{
+		pubSubClient:      pubSubClient,
+		notificationStore: notificationStore,
+		pwaPushService:    pwaPushService,
+		fcmPushService:    fcmPushService,
+		getNumNotifsCount: getNumNotifsCount,
 	}
 }
 
 // CreateNotification creates and stores a notification, then publishes it
-func (s *NotifierRepo) PublishNotification(
+func (s *NotifierService) PublishNotification(
 	ctx context.Context, notification domain.Notification, storeInDB bool, sendPushNotif bool,
 ) error {
 
@@ -62,7 +62,7 @@ func (s *NotifierRepo) PublishNotification(
 			Int("profileIDWhoCausedNotif", notification.ProfileIDWhoCausedNotif).
 			Str("notificationType", notification.Type.Value).
 			Msg("creating persistent notification")
-		_, err := s.notificationStorageRepo.CreateNotification(ctx, notification)
+		_, err := s.notificationStore.CreateNotification(ctx, notification)
 		if err != nil {
 			return err
 		}
@@ -90,8 +90,8 @@ func (s *NotifierRepo) PublishNotification(
 			return err
 		}
 
-		if s.pwaPushNotificationsRepo != nil {
-			err = s.pwaPushNotificationsRepo.SendPushNotifications(ctx, notification.ProfileID, notification.Title, notification.Text, numNotifs)
+		if s.pwaPushService != nil {
+			err = s.pwaPushService.SendPushNotifications(ctx, notification.ProfileID, notification.Title, notification.Text, numNotifs)
 			if err != nil {
 				return err
 			}
@@ -101,8 +101,8 @@ func (s *NotifierRepo) PublishNotification(
 				Str("notificationType", notification.Type.Value).
 				Msg("sent pwa push notifications")
 		}
-		if s.fcmPushNotificationsRepo != nil {
-			err = s.fcmPushNotificationsRepo.SendPushNotifications(ctx, notification.ProfileID, notification.Title, notification.Text, numNotifs, true)
+		if s.fcmPushService != nil {
+			err = s.fcmPushService.SendPushNotifications(ctx, notification.ProfileID, notification.Title, notification.Text, numNotifs, true)
 			if err != nil {
 				return err
 			}
@@ -123,7 +123,7 @@ func (s *NotifierRepo) PublishNotification(
 }
 
 // SendSSEUpdate sends an SSE HTML blob update to a profile
-func (s *NotifierRepo) SendSSEUpdate(
+func (s *NotifierService) SendSSEUpdate(
 	ctx context.Context, notification domain.Notification,
 ) error {
 	// Publish the notification to the user-specific topic
@@ -133,18 +133,18 @@ func (s *NotifierRepo) SendSSEUpdate(
 	})
 }
 
-func (s *NotifierRepo) HasNotificationForResourceAndPerson(
+func (s *NotifierService) HasNotificationForResourceAndPerson(
 	ctx context.Context, notifType domain.NotificationType, profileIDWhoCausedNotif, resourceID *int, maxAge time.Duration,
 ) (exists bool, err error) {
-	return s.notificationStorageRepo.HasNotificationForResourceAndPerson(
+	return s.notificationStore.HasNotificationForResourceAndPerson(
 		ctx, notifType, profileIDWhoCausedNotif, resourceID, maxAge)
 }
 
 // GetNotifications retrieves notifications for a user
-func (s *NotifierRepo) GetNotifications(
+func (s *NotifierService) GetNotifications(
 	ctx context.Context, profileID int, onlyUnread bool, beforeTimestamp *time.Time, pageSize *int,
 ) ([]*domain.Notification, error) {
-	notifications, err := s.notificationStorageRepo.GetNotificationsByProfileID(
+	notifications, err := s.notificationStore.GetNotificationsByProfileID(
 		ctx, profileID, onlyUnread, beforeTimestamp, pageSize,
 	)
 	if err != nil {
@@ -154,10 +154,10 @@ func (s *NotifierRepo) GetNotifications(
 }
 
 // MarkNotificationRead marks a specific notification as read
-func (s *NotifierRepo) MarkNotificationRead(
+func (s *NotifierService) MarkNotificationRead(
 	ctx context.Context, notificationID int, profileID *int,
 ) error {
-	err := s.notificationStorageRepo.MarkNotificationAsRead(ctx, notificationID, profileID)
+	err := s.notificationStore.MarkNotificationAsRead(ctx, notificationID, profileID)
 	if err != nil {
 		return err
 	}
@@ -175,10 +175,10 @@ func (s *NotifierRepo) MarkNotificationRead(
 }
 
 // MarkNotificationRead marks a specific notification as read
-func (s *NotifierRepo) MarkAllNotificationRead(
+func (s *NotifierService) MarkAllNotificationRead(
 	ctx context.Context, profileID int,
 ) error {
-	err := s.notificationStorageRepo.MarkAllNotificationAsRead(ctx, profileID)
+	err := s.notificationStore.MarkAllNotificationAsRead(ctx, profileID)
 	if err != nil {
 		return err
 	}
@@ -186,10 +186,10 @@ func (s *NotifierRepo) MarkAllNotificationRead(
 	return s.resetIosFCMNotificationsBadge(ctx, profileID)
 }
 
-func (s *NotifierRepo) resetIosFCMNotificationsBadge(ctx context.Context, profileID int) error {
-	if s.fcmPushNotificationsRepo != nil {
+func (s *NotifierService) resetIosFCMNotificationsBadge(ctx context.Context, profileID int) error {
+	if s.fcmPushService != nil {
 		numNotifs := 0
-		err := s.fcmPushNotificationsRepo.SendPushNotifications(ctx, profileID, "", "", numNotifs, false)
+		err := s.fcmPushService.SendPushNotifications(ctx, profileID, "", "", numNotifs, false)
 		if err != nil {
 			return err
 		}
@@ -201,10 +201,10 @@ func (s *NotifierRepo) resetIosFCMNotificationsBadge(ctx context.Context, profil
 }
 
 // MarkNotificationRead marks a specific notification as read
-func (s *NotifierRepo) MarkNotificationUnread(
+func (s *NotifierService) MarkNotificationUnread(
 	ctx context.Context, notificationID int, profileID *int,
 ) error {
-	err := s.notificationStorageRepo.MarkNotificationAsUnread(ctx, notificationID, profileID)
+	err := s.notificationStore.MarkNotificationAsUnread(ctx, notificationID, profileID)
 	if err != nil {
 		return err
 	}
@@ -216,7 +216,7 @@ func (s *NotifierRepo) MarkNotificationUnread(
 	return nil
 }
 
-func (s *NotifierRepo) emitNumNotificationUpdateEvent(ctx context.Context, profileID int) error {
+func (s *NotifierService) emitNumNotificationUpdateEvent(ctx context.Context, profileID int) error {
 	// Update notification counts
 	return s.PublishNotification(
 		ctx,
@@ -229,8 +229,8 @@ func (s *NotifierRepo) emitNumNotificationUpdateEvent(ctx context.Context, profi
 }
 
 // DeleteNotification deletes a notification by its ID.
-func (s *NotifierRepo) DeleteNotification(ctx context.Context, notificationID int, profileID *int) error {
-	err := s.notificationStorageRepo.DeleteNotification(ctx, notificationID, profileID)
+func (s *NotifierService) DeleteNotification(ctx context.Context, notificationID int, profileID *int) error {
+	err := s.notificationStore.DeleteNotification(ctx, notificationID, profileID)
 	if err != nil {
 		return err
 	}
@@ -239,7 +239,7 @@ func (s *NotifierRepo) DeleteNotification(ctx context.Context, notificationID in
 }
 
 // SSESubscribe to a topic to get live notifications from it.
-func (s *NotifierRepo) SSESubscribe(
+func (s *NotifierService) SSESubscribe(
 	ctx context.Context, topic string,
 ) (<-chan SSEEvent, error) {
 	subCtx, cancel := context.WithCancel(ctx)
@@ -272,7 +272,7 @@ func (s *NotifierRepo) SSESubscribe(
 	return out, nil
 }
 
-func (s *NotifierRepo) publishEvent(ctx context.Context, topic string, event SSEEvent) error {
+func (s *NotifierService) publishEvent(ctx context.Context, topic string, event SSEEvent) error {
 	payload, err := json.Marshal(event)
 	if err != nil {
 		return err

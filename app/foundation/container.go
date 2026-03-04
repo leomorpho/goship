@@ -19,19 +19,15 @@ import (
 	"github.com/labstack/echo/v4"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 	"github.com/stripe/stripe-go/v78"
 	"github.com/ziflex/lecho/v3"
 
-	"github.com/leomorpho/goship/app/notifications"
-	"github.com/leomorpho/goship/app/profiles"
+	"github.com/leomorpho/goship-modules/notifications"
 	"github.com/leomorpho/goship/config"
 	"github.com/leomorpho/goship/db/ent"
 	"github.com/leomorpho/goship/framework/core"
 	coreadapters "github.com/leomorpho/goship/framework/core/adapters"
 	"github.com/leomorpho/goship/framework/repos/mailer"
-	"github.com/leomorpho/goship/framework/repos/pubsub"
-	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
 
 	// Required by ent
 	"github.com/leomorpho/goship/db/ent/migrate"
@@ -83,7 +79,7 @@ type Container struct {
 	Auth *AuthClient
 
 	// Notifier handles all notifications to clients
-	Notifier *notifications.NotifierRepo
+	Notifier *notifications.NotifierService
 
 	// Tasks stores the task client
 	Tasks *TaskClient
@@ -403,24 +399,6 @@ func renameColumnHook(next schema.Differ) schema.Differ {
 // initAuth initializes the authentication client
 func (c *Container) initAuth() {
 	c.Auth = NewAuthClient(c.Config, c.ORM)
-}
-
-func (c *Container) initNotifier() {
-	pubsubRepo := pubsub.NewRedisPubSubClient(c.Cache.Client)
-	c.CorePubSub = NewCorePubSubAdapter(pubsubRepo)
-	notificationStorageRepo := notifications.NewNotificationStorageRepo(c.ORM)
-	pwaPushNotificationsRepo := notifications.NewPwaPushNotificationsRepo(
-		c.ORM, c.Config.App.VapidPublicKey, c.Config.App.VapidPrivateKey, c.Config.Mail.FromAddress,
-	)
-	fcmPushNotificationsRepo, err := notifications.NewFcmPushNotificationsRepo(
-		c.ORM, &c.Config.App.FirebaseJSONAccessKeys)
-	if err != nil {
-		log.Fatal().Err(err)
-	}
-	storageRepo := storagerepo.NewStorageClient(c.Config, c.ORM)
-	profileRepo := *profiles.NewProfileRepo(c.ORM, storageRepo, nil)
-	c.Notifier = notifications.NewNotifierRepo(
-		c.CorePubSub, notificationStorageRepo, pwaPushNotificationsRepo, fcmPushNotificationsRepo, profileRepo.GetCountOfUnseenNotifications)
 }
 
 // initMail initialize the mail client

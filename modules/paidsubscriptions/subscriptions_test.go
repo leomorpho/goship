@@ -10,8 +10,8 @@ import (
 	"github.com/jackc/pgx/stdlib"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/leomorpho/goship/app/profiles"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
+	profilesvc "github.com/leomorpho/goship/app/profile"
 	"github.com/leomorpho/goship/db/ent/monthlysubscription"
 	"github.com/leomorpho/goship/db/ent/profile"
 	"github.com/leomorpho/goship/framework/domain"
@@ -31,7 +31,7 @@ func TestGetCurrentlyActiveProduct(t *testing.T) {
 	user1 := tests.CreateUser(ctx, client, "Jo Bandi", "jo@gmail.com", "password", true)
 
 	// Create pofilesr
-	profileRepo := profiles.NewProfileRepo(client, nil, nil)
+	profileRepo := profilesvc.NewProfileService(client, nil, nil)
 	profile1Obj, err := profileRepo.CreateProfile(
 		ctx, user1, "bio", time.Time{}, nil, nil,
 	)
@@ -100,7 +100,7 @@ func TestDeactivateExpiredSubscriptions(t *testing.T) {
 	user2 := tests.CreateUser(ctx, client, "Boris Yelstin", "boris@gmail.com", "password", true)
 
 	// Create pofilesr
-	profileRepo := profiles.NewProfileRepo(client, nil, nil)
+	profileRepo := profilesvc.NewProfileService(client, nil, nil)
 	profile1Obj, err := profileRepo.CreateProfile(
 		ctx, user1, "bio", time.Time{}, nil, nil,
 	)
@@ -155,7 +155,7 @@ func TestStripeCustomerIDs(t *testing.T) {
 	user1 := tests.CreateUser(ctx, client, "Jo Bandi", "jo@gmail.com", "password", true)
 
 	// Create pofilesr
-	profileRepo := profiles.NewProfileRepo(client, nil, nil)
+	profileRepo := profilesvc.NewProfileService(client, nil, nil)
 	profile1Obj, err := profileRepo.CreateProfile(
 		ctx, user1, "bio", time.Time{}, nil, nil,
 	)
@@ -181,7 +181,7 @@ func TestCancelWithGracePeriod(t *testing.T) {
 	user2 := tests.CreateUser(ctx, client, "Boris Yelstin", "boris@gmail.com", "password", true)
 
 	// Create pofilesr
-	profileRepo := profiles.NewProfileRepo(client, nil, nil)
+	profileRepo := profilesvc.NewProfileService(client, nil, nil)
 	profile1Obj, err := profileRepo.CreateProfile(
 		ctx, user1, "bio", time.Time{}, nil, nil,
 	)
@@ -269,7 +269,7 @@ func TestCancelOrRenew(t *testing.T) {
 	user2 := tests.CreateUser(ctx, client, "Boris Yelstin", "boris@gmail.com", "password", true)
 
 	// Create pofilesr
-	profileRepo := profiles.NewProfileRepo(client, nil, nil)
+	profileRepo := profilesvc.NewProfileService(client, nil, nil)
 	profile1Obj, err := profileRepo.CreateProfile(
 		ctx, user1, "bio", time.Time{}, nil, nil,
 	)

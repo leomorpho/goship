@@ -11,7 +11,7 @@ const TypeDeactivateExpiredSubscriptions = "subscription.deactivate_all_expired"
 
 type (
 	DeactivateExpiredSubscriptionsProcessor struct {
-		subscriptionsRepo *paidsubscriptions.Service
+		subscriptionsService *paidsubscriptions.Service
 	}
 
 	DeactivateExpiredSubscriptionsPayload struct {
@@ -19,18 +19,18 @@ type (
 )
 
 func NewDeactivateExpiredSubscriptionsProcessor(
-	subscriptionsRepo *paidsubscriptions.Service,
+	subscriptionsService *paidsubscriptions.Service,
 ) *DeactivateExpiredSubscriptionsProcessor {
 
 	return &DeactivateExpiredSubscriptionsProcessor{
-		subscriptionsRepo: subscriptionsRepo,
+		subscriptionsService: subscriptionsService,
 	}
 }
 func (d *DeactivateExpiredSubscriptionsProcessor) ProcessTask(
 	ctx context.Context, t *asynq.Task,
 ) error {
 
-	return d.subscriptionsRepo.DeactivateExpiredSubscriptions(ctx)
+	return d.subscriptionsService.DeactivateExpiredSubscriptions(ctx)
 }
 
 // -------------------------------------------------------------
@@ -40,7 +40,7 @@ const TypeSubscriptionPaymentFailed = "subscription.payment_failed"
 
 type (
 	SubscriptionPaymentFailedProcessor struct {
-		subscriptionsRepo *paidsubscriptions.Service
+		subscriptionsService *paidsubscriptions.Service
 	}
 
 	SubscriptionPaymentFailedPayload struct {
@@ -48,18 +48,18 @@ type (
 )
 
 func NewSubscriptionPaymentFailedProcessor(
-	subscriptionsRepo *paidsubscriptions.Service,
+	subscriptionsService *paidsubscriptions.Service,
 ) *SubscriptionPaymentFailedProcessor {
 
 	return &SubscriptionPaymentFailedProcessor{
-		subscriptionsRepo: subscriptionsRepo,
+		subscriptionsService: subscriptionsService,
 	}
 }
 func (d *SubscriptionPaymentFailedProcessor) ProcessTask(
 	ctx context.Context, t *asynq.Task,
 ) error {
 
-	return d.subscriptionsRepo.DeactivateExpiredSubscriptions(ctx)
+	return d.subscriptionsService.DeactivateExpiredSubscriptions(ctx)
 }
 
 // -------------------------------------------------------------
@@ -69,7 +69,7 @@ const TypeSubscriptionCreated = "subscription.created"
 
 type (
 	SubscriptionCreatedProcessor struct {
-		subscriptionsRepo *paidsubscriptions.Service
+		subscriptionsService *paidsubscriptions.Service
 	}
 
 	SubscriptionCreatedPayload struct {
@@ -77,18 +77,18 @@ type (
 )
 
 func NewSubscriptionCreatedProcessor(
-	subscriptionsRepo *paidsubscriptions.Service,
+	subscriptionsService *paidsubscriptions.Service,
 ) *SubscriptionCreatedProcessor {
 
 	return &SubscriptionCreatedProcessor{
-		subscriptionsRepo: subscriptionsRepo,
+		subscriptionsService: subscriptionsService,
 	}
 }
 func (d *SubscriptionCreatedProcessor) ProcessTask(
 	ctx context.Context, t *asynq.Task,
 ) error {
 
-	return d.subscriptionsRepo.DeactivateExpiredSubscriptions(ctx)
+	return d.subscriptionsService.DeactivateExpiredSubscriptions(ctx)
 }
 
 // -------------------------------------------------------------
@@ -98,7 +98,7 @@ const TypeSubscriptionUpdated = "subscription.updated"
 
 type (
 	SubscriptionUpdatedProcessor struct {
-		subscriptionsRepo *paidsubscriptions.Service
+		subscriptionsService *paidsubscriptions.Service
 	}
 
 	SubscriptionUpdatedPayload struct {
@@ -106,18 +106,18 @@ type (
 )
 
 func NewSubscriptionUpdatedProcessor(
-	subscriptionsRepo *paidsubscriptions.Service,
+	subscriptionsService *paidsubscriptions.Service,
 ) *SubscriptionUpdatedProcessor {
 
 	return &SubscriptionUpdatedProcessor{
-		subscriptionsRepo: subscriptionsRepo,
+		subscriptionsService: subscriptionsService,
 	}
 }
 func (d *SubscriptionUpdatedProcessor) ProcessTask(
 	ctx context.Context, t *asynq.Task,
 ) error {
 
-	return d.subscriptionsRepo.DeactivateExpiredSubscriptions(ctx)
+	return d.subscriptionsService.DeactivateExpiredSubscriptions(ctx)
 }
 
 // -------------------------------------------------------------
@@ -127,7 +127,7 @@ const TypeSubscriptionDeleted = "subscription.deleted"
 
 type (
 	SubscriptionDeletedProcessor struct {
-		subscriptionsRepo *paidsubscriptions.Service
+		subscriptionsService *paidsubscriptions.Service
 	}
 
 	SubscriptionDeletedPayload struct {
@@ -135,16 +135,16 @@ type (
 )
 
 func NewSubscriptionDeletedProcessor(
-	subscriptionsRepo *paidsubscriptions.Service,
+	subscriptionsService *paidsubscriptions.Service,
 ) *SubscriptionDeletedProcessor {
 
 	return &SubscriptionDeletedProcessor{
-		subscriptionsRepo: subscriptionsRepo,
+		subscriptionsService: subscriptionsService,
 	}
 }
 func (d *SubscriptionDeletedProcessor) ProcessTask(
 	ctx context.Context, t *asynq.Task,
 ) error {
 
-	return d.subscriptionsRepo.DeactivateExpiredSubscriptions(ctx)
+	return d.subscriptionsService.DeactivateExpiredSubscriptions(ctx)
 }

@@ -8,10 +8,10 @@ import (
 	"time"
 
 	modemailsubscriptions "github.com/leomorpho/goship-modules/emailsubscriptions"
+	"github.com/leomorpho/goship-modules/notifications"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/app/foundation"
-	"github.com/leomorpho/goship/app/notifications"
-	"github.com/leomorpho/goship/app/profiles"
+	profilesvc "github.com/leomorpho/goship/app/profile"
 	"github.com/leomorpho/goship/config"
 	"github.com/leomorpho/goship/db/ent"
 	"github.com/leomorpho/goship/db/ent/user"
@@ -97,9 +97,9 @@ func SeedUsers(cfg *config.Config, client *ent.Client, useS3 bool) error {
 	if useS3 {
 		storageClient = storagerepo.NewStorageClient(cfg, client)
 	}
-	profileRepo := profiles.NewProfileRepo(client, storageClient, nil)
-	subscriptionsRepo := paidsubscriptions.New(paidsubscriptions.NewEntStore(client, 3, 3))
-	notificationSendPermissionRepo := notifications.NewNotificationSendPermissionRepo(client)
+	profileService := profilesvc.NewProfileService(client, storageClient, nil)
+	subscriptionsService := paidsubscriptions.New(paidsubscriptions.NewEntStore(client, 3, 3))
+	notificationPermissionService := notifications.NewNotificationPermissionService(client)
 
 	createProfile := func(
 		user *ent.User,
@@ -107,7 +107,7 @@ func SeedUsers(cfg *config.Config, client *ent.Client, useS3 bool) error {
 		age time.Time,
 		countryCode, e164PhoneNumber string,
 	) *ent.Profile {
-		profile, err := profileRepo.CreateProfile(
+		profile, err := profileService.CreateProfile(
 			ctx, user, bio, age,
 			&countryCode, &e164PhoneNumber)
 
@@ -117,7 +117,7 @@ func SeedUsers(cfg *config.Config, client *ent.Client, useS3 bool) error {
 		}
 
 		for _, perm := range domain.NotificationPermissions.Members() {
-			err := notificationSendPermissionRepo.CreatePermission(
+			err := notificationPermissionService.CreatePermission(
 				ctx, profile.ID, perm, &domain.NotificationPlatformEmail)
 			if err != nil {
 				log.Fatal().Err(err).Msg("failed to create notification permission")
@@ -150,13 +150,13 @@ func SeedUsers(cfg *config.Config, client *ent.Client, useS3 bool) error {
 	elliot := createUser("Elliot Ness", "elliot@test.com", hashPassword("password"))
 
 	aliceProfile := createProfile(alice, "", time.Now().AddDate(-23, 0, 0), "US", "+15551234567")
-	subscriptionsRepo.CreateSubscription(ctx, nil, aliceProfile.ID)
+	subscriptionsService.CreateSubscription(ctx, nil, aliceProfile.ID)
 
 	bobProfile := createProfile(bob, "", time.Now().AddDate(-24, 0, 0), "GB", "+442012345678")
-	subscriptionsRepo.CreateSubscription(ctx, nil, bobProfile.ID)
+	subscriptionsService.CreateSubscription(ctx, nil, bobProfile.ID)
 
 	sandrineProfile := createProfile(sandrine, "", time.Now().AddDate(-25, 0, 0), "CA", "+14165551234")
-	subscriptionsRepo.UpdateToPaidPro(ctx, sandrineProfile.ID)
+	subscriptionsService.UpdateToPaidPro(ctx, sandrineProfile.ID)
 
 	lucaProfile := createProfile(luca, "", time.Now().AddDate(-26, 0, 0), "AU", "+61212345678")
 
@@ -185,40 +185,40 @@ func SeedUsers(cfg *config.Config, client *ent.Client, useS3 bool) error {
 		defer photo2.Close()
 
 		// Upload photos for alice, bob and Sandrine
-		err = profileRepo.UploadPhoto(ctx, aliceProfile.ID, photo1, "image.jpg")
+		err = profileService.UploadPhoto(ctx, aliceProfile.ID, photo1, "image.jpg")
 		if err != nil {
 			log.Fatal().Err(err).Msg("failed to open file")
 		}
 		// TODO: not sure why, but when setting  profile pic for bob and alice, I get:
 		// 2023/11/25 08:53:43 failed to upload photo: ent: constraint failed: ERROR: update or delete on table "file_storages" violates foreign key constraint "profiles_file_storages_profile_image" on table "profiles" (SQLSTATE 23503)
-		err = profileRepo.UploadPhoto(ctx, aliceProfile.ID, photo2, "profile.jpg")
+		err = profileService.UploadPhoto(ctx, aliceProfile.ID, photo2, "profile.jpg")
 		if err != nil {
 			log.Fatal().Err(err).Msg("failed to upload image")
 		}
 
-		err = profileRepo.UploadPhoto(ctx, bobProfile.ID, photo1, "image.jpg")
+		err = profileService.UploadPhoto(ctx, bobProfile.ID, photo1, "image.jpg")
 		if err != nil {
 			log.Fatal().Err(err).Msg("failed to upload image")
 		}
-		err = profileRepo.SetProfilePhoto(ctx, bobProfile.ID, photo2, "profile.jpg")
-		if err != nil {
-			log.Fatal().Err(err).Msg("failed to upload image")
-		}
-
-		err = profileRepo.UploadPhoto(ctx, sandrineProfile.ID, photo1, "image.jpg")
-		if err != nil {
-			log.Fatal().Err(err).Msg("failed to upload image")
-		}
-		err = profileRepo.SetProfilePhoto(ctx, sandrineProfile.ID, photo2, "profile.jpg")
+		err = profileService.SetProfilePhoto(ctx, bobProfile.ID, photo2, "profile.jpg")
 		if err != nil {
 			log.Fatal().Err(err).Msg("failed to upload image")
 		}
 
-		err = profileRepo.UploadPhoto(ctx, lucaProfile.ID, photo1, "image.jpg")
+		err = profileService.UploadPhoto(ctx, sandrineProfile.ID, photo1, "image.jpg")
 		if err != nil {
 			log.Fatal().Err(err).Msg("failed to upload image")
 		}
-		err = profileRepo.SetProfilePhoto(ctx, lucaProfile.ID, photo2, "profile.jpg")
+		err = profileService.SetProfilePhoto(ctx, sandrineProfile.ID, photo2, "profile.jpg")
+		if err != nil {
+			log.Fatal().Err(err).Msg("failed to upload image")
+		}
+
+		err = profileService.UploadPhoto(ctx, lucaProfile.ID, photo1, "image.jpg")
+		if err != nil {
+			log.Fatal().Err(err).Msg("failed to upload image")
+		}
+		err = profileService.SetProfilePhoto(ctx, lucaProfile.ID, photo2, "profile.jpg")
 		if err != nil {
 			log.Fatal().Err(err).Msg("failed to upload image")
 		}

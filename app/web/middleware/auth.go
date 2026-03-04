@@ -9,7 +9,7 @@ import (
 	"github.com/labstack/echo/v4"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/app/foundation"
-	"github.com/leomorpho/goship/app/profiles"
+	profilesvc "github.com/leomorpho/goship/app/profile"
 	"github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/db/ent"
 	"github.com/leomorpho/goship/framework/context"
@@ -19,7 +19,7 @@ import (
 
 // LoadAuthenticatedUser loads the authenticated user, if one, and stores in context
 func LoadAuthenticatedUser(
-	authClient *foundation.AuthClient, profileRepo *profiles.ProfileRepo, subscriptionsRepo *paidsubscriptions.Service,
+	authClient *foundation.AuthClient, profileService *profilesvc.ProfileService, subscriptionsService *paidsubscriptions.Service,
 ) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
@@ -31,10 +31,10 @@ func LoadAuthenticatedUser(
 			case nil:
 				c.Set(context.AuthenticatedUserKey, u)
 				if u.Edges.Profile != nil {
-					c.Set(context.ProfileFullyOnboarded, profiles.IsProfileFullyOnboarded(u.Edges.Profile))
+					c.Set(context.ProfileFullyOnboarded, profilesvc.IsProfileFullyOnboarded(u.Edges.Profile))
 
-					// if subscriptionsRepo != nil {
-					// 	activeProduct, _, err := subscriptionsRepo.GetCurrentlyActiveProduct(c.Request().Context(), u.Edges.Profile.ID)
+					// if subscriptionsService != nil {
+					// 	activeProduct, _, err := subscriptionsService.GetCurrentlyActiveProduct(c.Request().Context(), u.Edges.Profile.ID)
 					// 	if err != nil {
 					// 		log.Error().Err(err).Int("userID", u.ID).Int("profileID", u.Edges.Profile.ID).Msg("failed to get active product in middleware for user")
 					// 	}
@@ -42,9 +42,9 @@ func LoadAuthenticatedUser(
 
 					// }
 				}
-				if profileRepo != nil {
+				if profileService != nil {
 					// TODO: cache profile photo URL somewhere in the stack
-					c.Set(context.AuthenticatedUserProfilePicURL, profileRepo.GetProfilePhotoThumbnailURL(u.ID))
+					c.Set(context.AuthenticatedUserProfilePicURL, profileService.GetProfilePhotoThumbnailURL(u.ID))
 				}
 				c.Logger().Infof("auth user loaded in to context: %d", u.ID)
 			default:

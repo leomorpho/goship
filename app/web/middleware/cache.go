@@ -36,7 +36,7 @@ type CachedPage struct {
 func ServeCachedPage(ch *foundation.CacheClient) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			// Cache backend is optional in some runtime profiles.
+			// Cache backend is optional in some runtime services.
 			if ch == nil {
 				return next(c)
 			}

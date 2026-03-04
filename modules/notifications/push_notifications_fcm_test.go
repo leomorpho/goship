@@ -8,8 +8,8 @@ import (
 
 	"github.com/gofrs/uuid"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
-	"github.com/leomorpho/goship/app/notifications"
-	"github.com/leomorpho/goship/app/profiles"
+	"github.com/leomorpho/goship-modules/notifications"
+	profilesvc "github.com/leomorpho/goship/app/profile"
 	"github.com/leomorpho/goship/db/ent/notificationpermission"
 	"github.com/leomorpho/goship/framework/domain"
 	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
@@ -23,10 +23,10 @@ func TestFcmHasPermissionsLeftAndTokenIsRegistered(t *testing.T) {
 
 	// Create user and profile.
 	user1 := tests.CreateUser(ctx, client, "User", "user1@example.com", "password", true)
-	subscriptionsRepo := paidsubscriptions.NewSubscriptionsRepo(client, 10, 10)
-	profileRepo := profiles.NewProfileRepo(client, storagerepo.NewMockStorageClient(), subscriptionsRepo)
+	subscriptionsService := paidsubscriptions.NewSubscriptionsRepo(client, 10, 10)
+	profileService := profilesvc.NewProfileService(client, storagerepo.NewMockStorageClient(), subscriptionsService)
 
-	profile1, err := profileRepo.CreateProfile(
+	profile1, err := profileService.CreateProfile(
 		ctx, user1, "bio",
 		time.Now().AddDate(-25, 0, 0), nil, nil,
 	)
@@ -43,18 +43,18 @@ func TestFcmHasPermissionsLeftAndTokenIsRegistered(t *testing.T) {
 		Save(ctx)
 	assert.Nil(t, err)
 
-	fcmPushNotificationsRepo, err := notifications.NewFcmPushNotificationsRepo(client, nil)
+	fcmPushService, err := notifications.NewFcmPushService(client, nil)
 	assert.Nil(t, err)
 
-	err = fcmPushNotificationsRepo.AddPushSubscription(ctx, profile1.ID, notifications.FcmSubscription{
+	err = fcmPushService.AddPushSubscription(ctx, profile1.ID, notifications.FcmSubscription{
 		Token: "12345",
 	})
 	assert.Nil(t, err)
 
-	hasPermissionsLeft, err := fcmPushNotificationsRepo.HasPermissionsLeftAndTokenIsRegistered(ctx, profile1.ID, "12345")
+	hasPermissionsLeft, err := fcmPushService.HasPermissionsLeftAndTokenIsRegistered(ctx, profile1.ID, "12345")
 	assert.Nil(t, err)
 	// TODO: the below is False even though it would normally be True, because
-	// I did not explicitly add a permission, and fcmPushNotificationsRepo is breaking
+	// I did not explicitly add a permission, and fcmPushService is breaking
 	// walls of responsability by putting its hands in permissions. Bad design. To rework.
 	assert.False(t, hasPermissionsLeft)
 }

@@ -13,7 +13,7 @@ import (
 	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/jackc/pgx/stdlib"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
-	"github.com/leomorpho/goship/app/profiles"
+	profilesvc "github.com/leomorpho/goship/app/profile"
 	"github.com/leomorpho/goship/db/ent"
 	"github.com/leomorpho/goship/db/ent/profile"
 	"github.com/leomorpho/goship/framework/domain"
@@ -36,27 +36,27 @@ func TestGetProfileByID(t *testing.T) {
 	user1 := tests.CreateUser(ctx, client, "User", "user1@example.com", "password", true)
 	user2 := tests.CreateUser(ctx, client, "User", "user2@example.com", "password", true)
 
-	profileRepo := profiles.NewProfileRepo(client, storagerepo.NewMockStorageClient(), nil)
+	profileService := profilesvc.NewProfileService(client, storagerepo.NewMockStorageClient(), nil)
 
 	// Create profiles for users with different genders.
-	profile1, err := profileRepo.CreateProfile(
+	profile1, err := profileService.CreateProfile(
 		ctx, user1, "bio",
 		time.Now().AddDate(-25, 0, 0), nil, nil,
 	)
 	assert.Nil(t, err)
 
-	profile2, err := profileRepo.CreateProfile(
+	profile2, err := profileService.CreateProfile(
 		ctx, user2, "bio",
 		time.Now().AddDate(-25, 0, 0), nil, nil,
 	)
 	assert.Nil(t, err)
 
 	// TODO: expand and verify individual fields
-	profileObj, err := profileRepo.GetProfileByID(ctx, profile1.ID, nil)
+	profileObj, err := profileService.GetProfileByID(ctx, profile1.ID, nil)
 	assert.Nil(t, err)
 	assert.Equal(t, profile1.ID, profileObj.ID)
 
-	profileObj, err = profileRepo.GetProfileByID(ctx, profile2.ID, nil)
+	profileObj, err = profileService.GetProfileByID(ctx, profile2.ID, nil)
 	assert.Nil(t, err)
 	assert.Equal(t, profile2.ID, profileObj.ID)
 }
@@ -71,16 +71,16 @@ func TestGetProfileFriends(t *testing.T) {
 	user3 := tests.CreateUser(ctx, client, "James Bond", "james007@gmail.com", "password", true)
 
 	// Create profiles
-	profileRepo := profiles.NewProfileRepo(client, nil, nil)
-	profile1, err := profileRepo.CreateProfile(
+	profileService := profilesvc.NewProfileService(client, nil, nil)
+	profile1, err := profileService.CreateProfile(
 		ctx, user1, "bio", time.Time{}, nil, nil,
 	)
 	assert.Nil(t, err)
-	profile2, err := profileRepo.CreateProfile(
+	profile2, err := profileService.CreateProfile(
 		ctx, user2, "bio", time.Time{}, nil, nil,
 	)
 	assert.Nil(t, err)
-	profile3, err := profileRepo.CreateProfile(
+	profile3, err := profileService.CreateProfile(
 		ctx, user3, "bio", time.Time{}, nil, nil,
 	)
 	assert.Nil(t, err)
@@ -88,13 +88,13 @@ func TestGetProfileFriends(t *testing.T) {
 	// Link profiles as friends
 	tests.LinkFriends(ctx, client, profile1.ID, []int{profile2.ID})
 
-	friends, err := profileRepo.GetFriends(ctx, profile1.ID)
+	friends, err := profileService.GetFriends(ctx, profile1.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, 1, len(friends))
 	assert.Equal(t, profile2.ID, friends[0].ID)
 
 	tests.LinkFriends(ctx, client, profile1.ID, []int{profile3.ID})
-	friends, err = profileRepo.GetFriends(ctx, profile1.ID)
+	friends, err = profileService.GetFriends(ctx, profile1.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, 2, len(friends))
 	expectedProfileIds := mapset.NewSet[int]()
@@ -115,26 +115,26 @@ func TestLinkAndUnlinkProfilesAsFriends(t *testing.T) {
 	client, ctx := tests.CreateTestContainerPostgresEntClient(t)
 	defer client.Close()
 
-	profileRepo := profiles.NewProfileRepo(client, nil, nil)
+	profileService := profilesvc.NewProfileService(client, nil, nil)
 
 	// Create two users and profiles
 	user1 := tests.CreateUser(ctx, client, "User1", "user1@example.com", "password", true)
 	user2 := tests.CreateUser(ctx, client, "User2", "user2@example.com", "password", true)
 
-	profile1, err := profileRepo.CreateProfile(
+	profile1, err := profileService.CreateProfile(
 		ctx, user1, "bio1",
 		time.Now().AddDate(-25, 0, 0), nil, nil,
 	)
 	assert.Nil(t, err)
 
-	profile2, err := profileRepo.CreateProfile(
+	profile2, err := profileService.CreateProfile(
 		ctx, user2, "bio2",
 		time.Now().AddDate(-25, 0, 0), nil, nil,
 	)
 	assert.Nil(t, err)
 
 	// Link profiles as friends
-	err = profileRepo.LinkProfilesAsFriends(ctx, profile1.ID, profile2.ID)
+	err = profileService.LinkProfilesAsFriends(ctx, profile1.ID, profile2.ID)
 	assert.Nil(t, err)
 
 	// Verify that the profiles are linked as friends in the database
@@ -148,7 +148,7 @@ func TestLinkAndUnlinkProfilesAsFriends(t *testing.T) {
 	assert.True(t, areFriends, "Profiles should be linked as friends")
 
 	// Unlink the profiles
-	err = profileRepo.UnlinkProfilesAsFriends(ctx, profile1.ID, profile2.ID)
+	err = profileService.UnlinkProfilesAsFriends(ctx, profile1.ID, profile2.ID)
 	assert.Nil(t, err)
 
 	// Verify that the profiles are no longer linked as friends
@@ -166,11 +166,11 @@ func TestUploadImageSizes(t *testing.T) {
 	// Initialize the MockStorageClient
 	mockStorage := storagerepo.NewMockStorageClient()
 
-	// Create an instance of ProfileRepo using the mock storage client
+	// Create an instance of ProfileService using the mock storage client
 	client, ctx := tests.CreateTestContainerPostgresEntClient(t) // Adjust this to match your actual container creation logic
 	defer client.Close()
 
-	profileRepo := profiles.NewProfileRepo(client, mockStorage, nil)
+	profileService := profilesvc.NewProfileService(client, mockStorage, nil)
 
 	// Mock data
 	profileID := 1
@@ -198,7 +198,7 @@ func TestUploadImageSizes(t *testing.T) {
 	mockStorage.On("UploadFile", mock.Anything, mock.Anything, mock.Anything).Return(&filestorageObject.ID, nil).Times(1)
 
 	// Run the function we want to test
-	imageID, err := profileRepo.UploadImageSizes(
+	imageID, err := profileService.UploadImageSizes(
 		ctx, profileID, fileStream, imageCategory, fileName,
 		[]domain.ImageSize{domain.ImageSizeThumbnail},
 	)
@@ -217,7 +217,7 @@ func TestDeletePhoto(t *testing.T) {
 	defer client.Close()
 
 	mockStorage := storagerepo.NewMockStorageClient()
-	profileRepo := profiles.NewProfileRepo(client, mockStorage, nil)
+	profileService := profilesvc.NewProfileService(client, mockStorage, nil)
 
 	// Prepare mock data
 	fileName := "new_profile.jpg"
@@ -260,11 +260,11 @@ func TestDeletePhoto(t *testing.T) {
 
 	user1 := tests.CreateUser(ctx, client, "TestUser1", "test1@example.com", "password", true)
 
-	profile1, err := profileRepo.CreateProfile(ctx, user1, "Test bio 1", time.Now().AddDate(-30, 0, 0), nil, nil)
+	profile1, err := profileService.CreateProfile(ctx, user1, "Test bio 1", time.Now().AddDate(-30, 0, 0), nil, nil)
 	assert.NoError(t, err)
 
 	// Create the image
-	err = profileRepo.SetProfilePhoto(ctx, profile1.ID, fileStream, fileName)
+	err = profileService.SetProfilePhoto(ctx, profile1.ID, fileStream, fileName)
 	assert.Nil(t, err)
 
 	entImage, err := client.Profile.
@@ -295,7 +295,7 @@ func TestDeletePhoto(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 2, numFiles)
 
-	err = profileRepo.DeletePhoto(ctx, entImage.ID, nil)
+	err = profileService.DeletePhoto(ctx, entImage.ID, nil)
 	assert.NoError(t, err)
 
 	numImages, err = client.Image.Query().Count(ctx)
@@ -317,7 +317,7 @@ func TestSetProfilePhoto(t *testing.T) {
 	defer client.Close()
 
 	mockStorage := storagerepo.NewMockStorageClient()
-	profileRepo := profiles.NewProfileRepo(client, mockStorage, nil)
+	profileService := profilesvc.NewProfileService(client, mockStorage, nil)
 
 	// Prepare mock data
 	fileName := "new_profile.jpg"
@@ -350,11 +350,11 @@ func TestSetProfilePhoto(t *testing.T) {
 
 	user1 := tests.CreateUser(ctx, client, "TestUser1", "test1@example.com", "password", true)
 
-	profile, err := profileRepo.CreateProfile(ctx, user1, "Test bio 1", time.Now().AddDate(-30, 0, 0), nil, nil)
+	profile, err := profileService.CreateProfile(ctx, user1, "Test bio 1", time.Now().AddDate(-30, 0, 0), nil, nil)
 	assert.NoError(t, err)
 
 	// Execute the method to test
-	err = profileRepo.SetProfilePhoto(ctx, profile.ID, fileStream, fileName)
+	err = profileService.SetProfilePhoto(ctx, profile.ID, fileStream, fileName)
 
 	// Check results
 	assert.NoError(t, err)
@@ -381,20 +381,20 @@ func TestDeleteUserData(t *testing.T) {
 	user3 := tests.CreateUser(ctx, client, "James Bond", "james007@gmail.com", "password", true)
 
 	// Create profiles for users with different genders.
-	profileRepo := profiles.NewProfileRepo(client, storagerepo.NewMockStorageClient(), nil)
-	profile1, err := profileRepo.CreateProfile(
+	profileService := profilesvc.NewProfileService(client, storagerepo.NewMockStorageClient(), nil)
+	profile1, err := profileService.CreateProfile(
 		ctx, user1, "bio",
 		time.Now().AddDate(-25, 0, 0), nil, nil,
 	)
 	assert.Nil(t, err)
 
-	profile2, err := profileRepo.CreateProfile(
+	profile2, err := profileService.CreateProfile(
 		ctx, user2, "bio",
 		time.Now().AddDate(-25, 0, 0), nil, nil,
 	)
 	assert.Nil(t, err)
 
-	profile3, err := profileRepo.CreateProfile(
+	profile3, err := profileService.CreateProfile(
 		ctx, user3, "bio", time.Time{}, nil, nil,
 	)
 	assert.Nil(t, err)
@@ -404,14 +404,14 @@ func TestDeleteUserData(t *testing.T) {
 
 	// Create subcription then delete it (mimicking user cancelling before
 	// deleting, this is enforced in the deletion flow).
-	subscriptionsRepo := paidsubscriptions.NewSubscriptionsRepo(client, 5, 5)
-	err = subscriptionsRepo.CreateSubscription(ctx, nil, profile1.ID)
+	subscriptionsService := paidsubscriptions.NewSubscriptionsRepo(client, 5, 5)
+	err = subscriptionsService.CreateSubscription(ctx, nil, profile1.ID)
 	assert.NoError(t, err)
 
-	err = subscriptionsRepo.UpdateToPaidPro(ctx, profile1.ID)
+	err = subscriptionsService.UpdateToPaidPro(ctx, profile1.ID)
 	assert.NoError(t, err)
 	now := time.Now()
-	err = subscriptionsRepo.CancelOrRenew(ctx, profile1.ID, &now)
+	err = subscriptionsService.CancelOrRenew(ctx, profile1.ID, &now)
 	assert.NoError(t, err)
 
 	initialUsers, err := client.User.Query().Select(profile.FieldID).All(ctx)
@@ -433,7 +433,7 @@ func TestDeleteUserData(t *testing.T) {
 	assert.True(t, initialProfileIDs.Contains(profile1.ID))
 
 	// TEST THE ACTUAL METHOD: delete user with pro subscription
-	err = profileRepo.DeleteUserData(ctx, profile1.ID)
+	err = profileService.DeleteUserData(ctx, profile1.ID)
 	assert.NoError(t, err)
 
 	finalUsers, err := client.User.Query().Select(profile.FieldID).All(ctx)
@@ -458,7 +458,7 @@ func TestDeleteUserData(t *testing.T) {
 	assert.False(t, finalProfileIDs.Contains(profile1.ID))
 
 	// TEST THE ACTUAL METHOD: delete user with free subscription
-	err = profileRepo.DeleteUserData(ctx, profile2.ID)
+	err = profileService.DeleteUserData(ctx, profile2.ID)
 	assert.NoError(t, err)
 
 	finalUsers2, err := client.User.Query().Select(profile.FieldID).All(ctx)

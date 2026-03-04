@@ -27,30 +27,30 @@ type VAPIDDetails struct {
 	PrivateKey string
 }
 
-type PwaPushNotificationsRepo struct {
-	vapidDetails                   *VAPIDDetails
-	subscriberEmail                string
-	orm                            *ent.Client
-	notificationSendPermissionRepo *NotificationSendPermissionRepo
+type PwaPushService struct {
+	vapidDetails                  *VAPIDDetails
+	subscriberEmail               string
+	orm                           *ent.Client
+	notificationPermissionService *NotificationPermissionService
 }
 
-func NewPwaPushNotificationsRepo(
+func NewPwaPushService(
 	orm *ent.Client, vapidPublicKey, vapidPrivateKey, subscriberEmail string,
-) *PwaPushNotificationsRepo {
+) *PwaPushService {
 
-	notificationSendPermissionRepo := NewNotificationSendPermissionRepo(orm)
-	return &PwaPushNotificationsRepo{
+	notificationPermissionService := NewNotificationPermissionService(orm)
+	return &PwaPushService{
 		vapidDetails: &VAPIDDetails{
 			PublicKey:  vapidPublicKey,
 			PrivateKey: vapidPrivateKey,
 		},
-		subscriberEmail:                subscriberEmail,
-		orm:                            orm,
-		notificationSendPermissionRepo: notificationSendPermissionRepo,
+		subscriberEmail:               subscriberEmail,
+		orm:                           orm,
+		notificationPermissionService: notificationPermissionService,
 	}
 }
 
-func (p *PwaPushNotificationsRepo) AddPushSubscription(ctx context.Context, profileID int, sub Subscription) error {
+func (p *PwaPushService) AddPushSubscription(ctx context.Context, profileID int, sub Subscription) error {
 	_, err := p.orm.PwaPushSubscription.
 		Create().
 		SetProfileID(profileID).
@@ -61,7 +61,7 @@ func (p *PwaPushNotificationsRepo) AddPushSubscription(ctx context.Context, prof
 	return err
 }
 
-func (p *PwaPushNotificationsRepo) SendPushNotifications(ctx context.Context, profileID int, title, message string, numUnreadNotifs int) error {
+func (p *PwaPushService) SendPushNotifications(ctx context.Context, profileID int, title, message string, numUnreadNotifs int) error {
 	subs, err := p.orm.Profile.
 		Query().
 		Where(profile.IDEQ(profileID)).
@@ -127,7 +127,7 @@ func (p *PwaPushNotificationsRepo) SendPushNotifications(ctx context.Context, pr
 	return nil
 }
 
-func (p *PwaPushNotificationsRepo) GetPushSubscriptionEndpoints(ctx context.Context, profileID int) ([]string, error) {
+func (p *PwaPushService) GetPushSubscriptionEndpoints(ctx context.Context, profileID int) ([]string, error) {
 	subs, err := p.orm.Profile.
 		Query().
 		Where(profile.IDEQ(profileID)).
@@ -144,7 +144,7 @@ func (p *PwaPushNotificationsRepo) GetPushSubscriptionEndpoints(ctx context.Cont
 	return subscribedEndpoints, nil
 }
 
-func (p *PwaPushNotificationsRepo) DeletePushSubscriptionByEndpoint(ctx context.Context, profileID int, endpoint string) error {
+func (p *PwaPushService) DeletePushSubscriptionByEndpoint(ctx context.Context, profileID int, endpoint string) error {
 	_, err := p.orm.PwaPushSubscription.Delete().
 		Where(
 			pwapushsubscription.HasProfileWith(profile.IDEQ(profileID)),
@@ -155,7 +155,7 @@ func (p *PwaPushNotificationsRepo) DeletePushSubscriptionByEndpoint(ctx context.
 	return err
 }
 
-func (p *PwaPushNotificationsRepo) hasProfilePushSubscriptionEndpoints(ctx context.Context, profileID int) (bool, error) {
+func (p *PwaPushService) hasProfilePushSubscriptionEndpoints(ctx context.Context, profileID int) (bool, error) {
 	return p.orm.PwaPushSubscription.
 		Query().
 		Where(
@@ -165,7 +165,7 @@ func (p *PwaPushNotificationsRepo) hasProfilePushSubscriptionEndpoints(ctx conte
 }
 
 // TODO: this is bad design, this repo should know NOTHING about permissions
-func (p *PwaPushNotificationsRepo) HasPermissionsLeftAndEndpointIsRegistered(
+func (p *PwaPushService) HasPermissionsLeftAndEndpointIsRegistered(
 	ctx context.Context,
 	profileID int,
 	endpoint string,

@@ -28,19 +28,19 @@ import (
 
 type (
 	paymentsRoute struct {
-		ctr               ui.Controller
-		orm               *ent.Client
-		subscriptionsRepo *paidsubscriptions.Service
+		ctr                  ui.Controller
+		orm                  *ent.Client
+		subscriptionsService *paidsubscriptions.Service
 	}
 )
 
 func NewPaymentsRoute(
-	ctr ui.Controller, orm *ent.Client, subscriptionsRepo *paidsubscriptions.Service,
+	ctr ui.Controller, orm *ent.Client, subscriptionsService *paidsubscriptions.Service,
 ) paymentsRoute {
 	return paymentsRoute{
-		ctr:               ctr,
-		orm:               orm,
-		subscriptionsRepo: subscriptionsRepo,
+		ctr:                  ctr,
+		orm:                  orm,
+		subscriptionsService: subscriptionsService,
 	}
 }
 
@@ -84,7 +84,7 @@ func (p *paymentsRoute) CreateCheckoutSession(ctx echo.Context) error {
 	}
 
 	// Store the Stripe customer ID in your database
-	err = p.subscriptionsRepo.StoreStripeCustomerID(ctx.Request().Context(), profile.ID, customer.ID)
+	err = p.subscriptionsService.StoreStripeCustomerID(ctx.Request().Context(), profile.ID, customer.ID)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "failed to store Stripe customer ID"})
 	}
@@ -161,12 +161,12 @@ func (p *paymentsRoute) HandleWebhook(c echo.Context) error {
 		}
 		log.Info().Str("subscriptionID", subscription.ID).Msg("Subscription deleted")
 
-		profileID, err := p.subscriptionsRepo.GetProfileIDFromStripeCustomerID(
+		profileID, err := p.subscriptionsService.GetProfileIDFromStripeCustomerID(
 			c.Request().Context(), subscription.Customer.ID)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError)
 		}
-		err = p.subscriptionsRepo.CancelWithGracePeriod(c.Request().Context(), profileID)
+		err = p.subscriptionsService.CancelWithGracePeriod(c.Request().Context(), profileID)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError)
 		}
@@ -180,7 +180,7 @@ func (p *paymentsRoute) HandleWebhook(c echo.Context) error {
 		}
 
 		// Get the profile ID from Stripe customer ID
-		profileID, err := p.subscriptionsRepo.GetProfileIDFromStripeCustomerID(
+		profileID, err := p.subscriptionsService.GetProfileIDFromStripeCustomerID(
 			c.Request().Context(), subscription.Customer.ID)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError)
@@ -196,7 +196,7 @@ func (p *paymentsRoute) HandleWebhook(c echo.Context) error {
 			cancelDate = &t
 		}
 		// Call function to handle subscription cancellation
-		err = p.subscriptionsRepo.CancelOrRenew(c.Request().Context(), profileID, cancelDate)
+		err = p.subscriptionsService.CancelOrRenew(c.Request().Context(), profileID, cancelDate)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError)
 		}
@@ -211,12 +211,12 @@ func (p *paymentsRoute) HandleWebhook(c echo.Context) error {
 		}
 		log.Info().Str("subscriptionID", subscription.ID).Msg("Subscription created")
 		// Change to pro by default, alert customer if payment failed later
-		profileID, err := p.subscriptionsRepo.GetProfileIDFromStripeCustomerID(
+		profileID, err := p.subscriptionsService.GetProfileIDFromStripeCustomerID(
 			c.Request().Context(), subscription.Customer.ID)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError)
 		}
-		err = p.subscriptionsRepo.UpdateToPaidPro(c.Request().Context(), profileID)
+		err = p.subscriptionsService.UpdateToPaidPro(c.Request().Context(), profileID)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError)
 		}
@@ -232,7 +232,7 @@ func (p *paymentsRoute) HandleWebhook(c echo.Context) error {
 			return echo.ErrBadRequest
 		}
 		log.Info().Str("invoiceID", invoice.ID).Msg("Invoice payment failed")
-		profileID, err := p.subscriptionsRepo.GetProfileIDFromStripeCustomerID(
+		profileID, err := p.subscriptionsService.GetProfileIDFromStripeCustomerID(
 			c.Request().Context(), invoice.Customer.ID)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError)
@@ -260,7 +260,7 @@ func (p *paymentsRoute) HandleWebhook(c echo.Context) error {
 				Msg("failed to create notification")
 
 		}
-		err = p.subscriptionsRepo.CancelWithGracePeriod(c.Request().Context(), profileID)
+		err = p.subscriptionsService.CancelWithGracePeriod(c.Request().Context(), profileID)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError)
 		}
@@ -281,7 +281,7 @@ func (p *paymentsRoute) PricingPage(ctx echo.Context) error {
 	usr := ctx.Get(internalContext.AuthenticatedUserKey).(*ent.User)
 	profile := usr.QueryProfile().FirstX(ctx.Request().Context())
 
-	activePlan, subscriptionExpiredOn, isTrial, err := p.subscriptionsRepo.GetCurrentlyActiveProduct(
+	activePlan, subscriptionExpiredOn, isTrial, err := p.subscriptionsService.GetCurrentlyActiveProduct(
 		ctx.Request().Context(), profile.ID,
 	)
 	if err != nil {

@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/leomorpho/goship/app/notifications"
-	"github.com/leomorpho/goship/app/profiles"
+	"github.com/leomorpho/goship-modules/notifications"
+	profilesvc "github.com/leomorpho/goship/app/profile"
 	"github.com/leomorpho/goship/framework/domain"
 	"github.com/leomorpho/goship/framework/tests"
 	"github.com/stretchr/testify/assert"
@@ -22,15 +22,15 @@ func TestNotifications(t *testing.T) {
 	user2 := tests.CreateUser(ctx, client, "Ba Babagaya", "ba@gmail.com", "password", true)
 
 	// Create profiles
-	notificationsRepo := notifications.NewNotificationStorageRepo(client)
-	profileRepo := profiles.NewProfileRepo(client, nil, nil)
+	notificationsRepo := notifications.NewNotificationStore(client)
+	profileService := profilesvc.NewProfileService(client, nil, nil)
 
-	profile1Obj, err := profileRepo.CreateProfile(
+	profile1Obj, err := profileService.CreateProfile(
 		ctx, user1, "bio", time.Time{}, nil, nil,
 	)
 	assert.Nil(t, err)
 
-	profile2Obj, err := profileRepo.CreateProfile(
+	profile2Obj, err := profileService.CreateProfile(
 		ctx, user2, "bio", time.Time{}, nil, nil,
 	)
 	assert.Nil(t, err)

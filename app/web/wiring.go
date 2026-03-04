@@ -11,10 +11,10 @@ import (
 	"github.com/labstack/echo/v4"
 	echomw "github.com/labstack/echo/v4/middleware"
 	modemailsubscriptions "github.com/leomorpho/goship-modules/emailsubscriptions"
+	"github.com/leomorpho/goship-modules/notifications"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/app/foundation"
-	"github.com/leomorpho/goship/app/notifications"
-	"github.com/leomorpho/goship/app/profiles"
+	profilesvc "github.com/leomorpho/goship/app/profile"
 	"github.com/leomorpho/goship/app/web/middleware"
 	"github.com/leomorpho/goship/config"
 	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
@@ -31,12 +31,12 @@ const (
 )
 
 type RouteDeps struct {
-	EmailSubscriptions             *modemailsubscriptions.Service
-	StorageRepo                    *storagerepo.StorageClient
-	ProfileRepo                    *profiles.ProfileRepo
-	SubscriptionsRepo              *paidsubscriptions.Service
-	NotificationSendPermissionRepo *notifications.NotificationSendPermissionRepo
-	StripeWebhookPath              string
+	EmailSubscriptions            *modemailsubscriptions.Service
+	StorageRepo                   *storagerepo.StorageClient
+	ProfileService                *profilesvc.ProfileService
+	SubscriptionsRepo             *paidsubscriptions.Service
+	NotificationPermissionService *notifications.NotificationPermissionService
+	StripeWebhookPath             string
 }
 
 func sseSkipper(c echo.Context) bool {
@@ -49,8 +49,8 @@ func NewRouteDeps(c *foundation.Container, paidSubscriptions *paidsubscriptions.
 	deps.EmailSubscriptions = modemailsubscriptions.New(modemailsubscriptions.NewEntStore(c.ORM))
 	deps.StorageRepo = storagerepo.NewStorageClient(c.Config, c.ORM)
 	deps.SubscriptionsRepo = paidSubscriptions
-	deps.ProfileRepo = profiles.NewProfileRepo(c.ORM, deps.StorageRepo, deps.SubscriptionsRepo)
-	deps.NotificationSendPermissionRepo = notifications.NewNotificationSendPermissionRepo(c.ORM)
+	deps.ProfileService = profilesvc.NewProfileService(c.ORM, deps.StorageRepo, deps.SubscriptionsRepo)
+	deps.NotificationPermissionService = notifications.NewNotificationPermissionService(c.ORM)
 
 	deps.StripeWebhookPath = strings.TrimSpace(c.Config.App.StripeWebhookPath)
 	if deps.StripeWebhookPath == "" {
@@ -94,7 +94,7 @@ func commonMiddleware(c *foundation.Container, deps *RouteDeps, sessionStore *se
 		echomw.RequestID(),
 		middleware.LogRequestID(),
 		session.Middleware(sessionStore),
-		middleware.LoadAuthenticatedUser(c.Auth, deps.ProfileRepo, deps.SubscriptionsRepo),
+		middleware.LoadAuthenticatedUser(c.Auth, deps.ProfileService, deps.SubscriptionsRepo),
 		echomw.CSRFWithConfig(echomw.CSRFConfig{
 			TokenLookup:  "form:csrf,header:X-CSRF-Token,query:csrf",
 			CookieMaxAge: 172800, // 48h

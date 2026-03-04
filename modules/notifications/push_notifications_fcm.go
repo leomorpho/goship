@@ -20,14 +20,14 @@ type FcmSubscription struct {
 	Token string
 }
 
-type FcmPushNotificationsRepo struct {
+type FcmPushService struct {
 	orm       *ent.Client
 	fcmClient *messaging.Client
 }
 
-func NewFcmPushNotificationsRepo(
+func NewFcmPushService(
 	orm *ent.Client, firebaseJSONAccessKeys *[]byte,
-) (*FcmPushNotificationsRepo, error) {
+) (*FcmPushService, error) {
 
 	var fcmClient *messaging.Client
 
@@ -48,13 +48,13 @@ func NewFcmPushNotificationsRepo(
 		return nil, errors.New("orm must be set")
 	}
 
-	return &FcmPushNotificationsRepo{
+	return &FcmPushService{
 		orm:       orm,
 		fcmClient: fcmClient,
 	}, nil
 }
 
-func (p *FcmPushNotificationsRepo) AddPushSubscription(ctx context.Context, profileID int, sub FcmSubscription) error {
+func (p *FcmPushService) AddPushSubscription(ctx context.Context, profileID int, sub FcmSubscription) error {
 	_, err := p.orm.FCMSubscriptions.
 		Create().
 		SetProfileID(profileID).
@@ -63,7 +63,7 @@ func (p *FcmPushNotificationsRepo) AddPushSubscription(ctx context.Context, prof
 	return err
 }
 
-func (p *FcmPushNotificationsRepo) SendPushNotifications(ctx context.Context, profileID int, title, message string, numUnreadNotifs int, sendSound bool) error {
+func (p *FcmPushService) SendPushNotifications(ctx context.Context, profileID int, title, message string, numUnreadNotifs int, sendSound bool) error {
 	if p.fcmClient == nil {
 		log.Warn().Msg("No FCM client is set, not actually sending any real messages")
 		return nil
@@ -132,7 +132,7 @@ func (p *FcmPushNotificationsRepo) SendPushNotifications(ctx context.Context, pr
 	return nil
 }
 
-func (p *FcmPushNotificationsRepo) DeletePushSubscriptionByToken(ctx context.Context, profileID int, token string) error {
+func (p *FcmPushService) DeletePushSubscriptionByToken(ctx context.Context, profileID int, token string) error {
 	_, err := p.orm.FCMSubscriptions.Delete().
 		Where(
 			fcmsubscriptions.HasProfileWith(profile.IDEQ(profileID)),
@@ -145,7 +145,7 @@ func (p *FcmPushNotificationsRepo) DeletePushSubscriptionByToken(ctx context.Con
 	return nil
 }
 
-func (p *FcmPushNotificationsRepo) hasProfilePushSubscriptions(ctx context.Context, profileID int) (bool, error) {
+func (p *FcmPushService) hasProfilePushSubscriptions(ctx context.Context, profileID int) (bool, error) {
 	return p.orm.FCMSubscriptions.
 		Query().
 		Where(
@@ -155,7 +155,7 @@ func (p *FcmPushNotificationsRepo) hasProfilePushSubscriptions(ctx context.Conte
 }
 
 // TODO: this is bad design, this repo should know NOTHING about permissions
-func (p *FcmPushNotificationsRepo) HasPermissionsLeftAndTokenIsRegistered(
+func (p *FcmPushService) HasPermissionsLeftAndTokenIsRegistered(
 	ctx context.Context,
 	profileID int,
 	token string,

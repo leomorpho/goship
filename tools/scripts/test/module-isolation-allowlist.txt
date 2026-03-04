@@ -1,6 +1,13 @@
 # Temporary exceptions: module adapters that still bind to app/framework internals.
 modules/emailsubscriptions/store_ent.go
 modules/emailsubscriptions/update_email.go
+modules/notifications/notifier.go
+modules/notifications/notification_store.go
+modules/notifications/permissions.go
+modules/notifications/planned_notifications.go
+modules/notifications/push_notifications_fcm.go
+modules/notifications/push_notifications_pwa.go
+modules/notifications/sms.go
 modules/paidsubscriptions/contracts.go
 modules/paidsubscriptions/service.go
 modules/paidsubscriptions/store_ent.go

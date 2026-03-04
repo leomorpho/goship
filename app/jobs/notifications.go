@@ -9,9 +9,9 @@ import (
 
 	"github.com/hibiken/asynq"
 	"github.com/labstack/echo/v4"
+	"github.com/leomorpho/goship-modules/notifications"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
-	"github.com/leomorpho/goship/app/notifications"
-	"github.com/leomorpho/goship/app/profiles"
+	profilesvc "github.com/leomorpho/goship/app/profile"
 	"github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/db/ent"
 	"github.com/leomorpho/goship/db/ent/notification"
@@ -38,7 +38,7 @@ type (
 
 	AllDailyConvoNotificationsProcessor struct {
 		orm                     *ent.Client
-		profileRepo             *profiles.ProfileRepo
+		profileService          *profilesvc.ProfileService
 		taskRunner              core.Jobs
 		timespanInMinutes       int
 		plannedNotificationRepo plannedNotificationSource
@@ -47,14 +47,14 @@ type (
 
 func NewAllDailyConvoNotificationsProcessor(
 	orm *ent.Client,
-	profileRepo *profiles.ProfileRepo,
+	profileService *profilesvc.ProfileService,
 	plannedNotificationRepo plannedNotificationSource,
 	taskRunner core.Jobs,
 	timespanInMinutes int,
 ) *AllDailyConvoNotificationsProcessor {
 	return &AllDailyConvoNotificationsProcessor{
 		orm:                     orm,
-		profileRepo:             profileRepo,
+		profileService:          profileService,
 		plannedNotificationRepo: plannedNotificationRepo,
 		taskRunner:              taskRunner,
 		timespanInMinutes:       timespanInMinutes,
@@ -111,7 +111,7 @@ const TypeDailyConvoNotification = "notification.subset_daily_conversation"
 type (
 	DailyConvoNotificationsProcessor struct {
 		orm                     *ent.Client
-		notifierRepo            *notifications.NotifierRepo
+		notifierService         *notifications.NotifierService
 		echoServer              *echo.Echo
 		subscriptionRepo        *paidsubscriptions.Service
 		plannedNotificationRepo plannedNotificationSource
@@ -123,14 +123,14 @@ type (
 )
 
 func NewDailyConvoNotificationsProcessor(
-	notifierRepo *notifications.NotifierRepo,
+	notifierService *notifications.NotifierService,
 	e *echo.Echo,
 	subscriptionRepo *paidsubscriptions.Service,
 	plannedNotificationRepo plannedNotificationSource,
 ) *DailyConvoNotificationsProcessor {
 
 	return &DailyConvoNotificationsProcessor{
-		notifierRepo:            notifierRepo,
+		notifierService:         notifierService,
 		echoServer:              e,
 		subscriptionRepo:        subscriptionRepo,
 		plannedNotificationRepo: plannedNotificationRepo,
@@ -177,7 +177,7 @@ func (d *DailyConvoNotificationsProcessor) ProcessTask(
 		}
 
 		url := d.echoServer.Reverse(routenames.RouteNameHomeFeed)
-		err = d.notifierRepo.PublishNotification(ctx, domain.Notification{
+		err = d.notifierService.PublishNotification(ctx, domain.Notification{
 			Type:                      domain.NotificationTypeDailyConversationReminder,
 			ProfileID:                 profileID,
 			Title:                     title,

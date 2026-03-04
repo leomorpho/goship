@@ -11,7 +11,7 @@ import (
 	"github.com/leomorpho/goship/framework/context"
 	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
 
-	"github.com/leomorpho/goship/app/profiles"
+	profilesvc "github.com/leomorpho/goship/app/profile"
 	"github.com/leomorpho/goship/app/views"
 	"github.com/leomorpho/goship/app/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/views/web/pages/gen"
@@ -118,7 +118,7 @@ func (c *login) Post(ctx echo.Context) error {
 	}
 
 	profile := usr.QueryProfile().FirstX(ctx.Request().Context())
-	if !profiles.IsProfileFullyOnboarded(profile) {
+	if !profilesvc.IsProfileFullyOnboarded(profile) {
 		return c.ctr.Redirect(ctx, routeNames.RouteNamePreferences)
 
 	}

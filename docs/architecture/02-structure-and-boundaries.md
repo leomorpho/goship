@@ -55,7 +55,8 @@ HTTP boundary rule:
 
 Service/store rule:
 
-- App business logic should live in app-scoped domain/service packages under `app/...`.
+- App business logic should live in feature packages under `app/<feature>` (for example `app/profile`).
+- Avoid generic buckets like `app/services` and `app/repos`.
 - Services should depend on explicit interfaces (store ports) for persistence/external calls.
 - Concrete adapters may use Ent/SQL/clients directly, but those details stay behind service dependencies.
 - This keeps testability (mocks/fakes) without forcing repository pattern across every feature.
@@ -107,3 +108,7 @@ Classification policy for framework repos/adapters:
 
 - app-specific behavior => move to `app/...` domain packages.
 - reusable framework capability => keep/extract as framework module (installable by `ship`).
+
+Current extraction note:
+
+- Notifications capability now lives under `modules/notifications` and is consumed from app wiring via module imports, not `app/notifications`.

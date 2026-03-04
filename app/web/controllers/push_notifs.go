@@ -12,7 +12,7 @@ import (
 	"github.com/leomorpho/goship/framework/domain"
 	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
 
-	"github.com/leomorpho/goship/app/notifications"
+	"github.com/leomorpho/goship-modules/notifications"
 	"github.com/leomorpho/goship/app/views"
 	"github.com/leomorpho/goship/app/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/views/web/pages/gen"
@@ -21,23 +21,23 @@ import (
 )
 
 type outgoingNotifications struct {
-	ctr                            ui.Controller
-	pwaPushNotificationsRepo       *notifications.PwaPushNotificationsRepo
-	fcmPushNotificationsRepo       *notifications.FcmPushNotificationsRepo
-	notificationSendPermissionRepo *notifications.NotificationSendPermissionRepo
+	ctr                           ui.Controller
+	pwaPushService                *notifications.PwaPushService
+	fcmPushService                *notifications.FcmPushService
+	notificationPermissionService *notifications.NotificationPermissionService
 }
 
 func NewPushNotifsRoute(
 	ctr ui.Controller,
-	pwaPushNotificationsRepo *notifications.PwaPushNotificationsRepo,
-	fcmPushNotificationsRepo *notifications.FcmPushNotificationsRepo,
-	notificationSendPermissionRepo *notifications.NotificationSendPermissionRepo,
+	pwaPushService *notifications.PwaPushService,
+	fcmPushService *notifications.FcmPushService,
+	notificationPermissionService *notifications.NotificationPermissionService,
 ) outgoingNotifications {
 	return outgoingNotifications{
-		ctr:                            ctr,
-		pwaPushNotificationsRepo:       pwaPushNotificationsRepo,
-		fcmPushNotificationsRepo:       fcmPushNotificationsRepo,
-		notificationSendPermissionRepo: notificationSendPermissionRepo,
+		ctr:                           ctr,
+		pwaPushService:                pwaPushService,
+		fcmPushService:                fcmPushService,
+		notificationPermissionService: notificationPermissionService,
 	}
 }
 
@@ -59,7 +59,7 @@ func (c *outgoingNotifications) GetPushSubscriptions(ctx echo.Context) error {
 	// TODO: why is WithGendersInterestedIn used below?
 	profile := usr.QueryProfile().FirstX(ctx.Request().Context())
 
-	subscribedEndpoints, err := c.pwaPushNotificationsRepo.GetPushSubscriptionEndpoints(ctx.Request().Context(), profile.ID)
+	subscribedEndpoints, err := c.pwaPushService.GetPushSubscriptionEndpoints(ctx.Request().Context(), profile.ID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not fetch subscription endpoints")
 	}
@@ -101,14 +101,14 @@ func (c *outgoingNotifications) RegisterSubscription(ctx echo.Context) error {
 
 	// If the permission is specified, use it, else add all permissions.
 	if notifPermission != nil {
-		err := c.notificationSendPermissionRepo.CreatePermission(
+		err := c.notificationPermissionService.CreatePermission(
 			ctx.Request().Context(), profileID, *notifPermission, platform)
 		if err != nil {
 			log.Error().Err(err).Msg("failed to create notification permission")
 		}
 	} else {
 		for _, perm := range domain.NotificationPermissions.Members() {
-			err := c.notificationSendPermissionRepo.CreatePermission(
+			err := c.notificationPermissionService.CreatePermission(
 				ctx.Request().Context(), profileID, perm, platform)
 			if err != nil {
 				log.Error().Err(err).Msg("failed to create notification permission")
@@ -120,14 +120,14 @@ func (c *outgoingNotifications) RegisterSubscription(ctx echo.Context) error {
 	switch *platform {
 	case domain.NotificationPlatformPush:
 
-		hasPushPermissionsAlready, err := c.pwaPushNotificationsRepo.HasPermissionsLeftAndEndpointIsRegistered(
+		hasPushPermissionsAlready, err := c.pwaPushService.HasPermissionsLeftAndEndpointIsRegistered(
 			ctx.Request().Context(), profileID, req.Endpoint)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "error checking if user still has push permissions and registered endpoints left")
 		}
 		if !hasPushPermissionsAlready {
 			// Create or update the subscription in the database
-			err := c.pwaPushNotificationsRepo.AddPushSubscription(
+			err := c.pwaPushService.AddPushSubscription(
 				ctx.Request().Context(),
 				profileID,
 				notifications.Subscription{Endpoint: req.Endpoint, P256dh: req.Keys.P256dh, Auth: req.Keys.Auth},
@@ -139,14 +139,14 @@ func (c *outgoingNotifications) RegisterSubscription(ctx echo.Context) error {
 		}
 	case domain.NotificationPlatformFCMPush:
 
-		hasPushPermissionsAlready, err := c.fcmPushNotificationsRepo.HasPermissionsLeftAndTokenIsRegistered(
+		hasPushPermissionsAlready, err := c.fcmPushService.HasPermissionsLeftAndTokenIsRegistered(
 			ctx.Request().Context(), profileID, req.FCMToken)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "error checking if user still has push permissions and registered fcm subscriptions left")
 		}
 		if !hasPushPermissionsAlready {
 			// Create or update the subscription in the database
-			err := c.fcmPushNotificationsRepo.AddPushSubscription(
+			err := c.fcmPushService.AddPushSubscription(
 				ctx.Request().Context(),
 				profileID,
 				notifications.FcmSubscription{
@@ -193,14 +193,14 @@ func (c *outgoingNotifications) DeleteSubscription(ctx echo.Context) error {
 
 	// If the permission is specified, use it, else delete all permissions.
 	if notifPermission != nil {
-		err := c.notificationSendPermissionRepo.DeletePermission(
+		err := c.notificationPermissionService.DeletePermission(
 			ctx.Request().Context(), profileID, *notifPermission, platform, nil)
 		if err != nil {
 			log.Error().Err(err).Msg("failed to delete notification permission")
 		}
 	} else {
 		for _, perm := range domain.NotificationPermissions.Members() {
-			err := c.notificationSendPermissionRepo.DeletePermission(
+			err := c.notificationPermissionService.DeletePermission(
 				ctx.Request().Context(), profileID, perm, platform, nil)
 			if err != nil {
 				log.Error().Err(err).Msg("failed to delete notification permission")
@@ -213,7 +213,7 @@ func (c *outgoingNotifications) DeleteSubscription(ctx echo.Context) error {
 	case domain.NotificationPlatformPush:
 
 		// Check if the user has any push permissions still set up, else delete all
-		hasPushPermissionsLeft, err := c.pwaPushNotificationsRepo.HasPermissionsLeftAndEndpointIsRegistered(
+		hasPushPermissionsLeft, err := c.pwaPushService.HasPermissionsLeftAndEndpointIsRegistered(
 			ctx.Request().Context(), profileID, req.Endpoint)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "error checking if user still has push permissions and registered pwa endpoints left")
@@ -221,7 +221,7 @@ func (c *outgoingNotifications) DeleteSubscription(ctx echo.Context) error {
 		if !hasPushPermissionsLeft {
 			// Delete the subscription in the database based on the endpoint
 			// This assumes your subscriptions are uniquely identified by their endpoint in your database.
-			err := c.pwaPushNotificationsRepo.DeletePushSubscriptionByEndpoint(
+			err := c.pwaPushService.DeletePushSubscriptionByEndpoint(
 				ctx.Request().Context(),
 				profileID,
 				req.Endpoint,
@@ -233,7 +233,7 @@ func (c *outgoingNotifications) DeleteSubscription(ctx echo.Context) error {
 		}
 	case domain.NotificationPlatformFCMPush:
 		// Check if the user has any push permissions still set up, else delete all
-		hasPushPermissionsLeft, err := c.fcmPushNotificationsRepo.HasPermissionsLeftAndTokenIsRegistered(
+		hasPushPermissionsLeft, err := c.fcmPushService.HasPermissionsLeftAndTokenIsRegistered(
 			ctx.Request().Context(), profileID, req.FCMToken)
 
 		if err != nil {
@@ -242,7 +242,7 @@ func (c *outgoingNotifications) DeleteSubscription(ctx echo.Context) error {
 		if !hasPushPermissionsLeft {
 			// Delete the subscription in the database based on the endpoint
 			// This assumes your subscriptions are uniquely identified by their endpoint in your database.
-			err := c.fcmPushNotificationsRepo.DeletePushSubscriptionByToken(
+			err := c.fcmPushService.DeletePushSubscriptionByToken(
 				ctx.Request().Context(),
 				profileID,
 				req.FCMToken,
@@ -289,7 +289,7 @@ func (c *outgoingNotifications) DeleteEmailSubscription(ctx echo.Context) error 
 			Msg("no notification exists with that name")
 	}
 
-	permissionErr := c.notificationSendPermissionRepo.DeletePermission(
+	permissionErr := c.notificationPermissionService.DeletePermission(
 		ctx.Request().Context(), profileEnt.ID, *notifPermission, &domain.NotificationPlatformEmail, &token)
 
 	page, err := c.createNotificationsPage(ctx, profileEnt)
@@ -332,8 +332,8 @@ func (c *outgoingNotifications) createNotificationsPage(ctx echo.Context, profil
 	// to new page below, setting the same message.
 	page := ui.NewPage(ctx)
 
-	permissions, err := c.notificationSendPermissionRepo.GetPermissions(ctx.Request().Context(), profileEnt.ID)
-	subscribedEndpoints, err := c.pwaPushNotificationsRepo.GetPushSubscriptionEndpoints(ctx.Request().Context(), profileEnt.ID)
+	permissions, err := c.notificationPermissionService.GetPermissions(ctx.Request().Context(), profileEnt.ID)
+	subscribedEndpoints, err := c.pwaPushService.GetPushSubscriptionEndpoints(ctx.Request().Context(), profileEnt.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -397,7 +397,7 @@ func (c *outgoingNotifications) createNotificationsPage(ctx echo.Context, profil
 // 	}
 
 // 	permission := domain.NotificationPermissions.Parse(req.Permission)
-// 	err := c.notificationSendPermissionRepo.CreatePermission(
+// 	err := c.notificationPermissionService.CreatePermission(
 // 		ctx.Request().Context(),
 // 		profileID,
 // 		*permission,
@@ -424,7 +424,7 @@ func (c *outgoingNotifications) createNotificationsPage(ctx echo.Context, profil
 // 	}
 
 // 	permission := domain.NotificationPermissions.Parse(req.Permission)
-// 	err := c.notificationSendPermissionRepo.DeletePermission(
+// 	err := c.notificationPermissionService.DeletePermission(
 // 		ctx.Request().Context(),
 // 		profileID,
 // 		*permission,
