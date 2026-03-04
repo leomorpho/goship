@@ -18,8 +18,8 @@ Last updated: 2026-03-04
 3. `P3` `done` - Align `ship new` scaffold to canonical app layout so fresh apps pass doctor.
 4. `P4` `done` - Remove legacy `ship check` route compile special-case; rely on explicit package lists.
 5. `P5` `done` - Expand enforceable guardrails in `ship doctor` and quality gates.
-6. `P6` `in_progress` - Strengthen generator deterministic behavior and wire-safety.
-7. `P7` `next` - Add richer docs-to-code sync checks and contributor-facing runbooks.
+6. `P6` `done` - Strengthen generator deterministic behavior and wire-safety.
+7. `P7` `in_progress` - Add richer docs-to-code sync checks and contributor-facing runbooks.
 8. `P8` `later` - Add project upgrade workflows (`ship upgrade`) after command surfaces stabilize.
 
 ## Implemented in this phase stream
@@ -67,6 +67,8 @@ Last updated: 2026-03-04
 Progress note:
 
 - Added router marker-order validation in `ship doctor` (`DX011`) to catch broken `--wire` blocks early.
+- Added integration coverage for multi-run `--wire` stability across resource/controller generators.
+- Added integration guard that duplicate generation attempts fail without mutating router/route-name wiring.
 
 ## P7 Scope (Next)
 

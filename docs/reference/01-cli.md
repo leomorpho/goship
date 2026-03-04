@@ -200,6 +200,8 @@ Generator test strategy:
 
 - Unit + integration tests for `cli/ship` run against temporary fixture projects.
 - Generator tests do not depend on the live repository app tree.
+- `--wire` generator paths are covered for multi-run stability (no duplicate imports/snippets).
+- Duplicate generation attempts are covered to ensure failure does not mutate router or route-name wiring.
 
 Local run examples from repository root:
 
