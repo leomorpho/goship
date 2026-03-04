@@ -75,3 +75,7 @@ Progress note:
 1. Add practical docs coverage checks for core command behavior.
 2. Ensure CLI docs + `LLM.txt` stay aligned by default workflow.
 3. Expand how-to guides for high-frequency tasks.
+
+Progress note:
+
+- Added `ship doctor` docs-token coverage checks to ensure core CLI commands remain documented in `docs/reference/01-cli.md`.

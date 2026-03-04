@@ -150,6 +150,7 @@ Doctor checks (current):
 - flags unexpected root build artifacts (`web`, `worker`, `seed`, `ship`, `ship-mcp`)
 - validates `.gitignore` includes root binary artifact ignore entries
 - enforces a line budget for non-generated human-authored `.go` files (target <= 500 lines)
+- validates CLI reference docs include core command tokens (`ship new`, `ship doctor`, `ship make:*`, `ship db:migrate`, `ship test --integration`)
 
 Field syntax for `make:model`:
 

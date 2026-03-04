@@ -202,6 +202,7 @@ func runDoctorChecks(root string) []doctorIssue {
 	issues = append(issues, checkPackageNaming(root, filepath.Join("apps", "goship", "web", "ui"), "ui")...)
 	issues = append(issues, checkPackageNaming(root, filepath.Join("apps", "goship", "web", "viewmodels"), "viewmodels")...)
 	issues = append(issues, checkFileLengthBudget(root, 500)...)
+	issues = append(issues, checkCLIDocsCoverage(root)...)
 
 	return issues
 }
@@ -352,4 +353,41 @@ func countLines(path string) (int, error) {
 		return 0, err
 	}
 	return lines, nil
+}
+
+func checkCLIDocsCoverage(root string) []doctorIssue {
+	issues := make([]doctorIssue, 0)
+	cliRefPath := filepath.Join(root, "docs", "reference", "01-cli.md")
+	if !hasFile(cliRefPath) {
+		return issues
+	}
+	b, err := os.ReadFile(cliRefPath)
+	if err != nil {
+		return append(issues, doctorIssue{
+			Code:    "DX012",
+			Message: "failed to read docs/reference/01-cli.md",
+			Fix:     err.Error(),
+		})
+	}
+	text := string(b)
+	required := []string{
+		"ship doctor",
+		"ship new <app>",
+		"ship make:resource",
+		"ship make:model",
+		"ship make:controller",
+		"ship make:scaffold",
+		"ship db:migrate",
+		"ship test --integration",
+	}
+	for _, token := range required {
+		if !strings.Contains(text, token) {
+			issues = append(issues, doctorIssue{
+				Code:    "DX012",
+				Message: fmt.Sprintf("cli docs missing required command token: %q", token),
+				Fix:     "update docs/reference/01-cli.md to cover implemented core commands",
+			})
+		}
+	}
+	return issues
 }

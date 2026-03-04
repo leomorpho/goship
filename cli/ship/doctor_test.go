@@ -118,6 +118,20 @@ func registerAuthRoutes() {
 		issues := runDoctorChecks(root)
 		mustContainIssueCode(t, issues, "DX010")
 	})
+
+	t.Run("cli docs missing required command token", func(t *testing.T) {
+		root := t.TempDir()
+		writeDoctorFixture(t, root)
+		cliDoc := filepath.Join(root, "docs", "reference", "01-cli.md")
+		if err := os.MkdirAll(filepath.Dir(cliDoc), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(cliDoc, []byte("ship doctor\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		issues := runDoctorChecks(root)
+		mustContainIssueCode(t, issues, "DX012")
+	})
 }
 
 func TestRunDoctor(t *testing.T) {
@@ -184,6 +198,7 @@ func writeDoctorFixture(t *testing.T, root string) {
 		filepath.Join(root, "apps", "goship", "views"),
 		filepath.Join(root, "apps", "goship", "db", "schema"),
 		filepath.Join(root, "docs", "architecture"),
+		filepath.Join(root, "docs", "reference"),
 	}
 	for _, dir := range dirs {
 		if err := os.MkdirAll(dir, 0o755); err != nil {
@@ -211,6 +226,17 @@ func registerAuthRoutes() {
 		filepath.Join(root, "docs", "00-index.md"):                                  "# Index\n",
 		filepath.Join(root, "docs", "architecture", "01-architecture.md"):           "# Architecture\n",
 		filepath.Join(root, "docs", "architecture", "08-cognitive-model.md"):        "# Cognitive Model\n",
+		filepath.Join(root, "docs", "reference", "01-cli.md"): strings.Join([]string{
+			"ship doctor",
+			"ship new <app>",
+			"ship make:resource",
+			"ship make:model",
+			"ship make:controller",
+			"ship make:scaffold",
+			"ship db:migrate",
+			"ship test --integration",
+			"",
+		}, "\n"),
 		filepath.Join(root, ".gitignore"): strings.Join([]string{
 			"/web",
 			"/worker",
