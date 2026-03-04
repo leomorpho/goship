@@ -61,17 +61,37 @@ func main() {
 		c.Config.App.OperationalConstants.ProTrialTimespanInDays,
 		c.Config.App.OperationalConstants.PaymentFailedGracePeriodInDays,
 	))
-
-	// Build the router, which is needed to get the reverse of routes by name in some tasks.
-	if err := goship.BuildRouter(c, goship.RouterModules{PaidSubscriptions: paidSubscriptionsService}); err != nil {
-		c.Web.Logger.Fatalf("failed to build router: %v", err)
-	}
-
 	storageClient := storagerepo.NewStorageClient(c.Config, c.ORM)
 	profileService := profilesvc.NewProfileService(c.ORM, storageClient, paidSubscriptionsService)
 
-	plannedNotificationsService := notifications.NewPlannedNotificationsService(
-		c.ORM, paidSubscriptionsService)
+	var firebaseJSONAccessKeys *[]byte
+	if len(c.Config.App.FirebaseJSONAccessKeys) > 0 {
+		firebaseJSONAccessKeys = &c.Config.App.FirebaseJSONAccessKeys
+	}
+	notificationServices, err := notifications.New(notifications.RuntimeDeps{
+		ORM:                                 c.ORM,
+		PubSub:                              c.CorePubSub,
+		SubscriptionService:                 paidSubscriptionsService,
+		VapidPublicKey:                      c.Config.App.VapidPublicKey,
+		VapidPrivateKey:                     c.Config.App.VapidPrivateKey,
+		MailFromAddress:                     c.Config.Mail.FromAddress,
+		FirebaseJSONAccessKeys:              firebaseJSONAccessKeys,
+		SMSRegion:                           c.Config.Phone.Region,
+		SMSSenderID:                         c.Config.Phone.SenderID,
+		SMSValidationCodeExpirationMinutes:  c.Config.Phone.ValidationCodeExpirationMinutes,
+		GetNumNotificationsForProfileByIDFn: profileService.GetCountOfUnseenNotifications,
+	})
+	if err != nil {
+		log.Fatalf("failed to initialize notifications module: %v", err)
+	}
+
+	// Build the router, which is needed to get the reverse of routes by name in some tasks.
+	if err := goship.BuildRouter(c, goship.RouterModules{
+		PaidSubscriptions: paidSubscriptionsService,
+		Notifications:     notificationServices,
+	}); err != nil {
+		c.Web.Logger.Fatalf("failed to build router: %v", err)
+	}
 
 	emailSubscriptionConfirmationProcessor := tasks.NewEmailSubscriptionConfirmationProcessor(
 		c.Mail, c.Config,
@@ -80,8 +100,8 @@ func main() {
 	emailUpdateProcessor := tasks.NewEmailUpdateProcessor(c, c.ORM)
 
 	deactivateExpiredSubscriptionsProcessor := tasks.NewDeactivateExpiredSubscriptionsProcessor(paidSubscriptionsService)
-	allDailyConvoNotificationsProcessor := tasks.NewAllDailyConvoNotificationsProcessor(c.ORM, profileService, plannedNotificationsService, c.CoreJobs, 30)
-	dailyConvoNotificationsProcessor := tasks.NewDailyConvoNotificationsProcessor(c.Notifier, c.Web, paidSubscriptionsService, plannedNotificationsService)
+	allDailyConvoNotificationsProcessor := tasks.NewAllDailyConvoNotificationsProcessor(c.ORM, profileService, notificationServices.PlannedNotificationsService, c.CoreJobs, 30)
+	dailyConvoNotificationsProcessor := tasks.NewDailyConvoNotificationsProcessor(notificationServices.Notifier, c.Web, paidSubscriptionsService, notificationServices.PlannedNotificationsService)
 	deleteStaleNotificationsProcessor := tasks.NewDeleteStaleNotificationsProcessor(
 		c.ORM, c.Config.App.OperationalConstants.DeleteStaleNotificationAfterDays,
 	)

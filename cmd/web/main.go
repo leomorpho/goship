@@ -10,9 +10,12 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/leomorpho/goship-modules/notifications"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/app"
 	"github.com/leomorpho/goship/app/foundation"
+	profilesvc "github.com/leomorpho/goship/app/profile"
+	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
 )
 
 func timeoutMiddleware(next http.Handler, writeTimeout time.Duration) http.Handler {
@@ -45,9 +48,35 @@ func main() {
 		c.Config.App.OperationalConstants.ProTrialTimespanInDays,
 		c.Config.App.OperationalConstants.PaymentFailedGracePeriodInDays,
 	))
+	storageClient := storagerepo.NewStorageClient(c.Config, c.ORM)
+	profileService := profilesvc.NewProfileService(c.ORM, storageClient, paidSubscriptionsService)
+
+	var firebaseJSONAccessKeys *[]byte
+	if len(c.Config.App.FirebaseJSONAccessKeys) > 0 {
+		firebaseJSONAccessKeys = &c.Config.App.FirebaseJSONAccessKeys
+	}
+	notificationServices, err := notifications.New(notifications.RuntimeDeps{
+		ORM:                                 c.ORM,
+		PubSub:                              c.CorePubSub,
+		SubscriptionService:                 paidSubscriptionsService,
+		VapidPublicKey:                      c.Config.App.VapidPublicKey,
+		VapidPrivateKey:                     c.Config.App.VapidPrivateKey,
+		MailFromAddress:                     c.Config.Mail.FromAddress,
+		FirebaseJSONAccessKeys:              firebaseJSONAccessKeys,
+		SMSRegion:                           c.Config.Phone.Region,
+		SMSSenderID:                         c.Config.Phone.SenderID,
+		SMSValidationCodeExpirationMinutes:  c.Config.Phone.ValidationCodeExpirationMinutes,
+		GetNumNotificationsForProfileByIDFn: profileService.GetCountOfUnseenNotifications,
+	})
+	if err != nil {
+		c.Web.Logger.Fatalf("failed to initialize notifications module: %v", err)
+	}
 
 	// Build the router
-	if err := goship.BuildRouter(c, goship.RouterModules{PaidSubscriptions: paidSubscriptionsService}); err != nil {
+	if err := goship.BuildRouter(c, goship.RouterModules{
+		PaidSubscriptions: paidSubscriptionsService,
+		Notifications:     notificationServices,
+	}); err != nil {
 		c.Web.Logger.Fatalf("failed to build router: %v", err)
 	}
 

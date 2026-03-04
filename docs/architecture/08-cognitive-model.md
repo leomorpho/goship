@@ -30,6 +30,7 @@ The framework has one canonical flow per concern. If a change does not fit these
 
 - Composition root is `app/foundation/container.go`.
 - App wiring is explicit and deterministic.
+- Installable module construction happens in `cmd/*` and is injected into app/router wiring.
 
 ## Tooling Rule
 

@@ -36,6 +36,9 @@ type RouteDeps struct {
 	ProfileService                *profilesvc.ProfileService
 	SubscriptionsRepo             *paidsubscriptions.Service
 	NotificationPermissionService *notifications.NotificationPermissionService
+	PwaPushService                *notifications.PwaPushService
+	FcmPushService                *notifications.FcmPushService
+	SMSSenderService              *notifications.SMSSender
 	StripeWebhookPath             string
 }
 
@@ -44,13 +47,22 @@ func sseSkipper(c echo.Context) bool {
 	return c.Path() == "/auth/realtime"
 }
 
-func NewRouteDeps(c *foundation.Container, paidSubscriptions *paidsubscriptions.Service) (*RouteDeps, error) {
+func NewRouteDeps(
+	c *foundation.Container,
+	paidSubscriptions *paidsubscriptions.Service,
+	notificationServices *notifications.Services,
+) (*RouteDeps, error) {
 	deps := &RouteDeps{}
 	deps.EmailSubscriptions = modemailsubscriptions.New(modemailsubscriptions.NewEntStore(c.ORM))
 	deps.StorageRepo = storagerepo.NewStorageClient(c.Config, c.ORM)
 	deps.SubscriptionsRepo = paidSubscriptions
 	deps.ProfileService = profilesvc.NewProfileService(c.ORM, deps.StorageRepo, deps.SubscriptionsRepo)
-	deps.NotificationPermissionService = notifications.NewNotificationPermissionService(c.ORM)
+	if notificationServices != nil {
+		deps.NotificationPermissionService = notificationServices.Permission
+		deps.PwaPushService = notificationServices.PwaPush
+		deps.FcmPushService = notificationServices.FcmPush
+		deps.SMSSenderService = notificationServices.SMSSender
+	}
 
 	deps.StripeWebhookPath = strings.TrimSpace(c.Config.App.StripeWebhookPath)
 	if deps.StripeWebhookPath == "" {

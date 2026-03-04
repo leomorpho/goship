@@ -107,7 +107,7 @@ Phases:
 1. `A1` `done` - Define and enforce target app structure and naming rules.
 2. `A2` `done` - Move profile feature to `app/profile` and remove generic service bucket usage.
 3. `A3` `done` - Normalize app layer naming (`Service`/`Store`/`Policy`) and remove app-layer `Repo` naming.
-4. `A4` `in_progress` - Extract notifications from app to `modules/notifications` with composition-root wiring.
+4. `A4` `done` - Extract notifications from app to `modules/notifications` with composition-root wiring.
 5. `A5` `next` - Enforce layout through doctor/CI/generators and finalize migration notes.
 
 Progress note:
@@ -117,6 +117,7 @@ Progress note:
 - Completed app-layer naming cleanup in notifications (`NotificationStore`, `NotifierService`, `NotificationPermissionService`, `PlannedNotificationsService`, `PwaPushService`, `FcmPushService`).
 - Extracted notifications implementation from `app/notifications` to `modules/notifications` and switched app imports to `github.com/leomorpho/goship-modules/notifications`.
 - Registered `modules/notifications` in `go.work` and module checks (`tools/scripts/test/module-isolation-allowlist.txt`).
+- Added `modules/notifications` composition entrypoint (`notifications.New(...)`) and moved notification service construction out of `app/router.go` into `cmd/web` and `cmd/worker`.
 
 Non-negotiable rules for this stream:
 

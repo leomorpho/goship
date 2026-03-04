@@ -2,10 +2,8 @@ package goship
 
 import (
 	"errors"
-	"fmt"
 	"log/slog"
 	"os"
-	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/leomorpho/goship-modules/notifications"
@@ -23,6 +21,7 @@ import (
 
 type RouterModules struct {
 	PaidSubscriptions *paidsubscriptions.Service
+	Notifications     *notifications.Services
 }
 
 // BuildRouter is the canonical app-level router entrypoint.
@@ -30,11 +29,15 @@ func BuildRouter(c *foundation.Container, modules RouterModules) error {
 	if modules.PaidSubscriptions == nil {
 		return errors.New("missing paid subscriptions module")
 	}
+	if modules.Notifications == nil {
+		return errors.New("missing notifications module")
+	}
 
-	deps, err := appweb.NewRouteDeps(c, modules.PaidSubscriptions)
+	deps, err := appweb.NewRouteDeps(c, modules.PaidSubscriptions, modules.Notifications)
 	if err != nil {
 		return err
 	}
+	c.Notifier = modules.Notifications.Notifier
 
 	plan, err := runtimeplan.Resolve(c.Config)
 	if err != nil {
@@ -177,44 +180,14 @@ func registerDocsRoutes(g *echo.Group, ctr ui.Controller) error {
 }
 
 func registerAuthRoutes(c *foundation.Container, g *echo.Group, ctr ui.Controller, deps *appweb.RouteDeps) error {
-	pwaPushService := notifications.NewPwaPushService(
-		c.ORM,
-		c.Config.App.VapidPublicKey,
-		c.Config.App.VapidPrivateKey,
-		c.Config.Mail.FromAddress,
-	)
-
-	var firebaseJSONAccessKeys *[]byte
-	if len(c.Config.App.FirebaseJSONAccessKeys) > 0 {
-		firebaseJSONAccessKeys = &c.Config.App.FirebaseJSONAccessKeys
-	}
-	fcmPushService, err := notifications.NewFcmPushService(c.ORM, firebaseJSONAccessKeys)
-	if err != nil {
-		return fmt.Errorf("build fcm notifications repo: %w", err)
-	}
-
-	region := strings.TrimSpace(c.Config.Phone.Region)
-	if region == "" {
-		region = "us-east-1"
-	}
-	smsSenderService, err := notifications.NewSMSSender(
-		c.ORM,
-		region,
-		c.Config.Phone.SenderID,
-		c.Config.Phone.ValidationCodeExpirationMinutes,
-	)
-	if err != nil {
-		return fmt.Errorf("build sms sender repo: %w", err)
-	}
-
 	onboardingGroup := g.Group("/welcome", middleware.RequireAuthentication())
 	preferences := controllers.NewPreferencesRoute(
 		ctr,
 		deps.ProfileService,
-		pwaPushService,
+		deps.PwaPushService,
 		deps.NotificationPermissionService,
 		deps.SubscriptionsRepo,
-		smsSenderService,
+		deps.SMSSenderService,
 	)
 	onboardingGroup.GET("/preferences", preferences.Get).Name = routeNames.RouteNamePreferences
 	onboardingGroup.GET("/preferences/phone", preferences.GetPhoneComponent).Name = routeNames.RouteNameGetPhone
@@ -235,7 +208,7 @@ func registerAuthRoutes(c *foundation.Container, g *echo.Group, ctr ui.Controlle
 	onboardingGroup.GET("/profileBio", profilePrefs.GetBio).Name = routeNames.RouteNameGetBio
 	onboardingGroup.POST("/profileBio/update", profilePrefs.UpdateBio).Name = routeNames.RouteNameUpdateBio
 
-	outgoingNotifications := controllers.NewPushNotifsRoute(ctr, pwaPushService, fcmPushService, deps.NotificationPermissionService)
+	outgoingNotifications := controllers.NewPushNotifsRoute(ctr, deps.PwaPushService, deps.FcmPushService, deps.NotificationPermissionService)
 	onboardingGroup.GET("/subscription/push", outgoingNotifications.GetPushSubscriptions).Name = routeNames.RouteNameGetPushSubscriptions
 	onboardingGroup.POST("/subscription/:platform", outgoingNotifications.RegisterSubscription).Name = routeNames.RouteNameRegisterSubscription
 	onboardingGroup.DELETE("/subscription/:platform", outgoingNotifications.DeleteSubscription).Name = routeNames.RouteNameDeleteSubscription
