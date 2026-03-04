@@ -101,11 +101,11 @@ These commands are implemented as wrappers over existing workflows:
 - `ship infra:up` -> detects `docker-compose`/`docker compose` and runs `up -d cache`, then attempts `up -d mailpit` (non-fatal if mailpit fails)
 - `ship infra:down` -> detects `docker-compose`/`docker compose` and runs `down`
 - `ship db:create` -> validates that target database URL is reachable (`atlas schema inspect --url <resolved>`)
-- `ship db:migrate` -> `atlas migrate apply --dir file://apps/goship/db/migrate/migrations --url <resolved>`
-- `ship db:status` -> `atlas migrate status --dir file://apps/goship/db/migrate/migrations --url <resolved>`
+- `ship db:migrate` -> `atlas migrate apply --dir file://apps/db/migrate/migrations --url <resolved>`
+- `ship db:status` -> `atlas migrate status --dir file://apps/db/migrate/migrations --url <resolved>`
 - `ship db:reset [--seed] [--force] [--yes] [--dry-run]` -> prints plan, runs `atlas schema clean --auto-approve`, then `atlas migrate apply`; optional seed
 - `ship db:drop [--force] [--yes] [--dry-run]` -> prints plan, runs `atlas schema clean --auto-approve`
-- `ship db:make <migration_name>` -> `atlas migrate diff <migration_name> --dir file://apps/goship/db/migrate/migrations --to ent://apps/goship/db/schema --dev-url sqlite://file?mode=memory&_fk=1`
+- `ship db:make <migration_name>` -> `atlas migrate diff <migration_name> --dir file://apps/db/migrate/migrations --to ent://apps/db/schema --dev-url sqlite://file?mode=memory&_fk=1`
 - `ship db:rollback [amount]` -> `atlas migrate down ... [amount]`
 - Atlas is managed by `ship`: it uses `atlas` from `PATH` when present, otherwise auto-installs pinned `ariga.io/atlas/cmd/atlas@v0.27.1` to `.cache/tools/bin/atlas`, and finally falls back to `go run` for zero-friction operation.
 - `ship db:seed` -> `go run ./cmd/seed/main.go`
@@ -134,7 +134,7 @@ Safety matrix:
 - `ship make:resource <name> --wire` -> also insert snippet behind ship markers in `apps/goship/router.go`
 - `ship make:resource <name> --dry-run` -> preview all planned changes without writing files
 - `ship make:model <Name>` -> run Ent schema scaffolding (`ent new`) then ORM codegen (`ent generate`)
-- `ship make:model <Name> [fields...]` -> write `apps/goship/db/schema/<model>.go` with typed fields, then run ORM codegen (`ent generate`)
+- `ship make:model <Name> [fields...]` -> write `apps/db/schema/<model>.go` with typed fields, then run ORM codegen (`ent generate`)
 - `ship make:controller <Name>` -> generate controller/handler scaffold in `apps/goship/web/controllers`
 - `ship make:controller <Name> --domain <name>` -> generate domain-aware constructor slot (`domainService any`) and route wiring using `nil` placeholder
 - `ship make:controller <Name> --actions ... --wire` -> wire generated routes into `apps/goship/router.go` markers
@@ -167,6 +167,7 @@ Field syntax for `make:model`:
 1. Creates a local scaffold only (no external downloads or package installs).
 2. Writes deterministic starter files:
 `go.mod`
+`config/modules.yaml` (workspace-level module enablement)
 `apps/goship/router.go` (with route marker pairs for `--wire`)
 `apps/goship/web/routenames/routenames.go`
 `apps/goship/views/templates.go`
@@ -174,7 +175,7 @@ Field syntax for `make:model`:
 `apps/goship/app/*` (domain skeletons)
 `apps/goship/web/{controllers,middleware,ui,viewmodels}`
 `apps/goship/jobs/jobs.go`
-`apps/goship/db/{schema,migrate/migrations}`
+`apps/db/{schema,migrate/migrations}`
 `docs/00-index.md` and baseline architecture docs
 3. Supports `--dry-run` and `--force`.
 

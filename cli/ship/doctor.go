@@ -66,7 +66,8 @@ func runDoctorChecks(root string) []doctorIssue {
 		filepath.Join("apps", "goship", "web", "viewmodels"),
 		filepath.Join("apps", "goship", "jobs"),
 		filepath.Join("apps", "goship", "views"),
-		filepath.Join("apps", "goship", "db", "schema"),
+		filepath.Join("apps", "db", "schema"),
+		filepath.Join("apps", "db", "migrate", "migrations"),
 	}
 	for _, rel := range requiredDirs {
 		if !isDir(filepath.Join(root, rel)) {
@@ -82,6 +83,7 @@ func runDoctorChecks(root string) []doctorIssue {
 		filepath.Join("apps", "goship", "router.go"),
 		filepath.Join("apps", "goship", "foundation", "container.go"),
 		filepath.Join("apps", "goship", "web", "routenames", "routenames.go"),
+		filepath.Join("config", "modules.yaml"),
 		filepath.Join("docs", "00-index.md"),
 		filepath.Join("docs", "architecture", "01-architecture.md"),
 		filepath.Join("docs", "architecture", "08-cognitive-model.md"),

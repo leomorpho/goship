@@ -68,7 +68,7 @@ Last updated: 2026-03-03
 - `apps/goship/web/controllers/*.go`
 - `pkg/tasks/*.go`
 - `pkg/repos/**/*.go`
-- `apps/goship/db/schema/*.go`
+- `apps/db/schema/*.go`
 - `config/config.go`
 - `config/application.yaml`
 - `config/environments/*.yaml`

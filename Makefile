@@ -145,7 +145,7 @@ ent-install: ## Install Ent code-generation module
 
 .PHONY: ent-gen
 ent-gen: ## Generate Ent code
-	go run entgo.io/ent/cmd/ent generate --feature sql/upsert,sql/execquery --target ./ent ./apps/goship/db/schema
+	go run entgo.io/ent/cmd/ent generate --feature sql/upsert,sql/execquery --target ./ent ./apps/db/schema
 
 .PHONY: ent-new
 ent-new: ## Create a new Ent entity

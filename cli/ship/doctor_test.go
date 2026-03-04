@@ -219,7 +219,9 @@ func writeDoctorFixture(t *testing.T, root string) {
 		filepath.Join(root, "apps", "goship", "web", "routenames"),
 		filepath.Join(root, "apps", "goship", "jobs"),
 		filepath.Join(root, "apps", "goship", "views"),
-		filepath.Join(root, "apps", "goship", "db", "schema"),
+		filepath.Join(root, "apps", "db", "schema"),
+		filepath.Join(root, "apps", "db", "migrate", "migrations"),
+		filepath.Join(root, "config"),
 		filepath.Join(root, "docs", "architecture"),
 		filepath.Join(root, "docs", "reference"),
 	}
@@ -246,6 +248,7 @@ func registerAuthRoutes() {
 		filepath.Join(root, "apps", "goship", "web", "ui", "page.go"):               "package ui\n",
 		filepath.Join(root, "apps", "goship", "web", "viewmodels", "page_data.go"):  "package viewmodels\n",
 		filepath.Join(root, "apps", "goship", "web", "routenames", "routenames.go"): "package routenames\n",
+		filepath.Join(root, "config", "modules.yaml"):                               "modules: []\n",
 		filepath.Join(root, "docs", "00-index.md"):                                  "# Index\n",
 		filepath.Join(root, "docs", "architecture", "01-architecture.md"):           "# Architecture\n",
 		filepath.Join(root, "docs", "architecture", "08-cognitive-model.md"):        "# Cognitive Model\n",

@@ -49,9 +49,10 @@ func TestScaffoldNewProject(t *testing.T) {
 
 	checkFiles := []string{
 		filepath.Join(opts.AppPath, "go.mod"),
+		filepath.Join(opts.AppPath, "config", "modules.yaml"),
 		filepath.Join(opts.AppPath, "apps", "goship", "router.go"),
-		filepath.Join(opts.AppPath, "apps", "goship", "db", "schema", "user.go"),
-		filepath.Join(opts.AppPath, "apps", "goship", "db", "migrate", "migrations", ".gitkeep"),
+		filepath.Join(opts.AppPath, "apps", "db", "schema", "user.go"),
+		filepath.Join(opts.AppPath, "apps", "db", "migrate", "migrations", ".gitkeep"),
 		filepath.Join(opts.AppPath, "apps", "goship", "web", "routenames", "routenames.go"),
 		filepath.Join(opts.AppPath, "apps", "goship", "views", "templates.go"),
 		filepath.Join(opts.AppPath, "apps", "goship", "web", "controllers", "controllers.go"),

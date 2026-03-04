@@ -40,7 +40,7 @@ Naming normalization from roadmap:
 - Web rendering helpers: `apps/goship/web/ui/*`
 - Background jobs/processors: `apps/goship/jobs/*`
 - Framework/infrastructure layer: `pkg/*`
-- ORM schema: `apps/goship/db/schema/*`
+- ORM schema: `apps/db/schema/*`
 - Config: `config/*`
 - Templates: `apps/goship/views/**/*.templ`
 

@@ -209,7 +209,7 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			name:      "db make",
 			args:      []string{"db:make", "add_posts"},
 			wantCode:  0,
-			wantCalls: []fakeCall{{name: "atlas", args: []string{"migrate", "diff", "add_posts", "--dir", atlasDir, "--to", "ent://apps/goship/db/schema", "--dev-url", "sqlite://file?mode=memory&_fk=1"}}},
+			wantCalls: []fakeCall{{name: "atlas", args: []string{"migrate", "diff", "add_posts", "--dir", atlasDir, "--to", "ent://apps/db/schema", "--dev-url", "sqlite://file?mode=memory&_fk=1"}}},
 		},
 		{
 			name:     "db make missing name",
@@ -393,7 +393,7 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			args:     []string{"make:model", "Post"},
 			wantCode: 0,
 			wantCalls: []fakeCall{
-				{name: "go", args: []string{"run", "-mod=mod", "entgo.io/ent/cmd/ent", "generate", "--feature", "sql/upsert,sql/execquery", "--target", "./ent", "./apps/goship/db/schema"}},
+				{name: "go", args: []string{"run", "-mod=mod", "entgo.io/ent/cmd/ent", "generate", "--feature", "sql/upsert,sql/execquery", "--target", "./ent", "./apps/db/schema"}},
 			},
 		},
 		{
@@ -401,7 +401,7 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			args:     []string{"make:model", "Post", "title:string"},
 			wantCode: 0,
 			wantCalls: []fakeCall{
-				{name: "go", args: []string{"run", "-mod=mod", "entgo.io/ent/cmd/ent", "generate", "--feature", "sql/upsert,sql/execquery", "--target", "./ent", "./apps/goship/db/schema"}},
+				{name: "go", args: []string{"run", "-mod=mod", "entgo.io/ent/cmd/ent", "generate", "--feature", "sql/upsert,sql/execquery", "--target", "./ent", "./apps/db/schema"}},
 			},
 		},
 		{

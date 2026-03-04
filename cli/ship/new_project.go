@@ -112,26 +112,27 @@ func scaffoldNewProject(opts newProjectOptions) error {
 	}
 
 	files := map[string]string{
-		filepath.Join(opts.AppPath, "go.mod"):                                                    renderGoMod(opts),
-		filepath.Join(opts.AppPath, "apps", "goship", "router.go"):                               renderRouterSkeleton(opts.Module),
-		filepath.Join(opts.AppPath, "apps", "goship", "web", "routenames", "routenames.go"):      renderRouteNamesSkeleton(),
-		filepath.Join(opts.AppPath, "apps", "goship", "db", "schema", "user.go"):                 renderUserSchemaSkeleton(),
-		filepath.Join(opts.AppPath, "apps", "goship", "db", "migrate", "migrations", ".gitkeep"): "",
-		filepath.Join(opts.AppPath, "apps", "goship", "views", "templates.go"):                   renderTemplatesSkeleton(),
-		filepath.Join(opts.AppPath, "apps", "goship", "web", "controllers", "controllers.go"):    renderControllersSkeleton(),
-		filepath.Join(opts.AppPath, "apps", "goship", "web", "middleware", "middleware.go"):      renderMiddlewareSkeleton(),
-		filepath.Join(opts.AppPath, "apps", "goship", "web", "ui", "ui.go"):                      renderUISkeleton(),
-		filepath.Join(opts.AppPath, "apps", "goship", "web", "viewmodels", "viewmodels.go"):      renderViewModelsSkeleton(),
-		filepath.Join(opts.AppPath, "apps", "goship", "jobs", "jobs.go"):                         renderJobsSkeleton(),
-		filepath.Join(opts.AppPath, "apps", "goship", "foundation", "container.go"):              renderContainerSkeleton(),
-		filepath.Join(opts.AppPath, "apps", "goship", "app", "profiles", "repo.go"):              renderProfilesDomainSkeleton(),
-		filepath.Join(opts.AppPath, "apps", "goship", "app", "notifications", "notifier.go"):     renderNotificationsDomainSkeleton(),
-		filepath.Join(opts.AppPath, "apps", "goship", "app", "subscriptions", "repo.go"):         renderSubscriptionsDomainSkeleton(),
-		filepath.Join(opts.AppPath, "apps", "goship", "app", "emailsubscriptions", "repo.go"):    renderEmailSubscriptionsDomainSkeleton(),
-		filepath.Join(opts.AppPath, "docs", "00-index.md"):                                       renderDocsIndexSkeleton(),
-		filepath.Join(opts.AppPath, "docs", "architecture", "01-architecture.md"):                renderArchitectureSkeleton(),
-		filepath.Join(opts.AppPath, "docs", "architecture", "08-cognitive-model.md"):             renderCognitiveModelSkeleton(),
-		filepath.Join(opts.AppPath, "cmd", "web", "main.go"):                                     renderWebMain(),
+		filepath.Join(opts.AppPath, "go.mod"):                                                 renderGoMod(opts),
+		filepath.Join(opts.AppPath, "config", "modules.yaml"):                                 renderModulesManifestSkeleton(),
+		filepath.Join(opts.AppPath, "apps", "goship", "router.go"):                            renderRouterSkeleton(opts.Module),
+		filepath.Join(opts.AppPath, "apps", "goship", "web", "routenames", "routenames.go"):   renderRouteNamesSkeleton(),
+		filepath.Join(opts.AppPath, "apps", "db", "schema", "user.go"):                        renderUserSchemaSkeleton(),
+		filepath.Join(opts.AppPath, "apps", "db", "migrate", "migrations", ".gitkeep"):        "",
+		filepath.Join(opts.AppPath, "apps", "goship", "views", "templates.go"):                renderTemplatesSkeleton(),
+		filepath.Join(opts.AppPath, "apps", "goship", "web", "controllers", "controllers.go"): renderControllersSkeleton(),
+		filepath.Join(opts.AppPath, "apps", "goship", "web", "middleware", "middleware.go"):   renderMiddlewareSkeleton(),
+		filepath.Join(opts.AppPath, "apps", "goship", "web", "ui", "ui.go"):                   renderUISkeleton(),
+		filepath.Join(opts.AppPath, "apps", "goship", "web", "viewmodels", "viewmodels.go"):   renderViewModelsSkeleton(),
+		filepath.Join(opts.AppPath, "apps", "goship", "jobs", "jobs.go"):                      renderJobsSkeleton(),
+		filepath.Join(opts.AppPath, "apps", "goship", "foundation", "container.go"):           renderContainerSkeleton(),
+		filepath.Join(opts.AppPath, "apps", "goship", "app", "profiles", "repo.go"):           renderProfilesDomainSkeleton(),
+		filepath.Join(opts.AppPath, "apps", "goship", "app", "notifications", "notifier.go"):  renderNotificationsDomainSkeleton(),
+		filepath.Join(opts.AppPath, "apps", "goship", "app", "subscriptions", "repo.go"):      renderSubscriptionsDomainSkeleton(),
+		filepath.Join(opts.AppPath, "apps", "goship", "app", "emailsubscriptions", "repo.go"): renderEmailSubscriptionsDomainSkeleton(),
+		filepath.Join(opts.AppPath, "docs", "00-index.md"):                                    renderDocsIndexSkeleton(),
+		filepath.Join(opts.AppPath, "docs", "architecture", "01-architecture.md"):             renderArchitectureSkeleton(),
+		filepath.Join(opts.AppPath, "docs", "architecture", "08-cognitive-model.md"):          renderCognitiveModelSkeleton(),
+		filepath.Join(opts.AppPath, "cmd", "web", "main.go"):                                  renderWebMain(),
 	}
 
 	for path, content := range files {
@@ -162,6 +163,13 @@ go 1.25
 
 require entgo.io/ent v0.14.0
 `, opts.Module)
+}
+
+func renderModulesManifestSkeleton() string {
+	return `# Workspace-level module enablement.
+# Modules apply to the monolith as a whole (not per mini-app).
+modules: []
+`
 }
 
 func renderRouterSkeleton(module string) string {

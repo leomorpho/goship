@@ -62,12 +62,12 @@ func TestShipNewModelAndMigrationsFlow(t *testing.T) {
 	projectRoot := filepath.Join(workspace, "demo")
 
 	runShip(projectRoot, nil, "make:model", "Post", "title:string")
-	if _, err := os.Stat(filepath.Join(projectRoot, "apps", "goship", "db", "schema", "post.go")); err != nil {
+	if _, err := os.Stat(filepath.Join(projectRoot, "apps", "db", "schema", "post.go")); err != nil {
 		t.Fatalf("expected generated schema for Post: %v", err)
 	}
 
 	runShip(projectRoot, nil, "db:make", "add_posts")
-	matches, err := filepath.Glob(filepath.Join(projectRoot, "apps", "goship", "db", "migrate", "migrations", "*add_posts*.sql"))
+	matches, err := filepath.Glob(filepath.Join(projectRoot, "apps", "db", "migrate", "migrations", "*add_posts*.sql"))
 	if err != nil {
 		t.Fatalf("glob migration files: %v", err)
 	}

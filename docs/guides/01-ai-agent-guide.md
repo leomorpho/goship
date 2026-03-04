@@ -52,7 +52,7 @@ Routing and middleware:
 
 Data and domain:
 
-- `apps/goship/db/schema/*.go`
+- `apps/db/schema/*.go`
 - `pkg/repos/**/*.go`
 - `pkg/domain/*.go`
 

@@ -21,8 +21,8 @@ import (
 )
 
 const (
-	atlasDir      = "file://apps/goship/db/migrate/migrations"
-	entSchemaDir  = "apps/goship/db/schema"
+	atlasDir      = "file://apps/db/migrate/migrations"
+	entSchemaDir  = "apps/db/schema"
 	atlasGoRunRef = "ariga.io/atlas/cmd/atlas@v0.27.1"
 )
 
@@ -800,7 +800,7 @@ func (c CLI) runDBMake(args []string) int {
 		"--dir",
 		atlasDir,
 		"--to",
-		"ent://apps/goship/db/schema",
+		"ent://apps/db/schema",
 		"--dev-url",
 		"sqlite://file?mode=memory&_fk=1",
 	)

@@ -11,6 +11,7 @@ This document defines where code belongs as GoShip evolves into a Rails-like fra
 - `mcp/ship/`: standalone MCP module (`ship-mcp`) for LLM-facing docs/CLI tooling
 - `pkg/`: reusable framework-level libraries and adapters
 - `config/`: runtime configuration
+- `apps/db/`: monolith-owned schema and migration history
 - `ent/`: schema and generated ORM
 - `docs/`: internal design and implementation documentation
 
@@ -54,6 +55,12 @@ Service/store rule:
 - Concrete adapters may use Ent/SQL/clients directly, but those details stay behind service dependencies.
 - This keeps testability (mocks/fakes) without forcing repository pattern across every feature.
 
+Data ownership rule:
+
+- `apps/db/schema` and `apps/db/migrate/migrations` are monolith-level (workspace-global) data ownership, not per mini-app.
+- There is one migration history for the monolith.
+- Installable modules must integrate with this single DB history through explicit registration/wiring, not by owning separate histories.
+
 ## Refactor Status
 
 Completed in this pass:
@@ -70,6 +77,26 @@ A package should be treated as an installable official module only if all are tr
 2. Its config surface is stable and documented.
 3. It can be wired through stable interfaces/adapters (no deep app internals required).
 4. It has dedicated tests and docs and can be enabled through `ship` install/wire commands.
+
+Module enablement scope:
+
+- module enablement is workspace-global via `config/modules.yaml` (not per mini-app).
+
+## Installable Module Contract (Monolith)
+
+Installable modules must integrate with the monolith through explicit boundaries:
+
+1. Registration boundary:
+- modules register routes/jobs/migrations through a narrow registrar API.
+- modules must not take `*foundation.Container` directly.
+2. Runtime boundary:
+- modules receive explicit ports (store/cache/jobs/pubsub/mailer/blob/config/logger) instead of global service locators.
+3. Data boundary:
+- module schema sources can live in module packages, but migration application is monolith-owned at `apps/db/migrate/migrations`.
+- there is one DB and one migration history for the monolith.
+4. Policy boundary:
+- app-specific business rules are passed as callbacks/interfaces from app domain packages.
+- modules must not import app-only domain packages directly.
 
 Classification policy for current `pkg/repos/*`:
 
