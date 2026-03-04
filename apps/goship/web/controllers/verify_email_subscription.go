@@ -2,23 +2,23 @@ package controllers
 
 import (
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/apps/goship/app/emailsubscriptions"
+	modemailsubscriptions "github.com/leomorpho/goship-modules/emailsubscriptions"
 	"github.com/leomorpho/goship/apps/goship/views/web/layouts/gen"
 	"github.com/leomorpho/goship/apps/goship/web/ui"
 )
 
 type verifyEmailSubscription struct {
-	ctr                   ui.Controller
-	emailSubscriptionRepo emailsubscriptions.EmailSubscriptionRepo
+	ctr                ui.Controller
+	emailSubscriptions modemailsubscriptions.Service
 }
 
 func NewVerifyEmailSubscriptionRoute(
-	ctr ui.Controller, emailSubscriptionRepo emailsubscriptions.EmailSubscriptionRepo,
+	ctr ui.Controller, emailSubscriptions modemailsubscriptions.Service,
 ) verifyEmailSubscription {
 
 	return verifyEmailSubscription{
-		ctr:                   ctr,
-		emailSubscriptionRepo: emailSubscriptionRepo,
+		ctr:                ctr,
+		emailSubscriptions: emailSubscriptions,
 	}
 }
 
@@ -35,7 +35,7 @@ func (c *verifyEmailSubscription) Get(ctx echo.Context) error {
 	// Validate the token
 	token := ctx.Param("token")
 
-	err := c.emailSubscriptionRepo.ConfirmSubscription(ctx.Request().Context(), token)
+	err := c.emailSubscriptions.Confirm(ctx.Request().Context(), token)
 	if err != nil {
 		page.Data = SubscriptionData{Suceeded: false, SignupEnabled: false}
 	} else {

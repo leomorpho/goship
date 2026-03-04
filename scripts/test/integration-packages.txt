@@ -1,6 +1,7 @@
 # Packages with infrastructure-heavy tests
 ./apps/goship/web/controllers
 ./apps/goship/app/emailsubscriptions
+./pkg/modules/emailsubscriptions
 ./apps/goship/app/notifications
 ./apps/goship/app/profiles
 ./apps/goship/app/subscriptions

@@ -4,4 +4,5 @@ use (
 	.
 	./cli/ship
 	./mcp/ship
+	./pkg/modules/emailsubscriptions
 )

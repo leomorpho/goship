@@ -10,11 +10,12 @@ import (
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	echomw "github.com/labstack/echo/v4/middleware"
-	"github.com/leomorpho/goship/apps/goship/foundation"
-	"github.com/leomorpho/goship/apps/goship/app/emailsubscriptions"
+	modemailsubscriptions "github.com/leomorpho/goship-modules/emailsubscriptions"
+	appemailsubscriptions "github.com/leomorpho/goship/apps/goship/app/emailsubscriptions"
 	"github.com/leomorpho/goship/apps/goship/app/notifications"
 	"github.com/leomorpho/goship/apps/goship/app/profiles"
 	"github.com/leomorpho/goship/apps/goship/app/subscriptions"
+	"github.com/leomorpho/goship/apps/goship/foundation"
 	"github.com/leomorpho/goship/apps/goship/web/middleware"
 	"github.com/leomorpho/goship/config"
 	storagerepo "github.com/leomorpho/goship/pkg/repos/storage"
@@ -31,7 +32,7 @@ const (
 )
 
 type RouteDeps struct {
-	EmailSubscriptionRepo          *emailsubscriptions.EmailSubscriptionRepo
+	EmailSubscriptions             *modemailsubscriptions.Service
 	StorageRepo                    *storagerepo.StorageClient
 	ProfileRepo                    *profiles.ProfileRepo
 	SubscriptionsRepo              *subscriptions.SubscriptionsRepo
@@ -46,7 +47,7 @@ func sseSkipper(c echo.Context) bool {
 
 func NewRouteDeps(c *foundation.Container) (*RouteDeps, error) {
 	deps := &RouteDeps{}
-	deps.EmailSubscriptionRepo = emailsubscriptions.NewEmailSubscriptionRepo(c.ORM)
+	deps.EmailSubscriptions = modemailsubscriptions.New(appemailsubscriptions.NewEntStore(c.ORM))
 	deps.StorageRepo = storagerepo.NewStorageClient(c.Config, c.ORM)
 	deps.SubscriptionsRepo = subscriptions.NewSubscriptionsRepo(
 		c.ORM,

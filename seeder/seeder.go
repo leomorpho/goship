@@ -7,11 +7,12 @@ import (
 	"os"
 	"time"
 
-	"github.com/leomorpho/goship/apps/goship/foundation"
+	modemailsubscriptions "github.com/leomorpho/goship-modules/emailsubscriptions"
 	"github.com/leomorpho/goship/apps/goship/app/emailsubscriptions"
 	"github.com/leomorpho/goship/apps/goship/app/notifications"
 	"github.com/leomorpho/goship/apps/goship/app/profiles"
 	"github.com/leomorpho/goship/apps/goship/app/subscriptions"
+	"github.com/leomorpho/goship/apps/goship/foundation"
 	"github.com/leomorpho/goship/config"
 	"github.com/leomorpho/goship/ent"
 	"github.com/leomorpho/goship/ent/user"
@@ -26,14 +27,14 @@ var ErrObjectExists = errors.New("object already exists")
 // RunIdempotentSeeder seeds all regular objects that the app needs to run smoothly
 func RunIdempotentSeeder(cfg *config.Config, client *ent.Client) error {
 	ctx := context.Background()
-	emailRepo := emailsubscriptions.NewEmailSubscriptionRepo(client)
+	emailSubscriptions := modemailsubscriptions.New(emailsubscriptions.NewEntStore(client))
 
-	err := emailRepo.CreateNewSubscriptionList(ctx, domain.EmailNewsletter)
+	err := emailSubscriptions.CreateList(ctx, modemailsubscriptions.List(domain.EmailNewsletter.Value))
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to create email list type")
 	}
 
-	err = emailRepo.CreateNewSubscriptionList(ctx, domain.EmailInitialAnnoucement)
+	err = emailSubscriptions.CreateList(ctx, modemailsubscriptions.List(domain.EmailInitialAnnoucement.Value))
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to create email list type")
 	}

@@ -78,7 +78,8 @@ Status of exposure:
 
 - Newsletter-style email subscription flow (`email_subscribe.go`, `verify_email_subscription.go`)
 - Task processor for subscription confirmation emails (`apps/goship/jobs/mail.go`)
-- Update email sender integration (`apps/goship/app/emailsubscriptions`)
+- Reusable subscription repo module (`pkg/modules/emailsubscriptions`)
+- App-specific update email sender integration (`apps/goship/app/emailsubscriptions`)
 - Mail provider abstraction supports SMTP and Resend (`pkg/repos/mailer`)
 
 ## 6) File Storage and Images

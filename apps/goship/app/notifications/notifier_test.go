@@ -1,6 +1,6 @@
 //go:build integration
 
-package notifierrepo_test
+package notifications_test
 
 import (
 	"context"
@@ -150,10 +150,10 @@ func TestGetNotifications(t *testing.T) {
 	mockPubSubClient := new(MockPubSubClient)
 	mockNotificationStorageRepo := new(MockNotificationStorageRepo)
 	profileID := 1
-	notifications := []*domain.Notification{{ID: 1, ProfileID: profileID, Type: domain.NotificationTypeNewPrivateMessage, Text: "Test Notification"}}
+	notificationList := []*domain.Notification{{ID: 1, ProfileID: profileID, Type: domain.NotificationTypeNewPrivateMessage, Text: "Test Notification"}}
 
 	// Set expectations
-	mockNotificationStorageRepo.On("GetNotificationsByProfileID", ctx, profileID, false).Return(notifications, nil)
+	mockNotificationStorageRepo.On("GetNotificationsByProfileID", ctx, profileID, false).Return(notificationList, nil)
 
 	// Create notifier repo
 	notifierRepo := notifications.NewNotifierRepo(mockPubSubClient, mockNotificationStorageRepo, nil, nil, nil)
@@ -161,7 +161,7 @@ func TestGetNotifications(t *testing.T) {
 	// Test GetNotifications
 	result, err := notifierRepo.GetNotifications(ctx, profileID, false, nil, nil)
 	assert.NoError(t, err)
-	assert.Equal(t, notifications, result)
+	assert.Equal(t, notificationList, result)
 
 	mockNotificationStorageRepo.AssertExpectations(t)
 }

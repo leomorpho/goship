@@ -8,11 +8,11 @@ import (
 	"strings"
 
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/apps/goship/foundation"
 	"github.com/leomorpho/goship/apps/goship/app/notifications"
-	"github.com/leomorpho/goship/apps/goship/web/middleware"
+	"github.com/leomorpho/goship/apps/goship/foundation"
 	appweb "github.com/leomorpho/goship/apps/goship/web"
 	"github.com/leomorpho/goship/apps/goship/web/controllers"
+	"github.com/leomorpho/goship/apps/goship/web/middleware"
 	routeNames "github.com/leomorpho/goship/apps/goship/web/routenames"
 	"github.com/leomorpho/goship/apps/goship/web/ui"
 	"github.com/leomorpho/goship/config"
@@ -105,11 +105,11 @@ func registerPublicRoutes(c *foundation.Container, g *echo.Group, ctr ui.Control
 		panic("Test error for Sentry")
 	})
 
-	emailSubscribe := controllers.NewEmailSubscribeRoute(ctr, *deps.EmailSubscriptionRepo, *c.Config)
+	emailSubscribe := controllers.NewEmailSubscribeRoute(ctr, *deps.EmailSubscriptions, *c.Config)
 	g.GET("/emailSubscribe", emailSubscribe.Get).Name = routeNames.RouteNameEmailSubscribe
 	g.POST("/emailSubscribe", emailSubscribe.Post).Name = routeNames.RouteNameEmailSubscribeSubmit
 
-	verifyEmailSubscription := controllers.NewVerifyEmailSubscriptionRoute(ctr, *deps.EmailSubscriptionRepo)
+	verifyEmailSubscription := controllers.NewVerifyEmailSubscriptionRoute(ctr, *deps.EmailSubscriptions)
 	g.GET("/email/subscription/:token", verifyEmailSubscription.Get).Name = routeNames.RouteNameVerifyEmailSubscription
 
 	installApp := controllers.NewInstallAppRoute(ctr)

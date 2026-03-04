@@ -209,6 +209,11 @@ watch: ## Start all dev watchers/processes through overmind
 .PHONY: test
 test: ## Run Docker-free unit test package set
 	bash scripts/test-unit.sh
+	bash scripts/check-module-isolation.sh
+
+.PHONY: test-module-isolation
+test-module-isolation: ## Ensure extracted modules do not import goship internals
+	bash scripts/check-module-isolation.sh
 
 .PHONY: test-integration
 test-integration: ## Run integration test package set (may require Docker/infra)

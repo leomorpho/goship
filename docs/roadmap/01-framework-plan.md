@@ -750,7 +750,7 @@ Current progress:
 
 ## Near-Term
 
-- [ ] Build first adapter pair: `sqlite` + `postgres`.
+- [ ] Build first two DB adapters.
 - [ ] Build first cache pair: `memory` + `redis`.
 - [ ] Build first pubsub pair: `inproc` + `redis`.
 - [ ] Build first jobs pair: `inproc` + `asynq`.

@@ -73,6 +73,7 @@ Generation:
 - `ship make:model <Name> [fields...] [--force]`
 - `ship make:controller <Name|NameController> [--actions index,show,create,update,destroy] [--auth public|auth] [--domain <name>] [--wire]`
 - `ship make:scaffold <Name> [fields...] [--path apps/goship] [--views templ|none] [--auth public|auth] [--api] [--migrate] [--dry-run] [--force]`
+- `ship make:module <Name> [--path pkg/modules] [--module-base github.com/leomorpho/goship-modules] [--dry-run] [--force]`
 - `ship destroy <generated-artifact>` (planned)
 
 Command grammar policy:
@@ -139,6 +140,7 @@ Safety matrix:
 - `ship make:controller <Name> --domain <name>` -> generate domain-aware constructor slot (`domainService any`) and route wiring using `nil` placeholder
 - `ship make:controller <Name> --actions ... --wire` -> wire generated routes into `apps/goship/router.go` markers
 - `ship make:scaffold <Name> ...` -> orchestration command that composes `make:model`, `db:make`, `make:controller --domain <plural_model> --wire`, and optionally `make:resource --domain <plural_model>` / `db:migrate`
+- `ship make:module <Name>` -> generate isolated module scaffold in `pkg/modules/<name>` with its own `go.mod`, module-facing types/contracts, and service tests
 - `ship upgrade --to <version>` -> updates `atlasGoRunRef` pin in `cli/ship/cli.go`
 - `ship upgrade --dry-run` -> prints planned pin change without writing files
 - current scope: Atlas pin only (expandable later)

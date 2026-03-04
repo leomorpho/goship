@@ -709,6 +709,8 @@ func (c CLI) runMake(args []string) int {
 		return c.runMakeScaffold(args[1:])
 	case "controller":
 		return c.runMakeController(args[1:])
+	case "module":
+		return c.runMakeModule(args[1:])
 	case "model":
 		return c.runGenerateModel(args[1:])
 	case "resource":
@@ -886,7 +888,7 @@ func printRootHelp(w io.Writer) {
 	fmt.Fprintln(w, "  ship db:<create|make|migrate|status|reset|drop|rollback|seed>  (or ship db for help)")
 	fmt.Fprintln(w, "  ship infra:<up|down>                  (or ship infra for help)")
 	fmt.Fprintln(w, "  ship templ <generate>")
-	fmt.Fprintln(w, "  ship make:<scaffold|controller|resource|model>  (or ship make for help)")
+	fmt.Fprintln(w, "  ship make:<scaffold|controller|resource|model|module>  (or ship make for help)")
 	fmt.Fprintln(w)
 	fmt.Fprintln(w, "Examples:")
 	fmt.Fprintln(w, "  ship new demo")
@@ -908,6 +910,7 @@ func printRootHelp(w io.Writer) {
 	fmt.Fprintln(w, "  ship templ generate --path app")
 	fmt.Fprintln(w, "  ship make:resource contact")
 	fmt.Fprintln(w, "  ship make:model Post title:string")
+	fmt.Fprintln(w, "  ship make:module EmailSubscriptions")
 }
 
 func printDevHelp(w io.Writer) {
@@ -973,6 +976,7 @@ func printMakeHelp(w io.Writer) {
 	fmt.Fprintln(w, "  ship make:controller <Name|NameController> [--actions index,show,create,update,destroy] [--auth public|auth] [--wire]")
 	fmt.Fprintln(w, "  ship make:resource <name> [--path apps/goship] [--auth public|auth] [--views templ|none] [--wire] [--dry-run]")
 	fmt.Fprintln(w, "  ship make:model <Name> [fields...]")
+	fmt.Fprintln(w, "  ship make:module <Name> [--path pkg/modules] [--module-base github.com/leomorpho/goship-modules] [--dry-run] [--force]")
 }
 
 func relocateTemplGenerated(rootPath string) error {

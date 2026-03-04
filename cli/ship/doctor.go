@@ -395,6 +395,7 @@ func checkCLIDocsCoverage(root string) []doctorIssue {
 		"ship make:model",
 		"ship make:controller",
 		"ship make:scaffold",
+		"ship make:module",
 		"ship db:migrate",
 		"ship test --integration",
 	}

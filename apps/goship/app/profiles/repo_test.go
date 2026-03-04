@@ -1,6 +1,6 @@
 //go:build integration
 
-package profilerepo_test
+package profiles_test
 
 import (
 	"bytes"

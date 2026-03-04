@@ -4,13 +4,13 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/leomorpho/goship/apps/goship/app/emailsubscriptions"
-	"github.com/leomorpho/goship/apps/goship/web/viewmodels"
+	modemailsubscriptions "github.com/leomorpho/goship-modules/emailsubscriptions"
 	"github.com/leomorpho/goship/apps/goship/views"
 	"github.com/leomorpho/goship/apps/goship/views/emails/gen"
 	"github.com/leomorpho/goship/apps/goship/views/web/layouts/gen"
 	"github.com/leomorpho/goship/apps/goship/views/web/pages/gen"
 	"github.com/leomorpho/goship/apps/goship/web/ui"
+	"github.com/leomorpho/goship/apps/goship/web/viewmodels"
 	"github.com/leomorpho/goship/config"
 	"github.com/leomorpho/goship/pkg/context"
 	"github.com/leomorpho/goship/pkg/domain"
@@ -22,15 +22,15 @@ import (
 type (
 	emailSubscribe struct {
 		ctr       ui.Controller
-		emailRepo emailsubscriptions.EmailSubscriptionRepo
+		emailSubs modemailsubscriptions.Service
 		config    config.Config
 	}
 )
 
-func NewEmailSubscribeRoute(ctr ui.Controller, emailRepo emailsubscriptions.EmailSubscriptionRepo, config config.Config) emailSubscribe {
+func NewEmailSubscribeRoute(ctr ui.Controller, emailSubs modemailsubscriptions.Service, config config.Config) emailSubscribe {
 	return emailSubscribe{
 		ctr:       ctr,
-		emailRepo: emailRepo,
+		emailSubs: emailSubs,
 		config:    config,
 	}
 }
@@ -72,22 +72,22 @@ func (c *emailSubscribe) Post(ctx echo.Context) error {
 		return c.Get(ctx)
 	}
 
-	subscriptionObj, err := c.emailRepo.SSESubscribe(
-		ctx.Request().Context(), form.Email, domain.EmailNewsletter, &form.Latitude, &form.Longitude,
+	subscriptionObj, err := c.emailSubs.Subscribe(
+		ctx.Request().Context(), form.Email, modemailsubscriptions.List(domain.EmailNewsletter.Value), &form.Latitude, &form.Longitude,
 	)
 	if err != nil {
 
 		var errMsg string
 
-		if errors.Is(err, emailsubscriptions.ErrInvalidEmailConfirmationCode) {
+		if errors.Is(err, modemailsubscriptions.ErrInvalidEmailConfirmationCode) {
 			errMsg = "The email confirmation code is invalid."
-		} else if errors.Is(err, emailsubscriptions.ErrEmailSyntaxInvalid) {
+		} else if errors.Is(err, modemailsubscriptions.ErrEmailSyntaxInvalid) {
 			errMsg = "The email address syntax is invalid."
-		} else if errors.Is(err, emailsubscriptions.ErrEmailAddressInvalidCatchAll) {
+		} else if errors.Is(err, modemailsubscriptions.ErrEmailAddressInvalidCatchAll) {
 			errMsg = "The email address is invalid."
-		} else if _, ok := err.(*emailsubscriptions.ErrAlreadySubscribed); ok {
+		} else if _, ok := err.(*modemailsubscriptions.ErrAlreadySubscribed); ok {
 			errMsg = "You're already subscribed."
-		} else if e, ok := err.(*emailsubscriptions.ErrEmailVerificationFailed); ok {
+		} else if e, ok := err.(*modemailsubscriptions.ErrEmailVerificationFailed); ok {
 			errMsg = e.Error()
 		} else {
 			log.Error().Err(err)

@@ -6,7 +6,7 @@ This document defines the first stable adapter contracts for GoShip's backend-ag
 
 GoShip should let app code stay stable while infrastructure choices vary by environment:
 
-- database (`postgres`, `mysql`, `sqlite`)
+- database (adapter/dialect selected per project)
 - cache (`memory`, `redis`)
 - pubsub (`inproc`, `redis`, cloud)
 - jobs (`inproc`, `dbqueue`, `asynq`, cloud)
@@ -20,6 +20,12 @@ To enforce that, app and module code should depend on core interfaces instead of
 - `pkg/core/interfaces.go`
 - `pkg/core/adapters/registry.go`
 - `pkg/core/adapters/resolve.go`
+
+## Module DB Binding Rule
+
+Installable modules should expose a module-local `Store` interface for data access.
+The app binds that interface to a concrete adapter (for now, typically Ent-backed),
+so module runtime logic stays decoupled from app-specific DB model wiring.
 
 This package is the current source of truth for adapter seam contracts.
 
