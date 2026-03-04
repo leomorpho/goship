@@ -6,12 +6,12 @@ import (
 	"strings"
 
 	"github.com/hibiken/asynq"
+	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/app"
 	"github.com/leomorpho/goship/app/foundation"
 	"github.com/leomorpho/goship/app/jobs"
 	"github.com/leomorpho/goship/app/notifications"
 	"github.com/leomorpho/goship/app/profiles"
-	"github.com/leomorpho/goship/app/subscriptions"
 	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
 )
 
@@ -62,7 +62,7 @@ func main() {
 	}
 
 	storageRepo := storagerepo.NewStorageClient(c.Config, c.ORM)
-	subscriptionsRepo := subscriptions.NewSubscriptionsRepo(
+	subscriptionsRepo := paidsubscriptions.NewSubscriptionsRepo(
 		c.ORM, c.Config.App.OperationalConstants.ProTrialTimespanInDays,
 		c.Config.App.OperationalConstants.PaymentFailedGracePeriodInDays)
 	profileRepo := profiles.NewProfileRepo(c.ORM, storageRepo, subscriptionsRepo)

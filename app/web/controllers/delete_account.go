@@ -9,8 +9,8 @@ import (
 	"github.com/leomorpho/goship/framework/domain"
 	"github.com/leomorpho/goship/framework/repos/msg"
 
+	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/app/profiles"
-	"github.com/leomorpho/goship/app/subscriptions"
 	"github.com/leomorpho/goship/app/views"
 	"github.com/leomorpho/goship/app/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/views/web/pages/gen"
@@ -21,14 +21,14 @@ type (
 	deleteAccount struct {
 		ctr               ui.Controller
 		profileRepo       *profiles.ProfileRepo
-		subscriptionsRepo *subscriptions.SubscriptionsRepo
+		subscriptionsRepo *paidsubscriptions.SubscriptionsRepo
 	}
 )
 
 func NewDeleteAccountRoute(
 	ctr ui.Controller,
 	profileRepo *profiles.ProfileRepo,
-	subscriptionsRepo *subscriptions.SubscriptionsRepo,
+	subscriptionsRepo *paidsubscriptions.SubscriptionsRepo,
 ) deleteAccount {
 
 	return deleteAccount{

@@ -7,9 +7,9 @@ import (
 
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
+	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/app/foundation"
 	"github.com/leomorpho/goship/app/profiles"
-	"github.com/leomorpho/goship/app/subscriptions"
 	"github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/db/ent"
 	"github.com/leomorpho/goship/framework/context"
@@ -19,7 +19,7 @@ import (
 
 // LoadAuthenticatedUser loads the authenticated user, if one, and stores in context
 func LoadAuthenticatedUser(
-	authClient *foundation.AuthClient, profileRepo *profiles.ProfileRepo, subscriptionsRepo *subscriptions.SubscriptionsRepo,
+	authClient *foundation.AuthClient, profileRepo *profiles.ProfileRepo, subscriptionsRepo *paidsubscriptions.SubscriptionsRepo,
 ) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {

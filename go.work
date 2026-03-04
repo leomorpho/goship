@@ -5,4 +5,5 @@ use (
 	./tools/cli/ship
 	./tools/mcp/ship
 	./modules/emailsubscriptions
+	./modules/paidsubscriptions
 )

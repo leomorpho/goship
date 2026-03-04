@@ -1,4 +1,4 @@
-package subscriptions
+package paidsubscriptions
 
 import (
 	"context"

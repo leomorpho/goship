@@ -8,6 +8,7 @@ require (
 	firebase.google.com/go/v4 v4.14.1
 	github.com/AfterShip/email-verifier v1.3.3
 	github.com/leomorpho/goship-modules/emailsubscriptions v0.0.0
+	github.com/leomorpho/goship-modules/paidsubscriptions v0.0.0
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/PuerkitoBio/goquery v1.8.1
 	github.com/SherClockHolmes/webpush-go v1.3.0
@@ -53,6 +54,7 @@ require (
 )
 
 replace github.com/leomorpho/goship-modules/emailsubscriptions => ./modules/emailsubscriptions
+replace github.com/leomorpho/goship-modules/paidsubscriptions => ./modules/paidsubscriptions
 
 require (
 	cloud.google.com/go v0.114.0 // indirect

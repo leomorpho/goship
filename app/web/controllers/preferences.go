@@ -14,9 +14,9 @@ import (
 	"github.com/leomorpho/goship/framework/domain"
 	"github.com/leomorpho/goship/framework/repos/msg"
 
+	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/app/notifications"
 	"github.com/leomorpho/goship/app/profiles"
-	"github.com/leomorpho/goship/app/subscriptions"
 	"github.com/leomorpho/goship/app/views"
 	"github.com/leomorpho/goship/app/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/views/web/pages/gen"
@@ -95,7 +95,7 @@ type preferences struct {
 	profileRepo                    profiles.ProfileRepo
 	pushNotificationsRepo          *notifications.PwaPushNotificationsRepo
 	notificationSendPermissionRepo *notifications.NotificationSendPermissionRepo
-	subscriptionsRepo              *subscriptions.SubscriptionsRepo
+	subscriptionsRepo              *paidsubscriptions.SubscriptionsRepo
 	smsSenderRepo                  *notifications.SMSSender
 }
 
@@ -104,7 +104,7 @@ func NewPreferencesRoute(
 	profileRepo *profiles.ProfileRepo,
 	pushNotificationsRepo *notifications.PwaPushNotificationsRepo,
 	notificationSendPermissionRepo *notifications.NotificationSendPermissionRepo,
-	subscriptionsRepo *subscriptions.SubscriptionsRepo,
+	subscriptionsRepo *paidsubscriptions.SubscriptionsRepo,
 	smsSenderRepo *notifications.SMSSender,
 ) preferences {
 	return preferences{

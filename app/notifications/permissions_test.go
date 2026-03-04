@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
+	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/app/notifications"
 	"github.com/leomorpho/goship/app/profiles"
-	"github.com/leomorpho/goship/app/subscriptions"
 	"github.com/leomorpho/goship/db/ent/notificationpermission"
 	"github.com/leomorpho/goship/framework/domain"
 	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
@@ -31,7 +31,7 @@ func TestGetPermissions(t *testing.T) {
 
 	// Create user and profile.
 	user1 := tests.CreateUser(ctx, client, "User", "user1@example.com", "password", true)
-	subscriptionsRepo := subscriptions.NewSubscriptionsRepo(client, 10, 10)
+	subscriptionsRepo := paidsubscriptions.NewSubscriptionsRepo(client, 10, 10)
 	profileRepo := profiles.NewProfileRepo(client, storagerepo.NewMockStorageClient(), subscriptionsRepo)
 	notifSendPermissionRepo := notifications.NewNotificationSendPermissionRepo(client)
 
@@ -117,7 +117,7 @@ func TestCreatePermission(t *testing.T) {
 
 	// Create user and profile.
 	user1 := tests.CreateUser(ctx, client, "User", "user1@example.com", "password", true)
-	subscriptionsRepo := subscriptions.NewSubscriptionsRepo(client, 10, 10)
+	subscriptionsRepo := paidsubscriptions.NewSubscriptionsRepo(client, 10, 10)
 	profileRepo := profiles.NewProfileRepo(client, storagerepo.NewMockStorageClient(), subscriptionsRepo)
 
 	notifSendPermissionRepo := notifications.NewNotificationSendPermissionRepo(client)
@@ -183,7 +183,7 @@ func TestDeletePermission(t *testing.T) {
 
 	// Create user and profile.
 	user1 := tests.CreateUser(ctx, client, "User", "user1@example.com", "password", true)
-	subscriptionsRepo := subscriptions.NewSubscriptionsRepo(client, 10, 10)
+	subscriptionsRepo := paidsubscriptions.NewSubscriptionsRepo(client, 10, 10)
 	profileRepo := profiles.NewProfileRepo(client, storagerepo.NewMockStorageClient(), subscriptionsRepo)
 
 	notifSendPermissionRepo := notifications.NewNotificationSendPermissionRepo(client)

@@ -9,9 +9,9 @@ import (
 
 	"github.com/hibiken/asynq"
 	"github.com/labstack/echo/v4"
+	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/app/notifications"
 	"github.com/leomorpho/goship/app/profiles"
-	"github.com/leomorpho/goship/app/subscriptions"
 	"github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/db/ent"
 	"github.com/leomorpho/goship/db/ent/notification"
@@ -113,7 +113,7 @@ type (
 		orm                     *ent.Client
 		notifierRepo            *notifications.NotifierRepo
 		echoServer              *echo.Echo
-		subscriptionRepo        *subscriptions.SubscriptionsRepo
+		subscriptionRepo        *paidsubscriptions.SubscriptionsRepo
 		plannedNotificationRepo plannedNotificationSource
 	}
 
@@ -125,7 +125,7 @@ type (
 func NewDailyConvoNotificationsProcessor(
 	notifierRepo *notifications.NotifierRepo,
 	e *echo.Echo,
-	subscriptionRepo *subscriptions.SubscriptionsRepo,
+	subscriptionRepo *paidsubscriptions.SubscriptionsRepo,
 	plannedNotificationRepo plannedNotificationSource,
 ) *DailyConvoNotificationsProcessor {
 

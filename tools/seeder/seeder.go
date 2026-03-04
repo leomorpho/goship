@@ -8,10 +8,10 @@ import (
 	"time"
 
 	modemailsubscriptions "github.com/leomorpho/goship-modules/emailsubscriptions"
+	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/app/foundation"
 	"github.com/leomorpho/goship/app/notifications"
 	"github.com/leomorpho/goship/app/profiles"
-	"github.com/leomorpho/goship/app/subscriptions"
 	"github.com/leomorpho/goship/config"
 	"github.com/leomorpho/goship/db/ent"
 	"github.com/leomorpho/goship/db/ent/user"
@@ -98,7 +98,7 @@ func SeedUsers(cfg *config.Config, client *ent.Client, useS3 bool) error {
 		storageClient = storagerepo.NewStorageClient(cfg, client)
 	}
 	profileRepo := profiles.NewProfileRepo(client, storageClient, nil)
-	subscriptionsRepo := subscriptions.NewSubscriptionsRepo(client, 3, 3)
+	subscriptionsRepo := paidsubscriptions.NewSubscriptionsRepo(client, 3, 3)
 	notificationSendPermissionRepo := notifications.NewNotificationSendPermissionRepo(client)
 
 	createProfile := func(

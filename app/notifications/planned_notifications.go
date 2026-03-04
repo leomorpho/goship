@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/leomorpho/goship/app/subscriptions"
+	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/db/ent"
 	"github.com/leomorpho/goship/db/ent/lastseenonline"
 	"github.com/leomorpho/goship/db/ent/notification"
@@ -19,11 +19,11 @@ import (
 
 type PlannedNotificationsRepo struct {
 	orm              *ent.Client
-	subscriptionRepo *subscriptions.SubscriptionsRepo
+	subscriptionRepo *paidsubscriptions.SubscriptionsRepo
 }
 
 func NewPlannedNotificationsRepo(
-	orm *ent.Client, subscriptionRepo *subscriptions.SubscriptionsRepo,
+	orm *ent.Client, subscriptionRepo *paidsubscriptions.SubscriptionsRepo,
 ) *PlannedNotificationsRepo {
 
 	return &PlannedNotificationsRepo{

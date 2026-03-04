@@ -11,10 +11,10 @@ import (
 	"github.com/labstack/echo/v4"
 	echomw "github.com/labstack/echo/v4/middleware"
 	modemailsubscriptions "github.com/leomorpho/goship-modules/emailsubscriptions"
+	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/app/foundation"
 	"github.com/leomorpho/goship/app/notifications"
 	"github.com/leomorpho/goship/app/profiles"
-	"github.com/leomorpho/goship/app/subscriptions"
 	"github.com/leomorpho/goship/app/web/middleware"
 	"github.com/leomorpho/goship/config"
 	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
@@ -34,7 +34,7 @@ type RouteDeps struct {
 	EmailSubscriptions             *modemailsubscriptions.Service
 	StorageRepo                    *storagerepo.StorageClient
 	ProfileRepo                    *profiles.ProfileRepo
-	SubscriptionsRepo              *subscriptions.SubscriptionsRepo
+	SubscriptionsRepo              *paidsubscriptions.SubscriptionsRepo
 	NotificationSendPermissionRepo *notifications.NotificationSendPermissionRepo
 	StripeWebhookPath              string
 }
@@ -48,7 +48,7 @@ func NewRouteDeps(c *foundation.Container) (*RouteDeps, error) {
 	deps := &RouteDeps{}
 	deps.EmailSubscriptions = modemailsubscriptions.New(modemailsubscriptions.NewEntStore(c.ORM))
 	deps.StorageRepo = storagerepo.NewStorageClient(c.Config, c.ORM)
-	deps.SubscriptionsRepo = subscriptions.NewSubscriptionsRepo(
+	deps.SubscriptionsRepo = paidsubscriptions.NewSubscriptionsRepo(
 		c.ORM,
 		c.Config.App.OperationalConstants.ProTrialTimespanInDays,
 		c.Config.App.OperationalConstants.PaymentFailedGracePeriodInDays,

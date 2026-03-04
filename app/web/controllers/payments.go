@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/app/subscriptions"
+	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/app/views"
 	"github.com/leomorpho/goship/app/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/views/web/pages/gen"
@@ -30,12 +30,12 @@ type (
 	paymentsRoute struct {
 		ctr               ui.Controller
 		orm               *ent.Client
-		subscriptionsRepo *subscriptions.SubscriptionsRepo
+		subscriptionsRepo *paidsubscriptions.SubscriptionsRepo
 	}
 )
 
 func NewPaymentsRoute(
-	ctr ui.Controller, orm *ent.Client, subscriptionsRepo *subscriptions.SubscriptionsRepo,
+	ctr ui.Controller, orm *ent.Client, subscriptionsRepo *paidsubscriptions.SubscriptionsRepo,
 ) paymentsRoute {
 	return paymentsRoute{
 		ctr:               ctr,

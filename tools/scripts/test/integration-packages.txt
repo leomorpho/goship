@@ -3,7 +3,7 @@
 ./modules/emailsubscriptions
 ./app/notifications
 ./app/profiles
-./app/subscriptions
+./modules/paidsubscriptions
 ./tools/seeder
 ./app/foundation
 ./tools/cli/ship

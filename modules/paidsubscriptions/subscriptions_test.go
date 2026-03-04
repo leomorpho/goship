@@ -1,6 +1,6 @@
 //go:build integration
 
-package subscriptions_test
+package paidsubscriptions_test
 
 import (
 	"database/sql"
@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/leomorpho/goship/app/profiles"
-	"github.com/leomorpho/goship/app/subscriptions"
+	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/db/ent/monthlysubscription"
 	"github.com/leomorpho/goship/db/ent/profile"
 	"github.com/leomorpho/goship/framework/domain"
@@ -37,7 +37,7 @@ func TestGetCurrentlyActiveProduct(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	subscriptionsRepo := subscriptions.NewSubscriptionsRepo(client, 15, 3)
+	subscriptionsRepo := paidsubscriptions.NewSubscriptionsRepo(client, 15, 3)
 
 	err = subscriptionsRepo.CreateSubscription(
 		ctx, nil, profile1Obj.ID,
@@ -110,7 +110,7 @@ func TestDeactivateExpiredSubscriptions(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	subscriptionsRepo := subscriptions.NewSubscriptionsRepo(client, 15, 3)
+	subscriptionsRepo := paidsubscriptions.NewSubscriptionsRepo(client, 15, 3)
 
 	err = subscriptionsRepo.CreateSubscription(
 		ctx, nil, profile1Obj.ID,
@@ -161,7 +161,7 @@ func TestStripeCustomerIDs(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	subscriptionsRepo := subscriptions.NewSubscriptionsRepo(client, 15, 3)
+	subscriptionsRepo := paidsubscriptions.NewSubscriptionsRepo(client, 15, 3)
 	stripeCustomerID := "cus_1234"
 
 	err = subscriptionsRepo.StoreStripeCustomerID(ctx, profile1Obj.ID, stripeCustomerID)
@@ -191,7 +191,7 @@ func TestCancelWithGracePeriod(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	subscriptionsRepo := subscriptions.NewSubscriptionsRepo(client, 15, 3)
+	subscriptionsRepo := paidsubscriptions.NewSubscriptionsRepo(client, 15, 3)
 
 	// Only have profile1 start with a trial, profile2 will start with a full pro plan
 	err = subscriptionsRepo.CreateSubscription(
@@ -279,7 +279,7 @@ func TestCancelOrRenew(t *testing.T) {
 	)
 	assert.Nil(t, err)
 
-	subscriptionsRepo := subscriptions.NewSubscriptionsRepo(client, 15, 3)
+	subscriptionsRepo := paidsubscriptions.NewSubscriptionsRepo(client, 15, 3)
 	// Update all to PRO plans (not trials)
 	err = subscriptionsRepo.UpdateToPaidPro(ctx, profile1Obj.ID)
 	assert.Nil(t, err)

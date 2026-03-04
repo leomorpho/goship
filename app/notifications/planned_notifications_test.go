@@ -9,9 +9,9 @@ import (
 	"database/sql"
 
 	"github.com/gofrs/uuid"
+	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/app/notifications"
 	"github.com/leomorpho/goship/app/profiles"
-	"github.com/leomorpho/goship/app/subscriptions"
 	"github.com/leomorpho/goship/db/ent"
 	"github.com/leomorpho/goship/db/ent/lastseenonline"
 	"github.com/leomorpho/goship/db/ent/notification"
@@ -38,7 +38,7 @@ func TestUpsertNotificationTime(t *testing.T) {
 
 	// Create users and profiles.
 	user1 := tests.CreateUser(ctx, client, "User", "user1@example.com", "password", true)
-	subscriptionsRepo := subscriptions.NewSubscriptionsRepo(client, 10, 10)
+	subscriptionsRepo := paidsubscriptions.NewSubscriptionsRepo(client, 10, 10)
 	profileRepo := profiles.NewProfileRepo(client, storagerepo.NewMockStorageClient(), subscriptionsRepo)
 
 	plannedNotifsRepo := notifications.NewPlannedNotificationsRepo(client, subscriptionsRepo)
@@ -98,7 +98,7 @@ func TestCreateNotificationTimeObjects(t *testing.T) {
 	// Create users and profiles.
 	user1 := tests.CreateUser(ctx, client, "User", "user1@example.com", "password", true)
 	user2 := tests.CreateUser(ctx, client, "User", "user2@example.com", "password", true)
-	subscriptionsRepo := subscriptions.NewSubscriptionsRepo(client, 10, 10)
+	subscriptionsRepo := paidsubscriptions.NewSubscriptionsRepo(client, 10, 10)
 	profileRepo := profiles.NewProfileRepo(client, storagerepo.NewMockStorageClient(), subscriptionsRepo)
 
 	plannedNotifsRepo := notifications.NewPlannedNotificationsRepo(client, subscriptionsRepo)
@@ -195,7 +195,7 @@ func TestDeleteStaleLastSeenObjects(t *testing.T) {
 
 	// Create user and profiles.
 	user1 := tests.CreateUser(ctx, client, "User", "user1@example.com", "password", true)
-	subscriptionsRepo := subscriptions.NewSubscriptionsRepo(client, 10, 10)
+	subscriptionsRepo := paidsubscriptions.NewSubscriptionsRepo(client, 10, 10)
 	profileRepo := profiles.NewProfileRepo(client, storagerepo.NewMockStorageClient(), subscriptionsRepo)
 
 	plannedNotifsRepo := notifications.NewPlannedNotificationsRepo(client, subscriptionsRepo)
@@ -244,7 +244,7 @@ func TestProfileIDsCanGetPlannedNotificationNow(t *testing.T) {
 	user2 := tests.CreateUser(ctx, client, "User", "user2@example.com", "password", true)
 	user3 := tests.CreateUser(ctx, client, "User", "user3@example.com", "password", true)
 	user4 := tests.CreateUser(ctx, client, "User", "user4@example.com", "password", true)
-	subscriptionsRepo := subscriptions.NewSubscriptionsRepo(client, 10, 10)
+	subscriptionsRepo := paidsubscriptions.NewSubscriptionsRepo(client, 10, 10)
 	profileRepo := profiles.NewProfileRepo(client, storagerepo.NewMockStorageClient(), subscriptionsRepo)
 
 	plannedNotifsRepo := notifications.NewPlannedNotificationsRepo(client, subscriptionsRepo)

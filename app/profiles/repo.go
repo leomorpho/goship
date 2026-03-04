@@ -13,7 +13,7 @@ import (
 
 	"github.com/disintegration/imaging"
 	"github.com/google/uuid"
-	"github.com/leomorpho/goship/app/subscriptions"
+	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/db/ent"
 	"github.com/leomorpho/goship/db/ent/filestorage"
 	"github.com/leomorpho/goship/db/ent/image"
@@ -32,10 +32,10 @@ var ErrContactRequestAlreadyExists = errors.New("contact request already exists"
 type ProfileRepo struct {
 	orm              *ent.Client
 	storageRepo      storagerepo.StorageClientInterface
-	subscriptionRepo *subscriptions.SubscriptionsRepo
+	subscriptionRepo *paidsubscriptions.SubscriptionsRepo
 }
 
-func NewProfileRepo(orm *ent.Client, storageRepo storagerepo.StorageClientInterface, subscriptionRepo *subscriptions.SubscriptionsRepo) *ProfileRepo {
+func NewProfileRepo(orm *ent.Client, storageRepo storagerepo.StorageClientInterface, subscriptionRepo *paidsubscriptions.SubscriptionsRepo) *ProfileRepo {
 	return &ProfileRepo{
 		orm:              orm,
 		storageRepo:      storageRepo,

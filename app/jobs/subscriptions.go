@@ -4,14 +4,14 @@ import (
 	"context"
 
 	"github.com/hibiken/asynq"
-	"github.com/leomorpho/goship/app/subscriptions"
+	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 )
 
 const TypeDeactivateExpiredSubscriptions = "subscription.deactivate_all_expired"
 
 type (
 	DeactivateExpiredSubscriptionsProcessor struct {
-		subscriptionsRepo *subscriptions.SubscriptionsRepo
+		subscriptionsRepo *paidsubscriptions.SubscriptionsRepo
 	}
 
 	DeactivateExpiredSubscriptionsPayload struct {
@@ -19,7 +19,7 @@ type (
 )
 
 func NewDeactivateExpiredSubscriptionsProcessor(
-	subscriptionsRepo *subscriptions.SubscriptionsRepo,
+	subscriptionsRepo *paidsubscriptions.SubscriptionsRepo,
 ) *DeactivateExpiredSubscriptionsProcessor {
 
 	return &DeactivateExpiredSubscriptionsProcessor{
@@ -40,7 +40,7 @@ const TypeSubscriptionPaymentFailed = "subscription.payment_failed"
 
 type (
 	SubscriptionPaymentFailedProcessor struct {
-		subscriptionsRepo *subscriptions.SubscriptionsRepo
+		subscriptionsRepo *paidsubscriptions.SubscriptionsRepo
 	}
 
 	SubscriptionPaymentFailedPayload struct {
@@ -48,7 +48,7 @@ type (
 )
 
 func NewSubscriptionPaymentFailedProcessor(
-	subscriptionsRepo *subscriptions.SubscriptionsRepo,
+	subscriptionsRepo *paidsubscriptions.SubscriptionsRepo,
 ) *SubscriptionPaymentFailedProcessor {
 
 	return &SubscriptionPaymentFailedProcessor{
@@ -69,7 +69,7 @@ const TypeSubscriptionCreated = "subscription.created"
 
 type (
 	SubscriptionCreatedProcessor struct {
-		subscriptionsRepo *subscriptions.SubscriptionsRepo
+		subscriptionsRepo *paidsubscriptions.SubscriptionsRepo
 	}
 
 	SubscriptionCreatedPayload struct {
@@ -77,7 +77,7 @@ type (
 )
 
 func NewSubscriptionCreatedProcessor(
-	subscriptionsRepo *subscriptions.SubscriptionsRepo,
+	subscriptionsRepo *paidsubscriptions.SubscriptionsRepo,
 ) *SubscriptionCreatedProcessor {
 
 	return &SubscriptionCreatedProcessor{
@@ -98,7 +98,7 @@ const TypeSubscriptionUpdated = "subscription.updated"
 
 type (
 	SubscriptionUpdatedProcessor struct {
-		subscriptionsRepo *subscriptions.SubscriptionsRepo
+		subscriptionsRepo *paidsubscriptions.SubscriptionsRepo
 	}
 
 	SubscriptionUpdatedPayload struct {
@@ -106,7 +106,7 @@ type (
 )
 
 func NewSubscriptionUpdatedProcessor(
-	subscriptionsRepo *subscriptions.SubscriptionsRepo,
+	subscriptionsRepo *paidsubscriptions.SubscriptionsRepo,
 ) *SubscriptionUpdatedProcessor {
 
 	return &SubscriptionUpdatedProcessor{
@@ -127,7 +127,7 @@ const TypeSubscriptionDeleted = "subscription.deleted"
 
 type (
 	SubscriptionDeletedProcessor struct {
-		subscriptionsRepo *subscriptions.SubscriptionsRepo
+		subscriptionsRepo *paidsubscriptions.SubscriptionsRepo
 	}
 
 	SubscriptionDeletedPayload struct {
@@ -135,7 +135,7 @@ type (
 )
 
 func NewSubscriptionDeletedProcessor(
-	subscriptionsRepo *subscriptions.SubscriptionsRepo,
+	subscriptionsRepo *paidsubscriptions.SubscriptionsRepo,
 ) *SubscriptionDeletedProcessor {
 
 	return &SubscriptionDeletedProcessor{

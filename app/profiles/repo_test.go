@@ -12,8 +12,8 @@ import (
 
 	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/jackc/pgx/stdlib"
+	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/app/profiles"
-	"github.com/leomorpho/goship/app/subscriptions"
 	"github.com/leomorpho/goship/db/ent"
 	"github.com/leomorpho/goship/db/ent/profile"
 	"github.com/leomorpho/goship/framework/domain"
@@ -404,7 +404,7 @@ func TestDeleteUserData(t *testing.T) {
 
 	// Create subcription then delete it (mimicking user cancelling before
 	// deleting, this is enforced in the deletion flow).
-	subscriptionsRepo := subscriptions.NewSubscriptionsRepo(client, 5, 5)
+	subscriptionsRepo := paidsubscriptions.NewSubscriptionsRepo(client, 5, 5)
 	err = subscriptionsRepo.CreateSubscription(ctx, nil, profile1.ID)
 	assert.NoError(t, err)
 
