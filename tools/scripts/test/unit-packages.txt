@@ -5,7 +5,7 @@
 ./framework/funcmap
 ./framework/htmx
 ./app/web/middleware
-./framework/repos/msg
+./framework/repos/uxflashmessages
 ./framework/runtimeplan
 ./app/foundation
 ./tools/cli/ship/...

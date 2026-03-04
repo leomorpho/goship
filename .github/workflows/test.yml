@@ -39,6 +39,9 @@ jobs:
       - name: Agent policy check
         run: go run ./tools/cli/ship/cmd/ship agent:check
 
+      - name: Module unit tests
+        run: bash tools/scripts/check-module-tests.sh
+
       - name: Test
         run: go test -p 1 ./...
 

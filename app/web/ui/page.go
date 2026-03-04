@@ -13,7 +13,7 @@ import (
 	"github.com/leomorpho/goship/framework/context"
 	"github.com/leomorpho/goship/framework/domain"
 	"github.com/leomorpho/goship/framework/htmx"
-	"github.com/leomorpho/goship/framework/repos/msg"
+	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
 )
 
 type (
@@ -194,8 +194,8 @@ func NewPage(ctx echo.Context) Page {
 
 // GetMessages gets all flash messages for a given type.
 // This allows for easy access to flash messages from the templates.
-func (p Page) GetMessages(typ msg.Type) []template.HTML {
-	strs := msg.Get(p.Context, typ)
+func (p Page) GetMessages(typ uxflashmessages.Type) []template.HTML {
+	strs := uxflashmessages.Get(p.Context, typ)
 	ret := make([]template.HTML, len(strs))
 	for k, v := range strs {
 		ret[k] = template.HTML(v)

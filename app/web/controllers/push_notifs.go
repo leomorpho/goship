@@ -10,7 +10,7 @@ import (
 	"github.com/leomorpho/goship/db/ent"
 	"github.com/leomorpho/goship/framework/context"
 	"github.com/leomorpho/goship/framework/domain"
-	"github.com/leomorpho/goship/framework/repos/msg"
+	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
 
 	"github.com/leomorpho/goship/app/notifications"
 	"github.com/leomorpho/goship/app/views"
@@ -307,20 +307,20 @@ func (c *outgoingNotifications) DeleteEmailSubscription(ctx echo.Context) error 
 			Msg("failed to delete email notification permission")
 		if ent.IsNotFound(permissionErr) {
 			if notifName != "" {
-				msg.Warning(ctx, fmt.Sprintf("You already unsubscribed email notifications for %s.", notifName))
+				uxflashmessages.Warning(ctx, fmt.Sprintf("You already unsubscribed email notifications for %s.", notifName))
 
 			} else {
-				msg.Warning(ctx, "You already unsubscribed for this email notifications.")
+				uxflashmessages.Warning(ctx, "You already unsubscribed for this email notifications.")
 			}
 		} else {
-			msg.Danger(ctx, "Something went wrong on our end. Feel free to manually unsubscribe below.")
+			uxflashmessages.Danger(ctx, "Something went wrong on our end. Feel free to manually unsubscribe below.")
 		}
 
 		return c.ctr.RenderPage(ctx, *page)
 	}
 
 	if notifName != "" {
-		msg.Success(ctx, fmt.Sprintf("You successfully unsubscribed email notifications for %s.", notifName))
+		uxflashmessages.Success(ctx, fmt.Sprintf("You successfully unsubscribed email notifications for %s.", notifName))
 	}
 
 	return c.ctr.RenderPage(ctx, *page)

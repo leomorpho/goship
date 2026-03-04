@@ -14,22 +14,29 @@ import (
 
 const HOURS_IN_DAY = 24 * time.Hour
 
-type SubscriptionsRepo struct {
+type EntStore struct {
 	orm                            *ent.Client
 	proTrialTimespanInDays         time.Duration
 	paymentFailedGracePeriodInDays time.Duration
 }
 
-func NewSubscriptionsRepo(orm *ent.Client, proTrialTimespanInDays, paymentFailedGracePeriodInDays int) *SubscriptionsRepo {
-	return &SubscriptionsRepo{
+func NewEntStore(orm *ent.Client, proTrialTimespanInDays, paymentFailedGracePeriodInDays int) *EntStore {
+	return &EntStore{
 		orm:                            orm,
 		proTrialTimespanInDays:         time.Duration(proTrialTimespanInDays) * 24 * time.Hour,
 		paymentFailedGracePeriodInDays: time.Duration(paymentFailedGracePeriodInDays) * 24 * time.Hour,
 	}
 }
 
+// SubscriptionsRepo remains as a compatibility alias while the app migrates to Store/Service.
+type SubscriptionsRepo = EntStore
+
+func NewSubscriptionsRepo(orm *ent.Client, proTrialTimespanInDays, paymentFailedGracePeriodInDays int) *SubscriptionsRepo {
+	return NewEntStore(orm, proTrialTimespanInDays, paymentFailedGracePeriodInDays)
+}
+
 // CreateSubscription creates a subscription when a user first onboards. It automatically gives a free trial.
-func (s *SubscriptionsRepo) CreateSubscription(
+func (s *EntStore) CreateSubscription(
 	ctx context.Context, tx *ent.Tx, profileID int,
 ) (err error) {
 	commit := false
@@ -60,7 +67,7 @@ func (s *SubscriptionsRepo) CreateSubscription(
 }
 
 // DeactivateExpiredSubscriptions deactivates all subscriptions that have come to terms.
-func (s *SubscriptionsRepo) DeactivateExpiredSubscriptions(ctx context.Context) error {
+func (s *EntStore) DeactivateExpiredSubscriptions(ctx context.Context) error {
 	return s.orm.MonthlySubscription.
 		Update().
 		Where(
@@ -73,7 +80,7 @@ func (s *SubscriptionsRepo) DeactivateExpiredSubscriptions(ctx context.Context) 
 }
 
 // UpdateToPaidPro idempotently updates a subscription to pro plan.
-func (s *SubscriptionsRepo) UpdateToPaidPro(
+func (s *EntStore) UpdateToPaidPro(
 	ctx context.Context, profileID int,
 ) error {
 	count, err := s.orm.MonthlySubscription.
@@ -117,7 +124,7 @@ func (s *SubscriptionsRepo) UpdateToPaidPro(
 }
 
 // TODO: refactor to return domain.ProductType and not *domain.ProductType
-func (s *SubscriptionsRepo) GetCurrentlyActiveProduct(
+func (s *EntStore) GetCurrentlyActiveProduct(
 	ctx context.Context, profileID int,
 ) (*domain.ProductType, *time.Time, bool, error) {
 	sub, err := s.orm.MonthlySubscription.
@@ -141,7 +148,7 @@ func (s *SubscriptionsRepo) GetCurrentlyActiveProduct(
 }
 
 // Helper function to store the Stripe customer ID in the database
-func (s *SubscriptionsRepo) StoreStripeCustomerID(ctx context.Context, profileID int, stripeCustomerID string) error {
+func (s *EntStore) StoreStripeCustomerID(ctx context.Context, profileID int, stripeCustomerID string) error {
 	// Retrieve the current profile to check the existing Stripe customer ID
 	profile, err := s.orm.Profile.Get(ctx, profileID)
 	if err != nil {
@@ -160,7 +167,7 @@ func (s *SubscriptionsRepo) StoreStripeCustomerID(ctx context.Context, profileID
 }
 
 // Helper function to store the Stripe customer ID in the database
-func (s *SubscriptionsRepo) GetProfileIDFromStripeCustomerID(ctx context.Context, stripeCustomerID string) (int, error) {
+func (s *EntStore) GetProfileIDFromStripeCustomerID(ctx context.Context, stripeCustomerID string) (int, error) {
 	profile, err := s.orm.Profile.Query().
 		Where(
 			profile.StripeIDEQ(stripeCustomerID),
@@ -171,7 +178,7 @@ func (s *SubscriptionsRepo) GetProfileIDFromStripeCustomerID(ctx context.Context
 }
 
 // CancelWithGracePeriod idempotently manages a subscription when a payment fails.
-func (s *SubscriptionsRepo) CancelWithGracePeriod(ctx context.Context, profileID int) error {
+func (s *EntStore) CancelWithGracePeriod(ctx context.Context, profileID int) error {
 	count, err := s.orm.MonthlySubscription.
 		Query().
 		Where(
@@ -216,7 +223,7 @@ func (s *SubscriptionsRepo) CancelWithGracePeriod(ctx context.Context, profileID
 
 // CancelOrRenew idempotently updates the subscription status to cancelled and sets the expiry date.
 // If the expiry date is nil, the subscription is renewed.
-func (s *SubscriptionsRepo) CancelOrRenew(
+func (s *EntStore) CancelOrRenew(
 	ctx context.Context, profileID int, cancelDate *time.Time,
 ) error {
 	if cancelDate == nil {
@@ -260,7 +267,7 @@ func (s *SubscriptionsRepo) CancelOrRenew(
 
 // UpdateToFree idempotently and IMMEDIATELY expires a pro membership. For now, a free subscription is represented by no active pro subscription.
 // Note that this should only be used in controlled areas and CancelWithGracePeriod should be preferred over it for production flows.
-func (s *SubscriptionsRepo) UpdateToFree(
+func (s *EntStore) UpdateToFree(
 	ctx context.Context, profileID int,
 ) error {
 	count, err := s.orm.MonthlySubscription.

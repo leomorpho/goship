@@ -13,7 +13,7 @@ import (
 	"github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/db/ent"
 	"github.com/leomorpho/goship/framework/context"
-	"github.com/leomorpho/goship/framework/repos/msg"
+	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
 	"github.com/rs/zerolog/log"
 )
 
@@ -91,7 +91,7 @@ func LoadValidPasswordToken(authClient *foundation.AuthClient) echo.MiddlewareFu
 				c.Set(context.PasswordTokenKey, token)
 				return next(c)
 			case foundation.InvalidPasswordTokenError:
-				msg.Warning(c, "The link is either invalid or has expired. Please request a new one.")
+				uxflashmessages.Warning(c, "The link is either invalid or has expired. Please request a new one.")
 				// TODO use the const for route name
 				return c.Redirect(http.StatusFound, c.Echo().Reverse(routenames.RouteNameForgotPassword))
 			default:

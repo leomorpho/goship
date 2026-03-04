@@ -9,7 +9,7 @@ import (
 	"github.com/leomorpho/goship/db/ent"
 	"github.com/leomorpho/goship/db/ent/user"
 	"github.com/leomorpho/goship/framework/context"
-	"github.com/leomorpho/goship/framework/repos/msg"
+	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
 
 	"github.com/leomorpho/goship/app/profiles"
 	"github.com/leomorpho/goship/app/views"
@@ -62,7 +62,7 @@ func (c *login) Post(ctx echo.Context) error {
 	authFailed := func() error {
 		// form.Submission.SetFieldError("Email", "")
 		// form.Submission.SetFieldError("Password", "")
-		msg.Danger(ctx, "Invalid credentials. Please try again.")
+		uxflashmessages.Danger(ctx, "Invalid credentials. Please try again.")
 		return c.Get(ctx)
 	}
 
@@ -107,7 +107,7 @@ func (c *login) Post(ctx echo.Context) error {
 		return c.ctr.Fail(err, "unable to log in user")
 	}
 
-	// msg.Success(ctx, fmt.Sprintf("Welcome back, <strong>%s</strong>. You are now logged in.", usr.Name))
+	// uxflashmessages.Success(ctx, fmt.Sprintf("Welcome back, <strong>%s</strong>. You are now logged in.", usr.Name))
 
 	redirect, err := redirectAfterLogin(ctx)
 	if err != nil {

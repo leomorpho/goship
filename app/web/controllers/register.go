@@ -11,7 +11,7 @@ import (
 	"github.com/leomorpho/goship/db/ent"
 	"github.com/leomorpho/goship/framework/context"
 	"github.com/leomorpho/goship/framework/domain"
-	"github.com/leomorpho/goship/framework/repos/msg"
+	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
 
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/app/notifications"
@@ -114,7 +114,7 @@ func (c *register) Post(ctx echo.Context) error {
 	eighteenYearsAgo := time.Now().UTC().AddDate(-18, 0, 0)
 	if birthdate.After(eighteenYearsAgo) {
 		// User is younger than 18
-		msg.Warning(ctx, "You must be 18+ to register.")
+		uxflashmessages.Warning(ctx, "You must be 18+ to register.")
 		return c.Get(ctx) // Re-render the register page with the warning message
 	}
 
@@ -136,7 +136,7 @@ func (c *register) Post(ctx echo.Context) error {
 		tx.Rollback()
 		switch err.(type) {
 		case *ent.ConstraintError:
-			msg.Warning(ctx, "A user with this email address already exists. Please log in.")
+			uxflashmessages.Warning(ctx, "A user with this email address already exists. Please log in.")
 			return c.ctr.Redirect(ctx, routeNames.RouteNameLogin)
 		default:
 			return c.ctr.Fail(err, "unable to create user")
@@ -154,7 +154,7 @@ func (c *register) Post(ctx echo.Context) error {
 	if err != nil {
 		tx.Rollback()
 		ctx.Logger().Errorf("failed to create profile: %v", err)
-		msg.Info(ctx, "unable to create user")
+		uxflashmessages.Info(ctx, "unable to create user")
 		return c.ctr.Redirect(ctx, routenames.RouteNameLogin)
 	}
 
@@ -184,11 +184,11 @@ func (c *register) Post(ctx echo.Context) error {
 	err = c.ctr.Container.Auth.Login(ctx, u.ID)
 	if err != nil {
 		ctx.Logger().Errorf("unable to log in: %v", err)
-		msg.Info(ctx, "Your account has been created.")
+		uxflashmessages.Info(ctx, "Your account has been created.")
 		return c.ctr.Redirect(ctx, routeNames.RouteNameLogin)
 	}
 
-	msg.Success(ctx, "Your account has been created. You are now logged in. 👌")
+	uxflashmessages.Success(ctx, "Your account has been created. You are now logged in. 👌")
 
 	// Send the verification email
 	c.sendVerificationEmail(ctx, u)
@@ -237,5 +237,5 @@ func (c *register) sendVerificationEmail(ctx echo.Context, usr *ent.User) {
 		return
 	}
 
-	msg.Info(ctx, "An email was sent to you to verify your email address.")
+	uxflashmessages.Info(ctx, "An email was sent to you to verify your email address.")
 }

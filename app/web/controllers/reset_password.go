@@ -5,7 +5,7 @@ import (
 	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/db/ent"
 	"github.com/leomorpho/goship/framework/context"
-	"github.com/leomorpho/goship/framework/repos/msg"
+	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
 
 	"github.com/leomorpho/goship/app/views"
 	"github.com/leomorpho/goship/app/views/web/layouts/gen"
@@ -84,6 +84,6 @@ func (c *resetPassword) Post(ctx echo.Context) error {
 		return c.ctr.Fail(err, "unable to delete password tokens")
 	}
 
-	msg.Success(ctx, "Your password has been updated.")
+	uxflashmessages.Success(ctx, "Your password has been updated.")
 	return c.ctr.Redirect(ctx, routeNames.RouteNameLogin)
 }

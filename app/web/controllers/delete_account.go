@@ -7,7 +7,7 @@ import (
 	"github.com/leomorpho/goship/db/ent"
 	"github.com/leomorpho/goship/framework/context"
 	"github.com/leomorpho/goship/framework/domain"
-	"github.com/leomorpho/goship/framework/repos/msg"
+	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
 
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/app/profiles"
@@ -77,7 +77,7 @@ func (c *deleteAccount) DeleteAccountRequest(ctx echo.Context) error {
 	if err := c.ctr.Container.Auth.Logout(ctx); err == nil {
 
 	} else {
-		msg.Danger(ctx, "An error occurred. Please try again.")
+		uxflashmessages.Danger(ctx, "An error occurred. Please try again.")
 	}
 	return c.ctr.Redirect(ctx, routeNames.RouteNameLandingPage)
 }

@@ -7,7 +7,7 @@ import (
 	"github.com/leomorpho/goship/db/ent"
 	"github.com/leomorpho/goship/db/ent/user"
 	"github.com/leomorpho/goship/framework/context"
-	"github.com/leomorpho/goship/framework/repos/msg"
+	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
 )
 
 type verifyEmail struct {
@@ -24,7 +24,7 @@ func (c *verifyEmail) Get(ctx echo.Context) error {
 	token := ctx.Param("token")
 	email, err := c.ctr.Container.Auth.ValidateEmailVerificationToken(token)
 	if err != nil {
-		msg.Warning(ctx, "The link is either invalid or has expired.")
+		uxflashmessages.Warning(ctx, "The link is either invalid or has expired.")
 		return c.ctr.Redirect(ctx, routeNames.RouteNameLandingPage)
 	}
 
@@ -62,7 +62,7 @@ func (c *verifyEmail) Get(ctx echo.Context) error {
 		}
 	}
 
-	msg.Success(ctx, "Your email has been successfully verified.")
+	uxflashmessages.Success(ctx, "Your email has been successfully verified.")
 
 	// If we have a user, they are already logged in and just redirect them to their home feed
 	if u != nil {

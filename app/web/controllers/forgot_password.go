@@ -9,7 +9,7 @@ import (
 	"github.com/leomorpho/goship/db/ent"
 	"github.com/leomorpho/goship/db/ent/user"
 	"github.com/leomorpho/goship/framework/context"
-	"github.com/leomorpho/goship/framework/repos/msg"
+	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
 
 	"github.com/leomorpho/goship/app/views"
 	"github.com/leomorpho/goship/app/views/emails/gen"
@@ -55,7 +55,7 @@ func (c *forgotPassword) Post(ctx echo.Context) error {
 
 	succeed := func() error {
 		ctx.Set(context.FormKey, nil)
-		msg.Success(ctx, "An email was sent to reset your password.")
+		uxflashmessages.Success(ctx, "An email was sent to reset your password.")
 		return c.Get(ctx)
 	}
 

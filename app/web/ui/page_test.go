@@ -7,7 +7,7 @@ import (
 	echomw "github.com/labstack/echo/v4/middleware"
 	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/framework/context"
-	"github.com/leomorpho/goship/framework/repos/msg"
+	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
 	"github.com/leomorpho/goship/framework/tests"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -49,18 +49,18 @@ func TestPage_GetMessages(t *testing.T) {
 	p := ui.NewPage(ctx)
 
 	// Set messages
-	msgTests := make(map[msg.Type][]string)
-	msgTests[msg.TypeWarning] = []string{
+	msgTests := make(map[uxflashmessages.Type][]string)
+	msgTests[uxflashmessages.TypeWarning] = []string{
 		"abc",
 		"def",
 	}
-	msgTests[msg.TypeInfo] = []string{
+	msgTests[uxflashmessages.TypeInfo] = []string{
 		"123",
 		"456",
 	}
 	for typ, values := range msgTests {
 		for _, value := range values {
-			msg.Set(ctx, typ, value)
+			uxflashmessages.Set(ctx, typ, value)
 		}
 	}
 

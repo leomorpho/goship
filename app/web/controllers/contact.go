@@ -5,7 +5,7 @@ import (
 
 	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/framework/context"
-	"github.com/leomorpho/goship/framework/repos/msg"
+	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
 
 	"github.com/leomorpho/goship/app/views"
 	"github.com/leomorpho/goship/app/views/web/layouts/gen"
@@ -33,10 +33,10 @@ func (c *contact) Get(ctx echo.Context) error {
 	if form := ctx.Get(context.FormKey); form != nil {
 		page.Form = form.(*viewmodels.ContactForm)
 	}
-	msg.Success(ctx, "Success!")
-	msg.Warning(ctx, "Warning!")
-	msg.Danger(ctx, "Danger!")
-	msg.Info(ctx, "Info!")
+	uxflashmessages.Success(ctx, "Success!")
+	uxflashmessages.Warning(ctx, "Warning!")
+	uxflashmessages.Danger(ctx, "Danger!")
+	uxflashmessages.Info(ctx, "Info!")
 
 	return c.RenderPage(ctx, page)
 }

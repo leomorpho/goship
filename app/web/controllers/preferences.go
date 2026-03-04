@@ -12,7 +12,7 @@ import (
 	"github.com/leomorpho/goship/db/ent/profile"
 	"github.com/leomorpho/goship/framework/context"
 	"github.com/leomorpho/goship/framework/domain"
-	"github.com/leomorpho/goship/framework/repos/msg"
+	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
 
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/app/notifications"
@@ -284,7 +284,7 @@ func (p *preferences) GetPhoneVerificationComponent(ctx echo.Context) error {
 	_, err := p.smsSenderRepo.CreateConfirmationCode(ctx.Request().Context(), profile.ID, profile.PhoneNumberE164)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to send verification code.")
-		msg.Danger(ctx, "Failed to send verification code 😨")
+		uxflashmessages.Danger(ctx, "Failed to send verification code 😨")
 		return p.ctr.RenderPage(ctx, page)
 	}
 
@@ -311,7 +311,7 @@ func (p *preferences) SubmitPhoneVerificationCode(ctx echo.Context) error {
 
 	if form.VerificationCode == "" {
 		form.Submission.SetFieldError("VerificationCode", "Invalid code")
-		msg.Danger(ctx, "Invalid code. Please try again.")
+		uxflashmessages.Danger(ctx, "Invalid code. Please try again.")
 		return p.GetPhoneVerificationComponent(ctx)
 	}
 
@@ -322,7 +322,7 @@ func (p *preferences) SubmitPhoneVerificationCode(ctx echo.Context) error {
 	if err != nil || !valid {
 
 		form.Submission.SetFieldError("VerificationCode", "Invalid code")
-		msg.Danger(ctx, "Invalid code. Please try again.")
+		uxflashmessages.Danger(ctx, "Invalid code. Please try again.")
 		return p.GetPhoneVerificationComponent(ctx)
 	}
 
@@ -332,7 +332,7 @@ func (p *preferences) SubmitPhoneVerificationCode(ctx echo.Context) error {
 	page.Form = &viewmodels.PhoneNumberVerification{}
 	page.Component = pages.PhoneVerificationField(&page)
 
-	msg.Success(ctx, "Success! Your phone number was confirmed.")
+	uxflashmessages.Success(ctx, "Success! Your phone number was confirmed.")
 
 	return p.GetPhoneVerificationComponent(ctx)
 }

@@ -3,7 +3,7 @@ package controllers
 import (
 	routeNames "github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/app/web/ui"
-	"github.com/leomorpho/goship/framework/repos/msg"
+	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
 
 	"github.com/labstack/echo/v4"
 )
@@ -20,7 +20,7 @@ func (l *logout) Get(c echo.Context) error {
 	if err := l.ctr.Container.Auth.Logout(c); err == nil {
 
 	} else {
-		msg.Danger(c, "An error occurred. Please try again.")
+		uxflashmessages.Danger(c, "An error occurred. Please try again.")
 	}
 	return l.ctr.Redirect(c, routeNames.RouteNameLandingPage)
 }
