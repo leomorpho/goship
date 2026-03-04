@@ -1,0 +1,307 @@
+package generators
+
+import (
+	"bytes"
+	"errors"
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+)
+
+const (
+	scaffoldTestDBURL = "postgres://test-user:test-pass@localhost:5432/test_db?sslmode=disable"
+	scaffoldAtlasDir  = "file://apps/db/migrate/migrations"
+)
+
+func TestParseMakeScaffoldArgs(t *testing.T) {
+	tests := []struct {
+		name    string
+		args    []string
+		wantErr string
+		check   func(t *testing.T, opts ScaffoldMakeOptions)
+	}{
+		{
+			name: "full flags",
+			args: []string{"Post", "title:string", "--api", "--migrate", "--dry-run", "--force", "--views=none", "--auth=auth", "--path=apps/site"},
+			check: func(t *testing.T, opts ScaffoldMakeOptions) {
+				if opts.ModelName != "Post" || len(opts.Fields) != 1 {
+					t.Fatalf("unexpected parsed scaffold opts: %+v", opts)
+				}
+				if !opts.API || !opts.Migrate || !opts.DryRun || !opts.Force {
+					t.Fatalf("missing expected booleans in %+v", opts)
+				}
+			},
+		},
+		{
+			name:    "invalid model name",
+			args:    []string{"post"},
+			wantErr: "invalid model name",
+		},
+		{
+			name:    "invalid auth",
+			args:    []string{"Post", "--auth=private"},
+			wantErr: "invalid --auth value",
+		},
+		{
+			name:    "invalid views",
+			args:    []string{"Post", "--views=react"},
+			wantErr: "invalid --views value",
+		},
+		{
+			name:    "unknown option",
+			args:    []string{"Post", "--wat"},
+			wantErr: "unknown option",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			opts, err := ParseMakeScaffoldArgs(tt.args)
+			if tt.wantErr != "" {
+				if err == nil || !strings.Contains(err.Error(), tt.wantErr) {
+					t.Fatalf("error = %v, want contains %q", err, tt.wantErr)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("parseMakeScaffoldArgs error = %v", err)
+			}
+			if tt.check != nil {
+				tt.check(t, opts)
+			}
+		})
+	}
+}
+
+func TestRunMakeScaffold_DryRun(t *testing.T) {
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	runner := &fakeRunner{}
+	code := RunMakeScaffold([]string{"Post", "title:string", "--dry-run"}, makeScaffoldDeps(out, errOut, runner, scaffoldTestDBURL, nil))
+	if code != 0 {
+		t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
+	}
+	if !strings.Contains(out.String(), "Scaffold plan (dry-run):") {
+		t.Fatalf("missing dry-run plan output:\n%s", out.String())
+	}
+	if !strings.Contains(out.String(), "ship make:model Post") {
+		t.Fatalf("missing model step output:\n%s", out.String())
+	}
+}
+
+func TestRunMakeScaffold_DryRunAPIOmitsResourceStep(t *testing.T) {
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	runner := &fakeRunner{}
+	code := RunMakeScaffold([]string{"Post", "title:string", "--dry-run", "--api"}, makeScaffoldDeps(out, errOut, runner, scaffoldTestDBURL, nil))
+	if code != 0 {
+		t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
+	}
+	if strings.Contains(out.String(), "make:resource") {
+		t.Fatalf("resource step should be omitted in API mode:\n%s", out.String())
+	}
+}
+
+func TestRunMakeScaffold_Integration(t *testing.T) {
+	root := t.TempDir()
+	prevWD, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(prevWD) })
+	if err := os.Chdir(root); err != nil {
+		t.Fatal(err)
+	}
+
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	runner := &fakeRunner{}
+
+	seedScaffoldTargets(t, root)
+
+	code := RunMakeScaffold([]string{"Post", "title:string"}, makeScaffoldDeps(out, errOut, runner, scaffoldTestDBURL, nil))
+	if code != 0 {
+		t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
+	}
+
+	if !testHasFile(filepath.Join(root, "apps", "db", "schema", "post.go")) {
+		t.Fatalf("missing scaffolded model schema")
+	}
+	if !testHasFile(filepath.Join(root, "apps", "site", "web", "controllers", "posts.go")) {
+		t.Fatalf("missing scaffolded controller file")
+	}
+	if !testHasFile(filepath.Join(root, "apps", "site", "web", "controllers", "post.go")) {
+		t.Fatalf("missing scaffolded resource route file")
+	}
+	if !testHasFile(filepath.Join(root, "apps", "site", "views", "web", "pages", "post.templ")) {
+		t.Fatalf("missing scaffolded resource view")
+	}
+}
+
+func TestRunMakeScaffold_IntegrationAPI_NoResourceArtifacts(t *testing.T) {
+	root := t.TempDir()
+	prevWD, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(prevWD) })
+	if err := os.Chdir(root); err != nil {
+		t.Fatal(err)
+	}
+
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	runner := &fakeRunner{}
+	seedScaffoldTargets(t, root)
+
+	code := RunMakeScaffold([]string{"Post", "title:string", "--api"}, makeScaffoldDeps(out, errOut, runner, scaffoldTestDBURL, nil))
+	if code != 0 {
+		t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
+	}
+	if testHasFile(filepath.Join(root, "apps", "site", "web", "controllers", "post.go")) {
+		t.Fatalf("resource route file should not exist in --api mode")
+	}
+	if testHasFile(filepath.Join(root, "apps", "site", "views", "web", "pages", "post.templ")) {
+		t.Fatalf("resource view should not exist in --api mode")
+	}
+}
+
+func TestRunMakeScaffold_IntegrationMigrate_CallsAtlasApply(t *testing.T) {
+	root := t.TempDir()
+	prevWD, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(prevWD) })
+	if err := os.Chdir(root); err != nil {
+		t.Fatal(err)
+	}
+
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	runner := &fakeRunner{}
+	seedScaffoldTargets(t, root)
+
+	code := RunMakeScaffold([]string{"Post", "title:string", "--migrate"}, makeScaffoldDeps(out, errOut, runner, scaffoldTestDBURL, nil))
+	if code != 0 {
+		t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
+	}
+
+	var foundApply bool
+	for _, call := range runner.calls {
+		if call.name == "atlas" && strings.Join(call.args, " ") == "migrate apply --dir "+scaffoldAtlasDir+" --url "+scaffoldTestDBURL {
+			foundApply = true
+			break
+		}
+	}
+	if !foundApply {
+		t.Fatalf("expected atlas migrate apply call, calls=%v", runner.calls)
+	}
+}
+
+func TestRunMakeScaffold_MigrateMissingDBURLFails(t *testing.T) {
+	root := t.TempDir()
+	prevWD, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(prevWD) })
+	if err := os.Chdir(root); err != nil {
+		t.Fatal(err)
+	}
+
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	runner := &fakeRunner{}
+	seedScaffoldTargets(t, root)
+
+	code := RunMakeScaffold([]string{"Post", "title:string", "--migrate"}, makeScaffoldDeps(out, errOut, runner, "", errors.New("missing db url")))
+	if code != 1 {
+		t.Fatalf("exit code = %d, want 1", code)
+	}
+	if !strings.Contains(errOut.String(), "failed to resolve database URL") {
+		t.Fatalf("stderr = %q, want db url failure", errOut.String())
+	}
+}
+
+func makeScaffoldDeps(out, errOut *bytes.Buffer, runner *fakeRunner, dbURL string, dbErr error) ScaffoldDeps {
+	return ScaffoldDeps{
+		Out: out,
+		Err: errOut,
+		ParseDBURL: func() (string, error) {
+			if dbErr != nil {
+				return "", dbErr
+			}
+			return dbURL, nil
+		},
+		RunCmd: func(name string, args ...string) int {
+			return runner.RunCode(name, args...)
+		},
+		RunModel: func(args []string) int {
+			return RunGenerateModel(args, GenerateModelDeps{
+				Out: out,
+				Err: errOut,
+				RunCmd: func(name string, args ...string) int {
+					return runner.RunCode(name, args...)
+				},
+				HasFile:      testHasFile,
+				EntSchemaDir: "apps/db/schema",
+			})
+		},
+		RunDBMake: func(args []string) int {
+			if len(args) != 1 {
+				return 1
+			}
+			return runner.RunCode("atlas", "migrate", "diff", args[0], "--dir", scaffoldAtlasDir, "--to", "ent://apps/db/schema", "--dev-url", "sqlite://file?mode=memory&_fk=1")
+		},
+		RunController: func(args []string) int {
+			return RunMakeController(args, ControllerDeps{
+				Out:                    out,
+				Err:                    errOut,
+				HasFile:                testHasFile,
+				EnsureRouteNamesImport: EnsureRouteNamesImport,
+				WireRouteSnippet:       WireRouteSnippet,
+			})
+		},
+		RunResource: func(args []string) int {
+			return RunGenerateResource(args, out, errOut)
+		},
+		AtlasDir: scaffoldAtlasDir,
+	}
+}
+
+func seedScaffoldTargets(t *testing.T, root string) {
+	t.Helper()
+	routerPath := filepath.Join(root, "apps", "site", "router.go")
+	if err := os.MkdirAll(filepath.Dir(routerPath), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	routerContent := `package goship
+
+import (
+	routeNames "github.com/leomorpho/goship/apps/site/web/routenames"
+	"github.com/leomorpho/goship/apps/site/web/controllers"
+)
+
+func registerPublicRoutes() {
+	// ship:routes:public:start
+	// ship:routes:public:end
+}
+
+func registerAuthRoutes() {
+	// ship:routes:auth:start
+	// ship:routes:auth:end
+}
+`
+	if err := os.WriteFile(routerPath, []byte(routerContent), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	routeNamesPath := filepath.Join(root, "apps", "site", "web", "routenames", "routenames.go")
+	if err := os.MkdirAll(filepath.Dir(routeNamesPath), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(routeNamesPath, []byte("package routenames\n\nconst (\n)\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+}

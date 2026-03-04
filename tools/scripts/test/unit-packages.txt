@@ -8,4 +8,4 @@
 ./framework/repos/msg
 ./framework/runtimeplan
 ./apps/site/foundation
-./tools/cli/ship
+./tools/cli/ship/...

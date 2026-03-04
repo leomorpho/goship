@@ -1,0 +1,180 @@
+package runtime
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"io"
+	"os"
+	"os/exec"
+	"os/signal"
+	"path/filepath"
+	"strings"
+	"sync"
+	"syscall"
+)
+
+type CmdRunner interface {
+	Run(name string, args ...string) (int, error)
+}
+
+type ExecRunner struct{}
+
+func (ExecRunner) Run(name string, args ...string) (int, error) {
+	cmd := exec.Command(name, args...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
+
+	if err := cmd.Run(); err != nil {
+		var exitErr *exec.ExitError
+		if errors.As(err, &exitErr) {
+			return exitErr.ExitCode(), nil
+		}
+		return 1, err
+	}
+	return 0, nil
+}
+
+func RunCommand(r CmdRunner, errOut io.Writer, name string, args ...string) int {
+	code, err := r.Run(name, args...)
+	if err != nil {
+		fmt.Fprintf(errOut, "failed to run command %q: %v\n", append([]string{name}, args...), err)
+		return 1
+	}
+	return code
+}
+
+func InstallAtlasBinary(out io.Writer, errOut io.Writer, atlasGoRunRef string) (string, error) {
+	toolsDir := filepath.Join(".cache", "tools", "bin")
+	if err := os.MkdirAll(toolsDir, 0o755); err != nil {
+		return "", fmt.Errorf("create tools dir: %w", err)
+	}
+
+	absToolsDir, err := filepath.Abs(toolsDir)
+	if err != nil {
+		return "", fmt.Errorf("resolve tools dir: %w", err)
+	}
+
+	cmd := exec.Command("go", "install", atlasGoRunRef)
+	cmd.Stdout = out
+	cmd.Stderr = errOut
+	cmd.Stdin = os.Stdin
+	cmd.Env = append(os.Environ(), "GOBIN="+absToolsDir)
+
+	if err := cmd.Run(); err != nil {
+		return "", fmt.Errorf("go install atlas: %w", err)
+	}
+
+	atlasBinary := filepath.Join(absToolsDir, "atlas")
+	if _, err := os.Stat(atlasBinary); err != nil {
+		return "", fmt.Errorf("atlas binary missing after install at %s: %w", atlasBinary, err)
+	}
+
+	return atlasBinary, nil
+}
+
+type devProcessExit struct {
+	name string
+	code int
+	err  error
+}
+
+func RunDevAll(out io.Writer, errOut io.Writer) int {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	processes := []struct {
+		name string
+		args []string
+	}{
+		{name: "web", args: []string{"run", "./apps/cmd/web"}},
+		{name: "worker", args: []string{"run", "./apps/cmd/worker"}},
+	}
+
+	cmds := make([]*exec.Cmd, 0, len(processes))
+	exitCh := make(chan devProcessExit, len(processes))
+
+	for _, proc := range processes {
+		command := exec.CommandContext(ctx, "go", proc.args...)
+		command.Stdout = newPrefixedWriter(out, proc.name)
+		command.Stderr = newPrefixedWriter(errOut, proc.name)
+		command.Stdin = os.Stdin
+		if err := command.Start(); err != nil {
+			stop()
+			fmt.Fprintf(errOut, "failed to start %s: %v\n", proc.name, err)
+			return 1
+		}
+		cmds = append(cmds, command)
+		go func(name string, started *exec.Cmd) {
+			err := started.Wait()
+			code := 0
+			if err != nil {
+				var exitErr *exec.ExitError
+				if errors.As(err, &exitErr) {
+					code = exitErr.ExitCode()
+				} else {
+					code = 1
+				}
+			}
+			exitCh <- devProcessExit{name: name, code: code, err: err}
+		}(proc.name, command)
+	}
+
+	failed := false
+	failedCode := 1
+	for range processes {
+		exit := <-exitCh
+		if exit.code != 0 {
+			if ctx.Err() != nil {
+				continue
+			}
+			if !failed {
+				failed = true
+				failedCode = exit.code
+				fmt.Fprintf(errOut, "%s exited with code %d\n", exit.name, exit.code)
+				stop()
+				for _, command := range cmds {
+					if command.Process != nil {
+						_ = command.Process.Signal(syscall.SIGTERM)
+					}
+				}
+			}
+		}
+	}
+
+	if failed {
+		return failedCode
+	}
+	if ctx.Err() != nil {
+		return 130
+	}
+	return 0
+}
+
+type prefixedWriter struct {
+	out    io.Writer
+	prefix string
+	mu     sync.Mutex
+}
+
+func newPrefixedWriter(out io.Writer, name string) io.Writer {
+	return &prefixedWriter{out: out, prefix: "[" + name + "] "}
+}
+
+func (w *prefixedWriter) Write(p []byte) (int, error) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+
+	text := string(p)
+	lines := strings.Split(text, "\n")
+	for i, line := range lines {
+		if line == "" && i == len(lines)-1 {
+			continue
+		}
+		if _, err := io.WriteString(w.out, w.prefix+line+"\n"); err != nil {
+			return 0, err
+		}
+	}
+	return len(p), nil
+}
