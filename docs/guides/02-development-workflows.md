@@ -96,3 +96,26 @@ E2E tests:
 - `make e2eui`
 
 Note: current e2e specs are partially stale and should be treated as non-authoritative for GoShip behavior.
+
+## Agent Command Policy
+
+Canonical allowlist:
+
+- `tools/agent-policy/allowed-commands.yaml`
+
+Generated artifacts (for local tool import):
+
+- `tools/agent-policy/generated/codex-prefixes.txt`
+- `tools/agent-policy/generated/claude-prefixes.txt`
+- `tools/agent-policy/generated/gemini-prefixes.txt`
+- `tools/agent-policy/generated/allowed-prefixes.json`
+
+Commands:
+
+- `go run ./tools/cli/ship/cmd/ship agent:setup`
+- `go run ./tools/cli/ship/cmd/ship agent:check`
+
+Guardrails:
+
+- `agent:check` runs in pre-commit and CI.
+- `ship doctor` also validates these artifacts are in sync.

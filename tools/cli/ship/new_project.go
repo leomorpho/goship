@@ -134,6 +134,19 @@ func scaffoldNewProject(opts newProjectOptions) error {
 		filepath.Join(opts.AppPath, "docs", "architecture", "08-cognitive-model.md"):        renderCognitiveModelSkeleton(),
 		filepath.Join(opts.AppPath, "cmd", "web", "main.go"):                                renderWebMain(),
 	}
+	policyYAML := renderScaffoldAgentPolicyYAML()
+	files[filepath.Join(opts.AppPath, agentPolicyFilePath)] = policyYAML
+	policy, err := parseAgentPolicyBytes([]byte(policyYAML))
+	if err != nil {
+		return err
+	}
+	artifacts, err := renderAgentPolicyArtifacts(policy)
+	if err != nil {
+		return err
+	}
+	for rel, content := range artifacts {
+		files[filepath.Join(opts.AppPath, rel)] = string(content)
+	}
 
 	for path, content := range files {
 		if err := writeScaffoldFile(path, content, opts.DryRun, opts.Force); err != nil {
@@ -169,6 +182,15 @@ func renderModulesManifestSkeleton() string {
 	return `# Workspace-level module enablement.
 # Modules apply to the monolith as a whole (not per mini-app).
 modules: []
+`
+}
+
+func renderScaffoldAgentPolicyYAML() string {
+	return `version: 1
+commands:
+  - id: go_test
+    description: Run Go tests.
+    prefix: ["go", "test"]
 `
 }
 

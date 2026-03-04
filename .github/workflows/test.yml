@@ -36,6 +36,9 @@ jobs:
       - name: Doctor
         run: go run ./tools/cli/ship/cmd/ship doctor
 
+      - name: Agent policy check
+        run: go run ./tools/cli/ship/cmd/ship agent:check
+
       - name: Test
         run: go test -p 1 ./...
 

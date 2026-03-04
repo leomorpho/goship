@@ -161,6 +161,12 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			wantOut:  "ship test commands:",
 		},
 		{
+			name:     "agent help",
+			args:     []string{"agent", "--help"},
+			wantCode: 0,
+			wantOut:  "ship agent commands:",
+		},
+		{
 			name:     "db create removed",
 			args:     []string{"db", "create"},
 			wantCode: 1,

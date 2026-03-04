@@ -210,6 +210,7 @@ func runDoctorChecks(root string) []doctorIssue {
 	issues = append(issues, checkGoWorkModules(root)...)
 	issues = append(issues, checkDockerIgnoreCoverage(root)...)
 	issues = append(issues, checkDockerLocalReplaceOrder(root)...)
+	issues = append(issues, checkAgentPolicyArtifacts(root)...)
 
 	return issues
 }
@@ -446,6 +447,8 @@ func checkCLIDocsCoverage(root string) []doctorIssue {
 
 	required := []string{
 		"ship doctor",
+		"ship agent:setup",
+		"ship agent:check",
 		"ship new <app>",
 		"ship upgrade",
 		"ship make:resource",
@@ -649,6 +652,50 @@ func checkDockerLocalReplaceOrder(root string) []doctorIssue {
 				Fix:     "copy local replace paths (or COPY . .) before the first go mod download",
 			})
 		}
+	}
+	return issues
+}
+
+func checkAgentPolicyArtifacts(root string) []doctorIssue {
+	issues := make([]doctorIssue, 0)
+	policyPath := filepath.Join(root, agentPolicyFilePath)
+	if !hasFile(policyPath) {
+		return append(issues, doctorIssue{
+			Code:    "DX017",
+			Message: fmt.Sprintf("missing agent policy file: %s", filepath.ToSlash(agentPolicyFilePath)),
+			Fix:     "add tools/agent-policy/allowed-commands.yaml and run ship agent:setup",
+		})
+	}
+	policy, err := loadAgentPolicy(policyPath)
+	if err != nil {
+		return append(issues, doctorIssue{
+			Code:    "DX017",
+			Message: "invalid agent policy file",
+			Fix:     err.Error(),
+		})
+	}
+	expected, err := renderAgentPolicyArtifacts(policy)
+	if err != nil {
+		return append(issues, doctorIssue{
+			Code:    "DX017",
+			Message: "failed to render agent policy artifacts",
+			Fix:     err.Error(),
+		})
+	}
+	drifted, err := diffAgentPolicyArtifacts(root, expected)
+	if err != nil {
+		return append(issues, doctorIssue{
+			Code:    "DX017",
+			Message: "failed to compare generated agent artifacts",
+			Fix:     err.Error(),
+		})
+	}
+	for _, rel := range drifted {
+		issues = append(issues, doctorIssue{
+			Code:    "DX017",
+			Message: fmt.Sprintf("agent artifact out of sync: %s", rel),
+			Fix:     "run ship agent:setup",
+		})
 	}
 	return issues
 }

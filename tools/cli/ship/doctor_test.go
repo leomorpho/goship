@@ -202,6 +202,16 @@ COPY . .
 		issues := runDoctorChecks(root)
 		mustContainIssueCode(t, issues, "DX016")
 	})
+
+	t.Run("agent policy artifact drift", func(t *testing.T) {
+		root := t.TempDir()
+		writeDoctorFixture(t, root)
+		if err := os.WriteFile(filepath.Join(root, "tools", "agent-policy", "generated", "codex-prefixes.txt"), []byte("stale\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		issues := runDoctorChecks(root)
+		mustContainIssueCode(t, issues, "DX017")
+	})
 }
 
 func TestRunDoctor(t *testing.T) {
@@ -274,6 +284,7 @@ func writeDoctorFixture(t *testing.T, root string) {
 		filepath.Join(root, "infra", "docker"),
 		filepath.Join(root, "modules", "local"),
 		filepath.Join(root, "apps"),
+		filepath.Join(root, "tools", "agent-policy", "generated"),
 	}
 	for _, dir := range dirs {
 		if err := os.MkdirAll(dir, 0o755); err != nil {
@@ -307,6 +318,8 @@ func registerAuthRoutes() {
 			"## Implementation Mapping (Current Repo)",
 			"## Generator test strategy",
 			"ship doctor",
+			"ship agent:setup",
+			"ship agent:check",
 			"ship new <app>",
 			"ship upgrade",
 			"ship make:resource",
@@ -365,6 +378,47 @@ func registerAuthRoutes() {
 			"COPY . .",
 			"WORKDIR /app/apps",
 			"RUN go mod download",
+			"",
+		}, "\n"),
+		filepath.Join(root, "tools", "agent-policy", "allowed-commands.yaml"): strings.Join([]string{
+			"version: 1",
+			"commands:",
+			"  - id: go_test",
+			"    description: Run Go tests.",
+			"    prefix: [\"go\", \"test\"]",
+			"",
+		}, "\n"),
+		filepath.Join(root, "tools", "agent-policy", "generated", "allowed-prefixes.json"): strings.Join([]string{
+			"{",
+			"  \"version\": 1,",
+			"  \"prefixes\": [",
+			"    [",
+			"      \"go\",",
+			"      \"test\"",
+			"    ]",
+			"  ]",
+			"}",
+			"",
+		}, "\n"),
+		filepath.Join(root, "tools", "agent-policy", "generated", "codex-prefixes.txt"):  "go test\n",
+		filepath.Join(root, "tools", "agent-policy", "generated", "claude-prefixes.txt"): "go test\n",
+		filepath.Join(root, "tools", "agent-policy", "generated", "gemini-prefixes.txt"): "go test\n",
+		filepath.Join(root, "tools", "agent-policy", "generated", "INSTALL.md"): strings.Join([]string{
+			"# Agent Command Allowlist",
+			"",
+			"Source of truth: `tools/agent-policy/allowed-commands.yaml`",
+			"",
+			"Generated files in this directory are for local tool import.",
+			"",
+			"## Commands",
+			"",
+			"- `go test` - Run Go tests.",
+			"",
+			"## Setup",
+			"",
+			"1. Run `ship agent:setup` to sync generated artifacts.",
+			"2. Import `codex-prefixes.txt`, `claude-prefixes.txt`, and `gemini-prefixes.txt` into each local tool's command-permission settings.",
+			"3. Run `ship agent:check` in CI/pre-commit to enforce parity.",
 			"",
 		}, "\n"),
 	}

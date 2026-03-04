@@ -102,6 +102,8 @@ func (c CLI) Run(args []string) int {
 		return c.runDoctor(args[1:])
 	case "test":
 		return c.runTest(args[1:])
+	case "agent":
+		return c.runAgent(args[1:])
 	case "upgrade":
 		return c.runUpgrade(args[1:])
 	case "db":
@@ -143,6 +145,8 @@ func (c CLI) runNamespaced(args []string) (int, bool) {
 	switch ns {
 	case "db":
 		return c.runDB(rest), true
+	case "agent":
+		return c.runAgent(rest), true
 	case "infra":
 		return c.runInfra(rest), true
 	case "make":
@@ -883,6 +887,7 @@ func printRootHelp(w io.Writer) {
 	fmt.Fprintln(w, "  ship dev [worker|all] [--worker|--all]")
 	fmt.Fprintln(w, "  ship check")
 	fmt.Fprintln(w, "  ship doctor")
+	fmt.Fprintln(w, "  ship agent:<setup|check>              (or ship agent for help)")
 	fmt.Fprintln(w, "  ship upgrade --to <version> [--dry-run]")
 	fmt.Fprintln(w, "  ship test [--integration]")
 	fmt.Fprintln(w, "  ship db:<create|make|migrate|status|reset|drop|rollback|seed>  (or ship db for help)")
@@ -895,6 +900,7 @@ func printRootHelp(w io.Writer) {
 	fmt.Fprintln(w, "  ship dev")
 	fmt.Fprintln(w, "  ship check")
 	fmt.Fprintln(w, "  ship doctor")
+	fmt.Fprintln(w, "  ship agent:setup")
 	fmt.Fprintln(w, "  ship dev worker")
 	fmt.Fprintln(w, "  ship dev --all")
 	fmt.Fprintln(w, "  ship test --integration")

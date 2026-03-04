@@ -39,6 +39,8 @@ Project lifecycle:
 
 - `ship new <app> [--module <module-path>] [--dry-run] [--force]`
 - `ship doctor`
+- `ship agent:setup`
+- `ship agent:check`
 - `ship upgrade --to <version> [--dry-run]`
 
 Local runtime:
@@ -130,6 +132,8 @@ Safety matrix:
 | `db:create` | safe; supports `--dry-run` | safe; supports `--dry-run` | safe; supports `--dry-run` |
 - `ship templ generate --path app` -> `templ generate -path app`, then move each `*_templ.go` into sibling `gen/` directory
 - `ship new <app>` -> create minimal deterministic project scaffold in a new directory (no network calls)
+- `ship agent:setup` -> generate per-agent allowlist artifacts from `tools/agent-policy/allowed-commands.yaml`
+- `ship agent:check` -> fail if generated artifacts drift from canonical allowlist (for pre-commit/CI parity)
 - `ship make:resource <name>` -> scaffold handler (+ optional templ page), ensure route-name constant, and print route snippet for manual insertion in `apps/site/router.go`
 - `ship make:resource <name> --domain <name>` -> generate domain-aware constructor slot (`domainService any`) and route wiring using `nil` placeholder
 - `ship make:resource <name> --wire` -> also insert snippet behind ship markers in `apps/site/router.go`
@@ -157,6 +161,7 @@ Doctor checks (current):
 - validates `.gitignore` includes root binary artifact ignore entries
 - enforces a line budget for non-generated human-authored `.go` files (target <= 500 lines)
 - validates CLI reference docs include core command tokens (`ship new`, `ship doctor`, `ship make:*`, `ship db:migrate`, `ship test --integration`)
+- validates agent allowlist artifacts are in sync with `tools/agent-policy/allowed-commands.yaml`
 
 Field syntax for `make:model`:
 
