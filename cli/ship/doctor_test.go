@@ -79,6 +79,22 @@ func TestRunDoctorChecks(t *testing.T) {
 		issues := runDoctorChecks(root)
 		mustContainIssueCode(t, issues, "DX009")
 	})
+
+	t.Run("new oversized go file trips line budget", func(t *testing.T) {
+		root := t.TempDir()
+		writeDoctorFixture(t, root)
+		path := filepath.Join(root, "apps", "goship", "web", "ui", "too_big.go")
+		var b strings.Builder
+		b.WriteString("package ui\n")
+		for i := 0; i < 520; i++ {
+			b.WriteString("var _ = 1\n")
+		}
+		if err := os.WriteFile(path, []byte(b.String()), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		issues := runDoctorChecks(root)
+		mustContainIssueCode(t, issues, "DX010")
+	})
 }
 
 func TestRunDoctor(t *testing.T) {

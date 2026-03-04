@@ -19,6 +19,7 @@ Naming normalization from roadmap:
 5. `docs/guides/01-ai-agent-guide.md`
 6. `docs/reference/01-cli.md`
 7. `docs/roadmap/01-framework-plan.md`
+8. `docs/roadmap/02-dx-llm-phases.md`
 
 ## Current Priorities
 

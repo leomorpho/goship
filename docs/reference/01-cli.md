@@ -146,6 +146,9 @@ Doctor checks (current):
 - flags forbidden legacy paths from pre-refactor layout
 - validates router marker pairs used by `--wire` generators
 - validates package naming conventions in `web/ui` and `web/viewmodels`
+- flags unexpected root build artifacts (`web`, `worker`, `seed`, `ship`, `ship-mcp`)
+- validates `.gitignore` includes root binary artifact ignore entries
+- enforces a line budget for non-generated human-authored `.go` files (target <= 500 lines)
 
 Field syntax for `make:model`:
 

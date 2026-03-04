@@ -1,6 +1,7 @@
 package ship
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -180,6 +181,7 @@ func runDoctorChecks(root string) []doctorIssue {
 
 	issues = append(issues, checkPackageNaming(root, filepath.Join("apps", "goship", "web", "ui"), "ui")...)
 	issues = append(issues, checkPackageNaming(root, filepath.Join("apps", "goship", "web", "viewmodels"), "viewmodels")...)
+	issues = append(issues, checkFileLengthBudget(root, 500)...)
 
 	return issues
 }
@@ -257,4 +259,77 @@ func pathExists(path string) bool {
 func isDir(path string) bool {
 	info, err := os.Stat(path)
 	return err == nil && info.IsDir()
+}
+
+func checkFileLengthBudget(root string, maxLines int) []doctorIssue {
+	issues := make([]doctorIssue, 0)
+	allowlist := map[string]struct{}{
+		filepath.ToSlash(filepath.Join("cli", "ship", "cli.go")):                        {},
+		filepath.ToSlash(filepath.Join("cli", "ship", "cli_test.go")):                   {},
+		filepath.ToSlash(filepath.Join("cli", "ship", "generate_resource.go")):          {},
+		filepath.ToSlash(filepath.Join("apps", "goship", "app", "profiles", "repo.go")): {},
+	}
+
+	_ = filepath.WalkDir(root, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return nil
+		}
+		rel, relErr := filepath.Rel(root, path)
+		if relErr != nil {
+			return nil
+		}
+		rel = filepath.ToSlash(rel)
+
+		if d.IsDir() {
+			if rel == ".git" || rel == "node_modules" || rel == ".cache" || rel == "ent" || strings.HasPrefix(rel, "ent/") {
+				return filepath.SkipDir
+			}
+			if strings.HasSuffix(rel, "/gen") {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		if !strings.HasSuffix(rel, ".go") {
+			return nil
+		}
+		if _, ok := allowlist[rel]; ok {
+			return nil
+		}
+		lines, lineErr := countLines(path)
+		if lineErr != nil {
+			issues = append(issues, doctorIssue{
+				Code:    "DX010",
+				Message: fmt.Sprintf("failed counting lines for %s", rel),
+				Fix:     lineErr.Error(),
+			})
+			return nil
+		}
+		if lines > maxLines {
+			issues = append(issues, doctorIssue{
+				Code:    "DX010",
+				Message: fmt.Sprintf("file exceeds line budget (%d > %d): %s", lines, maxLines, rel),
+				Fix:     "split by responsibility to keep files LLM-friendly",
+			})
+		}
+		return nil
+	})
+
+	return issues
+}
+
+func countLines(path string) (int, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return 0, err
+	}
+	defer f.Close()
+	s := bufio.NewScanner(f)
+	lines := 0
+	for s.Scan() {
+		lines++
+	}
+	if err := s.Err(); err != nil {
+		return 0, err
+	}
+	return lines, nil
 }
