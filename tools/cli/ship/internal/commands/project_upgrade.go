@@ -23,7 +23,7 @@ type UpgradeDeps struct {
 func RunUpgrade(args []string, d UpgradeDeps) int {
 	for _, arg := range args {
 		if arg == "-h" || arg == "--help" || arg == "help" {
-			printUpgradeHelp(d.Out)
+			PrintUpgradeHelp(d.Out)
 			return 0
 		}
 	}
@@ -37,7 +37,7 @@ func RunUpgrade(args []string, d UpgradeDeps) int {
 	}
 	if fs.NArg() > 0 {
 		fmt.Fprintf(d.Err, "unexpected upgrade arguments: %v\n", fs.Args())
-		printUpgradeHelp(d.Err)
+		PrintUpgradeHelp(d.Err)
 		return 1
 	}
 	if strings.TrimSpace(*to) == "" {
@@ -108,7 +108,7 @@ func RewriteAtlasVersion(path, target string) (oldVersion string, rewritten stri
 	return old, updated, true, nil
 }
 
-func printUpgradeHelp(w io.Writer) {
+func PrintUpgradeHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship upgrade commands:")
 	fmt.Fprintln(w, "  ship upgrade --to <version> [--dry-run]")
 	fmt.Fprintln(w, "  (currently upgrades atlas pin only; no auto-latest)")

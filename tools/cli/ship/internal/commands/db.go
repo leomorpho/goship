@@ -22,7 +22,7 @@ type DBDeps struct {
 
 func RunDB(args []string, d DBDeps) int {
 	if len(args) == 0 {
-		printHelp(d.Err)
+		PrintDBHelp(d.Err)
 		return 1
 	}
 
@@ -57,11 +57,11 @@ func RunDB(args []string, d DBDeps) int {
 		}
 		return d.RunCmd("go", "run", "./apps/cmd/seed/main.go")
 	case "help", "-h", "--help":
-		printHelp(d.Out)
+		PrintDBHelp(d.Out)
 		return 0
 	default:
 		fmt.Fprintf(d.Err, "unknown db command: %s\n\n", args[0])
-		printHelp(d.Err)
+		PrintDBHelp(d.Err)
 		return 1
 	}
 }
@@ -314,7 +314,7 @@ func printPlan(w io.Writer, action, dbURL string, local bool, steps []string, se
 	}
 }
 
-func printHelp(w io.Writer) {
+func PrintDBHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship db commands:")
 	fmt.Fprintln(w, "  ship db:create [--dry-run]")
 	fmt.Fprintln(w, "  ship db:make <migration_name>")

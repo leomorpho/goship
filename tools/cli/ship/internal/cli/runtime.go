@@ -3,6 +3,7 @@ package ship
 import (
 	"os"
 
+	cmd "github.com/leomorpho/goship/tools/cli/ship/internal/commands"
 	rt "github.com/leomorpho/goship/tools/cli/ship/internal/runtime"
 )
 
@@ -44,4 +45,8 @@ func resolveAtlasDBURL() (string, error) {
 func pathExists(path string) bool {
 	_, err := os.Stat(path)
 	return err == nil
+}
+
+func isLocalDBURL(dbURL string) bool {
+	return cmd.IsLocalDBURL(dbURL)
 }
