@@ -113,16 +113,24 @@ func scaffoldNewProject(opts newProjectOptions) error {
 
 	files := map[string]string{
 		filepath.Join(opts.AppPath, "go.mod"):                                                    renderGoMod(opts),
-		filepath.Join(opts.AppPath, "apps", "goship", "router.go"):                                renderRouterSkeleton(),
-		filepath.Join(opts.AppPath, "apps", "goship", "web", "routenames", "routenames.go"):       renderRouteNamesSkeleton(),
-		filepath.Join(opts.AppPath, "apps", "goship", "db", "schema", "user.go"):                  renderUserSchemaSkeleton(),
-		filepath.Join(opts.AppPath, "apps", "goship", "db", "migrate", "migrations", ".gitkeep"):  "",
-		filepath.Join(opts.AppPath, "apps", "goship", "views", "templates.go"):                    renderTemplatesSkeleton(),
-		filepath.Join(opts.AppPath, "apps", "goship", "web", "controllers", "controllers.go"):     renderControllersSkeleton(),
-		filepath.Join(opts.AppPath, "apps", "goship", "domains", "profiles", "repo.go"):           renderProfilesDomainSkeleton(),
-		filepath.Join(opts.AppPath, "apps", "goship", "domains", "notifications", "notifier.go"):  renderNotificationsDomainSkeleton(),
-		filepath.Join(opts.AppPath, "apps", "goship", "domains", "subscriptions", "repo.go"):      renderSubscriptionsDomainSkeleton(),
-		filepath.Join(opts.AppPath, "apps", "goship", "domains", "emailsubscriptions", "repo.go"): renderEmailSubscriptionsDomainSkeleton(),
+		filepath.Join(opts.AppPath, "apps", "goship", "router.go"):                               renderRouterSkeleton(opts.Module),
+		filepath.Join(opts.AppPath, "apps", "goship", "web", "routenames", "routenames.go"):      renderRouteNamesSkeleton(),
+		filepath.Join(opts.AppPath, "apps", "goship", "db", "schema", "user.go"):                 renderUserSchemaSkeleton(),
+		filepath.Join(opts.AppPath, "apps", "goship", "db", "migrate", "migrations", ".gitkeep"): "",
+		filepath.Join(opts.AppPath, "apps", "goship", "views", "templates.go"):                   renderTemplatesSkeleton(),
+		filepath.Join(opts.AppPath, "apps", "goship", "web", "controllers", "controllers.go"):    renderControllersSkeleton(),
+		filepath.Join(opts.AppPath, "apps", "goship", "web", "middleware", "middleware.go"):      renderMiddlewareSkeleton(),
+		filepath.Join(opts.AppPath, "apps", "goship", "web", "ui", "ui.go"):                      renderUISkeleton(),
+		filepath.Join(opts.AppPath, "apps", "goship", "web", "viewmodels", "viewmodels.go"):      renderViewModelsSkeleton(),
+		filepath.Join(opts.AppPath, "apps", "goship", "jobs", "jobs.go"):                         renderJobsSkeleton(),
+		filepath.Join(opts.AppPath, "apps", "goship", "foundation", "container.go"):              renderContainerSkeleton(),
+		filepath.Join(opts.AppPath, "apps", "goship", "app", "profiles", "repo.go"):              renderProfilesDomainSkeleton(),
+		filepath.Join(opts.AppPath, "apps", "goship", "app", "notifications", "notifier.go"):     renderNotificationsDomainSkeleton(),
+		filepath.Join(opts.AppPath, "apps", "goship", "app", "subscriptions", "repo.go"):         renderSubscriptionsDomainSkeleton(),
+		filepath.Join(opts.AppPath, "apps", "goship", "app", "emailsubscriptions", "repo.go"):    renderEmailSubscriptionsDomainSkeleton(),
+		filepath.Join(opts.AppPath, "docs", "00-index.md"):                                       renderDocsIndexSkeleton(),
+		filepath.Join(opts.AppPath, "docs", "architecture", "01-architecture.md"):                renderArchitectureSkeleton(),
+		filepath.Join(opts.AppPath, "docs", "architecture", "08-cognitive-model.md"):             renderCognitiveModelSkeleton(),
 		filepath.Join(opts.AppPath, "cmd", "web", "main.go"):                                     renderWebMain(),
 	}
 
@@ -156,12 +164,12 @@ require entgo.io/ent v0.14.0
 `, opts.Module)
 }
 
-func renderRouterSkeleton() string {
-	return `package goship
+func renderRouterSkeleton(module string) string {
+	return fmt.Sprintf(`package goship
 
 import (
-	routeNames "github.com/leomorpho/goship/apps/goship/web/routenames"
-	"github.com/leomorpho/goship/apps/goship/web/controllers"
+	routeNames "%s/apps/goship/web/routenames"
+	"%s/apps/goship/web/controllers"
 )
 
 func registerPublicRoutes() {
@@ -175,7 +183,7 @@ func registerAuthRoutes() {
 	// ship:routes:auth:start
 	// ship:routes:auth:end
 }
-`
+`, module, module)
 }
 
 func renderRouteNamesSkeleton() string {
@@ -188,7 +196,7 @@ const (
 }
 
 func renderTemplatesSkeleton() string {
-	return `package templates
+	return `package views
 
 type (
 	Page string
@@ -204,6 +212,33 @@ type landingPage struct{}
 func NewLandingPageRoute() landingPage {
 	return landingPage{}
 }
+`
+}
+
+func renderMiddlewareSkeleton() string {
+	return `package middleware
+`
+}
+
+func renderUISkeleton() string {
+	return `package ui
+`
+}
+
+func renderViewModelsSkeleton() string {
+	return `package viewmodels
+`
+}
+
+func renderJobsSkeleton() string {
+	return `package jobs
+`
+}
+
+func renderContainerSkeleton() string {
+	return `package foundation
+
+type Container struct{}
 `
 }
 
@@ -232,6 +267,27 @@ func renderEmailSubscriptionsDomainSkeleton() string {
 	return `package emailsubscriptions
 
 type Repo struct{}
+`
+}
+
+func renderDocsIndexSkeleton() string {
+	return `# Documentation Index
+
+Generated by ship.
+`
+}
+
+func renderArchitectureSkeleton() string {
+	return `# Architecture
+
+Generated by ship.
+`
+}
+
+func renderCognitiveModelSkeleton() string {
+	return `# Cognitive Model
+
+Generated by ship.
 `
 }
 

@@ -1845,6 +1845,12 @@ Field syntax for `make:model`:
 `apps/goship/router.go` (with route marker pairs for `--wire`)
 `apps/goship/web/routenames/routenames.go`
 `apps/goship/views/templates.go`
+`apps/goship/foundation/container.go`
+`apps/goship/app/*` (domain skeletons)
+`apps/goship/web/{controllers,middleware,ui,viewmodels}`
+`apps/goship/jobs/jobs.go`
+`apps/goship/db/{schema,migrate/migrations}`
+`docs/00-index.md` and baseline architecture docs
 3. Supports `--dry-run` and `--force`.
 
 Generated project workflow:

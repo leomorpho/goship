@@ -59,6 +59,26 @@ func TestRunDoctorChecks(t *testing.T) {
 		issues := runDoctorChecks(root)
 		mustContainIssueCode(t, issues, "DX007")
 	})
+
+	t.Run("root binary artifact present", func(t *testing.T) {
+		root := t.TempDir()
+		writeDoctorFixture(t, root)
+		if err := os.WriteFile(filepath.Join(root, "web"), []byte("binary"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		issues := runDoctorChecks(root)
+		mustContainIssueCode(t, issues, "DX008")
+	})
+
+	t.Run("gitignore missing root artifact entries", func(t *testing.T) {
+		root := t.TempDir()
+		writeDoctorFixture(t, root)
+		if err := os.WriteFile(filepath.Join(root, ".gitignore"), []byte("/web\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		issues := runDoctorChecks(root)
+		mustContainIssueCode(t, issues, "DX009")
+	})
 }
 
 func TestRunDoctor(t *testing.T) {
@@ -145,13 +165,21 @@ func registerAuthRoutes() {
 	// ship:routes:auth:end
 }
 `,
-		filepath.Join(root, "apps", "goship", "foundation", "container.go"):      "package foundation\n",
-		filepath.Join(root, "apps", "goship", "web", "ui", "page.go"):             "package ui\n",
-		filepath.Join(root, "apps", "goship", "web", "viewmodels", "page_data.go"): "package viewmodels\n",
+		filepath.Join(root, "apps", "goship", "foundation", "container.go"):         "package foundation\n",
+		filepath.Join(root, "apps", "goship", "web", "ui", "page.go"):               "package ui\n",
+		filepath.Join(root, "apps", "goship", "web", "viewmodels", "page_data.go"):  "package viewmodels\n",
 		filepath.Join(root, "apps", "goship", "web", "routenames", "routenames.go"): "package routenames\n",
 		filepath.Join(root, "docs", "00-index.md"):                                  "# Index\n",
 		filepath.Join(root, "docs", "architecture", "01-architecture.md"):           "# Architecture\n",
 		filepath.Join(root, "docs", "architecture", "08-cognitive-model.md"):        "# Cognitive Model\n",
+		filepath.Join(root, ".gitignore"): strings.Join([]string{
+			"/web",
+			"/worker",
+			"/seed",
+			"/ship",
+			"/ship-mcp",
+			"",
+		}, "\n"),
 	}
 	for path, content := range files {
 		if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
@@ -169,4 +197,3 @@ func mustContainIssueCode(t *testing.T, issues []doctorIssue, code string) {
 	}
 	t.Fatalf("expected issue code %s, got %+v", code, issues)
 }
-

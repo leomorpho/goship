@@ -41,6 +41,13 @@ func TestNewProjectIntegration_IncludesEntAndSupportsMakeModel(t *testing.T) {
 	if err := os.Chdir(projectRoot); err != nil {
 		t.Fatal(err)
 	}
+
+	out.Reset()
+	errOut.Reset()
+	if code := cli.Run([]string{"doctor"}); code != 0 {
+		t.Fatalf("ship doctor failed on fresh scaffold: code=%d stderr=%s", code, errOut.String())
+	}
+
 	out.Reset()
 	errOut.Reset()
 	runner.calls = nil

@@ -114,6 +114,41 @@ func runDoctorChecks(root string) []doctorIssue {
 		}
 	}
 
+	rootBinaries := []string{"web", "worker", "seed", "ship", "ship-mcp"}
+	for _, name := range rootBinaries {
+		if hasFile(filepath.Join(root, name)) {
+			issues = append(issues, doctorIssue{
+				Code:    "DX008",
+				Message: fmt.Sprintf("root build artifact present: %s", name),
+				Fix:     fmt.Sprintf("remove %s and keep it ignored in .gitignore", name),
+			})
+		}
+	}
+
+	gitignore := filepath.Join(root, ".gitignore")
+	if hasFile(gitignore) {
+		content, err := os.ReadFile(gitignore)
+		if err != nil {
+			issues = append(issues, doctorIssue{
+				Code:    "DX009",
+				Message: "failed to read .gitignore",
+				Fix:     err.Error(),
+			})
+		} else {
+			ignoreText := string(content)
+			required := []string{"/web", "/worker", "/seed", "/ship", "/ship-mcp"}
+			for _, entry := range required {
+				if !strings.Contains(ignoreText, entry) {
+					issues = append(issues, doctorIssue{
+						Code:    "DX009",
+						Message: fmt.Sprintf(".gitignore missing required artifact entry: %s", entry),
+						Fix:     "add required root binary ignore entries to .gitignore",
+					})
+				}
+			}
+		}
+	}
+
 	router := filepath.Join(root, "apps", "goship", "router.go")
 	if hasFile(router) {
 		b, err := os.ReadFile(router)
@@ -223,4 +258,3 @@ func isDir(path string) bool {
 	info, err := os.Stat(path)
 	return err == nil && info.IsDir()
 }
-
