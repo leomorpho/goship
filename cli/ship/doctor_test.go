@@ -140,6 +140,7 @@ func registerAuthRoutes() {
 		content := strings.Join([]string{
 			"ship doctor",
 			"ship new <app>",
+			"ship upgrade",
 			"ship make:resource",
 			"ship make:model",
 			"ship make:controller",
@@ -254,6 +255,7 @@ func registerAuthRoutes() {
 			"## Generator test strategy",
 			"ship doctor",
 			"ship new <app>",
+			"ship upgrade",
 			"ship make:resource",
 			"ship make:model",
 			"ship make:controller",

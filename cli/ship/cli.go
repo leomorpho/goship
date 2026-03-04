@@ -102,6 +102,8 @@ func (c CLI) Run(args []string) int {
 		return c.runDoctor(args[1:])
 	case "test":
 		return c.runTest(args[1:])
+	case "upgrade":
+		return c.runUpgrade(args[1:])
 	case "db":
 		if len(args) == 1 || args[1] == "help" || args[1] == "-h" || args[1] == "--help" {
 			printDBHelp(c.Out)
@@ -879,11 +881,12 @@ func printRootHelp(w io.Writer) {
 	fmt.Fprintln(w, "  ship dev [worker|all] [--worker|--all]")
 	fmt.Fprintln(w, "  ship check")
 	fmt.Fprintln(w, "  ship doctor")
+	fmt.Fprintln(w, "  ship upgrade <templ|atlas> --to <version> [--dry-run]")
 	fmt.Fprintln(w, "  ship test [--integration]")
 	fmt.Fprintln(w, "  ship db:<create|make|migrate|status|reset|drop|rollback|seed>  (or ship db for help)")
 	fmt.Fprintln(w, "  ship infra:<up|down>                  (or ship infra for help)")
 	fmt.Fprintln(w, "  ship templ <generate>")
-	fmt.Fprintln(w, "  ship make:<resource|model>            (or ship make for help)")
+	fmt.Fprintln(w, "  ship make:<scaffold|controller|resource|model>  (or ship make for help)")
 	fmt.Fprintln(w)
 	fmt.Fprintln(w, "Examples:")
 	fmt.Fprintln(w, "  ship new demo")
@@ -893,6 +896,8 @@ func printRootHelp(w io.Writer) {
 	fmt.Fprintln(w, "  ship dev worker")
 	fmt.Fprintln(w, "  ship dev --all")
 	fmt.Fprintln(w, "  ship test --integration")
+	fmt.Fprintln(w, "  ship upgrade templ --to v0.3.1001")
+	fmt.Fprintln(w, "  ship upgrade atlas --to v0.27.1")
 	fmt.Fprintln(w, "  ship db:create")
 	fmt.Fprintln(w, "  ship db:make add_posts")
 	fmt.Fprintln(w, "  ship db:migrate")
@@ -949,6 +954,13 @@ func printDoctorHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship doctor commands:")
 	fmt.Fprintln(w, "  ship doctor")
 	fmt.Fprintln(w, "  (validates canonical app structure and LLM/DX conventions)")
+}
+
+func printUpgradeHelp(w io.Writer) {
+	fmt.Fprintln(w, "ship upgrade commands:")
+	fmt.Fprintln(w, "  ship upgrade templ --to <version> [--dry-run]")
+	fmt.Fprintln(w, "  ship upgrade atlas --to <version> [--dry-run]")
+	fmt.Fprintln(w, "  (explicit pin updates only; no auto-latest)")
 }
 
 func printTemplHelp(w io.Writer) {

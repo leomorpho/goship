@@ -20,7 +20,7 @@ Last updated: 2026-03-04
 5. `P5` `done` - Expand enforceable guardrails in `ship doctor` and quality gates.
 6. `P6` `done` - Strengthen generator deterministic behavior and wire-safety.
 7. `P7` `done` - Add richer docs-to-code sync checks and contributor-facing runbooks.
-8. `P8` `later` - Add project upgrade workflows (`ship upgrade`) after command surfaces stabilize.
+8. `P8` `done` - Add project upgrade workflows (`ship upgrade`) for explicit pin updates.
 
 ## Implemented in this phase stream
 
@@ -81,3 +81,15 @@ Progress note:
 - Added `ship doctor` docs-token coverage checks to ensure core CLI commands remain documented in `docs/reference/01-cli.md`.
 - Added `ship doctor` required-section coverage checks for `docs/reference/01-cli.md`.
 - Replaced `docs/guides/03-how-to-playbook.md` backlog with concrete high-frequency how-to runbooks.
+
+## P8 Scope
+
+1. Implement explicit `ship upgrade` command for pinned tool version updates.
+2. Keep upgrades intentional (`--to <version>`) and auditable (`--dry-run`).
+3. Cover upgrade flows with CLI tests and docs updates.
+
+Progress note:
+
+- Implemented `ship upgrade templ --to <version> [--dry-run]`.
+- Implemented `ship upgrade atlas --to <version> [--dry-run]`.
+- Added tests for rewrite behavior, validation, dry-run, and write paths.

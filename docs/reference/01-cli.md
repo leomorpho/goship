@@ -39,6 +39,7 @@ Project lifecycle:
 
 - `ship new <app> [--module <module-path>] [--dry-run] [--force]`
 - `ship doctor`
+- `ship upgrade <templ|atlas> --to <version> [--dry-run]`
 
 Local runtime:
 
@@ -85,7 +86,7 @@ Command grammar policy:
 1. CLI-managed tools (for example `templ`) must be pinned to project-declared versions.
 2. `ship dev` and `ship test` must never auto-upgrade toolchain versions.
 3. `ship doctor` reports version drift and prints explicit fix commands.
-4. Only `ship upgrade` (future) may intentionally bump pinned versions.
+4. Only `ship upgrade` may intentionally bump pinned versions.
 
 ## Implementation Mapping (Current Repo)
 
@@ -138,6 +139,9 @@ Safety matrix:
 - `ship make:controller <Name> --domain <name>` -> generate domain-aware constructor slot (`domainService any`) and route wiring using `nil` placeholder
 - `ship make:controller <Name> --actions ... --wire` -> wire generated routes into `apps/goship/router.go` markers
 - `ship make:scaffold <Name> ...` -> orchestration command that composes `make:model`, `db:make`, `make:controller --domain <plural_model> --wire`, and optionally `make:resource --domain <plural_model>` / `db:migrate`
+- `ship upgrade templ --to <version>` -> updates `github.com/a-h/templ` pin in root `go.mod`
+- `ship upgrade atlas --to <version>` -> updates `atlasGoRunRef` pin in `cli/ship/cli.go`
+- `ship upgrade ... --dry-run` -> prints planned pin change without writing files
 
 Doctor checks (current):
 
@@ -197,7 +201,7 @@ Generated handler behavior:
 - `--views templ`: generates a controller/page-rendering handler (`controller.NewPage`, layout assignment, `RenderPage`).
 - `--views none`: generates a minimal HTTP string handler for API/prototype paths.
 
-Generator test strategy:
+## Generator test strategy
 
 - Unit + integration tests for `cli/ship` run against temporary fixture projects.
 - Generator tests do not depend on the live repository app tree.
@@ -229,5 +233,4 @@ Rule:
 
 - `ship console`
 - `ship routes`
-- `ship upgrade`
 - advanced generator variants

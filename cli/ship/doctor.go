@@ -388,6 +388,7 @@ func checkCLIDocsCoverage(root string) []doctorIssue {
 	required := []string{
 		"ship doctor",
 		"ship new <app>",
+		"ship upgrade",
 		"ship make:resource",
 		"ship make:model",
 		"ship make:controller",
