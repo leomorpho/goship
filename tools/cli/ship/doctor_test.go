@@ -149,6 +149,9 @@ func registerAuthRoutes() {
 		cliDoc := filepath.Join(root, "docs", "reference", "01-cli.md")
 		content := strings.Join([]string{
 			"ship doctor",
+			"ship agent:setup",
+			"ship agent:check",
+			"ship agent:status",
 			"ship new <app>",
 			"ship upgrade",
 			"ship make:resource",
@@ -320,6 +323,7 @@ func registerAuthRoutes() {
 			"ship doctor",
 			"ship agent:setup",
 			"ship agent:check",
+			"ship agent:status",
 			"ship new <app>",
 			"ship upgrade",
 			"ship make:resource",

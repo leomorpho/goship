@@ -85,6 +85,84 @@ func TestAgentPolicyCheckDetectsDrift(t *testing.T) {
 	}
 }
 
+func TestAgentStatus(t *testing.T) {
+	root := t.TempDir()
+	writeGoModule(t, root)
+	writeAgentPolicyFixture(t, root)
+	if code := runAgentPolicySetup(&bytes.Buffer{}, &bytes.Buffer{}, root); code != 0 {
+		t.Fatalf("setup failed")
+	}
+
+	prevWD, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(prevWD) })
+	if err := os.Chdir(root); err != nil {
+		t.Fatal(err)
+	}
+
+	t.Run("in-sync when config contains all prefixes", func(t *testing.T) {
+		cfg := filepath.Join(root, "codex-local.txt")
+		content := "go test\nship doctor\n"
+		if err := os.WriteFile(cfg, []byte(content), 0o644); err != nil {
+			t.Fatal(err)
+		}
+
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+		cli := CLI{Out: out, Err: errOut}
+		code := cli.Run([]string{"agent:status", "--codex-file", cfg})
+		if code != 0 {
+			t.Fatalf("status code=%d stderr=%s", code, errOut.String())
+		}
+		if !strings.Contains(out.String(), "- codex: in-sync") {
+			t.Fatalf("unexpected status output: %s", out.String())
+		}
+	})
+
+	t.Run("drifted when config has subset", func(t *testing.T) {
+		cfg := filepath.Join(root, "codex-drifted.txt")
+		content := "go test\n"
+		if err := os.WriteFile(cfg, []byte(content), 0o644); err != nil {
+			t.Fatal(err)
+		}
+
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+		cli := CLI{Out: out, Err: errOut}
+		code := cli.Run([]string{"agent:status", "--codex-file", cfg})
+		if code != 0 {
+			t.Fatalf("status code=%d stderr=%s", code, errOut.String())
+		}
+		if !strings.Contains(out.String(), "- codex: drifted") {
+			t.Fatalf("unexpected status output: %s", out.String())
+		}
+	})
+}
+
+func writeAgentPolicyFixture(t *testing.T, root string) {
+	t.Helper()
+	policyPath := filepath.Join(root, "tools", "agent-policy", "allowed-commands.yaml")
+	if err := os.MkdirAll(filepath.Dir(policyPath), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	policy := strings.Join([]string{
+		"version: 1",
+		"commands:",
+		"  - id: go_test",
+		"    description: Run tests.",
+		"    prefix: [\"go\", \"test\"]",
+		"  - id: ship_doctor",
+		"    description: Run doctor.",
+		"    prefix: [\"ship\", \"doctor\"]",
+		"",
+	}, "\n")
+	if err := os.WriteFile(policyPath, []byte(policy), 0o644); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func writeGoModule(t *testing.T, root string) {
 	t.Helper()
 	if err := os.WriteFile(filepath.Join(root, "go.mod"), []byte("module example.com/test\n\ngo 1.25\n"), 0o644); err != nil {

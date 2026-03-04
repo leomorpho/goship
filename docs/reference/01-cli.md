@@ -41,6 +41,7 @@ Project lifecycle:
 - `ship doctor`
 - `ship agent:setup`
 - `ship agent:check`
+- `ship agent:status`
 - `ship upgrade --to <version> [--dry-run]`
 
 Local runtime:
@@ -134,6 +135,7 @@ Safety matrix:
 - `ship new <app>` -> create minimal deterministic project scaffold in a new directory (no network calls)
 - `ship agent:setup` -> generate per-agent allowlist artifacts from `tools/agent-policy/allowed-commands.yaml`
 - `ship agent:check` -> fail if generated artifacts drift from canonical allowlist (for pre-commit/CI parity)
+- `ship agent:status` -> show best-effort local Codex/Claude/Gemini install status vs repo policy
 - `ship make:resource <name>` -> scaffold handler (+ optional templ page), ensure route-name constant, and print route snippet for manual insertion in `apps/site/router.go`
 - `ship make:resource <name> --domain <name>` -> generate domain-aware constructor slot (`domainService any`) and route wiring using `nil` placeholder
 - `ship make:resource <name> --wire` -> also insert snippet behind ship markers in `apps/site/router.go`

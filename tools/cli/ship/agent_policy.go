@@ -42,6 +42,8 @@ func (c CLI) runAgent(args []string) int {
 		return c.runAgentSetup(args[1:])
 	case "check":
 		return c.runAgentCheck(args[1:])
+	case "status":
+		return c.runAgentStatus(args[1:])
 	case "help", "-h", "--help":
 		printAgentHelp(c.Out)
 		return 0
@@ -99,6 +101,82 @@ func (c CLI) runAgentCheck(args []string) int {
 		return 1
 	}
 	return runAgentPolicyCheck(c.Out, c.Err, root)
+}
+
+func (c CLI) runAgentStatus(args []string) int {
+	fs := flag.NewFlagSet("agent:status", flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+	codexFile := fs.String("codex-file", "", "path to local Codex command permission file")
+	claudeFile := fs.String("claude-file", "", "path to local Claude command permission file")
+	geminiFile := fs.String("gemini-file", "", "path to local Gemini command permission file")
+	if err := fs.Parse(args); err != nil {
+		fmt.Fprintf(c.Err, "invalid agent:status arguments: %v\n", err)
+		return 1
+	}
+	if fs.NArg() > 0 {
+		fmt.Fprintf(c.Err, "unexpected agent:status arguments: %v\n", fs.Args())
+		return 1
+	}
+
+	wd, err := os.Getwd()
+	if err != nil {
+		fmt.Fprintf(c.Err, "failed to resolve working directory: %v\n", err)
+		return 1
+	}
+	root, _, err := findGoModule(wd)
+	if err != nil {
+		fmt.Fprintf(c.Err, "failed to resolve project root (go.mod): %v\n", err)
+		return 1
+	}
+	policy, err := loadAgentPolicy(filepath.Join(root, agentPolicyFilePath))
+	if err != nil {
+		fmt.Fprintf(c.Err, "failed to load agent allowlist: %v\n", err)
+		return 1
+	}
+	if code := runAgentPolicyCheck(io.Discard, io.Discard, root); code != 0 {
+		fmt.Fprintln(c.Err, "agent policy artifacts are out of sync; run: ship agent:setup")
+		return 1
+	}
+
+	statuses := []toolStatus{
+		{
+			Name:          "codex",
+			PolicyPath:    filepath.ToSlash(filepath.Join(agentGeneratedDir, "codex-prefixes.txt")),
+			InstalledPath: resolveToolConfigPath(*codexFile, "SHIP_AGENT_CODEX_FILE", defaultCodexPaths()),
+		},
+		{
+			Name:          "claude",
+			PolicyPath:    filepath.ToSlash(filepath.Join(agentGeneratedDir, "claude-prefixes.txt")),
+			InstalledPath: resolveToolConfigPath(*claudeFile, "SHIP_AGENT_CLAUDE_FILE", defaultClaudePaths()),
+		},
+		{
+			Name:          "gemini",
+			PolicyPath:    filepath.ToSlash(filepath.Join(agentGeneratedDir, "gemini-prefixes.txt")),
+			InstalledPath: resolveToolConfigPath(*geminiFile, "SHIP_AGENT_GEMINI_FILE", defaultGeminiPaths()),
+		},
+	}
+
+	policyPrefixes := make([]string, 0, len(policy.Commands))
+	for _, cmd := range policy.Commands {
+		policyPrefixes = append(policyPrefixes, strings.Join(cmd.Prefix, " "))
+	}
+
+	fmt.Fprintf(c.Out, "agent status (policy version=%d, commands=%d)\n", policy.Version, len(policy.Commands))
+	for i := range statuses {
+		st := &statuses[i]
+		report := inspectToolInstall(*st, policyPrefixes)
+		fmt.Fprintf(c.Out, "- %s: %s\n", st.Name, report.State)
+		if report.Path != "" {
+			fmt.Fprintf(c.Out, "  path: %s\n", report.Path)
+		}
+		if report.Matched >= 0 {
+			fmt.Fprintf(c.Out, "  matched: %d/%d\n", report.Matched, len(policyPrefixes))
+		}
+		if report.Note != "" {
+			fmt.Fprintf(c.Out, "  note: %s\n", report.Note)
+		}
+	}
+	return 0
 }
 
 func runAgentPolicySetup(out, errOut io.Writer, root string) int {
@@ -304,5 +382,108 @@ func printAgentHelp(w io.Writer) {
 	fmt.Fprintln(w, "  ship agent:setup")
 	fmt.Fprintln(w, "  ship agent:setup --check")
 	fmt.Fprintln(w, "  ship agent:check")
+	fmt.Fprintln(w, "  ship agent:status [--codex-file <path>] [--claude-file <path>] [--gemini-file <path>]")
 	fmt.Fprintln(w, "  (syncs/checks generated allowlist artifacts for Codex, Claude, and Gemini)")
+}
+
+type toolStatus struct {
+	Name          string
+	PolicyPath    string
+	InstalledPath string
+}
+
+type toolInstallReport struct {
+	State   string
+	Path    string
+	Matched int
+	Note    string
+}
+
+func inspectToolInstall(tool toolStatus, policyPrefixes []string) toolInstallReport {
+	if strings.TrimSpace(tool.InstalledPath) == "" {
+		return toolInstallReport{
+			State:   "not-detected",
+			Matched: -1,
+			Note:    "no local config path detected (set flag or SHIP_AGENT_*_FILE env var)",
+		}
+	}
+	b, err := os.ReadFile(tool.InstalledPath)
+	if err != nil {
+		return toolInstallReport{
+			State:   "not-installed",
+			Path:    tool.InstalledPath,
+			Matched: -1,
+			Note:    "config path not readable",
+		}
+	}
+	content := string(b)
+	matched := 0
+	for _, prefix := range policyPrefixes {
+		if strings.Contains(content, prefix) {
+			matched++
+		}
+	}
+	state := "drifted"
+	if matched == len(policyPrefixes) {
+		state = "in-sync"
+	} else if matched == 0 {
+		state = "not-installed"
+	}
+	return toolInstallReport{
+		State:   state,
+		Path:    tool.InstalledPath,
+		Matched: matched,
+		Note:    "best-effort substring match against local tool config",
+	}
+}
+
+func resolveToolConfigPath(flagValue, envKey string, defaults []string) string {
+	if v := strings.TrimSpace(flagValue); v != "" {
+		return v
+	}
+	if v := strings.TrimSpace(os.Getenv(envKey)); v != "" {
+		return v
+	}
+	for _, p := range defaults {
+		if p == "" {
+			continue
+		}
+		if _, err := os.Stat(p); err == nil {
+			return p
+		}
+	}
+	return ""
+}
+
+func defaultCodexPaths() []string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return nil
+	}
+	return []string{
+		filepath.Join(home, ".codex", "permissions.json"),
+		filepath.Join(home, ".config", "codex", "permissions.json"),
+	}
+}
+
+func defaultClaudePaths() []string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return nil
+	}
+	return []string{
+		filepath.Join(home, ".claude", "permissions.json"),
+		filepath.Join(home, ".config", "claude", "permissions.json"),
+	}
+}
+
+func defaultGeminiPaths() []string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return nil
+	}
+	return []string{
+		filepath.Join(home, ".gemini", "permissions.json"),
+		filepath.Join(home, ".config", "gemini", "permissions.json"),
+	}
 }

@@ -901,6 +901,7 @@ func printRootHelp(w io.Writer) {
 	fmt.Fprintln(w, "  ship check")
 	fmt.Fprintln(w, "  ship doctor")
 	fmt.Fprintln(w, "  ship agent:setup")
+	fmt.Fprintln(w, "  ship agent:status")
 	fmt.Fprintln(w, "  ship dev worker")
 	fmt.Fprintln(w, "  ship dev --all")
 	fmt.Fprintln(w, "  ship test --integration")

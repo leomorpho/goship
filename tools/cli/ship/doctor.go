@@ -449,6 +449,7 @@ func checkCLIDocsCoverage(root string) []doctorIssue {
 		"ship doctor",
 		"ship agent:setup",
 		"ship agent:check",
+		"ship agent:status",
 		"ship new <app>",
 		"ship upgrade",
 		"ship make:resource",
