@@ -325,12 +325,6 @@ func (c CLI) runCheck(args []string) int {
 					return fmt.Errorf("compile check for %s failed with exit code %d", pkg, code)
 				}
 			}
-			if hasFile(filepath.Join("apps", "goship", "web", "routes", "controllers_test.go")) {
-				if code := c.runCmd("go", "test", "-c", "./apps/goship/web/controllers"); code != 0 {
-					return fmt.Errorf("route test compile check failed with exit code %d", code)
-				}
-				_ = os.Remove("controllers.test")
-			}
 			return nil
 		}); err != nil {
 			fmt.Fprintf(c.Err, "ship check failed: %v\n", err)

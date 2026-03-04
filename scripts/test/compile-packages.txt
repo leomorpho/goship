@@ -4,5 +4,6 @@
 ./cmd/worker
 ./cmd/seed
 ./apps/goship/web/ui
+./apps/goship/web/controllers
 ./pkg/runtimeplan
 ./apps/goship/foundation

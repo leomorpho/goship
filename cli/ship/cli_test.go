@@ -572,16 +572,10 @@ func TestRunCheck_UsesProjectPackageLists(t *testing.T) {
 	if err := os.MkdirAll(filepath.Join(root, "scripts", "test"), 0o755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.MkdirAll(filepath.Join(root, "apps", "goship", "web", "routes"), 0o755); err != nil {
-		t.Fatal(err)
-	}
 	if err := os.WriteFile(filepath.Join(root, "scripts", "test", "unit-packages.txt"), []byte("./pkg/a\n#c\n./pkg/b\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(root, "scripts", "test", "compile-packages.txt"), []byte("./app/x\n"), 0o644); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(filepath.Join(root, "apps", "goship", "web", "routes", "controllers_test.go"), []byte("package controllers_test\n"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(root, "scripts", "test", "compile-packages.txt"), []byte("./app/x\n./apps/goship/web/controllers\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -599,7 +593,7 @@ func TestRunCheck_UsesProjectPackageLists(t *testing.T) {
 		{name: "go", args: []string{"test", "./pkg/a"}},
 		{name: "go", args: []string{"test", "./pkg/b"}},
 		{name: "go", args: []string{"test", "-run", "^$", "./app/x"}},
-		{name: "go", args: []string{"test", "-c", "./apps/goship/web/controllers"}},
+		{name: "go", args: []string{"test", "-run", "^$", "./apps/goship/web/controllers"}},
 	}
 	if len(runner.calls) != len(want) {
 		t.Fatalf("calls len=%d want=%d calls=%v", len(runner.calls), len(want), runner.calls)
