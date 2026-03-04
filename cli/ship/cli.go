@@ -881,7 +881,7 @@ func printRootHelp(w io.Writer) {
 	fmt.Fprintln(w, "  ship dev [worker|all] [--worker|--all]")
 	fmt.Fprintln(w, "  ship check")
 	fmt.Fprintln(w, "  ship doctor")
-	fmt.Fprintln(w, "  ship upgrade <templ|atlas> --to <version> [--dry-run]")
+	fmt.Fprintln(w, "  ship upgrade --to <version> [--dry-run]")
 	fmt.Fprintln(w, "  ship test [--integration]")
 	fmt.Fprintln(w, "  ship db:<create|make|migrate|status|reset|drop|rollback|seed>  (or ship db for help)")
 	fmt.Fprintln(w, "  ship infra:<up|down>                  (or ship infra for help)")
@@ -896,8 +896,7 @@ func printRootHelp(w io.Writer) {
 	fmt.Fprintln(w, "  ship dev worker")
 	fmt.Fprintln(w, "  ship dev --all")
 	fmt.Fprintln(w, "  ship test --integration")
-	fmt.Fprintln(w, "  ship upgrade templ --to v0.3.1001")
-	fmt.Fprintln(w, "  ship upgrade atlas --to v0.27.1")
+	fmt.Fprintln(w, "  ship upgrade --to v0.27.1")
 	fmt.Fprintln(w, "  ship db:create")
 	fmt.Fprintln(w, "  ship db:make add_posts")
 	fmt.Fprintln(w, "  ship db:migrate")
@@ -958,9 +957,8 @@ func printDoctorHelp(w io.Writer) {
 
 func printUpgradeHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship upgrade commands:")
-	fmt.Fprintln(w, "  ship upgrade templ --to <version> [--dry-run]")
-	fmt.Fprintln(w, "  ship upgrade atlas --to <version> [--dry-run]")
-	fmt.Fprintln(w, "  (explicit pin updates only; no auto-latest)")
+	fmt.Fprintln(w, "  ship upgrade --to <version> [--dry-run]")
+	fmt.Fprintln(w, "  (currently upgrades atlas pin only; no auto-latest)")
 }
 
 func printTemplHelp(w io.Writer) {

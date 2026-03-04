@@ -90,6 +90,5 @@ Progress note:
 
 Progress note:
 
-- Implemented `ship upgrade templ --to <version> [--dry-run]`.
-- Implemented `ship upgrade atlas --to <version> [--dry-run]`.
+- Implemented `ship upgrade --to <version> [--dry-run]` (Atlas pin only for now).
 - Added tests for rewrite behavior, validation, dry-run, and write paths.

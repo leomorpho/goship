@@ -8,35 +8,6 @@ import (
 	"testing"
 )
 
-func TestRewriteTemplVersion(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "go.mod")
-	input := `module example.com/demo
-
-go 1.25
-
-require (
-	github.com/a-h/templ v0.3.1001
-)
-`
-	if err := os.WriteFile(path, []byte(input), 0o644); err != nil {
-		t.Fatal(err)
-	}
-
-	old, updated, changed, err := rewriteTemplVersion(path, "v0.3.1002")
-	if err != nil {
-		t.Fatalf("rewriteTemplVersion failed: %v", err)
-	}
-	if !changed {
-		t.Fatal("expected changed=true")
-	}
-	if old != "v0.3.1001" {
-		t.Fatalf("old=%q want %q", old, "v0.3.1001")
-	}
-	if !strings.Contains(updated, "github.com/a-h/templ v0.3.1002") {
-		t.Fatalf("updated text missing target version:\n%s", updated)
-	}
-}
-
 func TestRewriteAtlasVersion(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "cli.go")
 	input := `package ship
@@ -69,7 +40,7 @@ func TestRunUpgrade(t *testing.T) {
 		out := &bytes.Buffer{}
 		errOut := &bytes.Buffer{}
 		cli := CLI{Out: out, Err: errOut, Runner: &fakeRunner{}}
-		code := cli.Run([]string{"upgrade", "templ"})
+		code := cli.Run([]string{"upgrade"})
 		if code != 1 {
 			t.Fatalf("code=%d want=1", code)
 		}
@@ -82,7 +53,7 @@ func TestRunUpgrade(t *testing.T) {
 		out := &bytes.Buffer{}
 		errOut := &bytes.Buffer{}
 		cli := CLI{Out: out, Err: errOut, Runner: &fakeRunner{}}
-		code := cli.Run([]string{"upgrade", "templ", "--to", "0.3.1002"})
+		code := cli.Run([]string{"upgrade", "--to", "0.28.0"})
 		if code != 1 {
 			t.Fatalf("code=%d want=1", code)
 		}
@@ -91,13 +62,30 @@ func TestRunUpgrade(t *testing.T) {
 		}
 	})
 
-	t.Run("templ dry run", func(t *testing.T) {
+	t.Run("unexpected positional args", func(t *testing.T) {
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+		cli := CLI{Out: out, Err: errOut, Runner: &fakeRunner{}}
+		code := cli.Run([]string{"upgrade", "atlas", "--to", "v0.28.0"})
+		if code != 1 {
+			t.Fatalf("code=%d want=1", code)
+		}
+		if !strings.Contains(errOut.String(), "unexpected upgrade arguments") {
+			t.Fatalf("stderr=%q", errOut.String())
+		}
+	})
+
+	t.Run("atlas dry run", func(t *testing.T) {
 		root := t.TempDir()
-		if err := os.WriteFile(filepath.Join(root, "go.mod"), []byte(`module example.com/demo
-
-go 1.25
-
-require github.com/a-h/templ v0.3.1001
+		if err := os.WriteFile(filepath.Join(root, "go.mod"), []byte("module example.com/demo\n\ngo 1.25\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		cliPath := filepath.Join(root, "cli", "ship", "cli.go")
+		if err := os.MkdirAll(filepath.Dir(cliPath), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(cliPath, []byte(`package ship
+const atlasGoRunRef = "ariga.io/atlas/cmd/atlas@v0.27.1"
 `), 0o644); err != nil {
 			t.Fatal(err)
 		}
@@ -114,20 +102,20 @@ require github.com/a-h/templ v0.3.1001
 		out := &bytes.Buffer{}
 		errOut := &bytes.Buffer{}
 		cli := CLI{Out: out, Err: errOut, Runner: &fakeRunner{}}
-		code := cli.Run([]string{"upgrade", "templ", "--to", "v0.3.1002", "--dry-run"})
+		code := cli.Run([]string{"upgrade", "--to", "v0.28.0", "--dry-run"})
 		if code != 0 {
 			t.Fatalf("code=%d stderr=%s", code, errOut.String())
 		}
-		if !strings.Contains(out.String(), "dry-run: would update templ") {
+		if !strings.Contains(out.String(), "dry-run: would update atlas") {
 			t.Fatalf("stdout=%q", out.String())
 		}
 
-		b, err := os.ReadFile(filepath.Join(root, "go.mod"))
+		b, err := os.ReadFile(cliPath)
 		if err != nil {
 			t.Fatal(err)
 		}
-		if !strings.Contains(string(b), "v0.3.1001") {
-			t.Fatalf("go.mod should be unchanged in dry-run, got:\n%s", string(b))
+		if !strings.Contains(string(b), "@v0.27.1") {
+			t.Fatalf("cli.go should be unchanged in dry-run, got:\n%s", string(b))
 		}
 	})
 
@@ -158,7 +146,7 @@ const atlasGoRunRef = "ariga.io/atlas/cmd/atlas@v0.27.1"
 		out := &bytes.Buffer{}
 		errOut := &bytes.Buffer{}
 		cli := CLI{Out: out, Err: errOut, Runner: &fakeRunner{}}
-		code := cli.Run([]string{"upgrade", "atlas", "--to", "v0.28.0"})
+		code := cli.Run([]string{"upgrade", "--to", "v0.28.0"})
 		if code != 0 {
 			t.Fatalf("code=%d stderr=%s", code, errOut.String())
 		}

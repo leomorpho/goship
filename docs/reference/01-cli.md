@@ -39,7 +39,7 @@ Project lifecycle:
 
 - `ship new <app> [--module <module-path>] [--dry-run] [--force]`
 - `ship doctor`
-- `ship upgrade <templ|atlas> --to <version> [--dry-run]`
+- `ship upgrade --to <version> [--dry-run]`
 
 Local runtime:
 
@@ -139,9 +139,9 @@ Safety matrix:
 - `ship make:controller <Name> --domain <name>` -> generate domain-aware constructor slot (`domainService any`) and route wiring using `nil` placeholder
 - `ship make:controller <Name> --actions ... --wire` -> wire generated routes into `apps/goship/router.go` markers
 - `ship make:scaffold <Name> ...` -> orchestration command that composes `make:model`, `db:make`, `make:controller --domain <plural_model> --wire`, and optionally `make:resource --domain <plural_model>` / `db:migrate`
-- `ship upgrade templ --to <version>` -> updates `github.com/a-h/templ` pin in root `go.mod`
-- `ship upgrade atlas --to <version>` -> updates `atlasGoRunRef` pin in `cli/ship/cli.go`
-- `ship upgrade ... --dry-run` -> prints planned pin change without writing files
+- `ship upgrade --to <version>` -> updates `atlasGoRunRef` pin in `cli/ship/cli.go`
+- `ship upgrade --dry-run` -> prints planned pin change without writing files
+- current scope: Atlas pin only (expandable later)
 
 Doctor checks (current):
 
