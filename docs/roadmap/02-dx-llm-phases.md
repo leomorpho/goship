@@ -19,7 +19,7 @@ Last updated: 2026-03-04
 4. `P4` `done` - Remove legacy `ship check` route compile special-case; rely on explicit package lists.
 5. `P5` `done` - Expand enforceable guardrails in `ship doctor` and quality gates.
 6. `P6` `done` - Strengthen generator deterministic behavior and wire-safety.
-7. `P7` `in_progress` - Add richer docs-to-code sync checks and contributor-facing runbooks.
+7. `P7` `done` - Add richer docs-to-code sync checks and contributor-facing runbooks.
 8. `P8` `later` - Add project upgrade workflows (`ship upgrade`) after command surfaces stabilize.
 
 ## Implemented in this phase stream
@@ -70,7 +70,7 @@ Progress note:
 - Added integration coverage for multi-run `--wire` stability across resource/controller generators.
 - Added integration guard that duplicate generation attempts fail without mutating router/route-name wiring.
 
-## P7 Scope (Next)
+## P7 Scope
 
 1. Add practical docs coverage checks for core command behavior.
 2. Ensure CLI docs + `LLM.txt` stay aligned by default workflow.
@@ -79,3 +79,5 @@ Progress note:
 Progress note:
 
 - Added `ship doctor` docs-token coverage checks to ensure core CLI commands remain documented in `docs/reference/01-cli.md`.
+- Added `ship doctor` required-section coverage checks for `docs/reference/01-cli.md`.
+- Replaced `docs/guides/03-how-to-playbook.md` backlog with concrete high-frequency how-to runbooks.

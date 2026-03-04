@@ -370,6 +370,21 @@ func checkCLIDocsCoverage(root string) []doctorIssue {
 		})
 	}
 	text := string(b)
+	requiredSections := []string{
+		"## Minimal V1 Command Set",
+		"## Implementation Mapping (Current Repo)",
+		"## Generator test strategy",
+	}
+	for _, section := range requiredSections {
+		if !strings.Contains(text, section) {
+			issues = append(issues, doctorIssue{
+				Code:    "DX012",
+				Message: fmt.Sprintf("cli docs missing required section: %q", section),
+				Fix:     "restore required sections in docs/reference/01-cli.md",
+			})
+		}
+	}
+
 	required := []string{
 		"ship doctor",
 		"ship new <app>",

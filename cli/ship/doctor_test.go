@@ -132,6 +132,28 @@ func registerAuthRoutes() {
 		issues := runDoctorChecks(root)
 		mustContainIssueCode(t, issues, "DX012")
 	})
+
+	t.Run("cli docs missing required section", func(t *testing.T) {
+		root := t.TempDir()
+		writeDoctorFixture(t, root)
+		cliDoc := filepath.Join(root, "docs", "reference", "01-cli.md")
+		content := strings.Join([]string{
+			"ship doctor",
+			"ship new <app>",
+			"ship make:resource",
+			"ship make:model",
+			"ship make:controller",
+			"ship make:scaffold",
+			"ship db:migrate",
+			"ship test --integration",
+			"",
+		}, "\n")
+		if err := os.WriteFile(cliDoc, []byte(content), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		issues := runDoctorChecks(root)
+		mustContainIssueCode(t, issues, "DX012")
+	})
 }
 
 func TestRunDoctor(t *testing.T) {
@@ -227,6 +249,9 @@ func registerAuthRoutes() {
 		filepath.Join(root, "docs", "architecture", "01-architecture.md"):           "# Architecture\n",
 		filepath.Join(root, "docs", "architecture", "08-cognitive-model.md"):        "# Cognitive Model\n",
 		filepath.Join(root, "docs", "reference", "01-cli.md"): strings.Join([]string{
+			"## Minimal V1 Command Set",
+			"## Implementation Mapping (Current Repo)",
+			"## Generator test strategy",
 			"ship doctor",
 			"ship new <app>",
 			"ship make:resource",

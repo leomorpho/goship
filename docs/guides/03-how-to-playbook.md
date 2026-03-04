@@ -1,45 +1,148 @@
-# How-To Playbook (Docs-First)
+# How-To Playbook
 
-This file tracks practical how-to guides we want to provide for GoShip.
+Task-focused guides for common GoShip workflows.
 
-## Objective
+## 1) Add a New Endpoint (Resource + Route + Name)
 
-Create docs quality equal to or better than Pagoda's onboarding experience, with concrete implementation guides for common tasks.
+Goal:
+- add a new public endpoint with controller + route wiring + route-name constant.
 
-## Priority Guides
+Preconditions:
+- run from repo root.
+- `apps/goship/router.go` has ship route markers.
 
-1. Add a new endpoint (route + handler + templ view + tests).
-2. Add a new page with server-rendered UI.
-3. Add a new Ent model and migration flow.
-4. Add a new service/repository with boundaries (app vs framework placement).
-5. Add a background job and wire worker behavior.
-6. Add a module adapter (db/cache/jobs/pubsub/storage) with interface wiring.
-7. Add realtime event flow (publish + subscribe + UI update).
-8. Add authentication-protected endpoint and authorization check.
-9. Add table-driven unit tests for routes/repos/services.
-10. Add integration test (happy path only, Docker-minimal).
+Steps:
+```bash
+go run ./cli/ship/cmd/ship make:resource contact_form --path apps/goship --auth public --views templ --wire
+```
 
-## Guide Template (Use For Every How-To)
+Validation:
+```bash
+go test ./cli/ship -count=1
+go run ./cli/ship/cmd/ship doctor
+```
+- expect `ship doctor: OK`.
 
-1. Goal: one-sentence desired outcome.
-2. Preconditions: files, commands, env vars needed.
-3. Steps: exact edits/commands in order.
-4. Validation: tests/commands and expected output.
-5. Common failures: top 3 mistakes and fixes.
-6. References: links to canonical docs and source files.
+Common failures:
+1. Missing markers in `apps/goship/router.go`: restore marker pairs.
+2. Existing controller file: pick another name or remove conflicting file.
+3. Wrong auth group: use `--auth public|auth`.
 
-## Writing Rules
+## 2) Add a New Ent Model + Migration
 
-1. Prefer copy-pastable commands and exact file paths.
-2. Use current numbered docs paths in all references.
-3. Keep examples aligned with `ship` commands where available.
-4. Every guide must include a test/verification section.
-5. Keep sections short and task-oriented; avoid long conceptual digressions.
+Goal:
+- add a new schema and create/apply migration.
 
-## Execution TODO
+Steps:
+```bash
+go run ./cli/ship/cmd/ship make:model Post title:string published_at:time
+go run ./cli/ship/cmd/ship db:make add_posts
+go run ./cli/ship/cmd/ship db:migrate
+```
 
-- [ ] Draft guide: Add a new endpoint.
-- [ ] Draft guide: Add a new Ent model and migration.
-- [ ] Draft guide: Add a background job.
-- [ ] Draft guide: Add tests (table-driven + integration).
-- [ ] Draft guide: Add a module adapter.
+Validation:
+```bash
+go run ./cli/ship/cmd/ship db:status
+```
+
+Common failures:
+1. Missing Atlas tool: rerun command, `ship` installs pinned atlas automatically.
+2. Embedded DB mode for migrate/rollback: switch to server DB URL for migration commands.
+3. `PAGODA_DATABASE_URL` set: use `DATABASE_URL` only.
+
+## 3) Add a New Controller (No View)
+
+Goal:
+- add a controller with explicit actions and route wiring.
+
+Steps:
+```bash
+go run ./cli/ship/cmd/ship make:controller Posts --actions index,show,create --auth auth --wire
+```
+
+Validation:
+```bash
+go test ./cli/ship -count=1
+go run ./cli/ship/cmd/ship doctor
+```
+- confirm one generated block in `apps/goship/router.go`.
+
+Common failures:
+1. Duplicate controller file: rename or delete existing file.
+2. Missing route markers: restore `ship:routes:*` markers.
+3. Invalid action name: use only `index,show,create,update,destroy`.
+
+## 4) Add a Background Job
+
+Goal:
+- add a jobs processor path and validate worker startup surface.
+
+Steps:
+1. add/update job logic under `apps/goship/jobs`.
+2. wire dependencies via `apps/goship/foundation/container.go` as needed.
+3. run worker locally:
+```bash
+go run ./cmd/worker
+```
+
+Validation:
+```bash
+go test ./apps/goship/jobs ./cmd/worker -count=1
+```
+
+Common failures:
+1. Job depends on uninitialized adapter: check container wiring.
+2. Worker-runtime mismatch with web runtime plan: verify config/process topology.
+3. Missing test seam: extract pure logic into testable functions.
+
+## 5) Add Tests (Unit + Integration)
+
+Goal:
+- keep fast stateless default tests and explicit integration tests.
+
+Steps:
+1. add table-driven unit tests near changed package.
+2. add integration tests in `cli/ship` or affected package with build tag:
+```go
+//go:build integration
+```
+3. run:
+```bash
+go run ./cli/ship/cmd/ship test
+go run ./cli/ship/cmd/ship test --integration
+```
+
+Validation:
+- unit and integration paths pass independently.
+
+Common failures:
+1. Integration tests running in unit path: missing build tag.
+2. Fixture tests touching live repo tree: use temp dirs.
+3. Slow tests in unit path: move external/process tests behind integration tag.
+
+## 6) Add/Swap an Adapter Boundary
+
+Goal:
+- integrate a backend-specific implementation behind core interfaces.
+
+Steps:
+1. confirm interface contract in `pkg/core/interfaces.go`.
+2. implement adapter in `pkg/repos/<area>` or app-scoped package if app-specific.
+3. wire in `apps/goship/foundation`.
+4. validate with:
+```bash
+go run ./cli/ship/cmd/ship doctor
+go test ./... 
+```
+
+Common failures:
+1. App-specific logic placed in framework package.
+2. Missing shutdown/lifecycle handling in container.
+3. Route/controller code directly using backend package instead of interface seam.
+
+## References
+
+- `docs/reference/01-cli.md`
+- `docs/architecture/02-structure-and-boundaries.md`
+- `docs/architecture/08-cognitive-model.md`
+- `docs/roadmap/02-dx-llm-phases.md`
