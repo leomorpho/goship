@@ -3,7 +3,6 @@ package emailsubscriptions
 import (
 	"context"
 
-	modemailsubscriptions "github.com/leomorpho/goship-modules/emailsubscriptions"
 	"github.com/leomorpho/goship/db/ent"
 	"github.com/leomorpho/goship/db/ent/emailsubscription"
 	"github.com/leomorpho/goship/db/ent/emailsubscriptiontype"
@@ -19,7 +18,7 @@ func NewEntStore(orm *ent.Client) *EntStore {
 	return &EntStore{orm: orm}
 }
 
-func (s *EntStore) CreateList(ctx context.Context, emailList modemailsubscriptions.List) error {
+func (s *EntStore) CreateList(ctx context.Context, emailList List) error {
 	_, err := s.orm.EmailSubscriptionType.
 		Create().SetActive(true).SetName(emailsubscriptiontype.Name(emailList)).Save(ctx)
 	if ent.IsConstraintError(err) {
@@ -29,8 +28,8 @@ func (s *EntStore) CreateList(ctx context.Context, emailList modemailsubscriptio
 }
 
 func (s *EntStore) Subscribe(
-	ctx context.Context, email string, emailList modemailsubscriptions.List, latitude, longitude *float64,
-) (*modemailsubscriptions.Subscription, error) {
+	ctx context.Context, email string, emailList List, latitude, longitude *float64,
+) (*Subscription, error) {
 	if (latitude != nil && longitude == nil) || (latitude == nil && longitude != nil) {
 		log.Fatal().Str("error", "both latitude/longitude should either be nil or have a value")
 	}
@@ -45,7 +44,7 @@ func (s *EntStore) Subscribe(
 		return nil, err
 	}
 	if alreadySubscribed {
-		return nil, &modemailsubscriptions.ErrAlreadySubscribed{Err: err, EmailList: string(emailList)}
+		return nil, &ErrAlreadySubscribed{Err: err, EmailList: string(emailList)}
 	}
 
 	subscriptionEmailListObj, err := s.orm.EmailSubscriptionType.
@@ -93,7 +92,7 @@ func (s *EntStore) Subscribe(
 	}
 	_, err = updateQuery.Save(ctx)
 
-	return &modemailsubscriptions.Subscription{
+	return &Subscription{
 		ID:               existingSubscription.ID,
 		Email:            existingSubscription.Email,
 		Verified:         existingSubscription.Verified,
@@ -103,7 +102,7 @@ func (s *EntStore) Subscribe(
 	}, err
 }
 
-func (s *EntStore) Unsubscribe(ctx context.Context, email string, token string, emailList modemailsubscriptions.List) error {
+func (s *EntStore) Unsubscribe(ctx context.Context, email string, token string, emailList List) error {
 	getSubscriptionQuery := s.orm.EmailSubscription.
 		Query().
 		Where(emailsubscription.EmailEQ(email)).
@@ -149,7 +148,7 @@ func (s *EntStore) Confirm(ctx context.Context, code string) error {
 		Where(emailsubscription.ConfirmationCodeEQ(code)).
 		Only(ctx)
 	if err != nil {
-		return modemailsubscriptions.ErrInvalidEmailConfirmationCode
+		return ErrInvalidEmailConfirmationCode
 	}
 	if subscription.Verified {
 		return nil

@@ -1,6 +1,5 @@
 # Packages with infrastructure-heavy tests
 ./app/web/controllers
-./app/emailsubscriptions
 ./modules/emailsubscriptions
 ./app/notifications
 ./app/profiles

@@ -8,14 +8,13 @@ import (
 	"time"
 
 	modemailsubscriptions "github.com/leomorpho/goship-modules/emailsubscriptions"
-	"github.com/leomorpho/goship/db/ent"
-	"github.com/leomorpho/goship/db/ent/user"
-	"github.com/leomorpho/goship/app/emailsubscriptions"
+	"github.com/leomorpho/goship/app/foundation"
 	"github.com/leomorpho/goship/app/notifications"
 	"github.com/leomorpho/goship/app/profiles"
 	"github.com/leomorpho/goship/app/subscriptions"
-	"github.com/leomorpho/goship/app/foundation"
 	"github.com/leomorpho/goship/config"
+	"github.com/leomorpho/goship/db/ent"
+	"github.com/leomorpho/goship/db/ent/user"
 	"github.com/leomorpho/goship/framework/domain"
 	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
 	"github.com/rs/zerolog/log"
@@ -27,7 +26,7 @@ var ErrObjectExists = errors.New("object already exists")
 // RunIdempotentSeeder seeds all regular objects that the app needs to run smoothly
 func RunIdempotentSeeder(cfg *config.Config, client *ent.Client) error {
 	ctx := context.Background()
-	emailSubscriptions := modemailsubscriptions.New(emailsubscriptions.NewEntStore(client))
+	emailSubscriptions := modemailsubscriptions.New(modemailsubscriptions.NewEntStore(client))
 
 	err := emailSubscriptions.CreateList(ctx, modemailsubscriptions.List(domain.EmailNewsletter.Value))
 	if err != nil {

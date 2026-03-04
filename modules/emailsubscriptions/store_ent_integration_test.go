@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/leomorpho/goship-modules/emailsubscriptions"
-	appemailsubscriptions "github.com/leomorpho/goship/app/emailsubscriptions"
 	"github.com/leomorpho/goship/framework/domain"
 	"github.com/leomorpho/goship/framework/tests"
 	"github.com/stretchr/testify/assert"
@@ -17,7 +16,7 @@ func TestEntStoreAdapter(t *testing.T) {
 	defer client.Close()
 
 	service := emailsubscriptions.NewServiceWithVerifier(
-		appemailsubscriptions.NewEntStore(client),
+		emailsubscriptions.NewEntStore(client),
 		func(string) error { return nil },
 	)
 
