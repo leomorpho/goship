@@ -21,7 +21,7 @@ func TestRunDoctorChecks(t *testing.T) {
 	t.Run("missing required directory", func(t *testing.T) {
 		root := t.TempDir()
 		writeDoctorFixture(t, root)
-		if err := os.RemoveAll(filepath.Join(root, "apps", "goship", "jobs")); err != nil {
+		if err := os.RemoveAll(filepath.Join(root, "apps", "site", "jobs")); err != nil {
 			t.Fatal(err)
 		}
 		issues := runDoctorChecks(root)
@@ -31,7 +31,7 @@ func TestRunDoctorChecks(t *testing.T) {
 	t.Run("forbidden legacy path present", func(t *testing.T) {
 		root := t.TempDir()
 		writeDoctorFixture(t, root)
-		if err := os.MkdirAll(filepath.Join(root, "apps", "goship", "domains"), 0o755); err != nil {
+		if err := os.MkdirAll(filepath.Join(root, "apps", "site", "domains"), 0o755); err != nil {
 			t.Fatal(err)
 		}
 		issues := runDoctorChecks(root)
@@ -41,7 +41,7 @@ func TestRunDoctorChecks(t *testing.T) {
 	t.Run("router marker missing", func(t *testing.T) {
 		root := t.TempDir()
 		writeDoctorFixture(t, root)
-		router := filepath.Join(root, "apps", "goship", "router.go")
+		router := filepath.Join(root, "apps", "site", "router.go")
 		if err := os.WriteFile(router, []byte("package goship\n"), 0o644); err != nil {
 			t.Fatal(err)
 		}
@@ -52,7 +52,7 @@ func TestRunDoctorChecks(t *testing.T) {
 	t.Run("router marker order invalid", func(t *testing.T) {
 		root := t.TempDir()
 		writeDoctorFixture(t, root)
-		router := filepath.Join(root, "apps", "goship", "router.go")
+		router := filepath.Join(root, "apps", "site", "router.go")
 		content := `package goship
 
 func registerPublicRoutes() {
@@ -75,7 +75,7 @@ func registerAuthRoutes() {
 	t.Run("package naming mismatch", func(t *testing.T) {
 		root := t.TempDir()
 		writeDoctorFixture(t, root)
-		viewmodels := filepath.Join(root, "apps", "goship", "web", "viewmodels", "user.go")
+		viewmodels := filepath.Join(root, "apps", "site", "web", "viewmodels", "user.go")
 		if err := os.WriteFile(viewmodels, []byte("package types\n"), 0o644); err != nil {
 			t.Fatal(err)
 		}
@@ -106,7 +106,7 @@ func registerAuthRoutes() {
 	t.Run("new oversized go file trips line budget", func(t *testing.T) {
 		root := t.TempDir()
 		writeDoctorFixture(t, root)
-		path := filepath.Join(root, "apps", "goship", "web", "ui", "too_big.go")
+		path := filepath.Join(root, "apps", "site", "web", "ui", "too_big.go")
 		var b strings.Builder
 		b.WriteString("package ui\n")
 		for i := 0; i < 520; i++ {
@@ -211,15 +211,15 @@ func writeDoctorFixture(t *testing.T, root string) {
 	t.Helper()
 
 	dirs := []string{
-		filepath.Join(root, "apps", "goship", "app"),
-		filepath.Join(root, "apps", "goship", "foundation"),
-		filepath.Join(root, "apps", "goship", "web", "controllers"),
-		filepath.Join(root, "apps", "goship", "web", "middleware"),
-		filepath.Join(root, "apps", "goship", "web", "ui"),
-		filepath.Join(root, "apps", "goship", "web", "viewmodels"),
-		filepath.Join(root, "apps", "goship", "web", "routenames"),
-		filepath.Join(root, "apps", "goship", "jobs"),
-		filepath.Join(root, "apps", "goship", "views"),
+		filepath.Join(root, "apps", "site", "app"),
+		filepath.Join(root, "apps", "site", "foundation"),
+		filepath.Join(root, "apps", "site", "web", "controllers"),
+		filepath.Join(root, "apps", "site", "web", "middleware"),
+		filepath.Join(root, "apps", "site", "web", "ui"),
+		filepath.Join(root, "apps", "site", "web", "viewmodels"),
+		filepath.Join(root, "apps", "site", "web", "routenames"),
+		filepath.Join(root, "apps", "site", "jobs"),
+		filepath.Join(root, "apps", "site", "views"),
 		filepath.Join(root, "apps", "db", "schema"),
 		filepath.Join(root, "apps", "db", "migrate", "migrations"),
 		filepath.Join(root, "config"),
@@ -233,7 +233,7 @@ func writeDoctorFixture(t *testing.T, root string) {
 	}
 
 	files := map[string]string{
-		filepath.Join(root, "apps", "goship", "router.go"): `package goship
+		filepath.Join(root, "apps", "site", "router.go"): `package goship
 
 func registerPublicRoutes() {
 	// ship:routes:public:start
@@ -245,14 +245,14 @@ func registerAuthRoutes() {
 	// ship:routes:auth:end
 }
 `,
-		filepath.Join(root, "apps", "goship", "foundation", "container.go"):         "package foundation\n",
-		filepath.Join(root, "apps", "goship", "web", "ui", "page.go"):               "package ui\n",
-		filepath.Join(root, "apps", "goship", "web", "viewmodels", "page_data.go"):  "package viewmodels\n",
-		filepath.Join(root, "apps", "goship", "web", "routenames", "routenames.go"): "package routenames\n",
-		filepath.Join(root, "config", "modules.yaml"):                               "modules: []\n",
-		filepath.Join(root, "docs", "00-index.md"):                                  "# Index\n",
-		filepath.Join(root, "docs", "architecture", "01-architecture.md"):           "# Architecture\n",
-		filepath.Join(root, "docs", "architecture", "08-cognitive-model.md"):        "# Cognitive Model\n",
+		filepath.Join(root, "apps", "site", "foundation", "container.go"):         "package foundation\n",
+		filepath.Join(root, "apps", "site", "web", "ui", "page.go"):               "package ui\n",
+		filepath.Join(root, "apps", "site", "web", "viewmodels", "page_data.go"):  "package viewmodels\n",
+		filepath.Join(root, "apps", "site", "web", "routenames", "routenames.go"): "package routenames\n",
+		filepath.Join(root, "config", "modules.yaml"):                             "modules: []\n",
+		filepath.Join(root, "docs", "00-index.md"):                                "# Index\n",
+		filepath.Join(root, "docs", "architecture", "01-architecture.md"):         "# Architecture\n",
+		filepath.Join(root, "docs", "architecture", "08-cognitive-model.md"):      "# Cognitive Model\n",
 		filepath.Join(root, "docs", "reference", "01-cli.md"): strings.Join([]string{
 			"## Minimal V1 Command Set",
 			"## Implementation Mapping (Current Repo)",

@@ -1,5 +1,5 @@
 # Development Workflows
-<!-- FRONTEND_SYNC: Landing capability explorer in apps/goship/views/web/pages/landing_page.templ links here for Database and Migrations and Testing. Keep both landing copy and this doc aligned. -->
+<!-- FRONTEND_SYNC: Landing capability explorer in apps/site/views/web/pages/landing_page.templ links here for Database and Migrations and Testing. Keep both landing copy and this doc aligned. -->
 
 ## Local Startup
 
@@ -40,7 +40,7 @@ JS build:
 
 CSS build:
 
-- Tailwind CLI to `apps/goship/static/styles_bundle.css`
+- Tailwind CLI to `apps/site/static/styles_bundle.css`
 
 Templ generation:
 

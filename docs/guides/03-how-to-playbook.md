@@ -9,11 +9,11 @@ Goal:
 
 Preconditions:
 - run from repo root.
-- `apps/goship/router.go` has ship route markers.
+- `apps/site/router.go` has ship route markers.
 
 Steps:
 ```bash
-go run ./cli/ship/cmd/ship make:resource contact_form --path apps/goship --auth public --views templ --wire
+go run ./cli/ship/cmd/ship make:resource contact_form --path apps/site --auth public --views templ --wire
 ```
 
 Validation:
@@ -24,7 +24,7 @@ go run ./cli/ship/cmd/ship doctor
 - expect `ship doctor: OK`.
 
 Common failures:
-1. Missing markers in `apps/goship/router.go`: restore marker pairs.
+1. Missing markers in `apps/site/router.go`: restore marker pairs.
 2. Existing controller file: pick another name or remove conflicting file.
 3. Wrong auth group: use `--auth public|auth`.
 
@@ -65,7 +65,7 @@ Validation:
 go test ./cli/ship -count=1
 go run ./cli/ship/cmd/ship doctor
 ```
-- confirm one generated block in `apps/goship/router.go`.
+- confirm one generated block in `apps/site/router.go`.
 
 Common failures:
 1. Duplicate controller file: rename or delete existing file.
@@ -78,8 +78,8 @@ Goal:
 - add a jobs processor path and validate worker startup surface.
 
 Steps:
-1. add/update job logic under `apps/goship/jobs`.
-2. wire dependencies via `apps/goship/foundation/container.go` as needed.
+1. add/update job logic under `apps/site/jobs`.
+2. wire dependencies via `apps/site/foundation/container.go` as needed.
 3. run worker locally:
 ```bash
 go run ./cmd/worker
@@ -87,7 +87,7 @@ go run ./cmd/worker
 
 Validation:
 ```bash
-go test ./apps/goship/jobs ./cmd/worker -count=1
+go test ./apps/site/jobs ./cmd/worker -count=1
 ```
 
 Common failures:
@@ -128,7 +128,7 @@ Goal:
 Steps:
 1. confirm interface contract in `pkg/core/interfaces.go`.
 2. implement adapter in `pkg/repos/<area>` or app-scoped package if app-specific.
-3. wire in `apps/goship/foundation`.
+3. wire in `apps/site/foundation`.
 4. validate with:
 ```bash
 go run ./cli/ship/cmd/ship doctor

@@ -5,12 +5,12 @@ This guide is for code agents making changes in this repository.
 ## Start Here
 
 1. Read `docs/architecture/03-project-scope-analysis.md` and `docs/architecture/06-known-gaps-and-risks.md`.
-2. Inspect route wiring in `apps/goship/router.go` before editing handlers.
-3. Inspect `apps/goship/foundation/container.go` before assuming a dependency is initialized.
+2. Inspect route wiring in `apps/site/router.go` before editing handlers.
+3. Inspect `apps/site/foundation/container.go` before assuming a dependency is initialized.
 
 ## Architectural Conventions
 
-- HTTP handlers live in `apps/goship/web/controllers`.
+- HTTP handlers live in `apps/site/web/controllers`.
 - Domain logic should prefer repository packages (`pkg/repos/...`) over route-level DB logic.
 - Rendering is typically done via `controller.Page` + templ components.
 - Enums/constants are centralized in `pkg/domain`.
@@ -25,7 +25,7 @@ This guide is for code agents making changes in this repository.
 
 2. Check for related tests:
 - `rg "func Test" pkg/...`
-- route tests in `apps/goship/web/controllers/*_test.go`
+- route tests in `apps/site/web/controllers/*_test.go`
 
 3. Implement minimal, local change first.
 4. Run targeted tests, then broader tests if needed.
@@ -41,13 +41,13 @@ Runtime bootstrap:
 
 Dependency wiring:
 
-- `apps/goship/foundation/container.go`
-- `apps/goship/foundation/auth.go`
-- `apps/goship/foundation/tasks.go`
+- `apps/site/foundation/container.go`
+- `apps/site/foundation/auth.go`
+- `apps/site/foundation/tasks.go`
 
 Routing and middleware:
 
-- `apps/goship/router.go`
+- `apps/site/router.go`
 - `pkg/middleware/*.go`
 
 Data and domain:
@@ -58,8 +58,8 @@ Data and domain:
 
 UI and rendering:
 
-- `apps/goship/web/ui/*.go`
-- `apps/goship/views/**/*.templ`
+- `apps/site/web/ui/*.go`
+- `apps/site/views/**/*.templ`
 - `javascript/**/*`
 
 ## Common Pitfalls

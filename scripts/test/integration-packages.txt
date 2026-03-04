@@ -1,10 +1,10 @@
 # Packages with infrastructure-heavy tests
-./apps/goship/web/controllers
-./apps/goship/app/emailsubscriptions
+./apps/site/web/controllers
+./apps/site/app/emailsubscriptions
 ./pkg/modules/emailsubscriptions
-./apps/goship/app/notifications
-./apps/goship/app/profiles
-./apps/goship/app/subscriptions
+./apps/site/app/notifications
+./apps/site/app/profiles
+./apps/site/app/subscriptions
 ./seeder
-./apps/goship/foundation
+./apps/site/foundation
 ./cli/ship

@@ -18,7 +18,7 @@ func TestParseMakeScaffoldArgs(t *testing.T) {
 	}{
 		{
 			name: "full flags",
-			args: []string{"Post", "title:string", "--api", "--migrate", "--dry-run", "--force", "--views=none", "--auth=auth", "--path=apps/goship"},
+			args: []string{"Post", "title:string", "--api", "--migrate", "--dry-run", "--force", "--views=none", "--auth=auth", "--path=apps/site"},
 			check: func(t *testing.T, opts scaffoldMakeOptions) {
 				if opts.ModelName != "Post" || len(opts.Fields) != 1 {
 					t.Fatalf("unexpected parsed scaffold opts: %+v", opts)
@@ -130,13 +130,13 @@ func TestRunMakeScaffold_Integration(t *testing.T) {
 	if !hasFile(filepath.Join(root, "apps", "db", "schema", "post.go")) {
 		t.Fatalf("missing scaffolded model schema")
 	}
-	if !hasFile(filepath.Join(root, "apps", "goship", "web", "controllers", "posts.go")) {
+	if !hasFile(filepath.Join(root, "apps", "site", "web", "controllers", "posts.go")) {
 		t.Fatalf("missing scaffolded controller file")
 	}
-	if !hasFile(filepath.Join(root, "apps", "goship", "web", "controllers", "post.go")) {
+	if !hasFile(filepath.Join(root, "apps", "site", "web", "controllers", "post.go")) {
 		t.Fatalf("missing scaffolded resource route file")
 	}
-	if !hasFile(filepath.Join(root, "apps", "goship", "views", "web", "pages", "post.templ")) {
+	if !hasFile(filepath.Join(root, "apps", "site", "views", "web", "pages", "post.templ")) {
 		t.Fatalf("missing scaffolded resource view")
 	}
 }
@@ -161,10 +161,10 @@ func TestRunMakeScaffold_IntegrationAPI_NoResourceArtifacts(t *testing.T) {
 	if code != 0 {
 		t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
 	}
-	if hasFile(filepath.Join(root, "apps", "goship", "web", "controllers", "post.go")) {
+	if hasFile(filepath.Join(root, "apps", "site", "web", "controllers", "post.go")) {
 		t.Fatalf("resource route file should not exist in --api mode")
 	}
-	if hasFile(filepath.Join(root, "apps", "goship", "views", "web", "pages", "post.templ")) {
+	if hasFile(filepath.Join(root, "apps", "site", "views", "web", "pages", "post.templ")) {
 		t.Fatalf("resource view should not exist in --api mode")
 	}
 }
@@ -244,15 +244,15 @@ func TestRunMakeScaffold_MigrateMissingDBURLFails(t *testing.T) {
 
 func seedScaffoldTargets(t *testing.T, root string) {
 	t.Helper()
-	routerPath := filepath.Join(root, "apps", "goship", "router.go")
+	routerPath := filepath.Join(root, "apps", "site", "router.go")
 	if err := os.MkdirAll(filepath.Dir(routerPath), 0o755); err != nil {
 		t.Fatal(err)
 	}
 	routerContent := `package goship
 
 import (
-	routeNames "github.com/leomorpho/goship/apps/goship/web/routenames"
-	"github.com/leomorpho/goship/apps/goship/web/controllers"
+	routeNames "github.com/leomorpho/goship/apps/site/web/routenames"
+	"github.com/leomorpho/goship/apps/site/web/controllers"
 )
 
 func registerPublicRoutes() {
@@ -268,7 +268,7 @@ func registerAuthRoutes() {
 	if err := os.WriteFile(routerPath, []byte(routerContent), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	routeNamesPath := filepath.Join(root, "apps", "goship", "web", "routenames", "routenames.go")
+	routeNamesPath := filepath.Join(root, "apps", "site", "web", "routenames", "routenames.go")
 	if err := os.MkdirAll(filepath.Dir(routeNamesPath), 0o755); err != nil {
 		t.Fatal(err)
 	}

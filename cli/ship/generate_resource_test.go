@@ -64,7 +64,7 @@ func TestNormalizeResourceName(t *testing.T) {
 
 func TestGenerateResourceScaffold(t *testing.T) {
 	root := t.TempDir()
-	basePath := filepath.Join(root, "apps", "goship")
+	basePath := filepath.Join(root, "apps", "site")
 
 	result, err := generateResourceScaffold(resourceGenerateOptions{
 		Name:  "contact_form",
@@ -96,7 +96,7 @@ func TestGenerateResourceScaffold(t *testing.T) {
 	if !strings.Contains(handlerText, "return r.ctr.RenderPage(ctx, page)") {
 		t.Fatalf("expected templ handler to render page, got:\n%s", handlerText)
 	}
-	if !strings.Contains(handlerText, `github.com/leomorpho/goship/apps/goship/views/web/pages/gen`) {
+	if !strings.Contains(handlerText, `github.com/leomorpho/goship/apps/site/views/web/pages/gen`) {
 		t.Fatalf("expected templ handler to import pages/gen, got:\n%s", handlerText)
 	}
 	viewContent, err := os.ReadFile(viewPath)
@@ -116,7 +116,7 @@ func TestGenerateResourceScaffold(t *testing.T) {
 
 func TestGenerateResourceScaffold_NoneViews(t *testing.T) {
 	root := t.TempDir()
-	basePath := filepath.Join(root, "apps", "goship")
+	basePath := filepath.Join(root, "apps", "site")
 
 	result, err := generateResourceScaffold(resourceGenerateOptions{
 		Name:  "inbox",
@@ -138,7 +138,7 @@ func TestGenerateResourceScaffold_NoneViews(t *testing.T) {
 
 func TestGenerateResourceScaffold_WithDomain(t *testing.T) {
 	root := t.TempDir()
-	basePath := filepath.Join(root, "apps", "goship")
+	basePath := filepath.Join(root, "apps", "site")
 
 	result, err := generateResourceScaffold(resourceGenerateOptions{
 		Name:   "inbox",
@@ -170,7 +170,7 @@ func TestGenerateResourceScaffold_WithDomain(t *testing.T) {
 
 func TestGenerateResourceScaffold_Validation(t *testing.T) {
 	root := t.TempDir()
-	basePath := filepath.Join(root, "apps", "goship")
+	basePath := filepath.Join(root, "apps", "site")
 
 	tests := []resourceGenerateOptions{
 		{Name: "x", Path: basePath, Auth: "private", Views: "templ"},
@@ -187,7 +187,7 @@ func TestGenerateResourceScaffold_Validation(t *testing.T) {
 
 func TestGenerateResourceScaffold_RefuseOverwrite(t *testing.T) {
 	root := t.TempDir()
-	basePath := filepath.Join(root, "apps", "goship")
+	basePath := filepath.Join(root, "apps", "site")
 
 	_, err := generateResourceScaffold(resourceGenerateOptions{
 		Name:  "contact",
@@ -321,7 +321,7 @@ import (
 	if err != nil {
 		t.Fatal(err)
 	}
-	if strings.Count(string(content), `routeNames "github.com/leomorpho/goship/apps/goship/web/routenames"`) != 1 {
+	if strings.Count(string(content), `routeNames "github.com/leomorpho/goship/apps/site/web/routenames"`) != 1 {
 		t.Fatalf("expected single routeNames import insertion, got:\n%s", string(content))
 	}
 }
@@ -337,14 +337,14 @@ func TestRunGenerateResourceDryRun(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	routerPath := filepath.Join(root, "apps", "goship", "router.go")
+	routerPath := filepath.Join(root, "apps", "site", "router.go")
 	if err := os.MkdirAll(filepath.Dir(routerPath), 0o755); err != nil {
 		t.Fatal(err)
 	}
 	routerContent := `package goship
 
 import (
-	routeNames "github.com/leomorpho/goship/apps/goship/web/routenames"
+	routeNames "github.com/leomorpho/goship/apps/site/web/routenames"
 )
 
 func registerPublicRoutes() {
@@ -356,7 +356,7 @@ func registerPublicRoutes() {
 		t.Fatal(err)
 	}
 
-	routeNamesPath := filepath.Join(root, "apps", "goship", "web", "routenames", "routenames.go")
+	routeNamesPath := filepath.Join(root, "apps", "site", "web", "routenames", "routenames.go")
 	if err := os.MkdirAll(filepath.Dir(routeNamesPath), 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -367,7 +367,7 @@ func registerPublicRoutes() {
 	out := &bytes.Buffer{}
 	errOut := &bytes.Buffer{}
 	cli := CLI{Out: out, Err: errOut, Runner: &fakeRunner{}}
-	code := cli.Run([]string{"make:resource", "inbox", "--path", "apps/goship", "--wire", "--dry-run", "--views", "none"})
+	code := cli.Run([]string{"make:resource", "inbox", "--path", "apps/site", "--wire", "--dry-run", "--views", "none"})
 	if code != 0 {
 		t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
 	}
@@ -375,7 +375,7 @@ func registerPublicRoutes() {
 		t.Fatalf("expected dry-run message, stdout=%s", out.String())
 	}
 
-	handlerPath := filepath.Join(root, "apps", "goship", "web", "controllers", "inbox.go")
+	handlerPath := filepath.Join(root, "apps", "site", "web", "controllers", "inbox.go")
 	if _, err := os.Stat(handlerPath); !os.IsNotExist(err) {
 		t.Fatalf("expected no handler file to be written in dry-run mode")
 	}
@@ -392,7 +392,7 @@ func TestRunGenerateResourceWireWritesExpected(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	routerPath := filepath.Join(root, "apps", "goship", "router.go")
+	routerPath := filepath.Join(root, "apps", "site", "router.go")
 	if err := os.MkdirAll(filepath.Dir(routerPath), 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -400,8 +400,8 @@ func TestRunGenerateResourceWireWritesExpected(t *testing.T) {
 
 import (
 	"fmt"
-	routeNames "github.com/leomorpho/goship/apps/goship/web/routenames"
-	"github.com/leomorpho/goship/apps/goship/web/controllers"
+	routeNames "github.com/leomorpho/goship/apps/site/web/routenames"
+	"github.com/leomorpho/goship/apps/site/web/controllers"
 )
 
 func registerPublicRoutes() {
@@ -413,7 +413,7 @@ func registerPublicRoutes() {
 		t.Fatal(err)
 	}
 
-	routeNamesPath := filepath.Join(root, "apps", "goship", "web", "routenames", "routenames.go")
+	routeNamesPath := filepath.Join(root, "apps", "site", "web", "routenames", "routenames.go")
 	if err := os.MkdirAll(filepath.Dir(routeNamesPath), 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -424,12 +424,12 @@ func registerPublicRoutes() {
 	out := &bytes.Buffer{}
 	errOut := &bytes.Buffer{}
 	cli := CLI{Out: out, Err: errOut, Runner: &fakeRunner{}}
-	code := cli.Run([]string{"make:resource", "inbox", "--path", "apps/goship", "--wire", "--views", "none"})
+	code := cli.Run([]string{"make:resource", "inbox", "--path", "apps/site", "--wire", "--views", "none"})
 	if code != 0 {
 		t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
 	}
 
-	handlerPath := filepath.Join(root, "apps", "goship", "web", "controllers", "inbox.go")
+	handlerPath := filepath.Join(root, "apps", "site", "web", "controllers", "inbox.go")
 	if _, err := os.Stat(handlerPath); err != nil {
 		t.Fatalf("expected handler file: %v", err)
 	}

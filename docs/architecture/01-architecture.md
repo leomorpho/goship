@@ -1,18 +1,18 @@
 # Architecture
-<!-- FRONTEND_SYNC: Landing capability explorer in apps/goship/views/web/pages/landing_page.templ links here for Validation and Forms, Jobs and Scheduling, and Events and Realtime. Keep both landing copy and this doc aligned. -->
+<!-- FRONTEND_SYNC: Landing capability explorer in apps/site/views/web/pages/landing_page.templ links here for Validation and Forms, Jobs and Scheduling, and Events and Realtime. Keep both landing copy and this doc aligned. -->
 
 ## High-Level Layout
 
 The application follows a layered structure:
 
 - `cmd/*`: process entrypoints (`web`, `worker`, `seed`)
-- `apps/goship/foundation`: app composition container and app-bound infrastructure adapters
-- `apps/goship/web/controllers`: HTTP handlers
-- `apps/goship/web/wiring.go`: HTTP stack wiring (middleware/static/deps)
+- `apps/site/foundation`: app composition container and app-bound infrastructure adapters
+- `apps/site/web/controllers`: HTTP handlers
+- `apps/site/web/wiring.go`: HTTP stack wiring (middleware/static/deps)
 - `pkg/middleware`: auth/session/cache/onboarding/request middleware
 - `pkg/repos`: data access and external service adapters
-- `apps/goship/web/ui`: rendering, page object, redirect helpers
-- `apps/goship/views`: Templ source files (`.templ`) and generated Go (`gen/*_templ.go`)
+- `apps/site/web/ui`: rendering, page object, redirect helpers
+- `apps/site/views`: Templ source files (`.templ`) and generated Go (`gen/*_templ.go`)
 - `ent`: schema + generated ORM
 - `pkg/tasks`: Asynq task processors
 
@@ -32,7 +32,7 @@ The application follows a layered structure:
 
 ## Container Composition
 
-`apps/goship/foundation/container.go` is the core app composition root.
+`apps/site/foundation/container.go` is the core app composition root.
 
 Currently initialized in `NewContainer()`:
 
@@ -55,7 +55,7 @@ This mismatch affects parts of the runtime that assume those dependencies exist.
 
 ## HTTP Middleware Stack
 
-Primary middleware set in `apps/goship/web/wiring.go` includes:
+Primary middleware set in `apps/site/web/wiring.go` includes:
 
 - Trailing slash normalization
 - Panic recovery
@@ -80,11 +80,11 @@ Additional gatekeepers:
 
 The UI is server-rendered using Templ components.
 
-- Base page abstraction: `apps/goship/web/ui/page.go`
-- Render orchestration: `apps/goship/web/ui/controller.go`
-- Layout wrappers (source): `apps/goship/views/web/layouts/*.templ`
-- Page components (source): `apps/goship/views/web/pages/*.templ`
-- Generated packages: `apps/goship/views/**/gen/*_templ.go`
+- Base page abstraction: `apps/site/web/ui/page.go`
+- Render orchestration: `apps/site/web/ui/controller.go`
+- Layout wrappers (source): `apps/site/views/web/layouts/*.templ`
+- Page components (source): `apps/site/views/web/pages/*.templ`
+- Generated packages: `apps/site/views/**/gen/*_templ.go`
 
 HTMX behavior is integrated in the page object (`Page.HTMX`) and controller render logic.
 
@@ -101,14 +101,14 @@ HTMX behavior is integrated in the page object (`Page.HTMX`) and controller rend
   - persistent DB notifications
   - pub/sub events for SSE
   - push channels (PWA + FCM)
-- SSE endpoint (`apps/goship/web/controllers/realtime.go`) is registered conditionally based on runtime plan web features (notifier + pubsub dependency availability).
+- SSE endpoint (`apps/site/web/controllers/realtime.go`) is registered conditionally based on runtime plan web features (notifier + pubsub dependency availability).
 
 ## Frontend Asset Architecture
 
 - `build.mjs` bundles Svelte entrypoints under `javascript/svelte/*.js`
 - Also bundles vanilla JS from `javascript/vanilla/main.js`
-- Outputs static bundles and meta files in `apps/goship/static/`
-- Tailwind build pipeline outputs `apps/goship/static/styles_bundle.css`
+- Outputs static bundles and meta files in `apps/site/static/`
+- Tailwind build pipeline outputs `apps/site/static/styles_bundle.css`
 
 ## Deployment/Operations Shape
 

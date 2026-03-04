@@ -6,12 +6,12 @@ import (
 	"strings"
 
 	"github.com/hibiken/asynq"
-	"github.com/leomorpho/goship/apps/goship"
-	"github.com/leomorpho/goship/apps/goship/foundation"
-	"github.com/leomorpho/goship/apps/goship/app/notifications"
-	"github.com/leomorpho/goship/apps/goship/app/profiles"
-	"github.com/leomorpho/goship/apps/goship/app/subscriptions"
-	"github.com/leomorpho/goship/apps/goship/jobs"
+	"github.com/leomorpho/goship/apps/site"
+	"github.com/leomorpho/goship/apps/site/app/notifications"
+	"github.com/leomorpho/goship/apps/site/app/profiles"
+	"github.com/leomorpho/goship/apps/site/app/subscriptions"
+	"github.com/leomorpho/goship/apps/site/foundation"
+	"github.com/leomorpho/goship/apps/site/jobs"
 	storagerepo "github.com/leomorpho/goship/pkg/repos/storage"
 )
 

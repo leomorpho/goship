@@ -324,9 +324,9 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 		},
 		{
 			name:      "templ generate single file",
-			args:      []string{"templ", "generate", "--file", "apps/goship/views/web/pages/home.templ"},
+			args:      []string{"templ", "generate", "--file", "apps/site/views/web/pages/home.templ"},
 			wantCode:  0,
-			wantCalls: []fakeCall{{name: "templ", args: []string{"generate", "-f", "apps/goship/views/web/pages/home.templ"}}},
+			wantCalls: []fakeCall{{name: "templ", args: []string{"generate", "-f", "apps/site/views/web/pages/home.templ"}}},
 		},
 		{
 			name:     "templ generate invalid flag",
@@ -575,7 +575,7 @@ func TestRunCheck_UsesProjectPackageLists(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(root, "scripts", "test", "unit-packages.txt"), []byte("./pkg/a\n#c\n./pkg/b\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(root, "scripts", "test", "compile-packages.txt"), []byte("./app/x\n./apps/goship/web/controllers\n"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(root, "scripts", "test", "compile-packages.txt"), []byte("./app/x\n./apps/site/web/controllers\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -593,7 +593,7 @@ func TestRunCheck_UsesProjectPackageLists(t *testing.T) {
 		{name: "go", args: []string{"test", "./pkg/a"}},
 		{name: "go", args: []string{"test", "./pkg/b"}},
 		{name: "go", args: []string{"test", "-run", "^$", "./app/x"}},
-		{name: "go", args: []string{"test", "-run", "^$", "./apps/goship/web/controllers"}},
+		{name: "go", args: []string{"test", "-run", "^$", "./apps/site/web/controllers"}},
 	}
 	if len(runner.calls) != len(want) {
 		t.Fatalf("calls len=%d want=%d calls=%v", len(runner.calls), len(want), runner.calls)

@@ -50,21 +50,21 @@ func TestScaffoldNewProject(t *testing.T) {
 	checkFiles := []string{
 		filepath.Join(opts.AppPath, "go.mod"),
 		filepath.Join(opts.AppPath, "config", "modules.yaml"),
-		filepath.Join(opts.AppPath, "apps", "goship", "router.go"),
+		filepath.Join(opts.AppPath, "apps", "site", "router.go"),
 		filepath.Join(opts.AppPath, "apps", "db", "schema", "user.go"),
 		filepath.Join(opts.AppPath, "apps", "db", "migrate", "migrations", ".gitkeep"),
-		filepath.Join(opts.AppPath, "apps", "goship", "web", "routenames", "routenames.go"),
-		filepath.Join(opts.AppPath, "apps", "goship", "views", "templates.go"),
-		filepath.Join(opts.AppPath, "apps", "goship", "web", "controllers", "controllers.go"),
-		filepath.Join(opts.AppPath, "apps", "goship", "web", "middleware", "middleware.go"),
-		filepath.Join(opts.AppPath, "apps", "goship", "web", "ui", "ui.go"),
-		filepath.Join(opts.AppPath, "apps", "goship", "web", "viewmodels", "viewmodels.go"),
-		filepath.Join(opts.AppPath, "apps", "goship", "jobs", "jobs.go"),
-		filepath.Join(opts.AppPath, "apps", "goship", "foundation", "container.go"),
-		filepath.Join(opts.AppPath, "apps", "goship", "app", "profiles", "repo.go"),
-		filepath.Join(opts.AppPath, "apps", "goship", "app", "notifications", "notifier.go"),
-		filepath.Join(opts.AppPath, "apps", "goship", "app", "subscriptions", "repo.go"),
-		filepath.Join(opts.AppPath, "apps", "goship", "app", "emailsubscriptions", "repo.go"),
+		filepath.Join(opts.AppPath, "apps", "site", "web", "routenames", "routenames.go"),
+		filepath.Join(opts.AppPath, "apps", "site", "views", "templates.go"),
+		filepath.Join(opts.AppPath, "apps", "site", "web", "controllers", "controllers.go"),
+		filepath.Join(opts.AppPath, "apps", "site", "web", "middleware", "middleware.go"),
+		filepath.Join(opts.AppPath, "apps", "site", "web", "ui", "ui.go"),
+		filepath.Join(opts.AppPath, "apps", "site", "web", "viewmodels", "viewmodels.go"),
+		filepath.Join(opts.AppPath, "apps", "site", "jobs", "jobs.go"),
+		filepath.Join(opts.AppPath, "apps", "site", "foundation", "container.go"),
+		filepath.Join(opts.AppPath, "apps", "site", "app", "profiles", "repo.go"),
+		filepath.Join(opts.AppPath, "apps", "site", "app", "notifications", "notifier.go"),
+		filepath.Join(opts.AppPath, "apps", "site", "app", "subscriptions", "repo.go"),
+		filepath.Join(opts.AppPath, "apps", "site", "app", "emailsubscriptions", "repo.go"),
 		filepath.Join(opts.AppPath, "docs", "00-index.md"),
 		filepath.Join(opts.AppPath, "docs", "architecture", "01-architecture.md"),
 		filepath.Join(opts.AppPath, "docs", "architecture", "08-cognitive-model.md"),
@@ -76,7 +76,7 @@ func TestScaffoldNewProject(t *testing.T) {
 		}
 	}
 
-	routerBytes, err := os.ReadFile(filepath.Join(opts.AppPath, "apps", "goship", "router.go"))
+	routerBytes, err := os.ReadFile(filepath.Join(opts.AppPath, "apps", "site", "router.go"))
 	if err != nil {
 		t.Fatal(err)
 	}

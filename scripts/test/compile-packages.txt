@@ -1,9 +1,9 @@
 # Compile-only package set (no Docker, no runtime network binds)
-./apps/goship
+./apps/site
 ./cmd/web
 ./cmd/worker
 ./cmd/seed
-./apps/goship/web/ui
-./apps/goship/web/controllers
+./apps/site/web/ui
+./apps/site/web/controllers
 ./pkg/runtimeplan
-./apps/goship/foundation
+./apps/site/foundation

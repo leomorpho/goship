@@ -90,12 +90,12 @@ func (c CLI) runMakeScaffold(args []string) int {
 
 func parseMakeScaffoldArgs(args []string) (scaffoldMakeOptions, error) {
 	opts := scaffoldMakeOptions{
-		Path:  "apps/goship",
+		Path:  "apps/site",
 		Views: "templ",
 		Auth:  "public",
 	}
 	if len(args) == 0 {
-		return opts, errors.New("usage: ship make:scaffold <Name> [fields...] [--path apps/goship] [--views templ|none] [--auth public|auth] [--api] [--migrate] [--dry-run] [--force]")
+		return opts, errors.New("usage: ship make:scaffold <Name> [fields...] [--path apps/site] [--views templ|none] [--auth public|auth] [--api] [--migrate] [--dry-run] [--force]")
 	}
 	opts.ModelName = strings.TrimSpace(args[0])
 	if !modelNamePattern.MatchString(opts.ModelName) {

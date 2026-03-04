@@ -5,7 +5,7 @@ import path from "path";
 import sveltePreprocess from "svelte-preprocess";
 
 const svelteEntrypointsDir = "javascript/svelte";
-const outputDir = "apps/goship/static";
+const outputDir = "apps/site/static";
 
 // Define an asynchronous function to handle the build process
 async function build() {

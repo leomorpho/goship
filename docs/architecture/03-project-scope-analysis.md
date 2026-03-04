@@ -1,5 +1,5 @@
 # Project Scope Analysis
-<!-- FRONTEND_SYNC: Landing capability explorer in apps/goship/views/web/pages/landing_page.templ links here for Authentication and Authorization, Notifications and Mail, and File Storage. Keep both landing copy and this doc aligned. -->
+<!-- FRONTEND_SYNC: Landing capability explorer in apps/site/views/web/pages/landing_page.templ links here for Authentication and Authorization, Notifications and Mail, and File Storage. Keep both landing copy and this doc aligned. -->
 
 ## What This Project Is
 
@@ -28,11 +28,11 @@ The repository still carries heritage from a related product domain ("Cherie"), 
 
 Core flows implemented in routes and services:
 
-- Login/logout (`apps/goship/web/controllers/login.go`, `logout.go`)
+- Login/logout (`apps/site/web/controllers/login.go`, `logout.go`)
 - Register (`register.go`)
 - Forgot/reset password (`forgot_password.go`, `reset_password.go`)
 - Email verification (`verify_email.go`)
-- Auth middleware and session handling (`apps/goship/web/middleware/auth.go`, `apps/goship/foundation/auth.go`)
+- Auth middleware and session handling (`apps/site/web/middleware/auth.go`, `apps/site/foundation/auth.go`)
 
 Key implementation choices:
 
@@ -42,15 +42,15 @@ Key implementation choices:
 
 ## 2) Onboarding, Preferences, and Profile
 
-- Onboarding and preferences mostly in `apps/goship/web/controllers/preferences.go`
+- Onboarding and preferences mostly in `apps/site/web/controllers/preferences.go`
 - Profile page in `profile.go`
 - Mark onboarding completion (`/welcome/finish-onboarding`)
 - Profile photo and gallery image routes (`profile_photo.go`, `upload_photo.go`)
 
 ## 3) Payments and Subscription Lifecycle
 
-- Stripe checkout + customer portal + webhook in `apps/goship/web/controllers/payments.go`
-- Local subscription state managed in `apps/goship/app/subscriptions/subscriptions.go`
+- Stripe checkout + customer portal + webhook in `apps/site/web/controllers/payments.go`
+- Local subscription state managed in `apps/site/app/subscriptions/subscriptions.go`
 - Product model currently centered on free vs pro (`pkg/domain/enum.go`)
 
 Webhook flow currently handles:
@@ -77,9 +77,9 @@ Status of exposure:
 ## 5) Email Features
 
 - Newsletter-style email subscription flow (`email_subscribe.go`, `verify_email_subscription.go`)
-- Task processor for subscription confirmation emails (`apps/goship/jobs/mail.go`)
+- Task processor for subscription confirmation emails (`apps/site/jobs/mail.go`)
 - Reusable subscription repo module (`pkg/modules/emailsubscriptions`)
-- App-specific update email sender integration (`apps/goship/app/emailsubscriptions`)
+- App-specific update email sender integration (`apps/site/app/emailsubscriptions`)
 - Mail provider abstraction supports SMTP and Resend (`pkg/repos/mailer`)
 
 ## 6) File Storage and Images
@@ -91,7 +91,7 @@ Status of exposure:
 
 ## 7) Background Tasks
 
-Task processors under `apps/goship/jobs`:
+Task processors under `apps/site/jobs`:
 
 - Email subscription confirmation
 - Email updates
@@ -103,10 +103,10 @@ Worker bootstrap and registration in `cmd/worker/main.go`.
 
 ## 8) Frontend Delivery Model
 
-- Server-rendered pages via Templ (`apps/goship/views/` + `apps/goship/web/ui`)
+- Server-rendered pages via Templ (`apps/site/views/` + `apps/site/web/ui`)
 - HTMX-enhanced interactions
-- Optional Svelte components bundled into `apps/goship/static/svelte_bundle.js`
-- Optional vanilla JS bundle into `apps/goship/static/vanilla_bundle.js`
+- Optional Svelte components bundled into `apps/site/static/svelte_bundle.js`
+- Optional vanilla JS bundle into `apps/site/static/vanilla_bundle.js`
 
 Build pipeline:
 

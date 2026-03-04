@@ -1,11 +1,11 @@
 # Known Gaps and Risks
-<!-- FRONTEND_SYNC: Landing capability explorer in apps/goship/views/web/pages/landing_page.templ links here for Events and Realtime. Keep both landing copy and this doc aligned. -->
+<!-- FRONTEND_SYNC: Landing capability explorer in apps/site/views/web/pages/landing_page.templ links here for Events and Realtime. Keep both landing copy and this doc aligned. -->
 
 This list is based on direct code inspection and is intended to guide contributor priorities.
 
 ## 1) Container Initialization Mismatch (High)
 
-In `apps/goship/foundation/container.go`, `NewContainer()` does not call:
+In `apps/site/foundation/container.go`, `NewContainer()` does not call:
 
 - `initCache()`
 - `initNotifier()`
@@ -29,7 +29,7 @@ Impact:
 
 ## 3) Notification Center Endpoints Partially Disabled (Medium)
 
-Route handlers exist in `apps/goship/web/controllers/notifications.go`, but several are commented out during route wiring.
+Route handlers exist in `apps/site/web/controllers/notifications.go`, but several are commented out during route wiring.
 
 Impact:
 
@@ -64,7 +64,7 @@ Impact:
 
 ## 7) Some Feature Paths Still Use Placeholder Data (Low)
 
-Example: home feed button counts are hardcoded in `apps/goship/web/controllers/home_feed.go`.
+Example: home feed button counts are hardcoded in `apps/site/web/controllers/home_feed.go`.
 
 Impact:
 

@@ -32,17 +32,17 @@ func TestGenerateResourceIntegration_FullGenerationExactOutput(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	routerPath := filepath.Join(projectRoot, "apps", "goship", "router.go")
-	routeNamesPath := filepath.Join(projectRoot, "apps", "goship", "web", "routenames", "routenames.go")
+	routerPath := filepath.Join(projectRoot, "apps", "site", "router.go")
+	routeNamesPath := filepath.Join(projectRoot, "apps", "site", "web", "routenames", "routenames.go")
 
 	out.Reset()
 	errOut.Reset()
-	code = cli.Run([]string{"make:resource", "contact_form", "--path", "apps/goship", "--auth", "public", "--views", "templ", "--wire"})
+	code = cli.Run([]string{"make:resource", "contact_form", "--path", "apps/site", "--auth", "public", "--views", "templ", "--wire"})
 	if code != 0 {
 		t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
 	}
 
-	handlerPath := filepath.Join(projectRoot, "apps", "goship", "web", "controllers", "contact_form.go")
+	handlerPath := filepath.Join(projectRoot, "apps", "site", "web", "controllers", "contact_form.go")
 	handlerBytes, err := os.ReadFile(handlerPath)
 	if err != nil {
 		t.Fatalf("read handler: %v", err)
@@ -51,10 +51,10 @@ func TestGenerateResourceIntegration_FullGenerationExactOutput(t *testing.T) {
 
 import (
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/apps/goship/views"
-	"github.com/leomorpho/goship/apps/goship/views/web/layouts/gen"
-	"github.com/leomorpho/goship/apps/goship/views/web/pages/gen"
-	"github.com/leomorpho/goship/apps/goship/web/ui"
+	"github.com/leomorpho/goship/apps/site/views"
+	"github.com/leomorpho/goship/apps/site/views/web/layouts/gen"
+	"github.com/leomorpho/goship/apps/site/views/web/pages/gen"
+	"github.com/leomorpho/goship/apps/site/web/ui"
 )
 
 type contactForm struct {
@@ -80,14 +80,14 @@ func (r *contactForm) Get(ctx echo.Context) error {
 		t.Fatalf("handler mismatch\n--- got ---\n%s\n--- want ---\n%s", string(handlerBytes), handlerExpected)
 	}
 
-	templPath := filepath.Join(projectRoot, "apps", "goship", "views", "web", "pages", "contact_form.templ")
+	templPath := filepath.Join(projectRoot, "apps", "site", "views", "web", "pages", "contact_form.templ")
 	templBytes, err := os.ReadFile(templPath)
 	if err != nil {
 		t.Fatalf("read templ: %v", err)
 	}
 	templExpected := `package pages
 
-import "github.com/leomorpho/goship/apps/goship/web/ui"
+import "github.com/leomorpho/goship/apps/site/web/ui"
 
 templ ContactFormPage(page *ui.Page) {
 	<section>
@@ -145,24 +145,24 @@ func TestGenerateResourceIntegration_WireStableAcrossMultipleRuns(t *testing.T) 
 		t.Fatal(err)
 	}
 
-	routerPath := filepath.Join(projectRoot, "apps", "goship", "router.go")
+	routerPath := filepath.Join(projectRoot, "apps", "site", "router.go")
 	router, err := os.ReadFile(routerPath)
 	if err != nil {
 		t.Fatal(err)
 	}
-	routerNoRouteNames := strings.ReplaceAll(string(router), "routeNames \"example.com/demo/apps/goship/web/routenames\"\n", "")
+	routerNoRouteNames := strings.ReplaceAll(string(router), "routeNames \"example.com/demo/apps/site/web/routenames\"\n", "")
 	if err := os.WriteFile(routerPath, []byte(routerNoRouteNames), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
 	out.Reset()
 	errOut.Reset()
-	if code := cli.Run([]string{"make:resource", "inbox", "--path", "apps/goship", "--views", "none", "--wire"}); code != 0 {
+	if code := cli.Run([]string{"make:resource", "inbox", "--path", "apps/site", "--views", "none", "--wire"}); code != 0 {
 		t.Fatalf("first make:resource failed with code = %d, stderr=%s", code, errOut.String())
 	}
 	out.Reset()
 	errOut.Reset()
-	if code := cli.Run([]string{"make:resource", "alerts", "--path", "apps/goship", "--views", "none", "--wire"}); code != 0 {
+	if code := cli.Run([]string{"make:resource", "alerts", "--path", "apps/site", "--views", "none", "--wire"}); code != 0 {
 		t.Fatalf("second make:resource failed with code = %d, stderr=%s", code, errOut.String())
 	}
 
@@ -171,7 +171,7 @@ func TestGenerateResourceIntegration_WireStableAcrossMultipleRuns(t *testing.T) 
 		t.Fatal(err)
 	}
 	routerText := string(updatedRouter)
-	if strings.Count(routerText, `routeNames "github.com/leomorpho/goship/apps/goship/web/routenames"`) != 1 {
+	if strings.Count(routerText, `routeNames "github.com/leomorpho/goship/apps/site/web/routenames"`) != 1 {
 		t.Fatalf("routeNames import should be inserted once, got router:\n%s", routerText)
 	}
 	if strings.Count(routerText, "ship:generated:inbox") != 1 || strings.Count(routerText, "ship:generated:alerts") != 1 {
@@ -202,12 +202,12 @@ func TestGenerateResourceIntegration_DuplicateRunDoesNotMutateWiring(t *testing.
 		t.Fatal(err)
 	}
 
-	routerPath := filepath.Join(projectRoot, "apps", "goship", "router.go")
-	routeNamesPath := filepath.Join(projectRoot, "apps", "goship", "web", "routenames", "routenames.go")
+	routerPath := filepath.Join(projectRoot, "apps", "site", "router.go")
+	routeNamesPath := filepath.Join(projectRoot, "apps", "site", "web", "routenames", "routenames.go")
 
 	out.Reset()
 	errOut.Reset()
-	if code := cli.Run([]string{"make:resource", "inbox", "--path", "apps/goship", "--views", "none", "--wire"}); code != 0 {
+	if code := cli.Run([]string{"make:resource", "inbox", "--path", "apps/site", "--views", "none", "--wire"}); code != 0 {
 		t.Fatalf("first make:resource failed with code = %d, stderr=%s", code, errOut.String())
 	}
 	routerBefore, err := os.ReadFile(routerPath)
@@ -221,7 +221,7 @@ func TestGenerateResourceIntegration_DuplicateRunDoesNotMutateWiring(t *testing.
 
 	out.Reset()
 	errOut.Reset()
-	if code := cli.Run([]string{"make:resource", "inbox", "--path", "apps/goship", "--views", "none", "--wire"}); code == 0 {
+	if code := cli.Run([]string{"make:resource", "inbox", "--path", "apps/site", "--views", "none", "--wire"}); code == 0 {
 		t.Fatalf("expected duplicate make:resource to fail")
 	}
 	if !strings.Contains(errOut.String(), "refusing to overwrite existing file") {

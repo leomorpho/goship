@@ -58,7 +58,7 @@ Use docs as the source of truth for architecture, workflows, and plans:
 
 ## Repository Shape
 
-- `apps/goship/`: app-specific code (routes, views, app router)
+- `apps/site/`: app-specific code (routes, views, app router)
 - `pkg/`: reusable framework-level packages
 - `cmd/`: process entrypoints (`web`, `worker`, `seed`)
 - `cli/ship/`: standalone `ship` CLI module
@@ -87,7 +87,7 @@ The following methods are available:
 
 ## Paid/Free Subscriptions
 
-The `SubscriptionsRepo` handles the subscription logic and lives at `apps/goship/app/subscriptions/subscriptions.go`. It uses Stripe under the hood to handle the subscription logic. Stripe webhooks are handled at `apps/goship/web/controllers/payments.go`.
+The `SubscriptionsRepo` handles the subscription logic and lives at `apps/site/app/subscriptions/subscriptions.go`. It uses Stripe under the hood to handle the subscription logic. Stripe webhooks are handled at `apps/site/web/controllers/payments.go`.
 
 **Note:** currently, the only type of subscription implemented is a monthly subscription that is either paid or free. Feel free to expand on this!
 
@@ -103,7 +103,7 @@ The following methods are available:
 
 ## Regenerate Logo Image Assets 
 
-There is a python script in `scripts/regen_logo_images.py` that should be run when the logo in `apps/goship/static/logo.png` is updated.
+There is a python script in `scripts/regen_logo_images.py` that should be run when the logo in `apps/site/static/logo.png` is updated.
 This will regenerate the logo assets for different app icons and the favicon. It will also regenerate the correct iOS and Android app icons and place them in app-specific static wrapper directories.
 
 ```bash
@@ -325,13 +325,13 @@ g.DELETE("/posts/:id", postRoute.Destroy).Name = "posts.destroy"
 
 ##### Generated views
 ```go
-// apps/goship/views/posts.templ
+// apps/site/views/posts.templ
 package pages
 
 import (
-	"github.com/leomorpho/goship/apps/goship/web/ui"
-	"github.com/leomorpho/goship/apps/goship/web/viewmodels"
-	"github.com/leomorpho/goship/apps/goship/views/web/components"
+	"github.com/leomorpho/goship/apps/site/web/ui"
+	"github.com/leomorpho/goship/apps/site/web/viewmodels"
+	"github.com/leomorpho/goship/apps/site/views/web/components"
 )
 
 templ PostsIndex(page *ui.Page) {
@@ -358,7 +358,7 @@ templ PostsDestroy(page *ui.Page) {
 ##### Generate Type Data Struct
 
 ```go
-// apps/goship/web/viewmodels/post.go
+// apps/site/web/viewmodels/post.go
 package viewmodels
 
 type Post struct {

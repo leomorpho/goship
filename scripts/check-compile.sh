@@ -16,7 +16,7 @@ while IFS= read -r pkg; do
 done < "${PKG_FILE}"
 
 # Compile controller tests without executing TestMain/httptest server startup.
-go test -c ./apps/goship/web/controllers
+go test -c ./apps/site/web/controllers
 rm -f "${ROOT_DIR}/routes.test"
 
 echo "Compile checks passed."

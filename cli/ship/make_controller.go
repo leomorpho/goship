@@ -92,7 +92,7 @@ func (c CLI) runMakeController(args []string) int {
 
 func parseMakeControllerArgs(args []string) (controllerMakeOptions, error) {
 	opts := controllerMakeOptions{
-		Path:    "apps/goship",
+		Path:    "apps/site",
 		Actions: []string{"index"},
 		Auth:    "public",
 	}
@@ -274,7 +274,7 @@ func renderControllerFile(names controllerNames, actions []string, domain normal
 		b.WriteString(methodName)
 		b.WriteString("(ctx echo.Context) error {\n")
 		if domain.Name != "" {
-			b.WriteString("\t// TODO: delegate to domain service in apps/goship/app/")
+			b.WriteString("\t// TODO: delegate to domain service in apps/site/app/")
 			b.WriteString(domain.Snake)
 			b.WriteString("\n")
 		}

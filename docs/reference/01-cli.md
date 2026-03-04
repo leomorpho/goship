@@ -69,10 +69,10 @@ Database:
 Generation:
 
 - `ship templ generate [--path <dir>] [--file <file.templ>]`
-- `ship make:resource <name> [--path apps/goship] [--auth public|auth] [--views templ|none] [--domain <name>] [--wire] [--dry-run]` (or `ship make` for help)
+- `ship make:resource <name> [--path apps/site] [--auth public|auth] [--views templ|none] [--domain <name>] [--wire] [--dry-run]` (or `ship make` for help)
 - `ship make:model <Name> [fields...] [--force]`
 - `ship make:controller <Name|NameController> [--actions index,show,create,update,destroy] [--auth public|auth] [--domain <name>] [--wire]`
-- `ship make:scaffold <Name> [fields...] [--path apps/goship] [--views templ|none] [--auth public|auth] [--api] [--migrate] [--dry-run] [--force]`
+- `ship make:scaffold <Name> [fields...] [--path apps/site] [--views templ|none] [--auth public|auth] [--api] [--migrate] [--dry-run] [--force]`
 - `ship make:module <Name> [--path pkg/modules] [--module-base github.com/leomorpho/goship-modules] [--dry-run] [--force]`
 - `ship destroy <generated-artifact>` (planned)
 
@@ -130,15 +130,15 @@ Safety matrix:
 | `db:create` | safe; supports `--dry-run` | safe; supports `--dry-run` | safe; supports `--dry-run` |
 - `ship templ generate --path app` -> `templ generate -path app`, then move each `*_templ.go` into sibling `gen/` directory
 - `ship new <app>` -> create minimal deterministic project scaffold in a new directory (no network calls)
-- `ship make:resource <name>` -> scaffold handler (+ optional templ page), ensure route-name constant, and print route snippet for manual insertion in `apps/goship/router.go`
+- `ship make:resource <name>` -> scaffold handler (+ optional templ page), ensure route-name constant, and print route snippet for manual insertion in `apps/site/router.go`
 - `ship make:resource <name> --domain <name>` -> generate domain-aware constructor slot (`domainService any`) and route wiring using `nil` placeholder
-- `ship make:resource <name> --wire` -> also insert snippet behind ship markers in `apps/goship/router.go`
+- `ship make:resource <name> --wire` -> also insert snippet behind ship markers in `apps/site/router.go`
 - `ship make:resource <name> --dry-run` -> preview all planned changes without writing files
 - `ship make:model <Name>` -> run Ent schema scaffolding (`ent new`) then ORM codegen (`ent generate`)
 - `ship make:model <Name> [fields...]` -> write `apps/db/schema/<model>.go` with typed fields, then run ORM codegen (`ent generate`)
-- `ship make:controller <Name>` -> generate controller/handler scaffold in `apps/goship/web/controllers`
+- `ship make:controller <Name>` -> generate controller/handler scaffold in `apps/site/web/controllers`
 - `ship make:controller <Name> --domain <name>` -> generate domain-aware constructor slot (`domainService any`) and route wiring using `nil` placeholder
-- `ship make:controller <Name> --actions ... --wire` -> wire generated routes into `apps/goship/router.go` markers
+- `ship make:controller <Name> --actions ... --wire` -> wire generated routes into `apps/site/router.go` markers
 - `ship make:scaffold <Name> ...` -> orchestration command that composes `make:model`, `db:make`, `make:controller --domain <plural_model> --wire`, and optionally `make:resource --domain <plural_model>` / `db:migrate`
 - `ship make:module <Name>` -> generate isolated module scaffold in `pkg/modules/<name>` with its own `go.mod`, module-facing types/contracts, and service tests
 - `ship upgrade --to <version>` -> updates `atlasGoRunRef` pin in `cli/ship/cli.go`
@@ -147,7 +147,7 @@ Safety matrix:
 
 Doctor checks (current):
 
-- validates canonical app/layout directories under `apps/goship`
+- validates canonical app/layout directories under `apps/site`
 - validates required files (router, container, routenames, core docs)
 - flags forbidden legacy paths from pre-refactor layout
 - validates router marker pairs used by `--wire` generators
@@ -170,13 +170,13 @@ Field syntax for `make:model`:
 2. Writes deterministic starter files:
 `go.mod`
 `config/modules.yaml` (workspace-level module enablement)
-`apps/goship/router.go` (with route marker pairs for `--wire`)
-`apps/goship/web/routenames/routenames.go`
-`apps/goship/views/templates.go`
-`apps/goship/foundation/container.go`
-`apps/goship/app/*` (domain skeletons)
-`apps/goship/web/{controllers,middleware,ui,viewmodels}`
-`apps/goship/jobs/jobs.go`
+`apps/site/router.go` (with route marker pairs for `--wire`)
+`apps/site/web/routenames/routenames.go`
+`apps/site/views/templates.go`
+`apps/site/foundation/container.go`
+`apps/site/app/*` (domain skeletons)
+`apps/site/web/{controllers,middleware,ui,viewmodels}`
+`apps/site/jobs/jobs.go`
 `apps/db/{schema,migrate/migrations}`
 `docs/00-index.md` and baseline architecture docs
 3. Supports `--dry-run` and `--force`.
@@ -194,9 +194,9 @@ Resource generator contract (v1 minimal):
 Markers:
 `// ship:routes:public:start ... // ship:routes:public:end`
 `// ship:routes:auth:start ... // ship:routes:auth:end`
-3. Creates `apps/goship/web/controllers/<resource>.go`.
-4. Creates `apps/goship/views/web/pages/<resource>.templ` when `--views templ`.
-5. Ensures `RouteName<Resource>` constant exists in `apps/goship/web/routenames/routenames.go`.
+3. Creates `apps/site/web/controllers/<resource>.go`.
+4. Creates `apps/site/views/web/pages/<resource>.templ` when `--views templ`.
+5. Ensures `RouteName<Resource>` constant exists in `apps/site/web/routenames/routenames.go`.
 6. Prints exact snippet target (`registerPublicRoutes` or `registerAuthRoutes`) when not wiring.
 
 Generated handler behavior:
@@ -226,7 +226,7 @@ CLI owns:
 
 App/framework owns:
 
-- actual runtime behavior in `cmd/*`, `apps/goship/*`, `pkg/*`, and `config/*`.
+- actual runtime behavior in `cmd/*`, `apps/site/*`, `pkg/*`, and `config/*`.
 
 Rule:
 

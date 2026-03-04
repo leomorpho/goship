@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/leomorpho/goship/apps/goship/foundation"
+	"github.com/leomorpho/goship/apps/site/foundation"
 	"github.com/leomorpho/goship/seeder"
 )
 

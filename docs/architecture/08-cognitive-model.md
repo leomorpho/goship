@@ -9,26 +9,26 @@ The framework has one canonical flow per concern. If a change does not fit these
 
 `router -> controller -> app/<domain> -> web/viewmodels -> views`
 
-- Routing is declared in `apps/goship/router.go`.
-- Controllers live in `apps/goship/web/controllers`.
-- Domain logic lives in `apps/goship/app/*`.
-- Template payload shapes live in `apps/goship/web/viewmodels`.
-- Rendering helpers live in `apps/goship/web/ui`.
-- Templ source lives in `apps/goship/views`.
+- Routing is declared in `apps/site/router.go`.
+- Controllers live in `apps/site/web/controllers`.
+- Domain logic lives in `apps/site/app/*`.
+- Template payload shapes live in `apps/site/web/viewmodels`.
+- Rendering helpers live in `apps/site/web/ui`.
+- Templ source lives in `apps/site/views`.
 
 ## Async Flow (Always)
 
 `job -> app/<domain> -> adapters`
 
-- Jobs/processors live in `apps/goship/jobs`.
-- Jobs delegate business logic to `apps/goship/app/*`.
+- Jobs/processors live in `apps/site/jobs`.
+- Jobs delegate business logic to `apps/site/app/*`.
 - Infrastructure dependencies are provided through the container/adapters.
 
 ## Boot Flow (Always)
 
 `foundation -> adapters -> app/web/jobs`
 
-- Composition root is `apps/goship/foundation/container.go`.
+- Composition root is `apps/site/foundation/container.go`.
 - App wiring is explicit and deterministic.
 
 ## Tooling Rule
@@ -43,9 +43,9 @@ Use `ship` as the single mutation interface for common scaffolding.
 
 ## Non-Negotiable Conventions
 
-- One canonical app root: `apps/goship`.
-- No legacy paths (`app/goship`, `apps/goship/bootstrap`, `apps/goship/domains`, etc.).
+- One canonical app root: `apps/site`.
+- No legacy paths (`app/goship`, `apps/site/bootstrap`, `apps/site/domains`, etc.).
 - Package names match directory intent:
-  - `apps/goship/web/ui` -> `package ui`
-  - `apps/goship/web/viewmodels` -> `package viewmodels`
+  - `apps/site/web/ui` -> `package ui`
+  - `apps/site/web/viewmodels` -> `package viewmodels`
 - Route markers in router are preserved for safe generator wiring.

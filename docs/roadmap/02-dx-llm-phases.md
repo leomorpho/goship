@@ -40,10 +40,10 @@ Last updated: 2026-03-04
 ### P3
 
 - Updated `ship new` scaffold to canonical structure:
-  - `apps/goship/app/*` (replaces legacy `domains/*`)
-  - `apps/goship/foundation/container.go`
-  - `apps/goship/web/{controllers,middleware,ui,viewmodels}`
-  - `apps/goship/jobs/jobs.go`
+  - `apps/site/app/*` (replaces legacy `domains/*`)
+  - `apps/site/foundation/container.go`
+  - `apps/site/web/{controllers,middleware,ui,viewmodels}`
+  - `apps/site/jobs/jobs.go`
   - baseline docs (`docs/00-index.md`, architecture stubs)
 - Updated integration tests to validate fresh scaffold + `ship doctor`.
 

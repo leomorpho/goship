@@ -57,15 +57,15 @@ func runDoctorChecks(root string) []doctorIssue {
 	issues := make([]doctorIssue, 0)
 
 	requiredDirs := []string{
-		filepath.Join("apps", "goship"),
-		filepath.Join("apps", "goship", "app"),
-		filepath.Join("apps", "goship", "foundation"),
-		filepath.Join("apps", "goship", "web", "controllers"),
-		filepath.Join("apps", "goship", "web", "middleware"),
-		filepath.Join("apps", "goship", "web", "ui"),
-		filepath.Join("apps", "goship", "web", "viewmodels"),
-		filepath.Join("apps", "goship", "jobs"),
-		filepath.Join("apps", "goship", "views"),
+		filepath.Join("apps", "site"),
+		filepath.Join("apps", "site", "app"),
+		filepath.Join("apps", "site", "foundation"),
+		filepath.Join("apps", "site", "web", "controllers"),
+		filepath.Join("apps", "site", "web", "middleware"),
+		filepath.Join("apps", "site", "web", "ui"),
+		filepath.Join("apps", "site", "web", "viewmodels"),
+		filepath.Join("apps", "site", "jobs"),
+		filepath.Join("apps", "site", "views"),
 		filepath.Join("apps", "db", "schema"),
 		filepath.Join("apps", "db", "migrate", "migrations"),
 	}
@@ -80,9 +80,9 @@ func runDoctorChecks(root string) []doctorIssue {
 	}
 
 	requiredFiles := []string{
-		filepath.Join("apps", "goship", "router.go"),
-		filepath.Join("apps", "goship", "foundation", "container.go"),
-		filepath.Join("apps", "goship", "web", "routenames", "routenames.go"),
+		filepath.Join("apps", "site", "router.go"),
+		filepath.Join("apps", "site", "foundation", "container.go"),
+		filepath.Join("apps", "site", "web", "routenames", "routenames.go"),
 		filepath.Join("config", "modules.yaml"),
 		filepath.Join("docs", "00-index.md"),
 		filepath.Join("docs", "architecture", "01-architecture.md"),
@@ -99,13 +99,13 @@ func runDoctorChecks(root string) []doctorIssue {
 	}
 
 	forbidden := []string{
-		filepath.Join("app", "goship"),
-		filepath.Join("apps", "goship", "bootstrap"),
-		filepath.Join("apps", "goship", "domains"),
-		filepath.Join("apps", "goship", "tasks"),
-		filepath.Join("apps", "goship", "types"),
-		filepath.Join("apps", "goship", "webui"),
-		filepath.Join("apps", "goship", "middleware"),
+		filepath.Join("app", "site"),
+		filepath.Join("apps", "site", "bootstrap"),
+		filepath.Join("apps", "site", "domains"),
+		filepath.Join("apps", "site", "tasks"),
+		filepath.Join("apps", "site", "types"),
+		filepath.Join("apps", "site", "webui"),
+		filepath.Join("apps", "site", "middleware"),
 	}
 	for _, rel := range forbidden {
 		if pathExists(filepath.Join(root, rel)) {
@@ -152,7 +152,7 @@ func runDoctorChecks(root string) []doctorIssue {
 		}
 	}
 
-	router := filepath.Join(root, "apps", "goship", "router.go")
+	router := filepath.Join(root, "apps", "site", "router.go")
 	if hasFile(router) {
 		b, err := os.ReadFile(router)
 		if err != nil {
@@ -174,7 +174,7 @@ func runDoctorChecks(root string) []doctorIssue {
 					issues = append(issues, doctorIssue{
 						Code:    "DX005",
 						Message: fmt.Sprintf("missing router marker: %s", marker),
-						Fix:     "restore route markers in apps/goship/router.go to keep generator wiring deterministic",
+						Fix:     "restore route markers in apps/site/router.go to keep generator wiring deterministic",
 					})
 				}
 			}
@@ -201,8 +201,8 @@ func runDoctorChecks(root string) []doctorIssue {
 		}
 	}
 
-	issues = append(issues, checkPackageNaming(root, filepath.Join("apps", "goship", "web", "ui"), "ui")...)
-	issues = append(issues, checkPackageNaming(root, filepath.Join("apps", "goship", "web", "viewmodels"), "viewmodels")...)
+	issues = append(issues, checkPackageNaming(root, filepath.Join("apps", "site", "web", "ui"), "ui")...)
+	issues = append(issues, checkPackageNaming(root, filepath.Join("apps", "site", "web", "viewmodels"), "viewmodels")...)
 	issues = append(issues, checkFileLengthBudget(root, 500)...)
 	issues = append(issues, checkCLIDocsCoverage(root)...)
 
@@ -287,10 +287,10 @@ func isDir(path string) bool {
 func checkFileLengthBudget(root string, maxLines int) []doctorIssue {
 	issues := make([]doctorIssue, 0)
 	allowlist := map[string]struct{}{
-		filepath.ToSlash(filepath.Join("cli", "ship", "cli.go")):                        {},
-		filepath.ToSlash(filepath.Join("cli", "ship", "cli_test.go")):                   {},
-		filepath.ToSlash(filepath.Join("cli", "ship", "generate_resource.go")):          {},
-		filepath.ToSlash(filepath.Join("apps", "goship", "app", "profiles", "repo.go")): {},
+		filepath.ToSlash(filepath.Join("cli", "ship", "cli.go")):                      {},
+		filepath.ToSlash(filepath.Join("cli", "ship", "cli_test.go")):                 {},
+		filepath.ToSlash(filepath.Join("cli", "ship", "generate_resource.go")):        {},
+		filepath.ToSlash(filepath.Join("apps", "site", "app", "profiles", "repo.go")): {},
 	}
 
 	_ = filepath.WalkDir(root, func(path string, d os.DirEntry, err error) error {
