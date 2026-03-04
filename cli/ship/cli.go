@@ -372,6 +372,8 @@ func (c CLI) runDB(args []string) int {
 	}
 
 	switch args[0] {
+	case "create":
+		return c.runDBCreate(args[1:])
 	case "make":
 		return c.runDBMake(args[1:])
 	case "migrate":
@@ -387,6 +389,10 @@ func (c CLI) runDB(args []string) int {
 		return c.runAtlasCmd("migrate", "apply", "--dir", atlasDir, "--url", dbURL)
 	case "status":
 		return c.runDBStatus(args[1:])
+	case "reset":
+		return c.runDBReset(args[1:])
+	case "drop":
+		return c.runDBDrop(args[1:])
 	case "rollback":
 		return c.runDBRollback(args[1:])
 	case "seed":
@@ -418,6 +424,198 @@ func (c CLI) runDBStatus(args []string) int {
 	}
 
 	return c.runAtlasCmd("migrate", "status", "--dir", atlasDir, "--url", dbURL)
+}
+
+func (c CLI) runDBReset(args []string) int {
+	fs := flag.NewFlagSet("db:reset", flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+	seed := fs.Bool("seed", false, "seed after reset+migrate")
+	force := fs.Bool("force", false, "allow reset on non-local database URLs")
+	yes := fs.Bool("yes", false, "confirm destructive reset")
+	dryRun := fs.Bool("dry-run", false, "print planned actions without executing")
+	if err := fs.Parse(args); err != nil {
+		fmt.Fprintf(c.Err, "invalid db:reset arguments: %v\n", err)
+		fmt.Fprintln(c.Err, "usage: ship db:reset [--seed] [--force] [--yes] [--dry-run]")
+		return 1
+	}
+	if fs.NArg() > 0 {
+		fmt.Fprintln(c.Err, "usage: ship db:reset [--seed] [--force] [--yes] [--dry-run]")
+		return 1
+	}
+
+	dbURL, err := c.resolveDBURL()
+	if err != nil {
+		fmt.Fprintf(c.Err, "failed to resolve database URL: %v\n", err)
+		return 1
+	}
+	local := isLocalDBURL(dbURL)
+	if isProductionEnv() && !(*force && *yes) {
+		fmt.Fprintln(c.Err, "refusing to reset in production without both --force and --yes")
+		return 1
+	}
+	if !local && !*force {
+		fmt.Fprintln(c.Err, "refusing to reset a non-local database without --force")
+		return 1
+	}
+	if !*yes && !*dryRun {
+		fmt.Fprintln(c.Err, "refusing destructive reset without --yes (or use --dry-run)")
+		return 1
+	}
+
+	printDBPlan(c.Out, "reset", dbURL, local, []string{
+		"atlas schema clean --auto-approve",
+		"atlas migrate apply",
+	}, *seed, *dryRun)
+	if *dryRun {
+		return 0
+	}
+
+	// Clean drops all objects in the target schema/database. Use with care.
+	if code := c.runAtlasCmd("schema", "clean", "--url", dbURL, "--auto-approve"); code != 0 {
+		return code
+	}
+	if code := c.runAtlasCmd("migrate", "apply", "--dir", atlasDir, "--url", dbURL); code != 0 {
+		return code
+	}
+	if *seed {
+		return c.runCmd("go", "run", "./cmd/seed/main.go")
+	}
+	return 0
+}
+
+func (c CLI) runDBDrop(args []string) int {
+	fs := flag.NewFlagSet("db:drop", flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+	force := fs.Bool("force", false, "allow drop on non-local database URLs")
+	yes := fs.Bool("yes", false, "confirm destructive drop")
+	dryRun := fs.Bool("dry-run", false, "print planned actions without executing")
+	if err := fs.Parse(args); err != nil {
+		fmt.Fprintf(c.Err, "invalid db:drop arguments: %v\n", err)
+		fmt.Fprintln(c.Err, "usage: ship db:drop [--force] [--yes] [--dry-run]")
+		return 1
+	}
+	if fs.NArg() > 0 {
+		fmt.Fprintln(c.Err, "usage: ship db:drop [--force] [--yes] [--dry-run]")
+		return 1
+	}
+
+	dbURL, err := c.resolveDBURL()
+	if err != nil {
+		fmt.Fprintf(c.Err, "failed to resolve database URL: %v\n", err)
+		return 1
+	}
+	local := isLocalDBURL(dbURL)
+	if isProductionEnv() && !(*force && *yes) {
+		fmt.Fprintln(c.Err, "refusing to drop in production without both --force and --yes")
+		return 1
+	}
+	if !local && !*force {
+		fmt.Fprintln(c.Err, "refusing to drop a non-local database without --force")
+		return 1
+	}
+	if !*yes && !*dryRun {
+		fmt.Fprintln(c.Err, "refusing destructive drop without --yes (or use --dry-run)")
+		return 1
+	}
+	printDBPlan(c.Out, "drop", dbURL, local, []string{
+		"atlas schema clean --auto-approve",
+	}, false, *dryRun)
+	if *dryRun {
+		return 0
+	}
+	return c.runAtlasCmd("schema", "clean", "--url", dbURL, "--auto-approve")
+}
+
+func (c CLI) runDBCreate(args []string) int {
+	fs := flag.NewFlagSet("db:create", flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+	dryRun := fs.Bool("dry-run", false, "print planned actions without executing")
+	if err := fs.Parse(args); err != nil {
+		fmt.Fprintf(c.Err, "invalid db:create arguments: %v\n", err)
+		fmt.Fprintln(c.Err, "usage: ship db:create [--dry-run]")
+		return 1
+	}
+	if fs.NArg() > 0 {
+		fmt.Fprintln(c.Err, "usage: ship db:create [--dry-run]")
+		return 1
+	}
+
+	dbURL, err := c.resolveDBURL()
+	if err != nil {
+		fmt.Fprintf(c.Err, "failed to resolve database URL: %v\n", err)
+		return 1
+	}
+	local := isLocalDBURL(dbURL)
+	printDBPlan(c.Out, "create", dbURL, local, []string{
+		"ensure target database is reachable/exists",
+	}, false, *dryRun)
+	if *dryRun {
+		return 0
+	}
+
+	if code := c.runAtlasCmd("schema", "inspect", "--url", dbURL); code != 0 {
+		fmt.Fprintln(c.Err, "database is not reachable or does not exist; create it with your DB provider and retry")
+		return code
+	}
+	return 0
+}
+
+func isLocalDBURL(dbURL string) bool {
+	if strings.HasPrefix(dbURL, "sqlite://") {
+		return true
+	}
+	u, err := url.Parse(dbURL)
+	if err != nil {
+		return false
+	}
+	host := strings.ToLower(u.Hostname())
+	if host == "" {
+		return false
+	}
+	for _, allowed := range localDBHosts() {
+		if host == allowed {
+			return true
+		}
+	}
+	return false
+}
+
+func localDBHosts() []string {
+	raw := strings.TrimSpace(os.Getenv("SHIP_LOCAL_DB_HOSTS"))
+	if raw == "" {
+		return []string{"localhost", "127.0.0.1", "::1", "db", "postgres", "mysql"}
+	}
+	var out []string
+	for _, part := range strings.Split(raw, ",") {
+		v := strings.ToLower(strings.TrimSpace(part))
+		if v != "" {
+			out = append(out, v)
+		}
+	}
+	if len(out) == 0 {
+		return []string{"localhost", "127.0.0.1", "::1"}
+	}
+	return out
+}
+
+func isProductionEnv() bool {
+	env := strings.ToLower(strings.TrimSpace(os.Getenv("APP_ENV")))
+	return env == "production" || env == "prod"
+}
+
+func printDBPlan(w io.Writer, action, dbURL string, local bool, steps []string, seed, dryRun bool) {
+	fmt.Fprintf(w, "DB %s plan:\n", action)
+	fmt.Fprintf(w, "- url: %s\n", dbURL)
+	fmt.Fprintf(w, "- local: %t\n", local)
+	for _, step := range steps {
+		fmt.Fprintf(w, "- step: %s\n", step)
+	}
+	if seed {
+		fmt.Fprintln(w, "- step: go run ./cmd/seed/main.go")
+	}
+	if dryRun {
+		fmt.Fprintln(w, "- mode: dry-run (no commands executed)")
+	}
 }
 
 func (c CLI) runInfra(args []string) int {
@@ -685,7 +883,7 @@ func printRootHelp(w io.Writer) {
 	fmt.Fprintln(w, "  ship dev [worker|all] [--worker|--all]")
 	fmt.Fprintln(w, "  ship check")
 	fmt.Fprintln(w, "  ship test [--integration]")
-	fmt.Fprintln(w, "  ship db:<make|migrate|status|rollback|seed>  (or ship db for help)")
+	fmt.Fprintln(w, "  ship db:<create|make|migrate|status|reset|drop|rollback|seed>  (or ship db for help)")
 	fmt.Fprintln(w, "  ship infra:<up|down>                  (or ship infra for help)")
 	fmt.Fprintln(w, "  ship templ <generate>")
 	fmt.Fprintln(w, "  ship make:<resource|model>            (or ship make for help)")
@@ -697,9 +895,12 @@ func printRootHelp(w io.Writer) {
 	fmt.Fprintln(w, "  ship dev worker")
 	fmt.Fprintln(w, "  ship dev --all")
 	fmt.Fprintln(w, "  ship test --integration")
+	fmt.Fprintln(w, "  ship db:create")
 	fmt.Fprintln(w, "  ship db:make add_posts")
 	fmt.Fprintln(w, "  ship db:migrate")
 	fmt.Fprintln(w, "  ship db:status")
+	fmt.Fprintln(w, "  ship db:reset [--seed] [--force] [--yes]")
+	fmt.Fprintln(w, "  ship db:drop [--force] [--yes]")
 	fmt.Fprintln(w, "  ship db:rollback 1")
 	fmt.Fprintln(w, "  ship infra:up")
 	fmt.Fprintln(w, "  ship templ generate --path app")
@@ -719,9 +920,12 @@ func printDevHelp(w io.Writer) {
 
 func printDBHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship db commands:")
+	fmt.Fprintln(w, "  ship db:create [--dry-run]")
 	fmt.Fprintln(w, "  ship db:make <migration_name>")
 	fmt.Fprintln(w, "  ship db:migrate")
 	fmt.Fprintln(w, "  ship db:status")
+	fmt.Fprintln(w, "  ship db:reset [--seed] [--force] [--yes] [--dry-run]")
+	fmt.Fprintln(w, "  ship db:drop [--force] [--yes] [--dry-run]")
 	fmt.Fprintln(w, "  ship db:rollback [amount]")
 	fmt.Fprintln(w, "  ship db:seed")
 }

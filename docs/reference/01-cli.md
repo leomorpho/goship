@@ -56,9 +56,12 @@ Testing:
 
 Database:
 
+- `ship db:create [--dry-run]` (or `ship db` for help)
 - `ship db:make <migration_name>` (or `ship db` for help)
 - `ship db:migrate`
 - `ship db:status`
+- `ship db:reset [--seed] [--force] [--yes] [--dry-run]`
+- `ship db:drop [--force] [--yes] [--dry-run]`
 - `ship db:rollback`
 - `ship db:seed`
 
@@ -96,20 +99,33 @@ These commands are implemented as wrappers over existing workflows:
 - `ship test --integration` -> `go test -tags=integration ./...`
 - `ship infra:up` -> detects `docker-compose`/`docker compose` and runs `up -d cache`, then attempts `up -d mailpit` (non-fatal if mailpit fails)
 - `ship infra:down` -> detects `docker-compose`/`docker compose` and runs `down`
+- `ship db:create` -> validates that target database URL is reachable (`atlas schema inspect --url <resolved>`)
 - `ship db:migrate` -> `atlas migrate apply --dir file://app/goship/db/migrate/migrations --url <resolved>`
 - `ship db:status` -> `atlas migrate status --dir file://app/goship/db/migrate/migrations --url <resolved>`
+- `ship db:reset [--seed] [--force] [--yes] [--dry-run]` -> prints plan, runs `atlas schema clean --auto-approve`, then `atlas migrate apply`; optional seed
+- `ship db:drop [--force] [--yes] [--dry-run]` -> prints plan, runs `atlas schema clean --auto-approve`
 - `ship db:make <migration_name>` -> `atlas migrate diff <migration_name> --dir file://app/goship/db/migrate/migrations --to ent://app/goship/db/schema --dev-url sqlite://file?mode=memory&_fk=1`
 - `ship db:rollback [amount]` -> `atlas migrate down ... [amount]`
 - Atlas is managed by `ship`: it uses `atlas` from `PATH` when present, otherwise auto-installs pinned `ariga.io/atlas/cmd/atlas@v0.27.1` to `.cache/tools/bin/atlas`, and finally falls back to `go run` for zero-friction operation.
 - `ship db:seed` -> `go run ./cmd/seed/main.go`
 
-DB URL resolution precedence for migrate/rollback:
+DB URL resolution precedence for db commands:
 
 1. `DATABASE_URL`
 2. `config/application.yaml` + `config/environments/<APP_ENV|app.environment>.yaml`
 
 If `PAGODA_DATABASE_URL` is set, CLI fails with an explicit error and asks to use `DATABASE_URL`.
 If config resolves to embedded DB mode, `ship db:migrate`/`db:rollback` fail with an explicit error.
+- `ship db:reset`/`ship db:drop` refuse non-local DB URLs unless `--force` is provided.
+- In `APP_ENV=production|prod`, `ship db:reset`/`ship db:drop` require both `--force` and `--yes`.
+
+Safety matrix:
+
+| Command | Local DB | Non-local DB | Production |
+|---|---|---|---|
+| `db:reset` | requires `--yes` (or `--dry-run`) | requires `--force` + `--yes` (or `--dry-run`) | requires `--force` + `--yes` |
+| `db:drop` | requires `--yes` (or `--dry-run`) | requires `--force` + `--yes` (or `--dry-run`) | requires `--force` + `--yes` |
+| `db:create` | safe; supports `--dry-run` | safe; supports `--dry-run` | safe; supports `--dry-run` |
 - `ship templ generate --path app` -> `templ generate -path app`, then move each `*_templ.go` into sibling `gen/` directory
 - `ship new <app>` -> create minimal deterministic project scaffold in a new directory (no network calls)
 - `ship make:resource <name>` -> scaffold handler (+ optional templ page), ensure route-name constant, and print route snippet for manual insertion in `app/goship/router.go`

@@ -100,6 +100,18 @@ migrate: ## Apply migrations through ship CLI
 db-status: ## Show migration status through ship CLI
 	go run ./cli/ship/cmd/ship db:status
 
+.PHONY: db-create
+db-create: ## Validate/create DB target through ship CLI
+	go run ./cli/ship/cmd/ship db:create
+
+.PHONY: db-drop
+db-drop: ## Preview drop plan (use direct ship command with --yes to execute)
+	go run ./cli/ship/cmd/ship db:drop --dry-run
+
+.PHONY: db-reset
+db-reset: ## Preview reset plan (use direct ship command with --yes to execute)
+	go run ./cli/ship/cmd/ship db:reset --dry-run
+
 .PHONY: schemaspy
 schema: ## Create DB schema
 	@docker run --rm \

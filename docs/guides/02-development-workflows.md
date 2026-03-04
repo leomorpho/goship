@@ -61,6 +61,7 @@ Common workflow:
 3. `make ent-gen` (or `go run ./cli/ship/cmd/ship make:model ...` when scaffolding a new model)
 4. `go run ./cli/ship/cmd/ship db:migrate`
 5. `go run ./cli/ship/cmd/ship db:status`
+6. Optional reset loop: `go run ./cli/ship/cmd/ship db:reset --yes` (use `--dry-run` first)
 
 Use `ship db:*` as the canonical migration interface; avoid calling Atlas directly.
 

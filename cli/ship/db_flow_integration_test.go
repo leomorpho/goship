@@ -80,6 +80,56 @@ func TestShipNewModelAndMigrationsFlow(t *testing.T) {
 	if _, err := os.Stat(filepath.Join(projectRoot, "ship_flow_test.db")); err != nil {
 		t.Fatalf("expected sqlite db file after migration: %v", err)
 	}
+
+	statusOut := runShip(projectRoot, []string{"DATABASE_URL=" + dbURL}, "db:status")
+	if strings.TrimSpace(statusOut) == "" {
+		t.Fatal("expected non-empty migration status output")
+	}
+
+	resetOut := runShip(projectRoot, []string{"DATABASE_URL=" + dbURL}, "db:reset", "--yes")
+	if strings.TrimSpace(resetOut) == "" {
+		t.Fatal("expected non-empty reset output")
+	}
+	if _, err := os.Stat(filepath.Join(projectRoot, "ship_flow_test.db")); err != nil {
+		t.Fatalf("expected sqlite db file to exist after reset+migrate: %v", err)
+	}
+}
+
+func TestShipDBResetNonLocalSafety(t *testing.T) {
+	if _, err := exec.LookPath("go"); err != nil {
+		t.Skip("go toolchain not available")
+	}
+
+	repoRoot := mustRepoRootFromFile(t)
+	shipBin := filepath.Join(t.TempDir(), "ship")
+	build := exec.Command("go", "build", "-o", shipBin, "./cli/ship/cmd/ship")
+	build.Dir = repoRoot
+	if out, err := build.CombinedOutput(); err != nil {
+		t.Fatalf("build ship binary: %v: %s", err, string(out))
+	}
+
+	workspace := t.TempDir()
+	cmd := exec.Command(shipBin, "db:reset")
+	cmd.Dir = workspace
+	cmd.Env = append(os.Environ(), "DATABASE_URL=postgres://user:pass@db.example.com:5432/app")
+	out, err := cmd.CombinedOutput()
+	if err == nil {
+		t.Fatalf("expected non-local reset without --force to fail, got success: %s", string(out))
+	}
+	if !strings.Contains(string(out), "without --force") {
+		t.Fatalf("unexpected error output: %s", string(out))
+	}
+
+	cmd = exec.Command(shipBin, "db:reset", "--force", "--yes", "--dry-run")
+	cmd.Dir = workspace
+	cmd.Env = append(os.Environ(), "DATABASE_URL=postgres://user:pass@db.example.com:5432/app")
+	out, err = cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("expected forced dry-run reset to pass: %v: %s", err, string(out))
+	}
+	if !strings.Contains(string(out), "mode: dry-run") {
+		t.Fatalf("missing dry-run output: %s", string(out))
+	}
 }
 
 func isLikelyNetworkFailure(msg string) bool {
@@ -89,4 +139,3 @@ func isLikelyNetworkFailure(msg string) bool {
 		strings.Contains(lower, "dial tcp") ||
 		strings.Contains(lower, "tls handshake timeout")
 }
-
