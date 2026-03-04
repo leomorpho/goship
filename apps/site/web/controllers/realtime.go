@@ -8,10 +8,10 @@ import (
 
 	"github.com/janberktold/sse"
 	"github.com/labstack/echo/v4"
+	"github.com/leomorpho/goship/apps/db/ent"
 	"github.com/leomorpho/goship/apps/site/app/notifications"
 	"github.com/leomorpho/goship/apps/site/web/ui"
-	"github.com/leomorpho/goship/ent"
-	customContext "github.com/leomorpho/goship/pkg/context"
+	customContext "github.com/leomorpho/goship/framework/context"
 	"github.com/rs/zerolog/log"
 )
 

@@ -33,12 +33,12 @@ This is intended to expose GoShip-specific docs and CLI help to LLM agents.
 
 Current default priority remains high-quality markdown docs in the repository.
 
-When the `mcp/ship` module is present in your checkout, use:
+When the `tools/mcp/ship` module is present in your checkout, use:
 
 ### Build local binary
 
 ```bash
-go build -o ~/.local/bin/ship-mcp ./mcp/ship/cmd/ship-mcp
+go build -o ~/.local/bin/ship-mcp ./tools/mcp/ship/cmd/ship-mcp
 ```
 
 ### Register server

@@ -5,10 +5,10 @@ import (
 	"errors"
 	"time"
 
-	"github.com/leomorpho/goship/ent"
-	"github.com/leomorpho/goship/ent/monthlysubscription"
-	"github.com/leomorpho/goship/ent/profile"
-	"github.com/leomorpho/goship/pkg/domain"
+	"github.com/leomorpho/goship/apps/db/ent"
+	"github.com/leomorpho/goship/apps/db/ent/monthlysubscription"
+	"github.com/leomorpho/goship/apps/db/ent/profile"
+	"github.com/leomorpho/goship/framework/domain"
 	"github.com/rs/zerolog/log"
 )
 

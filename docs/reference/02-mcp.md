@@ -12,14 +12,14 @@ Current status:
 
 ## Location
 
-- Module: `mcp/ship`
-- Entrypoint: `mcp/ship/cmd/ship-mcp/main.go`
+- Module: `tools/mcp/ship`
+- Entrypoint: `tools/mcp/ship/cmd/ship-mcp/main.go`
 - Workspace wiring: `go.work`
 
 This is a standalone Go module in the same monorepo as:
 
 - app/framework module at repo root
-- CLI module at `cli/ship`
+- CLI module at `tools/cli/ship`
 
 ## Purpose
 
@@ -51,7 +51,7 @@ Provide an LLM-facing interface for:
 Run from repo root:
 
 ```bash
-go run ./mcp/ship/cmd/ship-mcp
+go run ./tools/mcp/ship/cmd/ship-mcp
 ```
 
 ## Install In MCP Clients
@@ -59,7 +59,7 @@ go run ./mcp/ship/cmd/ship-mcp
 Build a reusable local binary first:
 
 ```bash
-go build -o ~/.local/bin/ship-mcp ./mcp/ship/cmd/ship-mcp
+go build -o ~/.local/bin/ship-mcp ./tools/mcp/ship/cmd/ship-mcp
 ```
 
 Use an absolute docs path:

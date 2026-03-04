@@ -7,11 +7,11 @@ import (
 
 	firebase "firebase.google.com/go/v4"
 	"firebase.google.com/go/v4/messaging"
-	"github.com/leomorpho/goship/ent"
-	"github.com/leomorpho/goship/ent/fcmsubscriptions"
-	"github.com/leomorpho/goship/ent/notificationpermission"
-	"github.com/leomorpho/goship/ent/profile"
-	"github.com/leomorpho/goship/pkg/domain"
+	"github.com/leomorpho/goship/apps/db/ent"
+	"github.com/leomorpho/goship/apps/db/ent/fcmsubscriptions"
+	"github.com/leomorpho/goship/apps/db/ent/notificationpermission"
+	"github.com/leomorpho/goship/apps/db/ent/profile"
+	"github.com/leomorpho/goship/framework/domain"
 	"github.com/rs/zerolog/log"
 	"google.golang.org/api/option"
 )

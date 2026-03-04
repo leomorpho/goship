@@ -9,11 +9,11 @@ import (
 
 	"github.com/golang-jwt/jwt"
 	"github.com/gorilla/sessions"
+	"github.com/leomorpho/goship/apps/db/ent"
+	"github.com/leomorpho/goship/apps/db/ent/passwordtoken"
+	"github.com/leomorpho/goship/apps/db/ent/user"
 	"github.com/leomorpho/goship/config"
-	"github.com/leomorpho/goship/ent"
-	"github.com/leomorpho/goship/ent/passwordtoken"
-	"github.com/leomorpho/goship/ent/user"
-	"github.com/leomorpho/goship/pkg/context"
+	"github.com/leomorpho/goship/framework/context"
 
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"

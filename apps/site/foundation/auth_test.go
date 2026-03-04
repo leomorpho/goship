@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/leomorpho/goship/ent/passwordtoken"
-	"github.com/leomorpho/goship/ent/user"
+	"github.com/leomorpho/goship/apps/db/ent/passwordtoken"
+	"github.com/leomorpho/goship/apps/db/ent/user"
 
 	"github.com/stretchr/testify/require"
 

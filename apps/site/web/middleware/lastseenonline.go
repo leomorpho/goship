@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/leomorpho/goship/apps/db/ent"
 	"github.com/leomorpho/goship/apps/site/foundation"
-	"github.com/leomorpho/goship/ent"
 	"github.com/rs/zerolog/log"
 )
 

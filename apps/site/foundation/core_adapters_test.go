@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/leomorpho/goship/config"
-	"github.com/leomorpho/goship/pkg/core"
+	"github.com/leomorpho/goship/framework/core"
 )
 
 func TestCoreCacheAdapterNilClient(t *testing.T) {

@@ -2,7 +2,7 @@ project_name: ship
 
 builds:
   - id: ship
-    main: ./cli/ship/cmd/ship
+    main: ./tools/cli/ship/cmd/ship
     binary: ship
     env:
       - CGO_ENABLED=0
@@ -25,4 +25,3 @@ archives:
 
 checksum:
   name_template: "ship_checksums.txt"
-

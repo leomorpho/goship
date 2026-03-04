@@ -5,7 +5,7 @@ package middleware
 // 	"fmt"
 // 	"testing"
 
-// 	"github.com/leomorpho/goship/pkg/tests"
+// 	"github.com/leomorpho/goship/framework/tests"
 
 // 	"github.com/labstack/echo/v4"
 

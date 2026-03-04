@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/leomorpho/goship/ent"
-	"github.com/leomorpho/goship/ent/user"
-	"github.com/leomorpho/goship/pkg/context"
+	"github.com/leomorpho/goship/apps/db/ent"
+	"github.com/leomorpho/goship/apps/db/ent/user"
+	"github.com/leomorpho/goship/framework/context"
 
 	"github.com/labstack/echo/v4"
 )

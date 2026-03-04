@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/leomorpho/goship/pkg/core"
+	"github.com/leomorpho/goship/framework/core"
 	"github.com/rs/zerolog/log"
 
-	"github.com/leomorpho/goship/pkg/domain"
+	"github.com/leomorpho/goship/framework/domain"
 )
 
 /*

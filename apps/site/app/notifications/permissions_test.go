@@ -7,13 +7,13 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid"
+	"github.com/leomorpho/goship/apps/db/ent/notificationpermission"
 	"github.com/leomorpho/goship/apps/site/app/notifications"
 	"github.com/leomorpho/goship/apps/site/app/profiles"
 	"github.com/leomorpho/goship/apps/site/app/subscriptions"
-	"github.com/leomorpho/goship/ent/notificationpermission"
-	"github.com/leomorpho/goship/pkg/domain"
-	storagerepo "github.com/leomorpho/goship/pkg/repos/storage"
-	"github.com/leomorpho/goship/pkg/tests"
+	"github.com/leomorpho/goship/framework/domain"
+	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
+	"github.com/leomorpho/goship/framework/tests"
 	"github.com/stretchr/testify/assert"
 )
 

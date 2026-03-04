@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/leomorpho/goship/apps/site/web/ui"
-	"github.com/leomorpho/goship/pkg/context"
-	"github.com/leomorpho/goship/pkg/repos/msg"
+	"github.com/leomorpho/goship/framework/context"
+	"github.com/leomorpho/goship/framework/repos/msg"
 
 	"github.com/leomorpho/goship/apps/site/views"
 	"github.com/leomorpho/goship/apps/site/views/web/layouts/gen"

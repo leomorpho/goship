@@ -23,20 +23,20 @@ import (
 	"github.com/stripe/stripe-go/v78"
 	"github.com/ziflex/lecho/v3"
 
+	"github.com/leomorpho/goship/apps/db/ent"
 	"github.com/leomorpho/goship/apps/site/app/notifications"
 	"github.com/leomorpho/goship/apps/site/app/profiles"
 	"github.com/leomorpho/goship/config"
-	"github.com/leomorpho/goship/ent"
-	"github.com/leomorpho/goship/pkg/core"
-	coreadapters "github.com/leomorpho/goship/pkg/core/adapters"
-	"github.com/leomorpho/goship/pkg/repos/mailer"
-	"github.com/leomorpho/goship/pkg/repos/pubsub"
-	storagerepo "github.com/leomorpho/goship/pkg/repos/storage"
+	"github.com/leomorpho/goship/framework/core"
+	coreadapters "github.com/leomorpho/goship/framework/core/adapters"
+	"github.com/leomorpho/goship/framework/repos/mailer"
+	"github.com/leomorpho/goship/framework/repos/pubsub"
+	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
 
 	// Required by ent
-	"github.com/leomorpho/goship/ent/migrate"
-	_ "github.com/leomorpho/goship/ent/runtime"
-	"github.com/leomorpho/goship/ent/user"
+	"github.com/leomorpho/goship/apps/db/ent/migrate"
+	_ "github.com/leomorpho/goship/apps/db/ent/runtime"
+	"github.com/leomorpho/goship/apps/db/ent/user"
 )
 
 type SentryHook struct{}

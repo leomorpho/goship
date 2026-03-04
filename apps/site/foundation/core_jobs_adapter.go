@@ -8,8 +8,8 @@ import (
 
 	"github.com/hibiken/asynq"
 	"github.com/leomorpho/goship/config"
-	"github.com/leomorpho/goship/pkg/core"
-	coreadapters "github.com/leomorpho/goship/pkg/core/adapters"
+	"github.com/leomorpho/goship/framework/core"
+	coreadapters "github.com/leomorpho/goship/framework/core/adapters"
 )
 
 var _ core.Jobs = (*CoreJobsAdapter)(nil)
@@ -65,7 +65,7 @@ func (a *CoreJobsAdapter) Enqueue(ctx context.Context, name string, payload []by
 }
 
 func (a *CoreJobsAdapter) StartWorker(context.Context) error {
-	// Worker startup is currently handled by cmd/worker runtime wiring.
+	// Worker startup is currently handled by apps/cmd/worker runtime wiring.
 	return nil
 }
 

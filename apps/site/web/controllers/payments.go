@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"github.com/leomorpho/goship/apps/db/ent"
 	"github.com/leomorpho/goship/apps/site/app/subscriptions"
 	"github.com/leomorpho/goship/apps/site/views"
 	"github.com/leomorpho/goship/apps/site/views/web/layouts/gen"
@@ -15,9 +16,8 @@ import (
 	routeNames "github.com/leomorpho/goship/apps/site/web/routenames"
 	"github.com/leomorpho/goship/apps/site/web/ui"
 	"github.com/leomorpho/goship/apps/site/web/viewmodels"
-	"github.com/leomorpho/goship/ent"
-	internalContext "github.com/leomorpho/goship/pkg/context"
-	"github.com/leomorpho/goship/pkg/domain"
+	internalContext "github.com/leomorpho/goship/framework/context"
+	"github.com/leomorpho/goship/framework/domain"
 	"github.com/rs/zerolog/log"
 	"github.com/stripe/stripe-go/v78"
 	portalsession "github.com/stripe/stripe-go/v78/billingportal/session"
@@ -245,8 +245,8 @@ func (p *paymentsRoute) HandleWebhook(c echo.Context) error {
 				Type:      domain.NotificationTypePaymentFailed,
 				ProfileID: profileID,
 				Title:     "Payment issue",
-				Text: fmt.Sprintf(fmt.Sprintf("💸 Oh no, your payment didn’t go through 🙁. Update your payment info within %d days to ensure uninterrupted pro membership.",
-					p.ctr.Container.Config.App.OperationalConstants.PaymentFailedGracePeriodInDays)),
+				Text: fmt.Sprintf("💸 Oh no, your payment didn’t go through 🙁. Update your payment info within %d days to ensure uninterrupted pro membership.",
+					p.ctr.Container.Config.App.OperationalConstants.PaymentFailedGracePeriodInDays),
 				Link:                    fullURL,
 				ProfileIDWhoCausedNotif: profileID,
 			},

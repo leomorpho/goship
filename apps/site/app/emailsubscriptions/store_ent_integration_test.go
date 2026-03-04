@@ -7,8 +7,8 @@ import (
 
 	"github.com/leomorpho/goship-modules/emailsubscriptions"
 	appemailsubscriptions "github.com/leomorpho/goship/apps/site/app/emailsubscriptions"
-	"github.com/leomorpho/goship/pkg/domain"
-	"github.com/leomorpho/goship/pkg/tests"
+	"github.com/leomorpho/goship/framework/domain"
+	"github.com/leomorpho/goship/framework/tests"
 	"github.com/stretchr/testify/assert"
 )
 

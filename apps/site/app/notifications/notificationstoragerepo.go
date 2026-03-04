@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/leomorpho/goship/ent"
-	"github.com/leomorpho/goship/ent/notification"
-	"github.com/leomorpho/goship/ent/profile"
-	"github.com/leomorpho/goship/pkg/domain"
+	"github.com/leomorpho/goship/apps/db/ent"
+	"github.com/leomorpho/goship/apps/db/ent/notification"
+	"github.com/leomorpho/goship/apps/db/ent/profile"
+	"github.com/leomorpho/goship/framework/domain"
 	"github.com/rs/zerolog/log"
 )
 

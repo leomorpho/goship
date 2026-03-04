@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/leomorpho/goship/apps/site/app/notifications"
-	"github.com/leomorpho/goship/pkg/core"
-	"github.com/leomorpho/goship/pkg/domain"
+	"github.com/leomorpho/goship/framework/core"
+	"github.com/leomorpho/goship/framework/domain"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

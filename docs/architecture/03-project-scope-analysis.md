@@ -18,9 +18,9 @@ The repository still carries heritage from a related product domain ("Cherie"), 
 
 ## Runtime Programs
 
-- `cmd/web/main.go`: main HTTP application server
-- `cmd/worker/main.go`: asynchronous worker process for task handlers
-- `cmd/seed/main.go`: seed runner for test/dev data
+- `apps/cmd/web/main.go`: main HTTP application server
+- `apps/cmd/worker/main.go`: asynchronous worker process for task handlers
+- `apps/cmd/seed/main.go`: seed runner for test/dev data
 
 ## Feature Areas
 
@@ -78,7 +78,7 @@ Status of exposure:
 
 - Newsletter-style email subscription flow (`email_subscribe.go`, `verify_email_subscription.go`)
 - Task processor for subscription confirmation emails (`apps/site/jobs/mail.go`)
-- Reusable subscription repo module (`pkg/modules/emailsubscriptions`)
+- Reusable subscription repo module (`modules/emailsubscriptions`)
 - App-specific update email sender integration (`apps/site/app/emailsubscriptions`)
 - Mail provider abstraction supports SMTP and Resend (`pkg/repos/mailer`)
 
@@ -99,7 +99,7 @@ Task processors under `apps/site/jobs`:
 - Daily conversation notification orchestration
 - Stale notification cleanup
 
-Worker bootstrap and registration in `cmd/worker/main.go`.
+Worker bootstrap and registration in `apps/cmd/worker/main.go`.
 
 ## 8) Frontend Delivery Model
 
@@ -110,7 +110,7 @@ Worker bootstrap and registration in `cmd/worker/main.go`.
 
 Build pipeline:
 
-- JS via `build.mjs` + esbuild
+- JS via `frontend/build.mjs` + esbuild
 - CSS via Tailwind CLI in Makefile
 
 ## Environments and Configuration
@@ -128,12 +128,12 @@ Storage modes:
 ## Testing Surface
 
 - 70+ Go tests in `pkg/**`
-- Playwright e2e folder exists (`e2e_tests/`), but specs are currently product-domain stale and marked TODO
+- Playwright e2e folder exists (`tests/e2e/`), but specs are currently product-domain stale and marked TODO
 
 ## Operational Tooling
 
 - `Makefile` is the primary task runner (init, watch, test, migrations, worker)
-- `Procfile` for multi-process dev with Overmind
+- `tools/procfiles/*` for multi-process dev with Overmind
 - Docker Compose currently starts Redis + Mailpit; Postgres service is commented out
 
 ## Practical Summary

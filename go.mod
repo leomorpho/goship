@@ -52,7 +52,7 @@ require (
 	google.golang.org/api v0.183.0
 )
 
-replace github.com/leomorpho/goship-modules/emailsubscriptions => ./pkg/modules/emailsubscriptions
+replace github.com/leomorpho/goship-modules/emailsubscriptions => ./modules/emailsubscriptions
 
 require (
 	cloud.google.com/go v0.114.0 // indirect

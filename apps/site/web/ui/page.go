@@ -8,12 +8,12 @@ import (
 	"github.com/a-h/templ"
 	"github.com/labstack/echo/v4"
 	echomw "github.com/labstack/echo/v4/middleware"
+	"github.com/leomorpho/goship/apps/db/ent"
 	"github.com/leomorpho/goship/apps/site/views"
-	"github.com/leomorpho/goship/ent"
-	"github.com/leomorpho/goship/pkg/context"
-	"github.com/leomorpho/goship/pkg/domain"
-	"github.com/leomorpho/goship/pkg/htmx"
-	"github.com/leomorpho/goship/pkg/repos/msg"
+	"github.com/leomorpho/goship/framework/context"
+	"github.com/leomorpho/goship/framework/domain"
+	"github.com/leomorpho/goship/framework/htmx"
+	"github.com/leomorpho/goship/framework/repos/msg"
 )
 
 type (

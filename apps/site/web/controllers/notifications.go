@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/leomorpho/goship/apps/db/ent"
 	"github.com/leomorpho/goship/apps/site/app/notifications"
 	"github.com/leomorpho/goship/apps/site/app/profiles"
 	"github.com/leomorpho/goship/apps/site/views"
@@ -13,9 +14,8 @@ import (
 	"github.com/leomorpho/goship/apps/site/views/web/pages/gen"
 	"github.com/leomorpho/goship/apps/site/web/ui"
 	"github.com/leomorpho/goship/apps/site/web/viewmodels"
-	"github.com/leomorpho/goship/ent"
-	"github.com/leomorpho/goship/pkg/context"
-	"github.com/leomorpho/goship/pkg/domain"
+	"github.com/leomorpho/goship/framework/context"
+	"github.com/leomorpho/goship/framework/domain"
 	"github.com/rs/zerolog/log"
 
 	"github.com/labstack/echo/v4"

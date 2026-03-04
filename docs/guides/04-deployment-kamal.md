@@ -10,27 +10,27 @@ Current deploy method covered here:
 
 ## Required Files
 
-- `deploy/kamal/deploy.yml`
+- `infra/deploy/kamal/deploy.yml`
 - `.kamal/secrets`
 
-Keep non-secret config in `deploy/kamal/deploy.yml`.
+Keep non-secret config in `infra/deploy/kamal/deploy.yml`.
 Keep secrets in `.kamal/secrets` (or your equivalent secret backend workflow).
 
 ## Preflight
 
 Before deploying:
 
-1. Confirm image/registry settings in `deploy/kamal/deploy.yml`.
+1. Confirm image/registry settings in `infra/deploy/kamal/deploy.yml`.
 2. Confirm server hosts and SSH configuration.
 3. Confirm runtime environment variables (DB, cache, app secrets).
 4. Run local checks:
-   - `go run ./cli/ship/cmd/ship test`
-   - `go run ./cli/ship/cmd/ship test --integration` (recommended when touching infra-sensitive code)
+   - `go run ./tools/cli/ship/cmd/ship test`
+   - `go run ./tools/cli/ship/cmd/ship test --integration` (recommended when touching infra-sensitive code)
 
 ## First Setup
 
 ```bash
-kamal setup -c deploy/kamal/deploy.yml
+kamal setup -c infra/deploy/kamal/deploy.yml
 ```
 
 This performs initial server bootstrapping and first deployment.
@@ -38,7 +38,7 @@ This performs initial server bootstrapping and first deployment.
 ## Standard Deploy
 
 ```bash
-kamal deploy -c deploy/kamal/deploy.yml
+kamal deploy -c infra/deploy/kamal/deploy.yml
 ```
 
 Use this for normal release pushes.
@@ -48,7 +48,7 @@ Use this for normal release pushes.
 If Traefik state is unhealthy after host restart or networking changes:
 
 ```bash
-kamal traefik reboot -c deploy/kamal/deploy.yml
+kamal traefik reboot -c infra/deploy/kamal/deploy.yml
 ```
 
 ## Notes

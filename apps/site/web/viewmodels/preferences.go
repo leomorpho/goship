@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/leomorpho/goship/apps/site/web/ui"
-	"github.com/leomorpho/goship/pkg/domain"
+	"github.com/leomorpho/goship/framework/domain"
 )
 
 type (

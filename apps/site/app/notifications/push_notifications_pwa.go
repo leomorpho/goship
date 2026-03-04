@@ -9,11 +9,11 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/SherClockHolmes/webpush-go"
-	"github.com/leomorpho/goship/ent"
-	"github.com/leomorpho/goship/ent/notificationpermission"
-	"github.com/leomorpho/goship/ent/profile"
-	"github.com/leomorpho/goship/ent/pwapushsubscription"
-	"github.com/leomorpho/goship/pkg/domain"
+	"github.com/leomorpho/goship/apps/db/ent"
+	"github.com/leomorpho/goship/apps/db/ent/notificationpermission"
+	"github.com/leomorpho/goship/apps/db/ent/profile"
+	"github.com/leomorpho/goship/apps/db/ent/pwapushsubscription"
+	"github.com/leomorpho/goship/framework/domain"
 )
 
 type Subscription struct {

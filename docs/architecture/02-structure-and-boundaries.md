@@ -6,19 +6,24 @@ This document defines where code belongs as GoShip evolves into a Rails-like fra
 ## Current Top-Level Shape (Single Repository)
 
 - `apps/site/`: app-specific code for the first-party GoShip app
-- `cmd/`: runnable entrypoints for the app module (`web`, `worker`, `seed`)
-- `cli/ship/`: standalone CLI module (`ship`) that lives in this same repository
-- `mcp/ship/`: standalone MCP module (`ship-mcp`) for LLM-facing docs/CLI tooling
-- `pkg/`: reusable framework-level libraries and adapters
+- `apps/cmd/`: runnable entrypoints for app processes (`web`, `worker`, `seed`)
+- `tools/cli/ship/`: standalone CLI module (`ship`) that lives in this same repository
+- `tools/mcp/ship/`: standalone MCP module (`ship-mcp`) for LLM-facing docs/CLI tooling
+- `framework/`: reusable framework-level libraries and adapters
+- `modules/`: installable framework modules (workspace-local during development)
+- `tools/`: internal tooling modules and scripts (`ship`, `ship-mcp`, helper scripts)
+- `infra/`: deployment and infrastructure assets (Kamal, container assets, wrappers)
+- `frontend/`: frontend toolchain and source (`package.json`, `build.mjs`, JS/Svelte)
+- `tests/`: e2e and cross-package test assets
 - `config/`: runtime configuration
 - `apps/db/`: monolith-owned schema and migration history
-- `ent/`: schema and generated ORM
+- `apps/db/ent/`: schema and generated ORM
 - `docs/`: internal design and implementation documentation
 
 Monorepo note:
 
 - GoShip currently uses one repository with multiple Go modules:
-- root app/framework module + `cli/ship` module + `mcp/ship` module
+- root framework module + `apps` module + `tools/cli/ship` module + `tools/mcp/ship` module
 - `go.work` ties local development across modules together for maintainers.
 
 ## App vs Framework Rules
@@ -26,7 +31,7 @@ Monorepo note:
 Use this placement rule for every new file:
 
 - Put code in `apps/site/...` when it encodes product behavior/UI for the GoShip app.
-- Put code in `pkg/...` when it is reusable as framework infrastructure across apps.
+- Put code in `framework/...` when it is reusable as framework infrastructure across apps.
 
 ## Web Layer Layout
 
@@ -98,7 +103,7 @@ Installable modules must integrate with the monolith through explicit boundaries
 - app-specific business rules are passed as callbacks/interfaces from app domain packages.
 - modules must not import app-only domain packages directly.
 
-Classification policy for current `pkg/repos/*`:
+Classification policy for framework repos/adapters:
 
 - app-specific behavior => move to `apps/site/...` domain packages.
 - reusable framework capability => keep/extract as framework module (installable by `ship`).

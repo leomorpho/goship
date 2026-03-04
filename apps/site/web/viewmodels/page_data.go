@@ -1,6 +1,6 @@
 package viewmodels
 
-import "github.com/leomorpho/goship/ent"
+import "github.com/leomorpho/goship/apps/db/ent"
 
 type PageData struct {
 	IsAuth   bool

@@ -5,7 +5,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/leomorpho/goship/apps/site/web/routenames"
-	"github.com/leomorpho/goship/pkg/context"
+	"github.com/leomorpho/goship/framework/context"
 )
 
 func RedirectToOnboardingIfNotComplete() echo.MiddlewareFunc {

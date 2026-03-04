@@ -6,9 +6,9 @@ import (
 
 	echomw "github.com/labstack/echo/v4/middleware"
 	"github.com/leomorpho/goship/apps/site/web/ui"
-	"github.com/leomorpho/goship/pkg/context"
-	"github.com/leomorpho/goship/pkg/repos/msg"
-	"github.com/leomorpho/goship/pkg/tests"
+	"github.com/leomorpho/goship/framework/context"
+	"github.com/leomorpho/goship/framework/repos/msg"
+	"github.com/leomorpho/goship/framework/tests"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

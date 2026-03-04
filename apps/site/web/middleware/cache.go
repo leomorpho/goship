@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/leomorpho/goship/apps/site/foundation"
-	"github.com/leomorpho/goship/pkg/context"
+	"github.com/leomorpho/goship/framework/context"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/labstack/echo/v4"

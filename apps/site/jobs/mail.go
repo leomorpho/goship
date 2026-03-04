@@ -7,6 +7,7 @@ import (
 
 	"github.com/hibiken/asynq"
 	"github.com/labstack/echo/v4"
+	"github.com/leomorpho/goship/apps/db/ent"
 	"github.com/leomorpho/goship/apps/site/app/emailsubscriptions"
 	"github.com/leomorpho/goship/apps/site/foundation"
 	"github.com/leomorpho/goship/apps/site/views/emails/gen"
@@ -14,8 +15,7 @@ import (
 	"github.com/leomorpho/goship/apps/site/web/ui"
 	"github.com/leomorpho/goship/apps/site/web/viewmodels"
 	"github.com/leomorpho/goship/config"
-	"github.com/leomorpho/goship/ent"
-	"github.com/leomorpho/goship/pkg/repos/mailer"
+	"github.com/leomorpho/goship/framework/repos/mailer"
 )
 
 // ////////////////////////////////////////////////////////////////////////////

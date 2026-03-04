@@ -5,7 +5,7 @@
 
 The application follows a layered structure:
 
-- `cmd/*`: process entrypoints (`web`, `worker`, `seed`)
+- `apps/cmd/*`: process entrypoints (`web`, `worker`, `seed`)
 - `apps/site/foundation`: app composition container and app-bound infrastructure adapters
 - `apps/site/web/controllers`: HTTP handlers
 - `apps/site/web/wiring.go`: HTTP stack wiring (middleware/static/deps)
@@ -18,14 +18,14 @@ The application follows a layered structure:
 
 ## Web Runtime Flow
 
-1. `cmd/web/main.go` creates container via `foundation.NewContainer()`.
+1. `apps/cmd/web/main.go` creates container via `foundation.NewContainer()`.
 2. `goship.BuildRouter(c)` is the canonical app router entrypoint and contains the route manifest.
 3. Echo server starts with request timeout middleware (SSE-aware).
 4. Request path executes middleware chain, route handler, and page rendering.
 
 ## Worker Runtime Flow
 
-1. `cmd/worker/main.go` creates app container and validates that jobs adapter is `asynq` via `c.Config`.
+1. `apps/cmd/worker/main.go` creates app container and validates that jobs adapter is `asynq` via `c.Config`.
 2. Starts Asynq server from cache config and builds router (for reverse route URLs in tasks).
 3. Constructs repo instances needed by task processors.
 4. Registers handlers on Asynq mux and runs worker.
@@ -105,13 +105,13 @@ HTMX behavior is integrated in the page object (`Page.HTMX`) and controller rend
 
 ## Frontend Asset Architecture
 
-- `build.mjs` bundles Svelte entrypoints under `javascript/svelte/*.js`
-- Also bundles vanilla JS from `javascript/vanilla/main.js`
+- `frontend/build.mjs` bundles Svelte entrypoints under `frontend/javascript/svelte/*.js`
+- Also bundles vanilla JS from `frontend/javascript/vanilla/main.js`
 - Outputs static bundles and meta files in `apps/site/static/`
 - Tailwind build pipeline outputs `apps/site/static/styles_bundle.css`
 
 ## Deployment/Operations Shape
 
-- Local process orchestration via Overmind (`Procfile`)
+- Local process orchestration via Overmind (`tools/procfiles/*`)
 - Docker Compose for Redis + Mailpit in current config
-- Kamal deployment files present (`deploy/`, `.kamal/`)
+- Kamal deployment files present (`infra/deploy/`, `.kamal/`)

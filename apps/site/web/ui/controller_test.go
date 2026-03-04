@@ -15,8 +15,8 @@ import (
 	"github.com/leomorpho/goship/apps/site/web/middleware"
 	"github.com/leomorpho/goship/apps/site/web/ui"
 	"github.com/leomorpho/goship/config"
-	"github.com/leomorpho/goship/pkg/htmx"
-	"github.com/leomorpho/goship/pkg/tests"
+	"github.com/leomorpho/goship/framework/htmx"
+	"github.com/leomorpho/goship/framework/tests"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

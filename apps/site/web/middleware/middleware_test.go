@@ -5,10 +5,10 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/leomorpho/goship/apps/db/ent"
 	"github.com/leomorpho/goship/apps/site/foundation"
 	"github.com/leomorpho/goship/config"
-	"github.com/leomorpho/goship/ent"
-	"github.com/leomorpho/goship/pkg/tests"
+	"github.com/leomorpho/goship/framework/tests"
 )
 
 var (

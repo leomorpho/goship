@@ -152,7 +152,7 @@ Rules for versioned tooling in generated apps:
 
 1. `apps/site/` contains app-specific web handlers and templ views.
 2. `pkg/` currently remains the framework/infrastructure layer.
-3. `cmd/` contains process entrypoints.
+3. `apps/cmd/` contains process entrypoints.
 
 Note: app composition/runtime wiring has moved to `apps/site/foundation`. `pkg/repos` remains intentionally centralized for now and will be split into app-specific vs reusable framework modules in a dedicated follow-up pass.
 
@@ -579,7 +579,7 @@ Proposed module boundaries:
 4. `packages/notifications`
 5. `packages/storage`
 6. `packages/admin`
-7. `cli/ship`
+7. `tools/cli/ship`
 
 ## Priority Roadmap
 
@@ -625,7 +625,7 @@ Done when:
 - runtime plan resolver exists with table tests;
 - no startup behavior change yet (scaffold only).
 Test evidence:
-- `go test ./config ./pkg/runtimeplan`
+- `go test ./config ./framework/runtimeplan`
 
 3. `R0.3` Router consistency pass (realtime + notifications wired consistently with initialized dependencies).
 Status: `completed`
@@ -634,7 +634,7 @@ Done when:
 - realtime routes are wired only when notifier+pubsub dependencies are available;
 - runtime plan is resolved at router build with safe fallback on invalid plan configuration.
 Test evidence:
-- `go test ./pkg/runtimeplan`
+- `go test ./framework/runtimeplan`
 
 4. `R0.4` Testing harness improvements so default `make test` is Docker-free and fast.
 Status: `completed`
@@ -643,7 +643,7 @@ Done when:
 - integration/infra-heavy tests run via separate command;
 - cache-dependent unit tests do not fail when cache service is disabled in runtime profile.
 Test evidence:
-- `bash scripts/test-unit.sh`
+- `bash tools/scripts/test-unit.sh`
 
 5. `R0.5` Establish package-level coverage baselines and close highest-value test gaps.
 Status: `in_progress`
@@ -656,7 +656,7 @@ Done when:
 - handler implementations remain in `apps/site/web/controllers/*.go`;
 - realtime registration is feature-gated directly in the canonical router.
 Test evidence:
-- `go test ./cmd/web ./apps/site/web/ui ./pkg/runtimeplan`
+- `go test ./apps/cmd/web ./apps/site/web/ui ./framework/runtimeplan`
 - `go test -c ./apps/site/web/controllers` (compile check in restricted env)
 
 7. `R1.2` Minimal resource generator foundation.
@@ -664,9 +664,9 @@ Status: `completed`
 Done when:
 - `ship make:resource <name>` scaffolds route handler (+ optional templ page);
 - generator prints router insertion snippet instead of auto-editing `apps/site/router.go`;
-- generator logic is table-driven tested in `cli/ship`.
+- generator logic is table-driven tested in `tools/cli/ship`.
 Test evidence:
-- `go test ./cli/ship`
+- `go test ./tools/cli/ship`
 
 8. `R1.3` Optional safe router wiring mode for generator.
 Status: `completed`
@@ -675,7 +675,7 @@ Done when:
 - insertion only occurs behind explicit marker pairs (`public` or `auth`);
 - operation is idempotent and tested (no duplicate insertion).
 Test evidence:
-- `go test ./cli/ship`
+- `go test ./tools/cli/ship`
 
 9. `R1.4` Route name automation and dry-run previews for resource generation.
 Status: `completed`
@@ -684,7 +684,7 @@ Done when:
 - `ship make:resource ... --dry-run` previews file/router/routename changes without writing;
 - wiring/import/constant insertion paths are idempotent and tested.
 Test evidence:
-- `go test ./cli/ship`
+- `go test ./tools/cli/ship`
 
 ### Phase 1: Core Abstractions
 
@@ -736,7 +736,7 @@ Current progress:
 ## Immediate
 
 - [x] Decide and document exact package naming convention (`github.com/leomorpho/goship/*`).
-- [x] Choose CLI implementation approach (stdlib `flag` + explicit command dispatch in `cli/ship`).
+- [x] Choose CLI implementation approach (stdlib `flag` + explicit command dispatch in `tools/cli/ship`).
 - [x] Draft `core` interface contracts in a design doc and first package (`pkg/core`).
 - [x] Define runtime config schema for adapter selection and add startup adapter validation registry.
 - [ ] Specify module compatibility/version policy.

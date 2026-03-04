@@ -2,7 +2,7 @@ project_name: ship-mcp
 
 builds:
   - id: ship-mcp
-    main: ./mcp/ship/cmd/ship-mcp
+    main: ./tools/mcp/ship/cmd/ship-mcp
     binary: ship-mcp
     env:
       - CGO_ENABLED=0
@@ -25,4 +25,3 @@ archives:
 
 checksum:
   name_template: "ship-mcp_checksums.txt"
-

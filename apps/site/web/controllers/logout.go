@@ -3,7 +3,7 @@ package controllers
 import (
 	routeNames "github.com/leomorpho/goship/apps/site/web/routenames"
 	"github.com/leomorpho/goship/apps/site/web/ui"
-	"github.com/leomorpho/goship/pkg/repos/msg"
+	"github.com/leomorpho/goship/framework/repos/msg"
 
 	"github.com/labstack/echo/v4"
 )

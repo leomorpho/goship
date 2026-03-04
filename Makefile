@@ -4,9 +4,10 @@ SHELL := /bin/bash
 # Define variables
 PGVECTOR_IMAGE_NAME = custom-pgvector
 PGVECTOR_IMAGE_TAG = latest
-PGVECTOR_IMAGE_DIR = pgvector-image
-NPM ?= npm
-TAILWIND ?= npx tailwindcss
+PGVECTOR_IMAGE_DIR = infra/pgvector-image
+NPM ?= npm --prefix frontend
+TAILWIND ?= npx --prefix frontend tailwindcss
+COMPOSE_FILE ?= infra/docker/docker-compose.yml
 
 # Define a function to check for docker compose command
 define find_docker_compose
@@ -43,32 +44,32 @@ hooks: ## Install git hooks via lefthook
 
 .PHONY: llm-txt
 llm-txt: ## Generate root LLM.txt from README and docs markdown files
-	bash scripts/generate-llm-txt.sh
+	bash tools/scripts/generate-llm-txt.sh
 
 .PHONY: check-compile
 check-compile: ## Compile app/packages and route tests without running tests
-	bash scripts/check-compile.sh
+	bash tools/scripts/check-compile.sh
 
 .PHONY: templ-gen
 templ-gen: ## Generate templ code next to .templ files via ship CLI
-	go run ./cli/ship/cmd/ship templ generate --path app
+	go run ./tools/cli/ship/cmd/ship templ generate --path app
 
 # Core workflow ------------------------------------------------------------------------------
 
 .PHONY: dev
 dev: ## Start local development (infra + web server only)
-	bash scripts/dev.sh "$(DCO_BIN)"
+	bash tools/scripts/dev.sh "$(DCO_BIN)"
 
 .PHONY: dev-worker
 dev-worker: ## Start local development worker only (infra + worker process)
-	bash scripts/up.sh "$(DCO_BIN)"
-	overmind start -f Procfile.worker
+	bash tools/scripts/up.sh "$(DCO_BIN)"
+	overmind start -f tools/procfiles/Procfile.worker
 
 .PHONY: dev-full
 dev-full: ## Start local development including web, worker, and JS/CSS watchers
-	bash scripts/up.sh "$(DCO_BIN)"
+	bash tools/scripts/up.sh "$(DCO_BIN)"
 	echo "Tip: run 'nvm use v18.20.7' if JS tooling fails."
-	overmind start
+	overmind start -f tools/procfiles/Procfile
 
 .PHONY: dev-reset
 dev-reset: reset deps-js build-js build-css seed watch ## Full reset then start dev (destructive to local DB state)
@@ -90,27 +91,27 @@ build-image: ## Build the Docker image for pgvector
 
 .PHONY: migrate_diff
 makemigrations: ## Create a migration through ship CLI
-	go run ./cli/ship/cmd/ship db:make "$(name)"
+	go run ./tools/cli/ship/cmd/ship db:make "$(name)"
 
 .PHONY: migrate_apply
 migrate: ## Apply migrations through ship CLI
-	go run ./cli/ship/cmd/ship db:migrate
+	go run ./tools/cli/ship/cmd/ship db:migrate
 
 .PHONY: db-status
 db-status: ## Show migration status through ship CLI
-	go run ./cli/ship/cmd/ship db:status
+	go run ./tools/cli/ship/cmd/ship db:status
 
 .PHONY: db-create
 db-create: ## Validate/create DB target through ship CLI
-	go run ./cli/ship/cmd/ship db:create
+	go run ./tools/cli/ship/cmd/ship db:create
 
 .PHONY: db-drop
 db-drop: ## Preview drop plan (use direct ship command with --yes to execute)
-	go run ./cli/ship/cmd/ship db:drop --dry-run
+	go run ./tools/cli/ship/cmd/ship db:drop --dry-run
 
 .PHONY: db-reset
 db-reset: ## Preview reset plan (use direct ship command with --yes to execute)
-	go run ./cli/ship/cmd/ship db:reset --dry-run
+	go run ./tools/cli/ship/cmd/ship db:reset --dry-run
 
 .PHONY: schemaspy
 schema: ## Create DB schema
@@ -145,11 +146,11 @@ ent-install: ## Install Ent code-generation module
 
 .PHONY: ent-gen
 ent-gen: ## Generate Ent code
-	go run entgo.io/ent/cmd/ent generate --feature sql/upsert,sql/execquery --target ./ent ./apps/db/schema
+	go run entgo.io/ent/cmd/ent generate --feature sql/upsert,sql/execquery --target ./apps/db/ent ./apps/db/schema
 
 .PHONY: ent-new
 ent-new: ## Create a new Ent entity
-	go run ./cli/ship/cmd/ship make:model $(name)
+	go run ./tools/cli/ship/cmd/ship make:model $(name)
  
 .PHONY: generate
 generate: templ-gen ## Run code generation
@@ -157,19 +158,19 @@ generate: templ-gen ## Run code generation
 
 .PHONY: up
 up: ensure-compose ## Start Docker containers
-	bash scripts/up.sh "$(DCO_BIN)"
+	bash tools/scripts/up.sh "$(DCO_BIN)"
 
 .PHONY: down
 down: ensure-compose ## Stop Docker containers
-	$(DCO_BIN) down
+	$(DCO_BIN) -f $(COMPOSE_FILE) down
 
 .PHONY: down-volume
 down-volume: ensure-compose ## Stop Docker containers and delete volumes
-	$(DCO_BIN) down --volumes
+	$(DCO_BIN) -f $(COMPOSE_FILE) down --volumes
 
 .PHONY: seed
 seed: ## Seed with data (must be clean to begin with or will die)
-	go run cmd/seed/main.go
+	go run apps/cmd/seed/main.go
 
 .PHONY: reset
 reset: down up ## Rebuild Docker containers to wipe all data
@@ -191,11 +192,11 @@ watch-js: ## Watch and rebuild JS/Svelte assets
 
 .PHONY: build-css
 build-css: ## Build CSS assets (auto reload changes)
-	$(TAILWIND) -i ./apps/site/styles/styles.css -o ./apps/site/static/styles_bundle.css
+	$(TAILWIND) --config ./frontend/tailwind.config.js -i ./apps/site/styles/styles.css -o ./apps/site/static/styles_bundle.css
 
 .PHONY: watch-css
 watch-css: ## Build CSS assets (auto reload changes)
-	$(TAILWIND) -i ./apps/site/styles/styles.css -o ./apps/site/static/styles_bundle.css --watch
+	$(TAILWIND) --config ./frontend/tailwind.config.js -i ./apps/site/styles/styles.css -o ./apps/site/static/styles_bundle.css --watch
 
 .PHONY: watch-go
 watch-go: ## Run the application with air (auto reload changes)
@@ -204,25 +205,25 @@ watch-go: ## Run the application with air (auto reload changes)
 
 watch: ## Start all dev watchers/processes through overmind
 	@echo "Tip: run 'nvm use v18.20.7' if JS tooling fails."
-	overmind start
+	overmind start -f tools/procfiles/Procfile
 
 .PHONY: test
 test: ## Run Docker-free unit test package set
-	bash scripts/test-unit.sh
-	bash scripts/check-module-isolation.sh
+	bash tools/scripts/test-unit.sh
+	bash tools/scripts/check-module-isolation.sh
 
 .PHONY: test-module-isolation
 test-module-isolation: ## Ensure extracted modules do not import goship internals
-	bash scripts/check-module-isolation.sh
+	bash tools/scripts/check-module-isolation.sh
 
 .PHONY: test-integration
 test-integration: ## Run integration test package set (may require Docker/infra)
-	bash scripts/test-integration.sh
+	bash tools/scripts/test-integration.sh
 
 .PHONY: testall
 testall: ## Run both unit and integration test package sets
-	bash scripts/test-unit.sh
-	bash scripts/test-integration.sh
+	bash tools/scripts/test-unit.sh
+	bash tools/scripts/test-integration.sh
 
 .PHONY: cover
 cover: ## Create a html coverage report and open it once generated
@@ -243,7 +244,7 @@ cover-treemap: ## Create a treemap view of the coverage report
 .PHONY: worker
 worker: ## Run the worker
 	clear
-	go run cmd/worker/main.go
+	go run apps/cmd/worker/main.go
 
 .PHONY: workerui
 workerui: ## Run the worker asynq dash
@@ -257,37 +258,37 @@ check-updates: ## Check for direct dependency updates
 # See https://tailwindcss.com/blog/standalone-cli
 .PHONY: tailwind-watch
 tailwind-watch: ## Start a Tailwind watcher
-	./tailwindcss -o apps/site/static/output.css --watch
+	$(TAILWIND) --config ./frontend/tailwind.config.js -o apps/site/static/output.css --watch
 
 # See https://tailwindcss.com/blog/standalone-cli
 .PHONY: tailwind-compile
 tailwind-compile: ## Compile and minify your CSS for production
-	./tailwindcss -i apps/site/styles/styles.css -o apps/site/static/output.css --minify
+	$(TAILWIND) --config ./frontend/tailwind.config.js -i apps/site/styles/styles.css -o apps/site/static/output.css --minify
 
 .PHONY: deploy-cherie
 deploy-goship: ## Deploy new Goship version
-	kamal deploy -c deploy.yml
+	kamal deploy -c infra/deploy/kamal/deploy.yml
 
 # TODO: below is not working, only interactive mode is
 .PHONY: test-e2e
 e2e: ## Run Playwright tests
 	@echo "Running end-to-end tests..."
-	@cd e2e_tests && npm install && npx playwright test
+	@cd tests/e2e && npm install && npx playwright test
 
 .PHONY: test-e2e
 e2eui: ## Run Playwright tests
 	@echo "Running end-to-end tests..."
-	@cd e2e_tests && npm install && npx playwright test --ui
+	@cd tests/e2e && npm install && npx playwright test --ui
 
 # To run for mobile: `make codegen mobile=true`
 .PHONY: codegen
 codegen: ## Generate Playwright tests interactively
 ifeq ($(mobile),true)
 	@echo "Running Playwright codegen for mobile on predefined device (iPhone 12) at URL http://localhost:8002..."
-	@cd e2e_tests && npx playwright codegen --device="iPhone 12" http://localhost:8002
+	@cd tests/e2e && npx playwright codegen --device="iPhone 12" http://localhost:8002
 else
 	@echo "Running Playwright codegen for desktop at URL http://localhost:8002..."
-	@cd e2e_tests && npx playwright codegen http://localhost:8002
+	@cd tests/e2e && npx playwright codegen http://localhost:8002
 endif
 
 

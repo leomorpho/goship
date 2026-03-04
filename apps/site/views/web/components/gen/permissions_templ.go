@@ -10,7 +10,7 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"github.com/leomorpho/goship/apps/site/web/viewmodels"
-	"github.com/leomorpho/goship/pkg/domain"
+	"github.com/leomorpho/goship/framework/domain"
 )
 
 func PermissionsButtons(platforms map[domain.NotificationPlatform]bool, notifsPermissions viewmodels.NotificationPermissionsData) templ.Component {

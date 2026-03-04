@@ -8,7 +8,7 @@ Primary commands:
 - `make dev`: infra + web process (recommended default)
 - `make dev-worker`: infra + worker process
 - `make dev-full`: infra + web + worker + JS/CSS watchers
-- `go run ./cli/ship/cmd/ship dev`: CLI equivalent of `make dev`
+- `go run ./tools/cli/ship/cmd/ship dev`: CLI equivalent of `make dev`
 
 Legacy aliases still exist (`make init`, `make watch`) but they are no longer the preferred path.
 
@@ -35,7 +35,7 @@ Notes:
 
 JS build:
 
-- `npm run build` (via `build.mjs`)
+- `npm --prefix frontend run build` (via `frontend/build.mjs`)
 - Bundles Svelte entrypoints and vanilla JS
 
 CSS build:
@@ -45,7 +45,7 @@ CSS build:
 Templ generation:
 
 - `make templ-gen`
-- or `go run ./cli/ship/cmd/ship templ generate --path app`
+- or `go run ./tools/cli/ship/cmd/ship templ generate --path app`
 - Generated `*_templ.go` files are moved to `gen/` subdirectories beside each templ package.
 
 ## Database and Schema
@@ -57,11 +57,11 @@ Entity schema source:
 Common workflow:
 
 1. `make ent-new name=YourEntity` (if new entity)
-2. `go run ./cli/ship/cmd/ship db:make your_change`
-3. `make ent-gen` (or `go run ./cli/ship/cmd/ship make:model ...` when scaffolding a new model)
-4. `go run ./cli/ship/cmd/ship db:migrate`
-5. `go run ./cli/ship/cmd/ship db:status`
-6. Optional reset loop: `go run ./cli/ship/cmd/ship db:reset --yes` (use `--dry-run` first)
+2. `go run ./tools/cli/ship/cmd/ship db:make your_change`
+3. `make ent-gen` (or `go run ./tools/cli/ship/cmd/ship make:model ...` when scaffolding a new model)
+4. `go run ./tools/cli/ship/cmd/ship db:migrate`
+5. `go run ./tools/cli/ship/cmd/ship db:status`
+6. Optional reset loop: `go run ./tools/cli/ship/cmd/ship db:reset --yes` (use `--dry-run` first)
 
 Use `ship db:*` as the canonical migration interface; avoid calling Atlas directly.
 
@@ -78,16 +78,16 @@ Asynq UI:
 
 Task processor registration:
 
-- `cmd/worker/main.go`
+- `apps/cmd/worker/main.go`
 
 ## Testing
 
 Go tests:
 
 - `make check-compile` (compile app/packages + route tests without execution)
-- `bash scripts/test-unit.sh` (Docker-free unit package set)
+- `bash tools/scripts/test-unit.sh` (Docker-free unit package set)
 - `make test` (broader suite; may include Docker-backed packages depending on environment)
-- `go run ./cli/ship/cmd/ship test`
+- `go run ./tools/cli/ship/cmd/ship test`
 - `make cover`
 
 E2E tests:

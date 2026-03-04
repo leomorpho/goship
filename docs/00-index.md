@@ -52,11 +52,11 @@ Last updated: 2026-03-03
 
 ## Primary Source Files Used For This Analysis
 
-- `cmd/web/main.go`
-- `cmd/worker/main.go`
-- `cmd/seed/main.go`
-- `cli/ship/cmd/ship/main.go`
-- `cli/ship/cli.go`
+- `apps/cmd/web/main.go`
+- `apps/cmd/worker/main.go`
+- `apps/cmd/seed/main.go`
+- `tools/cli/ship/cmd/ship/main.go`
+- `tools/cli/ship/cli.go`
 - `apps/site/foundation/container.go`
 - `pkg/core/interfaces.go`
 - `pkg/core/adapters/registry.go`
@@ -74,6 +74,6 @@ Last updated: 2026-03-03
 - `config/environments/*.yaml`
 - `config/processes.yaml`
 - `Makefile`
-- `build.mjs`
-- `package.json`
-- `e2e_tests/tests/goship.spec.ts`
+- `frontend/build.mjs`
+- `frontend/package.json`
+- `tests/e2e/tests/goship.spec.ts`

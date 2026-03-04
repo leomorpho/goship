@@ -12,8 +12,8 @@ import (
 	"github.com/leomorpho/goship/apps/site/web/ui"
 	"github.com/leomorpho/goship/apps/site/web/viewmodels"
 	"github.com/leomorpho/goship/config"
-	"github.com/leomorpho/goship/pkg/context"
-	"github.com/leomorpho/goship/pkg/domain"
+	"github.com/leomorpho/goship/framework/context"
+	"github.com/leomorpho/goship/framework/domain"
 	"github.com/rs/zerolog/log"
 
 	"github.com/labstack/echo/v4"

@@ -30,7 +30,7 @@ func TestDockerImageBuildAndWebStartup(t *testing.T) {
 	buildCtx, cancelBuild := context.WithTimeout(context.Background(), 12*time.Minute)
 	defer cancelBuild()
 	_, err := commandOutput(buildCtx,
-		"docker", "build", "--network", "host", "-t", imageTag, "-f", filepath.Join(repoRoot, "Dockerfile"), repoRoot,
+		"docker", "build", "--network", "host", "-t", imageTag, "-f", filepath.Join(repoRoot, "infra", "docker", "Dockerfile"), repoRoot,
 	)
 	if err != nil {
 		if isTransientNetworkFailure(err.Error()) {

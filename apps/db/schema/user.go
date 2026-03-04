@@ -4,8 +4,8 @@ import (
 	"context"
 	"strings"
 
-	ge "github.com/leomorpho/goship/ent"
-	"github.com/leomorpho/goship/ent/hook"
+	ge "github.com/leomorpho/goship/apps/db/ent"
+	"github.com/leomorpho/goship/apps/db/ent/hook"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/entsql"

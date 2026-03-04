@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/leomorpho/goship/pkg/core"
-	pubsubrepo "github.com/leomorpho/goship/pkg/repos/pubsub"
+	"github.com/leomorpho/goship/framework/core"
+	pubsubrepo "github.com/leomorpho/goship/framework/repos/pubsub"
 )
 
 type testPubSubClient struct {

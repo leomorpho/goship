@@ -22,7 +22,7 @@ Quick start:
 make dev
 
 # or via CLI
-go run ./cli/ship/cmd/ship dev
+go run ./tools/cli/ship/cmd/ship dev
 ```
 
 Common commands:
@@ -60,9 +60,9 @@ Use docs as the source of truth for architecture, workflows, and plans:
 
 - `apps/site/`: app-specific code (routes, views, app router)
 - `pkg/`: reusable framework-level packages
-- `cmd/`: process entrypoints (`web`, `worker`, `seed`)
-- `cli/ship/`: standalone `ship` CLI module
-- `mcp/ship/`: standalone MCP module
+- `apps/cmd/`: process entrypoints (`web`, `worker`, `seed`)
+- `tools/cli/ship/`: standalone `ship` CLI module
+- `tools/mcp/ship/`: standalone MCP module
 - `docs/`: maintained engineering documentation
 
 ## Historical Note
@@ -103,7 +103,7 @@ The following methods are available:
 
 ## Regenerate Logo Image Assets 
 
-There is a python script in `scripts/regen_logo_images.py` that should be run when the logo in `apps/site/static/logo.png` is updated.
+There is a python script in `tools/scripts/regen_logo_images.py` that should be run when the logo in `apps/site/static/logo.png` is updated.
 This will regenerate the logo assets for different app icons and the favicon. It will also regenerate the correct iOS and Android app icons and place them in app-specific static wrapper directories.
 
 ```bash
@@ -112,7 +112,7 @@ python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 
-python3 scripts/regen_logo_images.py
+python3 tools/scripts/regen_logo_images.py
 ```
 
 ## Run Tasks
@@ -127,7 +127,7 @@ While the project primarily uses HTMX, it also supports integrating JavaScript a
 1. A single Vanilla JavaScript bundle
 2. A single Svelte bundle
 This approach allows you to incorporate JavaScript functionality alongside the HTMX-driven parts of your application. Here's how it works:
-- The build.mjs script handles the bundling process for both Vanilla JS and Svelte components.
+- The `frontend/build.mjs` script handles the bundling process for both Vanilla JS and Svelte components.
 -Each framework (Vanilla JS and Svelte) is compiled into its own single file bundle.
 -These bundles can be served to the frontend and used where needed in your application.
 
@@ -141,7 +141,7 @@ Note that any JS framework could be used.
 
 ## Playwright E2E Tests
 
-TODO: the test file can be found at `e2e_tests/tests/goship.spec.ts` and is currently still the one from [chérie](https://cherie.chatbond.app/)...I will update it soon!
+TODO: the test file can be found at `tests/e2e/tests/goship.spec.ts` and is currently still the one from [chérie](https://cherie.chatbond.app/)...I will update it soon!
 
 You can run the Playwright tests with:
 ```bash
@@ -156,20 +156,20 @@ I currently only use Kamal for deployment. Should you want to contribute in addi
 
 ### Kamal
 
-First, make sure all your env vars in the Kamal file `deploy/kamal/deploy.yml` are correct. All your vars should be set either in:
+First, make sure all your env vars in the Kamal file `infra/deploy/kamal/deploy.yml` are correct. All your vars should be set either in:
  
 - `config/config.yml`: only non-secret ones
-- `deploy/kamal/deploy.yml`: only non-secret ones
+- `infra/deploy/kamal/deploy.yml`: only non-secret ones
 - `.env`: all secret vars
 
-Then, set the IP of the server host in `deploy/kamal/deploy.yml`, as well as your image and registry details. Read up on the [kamal documentation](https://kamal-deploy.org) if you get stuck anywhere here. 
+Then, set the IP of the server host in `infra/deploy/kamal/deploy.yml`, as well as your image and registry details. Read up on the [kamal documentation](https://kamal-deploy.org) if you get stuck anywhere here. 
 
 ### Set up live server
 
 The below command will install docker, build your image, push it to your registry, and then pull it on your remote VPS. If you set up any accessory (cache, standalone DB that is not hosted etc), these will also be deployed.
 
 ```bash
-kamal setup -c deploy/kamal/deploy.yml
+kamal setup -c infra/deploy/kamal/deploy.yml
 ``` 
 
 At this point, your project should be live, and if `128.0.0.1111` is the IP of your VPS, entering that IP in the search bar on your browser should bring up your site.
@@ -185,7 +185,7 @@ mkdir -p /letsencrypt && touch /letsencrypt/acme.json && chmod 600 /letsencrypt/
 Then locally, run
 
 ```bash
-kamal traefik reboot -c deploy/kamal/deploy.yml
+kamal traefik reboot -c infra/deploy/kamal/deploy.yml
 ```
 
 Your site should now have TLS enabled and you should see the lock icon the search bar.

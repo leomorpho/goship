@@ -8,9 +8,9 @@ Short command name:
 
 Module location:
 
-- `cli/ship` (standalone Go module)
-- binary entrypoint: `cli/ship/cmd/ship`
-- companion MCP module: `mcp/ship` (for LLM-facing tool access)
+- `tools/cli/ship` (standalone Go module)
+- binary entrypoint: `tools/cli/ship/cmd/ship`
+- companion MCP module: `tools/mcp/ship` (for LLM-facing tool access)
 
 ## Repository Placement
 
@@ -18,7 +18,7 @@ The CLI is in the same repository as the framework and example app.
 
 - Repo model: monorepo with multiple Go modules.
 - App/framework module: repository root.
-- CLI module: `cli/ship`.
+- CLI module: `tools/cli/ship`.
 - Workspace: `go.work` includes both modules for local development.
 
 Why this shape:
@@ -73,7 +73,7 @@ Generation:
 - `ship make:model <Name> [fields...] [--force]`
 - `ship make:controller <Name|NameController> [--actions index,show,create,update,destroy] [--auth public|auth] [--domain <name>] [--wire]`
 - `ship make:scaffold <Name> [fields...] [--path apps/site] [--views templ|none] [--auth public|auth] [--api] [--migrate] [--dry-run] [--force]`
-- `ship make:module <Name> [--path pkg/modules] [--module-base github.com/leomorpho/goship-modules] [--dry-run] [--force]`
+- `ship make:module <Name> [--path modules] [--module-base github.com/leomorpho/goship-modules] [--dry-run] [--force]`
 - `ship destroy <generated-artifact>` (planned)
 
 Command grammar policy:
@@ -93,8 +93,8 @@ Command grammar policy:
 
 These commands are implemented as wrappers over existing workflows:
 
-- `ship dev` -> `go run ./cmd/web`
-- `ship dev --worker` -> `go run ./cmd/worker`
+- `ship dev` -> `go run ./apps/cmd/web`
+- `ship dev --worker` -> `go run ./apps/cmd/worker`
 - `ship dev --all` -> starts both processes concurrently with prefixed logs (`[web]`, `[worker]`) and signal-aware shutdown
 - `ship check` -> `go test ./...` (compile + unit checks, no integration-tagged tests)
 - `ship test` -> `go test ./...` (integration-tagged tests are excluded by default)
@@ -109,7 +109,7 @@ These commands are implemented as wrappers over existing workflows:
 - `ship db:make <migration_name>` -> `atlas migrate diff <migration_name> --dir file://apps/db/migrate/migrations --to ent://apps/db/schema --dev-url sqlite://file?mode=memory&_fk=1`
 - `ship db:rollback [amount]` -> `atlas migrate down ... [amount]`
 - Atlas is managed by `ship`: it uses `atlas` from `PATH` when present, otherwise auto-installs pinned `ariga.io/atlas/cmd/atlas@v0.27.1` to `.cache/tools/bin/atlas`, and finally falls back to `go run` for zero-friction operation.
-- `ship db:seed` -> `go run ./cmd/seed/main.go`
+- `ship db:seed` -> `go run ./apps/cmd/seed/main.go`
 
 DB URL resolution precedence for db commands:
 
@@ -140,8 +140,8 @@ Safety matrix:
 - `ship make:controller <Name> --domain <name>` -> generate domain-aware constructor slot (`domainService any`) and route wiring using `nil` placeholder
 - `ship make:controller <Name> --actions ... --wire` -> wire generated routes into `apps/site/router.go` markers
 - `ship make:scaffold <Name> ...` -> orchestration command that composes `make:model`, `db:make`, `make:controller --domain <plural_model> --wire`, and optionally `make:resource --domain <plural_model>` / `db:migrate`
-- `ship make:module <Name>` -> generate isolated module scaffold in `pkg/modules/<name>` with its own `go.mod`, module-facing types/contracts, and service tests
-- `ship upgrade --to <version>` -> updates `atlasGoRunRef` pin in `cli/ship/cli.go`
+- `ship make:module <Name>` -> generate isolated module scaffold in `modules/<name>` with its own `go.mod`, module-facing types/contracts, and service tests
+- `ship upgrade --to <version>` -> updates `atlasGoRunRef` pin in `tools/cli/ship/cli.go`
 - `ship upgrade --dry-run` -> prints planned pin change without writing files
 - current scope: Atlas pin only (expandable later)
 
@@ -206,15 +206,15 @@ Generated handler behavior:
 
 ## Generator test strategy
 
-- Unit + integration tests for `cli/ship` run against temporary fixture projects.
+- Unit + integration tests for `tools/cli/ship` run against temporary fixture projects.
 - Generator tests do not depend on the live repository app tree.
 - `--wire` generator paths are covered for multi-run stability (no duplicate imports/snippets).
 - Duplicate generation attempts are covered to ensure failure does not mutate router or route-name wiring.
 
 Local run examples from repository root:
 
-- `go run ./cli/ship/cmd/ship -- help`
-- `go run ./cli/ship/cmd/ship -- dev`
+- `go run ./tools/cli/ship/cmd/ship -- help`
+- `go run ./tools/cli/ship/cmd/ship -- dev`
 
 ## Ownership Boundaries
 
@@ -226,7 +226,7 @@ CLI owns:
 
 App/framework owns:
 
-- actual runtime behavior in `cmd/*`, `apps/site/*`, `pkg/*`, and `config/*`.
+- actual runtime behavior in `apps/cmd/*`, `apps/site/*`, `framework/*`, and `config/*`.
 
 Rule:
 

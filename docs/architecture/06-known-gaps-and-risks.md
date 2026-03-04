@@ -38,7 +38,7 @@ Impact:
 
 ## 4) Stale/Inconsistent E2E Coverage (Medium)
 
-`e2e_tests/tests/goship.spec.ts` is marked with TODO and contains stale product/domain assumptions.
+`tests/e2e/tests/goship.spec.ts` is marked with TODO and contains stale product/domain assumptions.
 
 Impact:
 

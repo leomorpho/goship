@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/leomorpho/goship/pkg/core"
-	"github.com/leomorpho/goship/pkg/domain"
+	"github.com/leomorpho/goship/framework/core"
+	"github.com/leomorpho/goship/framework/domain"
 )
 
 type fakePlannedNotificationRepo struct {

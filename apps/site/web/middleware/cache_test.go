@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/leomorpho/goship/pkg/tests"
+	"github.com/leomorpho/goship/framework/tests"
 
 	"github.com/stretchr/testify/require"
 

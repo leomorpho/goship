@@ -11,8 +11,8 @@ import (
 
 	"github.com/leomorpho/goship/apps/site/foundation"
 	"github.com/leomorpho/goship/apps/site/web/middleware"
-	"github.com/leomorpho/goship/pkg/context"
-	"github.com/leomorpho/goship/pkg/htmx"
+	"github.com/leomorpho/goship/framework/context"
+	"github.com/leomorpho/goship/framework/htmx"
 
 	"github.com/labstack/echo/v4"
 )

@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/leomorpho/goship/ent"
-	"github.com/leomorpho/goship/pkg/context"
-	"github.com/leomorpho/goship/pkg/tests"
+	"github.com/leomorpho/goship/apps/db/ent"
+	"github.com/leomorpho/goship/framework/context"
+	"github.com/leomorpho/goship/framework/tests"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

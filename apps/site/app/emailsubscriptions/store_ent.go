@@ -4,9 +4,9 @@ import (
 	"context"
 
 	modemailsubscriptions "github.com/leomorpho/goship-modules/emailsubscriptions"
-	"github.com/leomorpho/goship/ent"
-	"github.com/leomorpho/goship/ent/emailsubscription"
-	"github.com/leomorpho/goship/ent/emailsubscriptiontype"
+	"github.com/leomorpho/goship/apps/db/ent"
+	"github.com/leomorpho/goship/apps/db/ent/emailsubscription"
+	"github.com/leomorpho/goship/apps/db/ent/emailsubscriptiontype"
 	"github.com/rs/zerolog/log"
 )
 

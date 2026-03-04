@@ -35,9 +35,9 @@ This guide is for code agents making changes in this repository.
 
 Runtime bootstrap:
 
-- `cmd/web/main.go`
-- `cmd/worker/main.go`
-- `cmd/seed/main.go`
+- `apps/cmd/web/main.go`
+- `apps/cmd/worker/main.go`
+- `apps/cmd/seed/main.go`
 
 Dependency wiring:
 
@@ -60,7 +60,7 @@ UI and rendering:
 
 - `apps/site/web/ui/*.go`
 - `apps/site/views/**/*.templ`
-- `javascript/**/*`
+- `frontend/javascript/**/*`
 
 ## Common Pitfalls
 
@@ -75,15 +75,15 @@ UI and rendering:
 - `make dev-full` (web + worker + JS/CSS watchers)
 - `make test` (Go tests)
 - `make test-integration`
-- `go run ./cli/ship/cmd/ship test`
-- `go run ./cli/ship/cmd/ship test --integration`
+- `go run ./tools/cli/ship/cmd/ship test`
+- `go run ./tools/cli/ship/cmd/ship test --integration`
 - `make build-js`
 - `make build-css`
 - `make templ-gen`
 - `make ent-gen`
-- `go run ./cli/ship/cmd/ship db:make your_change`
-- `go run ./cli/ship/cmd/ship db:migrate`
-- `go run ./cli/ship/cmd/ship db:status`
+- `go run ./tools/cli/ship/cmd/ship db:make your_change`
+- `go run ./tools/cli/ship/cmd/ship db:migrate`
+- `go run ./tools/cli/ship/cmd/ship db:status`
 
 ## Documentation Rule
 

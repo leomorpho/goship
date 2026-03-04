@@ -39,7 +39,7 @@ Naming normalization from roadmap:
 - View models: `apps/site/web/viewmodels/*`
 - Web rendering helpers: `apps/site/web/ui/*`
 - Background jobs/processors: `apps/site/jobs/*`
-- Framework/infrastructure layer: `pkg/*`
+- Framework/infrastructure layer: `framework/*`
 - ORM schema: `apps/db/schema/*`
 - Config: `config/*`
 - Templates: `apps/site/views/**/*.templ`
@@ -61,7 +61,7 @@ When in doubt, follow `docs/architecture/02-structure-and-boundaries.md`.
 - Keep logic testable without Docker where possible.
 - Use integration tests for external/process boundaries.
 - Mark integration tests with `//go:build integration`.
-- Run integration paths with `go run ./cli/ship/cmd/ship test --integration`.
+- Run integration paths with `go run ./tools/cli/ship/cmd/ship test --integration`.
 - Pre-commit must pass (`lefthook`).
 - Aim for 90%+ package coverage trend over time.
 
@@ -77,13 +77,13 @@ Common commands:
 - `make db-status`
 - `make db-create`
 - `make db-reset`
-- `go run ./cli/ship/cmd/ship dev`
-- `go run ./cli/ship/cmd/ship test`
-- `go run ./cli/ship/cmd/ship test --integration`
-- `go run ./cli/ship/cmd/ship db:make your_change`
-- `go run ./cli/ship/cmd/ship db:migrate`
-- `go run ./cli/ship/cmd/ship db:status`
-- `go run ./cli/ship/cmd/ship db:reset --yes`
+- `go run ./tools/cli/ship/cmd/ship dev`
+- `go run ./tools/cli/ship/cmd/ship test`
+- `go run ./tools/cli/ship/cmd/ship test --integration`
+- `go run ./tools/cli/ship/cmd/ship db:make your_change`
+- `go run ./tools/cli/ship/cmd/ship db:migrate`
+- `go run ./tools/cli/ship/cmd/ship db:status`
+- `go run ./tools/cli/ship/cmd/ship db:reset --yes`
 
 ## Documentation Sync (Required)
 

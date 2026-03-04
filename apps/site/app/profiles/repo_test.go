@@ -12,13 +12,13 @@ import (
 
 	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/jackc/pgx/stdlib"
+	"github.com/leomorpho/goship/apps/db/ent"
+	"github.com/leomorpho/goship/apps/db/ent/profile"
 	"github.com/leomorpho/goship/apps/site/app/profiles"
 	"github.com/leomorpho/goship/apps/site/app/subscriptions"
-	"github.com/leomorpho/goship/ent"
-	"github.com/leomorpho/goship/ent/profile"
-	"github.com/leomorpho/goship/pkg/domain"
-	storagerepo "github.com/leomorpho/goship/pkg/repos/storage"
-	"github.com/leomorpho/goship/pkg/tests"
+	"github.com/leomorpho/goship/framework/domain"
+	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
+	"github.com/leomorpho/goship/framework/tests"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

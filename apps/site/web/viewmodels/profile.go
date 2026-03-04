@@ -1,7 +1,7 @@
 package viewmodels
 
 import (
-	"github.com/leomorpho/goship/pkg/domain"
+	"github.com/leomorpho/goship/framework/domain"
 )
 
 type ProfilePageData struct {

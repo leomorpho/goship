@@ -4,9 +4,9 @@ import (
 	"os"
 	"testing"
 
+	"github.com/leomorpho/goship/apps/db/ent"
 	"github.com/leomorpho/goship/config"
-	"github.com/leomorpho/goship/ent"
-	"github.com/leomorpho/goship/pkg/tests"
+	"github.com/leomorpho/goship/framework/tests"
 
 	"github.com/labstack/echo/v4"
 )

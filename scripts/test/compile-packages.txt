@@ -1,9 +1,0 @@
-# Compile-only package set (no Docker, no runtime network binds)
-./apps/site
-./cmd/web
-./cmd/worker
-./cmd/seed
-./apps/site/web/ui
-./apps/site/web/controllers
-./pkg/runtimeplan
-./apps/site/foundation

@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/leomorpho/goship/pkg/core"
+	"github.com/leomorpho/goship/framework/core"
 )
 
 var _ core.Cache = (*CoreCacheAdapter)(nil)

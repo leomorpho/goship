@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/leomorpho/goship/apps/site/web/ui"
-	"github.com/leomorpho/goship/pkg/tests"
+	"github.com/leomorpho/goship/framework/tests"
 
 	"github.com/stretchr/testify/assert"
 )

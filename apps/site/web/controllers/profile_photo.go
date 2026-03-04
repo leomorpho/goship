@@ -9,12 +9,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/leomorpho/goship/apps/db/ent"
 	"github.com/leomorpho/goship/apps/site/app/profiles"
 	"github.com/leomorpho/goship/apps/site/views/web/layouts/gen"
 	"github.com/leomorpho/goship/apps/site/web/ui"
-	"github.com/leomorpho/goship/ent"
-	"github.com/leomorpho/goship/pkg/context"
-	storagerepo "github.com/leomorpho/goship/pkg/repos/storage"
+	"github.com/leomorpho/goship/framework/context"
+	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"

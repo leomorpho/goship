@@ -16,7 +16,7 @@ import (
 	routeNames "github.com/leomorpho/goship/apps/site/web/routenames"
 	"github.com/leomorpho/goship/apps/site/web/ui"
 	"github.com/leomorpho/goship/config"
-	"github.com/leomorpho/goship/pkg/runtimeplan"
+	"github.com/leomorpho/goship/framework/runtimeplan"
 	"github.com/rs/zerolog/log"
 )
 

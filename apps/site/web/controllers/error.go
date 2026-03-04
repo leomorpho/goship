@@ -7,7 +7,7 @@ import (
 	"github.com/leomorpho/goship/apps/site/views/web/layouts/gen"
 	"github.com/leomorpho/goship/apps/site/views/web/pages/gen"
 	"github.com/leomorpho/goship/apps/site/web/ui"
-	"github.com/leomorpho/goship/pkg/context"
+	"github.com/leomorpho/goship/framework/context"
 
 	"github.com/labstack/echo/v4"
 )

@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"github.com/leomorpho/goship/pkg/context"
+	"github.com/leomorpho/goship/framework/context"
 
 	"github.com/labstack/echo/v4"
 )

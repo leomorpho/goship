@@ -13,13 +13,13 @@ Preconditions:
 
 Steps:
 ```bash
-go run ./cli/ship/cmd/ship make:resource contact_form --path apps/site --auth public --views templ --wire
+go run ./tools/cli/ship/cmd/ship make:resource contact_form --path apps/site --auth public --views templ --wire
 ```
 
 Validation:
 ```bash
-go test ./cli/ship -count=1
-go run ./cli/ship/cmd/ship doctor
+go test ./tools/cli/ship -count=1
+go run ./tools/cli/ship/cmd/ship doctor
 ```
 - expect `ship doctor: OK`.
 
@@ -35,14 +35,14 @@ Goal:
 
 Steps:
 ```bash
-go run ./cli/ship/cmd/ship make:model Post title:string published_at:time
-go run ./cli/ship/cmd/ship db:make add_posts
-go run ./cli/ship/cmd/ship db:migrate
+go run ./tools/cli/ship/cmd/ship make:model Post title:string published_at:time
+go run ./tools/cli/ship/cmd/ship db:make add_posts
+go run ./tools/cli/ship/cmd/ship db:migrate
 ```
 
 Validation:
 ```bash
-go run ./cli/ship/cmd/ship db:status
+go run ./tools/cli/ship/cmd/ship db:status
 ```
 
 Common failures:
@@ -57,13 +57,13 @@ Goal:
 
 Steps:
 ```bash
-go run ./cli/ship/cmd/ship make:controller Posts --actions index,show,create --auth auth --wire
+go run ./tools/cli/ship/cmd/ship make:controller Posts --actions index,show,create --auth auth --wire
 ```
 
 Validation:
 ```bash
-go test ./cli/ship -count=1
-go run ./cli/ship/cmd/ship doctor
+go test ./tools/cli/ship -count=1
+go run ./tools/cli/ship/cmd/ship doctor
 ```
 - confirm one generated block in `apps/site/router.go`.
 
@@ -82,12 +82,12 @@ Steps:
 2. wire dependencies via `apps/site/foundation/container.go` as needed.
 3. run worker locally:
 ```bash
-go run ./cmd/worker
+go run ./apps/cmd/worker
 ```
 
 Validation:
 ```bash
-go test ./apps/site/jobs ./cmd/worker -count=1
+go test ./apps/site/jobs ./apps/cmd/worker -count=1
 ```
 
 Common failures:
@@ -102,14 +102,14 @@ Goal:
 
 Steps:
 1. add table-driven unit tests near changed package.
-2. add integration tests in `cli/ship` or affected package with build tag:
+2. add integration tests in `tools/cli/ship` or affected package with build tag:
 ```go
 //go:build integration
 ```
 3. run:
 ```bash
-go run ./cli/ship/cmd/ship test
-go run ./cli/ship/cmd/ship test --integration
+go run ./tools/cli/ship/cmd/ship test
+go run ./tools/cli/ship/cmd/ship test --integration
 ```
 
 Validation:
@@ -131,7 +131,7 @@ Steps:
 3. wire in `apps/site/foundation`.
 4. validate with:
 ```bash
-go run ./cli/ship/cmd/ship doctor
+go run ./tools/cli/ship/cmd/ship doctor
 go test ./... 
 ```
 

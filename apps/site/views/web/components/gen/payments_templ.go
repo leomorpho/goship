@@ -11,7 +11,7 @@ import templruntime "github.com/a-h/templ/runtime"
 import (
 	"github.com/leomorpho/goship/apps/site/web/routenames"
 	"github.com/leomorpho/goship/apps/site/web/ui"
-	"github.com/leomorpho/goship/pkg/domain"
+	"github.com/leomorpho/goship/framework/domain"
 )
 
 func ManageSubscriptionButton(page *ui.Page, subscription domain.ProductType, isTrial bool) templ.Component {
