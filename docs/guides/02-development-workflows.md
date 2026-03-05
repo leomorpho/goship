@@ -63,7 +63,7 @@ Common workflow:
 5. `go run ./tools/cli/ship/cmd/ship db:status`
 6. Optional reset loop: `go run ./tools/cli/ship/cmd/ship db:reset --yes` (use `--dry-run` first)
 
-Use `ship db:*` as the canonical migration interface; avoid calling Atlas directly.
+Use `ship db:*` as the canonical migration interface; avoid calling migration tools directly.
 
 ## Worker and Tasks
 

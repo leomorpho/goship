@@ -104,14 +104,14 @@ These commands are implemented as wrappers over existing workflows:
 - `ship test --integration` -> `go test -tags=integration ./...`
 - `ship infra:up` -> detects `docker-compose`/`docker compose` and runs `up -d cache`, then attempts `up -d mailpit` (non-fatal if mailpit fails)
 - `ship infra:down` -> detects `docker-compose`/`docker compose` and runs `down`
-- `ship db:create` -> validates that target database URL is reachable (`atlas schema inspect --url <resolved>`)
-- `ship db:migrate` -> `atlas migrate apply --dir file://db/migrate/migrations --url <resolved>`
-- `ship db:status` -> `atlas migrate status --dir file://db/migrate/migrations --url <resolved>`
-- `ship db:reset [--seed] [--force] [--yes] [--dry-run]` -> prints plan, runs `atlas schema clean --auto-approve`, then `atlas migrate apply`; optional seed
-- `ship db:drop [--force] [--yes] [--dry-run]` -> prints plan, runs `atlas schema clean --auto-approve`
-- `ship db:make <migration_name>` -> `atlas migrate diff <migration_name> --dir file://db/migrate/migrations --to ent://db/schema --dev-url sqlite://file?mode=memory&_fk=1`
-- `ship db:rollback [amount]` -> `atlas migrate down ... [amount]`
-- Atlas is managed by `ship`: it uses `atlas` from `PATH` when present, otherwise auto-installs pinned `ariga.io/atlas/cmd/atlas@v0.27.1` to `.cache/tools/bin/atlas`, and finally falls back to `go run` for zero-friction operation.
+- `ship db:create` -> validates that target database URL is reachable (`goose status`)
+- `ship db:migrate` -> `goose up` in `db/migrate/migrations`
+- `ship db:status` -> `goose status` in `db/migrate/migrations`
+- `ship db:reset [--seed] [--force] [--yes] [--dry-run]` -> prints plan, runs `goose reset`, then `goose up`; optional seed
+- `ship db:drop [--force] [--yes] [--dry-run]` -> prints plan, runs `goose reset` (reverts all applied migrations; does not physically drop the database)
+- `ship db:make <migration_name>` -> `goose create <migration_name> sql`
+- `ship db:rollback [amount]` -> `goose down` (default) or `goose down-to <amount>`
+- Goose is managed by `ship`: it uses `goose` from `PATH` when present, otherwise falls back to `go run github.com/pressly/goose/v3/cmd/goose@v3.26.0`.
 - `ship db:seed` -> `go run ./cmd/seed/main.go`
 
 DB URL resolution precedence for db commands:
@@ -120,9 +120,10 @@ DB URL resolution precedence for db commands:
 2. `config/application.yaml` + `config/environments/<APP_ENV|app.environment>.yaml`
 
 If `PAGODA_DATABASE_URL` is set, CLI fails with an explicit error and asks to use `DATABASE_URL`.
-If config resolves to embedded DB mode, `ship db:migrate`/`db:rollback` fail with an explicit error.
+If config resolves to embedded DB mode, DB commands fail with an explicit error.
 - `ship db:reset`/`ship db:drop` refuse non-local DB URLs unless `--force` is provided.
 - In `APP_ENV=production|prod`, `ship db:reset`/`ship db:drop` require both `--force` and `--yes`.
+- Supported DB schemes for the Goose flow are currently limited to: `postgres`, `mysql`, and `sqlite`/`sqlite3`.
 
 Safety matrix:
 

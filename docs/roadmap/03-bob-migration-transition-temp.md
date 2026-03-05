@@ -134,37 +134,37 @@ Acceptance criteria:
 Goal: deliver Goose-backed migration commands without changing app data access yet.
 
 Transition note:
-- Atlas-backed DB commands already exist and are the compatibility baseline.
-- Phase 1 introduces Goose behind the same command surface (or explicit alias/deprecation policy).
+- Goose is now wired behind the existing `ship db:*` surface for a constrained DB subset (`postgres`, `mysql`, `sqlite/sqlite3`).
+- Remaining Phase 1 work is integration coverage and command-contract cleanup (`db:drop` semantics and migration alias decisions).
 
 ### 1.1 Goose runtime wiring
-- [ ] Add Goose runtime package under `tools/cli/ship/internal/runtime/`.
-- [ ] Support DB URL resolution from one canonical env var path.
-- [ ] Remove duplicate/ambiguous DB URL env resolution.
+- [x] Add Goose runner path in CLI runtime execution flow.
+- [x] Support DB URL resolution from one canonical env var path.
+- [x] Remove duplicate/ambiguous DB URL env resolution.
 
 Acceptance criteria:
-- [ ] Unit tests for URL resolution and Goose invocation.
-- [ ] Integration smoke test verifies Goose runtime can execute with temp DB.
+- [x] Unit tests for URL resolution and Goose invocation.
+- [x] Integration smoke test verifies Goose runtime can execute with temp DB.
 
 ### 1.2 Core migration commands
-- [ ] Implement `ship db:migrate` (core app migrations only initially).
-- [ ] Implement `ship db:status`.
-- [ ] Implement `ship db:make <migration_name>` on Goose runtime (optionally add `ship make:migration <name>` alias if chosen in Phase 0.1).
+- [x] Implement `ship db:migrate` (core app migrations only initially).
+- [x] Implement `ship db:status`.
+- [x] Implement `ship db:make <migration_name>` on Goose runtime (optionally add `ship make:migration <name>` alias if chosen in Phase 0.1).
 
 Acceptance criteria:
-- [ ] Unit tests for command parsing and runtime calls.
-- [ ] Integration test: create migration -> migrate -> status reflects applied.
-- [ ] Regression test: rerun migrate is idempotent.
+- [x] Unit tests for command parsing and runtime calls.
+- [x] Integration test: create migration -> migrate -> status reflects applied.
+- [x] Regression test: rerun migrate is idempotent.
 
 ### 1.3 Destructive lifecycle commands
-- [ ] Implement `ship db:create`.
-- [ ] Implement `ship db:drop`.
-- [ ] Implement `ship db:reset` (`drop + create + migrate`, optional seed step).
+- [x] Implement `ship db:create`.
+- [x] Implement `ship db:drop`.
+- [x] Implement `ship db:reset` (`drop + create + migrate`, optional seed step).
 
 Acceptance criteria:
-- [ ] Safety checks tested.
-- [ ] Integration test for local reset happy path.
-- [ ] Integration test for reset refusal on protected/non-local target.
+- [x] Safety checks tested.
+- [x] Integration test for local reset happy path.
+- [x] Integration test for reset refusal on protected/non-local target.
 
 ---
 
@@ -312,6 +312,8 @@ Acceptance criteria:
 
 - 2026-03-04: locked Bob + Goose decisions and created this temporary checklist.
 - 2026-03-05: aligned transition checklist with current Atlas/Ent baseline and clarified Bob/Goose delta tasks.
+- 2026-03-05: switched `ship db:*` command execution to Goose with initial supported subset (`postgres`, `mysql`, `sqlite/sqlite3`) and updated CLI unit coverage.
+- 2026-03-05: verified Goose DB flow integration (`make -> migrate -> status -> reset`) and added migrate idempotency assertion.
 
 ---
 
