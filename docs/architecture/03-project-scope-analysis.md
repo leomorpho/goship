@@ -50,8 +50,8 @@ Key implementation choices:
 ## 3) Payments and Subscription Lifecycle
 
 - Stripe checkout + customer portal + webhook in `app/web/controllers/payments.go`
-- Local subscription state managed in `app/subscriptions/subscriptions.go`
-- Product model currently centered on free vs pro (`pkg/domain/enum.go`)
+- Local subscription state is handled by the paid subscriptions module and app jobs (`modules/paidsubscriptions`, `app/jobs/subscriptions.go`)
+- Product model currently centered on free vs pro (`framework/domain/enum.go`)
 
 Webhook flow currently handles:
 
@@ -72,19 +72,19 @@ Status of exposure:
 
 - Some notification endpoints are active (count endpoint, permission/subscription management)
 - Several notification-center routes are currently commented out in router wiring
-- SSE route wiring is currently commented out in router (`sseRoutes` not enabled)
+- SSE route wiring is runtime-gated and only enabled when notifier/pubsub dependencies are available
 
 ## 5) Email Features
 
 - Newsletter-style email subscription flow (`email_subscribe.go`, `verify_email_subscription.go`)
 - Task processor for subscription confirmation emails (`app/jobs/mail.go`)
 - Reusable subscription repo module (`modules/emailsubscriptions`)
-- App-specific update email sender integration (`app/emailsubscriptions`)
-- Mail provider abstraction supports SMTP and Resend (`pkg/repos/mailer`)
+- App integration wiring for module services (`app/web/wiring.go`, `app/jobs/mail.go`)
+- Mail provider abstraction supports SMTP and Resend (`framework/repos/mailer`)
 
 ## 6) File Storage and Images
 
-- S3-compatible object storage through MinIO client (`pkg/repos/storage/storagerepo.go`)
+- S3-compatible object storage through MinIO client (`framework/repos/storage/storagerepo.go`)
 - DB metadata persisted in `file_storages`
 - Image size variants represented by enums and related image size records
 - Signed URLs generated for image access
@@ -127,7 +127,7 @@ Storage modes:
 
 ## Testing Surface
 
-- 70+ Go tests in `pkg/**`
+- Go tests are distributed across `app/**`, `framework/**`, `modules/**`, and `tools/**`
 - Playwright e2e folder exists (`tests/e2e/`), but specs are currently product-domain stale and marked TODO
 
 ## Operational Tooling

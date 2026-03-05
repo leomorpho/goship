@@ -52,7 +52,7 @@ Other domain support:
 
 ## Domain Enums
 
-Defined in `pkg/domain/enum.go`:
+Defined in `framework/domain/enum.go`:
 
 - Notification types
 - Notification permission types

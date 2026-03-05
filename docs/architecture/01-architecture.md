@@ -9,12 +9,12 @@ The application follows a layered structure:
 - `app/foundation`: app composition container and app-bound infrastructure adapters
 - `app/web/controllers`: HTTP handlers
 - `app/web/wiring.go`: HTTP stack wiring (middleware/static/deps)
-- `pkg/middleware`: auth/session/cache/onboarding/request middleware
-- `pkg/repos`: data access and external service adapters
+- `app/web/middleware`: auth/session/cache/onboarding/request middleware
+- `framework/repos` + `modules/*`: reusable data access and external service adapters
 - `app/web/ui`: rendering, page object, redirect helpers
 - `app/views`: Templ source files (`.templ`) and generated Go (`gen/*_templ.go`)
-- `ent`: schema + generated ORM
-- `pkg/tasks`: Asynq task processors
+- `db/ent`: generated ORM
+- `app/jobs`: task processors
 
 ## Web Runtime Flow
 
@@ -90,7 +90,7 @@ HTMX behavior is integrated in the page object (`Page.HTMX`) and controller rend
 
 ## Data Layer
 
-- Ent ORM (`ent`) is authoritative for schema and query generation.
+- Ent ORM (`db/ent`) is authoritative for schema and query generation.
 - Schema create/migrate is invoked in app startup via `c.ORM.Schema.Create(...)`.
 - Repository packages encapsulate higher-level domain operations.
 

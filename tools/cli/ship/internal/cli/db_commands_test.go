@@ -147,7 +147,7 @@ func TestRunDBReset_NonLocalWithForce(t *testing.T) {
 	if len(runner.calls) != 2 {
 		t.Fatalf("runner calls = %v, want clean+apply", runner.calls)
 	}
-	if runner.calls[0].name != "atlas" || runner.calls[1].name != "atlas" {
+	if runner.calls[0].name != "goose" || runner.calls[1].name != "goose" {
 		t.Fatalf("unexpected commands: %+v", runner.calls)
 	}
 	if errOut.Len() != 0 {

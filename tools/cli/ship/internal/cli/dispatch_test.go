@@ -147,13 +147,13 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			name:      "db migrate",
 			args:      []string{"db:migrate"},
 			wantCode:  0,
-			wantCalls: []fakeCall{{name: "atlas", args: []string{"migrate", "apply", "--dir", atlasDir, "--url", testDBURL}}},
+			wantCalls: []fakeCall{{name: "goose", args: []string{"-dir", gooseDir, "postgres", testDBURL, "up"}}},
 		},
 		{
 			name:      "db status",
 			args:      []string{"db:status"},
 			wantCode:  0,
-			wantCalls: []fakeCall{{name: "atlas", args: []string{"migrate", "status", "--dir", atlasDir, "--url", testDBURL}}},
+			wantCalls: []fakeCall{{name: "goose", args: []string{"-dir", gooseDir, "postgres", testDBURL, "status"}}},
 		},
 		{
 			name:     "db reset requires yes",
@@ -166,27 +166,27 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			args:     []string{"db:reset", "--yes"},
 			wantCode: 0,
 			wantCalls: []fakeCall{
-				{name: "atlas", args: []string{"schema", "clean", "--url", testDBURL, "--auto-approve"}},
-				{name: "atlas", args: []string{"migrate", "apply", "--dir", atlasDir, "--url", testDBURL}},
+				{name: "goose", args: []string{"-dir", gooseDir, "postgres", testDBURL, "reset"}},
+				{name: "goose", args: []string{"-dir", gooseDir, "postgres", testDBURL, "up"}},
 			},
 		},
 		{
 			name:      "db drop local yes",
 			args:      []string{"db:drop", "--yes"},
 			wantCode:  0,
-			wantCalls: []fakeCall{{name: "atlas", args: []string{"schema", "clean", "--url", testDBURL, "--auto-approve"}}},
+			wantCalls: []fakeCall{{name: "goose", args: []string{"-dir", gooseDir, "postgres", testDBURL, "reset"}}},
 		},
 		{
 			name:      "db create",
 			args:      []string{"db:create"},
 			wantCode:  0,
-			wantCalls: []fakeCall{{name: "atlas", args: []string{"schema", "inspect", "--url", testDBURL}}},
+			wantCalls: []fakeCall{{name: "goose", args: []string{"-dir", gooseDir, "postgres", testDBURL, "status"}}},
 		},
 		{
 			name:      "db make",
 			args:      []string{"db:make", "add_posts"},
 			wantCode:  0,
-			wantCalls: []fakeCall{{name: "atlas", args: []string{"migrate", "diff", "add_posts", "--dir", atlasDir, "--to", "ent://db/schema", "--dev-url", "sqlite://file?mode=memory&_fk=1"}}},
+			wantCalls: []fakeCall{{name: "goose", args: []string{"-dir", gooseDir, "create", "add_posts", "sql"}}},
 		},
 		{
 			name:     "db make missing name",
@@ -205,8 +205,8 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			args:     []string{"db:rollback"},
 			wantCode: 0,
 			wantCalls: []fakeCall{{
-				name: "atlas",
-				args: []string{"migrate", "down", "--dir", atlasDir, "--url", testDBURL, "1"},
+				name: "goose",
+				args: []string{"-dir", gooseDir, "postgres", testDBURL, "down"},
 			}},
 		},
 		{
@@ -214,8 +214,8 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			args:     []string{"db:rollback", "3"},
 			wantCode: 0,
 			wantCalls: []fakeCall{{
-				name: "atlas",
-				args: []string{"migrate", "down", "--dir", atlasDir, "--url", testDBURL, "3"},
+				name: "goose",
+				args: []string{"-dir", gooseDir, "postgres", testDBURL, "down-to", "3"},
 			}},
 		},
 		{

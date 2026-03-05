@@ -151,10 +151,10 @@ Rules for versioned tooling in generated apps:
 ## Current Repository Shape (Post-Refactor)
 
 1. `app/` contains app-specific web handlers and templ views.
-2. `pkg/` currently remains the framework/infrastructure layer.
+2. `framework/` is the framework/infrastructure layer.
 3. `cmd/` contains process entrypoints.
 
-Note: app composition/runtime wiring has moved to `app/foundation`. `pkg/repos` remains intentionally centralized for now and will be split into app-specific vs reusable framework modules in a dedicated follow-up pass.
+Note: app composition/runtime wiring has moved to `app/foundation`. `framework/repos` remains intentionally centralized for now and will be split into app-specific vs reusable framework modules in a dedicated follow-up pass.
 
 ## Architecture Style (Pragmatic)
 
@@ -701,8 +701,8 @@ Current progress:
 1. Adapter registry + capability validation are active at container startup.
 2. Container exposes `CoreCache`, `CoreJobs`, and `CorePubSub`.
 3. First application call sites migrated to interface seams:
-- notifications fan-out enqueue in `pkg/tasks/notifications.go` now uses `core.Jobs`.
-- notifier publish/subscribe path in `app/notifications/notifier.go` now uses `core.PubSub`.
+- notifications fan-out enqueue in `app/jobs/notifications.go` now uses `core.Jobs`.
+- notifier publish/subscribe path in `modules/notifications/notifier.go` now uses `core.PubSub`.
 4. Domain testability improved:
 - notifications task processor now depends on a small planned-notification interface with table-driven unit tests.
 
@@ -737,7 +737,7 @@ Current progress:
 
 - [x] Decide and document exact package naming convention (`github.com/leomorpho/goship/*`).
 - [x] Choose CLI implementation approach (stdlib `flag` + explicit command dispatch in `tools/cli/ship`).
-- [x] Draft `core` interface contracts in a design doc and first package (`pkg/core`).
+- [x] Draft `core` interface contracts in a design doc and first package (`framework/core`).
 - [x] Define runtime config schema for adapter selection and add startup adapter validation registry.
 - [ ] Specify module compatibility/version policy.
 - [ ] Create a developer-facing README + LLM-facing README/`llm.txt` split with one source of truth.

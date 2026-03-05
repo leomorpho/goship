@@ -14,10 +14,9 @@ type DBDeps struct {
 	Out          io.Writer
 	Err          io.Writer
 	ResolveDBURL func() (string, error)
-	RunAtlas     func(args ...string) int
+	RunGoose     func(args ...string) int
 	RunCmd       func(name string, args ...string) int
-	AtlasDir     string
-	EntSchemaDir string
+	GooseDir     string
 }
 
 func RunDB(args []string, d DBDeps) int {
@@ -41,7 +40,7 @@ func RunDB(args []string, d DBDeps) int {
 			fmt.Fprintf(d.Err, "failed to resolve database URL: %v\n", err)
 			return 1
 		}
-		return d.RunAtlas("migrate", "apply", "--dir", d.AtlasDir, "--url", dbURL)
+		return runGooseUp(d, dbURL)
 	case "status":
 		return runStatus(args[1:], d)
 	case "reset":
@@ -78,7 +77,7 @@ func runStatus(args []string, d DBDeps) int {
 		return 1
 	}
 
-	return d.RunAtlas("migrate", "status", "--dir", d.AtlasDir, "--url", dbURL)
+	return runGooseStatus(d, dbURL)
 }
 
 func runReset(args []string, d DBDeps) int {
@@ -118,17 +117,17 @@ func runReset(args []string, d DBDeps) int {
 	}
 
 	printPlan(d.Out, "reset", dbURL, local, []string{
-		"atlas schema clean --auto-approve",
-		"atlas migrate apply",
+		"goose reset",
+		"goose up",
 	}, *seed, *dryRun)
 	if *dryRun {
 		return 0
 	}
 
-	if code := d.RunAtlas("schema", "clean", "--url", dbURL, "--auto-approve"); code != 0 {
+	if code := runGooseReset(d, dbURL); code != 0 {
 		return code
 	}
-	if code := d.RunAtlas("migrate", "apply", "--dir", d.AtlasDir, "--url", dbURL); code != 0 {
+	if code := runGooseUp(d, dbURL); code != 0 {
 		return code
 	}
 	if *seed {
@@ -171,11 +170,11 @@ func runDrop(args []string, d DBDeps) int {
 		fmt.Fprintln(d.Err, "refusing destructive drop without --yes (or use --dry-run)")
 		return 1
 	}
-	printPlan(d.Out, "drop", dbURL, local, []string{"atlas schema clean --auto-approve"}, false, *dryRun)
+	printPlan(d.Out, "drop", dbURL, local, []string{"goose reset (revert all migrations; does not drop DB)"}, false, *dryRun)
 	if *dryRun {
 		return 0
 	}
-	return d.RunAtlas("schema", "clean", "--url", dbURL, "--auto-approve")
+	return runGooseReset(d, dbURL)
 }
 
 func runCreate(args []string, d DBDeps) int {
@@ -198,12 +197,12 @@ func runCreate(args []string, d DBDeps) int {
 		return 1
 	}
 	local := IsLocalDBURL(dbURL)
-	printPlan(d.Out, "create", dbURL, local, []string{"ensure target database is reachable/exists"}, false, *dryRun)
+	printPlan(d.Out, "create", dbURL, local, []string{"verify target database is reachable"}, false, *dryRun)
 	if *dryRun {
 		return 0
 	}
 
-	if code := d.RunAtlas("schema", "inspect", "--url", dbURL); code != 0 {
+	if code := runGooseStatus(d, dbURL); code != 0 {
 		fmt.Fprintln(d.Err, "database is not reachable or does not exist; create it with your DB provider and retry")
 		return code
 	}
@@ -230,7 +229,7 @@ func runRollback(args []string, d DBDeps) int {
 		return 1
 	}
 
-	return d.RunAtlas("migrate", "down", "--dir", d.AtlasDir, "--url", dbURL, amount)
+	return runGooseDown(d, dbURL, amount)
 }
 
 func runMake(args []string, d DBDeps) int {
@@ -243,17 +242,81 @@ func runMake(args []string, d DBDeps) int {
 		fmt.Fprintln(d.Err, "usage: ship db:make <migration_name>")
 		return 1
 	}
-	return d.RunAtlas(
-		"migrate",
-		"diff",
-		name,
-		"--dir",
-		d.AtlasDir,
-		"--to",
-		"ent://"+d.EntSchemaDir,
-		"--dev-url",
-		"sqlite://file?mode=memory&_fk=1",
-	)
+	return d.RunGoose("-dir", d.GooseDir, "create", name, "sql")
+}
+
+func runGooseStatus(d DBDeps, dbURL string) int {
+	driver, conn, err := gooseTarget(dbURL)
+	if err != nil {
+		fmt.Fprintf(d.Err, "failed to resolve goose driver/url: %v\n", err)
+		return 1
+	}
+	return d.RunGoose("-dir", d.GooseDir, driver, conn, "status")
+}
+
+func runGooseUp(d DBDeps, dbURL string) int {
+	driver, conn, err := gooseTarget(dbURL)
+	if err != nil {
+		fmt.Fprintf(d.Err, "failed to resolve goose driver/url: %v\n", err)
+		return 1
+	}
+	return d.RunGoose("-dir", d.GooseDir, driver, conn, "up")
+}
+
+func runGooseReset(d DBDeps, dbURL string) int {
+	driver, conn, err := gooseTarget(dbURL)
+	if err != nil {
+		fmt.Fprintf(d.Err, "failed to resolve goose driver/url: %v\n", err)
+		return 1
+	}
+	return d.RunGoose("-dir", d.GooseDir, driver, conn, "reset")
+}
+
+func runGooseDown(d DBDeps, dbURL string, amount string) int {
+	driver, conn, err := gooseTarget(dbURL)
+	if err != nil {
+		fmt.Fprintf(d.Err, "failed to resolve goose driver/url: %v\n", err)
+		return 1
+	}
+	if amount == "1" {
+		return d.RunGoose("-dir", d.GooseDir, driver, conn, "down")
+	}
+	return d.RunGoose("-dir", d.GooseDir, driver, conn, "down-to", amount)
+}
+
+func gooseTarget(dbURL string) (driver string, conn string, err error) {
+	if strings.HasPrefix(dbURL, "sqlite://") {
+		dsn := strings.TrimPrefix(dbURL, "sqlite://")
+		if strings.TrimSpace(dsn) == "" {
+			return "", "", fmt.Errorf("sqlite URL is missing DSN")
+		}
+		return "sqlite3", dsn, nil
+	}
+	if strings.HasPrefix(dbURL, "sqlite3://") {
+		dsn := strings.TrimPrefix(dbURL, "sqlite3://")
+		if strings.TrimSpace(dsn) == "" {
+			return "", "", fmt.Errorf("sqlite3 URL is missing DSN")
+		}
+		return "sqlite3", dsn, nil
+	}
+	u, parseErr := url.Parse(dbURL)
+	if parseErr != nil {
+		return "", "", parseErr
+	}
+	switch strings.ToLower(u.Scheme) {
+	case "postgres", "postgresql":
+		return "postgres", dbURL, nil
+	case "mysql":
+		return "mysql", dbURL, nil
+	case "sqlite", "sqlite3":
+		dsn := strings.TrimPrefix(dbURL, u.Scheme+"://")
+		if strings.TrimSpace(dsn) == "" {
+			return "", "", fmt.Errorf("%s URL is missing DSN", u.Scheme)
+		}
+		return "sqlite3", dsn, nil
+	default:
+		return "", "", fmt.Errorf("unsupported database scheme %q for goose (supported: postgres, mysql, sqlite)", u.Scheme)
+	}
 }
 
 func IsLocalDBURL(dbURL string) bool {

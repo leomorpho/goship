@@ -126,8 +126,8 @@ Goal:
 - integrate a backend-specific implementation behind core interfaces.
 
 Steps:
-1. confirm interface contract in `pkg/core/interfaces.go`.
-2. implement adapter in `pkg/repos/<area>` or app-scoped package if app-specific.
+1. confirm interface contract in `framework/core/interfaces.go`.
+2. implement adapter in `framework/repos/<area>` or app-scoped package if app-specific.
 3. wire in `app/foundation`.
 4. validate with:
 ```bash

@@ -28,6 +28,18 @@ func (c CLI) runAtlasCmd(args ...string) int {
 	return c.runCmd("go", goArgs...)
 }
 
+func (c CLI) runGooseCmd(args ...string) int {
+	if !isExecRunnerFn(c.getRunner()) {
+		return c.runCmd("goose", args...)
+	}
+	if _, err := gooseLookPathFn("goose"); err == nil {
+		return c.runCmd("goose", args...)
+	}
+	fmt.Fprintf(c.Out, "goose not found in PATH; running via go module %s\n", gooseGoRunRef)
+	goArgs := append([]string{"run", gooseGoRunRef}, args...)
+	return c.runCmd("go", goArgs...)
+}
+
 func (c CLI) runCmd(name string, args ...string) int {
 	return rt.RunCommand(c.getRunner(), c.Err, name, args...)
 }

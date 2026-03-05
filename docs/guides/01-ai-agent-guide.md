@@ -11,9 +11,9 @@ This guide is for code agents making changes in this repository.
 ## Architectural Conventions
 
 - HTTP handlers live in `app/web/controllers`.
-- Domain logic should prefer repository packages (`pkg/repos/...`) over route-level DB logic.
+- Domain logic should prefer repository/module packages (`framework/repos/...`, `modules/...`) over route-level DB logic.
 - Rendering is typically done via `controller.Page` + templ components.
-- Enums/constants are centralized in `pkg/domain`.
+- Enums/constants are centralized in `framework/domain`.
 
 ## Safe Change Workflow
 
@@ -24,7 +24,7 @@ This guide is for code agents making changes in this repository.
 - template/frontend
 
 2. Check for related tests:
-- `rg "func Test" pkg/...`
+- `rg "func Test" app/... framework/... modules/...`
 - route tests in `app/web/controllers/*_test.go`
 
 3. Implement minimal, local change first.
@@ -43,18 +43,18 @@ Dependency wiring:
 
 - `app/foundation/container.go`
 - `app/foundation/auth.go`
-- `app/foundation/tasks.go`
+- `app/foundation/core_jobs_adapter.go`
 
 Routing and middleware:
 
 - `app/router.go`
-- `pkg/middleware/*.go`
+- `app/web/middleware/*.go`
 
 Data and domain:
 
 - `db/schema/*.go`
-- `pkg/repos/**/*.go`
-- `pkg/domain/*.go`
+- `framework/repos/**/*.go`
+- `framework/domain/*.go`
 
 UI and rendering:
 

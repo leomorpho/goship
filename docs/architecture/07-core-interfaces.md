@@ -17,9 +17,9 @@ To enforce that, app and module code should depend on core interfaces instead of
 
 ## Canonical Package
 
-- `pkg/core/interfaces.go`
-- `pkg/core/adapters/registry.go`
-- `pkg/core/adapters/resolve.go`
+- `framework/core/interfaces.go`
+- `framework/core/adapters/registry.go`
+- `framework/core/adapters/resolve.go`
 
 ## Module DB Binding Rule
 
@@ -68,7 +68,7 @@ The runtime now has a canonical adapter registry:
 
 - known adapter names by seam (`db`, `cache`, `jobs`, `pubsub`)
 - jobs capability map per backend
-- derived requirements from process/runtime config (`pkg/core/adapters/requirements.go`)
+- derived requirements from process/runtime config (`framework/core/adapters/requirements.go`)
 
 Container startup validates:
 
@@ -87,10 +87,10 @@ Current startup behavior:
 
 First migrated call site:
 
-- `pkg/tasks/notifications.go` now enqueues follow-up jobs through `core.Jobs` instead of `*services.TaskClient`.
-- `app/notifications/notifier.go` now publishes/subscribes through `core.PubSub` with explicit SSE event payload encoding.
-- `pkg/tasks/notifications.go` now uses a small planned-notification source interface, enabling table-driven unit tests without DB/container boot.
-- `app/notifications/notifier.go` now exposes notifier-owned `SSEEvent` payloads so route code no longer depends on pubsub package event types.
+- `app/jobs/notifications.go` now enqueues follow-up jobs through `core.Jobs` instead of `*services.TaskClient`.
+- `modules/notifications/notifier.go` now publishes/subscribes through `core.PubSub` with explicit SSE event payload encoding.
+- `app/jobs/notifications.go` now uses a small planned-notification source interface, enabling table-driven unit tests without DB/container boot.
+- `modules/notifications/notifier.go` now exposes notifier-owned `SSEEvent` payloads so route code no longer depends on pubsub package event types.
 
 ## Scope Boundaries
 
@@ -98,12 +98,12 @@ These interfaces are runtime seams, not domain/repository APIs.
 
 - Do not force app repos to become generic CRUD wrappers.
 - Keep domain modeling in Ent + app/framework repos.
-- Use `pkg/core` only where backend swapability or startup validation is required.
+- Use `framework/core` only where backend swapability or startup validation is required.
 
 ## Migration Plan
 
-1. Keep existing concrete packages running (`app/foundation`, `pkg/repos/*`).
-2. Add adapters that satisfy `pkg/core` contracts.
+1. Keep existing concrete packages running (`app/foundation`, `framework/repos/*`).
+2. Add adapters that satisfy `framework/core` contracts.
 3. Move container wiring to resolve adapters via config and capabilities.
 4. Gradually convert call sites from concrete clients to interfaces.
 

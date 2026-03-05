@@ -14,8 +14,9 @@ import (
 )
 
 const (
-	atlasDir      = "file://db/migrate/migrations"
+	gooseDir      = "db/migrate/migrations"
 	entSchemaDir  = "db/schema"
+	gooseGoRunRef = "github.com/pressly/goose/v3/cmd/goose@v3.26.0"
 	atlasGoRunRef = "ariga.io/atlas/cmd/atlas@v0.27.1"
 )
 
@@ -25,6 +26,7 @@ var (
 		return ok
 	}
 	atlasLookPathFn = exec.LookPath
+	gooseLookPathFn = exec.LookPath
 	atlasInstallFn  = func(out io.Writer, errOut io.Writer) (string, error) {
 		return rt.InstallAtlasBinary(out, errOut, atlasGoRunRef)
 	}
@@ -156,10 +158,9 @@ func (c CLI) runDB(args []string) int {
 	return cmd.RunDB(args, cmd.DBDeps{
 		Out: c.Out, Err: c.Err,
 		ResolveDBURL: c.resolveDBURL,
-		RunAtlas:     c.runAtlasCmd,
+		RunGoose:     c.runGooseCmd,
 		RunCmd:       c.runCmd,
-		AtlasDir:     atlasDir,
-		EntSchemaDir: entSchemaDir,
+		GooseDir:     gooseDir,
 	})
 }
 
@@ -265,6 +266,6 @@ func (c CLI) runMakeScaffold(args []string) int {
 		RunDBMake:     c.runDBMake,
 		RunController: c.runMakeController,
 		RunResource:   c.runGenerateResource,
-		AtlasDir:      atlasDir,
+		AtlasDir:      "file://" + gooseDir,
 	})
 }

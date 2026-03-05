@@ -49,6 +49,7 @@ Last updated: 2026-03-04
 ### Roadmap
 
 1. `M01` - `roadmap/01-framework-plan.md`: long-term framework strategy and execution tracker.
+2. `M02` - `roadmap/03-bob-migration-transition-temp.md`: temporary living transition plan for Bob + migration-tool switch (delete when done).
 
 ## Primary Source Files Used For This Analysis
 
@@ -56,18 +57,18 @@ Last updated: 2026-03-04
 - `cmd/worker/main.go`
 - `cmd/seed/main.go`
 - `tools/cli/ship/cmd/ship/main.go`
-- `tools/cli/ship/cli.go`
+- `tools/cli/ship/internal/cli/cli.go`
 - `app/foundation/container.go`
-- `pkg/core/interfaces.go`
-- `pkg/core/adapters/registry.go`
-- `pkg/core/adapters/resolve.go`
+- `framework/core/interfaces.go`
+- `framework/core/adapters/registry.go`
+- `framework/core/adapters/resolve.go`
 - `app/foundation/core_cache_adapter.go`
 - `app/foundation/core_jobs_adapter.go`
 - `app/foundation/core_pubsub_adapter.go`
 - `app/router.go`
 - `app/web/controllers/*.go`
-- `pkg/tasks/*.go`
-- `pkg/repos/**/*.go`
+- `app/jobs/*.go`
+- `framework/repos/**/*.go`
 - `db/schema/*.go`
 - `config/config.go`
 - `config/application.yaml`
