@@ -8,8 +8,8 @@ import (
 	"github.com/leomorpho/goship/app/web/routenames"
 	routeNames "github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/app/web/ui"
-	"github.com/leomorpho/goship/db/ent"
 	"github.com/leomorpho/goship/framework/context"
+	"github.com/leomorpho/goship/framework/dberrors"
 	"github.com/leomorpho/goship/framework/domain"
 	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
 
@@ -134,8 +134,8 @@ func (c *register) Post(ctx echo.Context) error {
 
 	if err != nil {
 		tx.Rollback()
-		switch err.(type) {
-		case *ent.ConstraintError:
+		switch {
+		case dberrors.IsConstraint(err):
 			uxflashmessages.Warning(ctx, "A user with this email address already exists. Please log in.")
 			return c.ctr.Redirect(ctx, routeNames.RouteNameLogin)
 		default:
@@ -191,7 +191,7 @@ func (c *register) Post(ctx echo.Context) error {
 	uxflashmessages.Success(ctx, "Your account has been created. You are now logged in. 👌")
 
 	// Send the verification email
-	c.sendVerificationEmail(ctx, u)
+	c.sendVerificationEmail(ctx, u.Email)
 
 	redirect, err := redirectAfterLogin(ctx)
 	if err != nil {
@@ -204,9 +204,9 @@ func (c *register) Post(ctx echo.Context) error {
 	return c.ctr.Redirect(ctx, routeNames.RouteNamePreferences)
 }
 
-func (c *register) sendVerificationEmail(ctx echo.Context, usr *ent.User) {
+func (c *register) sendVerificationEmail(ctx echo.Context, userEmail string) {
 	// Generate a token
-	token, err := c.ctr.Container.Auth.GenerateEmailVerificationToken(usr.Email)
+	token, err := c.ctr.Container.Auth.GenerateEmailVerificationToken(userEmail)
 	if err != nil {
 		ctx.Logger().Errorf("unable to generate email verification token: %v", err)
 		return
@@ -226,7 +226,7 @@ func (c *register) sendVerificationEmail(ctx echo.Context, usr *ent.User) {
 
 	err = c.ctr.Container.Mail.
 		Compose().
-		To(usr.Email).
+		To(userEmail).
 		Subject("Confirm your email address").
 		TemplateLayout(layouts.Email).
 		Component(emails.RegistrationConfirmation(&page)).

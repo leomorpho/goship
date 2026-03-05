@@ -10,8 +10,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/leomorpho/goship-modules/notifications"
 	"github.com/leomorpho/goship/app/web/ui"
-	"github.com/leomorpho/goship/db/ent"
-	customContext "github.com/leomorpho/goship/framework/context"
 	"github.com/rs/zerolog/log"
 )
 
@@ -32,8 +30,10 @@ func NewRealtimeRoute(
 
 // realtime handles SSE connections to any client desiring real-time data.
 func (c *realtime) Get(ctx echo.Context) error {
-	usr := ctx.Get(customContext.AuthenticatedUserKey).(*ent.User)
-	profileID := usr.QueryProfile().FirstX(ctx.Request().Context()).ID
+	profileID, err := authenticatedProfileID(ctx)
+	if err != nil {
+		return err
+	}
 
 	w := ctx.Response().Writer
 	r := ctx.Request()

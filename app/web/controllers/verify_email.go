@@ -4,8 +4,6 @@ import (
 	"github.com/labstack/echo/v4"
 	routeNames "github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/app/web/ui"
-	"github.com/leomorpho/goship/db/ent"
-	"github.com/leomorpho/goship/db/ent/user"
 	"github.com/leomorpho/goship/framework/context"
 	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
 )
@@ -18,8 +16,6 @@ func NewVerifyEmailRoute(ctr ui.Controller) *verifyEmail {
 	return &verifyEmail{ctr: ctr}
 }
 func (c *verifyEmail) Get(ctx echo.Context) error {
-	var usr *ent.User
-
 	// Validate the token
 	token := ctx.Param("token")
 	email, err := c.ctr.Container.Auth.ValidateEmailVerificationToken(token)
@@ -28,44 +24,29 @@ func (c *verifyEmail) Get(ctx echo.Context) error {
 		return c.ctr.Redirect(ctx, routeNames.RouteNameLandingPage)
 	}
 
-	// Check if it matches the authenticated user
-	u := ctx.Get(context.AuthenticatedUserKey)
-	if u != nil {
-		authUser := u.(*ent.User)
-
-		if authUser.Email == email {
-			usr = authUser
+	authEmail, authEmailOK := ctx.Get(context.AuthenticatedUserEmailKey).(string)
+	authUserID, authUserIDOK := ctx.Get(context.AuthenticatedUserIDKey).(int)
+	if authEmailOK && authUserIDOK && authEmail == email {
+		if err = c.ctr.Container.Auth.MarkUserVerifiedByUserID(ctx, authUserID); err != nil {
+			return c.ctr.Fail(err, "failed to set authenticated user as verified")
 		}
-	}
-
-	// Query to find a matching user, if needed
-	if usr == nil {
-		usr, err = c.ctr.Container.ORM.User.
-			Query().
-			Where(user.Email(email)).
-			Only(ctx.Request().Context())
-
-		if err != nil {
-			return c.ctr.Fail(err, "query failed loading email verification token user")
+	} else {
+		usr, queryErr := c.ctr.Container.Auth.FindUserRecordByEmail(ctx, email)
+		if queryErr != nil {
+			return c.ctr.Fail(queryErr, "query failed loading email verification token user")
 		}
-	}
 
-	// Verify the user, if needed
-	if !usr.Verified {
-		_, err = usr.
-			Update().
-			SetVerified(true).
-			Save(ctx.Request().Context())
-
-		if err != nil {
-			return c.ctr.Fail(err, "failed to set user as verified")
+		if !usr.IsVerified {
+			if err = c.ctr.Container.Auth.MarkUserVerifiedByUserID(ctx, usr.UserID); err != nil {
+				return c.ctr.Fail(err, "failed to set user as verified")
+			}
 		}
 	}
 
 	uxflashmessages.Success(ctx, "Your email has been successfully verified.")
 
 	// If we have a user, they are already logged in and just redirect them to their home feed
-	if u != nil {
+	if ctx.Get(context.AuthenticatedUserIDKey) != nil {
 		return c.ctr.Redirect(ctx, routeNames.RouteNamePreferences)
 
 	}

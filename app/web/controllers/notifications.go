@@ -1,20 +1,18 @@
 package controllers
 
 import (
+	stdcontext "context"
 	"fmt"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/leomorpho/goship-modules/notifications"
-	profilesvc "github.com/leomorpho/goship/app/profile"
 	"github.com/leomorpho/goship/app/views"
 	"github.com/leomorpho/goship/app/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/views/web/pages/gen"
 	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/app/web/viewmodels"
-	"github.com/leomorpho/goship/db/ent"
-	"github.com/leomorpho/goship/framework/context"
 	"github.com/leomorpho/goship/framework/domain"
 	"github.com/rs/zerolog/log"
 
@@ -24,9 +22,13 @@ import (
 const NOTIFICATION_QUERY_PARAM = "notif"
 
 type (
+	notificationCountReader interface {
+		GetCountOfUnseenNotifications(ctx stdcontext.Context, profileID int) (int, error)
+	}
+
 	normalNotificationsCount struct {
 		ctr            ui.Controller
-		profileService profilesvc.ProfileService
+		profileService notificationCountReader
 	}
 
 	normalNotifications struct {
@@ -37,7 +39,7 @@ type (
 
 func NewNormalNotificationsCountRoute(
 	ctr ui.Controller,
-	profileService profilesvc.ProfileService,
+	profileService notificationCountReader,
 ) *normalNotificationsCount {
 	return &normalNotificationsCount{
 		ctr:            ctr,
@@ -46,10 +48,12 @@ func NewNormalNotificationsCountRoute(
 }
 
 func (c *normalNotificationsCount) Get(ctx echo.Context) error {
-	usr := ctx.Get(context.AuthenticatedUserKey).(*ent.User)
-	profile := usr.QueryProfile().FirstX(ctx.Request().Context())
+	profileID, err := authenticatedProfileID(ctx)
+	if err != nil {
+		return err
+	}
 
-	num, err := c.profileService.GetCountOfUnseenNotifications(ctx.Request().Context(), profile.ID)
+	num, err := c.profileService.GetCountOfUnseenNotifications(ctx.Request().Context(), profileID)
 	if err != nil {
 		return err
 	}
@@ -95,10 +99,12 @@ func (n *normalNotifications) Get(ctx echo.Context) error {
 	page.ShowBottomNavbar = true
 	page.SelectedBottomNavbarItem = domain.BottomNavbarItemNotifications
 
-	usr := ctx.Get(context.AuthenticatedUserKey).(*ent.User)
-	profile := usr.QueryProfile().FirstX(ctx.Request().Context())
+	profileID, err := authenticatedProfileID(ctx)
+	if err != nil {
+		return err
+	}
 
-	notifications, err := n.notifierService.GetNotifications(ctx.Request().Context(), profile.ID, false, timestamp, &n.ctr.Container.Config.App.PageSize)
+	notifications, err := n.notifierService.GetNotifications(ctx.Request().Context(), profileID, false, timestamp, &n.ctr.Container.Config.App.PageSize)
 	if err != nil {
 		return err
 	}
@@ -135,10 +141,12 @@ func (n *normalNotifications) Get(ctx echo.Context) error {
 
 func (n *normalNotifications) MarkAllAsRead(ctx echo.Context) error {
 
-	usr := ctx.Get(context.AuthenticatedUserKey).(*ent.User)
-	profile := usr.QueryProfile().FirstX(ctx.Request().Context())
+	profileID, err := authenticatedProfileID(ctx)
+	if err != nil {
+		return err
+	}
 
-	err := n.notifierService.MarkAllNotificationRead(ctx.Request().Context(), profile.ID)
+	err = n.notifierService.MarkAllNotificationRead(ctx.Request().Context(), profileID)
 	if err != nil {
 		return err
 	}
@@ -153,10 +161,12 @@ func (n *normalNotifications) Delete(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid question ID")
 	}
 
-	usr := ctx.Get(context.AuthenticatedUserKey).(*ent.User)
-	profile := usr.QueryProfile().FirstX(ctx.Request().Context())
+	profileID, err := authenticatedProfileID(ctx)
+	if err != nil {
+		return err
+	}
 
-	err = n.notifierService.DeleteNotification(ctx.Request().Context(), notificationID, &profile.ID)
+	err = n.notifierService.DeleteNotification(ctx.Request().Context(), notificationID, &profileID)
 	if err != nil {
 		return err
 	}
@@ -186,11 +196,12 @@ func (c *markNormalNotificationRead) Post(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid notification ID")
 	}
 
-	usr := ctx.Get(context.AuthenticatedUserKey).(*ent.User)
-	profileId := usr.QueryProfile().
-		FirstX(ctx.Request().Context()).ID
+	profileID, err := authenticatedProfileID(ctx)
+	if err != nil {
+		return err
+	}
 
-	err = c.notifierService.MarkNotificationRead(ctx.Request().Context(), notifID, &profileId)
+	err = c.notifierService.MarkNotificationRead(ctx.Request().Context(), notifID, &profileID)
 	if err != nil {
 		return err
 	}
@@ -224,11 +235,12 @@ func (c *markNormalNotificationUnread) Post(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request")
 	}
 
-	usr := ctx.Get(context.AuthenticatedUserKey).(*ent.User)
-	profileId := usr.QueryProfile().
-		FirstX(ctx.Request().Context()).ID
+	profileID, err := authenticatedProfileID(ctx)
+	if err != nil {
+		return err
+	}
 
-	err := c.notifierService.MarkNotificationUnread(ctx.Request().Context(), req.ID, &profileId)
+	err = c.notifierService.MarkNotificationUnread(ctx.Request().Context(), req.ID, &profileID)
 	if err != nil {
 		return err
 	}

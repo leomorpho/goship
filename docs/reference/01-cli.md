@@ -61,6 +61,7 @@ Testing:
 Database:
 
 - `ship db:create [--dry-run]` (or `ship db` for help)
+- `ship db:generate [--config <path>] [--dry-run]`
 - `ship db:make <migration_name>` (or `ship db` for help)
 - `ship db:migrate`
 - `ship db:status`
@@ -105,8 +106,9 @@ These commands are implemented as wrappers over existing workflows:
 - `ship infra:up` -> detects `docker-compose`/`docker compose` and runs `up -d cache`, then attempts `up -d mailpit` (non-fatal if mailpit fails)
 - `ship infra:down` -> detects `docker-compose`/`docker compose` and runs `down`
 - `ship db:create` -> validates that target database URL is reachable (`goose status`)
-- `ship db:migrate` -> `goose up` in `db/migrate/migrations`
-- `ship db:status` -> `goose status` in `db/migrate/migrations`
+- `ship db:generate [--config <path>] [--dry-run]` -> runs Bob generation via `bobgen-sql -c <config>` (default: core `db/bobgen.yaml`, then enabled module configs in deterministic sorted order from `config/modules.yaml`)
+- `ship db:migrate` -> `goose up` for core migrations, then enabled module migrations in deterministic sorted order
+- `ship db:status` -> `goose status` for core migrations, then enabled module migrations in deterministic sorted order; output is sectioned by scope (`== core migrations ==`, `== module <name> migrations ==`)
 - `ship db:reset [--seed] [--force] [--yes] [--dry-run]` -> prints plan, runs `goose reset`, then `goose up`; optional seed
 - `ship db:drop [--force] [--yes] [--dry-run]` -> prints plan, runs `goose reset` (reverts all applied migrations; does not physically drop the database)
 - `ship db:make <migration_name>` -> `goose create <migration_name> sql`
@@ -124,6 +126,7 @@ If config resolves to embedded DB mode, DB commands fail with an explicit error.
 - `ship db:reset`/`ship db:drop` refuse non-local DB URLs unless `--force` is provided.
 - In `APP_ENV=production|prod`, `ship db:reset`/`ship db:drop` require both `--force` and `--yes`.
 - Supported DB schemes for the Goose flow are currently limited to: `postgres`, `mysql`, and `sqlite`/`sqlite3`.
+- For `db:migrate`, `db:status`, `db:reset`, and `db:drop`, `ship` runs core migrations first, then enabled module migrations in deterministic sorted module order from `config/modules.yaml`.
 
 Safety matrix:
 
@@ -165,6 +168,8 @@ Doctor checks (current):
 - enforces a line budget for non-generated human-authored `.go` files (target <= 500 lines)
 - validates CLI reference docs include core command tokens (`ship new`, `ship doctor`, `ship make:*`, `ship db:migrate`, `ship test --integration`)
 - validates agent allowlist artifacts are in sync with `tools/agent-policy/allowed-commands.yaml`
+- validates enabled modules in `config/modules.yaml` include `db/migrate/migrations` and `db/bobgen.yaml`
+- validates cross-boundary import rules (controller-to-Ent import ban, controller `QueryProfile()` ban, jobs SQL Ent-coupling ban, notifications pubsub framework-core coupling ban, module source isolation ban for direct `github.com/leomorpho/goship/*` imports except explicit allowlist paths)
 
 Field syntax for `make:model`:
 
@@ -185,7 +190,7 @@ Field syntax for `make:model`:
 `app/*` (domain skeletons)
 `app/web/{controllers,middleware,ui,viewmodels}`
 `app/jobs/jobs.go`
-`db/{schema,migrate/migrations}`
+`db/{schema,migrate/migrations,queries,gen,bobgen.yaml}`
 `docs/00-index.md` and baseline architecture docs
 3. Supports `--dry-run` and `--force`.
 

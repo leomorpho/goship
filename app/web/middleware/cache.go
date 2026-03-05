@@ -47,7 +47,7 @@ func ServeCachedPage(ch *foundation.CacheClient) echo.MiddlewareFunc {
 			}
 
 			// Skip if the user is authenticated
-			if c.Get(context.AuthenticatedUserKey) != nil {
+			if c.Get(context.AuthenticatedUserIDKey) != nil {
 				return next(c)
 			}
 

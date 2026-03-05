@@ -7,6 +7,6 @@ import (
 
 func main() {
 	c := foundation.NewContainer()
-	seeder.SeedUsers(c.Config, c.ORM, true)
+	seeder.SeedUsers(c.Config, c.ORM, c.Database, c.Config.Adapters.DB, true)
 	c.Shutdown()
 }

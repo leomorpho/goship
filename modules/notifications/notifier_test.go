@@ -1,5 +1,3 @@
-//go:build integration
-
 package notifications_test
 
 import (
@@ -10,7 +8,6 @@ import (
 	"time"
 
 	"github.com/leomorpho/goship-modules/notifications"
-	"github.com/leomorpho/goship/framework/core"
 	"github.com/leomorpho/goship/framework/domain"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -25,9 +22,9 @@ func (m *MockPubSubClient) Publish(ctx context.Context, topic string, payload []
 	return args.Error(0)
 }
 
-func (m *MockPubSubClient) Subscribe(ctx context.Context, topic string, handler core.MessageHandler) (core.Subscription, error) {
+func (m *MockPubSubClient) Subscribe(ctx context.Context, topic string, handler notifications.MessageHandler) (notifications.PubSubSubscription, error) {
 	args := m.Called(ctx, topic, handler)
-	return args.Get(0).(core.Subscription), args.Error(1)
+	return args.Get(0).(notifications.PubSubSubscription), args.Error(1)
 }
 
 func (m *MockPubSubClient) Close() error {
@@ -201,12 +198,12 @@ func TestSubscribe(t *testing.T) {
 	mockPubSubClient.
 		On("Subscribe", mock.Anything, topic, mock.Anything).
 		Run(func(args mock.Arguments) {
-			handler := args.Get(2).(core.MessageHandler)
+			handler := args.Get(2).(notifications.MessageHandler)
 			go func() {
 				_ = handler(ctx, topic, payload)
 			}()
 		}).
-		Return(core.Subscription(mockSub), nil)
+		Return(notifications.PubSubSubscription(mockSub), nil)
 
 	// Create notifier repo
 	notifierService := notifications.NewNotifierService(mockPubSubClient, mockNotificationStore, nil, nil, nil)

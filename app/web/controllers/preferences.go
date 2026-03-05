@@ -5,11 +5,10 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/leomorpho/goship/app/subscriptions"
 	"github.com/leomorpho/goship/app/web/routenames"
 	routeNames "github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/app/web/ui"
-	"github.com/leomorpho/goship/db/ent"
-	"github.com/leomorpho/goship/db/ent/profile"
 	"github.com/leomorpho/goship/framework/context"
 	"github.com/leomorpho/goship/framework/domain"
 	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
@@ -27,7 +26,6 @@ import (
 type (
 	profilePrefsRoute struct {
 		ctr ui.Controller
-		orm *ent.Client
 	}
 
 	profileBioFormData struct {
@@ -36,16 +34,18 @@ type (
 	}
 )
 
-func NewProfilePrefsRoute(ctr ui.Controller, orm *ent.Client) profilePrefsRoute {
+func NewProfilePrefsRoute(ctr ui.Controller) profilePrefsRoute {
 	return profilePrefsRoute{
 		ctr: ctr,
-		orm: orm,
 	}
 }
 
 func (p *profilePrefsRoute) GetBio(ctx echo.Context) error {
-	usr := ctx.Get(context.AuthenticatedUserKey).(*ent.User)
-	prof := usr.QueryProfile().Select(profile.FieldBio).FirstX(ctx.Request().Context())
+	profileID, err := authenticatedProfileID(ctx)
+	if err != nil {
+		return err
+	}
+	prof := p.ctr.Container.ORM.Profile.GetX(ctx.Request().Context(), profileID)
 
 	page := ui.NewPage(ctx)
 	page.Layout = layouts.Main
@@ -79,10 +79,12 @@ func (p *profilePrefsRoute) UpdateBio(ctx echo.Context) error {
 		return p.GetBio(ctx)
 	}
 
-	usr := ctx.Get(context.AuthenticatedUserKey).(*ent.User)
-	profile := usr.QueryProfile().FirstX(ctx.Request().Context())
+	profileID, err := authenticatedProfileID(ctx)
+	if err != nil {
+		return err
+	}
 
-	_, err := p.orm.Profile.UpdateOneID(profile.ID).SetBio(profileBioData.Bio).Save(ctx.Request().Context())
+	_, err = p.ctr.Container.ORM.Profile.UpdateOneID(profileID).SetBio(profileBioData.Bio).Save(ctx.Request().Context())
 	if err != nil {
 		return err
 	}
@@ -126,8 +128,11 @@ func (g *preferences) Get(ctx echo.Context) error {
 	var data *viewmodels.PreferencesData
 	var err error
 
-	usr := ctx.Get(context.AuthenticatedUserKey).(*ent.User)
-	profile := usr.QueryProfile().FirstX(ctx.Request().Context())
+	profileID, err := authenticatedProfileID(ctx)
+	if err != nil {
+		return err
+	}
+	profile := g.ctr.Container.ORM.Profile.GetX(ctx.Request().Context(), profileID)
 
 	data, err = g.getCurrPreferencesData(ctx)
 
@@ -208,10 +213,11 @@ func (g *preferences) Get(ctx echo.Context) error {
 }
 
 func (g *preferences) getCurrPreferencesData(ctx echo.Context) (*viewmodels.PreferencesData, error) {
-
-	usr := ctx.Get(context.AuthenticatedUserKey).(*ent.User)
-
-	profile := usr.QueryProfile().FirstX(ctx.Request().Context())
+	profileID, err := authenticatedProfileID(ctx)
+	if err != nil {
+		return nil, err
+	}
+	profile := g.ctr.Container.ORM.Profile.GetX(ctx.Request().Context(), profileID)
 
 	// Make sure to check if birthdate is non-nil
 	birthdateStr := profile.Birthdate.UTC().Format("2006-01-02")
@@ -222,6 +228,10 @@ func (g *preferences) getCurrPreferencesData(ctx echo.Context) (*viewmodels.Pref
 
 	if err != nil {
 		return nil, err
+	}
+	activePlanDomain := subscriptions.ToDomainProductType(activePlan)
+	if activePlanDomain == nil {
+		activePlanDomain = &domain.ProductTypeFree
 	}
 
 	data := &viewmodels.PreferencesData{
@@ -235,7 +245,7 @@ func (g *preferences) getCurrPreferencesData(ctx echo.Context) (*viewmodels.Pref
 
 		// if IsPaymentsEnabled is true, none of the subscription stuff matters and the entire app will be free
 		IsPaymentsEnabled:      g.ctr.Container.Config.App.OperationalConstants.PaymentsEnabled,
-		ActiveSubscriptionPlan: *activePlan,
+		ActiveSubscriptionPlan: *activePlanDomain,
 		IsTrial:                isTrial,
 	}
 
@@ -246,8 +256,11 @@ func (g *preferences) getCurrPreferencesData(ctx echo.Context) (*viewmodels.Pref
 }
 
 func (p *preferences) GetPhoneComponent(ctx echo.Context) error {
-	usr := ctx.Get(context.AuthenticatedUserKey).(*ent.User)
-	profile := usr.QueryProfile().FirstX(ctx.Request().Context())
+	profileID, err := authenticatedProfileID(ctx)
+	if err != nil {
+		return err
+	}
+	profile := p.ctr.Container.ORM.Profile.GetX(ctx.Request().Context(), profileID)
 
 	page := ui.NewPage(ctx)
 	page.Layout = layouts.Main
@@ -265,8 +278,11 @@ func (p *preferences) GetPhoneComponent(ctx echo.Context) error {
 }
 
 func (p *preferences) GetPhoneVerificationComponent(ctx echo.Context) error {
-	usr := ctx.Get(context.AuthenticatedUserKey).(*ent.User)
-	profile := usr.QueryProfile().FirstX(ctx.Request().Context())
+	profileID, err := authenticatedProfileID(ctx)
+	if err != nil {
+		return err
+	}
+	profile := p.ctr.Container.ORM.Profile.GetX(ctx.Request().Context(), profileID)
 
 	page := ui.NewPage(ctx)
 	page.Layout = layouts.Main
@@ -281,7 +297,7 @@ func (p *preferences) GetPhoneVerificationComponent(ctx echo.Context) error {
 		page.Form = form.(*viewmodels.PhoneNumberVerification)
 	}
 
-	_, err := p.smsSenderService.CreateConfirmationCode(ctx.Request().Context(), profile.ID, profile.PhoneNumberE164)
+	_, err = p.smsSenderService.CreateConfirmationCode(ctx.Request().Context(), profile.ID, profile.PhoneNumberE164)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to send verification code.")
 		uxflashmessages.Danger(ctx, "Failed to send verification code 😨")
@@ -315,8 +331,11 @@ func (p *preferences) SubmitPhoneVerificationCode(ctx echo.Context) error {
 		return p.GetPhoneVerificationComponent(ctx)
 	}
 
-	usr := ctx.Get(context.AuthenticatedUserKey).(*ent.User)
-	profile := usr.QueryProfile().FirstX(ctx.Request().Context())
+	profileID, err := authenticatedProfileID(ctx)
+	if err != nil {
+		return err
+	}
+	profile := p.ctr.Container.ORM.Profile.GetX(ctx.Request().Context(), profileID)
 
 	valid, err := p.smsSenderService.VerifyConfirmationCode(ctx.Request().Context(), profile.ID, form.VerificationCode)
 	if err != nil || !valid {
@@ -360,11 +379,13 @@ func (p *preferences) SavePhoneInfo(ctx echo.Context) error {
 		return p.ctr.Redirect(ctx, "preferences")
 	}
 
-	usr := ctx.Get(context.AuthenticatedUserKey).(*ent.User)
-	profile := usr.QueryProfile().FirstX(ctx.Request().Context())
+	profileID, err := authenticatedProfileID(ctx)
+	if err != nil {
+		return err
+	}
 
-	_, err := p.ctr.Container.ORM.Profile.
-		UpdateOneID(profile.ID).
+	_, err = p.ctr.Container.ORM.Profile.
+		UpdateOneID(profileID).
 		SetCountryCode(phoneNumberFormData.CountryCode).
 		SetPhoneNumberE164(phoneNumberFormData.PhoneNumberE164Format).
 		Save(ctx.Request().Context())
@@ -373,14 +394,22 @@ func (p *preferences) SavePhoneInfo(ctx echo.Context) error {
 }
 
 func (p *preferences) GetDisplayName(ctx echo.Context) error {
-	usr := ctx.Get(context.AuthenticatedUserKey).(*ent.User)
+	userIDRaw := ctx.Get(context.AuthenticatedUserIDKey)
+	userID, ok := userIDRaw.(int)
+	if !ok || userID <= 0 {
+		return echo.NewHTTPError(http.StatusUnauthorized, "authenticated user id missing from context")
+	}
+	displayName, err := p.ctr.Container.Auth.GetUserDisplayNameByUserID(ctx, userID)
+	if err != nil {
+		return p.ctr.Fail(err, "unable to load display name")
+	}
 
 	page := ui.NewPage(ctx)
 	page.Layout = layouts.Main
 	page.Component = pages.DisplayName(&page)
 	page.Name = templates.PageDisplayName
 	page.Form = &viewmodels.DisplayNameForm{
-		DisplayName: usr.Name,
+		DisplayName: displayName,
 	}
 
 	if form := ctx.Get(context.FormKey); form != nil {
@@ -407,14 +436,13 @@ func (p *preferences) SaveDisplayName(ctx echo.Context) error {
 		return p.GetDisplayName(ctx)
 	}
 
-	usr := ctx.Get(context.AuthenticatedUserKey).(*ent.User)
+	userIDRaw := ctx.Get(context.AuthenticatedUserIDKey)
+	userID, ok := userIDRaw.(int)
+	if !ok || userID <= 0 {
+		return echo.NewHTTPError(http.StatusUnauthorized, "authenticated user id missing from context")
+	}
 
-	_, err := p.ctr.Container.ORM.User.
-		UpdateOneID(usr.ID).
-		SetName(displayNameFormData.DisplayName).
-		Save(ctx.Request().Context())
-
-	if err != nil {
+	if err := p.ctr.Container.Auth.SetUserDisplayNameByUserID(ctx, userID, displayNameFormData.DisplayName); err != nil {
 		return err
 	}
 
@@ -423,24 +451,22 @@ func (p *preferences) SaveDisplayName(ctx echo.Context) error {
 
 type onboarding struct {
 	ctr ui.Controller
-	orm *ent.Client
 }
 
-func NewOnboardingRoute(
-	ctr ui.Controller, orm *ent.Client,
-) onboarding {
+func NewOnboardingRoute(ctr ui.Controller) onboarding {
 	return onboarding{
 		ctr: ctr,
-		orm: orm,
 	}
 }
 
 func (p *onboarding) Get(ctx echo.Context) error {
-	usr := ctx.Get(context.AuthenticatedUserKey).(*ent.User)
-	profile := usr.QueryProfile().FirstX(ctx.Request().Context())
+	profileID, err := authenticatedProfileID(ctx)
+	if err != nil {
+		return err
+	}
 
-	_, err := p.orm.Profile.
-		UpdateOneID(profile.ID).
+	_, err = p.ctr.Container.ORM.Profile.
+		UpdateOneID(profileID).
 		SetFullyOnboarded(true).
 		Save(ctx.Request().Context())
 	if err != nil {

@@ -112,6 +112,10 @@ func TestRunMakeModule_Integration(t *testing.T) {
 		filepath.Join(moduleDir, "errors.go"),
 		filepath.Join(moduleDir, "service.go"),
 		filepath.Join(moduleDir, "service_test.go"),
+		filepath.Join(moduleDir, "db", "bobgen.yaml"),
+		filepath.Join(moduleDir, "db", "migrate", "migrations", ".gitkeep"),
+		filepath.Join(moduleDir, "db", "queries", ".gitkeep"),
+		filepath.Join(moduleDir, "db", "gen", ".gitkeep"),
 	}
 	for _, p := range required {
 		if !testHasFile(p) {
@@ -133,5 +137,13 @@ func TestRunMakeModule_Integration(t *testing.T) {
 	}
 	if !strings.Contains(string(moduleFile), "package emailsubscriptions") {
 		t.Fatalf("unexpected module.go package:\n%s", string(moduleFile))
+	}
+
+	bobgen, err := os.ReadFile(filepath.Join(moduleDir, "db", "bobgen.yaml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(bobgen), "modules/emailsubscriptions/db/migrate/migrations/*.sql") {
+		t.Fatalf("unexpected bobgen pattern:\n%s", string(bobgen))
 	}
 }

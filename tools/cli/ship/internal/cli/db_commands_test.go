@@ -266,6 +266,26 @@ func TestRunDBCreate_DryRun(t *testing.T) {
 	}
 }
 
+func TestRunDBGenerate_DryRun(t *testing.T) {
+	out := &bytes.Buffer{}
+	runner := &fakeRunner{}
+	cli := CLI{
+		Out:    out,
+		Err:    &bytes.Buffer{},
+		Runner: runner,
+	}
+	code := cli.Run([]string{"db:generate", "--dry-run"})
+	if code != 0 {
+		t.Fatalf("exit code = %d, want 0", code)
+	}
+	if len(runner.calls) != 0 {
+		t.Fatalf("runner calls = %v, want none", runner.calls)
+	}
+	if !strings.Contains(out.String(), "DB generate plan") {
+		t.Fatalf("stdout = %q, want generate plan output", out.String())
+	}
+}
+
 func TestIsLocalDBURL(t *testing.T) {
 	tests := []struct {
 		name   string

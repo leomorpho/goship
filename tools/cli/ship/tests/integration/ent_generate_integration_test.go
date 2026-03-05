@@ -20,16 +20,17 @@ func TestEntGenerateFromDBSchemaPath(t *testing.T) {
 		t.Skip("go toolchain not available")
 	}
 
-	repoRoot := mustRepoRootFromFile(t)
-	outDir := filepath.Join(repoRoot, "tmp", "ent-generate-smoke-"+strconv.FormatInt(time.Now().UnixNano(), 10))
-	modCache := filepath.Join(repoRoot, ".cache", "go-mod-integration")
+	shipRoot := mustRepoRootFromFile(t)
+	workspaceRoot := filepath.Clean(filepath.Join(shipRoot, "..", "..", ".."))
+	outDir := filepath.Join(workspaceRoot, "tmp", "ent-generate-smoke-"+strconv.FormatInt(time.Now().UnixNano(), 10))
+	modCache := filepath.Join(t.TempDir(), "go-mod-integration")
 	t.Cleanup(func() {
 		_ = os.RemoveAll(outDir)
 	})
 	if err := os.MkdirAll(modCache, 0o755); err != nil {
 		t.Fatalf("mkdir mod cache: %v", err)
 	}
-	outRel, err := filepath.Rel(repoRoot, outDir)
+	outRel, err := filepath.Rel(workspaceRoot, outDir)
 	if err != nil {
 		t.Fatalf("resolve relative out dir: %v", err)
 	}
@@ -51,8 +52,11 @@ func TestEntGenerateFromDBSchemaPath(t *testing.T) {
 		"--target", "./"+filepath.ToSlash(outRel),
 		"./db/schema",
 	)
-	cmd.Dir = repoRoot
-	cmd.Env = append(os.Environ(), "GOMODCACHE="+modCache)
+	cmd.Dir = workspaceRoot
+	cmd.Env = append(os.Environ(),
+		"GOMODCACHE="+modCache,
+		"GOFLAGS=-modcacherw",
+	)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		msg := string(out)

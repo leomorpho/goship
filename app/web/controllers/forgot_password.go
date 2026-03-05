@@ -2,13 +2,11 @@ package controllers
 
 import (
 	"fmt"
-	"strings"
 
 	routeNames "github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/app/web/ui"
-	"github.com/leomorpho/goship/db/ent"
-	"github.com/leomorpho/goship/db/ent/user"
 	"github.com/leomorpho/goship/framework/context"
+	"github.com/leomorpho/goship/framework/dberrors"
 	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
 
 	"github.com/leomorpho/goship/app/views"
@@ -73,29 +71,25 @@ func (c *forgotPassword) Post(ctx echo.Context) error {
 	}
 
 	// Attempt to load the user
-	u, err := c.ctr.Container.ORM.User.
-		Query().
-		Where(user.Email(strings.ToLower(form.Email))).
-		Only(ctx.Request().Context())
+	u, err := c.ctr.Container.Auth.FindUserRecordByEmail(ctx, form.Email)
 
-	switch err.(type) {
-	case *ent.NotFoundError:
+	switch {
+	case dberrors.IsNotFound(err):
 		return succeed()
-	case nil:
-	default:
+	case err != nil:
 		return c.ctr.Fail(err, "error querying user during forgot password")
 	}
 
 	// Generate the token
-	token, pt, err := c.ctr.Container.Auth.GeneratePasswordResetToken(ctx, u.ID)
+	token, tokenID, err := c.ctr.Container.Auth.GeneratePasswordResetToken(ctx, u.UserID)
 	if err != nil {
 		return c.ctr.Fail(err, "error generating password reset token")
 	}
 
-	ctx.Logger().Infof("generated password reset token for user %d", u.ID)
+	ctx.Logger().Infof("generated password reset token for user %d", u.UserID)
 
 	// Email the user
-	url := ctx.Echo().Reverse(routeNames.RouteNameResetPassword, u.ID, pt.ID, token)
+	url := ctx.Echo().Reverse(routeNames.RouteNameResetPassword, u.UserID, tokenID, token)
 
 	err = c.sendPasswordResetEmail(ctx, u.Name, u.Email, url)
 	if err != nil {

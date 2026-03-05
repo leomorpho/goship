@@ -131,6 +131,9 @@ func ScaffoldNewProject(opts NewProjectOptions, d NewDeps) error {
 		filepath.Join(opts.AppPath, "app", "router.go"):                              renderRouterSkeleton(opts.Module),
 		filepath.Join(opts.AppPath, "app", "web", "routenames", "routenames.go"):     renderRouteNamesSkeleton(),
 		filepath.Join(opts.AppPath, "db", "schema", "user.go"):                       renderUserSchemaSkeleton(),
+		filepath.Join(opts.AppPath, "db", "bobgen.yaml"):                             renderBobgenConfigSkeleton(),
+		filepath.Join(opts.AppPath, "db", "queries", ".gitkeep"):                     "",
+		filepath.Join(opts.AppPath, "db", "gen", ".gitkeep"):                         "",
 		filepath.Join(opts.AppPath, "db", "migrate", "migrations", ".gitkeep"):       "",
 		filepath.Join(opts.AppPath, "app", "views", "templates.go"):                  renderTemplatesSkeleton(),
 		filepath.Join(opts.AppPath, "app", "web", "controllers", "controllers.go"):   renderControllersSkeleton(),
@@ -196,6 +199,19 @@ func renderModulesManifestSkeleton() string {
 	return `# Workspace-level module enablement.
 # Modules apply to the monolith as a whole (not per mini-app).
 modules: []
+`
+}
+
+func renderBobgenConfigSkeleton() string {
+	return `# Bob SQL generation config.
+# Add SQL files under db/queries and run: ship db:generate
+version: "v1"
+packages:
+  - name: "gen"
+    path: "db/gen"
+    engine: "postgres"
+    queries:
+      - "db/queries/*.sql"
 `
 }
 

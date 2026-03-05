@@ -7,8 +7,6 @@ import (
 	"time"
 
 	"github.com/leomorpho/goship-modules/paidsubscriptions"
-	"github.com/leomorpho/goship/db/ent"
-	"github.com/leomorpho/goship/framework/domain"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,7 +15,7 @@ type stubStore struct {
 	updateToFreeErr    error
 }
 
-func (s *stubStore) CreateSubscription(context.Context, *ent.Tx, int) error {
+func (s *stubStore) CreateSubscription(context.Context, any, int) error {
 	return nil
 }
 
@@ -29,8 +27,8 @@ func (s *stubStore) UpdateToPaidPro(context.Context, int) error {
 	return s.updateToPaidProErr
 }
 
-func (s *stubStore) GetCurrentlyActiveProduct(context.Context, int) (*domain.ProductType, *time.Time, bool, error) {
-	return &domain.ProductTypeFree, nil, false, nil
+func (s *stubStore) GetCurrentlyActiveProduct(context.Context, int) (*paidsubscriptions.ProductType, *time.Time, bool, error) {
+	return &paidsubscriptions.ProductTypeFree, nil, false, nil
 }
 
 func (s *stubStore) StoreStripeCustomerID(context.Context, int, string) error {

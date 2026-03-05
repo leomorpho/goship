@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/leomorpho/goship/framework/core"
 	"github.com/rs/zerolog/log"
 
 	"github.com/leomorpho/goship/framework/domain"
@@ -19,7 +18,7 @@ NotifierService manages the full lifecycle of notifications. That includes:
 - Create push notifications (TODO) for mobile apps.
 */
 type NotifierService struct {
-	pubSubClient      core.PubSub
+	pubSubClient      PubSub
 	notificationStore NotificationStorage
 	pwaPushService    *PwaPushService
 	fcmPushService    *FcmPushService
@@ -33,7 +32,7 @@ type SSEEvent struct {
 }
 
 func NewNotifierService(
-	pubSubClient core.PubSub,
+	pubSubClient PubSub,
 	notificationStore NotificationStorage,
 	pwaPushService *PwaPushService,
 	fcmPushService *FcmPushService,

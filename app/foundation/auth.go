@@ -1,7 +1,9 @@
 package foundation
 
 import (
+	stdcontext "context"
 	"crypto/rand"
+	"database/sql"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -11,9 +13,8 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/leomorpho/goship/config"
 	"github.com/leomorpho/goship/db/ent"
-	"github.com/leomorpho/goship/db/ent/passwordtoken"
-	"github.com/leomorpho/goship/db/ent/user"
 	"github.com/leomorpho/goship/framework/context"
+	"github.com/leomorpho/goship/framework/dberrors"
 
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
@@ -47,17 +48,25 @@ func (e InvalidPasswordTokenError) Error() string {
 	return "invalid password token"
 }
 
+// InvalidCredentialsError is returned when email/password authentication fails.
+type InvalidCredentialsError struct{}
+
+// Error implements the error interface.
+func (e InvalidCredentialsError) Error() string {
+	return "invalid credentials"
+}
+
 // AuthClient is the client that handles authentication requests
 type AuthClient struct {
 	config *config.Config
-	orm    *ent.Client
+	store  authStore
 }
 
 // NewAuthClient creates a new authentication client
-func NewAuthClient(cfg *config.Config, orm *ent.Client) *AuthClient {
+func NewAuthClient(cfg *config.Config, orm *ent.Client, db *sql.DB) *AuthClient {
 	return &AuthClient{
 		config: cfg,
-		orm:    orm,
+		store:  selectAuthStore(cfg, orm, db),
 	}
 }
 
@@ -110,34 +119,65 @@ func (c *AuthClient) GetAuthenticatedUserID(ctx echo.Context) (int, error) {
 	return 0, NotAuthenticatedError{}
 }
 
-// GetAuthenticatedUser returns the authenticated user if the user is logged in
-func (c *AuthClient) GetAuthenticatedUser(ctx echo.Context) (*ent.User, error) {
+// GetAuthenticatedIdentity returns the authenticated identity if the user is logged in.
+func (c *AuthClient) GetAuthenticatedIdentity(ctx echo.Context) (*AuthIdentity, error) {
 	if userID, err := c.GetAuthenticatedUserID(ctx); err == nil {
-		return c.orm.User.Query().
-			Where(user.ID(userID)).
-			WithProfile(func(q *ent.ProfileQuery) {
-				q.WithProfileImage(func(pi *ent.ImageQuery) {
-					pi.WithSizes(func(s *ent.ImageSizeQuery) {
-						s.WithFile()
-					})
-				})
-			}).
-			Only(ctx.Request().Context())
+		return c.store.GetIdentityByUserID(ctx.Request().Context(), userID)
 	}
 
 	return nil, NotAuthenticatedError{}
 }
 
+// GetIdentityByUserID returns an auth identity for an explicit user ID.
+func (c *AuthClient) GetIdentityByUserID(ctx stdcontext.Context, userID int) (*AuthIdentity, error) {
+	return c.store.GetIdentityByUserID(ctx, userID)
+}
+
+// FindUserRecordByEmail returns an auth user record by email (case-insensitive).
+func (c *AuthClient) FindUserRecordByEmail(ctx echo.Context, email string) (*AuthUserRecord, error) {
+	return c.store.GetUserRecordByEmail(ctx.Request().Context(), email)
+}
+
 // SetLastOnlineTimestamp sets the last online time for a user
 func (c *AuthClient) SetLastOnlineTimestamp(ctx echo.Context, userID int) error {
+	return c.store.CreateLastSeenOnline(ctx.Request().Context(), userID, time.Now())
+}
 
-	_, err := c.orm.LastSeenOnline.
-		Create().
-		SetUserID(userID).
-		SetSeenAt(time.Now()).
-		Save(ctx.Request().Context())
+// AuthenticateUserByEmailPassword authenticates credentials and returns the user record on success.
+func (c *AuthClient) AuthenticateUserByEmailPassword(
+	ctx echo.Context,
+	email string,
+	password string,
+) (*AuthUserRecord, error) {
+	userRecord, err := c.FindUserRecordByEmail(ctx, email)
+	switch {
+	case dberrors.IsNotFound(err):
+		return nil, InvalidCredentialsError{}
+	case err != nil:
+		return nil, err
+	}
 
-	return err
+	if err := c.CheckPassword(password, userRecord.Password); err != nil {
+		return nil, InvalidCredentialsError{}
+	}
+
+	return userRecord, nil
+}
+
+func (c *AuthClient) GetUserDisplayNameByUserID(ctx echo.Context, userID int) (string, error) {
+	return c.store.GetUserDisplayNameByUserID(ctx.Request().Context(), userID)
+}
+
+func (c *AuthClient) SetUserDisplayNameByUserID(ctx echo.Context, userID int, displayName string) error {
+	return c.store.UpdateUserDisplayNameByUserID(ctx.Request().Context(), userID, displayName)
+}
+
+func (c *AuthClient) SetUserPasswordHashByUserID(ctx echo.Context, userID int, passwordHash string) error {
+	return c.store.UpdateUserPasswordHashByUserID(ctx.Request().Context(), userID, passwordHash)
+}
+
+func (c *AuthClient) MarkUserVerifiedByUserID(ctx echo.Context, userID int) error {
+	return c.store.MarkUserVerifiedByUserID(ctx.Request().Context(), userID)
 }
 
 // HashPassword returns a hash of a given password
@@ -157,70 +197,56 @@ func (c *AuthClient) CheckPassword(password, hash string) error {
 // GeneratePasswordResetToken generates a password reset token for a given user.
 // For security purposes, the token itself is not stored in the database but rather
 // a hash of the token, exactly how passwords are handled. This method returns both
-// the generated token as well as the token entity which only contains the hash.
-func (c *AuthClient) GeneratePasswordResetToken(ctx echo.Context, userID int) (string, *ent.PasswordToken, error) {
+// the generated token as well as the created password token ID.
+func (c *AuthClient) GeneratePasswordResetToken(ctx echo.Context, userID int) (string, int, error) {
 	// Generate the token, which is what will go in the URL, but not the database
 	token, err := c.RandomToken(c.config.App.PasswordToken.Length)
 	if err != nil {
-		return "", nil, err
+		return "", 0, err
 	}
 
 	// Hash the token, which is what will be stored in the database
 	hash, err := c.HashPassword(token)
 	if err != nil {
-		return "", nil, err
+		return "", 0, err
 	}
 
 	// Create and save the password reset token
-	pt, err := c.orm.PasswordToken.
-		Create().
-		SetHash(hash).
-		SetUserID(userID).
-		Save(ctx.Request().Context())
-
-	return token, pt, err
+	tokenID, err := c.store.CreatePasswordToken(ctx.Request().Context(), userID, hash)
+	if err != nil {
+		return "", 0, err
+	}
+	return token, tokenID, nil
 }
 
-// GetValidPasswordToken returns a valid, non-expired password token entity for a given user, token ID and token.
-// Since the actual token is not stored in the database for security purposes, if a matching password token entity is
-// found a hash of the provided token is compared with the hash stored in the database in order to validate.
-func (c *AuthClient) GetValidPasswordToken(ctx echo.Context, userID, tokenID int, token string) (*ent.PasswordToken, error) {
+// GetValidPasswordToken validates a non-expired password token for a given user/token ID combination.
+// Since the raw token is not stored in the database for security purposes, the provided token is checked
+// against the stored hash.
+func (c *AuthClient) GetValidPasswordToken(ctx echo.Context, userID, tokenID int, token string) error {
 	// Ensure expired tokens are never returned
 	expiration := time.Now().Add(-c.config.App.PasswordToken.Expiration)
 
-	// Query to find a password token entity that matches the given user and token ID
-	pt, err := c.orm.PasswordToken.
-		Query().
-		Where(passwordtoken.ID(tokenID)).
-		Where(passwordtoken.HasUserWith(user.ID(userID))).
-		Where(passwordtoken.CreatedAtGTE(expiration)).
-		Only(ctx.Request().Context())
-
-	switch err.(type) {
-	case *ent.NotFoundError:
-	case nil:
+	hash, err := c.store.GetPasswordTokenHash(ctx.Request().Context(), userID, tokenID, expiration)
+	switch {
+	case dberrors.IsNotFound(err):
+	case err == nil:
 		// Check the token for a hash match
-		if err := c.CheckPassword(token, pt.Hash); err == nil {
-			return pt, nil
+		if err := c.CheckPassword(token, hash); err == nil {
+			return nil
 		}
 	default:
 		if !context.IsCanceledError(err) {
-			return nil, err
+			return err
 		}
 	}
 
-	return nil, InvalidPasswordTokenError{}
+	return InvalidPasswordTokenError{}
 }
 
 // DeletePasswordTokens deletes all password tokens in the database for a belonging to a given user.
 // This should be called after a successful password reset.
 func (c *AuthClient) DeletePasswordTokens(ctx echo.Context, userID int) error {
-	_, err := c.orm.PasswordToken.
-		Delete().
-		Where(passwordtoken.HasUserWith(user.ID(userID))).
-		Exec(ctx.Request().Context())
-
-	return err
+	return c.store.DeletePasswordTokens(ctx.Request().Context(), userID)
 }
 
 // RandomToken generates a random token string of a given length

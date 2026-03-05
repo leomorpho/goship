@@ -57,8 +57,9 @@ func main() {
 		},
 	)
 
-	paidSubscriptionsService := paidsubscriptions.New(paidsubscriptions.NewEntStore(
-		c.ORM,
+	paidSubscriptionsService := paidsubscriptions.New(paidsubscriptions.NewSQLStore(
+		c.Database,
+		c.Config.Adapters.DB,
 		c.Config.App.OperationalConstants.ProTrialTimespanInDays,
 		c.Config.App.OperationalConstants.PaymentFailedGracePeriodInDays,
 	))
@@ -66,15 +67,22 @@ func main() {
 		log.Fatalf("failed to initialize jobs module: %v", err)
 	}
 	storageClient := storagerepo.NewStorageClient(c.Config, c.ORM)
-	profileService := profilesvc.NewProfileService(c.ORM, storageClient, paidSubscriptionsService)
+	profileService := profilesvc.NewProfileServiceWithDeps(
+		c.ORM,
+		storageClient,
+		paidSubscriptionsService,
+		profilesvc.NewBobNotificationCountStore(c.Database, c.Config.Adapters.DB),
+	)
 
 	var firebaseJSONAccessKeys *[]byte
 	if len(c.Config.App.FirebaseJSONAccessKeys) > 0 {
 		firebaseJSONAccessKeys = &c.Config.App.FirebaseJSONAccessKeys
 	}
 	notificationServices, err := notifications.New(notifications.RuntimeDeps{
-		ORM:                                 c.ORM,
-		PubSub:                              c.CorePubSub,
+		ORM:                                 nil,
+		DB:                                  c.Database,
+		DBDialect:                           c.Config.Adapters.DB,
+		PubSub:                              foundation.AdaptNotificationsPubSub(c.CorePubSub),
 		SubscriptionService:                 paidSubscriptionsService,
 		VapidPublicKey:                      c.Config.App.VapidPublicKey,
 		VapidPrivateKey:                     c.Config.App.VapidPrivateKey,
@@ -101,13 +109,13 @@ func main() {
 		c.Mail, c.Config,
 	)
 
-	emailUpdateProcessor := tasks.NewEmailUpdateProcessor(c, c.ORM)
+	emailUpdateProcessor := tasks.NewEmailUpdateProcessor(c)
 
 	deactivateExpiredSubscriptionsProcessor := tasks.NewDeactivateExpiredSubscriptionsProcessor(paidSubscriptionsService)
-	allDailyConvoNotificationsProcessor := tasks.NewAllDailyConvoNotificationsProcessor(c.ORM, profileService, notificationServices.PlannedNotificationsService, c.CoreJobs, 30)
+	allDailyConvoNotificationsProcessor := tasks.NewAllDailyConvoNotificationsProcessor(notificationServices.PlannedNotificationsService, c.CoreJobs, 30)
 	dailyConvoNotificationsProcessor := tasks.NewDailyConvoNotificationsProcessor(notificationServices.Notifier, c.Web, paidSubscriptionsService, notificationServices.PlannedNotificationsService)
 	deleteStaleNotificationsProcessor := tasks.NewDeleteStaleNotificationsProcessor(
-		c.ORM, c.Config.App.OperationalConstants.DeleteStaleNotificationAfterDays,
+		c.Database, c.Config.Adapters.DB, c.Config.App.OperationalConstants.DeleteStaleNotificationAfterDays,
 	)
 
 	// Map task types to the handlers
@@ -139,17 +147,17 @@ func wireJobsModule(c *foundation.Container) error {
 		if err != nil {
 			return err
 		}
-		c.CoreJobs = mod.Jobs()
-		c.CoreJobsInspector = mod.Inspector()
+		c.CoreJobs = foundation.AdaptModuleJobs(mod.Jobs())
+		c.CoreJobsInspector = foundation.AdaptModuleJobsInspector(mod.Inspector())
 		return nil
 	case "dbqueue":
 		mod, err := jobsmodule.New(jobsmodule.Config{
-			Backend:   jobsmodule.BackendSQL,
-			EntClient: c.ORM,
+			Backend: jobsmodule.BackendSQL,
+			SQLDB:   c.Database,
 		})
 		if err == nil {
-			c.CoreJobs = mod.Jobs()
-			c.CoreJobsInspector = mod.Inspector()
+			c.CoreJobs = foundation.AdaptModuleJobs(mod.Jobs())
+			c.CoreJobsInspector = foundation.AdaptModuleJobsInspector(mod.Inspector())
 		}
 		return err
 	case "inproc":

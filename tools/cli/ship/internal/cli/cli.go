@@ -161,6 +161,7 @@ func (c CLI) runDB(args []string) int {
 		RunGoose:     c.runGooseCmd,
 		RunCmd:       c.runCmd,
 		GooseDir:     gooseDir,
+		FindGoModule: findGoModule,
 	})
 }
 

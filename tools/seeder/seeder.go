@@ -2,18 +2,19 @@ package seeder
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"math/rand"
 	"os"
 	"time"
 
-	modemailsubscriptions "github.com/leomorpho/goship-modules/emailsubscriptions"
 	"github.com/leomorpho/goship-modules/notifications"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/app/foundation"
 	profilesvc "github.com/leomorpho/goship/app/profile"
 	"github.com/leomorpho/goship/config"
 	"github.com/leomorpho/goship/db/ent"
+	"github.com/leomorpho/goship/db/ent/emailsubscriptiontype"
 	"github.com/leomorpho/goship/db/ent/user"
 	"github.com/leomorpho/goship/framework/domain"
 	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
@@ -26,14 +27,12 @@ var ErrObjectExists = errors.New("object already exists")
 // RunIdempotentSeeder seeds all regular objects that the app needs to run smoothly
 func RunIdempotentSeeder(cfg *config.Config, client *ent.Client) error {
 	ctx := context.Background()
-	emailSubscriptions := modemailsubscriptions.New(modemailsubscriptions.NewEntStore(client))
-
-	err := emailSubscriptions.CreateList(ctx, modemailsubscriptions.List(domain.EmailNewsletter.Value))
+	err := createEmailList(ctx, client, domain.EmailNewsletter.Value)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to create email list type")
 	}
 
-	err = emailSubscriptions.CreateList(ctx, modemailsubscriptions.List(domain.EmailInitialAnnoucement.Value))
+	err = createEmailList(ctx, client, domain.EmailInitialAnnoucement.Value)
 	if err != nil {
 		log.Fatal().Err(err).Msg("failed to create email list type")
 	}
@@ -46,6 +45,18 @@ func RunIdempotentSeeder(cfg *config.Config, client *ent.Client) error {
 	return nil
 }
 
+func createEmailList(ctx context.Context, client *ent.Client, name string) error {
+	_, err := client.EmailSubscriptionType.
+		Create().
+		SetName(emailsubscriptiontype.Name(name)).
+		SetActive(true).
+		Save(ctx)
+	if ent.IsConstraintError(err) {
+		return nil
+	}
+	return err
+}
+
 func runDataFixes(cfg *config.Config, ctx context.Context, client *ent.Client) {
 	// Place data fixes to run on startup here, make sure they're idempotent.
 
@@ -56,7 +67,7 @@ func seedProdDemoData() {
 }
 
 // SeedUsers add the initial users to the database.
-func SeedUsers(cfg *config.Config, client *ent.Client, useS3 bool) error {
+func SeedUsers(cfg *config.Config, client *ent.Client, db *sql.DB, dialect string, useS3 bool) error {
 	// NOTE: DO NOT RUN THIS SEEDER AS AN IDEMPOTENT SEEDER AS IT IS NOT IDEMPOTENT
 	// RUN WITH: `make seed` in CLI
 	// TODO: make idempotent (not that hard, just check for user existence)
@@ -98,7 +109,7 @@ func SeedUsers(cfg *config.Config, client *ent.Client, useS3 bool) error {
 		storageClient = storagerepo.NewStorageClient(cfg, client)
 	}
 	profileService := profilesvc.NewProfileService(client, storageClient, nil)
-	subscriptionsService := paidsubscriptions.New(paidsubscriptions.NewEntStore(client, 3, 3))
+	subscriptionsService := paidsubscriptions.New(paidsubscriptions.NewSQLStore(db, dialect, 3, 3))
 	notificationPermissionService := notifications.NewNotificationPermissionService(client)
 
 	createProfile := func(

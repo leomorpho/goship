@@ -5,13 +5,12 @@ import (
 
 	redisdriver "github.com/leomorpho/goship-modules/jobs/drivers/redis"
 	sqldriver "github.com/leomorpho/goship-modules/jobs/drivers/sql"
-	"github.com/leomorpho/goship/framework/core"
 )
 
 type Module struct {
 	backend   Backend
-	jobs      core.Jobs
-	inspector core.JobsInspector
+	jobs      Jobs
+	inspector JobsInspector
 }
 
 func New(cfg Config) (*Module, error) {
@@ -31,7 +30,9 @@ func New(cfg Config) (*Module, error) {
 		mod.inspector = newRedisJobsInspector(client)
 		return mod, nil
 	case BackendSQL:
-		client, err := sqldriver.New(sqldriver.Config{EntClient: cfg.EntClient})
+		client, err := sqldriver.New(sqldriver.Config{
+			SQLDB: cfg.SQLDB,
+		})
 		if err != nil {
 			return nil, err
 		}
@@ -50,14 +51,14 @@ func (m *Module) Backend() Backend {
 	return m.backend
 }
 
-func (m *Module) Jobs() core.Jobs {
+func (m *Module) Jobs() Jobs {
 	if m == nil {
 		return nil
 	}
 	return m.jobs
 }
 
-func (m *Module) Inspector() core.JobsInspector {
+func (m *Module) Inspector() JobsInspector {
 	if m == nil {
 		return nil
 	}

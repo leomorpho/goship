@@ -1474,22 +1474,34 @@ Templ generation:
 - or `go run ./tools/cli/ship/cmd/ship templ generate --path app`
 - Generated `*_templ.go` files are moved to `gen/` subdirectories beside each templ package.
 
-## Database and Schema
+## Database and Migrations
 
-Entity schema source:
+Canonical runtime:
 
-- `db/schema/*.go`
+- migrations: Goose
+- query generation: Bob (`bobgen-sql`)
+- command surface: `ship db:*`
 
 Common workflow:
 
-1. `make ent-new name=YourEntity` (if new entity)
-2. `go run ./tools/cli/ship/cmd/ship db:make your_change`
-3. `make ent-gen` (or `go run ./tools/cli/ship/cmd/ship make:model ...` when scaffolding a new model)
-4. `go run ./tools/cli/ship/cmd/ship db:migrate`
-5. `go run ./tools/cli/ship/cmd/ship db:status`
-6. Optional reset loop: `go run ./tools/cli/ship/cmd/ship db:reset --yes` (use `--dry-run` first)
+1. Create migration: `go run ./tools/cli/ship/cmd/ship db:make add_feature_x`
+2. Apply migration(s): `go run ./tools/cli/ship/cmd/ship db:migrate`
+3. Generate DB query code: `go run ./tools/cli/ship/cmd/ship db:generate`
+4. Check status: `go run ./tools/cli/ship/cmd/ship db:status`
+5. Optional local reset loop: `go run ./tools/cli/ship/cmd/ship db:reset --yes` (use `--dry-run` first)
 
-Use `ship db:*` as the canonical migration interface; avoid calling migration tools directly.
+Module behavior:
+
+- `db:migrate` runs core first, then enabled modules from `config/modules.yaml` in deterministic sorted order.
+- `db:generate` runs core first, then enabled modules in deterministic sorted order.
+
+Safety:
+
+- `db:drop` and `db:reset` require confirmation (`--yes`), and non-local URLs additionally require `--force`.
+- production targets require both `--force` and `--yes`.
+- supported DB URL schemes are limited to `postgres`, `mysql`, `sqlite`, and `sqlite3`.
+
+Use `ship db:*` as the canonical interface; avoid invoking Goose/Bob directly.
 
 ## Worker and Tasks
 
@@ -1515,6 +1527,7 @@ Go tests:
 - `make test` (broader suite; may include Docker-backed packages depending on environment)
 - `go run ./tools/cli/ship/cmd/ship test`
 - `make cover`
+- `bash tools/scripts/precommit-tests.sh` (full stateless gate used before commit/CI)
 
 E2E tests:
 
@@ -1545,6 +1558,18 @@ Guardrails:
 
 - `agent:check` runs in pre-commit and CI.
 - `ship doctor` also validates these artifacts are in sync.
+
+## Documentation Artifacts
+
+LLM reference bundle:
+
+- regenerate `LLM.txt` from `README.md` + `docs/**/*.md` with:
+  - `make llm-txt`
+  - or `bash tools/scripts/generate-llm-txt.sh`
+
+Automation:
+
+- pre-commit hook runs `tools/scripts/precommit-generate-llm-txt.sh` and stages updated `LLM.txt` automatically.
 
 ---
 FILE: docs/guides/03-how-to-playbook.md
@@ -1579,26 +1604,27 @@ Common failures:
 2. Existing controller file: pick another name or remove conflicting file.
 3. Wrong auth group: use `--auth public|auth`.
 
-## 2) Add a New Ent Model + Migration
+## 2) Add a New Migration + Bob Generation
 
 Goal:
-- add a new schema and create/apply migration.
+- add a DB change, apply it, and regenerate query code.
 
 Steps:
 ```bash
-go run ./tools/cli/ship/cmd/ship make:model Post title:string published_at:time
 go run ./tools/cli/ship/cmd/ship db:make add_posts
 go run ./tools/cli/ship/cmd/ship db:migrate
+go run ./tools/cli/ship/cmd/ship db:generate
 ```
 
 Validation:
 ```bash
 go run ./tools/cli/ship/cmd/ship db:status
+bash tools/scripts/check-bobgen-drift.sh
 ```
 
 Common failures:
-1. Missing Atlas tool: rerun command, `ship` installs pinned atlas automatically.
-2. Embedded DB mode for migrate/rollback: switch to server DB URL for migration commands.
+1. Unsupported DB URL scheme: use `postgres`, `mysql`, `sqlite`, or `sqlite3`.
+2. Missing module migrations/config for enabled module: fix module DB scaffold (`db/migrate/migrations`, `db/bobgen.yaml`).
 3. `PAGODA_DATABASE_URL` set: use `DATABASE_URL` only.
 
 ## 3) Add a New Controller (No View)
@@ -1690,6 +1716,36 @@ Common failures:
 1. App-specific logic placed in framework package.
 2. Missing shutdown/lifecycle handling in container.
 3. Route/controller code directly using backend package instead of interface seam.
+
+## 7) Add DB Artifacts to an Installable Module
+
+Goal:
+- keep module DB ownership isolated from app core.
+
+Steps:
+```bash
+# scaffold or verify module DB layout
+go run ./tools/cli/ship/cmd/ship make:module MyModule --path modules --dry-run
+
+# for an installed module, add migration + queries + generation config under:
+# modules/<name>/db/migrate/migrations
+# modules/<name>/db/queries
+# modules/<name>/db/bobgen.yaml
+
+go run ./tools/cli/ship/cmd/ship db:migrate
+go run ./tools/cli/ship/cmd/ship db:generate
+```
+
+Validation:
+```bash
+bash tools/scripts/check-module-isolation.sh
+go run ./tools/cli/ship/cmd/ship doctor
+```
+
+Common failures:
+1. Module imports app/core DB package directly: fix imports to module-local DB package.
+2. Missing `db/bobgen.yaml` in enabled module: doctor and `db:generate` fail.
+3. Migration order assumptions: module execution is deterministic sorted order only.
 
 ## References
 
@@ -2008,6 +2064,7 @@ Testing:
 Database:
 
 - `ship db:create [--dry-run]` (or `ship db` for help)
+- `ship db:generate [--config <path>] [--dry-run]`
 - `ship db:make <migration_name>` (or `ship db` for help)
 - `ship db:migrate`
 - `ship db:status`
@@ -2052,8 +2109,9 @@ These commands are implemented as wrappers over existing workflows:
 - `ship infra:up` -> detects `docker-compose`/`docker compose` and runs `up -d cache`, then attempts `up -d mailpit` (non-fatal if mailpit fails)
 - `ship infra:down` -> detects `docker-compose`/`docker compose` and runs `down`
 - `ship db:create` -> validates that target database URL is reachable (`goose status`)
-- `ship db:migrate` -> `goose up` in `db/migrate/migrations`
-- `ship db:status` -> `goose status` in `db/migrate/migrations`
+- `ship db:generate [--config <path>] [--dry-run]` -> runs Bob generation via `bobgen-sql -c <config>` (default: core `db/bobgen.yaml`, then enabled module configs in deterministic sorted order from `config/modules.yaml`)
+- `ship db:migrate` -> `goose up` for core migrations, then enabled module migrations in deterministic sorted order
+- `ship db:status` -> `goose status` for core migrations, then enabled module migrations in deterministic sorted order; output is sectioned by scope (`== core migrations ==`, `== module <name> migrations ==`)
 - `ship db:reset [--seed] [--force] [--yes] [--dry-run]` -> prints plan, runs `goose reset`, then `goose up`; optional seed
 - `ship db:drop [--force] [--yes] [--dry-run]` -> prints plan, runs `goose reset` (reverts all applied migrations; does not physically drop the database)
 - `ship db:make <migration_name>` -> `goose create <migration_name> sql`
@@ -2071,6 +2129,7 @@ If config resolves to embedded DB mode, DB commands fail with an explicit error.
 - `ship db:reset`/`ship db:drop` refuse non-local DB URLs unless `--force` is provided.
 - In `APP_ENV=production|prod`, `ship db:reset`/`ship db:drop` require both `--force` and `--yes`.
 - Supported DB schemes for the Goose flow are currently limited to: `postgres`, `mysql`, and `sqlite`/`sqlite3`.
+- For `db:migrate`, `db:status`, `db:reset`, and `db:drop`, `ship` runs core migrations first, then enabled module migrations in deterministic sorted module order from `config/modules.yaml`.
 
 Safety matrix:
 
@@ -2112,6 +2171,8 @@ Doctor checks (current):
 - enforces a line budget for non-generated human-authored `.go` files (target <= 500 lines)
 - validates CLI reference docs include core command tokens (`ship new`, `ship doctor`, `ship make:*`, `ship db:migrate`, `ship test --integration`)
 - validates agent allowlist artifacts are in sync with `tools/agent-policy/allowed-commands.yaml`
+- validates enabled modules in `config/modules.yaml` include `db/migrate/migrations` and `db/bobgen.yaml`
+- validates cross-boundary import rules (controller-to-Ent import ban, controller `QueryProfile()` ban, jobs SQL Ent-coupling ban, notifications pubsub framework-core coupling ban, module source isolation ban for direct `github.com/leomorpho/goship/*` imports except explicit allowlist paths)
 
 Field syntax for `make:model`:
 
@@ -2132,7 +2193,7 @@ Field syntax for `make:model`:
 `app/*` (domain skeletons)
 `app/web/{controllers,middleware,ui,viewmodels}`
 `app/jobs/jobs.go`
-`db/{schema,migrate/migrations}`
+`db/{schema,migrate/migrations,queries,gen,bobgen.yaml}`
 `docs/00-index.md` and baseline architecture docs
 3. Supports `--dry-run` and `--force`.
 
@@ -3152,8 +3213,8 @@ Non-goals for this plan:
 
 - [ ] Core app owns only core DB artifacts.
 - [ ] Each installable module owns its DB artifacts end-to-end.
-- [ ] `ship db:*` commands run Goose + Bob in a deterministic way.
-- [ ] No module DB package imports from app core DB package.
+- [x] `ship db:*` commands run Goose + Bob in a deterministic way.
+- [x] No module DB package imports from app core DB package.
 - [ ] No app feature logic depends directly on Ent.
 
 Target ownership layout:
@@ -3175,10 +3236,10 @@ Target ownership layout:
 No checklist item is marked done unless all applicable tests pass.
 
 Required gates for behavior changes:
-- [ ] Unit tests added/updated for changed command/runtime logic.
-- [ ] Integration test added/updated for end-to-end behavior.
-- [ ] `bash tools/scripts/precommit-tests.sh` passes.
-- [ ] If DB workflow changed: integration path validates real migration + generation flow.
+- [x] Unit tests added/updated for changed command/runtime logic.
+- [x] Integration test added/updated for end-to-end behavior.
+- [x] `bash tools/scripts/precommit-tests.sh` passes.
+- [x] If DB workflow changed: integration path validates real migration + generation flow.
 
 Test design rules:
 - [ ] Prefer table-driven unit tests for parser/flag/safety logic.
@@ -3192,9 +3253,9 @@ Test design rules:
 - [x] Current DB commands are `db:create`, `db:make`, `db:migrate`, `db:status`, `db:drop`, `db:reset`, `db:rollback`, `db:seed`.
 - [x] Destructive DB safety contract exists (`--yes`, `--force`, `--dry-run`, production guards).
 - [x] Installed-module registry file exists at `config/modules.yaml` (`modules: []` baseline).
-- [ ] `db:generate` for Bob does not exist yet.
+- [x] `db:generate` for Bob does not exist yet.
 - [ ] `make:migration` alias does not exist; `db:make` is current canonical command.
-- [ ] Goose runtime package/invocation path does not exist yet.
+- [x] Goose runtime package/invocation path does not exist yet.
 
 ---
 
@@ -3224,8 +3285,8 @@ Goal: lock behavior before implementation drift starts.
   - `ship db:drop`
   - `ship db:reset`
   - `ship db:make <migration_name>`
-- [ ] Decide transition contract for Bob/Goose:
-  - keep `ship db:make <migration_name>` as canonical, or add `ship make:migration <name>` alias.
+- [x] Decide transition contract for Bob/Goose:
+  - keep `ship db:make <migration_name>` as canonical (no alias command for now).
   - add `ship db:generate` for Bob.
 - [x] Define command help text and examples for current DB commands.
 - [x] Define dry-run behavior (`--dry-run`) for destructive commands.
@@ -3234,17 +3295,17 @@ Acceptance criteria:
 - [x] Commands and flags are documented in `docs/reference/01-cli.md`.
 - [x] Commands and flags are covered by CLI unit tests.
 - [x] Integration test coverage exists for DB flow and safety paths.
-- [ ] Add integration test coverage for new Bob/Goose commands when introduced.
+- [x] Add integration test coverage for new Bob/Goose commands when introduced.
 
 ### 0.2 Installed-module registry contract
 - [x] Define one canonical installed-module registry location and format (`config/modules.yaml`).
-- [ ] Define deterministic execution order (core first, then modules sorted) for DB migrate/generate orchestration.
-- [ ] Define module enable/disable semantics for migration/generation participation.
+- [x] Define deterministic execution order (core first, then modules sorted) for DB migrate/generate orchestration.
+- [x] Define module enable/disable semantics for migration/generation participation.
 
 Acceptance criteria:
-- [ ] `ship doctor` validates registry file format.
-- [ ] Integration test proves deterministic order.
-- [ ] Unit tests cover registry parsing and sort behavior.
+- [x] `ship doctor` validates registry file format.
+- [x] Integration test proves deterministic order.
+- [x] Unit tests cover registry parsing and sort behavior.
 
 ### 0.3 Migration safety contract
 - [x] Define local/dev/prod safety rules for `db:drop` and `db:reset`.
@@ -3263,7 +3324,7 @@ Goal: deliver Goose-backed migration commands without changing app data access y
 
 Transition note:
 - Goose is now wired behind the existing `ship db:*` surface for a constrained DB subset (`postgres`, `mysql`, `sqlite/sqlite3`).
-- Remaining Phase 1 work is integration coverage and command-contract cleanup (`db:drop` semantics and migration alias decisions).
+- Phase 1 implementation + test gates are complete.
 
 ### 1.1 Goose runtime wiring
 - [x] Add Goose runner path in CLI runtime execution flow.
@@ -3301,24 +3362,24 @@ Acceptance criteria:
 Goal: introduce Bob generation for core with minimal service-layer disruption.
 
 ### 2.1 Bob config and generation entrypoint
-- [ ] Add core Bob config file(s).
-- [ ] Add `ship db:generate` for core generation.
-- [ ] Add deterministic generation output locations.
+- [x] Add core Bob config file(s).
+- [x] Add `ship db:generate` for core generation.
+- [x] Add deterministic generation output locations.
 
 Acceptance criteria:
-- [ ] `ship db:generate` idempotency test (no diff on second run).
-- [ ] Pre-commit check ensures generated code is current.
-- [ ] Integration test verifies generate succeeds from clean temp project.
+- [x] `ship db:generate` idempotency test (no diff on second run).
+- [x] Pre-commit check ensures generated code is current.
+- [x] Integration test verifies generate succeeds from clean temp project.
 
 ### 2.2 Core DB adapter seam
-- [ ] Create app-internal data adapter interfaces independent of Ent/Bob.
-- [ ] Implement Bob-backed adapter for first core path.
-- [ ] Keep Ent adapter temporarily for fallback during migration.
+- [x] Create app-internal data adapter interfaces independent of Ent/Bob. (first path: unseen notifications count in `app/profile`)
+- [x] Implement Bob-backed adapter for first core path. (notifications unseen-count path via `db/gen` + `BobNotificationCountStore`)
+- [x] Keep Ent adapter temporarily for fallback during migration. (first path now uses `EntNotificationCountStore`)
 
 Acceptance criteria:
-- [ ] Unit tests for adapter behavior parity.
-- [ ] No controller imports from Ent package.
-- [ ] Integration test covers one migrated read/write path through app API.
+- [x] Unit tests for adapter behavior parity. (first path: Ent + SQL/Bob-path stores covered)
+- [x] No controller imports from Ent package.
+- [x] Integration test covers one migrated read/write path through app API. (read path covered: notifications count endpoint)
 
 ---
 
@@ -3327,28 +3388,29 @@ Acceptance criteria:
 Goal: prove full module isolation end-to-end.
 
 ### 3.1 Select and migrate first module
-- [ ] Pick first module (recommended: `emailsubscriptions` for lower risk).
-- [ ] Create module-local Goose migrations.
-- [ ] Add module-local Bob config + generated package.
-- [ ] Refactor module services to use module-local generated DB package.
+- [x] Pick first module (recommended: `emailsubscriptions` for lower risk).
+- [x] Create module-local Goose migrations.
+- [x] Add module-local Bob config + generated package.
+- [x] Refactor module services to use module-local generated DB package.
 
 Acceptance criteria:
-- [ ] Module compiles standalone.
-- [ ] Module tests pass standalone.
-- [ ] Module no longer imports core DB package.
-- [ ] Integration test covers module install + migrate + functional happy path.
+- [x] Module compiles standalone.
+- [x] Module tests pass standalone.
+- [x] Module no longer imports core DB package.
+- [x] Integration test covers module install + migrate + functional happy path.
 
 ### 3.2 CLI orchestration for module migrations
-- [ ] Update `ship db:migrate` to run:
+- [x] Update `ship db:migrate` to run:
   - core migrations
   - installed modules in deterministic order
-- [ ] Update `ship db:status` to display core + module status.
-- [ ] Update `ship db:generate` for core + installed modules.
+- [x] Update `ship db:status` to display core + module status.
+- [x] Update `ship db:generate` for core + installed modules.
 
 Acceptance criteria:
-- [ ] Integration test: fresh project + install module + migrate + generate succeeds.
-- [ ] Failure behavior tested (module migration fails -> aborts cleanly).
-- [ ] Regression test: ordering remains deterministic across repeated runs.
+- [x] Integration test: fresh project + install module + migrate + generate succeeds.
+- [x] Failure behavior tested (module migration fails -> aborts cleanly).
+- [x] Regression test: ordering remains deterministic across repeated runs.
+- [x] `ship doctor` validates enabled module DB artifacts (`db/migrate/migrations` + `db/bobgen.yaml`).
 
 ---
 
@@ -3357,23 +3419,38 @@ Acceptance criteria:
 Goal: move all installable modules to module-owned DB layers.
 
 ### 4.1 Migrate remaining modules
-- [ ] `jobs`
-- [ ] `notifications`
-- [ ] `paidsubscriptions`
-- [ ] any additional module added during transition
+- [x] `jobs`
+- [x] `notifications`
+- [x] `paidsubscriptions`
+- [x] any additional module added during transition
+
+Progress notes (2026-03-05):
+- `notifications`: added module-local SQL store + module migrations + `bobgen.yaml`; runtime now accepts module-local `PubSub` boundary (removed direct `framework/core` type dependency in notifier path).
+- `notifications`: `NotificationPermissionService` now routes through storage interface with SQL + Ent implementations; module runtime uses SQL permissions store when DB is available.
+- `notifications`: PWA/FCM "has permission" checks now use `NotificationPermissionService` instead of querying `notification_permissions` directly from push service code.
+- `notifications`: `PlannedNotificationsService` now routes through storage interface with SQL + Ent implementations; module runtime uses SQL planned-notifications store when DB is available.
+- `notifications`: `SMSSender` now routes through storage interface with SQL + Ent implementations; module runtime uses SQL SMS-code store when DB is available.
+- `notifications`: PWA/FCM push subscription persistence now routes through storage interfaces with SQL + Ent implementations; module runtime uses SQL push-subscription stores when DB is available.
+- `notifications`: module constructor now has explicit dependency guard (`requires either DB or ORM`), and SQL-mode constructor path is covered by tests.
+- `notifications`: added SQL planned-notifications tests (candidate selection + same-day de-dupe) and restored tolerant `CreateNotificationTimeObjects` behavior that skips profiles with missing activity instead of failing the full batch.
+- `notifications`: removed Docker/Ent-heavy integration tests for permissions/planned/FCM and replaced coverage with fast SQL/unit tests to align with Docker-free test goals.
+- `jobs`: centralized `framework/core` dependency to `modules/jobs/contracts.go` using local aliases; internal jobs implementation files no longer import `framework/core` directly.
+- `jobs`: promoted contracts to module-owned concrete types/interfaces (no framework aliases), and added app-level bridge adapters so container still consumes `core.Jobs`/`core.JobsInspector` without behavior changes.
+- `jobs`: removed all jobs-specific entries from module-isolation allowlist; jobs now pass strict module-isolation checks without exceptions.
+- `jobs`: SQL driver path now DB-first (`*sql.DB`) with module-local migrations and `bobgen.yaml`; Ent coupling removed from jobs SQL config/module entrypoint.
 
 Acceptance criteria:
-- [ ] Every module has local migrations + generation.
-- [ ] No module imports core DB package.
-- [ ] Module-isolation checks enforce boundary automatically in precommit.
+- [x] Every module has local migrations + generation.
+- [x] No module imports core DB package.
+- [x] Module-isolation checks enforce boundary automatically in precommit.
 
 ### 4.2 Module contract hardening
-- [ ] Standardize module DB package structure template.
-- [ ] Add `ship` scaffolder support for new module DB skeleton.
+- [x] Standardize module DB package structure template.
+- [x] Add `ship` scaffolder support for new module DB skeleton.
 
 Acceptance criteria:
-- [ ] New module generation integration test covers DB scaffold.
-- [ ] Test verifies scaffold is generated in module-local DB paths only.
+- [x] New module generation integration test covers DB scaffold.
+- [x] Test verifies scaffold is generated in module-local DB paths only.
 
 ---
 
@@ -3384,6 +3461,13 @@ Goal: remove Ent once runtime parity is complete.
 ### 5.1 Removal readiness checks
 - [ ] Confirm no runtime code paths require Ent.
 - [ ] Confirm migrations and generators run fully via Goose + Bob.
+
+### 5.1a Runtime Ent cutover backlog (execution order)
+- [ ] `app/profile`: extract SQL/Bob stores for profile reads/writes/media and remove direct Ent runtime dependency.
+- [ ] `app/jobs`: move notifications/mail/email-update DB access behind SQL/Bob stores.
+- [ ] `framework/repos/storage`: remove Ent-typed boundaries (`*ent.Image`) from runtime interfaces.
+- [ ] `app/foundation`: remove Ent-default auth/container runtime paths (keep temporary test-only seams only as needed).
+- [ ] `cmd/*` + app wiring: validate all module runtime deps run DB-first without Ent at composition root.
 
 ### 5.2 Remove Ent toolchain
 - [ ] Remove Ent generation commands from Ship and Make flow.
@@ -3402,12 +3486,12 @@ Acceptance criteria:
 Goal: ensure long-term maintainability and agent reliability.
 
 ### 6.1 Docs and runbooks
-- [ ] Update `docs/reference/01-cli.md` for final DB command behavior.
-- [ ] Add/refresh how-to guides for migration + generation workflows.
-- [ ] Keep `LLM.txt` generation aligned.
+- [x] Update `docs/reference/01-cli.md` for final DB command behavior.
+- [x] Add/refresh how-to guides for migration + generation workflows.
+- [x] Keep `LLM.txt` generation aligned.
 
 ### 6.2 Guardrails
-- [ ] Add doctor checks for:
+- [x] Add doctor checks for:
   - missing module migrations dir
   - missing module Bob config
   - forbidden cross-boundary imports
@@ -3442,6 +3526,80 @@ Acceptance criteria:
 - 2026-03-05: aligned transition checklist with current Atlas/Ent baseline and clarified Bob/Goose delta tasks.
 - 2026-03-05: switched `ship db:*` command execution to Goose with initial supported subset (`postgres`, `mysql`, `sqlite/sqlite3`) and updated CLI unit coverage.
 - 2026-03-05: verified Goose DB flow integration (`make -> migrate -> status -> reset`) and added migrate idempotency assertion.
+- 2026-03-05: added modules manifest parser/normalization + doctor format validation (`config/modules.yaml`) with runtime/policy unit tests.
+- 2026-03-05: added module-aware Goose orchestration for `db:migrate/status/reset/drop` (core first, then sorted enabled modules from `config/modules.yaml`).
+- 2026-03-05: added `ship db:generate` (`bobgen-sql`) and core Bob config scaffold at `db/bobgen.yaml` with deterministic output target (`db/gen`).
+- 2026-03-05: added integration coverage for `ship db:generate` from a clean `ship new` project (including idempotency assertion).
+- 2026-03-05: updated `ship new` scaffold with Bob defaults (`db/bobgen.yaml`, `db/queries/.gitkeep`, `db/gen/.gitkeep`).
+- 2026-03-05: added pre-commit drift guard (`tools/scripts/check-bobgen-drift.sh`) to fail when Bob generated output is stale.
+- 2026-03-05: added integration test proving module migration execution order is deterministic (`core -> sorted modules`).
+- 2026-03-05: introduced first app-level data seam in `app/profile` for unseen notification counts (`NotificationCountStore`) with Ent adapter + unit tests.
+- 2026-03-05: added SQL-backed unseen notification count store and wired web/worker runtime to use it for the first migrated read path.
+- 2026-03-05: notifications-count controller path now reads authenticated profile ID from middleware context (`auth_profile_id`) instead of querying Ent user edges directly.
+- 2026-03-05: added focused tests for migrated notifications-count path (`app/web/controllers/notifications_test.go`) and updated controller integration harness module wiring in `routes_test.go`.
+- 2026-03-05: introduced first `db/gen` query wrapper and switched web/worker notifications-count runtime wiring to `BobNotificationCountStore`.
+- 2026-03-05: added dedicated integration-tagged API tests for migrated notifications count path in `app/web/apitests` (success, error, and missing-profile cases).
+- 2026-03-05: extracted shared auth-profile context helper for controllers and migrated additional handlers (`delete_account`, `realtime`, `profile_photo`, `upload_photo`, `push_notifs`) off direct `AuthenticatedUser -> QueryProfile()` reads.
+- 2026-03-05: migrated `payments` and `profile` controllers to use middleware identity context (`auth_profile_id`, `auth_user_email`) and removed direct `QueryProfile()` reads there.
+- 2026-03-05: added middleware context keys `auth_user_id` and `auth_user_email`, plus controller helper coverage for email access; login onboarding check now goes through profile service by user ID instead of controller-level `QueryProfile()`.
+- 2026-03-05: added pre-commit boundary enforcement `tools/scripts/check-controller-auth-boundary.sh` to block reintroduction of direct `QueryProfile()` reads in controllers.
+- 2026-03-05: removed direct `*ent.User` controller coupling in reset-password flow by propagating `auth_user_id`/`auth_user_email` from `LoadUser` middleware and updating password reset by user ID.
+- 2026-03-05: simplified verify-email controller identity handling to use middleware auth keys (`auth_user_id`, `auth_user_email`) instead of controller-level authenticated-user entity assertions.
+- 2026-03-05: introduced framework-level DB error helpers (`framework/dberrors`) and removed direct `db/ent` root imports from controllers (`login`, `forgot_password`, `register`, `push_notifs`) by switching to capability checks.
+- 2026-03-05: eliminated remaining controller imports of `db/ent/*` by routing email lookups through `AuthClient.FindUserByEmail` and replacing profile field-select queries with ID-based entity loads.
+- 2026-03-05: added controller DB boundary guardrail (`tools/scripts/check-controller-no-ent-imports.sh`) and wired it into precommit checks.
+- 2026-03-05: shifted password-token middleware validation to use `auth_user_id` context key (instead of `context.UserKey` entity assertion), further reducing entity coupling in request middleware.
+- 2026-03-05: removed legacy `context.UserKey` usage entirely; `LoadUser` now sets only explicit auth scalar keys (`auth_user_id`, `auth_user_email`) and middleware tests were updated accordingly.
+- 2026-03-05: simplified password-reset auth API surface to avoid leaking Ent token entities to callers (`GeneratePasswordResetToken` now returns token + tokenID, `GetValidPasswordToken` now returns only error) and removed unused password token context storage.
+- 2026-03-05: extracted auth persistence seam (`authStore`) with Ent-backed implementation in `app/foundation/auth_store.go`; `AuthClient` now delegates user lookup, last-seen writes, and password-token persistence through this store.
+- 2026-03-05: removed `AuthenticatedUserKey` entity payload from request context; auth middleware/page assembly now rely on scalar keys (`auth_user_id`, `auth_user_name`, `auth_user_email`, `auth_profile_id`) and UI uses `AuthUserView` instead of `*ent.User`.
+- 2026-03-05: replaced Ent-returning auth APIs with DTOs for callers (`GetAuthenticatedIdentity`, `FindUserRecordByEmail`), migrated middleware/controllers to those methods, and kept Ent usage contained to foundation store internals.
+- 2026-03-05: converted `authStore` interface to DTO-based returns (`GetIdentityByUserID`, `GetUserRecordByEmail`) so Ent entity usage is isolated to the Ent store implementation only.
+- 2026-03-05: added explicit auth-store selector seam (`selectAuthStore`) with `PAGODA_AUTH_STORE` env gate and Bob placeholder store wiring; default runtime remains Ent and selector behavior is covered by unit tests.
+- 2026-03-05: implemented first real Bob auth read paths (`GetUserRecordByEmail`, `GetIdentityByUserID`) via new `db/gen/auth.go` queries and wired them through `bobAuthStore` while keeping writes on placeholder/not-implemented.
+- 2026-03-05: implemented first Bob auth write path (`CreateLastSeenOnline`) via `db/gen/auth.go::InsertLastSeenOnline` and wired it through `bobAuthStore`, with sqlite coverage in both `db/gen` and foundation store tests.
+- 2026-03-05: moved Bob auth SQL out of Go code into `db/queries/auth.sql` with embedded named-query registry (`db/queries/registry.go`) and updated `db/gen/auth.go` to resolve SQL by query name + dialect.
+- 2026-03-05: added Bob implementations for user/password auth writes (`UpdateUserPasswordHashByUserID`, `MarkUserVerifiedByUserID`, password-token create/read/delete), and migrated `reset_password`/`verify_email` controllers to use `AuthClient` store-backed methods instead of direct ORM updates.
+- 2026-03-05: normalized auth/middleware not-found handling across Ent and Bob (`ent.IsNotFound` + `sql.ErrNoRows`) through `framework/dberrors`, preventing Bob-mode no-row cases from surfacing as HTTP 500 in auth flows.
+- 2026-03-05: extracted display-name read/write from preferences controller into auth store/API (`GetUserDisplayNameByUserID`, `UpdateUserDisplayNameByUserID`) with Bob-backed query implementations and sqlite test coverage.
+- 2026-03-05: migrated `emailsubscriptions` primary store adapter off app Ent client to module-local SQL store (`NewSQLStore`), switched app web wiring to DB-handle injection, and removed the module isolation allowlist entry for the previous Ent store adapter.
+- 2026-03-05: added module-local Bob scaffold for `emailsubscriptions` (`modules/emailsubscriptions/db/{bobgen.yaml,queries,gen,migrate/migrations}`) and updated `ship db:generate` to run Bob generation for core + enabled modules in deterministic manifest order.
+- 2026-03-05: moved `UpdateEmailSender` out of `modules/emailsubscriptions` into `app/jobs` (app-specific concern), removing the module’s last direct import of app-core packages and tightening module isolation checks.
+- 2026-03-05: added initial `emailsubscriptions` module migration file (`modules/emailsubscriptions/db/migrate/migrations/20260305170000_init_email_subscriptions.sql`) and added integration coverage that validates deterministic `ship db:generate` ordering across core + enabled modules.
+- 2026-03-05: fixed CLI integration test root resolution (`ent_generate_integration_test`) to run Ent generation against the workspace `db/schema` path after repo layout changes.
+- 2026-03-05: hardened `ent_generate_integration_test` with `GOFLAGS=-modcacherw` and temp-only `GOMODCACHE` to prevent read-only module cache cleanup failures; updated doctor line-budget walk to skip nested `.cache` directories.
+- 2026-03-05: refactored `emailsubscriptions` SQL store to use module-local DB query package (`modules/emailsubscriptions/db/gen`) instead of embedding raw SQL in the service store implementation.
+- 2026-03-05: added module integration coverage for `emailsubscriptions` that applies the module migration file and validates end-to-end subscribe/confirm/unsubscribe behavior against the migrated schema.
+- 2026-03-05: added CLI integration tests for module-enabled fresh-project DB flow (`db:migrate` + `db:generate`) and explicit failure behavior when an enabled module is missing its migrations directory.
+- 2026-03-05: enhanced `ship make:module` to scaffold module-local DB layout by default (`db/bobgen.yaml`, `db/migrate/migrations/.gitkeep`, `db/queries/.gitkeep`, `db/gen/.gitkeep`) and expanded generator integration assertions for this contract.
+- 2026-03-05: fully isolated `modules/paidsubscriptions` from root app/framework imports by moving Ent adapter to `app/subscriptions`, introducing module-local plan type, and adding module-owned migrations including `subscription_customers` mapping for stripe customer IDs.
+- 2026-03-05: added migration-backed integration coverage for `modules/paidsubscriptions` SQL store (`store_sql_integration_test.go`) to validate module-owned schema + lifecycle behavior end-to-end.
+- 2026-03-05: improved `ship db:status` output to print explicit section headers per migration scope (`core` + each enabled module), with unit + integration coverage for deterministic multi-scope status behavior.
+- 2026-03-05: scaffolded `modules/notifications` DB ownership baseline (`db/bobgen.yaml`, `db/migrate/migrations/20260305193000_init_notifications.sql`, `db/{queries,gen}`) as the first step toward notifications module Bob/Goose migration.
+- 2026-03-05: added `notifications` SQL storage adapter (`NewSQLNotificationStore`) and unit coverage for notification lifecycle/read-state behavior to enable incremental cutover from Ent store logic.
+- 2026-03-05: updated notifications runtime wiring to accept `DB` + `DBDialect` in `RuntimeDeps` and use `NewSQLNotificationStore` for notifier storage when DB deps are provided (fallback remains Ent store for compatibility).
+- 2026-03-05: added migration-backed integration coverage for notifications SQL store (`notification_store_sql_integration_test.go`) to validate module-owned notification schema + storage lifecycle against module migration SQL.
+- 2026-03-05: made jobs SQL backend DB-first (`SQLDB` support in jobs config + SQL driver, with Ent fallback) and switched web/worker `dbqueue` wiring to pass `*sql.DB` instead of Ent.
+- 2026-03-05: scaffolded `modules/jobs` DB ownership baseline (`db/bobgen.yaml`, `db/migrate/migrations/20260305195000_init_jobs.sql`, `db/{queries,gen}`) and added migration-backed integration coverage for the SQL jobs driver.
+- 2026-03-05: completed jobs SQL contract cleanup by removing `EntClient` from jobs module config/driver APIs (SQLDB-only), migrated module tests to SQLDB paths, and trimmed module-isolation allowlist entries no longer needed (`modules/jobs/config.go`, `modules/jobs/drivers/sql/client.go`).
+- 2026-03-05: made jobs SQL schema provisioning migration-driven by embedding/parsing module goose migration SQL in `modules/jobs/db/migrate` and reusing it from the SQL driver (`ensureSchema`), removing duplicated inline DDL from driver code.
+- 2026-03-05: made notifications SQL schema provisioning migration-driven by adding `modules/notifications/db/migrate` loader helpers and reusing module goose migration SQL in `NewSQLNotificationStoreWithSchema`/`ensureSchema`, removing duplicated test DDL and aligning schema source of truth.
+- 2026-03-05: added jobs SQL boundary precommit guard (`tools/scripts/check-jobs-sql-boundary.sh`) to prevent reintroducing Ent coupling in jobs SQL config/driver paths after SQLDB-only migration.
+- 2026-03-05: completed Phase 4 module DB-ownership acceptance criteria for current installable modules (`emailsubscriptions`, `jobs`, `notifications`, `paidsubscriptions`) and validated via precommit module-isolation guards.
+- 2026-03-05: refreshed database workflow docs to Bob+Goose canonical behavior in `docs/guides/02-development-workflows.md` and `docs/guides/03-how-to-playbook.md`.
+- 2026-03-05: expanded `ship doctor` with cross-boundary import guardrails (controller Ent + QueryProfile bans, jobs SQL Ent ban, notifications framework/core ban, module source-isolation scan with allowlist parity).
+- 2026-03-05: aligned `LLM.txt` generation workflow/docs (`make llm-txt`, generator script, pre-commit auto-stage hook) and regenerated `LLM.txt` after docs updates.
+- 2026-03-05: completed Phase 5 inventory pass for remaining runtime Ent usage; main active callsites are in `app/foundation` auth/container selection, `app/profile`, `app/jobs`, `app/subscriptions/store_ent.go`, `app/web/middleware/entity.go`, and `framework/repos/storage`.
+- 2026-03-05: removed direct Ent dependency from `app/web/middleware/entity.go` (`LoadUser` now resolves via `AuthClient.GetIdentityByUserID` + `dberrors.IsNotFound`), and updated router/tests callsites to pass `c.Auth` instead of `c.ORM`.
+- 2026-03-05: removed direct Ent import dependency from `framework/dberrors`; not-found/constraint detection now uses standard SQL checks + wrapped error type-name detection (`NotFoundError`/`ConstraintError`) to keep Ent optional at runtime seams.
+- 2026-03-05: switched web/worker paid-subscriptions runtime wiring to module SQL store (`paidsubscriptions.NewSQLStore(c.Database, c.Config.Adapters.DB, ...)`) instead of app Ent store constructors.
+- 2026-03-05: switched seed command paid-subscriptions wiring to module SQL store (`SeedUsers(..., db, dialect, ...)`), while keeping integration-route harness on Ent store until that test schema path is fully module-migration-backed.
+- 2026-03-05: switched auth runtime selector to DB-first default (`PAGODA_AUTH_STORE` empty now resolves to Bob when DB is available; explicit `ent` still supported), with fallback to Ent only when DB is unavailable or explicitly requested.
+- 2026-03-05: switched web/worker notifications runtime deps to DB-only mode (`ORM: nil`, `DB + DBDialect` provided), confirming the module path runs without Ent at composition root.
+- 2026-03-05: added explicit Phase 5 runtime cutover backlog (`app/profile`, `app/jobs`, `framework/repos/storage`, `app/foundation`, and final cmd/wiring verification) to make remaining Ent decommission work trackable.
+- 2026-03-05: started `app/profile` migration slice by replacing direct `ent.IsNotFound` checks with `framework/dberrors.IsNotFound` in `profile.go` and `profile_media.go` while preserving current Ent query behavior.
+- 2026-03-05: started `app/jobs` migration slice by removing explicit Ent constructor threading in mail jobs (`NewEmailUpdateProcessor` and `NewUpdateEmailSender` now container-only), reducing composition-root Ent coupling while keeping behavior unchanged.
+- 2026-03-05: continued `app/jobs` migration slice by removing Ent from `notifications` processors (`DeleteStaleNotificationsProcessor` now SQL-backed with dialect binding; `AllDailyConvo` processor no longer accepts Ent/ProfileService deps) and added SQLite unit coverage for stale-notification cleanup.
 
 ---
 

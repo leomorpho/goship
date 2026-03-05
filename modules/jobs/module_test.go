@@ -1,10 +1,9 @@
 package jobs
 
 import (
-	"context"
+	"database/sql"
 	"testing"
 
-	"github.com/leomorpho/goship/db/ent/enttest"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -37,14 +36,35 @@ func TestNew(t *testing.T) {
 func TestNewSQLProvidesInspector(t *testing.T) {
 	t.Parallel()
 
-	client := enttest.Open(t, "sqlite3", "file:jobs_module_sql?mode=memory&_fk=1")
-	t.Cleanup(func() { _ = client.Close() })
-	if err := client.Schema.Create(context.Background()); err != nil {
-		t.Fatalf("failed to create schema: %v", err)
+	db, err := sql.Open("sqlite3", "file:jobs_module_sql?mode=memory&_fk=1")
+	if err != nil {
+		t.Fatalf("open sqlite: %v", err)
 	}
+	t.Cleanup(func() { _ = db.Close() })
 	mod, err := New(Config{
-		Backend:   BackendSQL,
-		EntClient: client,
+		Backend: BackendSQL,
+		SQLDB:   db,
+	})
+	if err != nil {
+		t.Fatalf("expected nil error, got %v", err)
+	}
+	if mod.Inspector() == nil {
+		t.Fatal("expected SQL inspector, got nil")
+	}
+}
+
+func TestNewSQLProvidesInspectorWithSQLDB(t *testing.T) {
+	t.Parallel()
+
+	db, err := sql.Open("sqlite3", "file:jobs_module_sql_db?mode=memory&_fk=1")
+	if err != nil {
+		t.Fatalf("open sqlite: %v", err)
+	}
+	t.Cleanup(func() { _ = db.Close() })
+
+	mod, err := New(Config{
+		Backend: BackendSQL,
+		SQLDB:   db,
 	})
 	if err != nil {
 		t.Fatalf("expected nil error, got %v", err)

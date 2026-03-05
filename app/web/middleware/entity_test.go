@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/leomorpho/goship/db/ent"
 	"github.com/leomorpho/goship/framework/context"
 	"github.com/leomorpho/goship/framework/tests"
 
@@ -16,8 +15,11 @@ func TestLoadUser(t *testing.T) {
 	ctx, _ := tests.NewContext(c.Web, "/")
 	ctx.SetParamNames("user")
 	ctx.SetParamValues(fmt.Sprintf("%d", usr.ID))
-	_ = tests.ExecuteMiddleware(ctx, LoadUser(c.ORM))
-	ctxUsr, ok := ctx.Get(context.UserKey).(*ent.User)
+	_ = tests.ExecuteMiddleware(ctx, LoadUser(c.Auth))
+	authUserID, ok := ctx.Get(context.AuthenticatedUserIDKey).(int)
 	require.True(t, ok)
-	assert.Equal(t, usr.ID, ctxUsr.ID)
+	assert.Equal(t, usr.ID, authUserID)
+	authUserEmail, ok := ctx.Get(context.AuthenticatedUserEmailKey).(string)
+	require.True(t, ok)
+	assert.Equal(t, usr.Email, authUserEmail)
 }

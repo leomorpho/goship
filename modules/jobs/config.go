@@ -1,11 +1,10 @@
 package jobs
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"strings"
-
-	"github.com/leomorpho/goship/db/ent"
 )
 
 type Backend string
@@ -22,24 +21,24 @@ type RedisConfig struct {
 }
 
 type Config struct {
-	Backend   Backend
-	EntClient *ent.Client
-	Redis     RedisConfig
+	Backend Backend
+	SQLDB   *sql.DB
+	Redis   RedisConfig
 }
 
 func (c Config) Validate() error {
 	switch c.Backend {
 	case BackendSQL:
-		if c.EntClient == nil {
-			return errors.New("jobs backend sql requires Ent client")
+		if c.SQLDB == nil {
+			return errors.New("jobs backend sql requires SQL DB")
 		}
 		if c.hasRedisSettings() {
 			return errors.New("jobs backend sql forbids redis settings")
 		}
 		return nil
 	case BackendRedis:
-		if c.EntClient != nil {
-			return errors.New("jobs backend redis forbids Ent client")
+		if c.SQLDB != nil {
+			return errors.New("jobs backend redis forbids SQL settings")
 		}
 		if strings.TrimSpace(c.Redis.Addr) == "" {
 			return errors.New("jobs backend redis requires redis address")

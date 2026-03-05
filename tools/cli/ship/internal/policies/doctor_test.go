@@ -215,6 +215,47 @@ COPY . .
 		issues := RunDoctorChecks(root)
 		mustContainIssueCode(t, issues, "DX017")
 	})
+
+	t.Run("invalid modules manifest format", func(t *testing.T) {
+		root := t.TempDir()
+		writeDoctorFixture(t, root)
+		if err := os.WriteFile(filepath.Join(root, "config", "modules.yaml"), []byte("modules:\n  - bad/name\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		issues := RunDoctorChecks(root)
+		mustContainIssueCode(t, issues, "DX018")
+	})
+
+	t.Run("enabled module missing db artifacts", func(t *testing.T) {
+		root := t.TempDir()
+		writeDoctorFixture(t, root)
+		if err := os.WriteFile(filepath.Join(root, "config", "modules.yaml"), []byte("modules:\n  - local\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		issues := RunDoctorChecks(root)
+		mustContainIssueCode(t, issues, "DX019")
+	})
+
+	t.Run("enabled module has db artifacts", func(t *testing.T) {
+		root := t.TempDir()
+		writeDoctorFixture(t, root)
+		if err := os.WriteFile(filepath.Join(root, "config", "modules.yaml"), []byte("modules:\n  - local\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.MkdirAll(filepath.Join(root, "modules", "local", "db", "migrate", "migrations"), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(root, "modules", "local", "db", "bobgen.yaml"), []byte("dialect: sqlite\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		issues := RunDoctorChecks(root)
+		for _, issue := range issues {
+			if issue.Code == "DX019" {
+				t.Fatalf("unexpected DX019 issue: %+v", issue)
+			}
+		}
+	})
+
 }
 
 func TestRunDoctor(t *testing.T) {

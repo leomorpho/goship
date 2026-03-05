@@ -9,10 +9,6 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/SherClockHolmes/webpush-go"
-	"github.com/leomorpho/goship/db/ent"
-	"github.com/leomorpho/goship/db/ent/notificationpermission"
-	"github.com/leomorpho/goship/db/ent/profile"
-	"github.com/leomorpho/goship/db/ent/pwapushsubscription"
 	"github.com/leomorpho/goship/framework/domain"
 )
 
@@ -30,47 +26,51 @@ type VAPIDDetails struct {
 type PwaPushService struct {
 	vapidDetails                  *VAPIDDetails
 	subscriberEmail               string
-	orm                           *ent.Client
+	store                         pwaPushSubscriptionStore
 	notificationPermissionService *NotificationPermissionService
 }
 
-func NewPwaPushService(
-	orm *ent.Client, vapidPublicKey, vapidPrivateKey, subscriberEmail string,
-) *PwaPushService {
+type pwaPushSubscriptionRecord struct {
+	ProfileID int
+	Endpoint  string
+	P256dh    string
+	Auth      string
+}
 
-	notificationPermissionService := NewNotificationPermissionService(orm)
+type pwaPushSubscriptionStore interface {
+	addSubscription(ctx context.Context, profileID int, sub Subscription) error
+	listSubscriptions(ctx context.Context, profileID int) ([]pwaPushSubscriptionRecord, error)
+	deleteByEndpoint(ctx context.Context, profileID int, endpoint string) error
+	hasAnyByProfileID(ctx context.Context, profileID int) (bool, error)
+	hasEndpoint(ctx context.Context, profileID int, endpoint string) (bool, error)
+}
+
+func newPwaPushService(
+	store pwaPushSubscriptionStore,
+	permissionService *NotificationPermissionService,
+	vapidPublicKey, vapidPrivateKey, subscriberEmail string,
+) *PwaPushService {
 	return &PwaPushService{
 		vapidDetails: &VAPIDDetails{
 			PublicKey:  vapidPublicKey,
 			PrivateKey: vapidPrivateKey,
 		},
 		subscriberEmail:               subscriberEmail,
-		orm:                           orm,
-		notificationPermissionService: notificationPermissionService,
+		store:                         store,
+		notificationPermissionService: permissionService,
 	}
 }
 
 func (p *PwaPushService) AddPushSubscription(ctx context.Context, profileID int, sub Subscription) error {
-	_, err := p.orm.PwaPushSubscription.
-		Create().
-		SetProfileID(profileID).
-		SetEndpoint(sub.Endpoint).
-		SetP256dh(sub.P256dh).
-		SetAuth(sub.Auth).
-		Save(ctx)
-	return err
+	return p.store.addSubscription(ctx, profileID, sub)
 }
 
 func (p *PwaPushService) SendPushNotifications(ctx context.Context, profileID int, title, message string, numUnreadNotifs int) error {
-	subs, err := p.orm.Profile.
-		Query().
-		Where(profile.IDEQ(profileID)).
-		QueryPwaPushSubscriptions().
-		All(ctx)
+	subs, err := p.store.listSubscriptions(ctx, profileID)
 	if err != nil {
 		return err
 	}
-	var invalidSubscriptions []*ent.PwaPushSubscription
+	var invalidSubscriptions []string
 
 	payload := map[string]string{
 		"title":       title,
@@ -101,7 +101,7 @@ func (p *PwaPushService) SendPushNotifications(ctx context.Context, profileID in
 					resp.StatusCode == http.StatusNotFound ||
 					resp.StatusCode == http.StatusBadRequest {
 					// These status codes suggest the subscription is no longer valid
-					invalidSubscriptions = append(invalidSubscriptions, sub)
+					invalidSubscriptions = append(invalidSubscriptions, sub.Endpoint)
 				}
 				resp.Body.Close() // Always close the response body
 			}
@@ -119,7 +119,7 @@ func (p *PwaPushService) SendPushNotifications(ctx context.Context, profileID in
 	// Cleanup invalid subscriptions
 	if len(invalidSubscriptions) > 0 {
 		for _, sub := range invalidSubscriptions {
-			if err := p.DeletePushSubscriptionByEndpoint(ctx, sub.ProfileID, sub.Endpoint); err != nil {
+			if err := p.DeletePushSubscriptionByEndpoint(ctx, profileID, sub); err != nil {
 				return err // Handle or log failure to delete subscription
 			}
 		}
@@ -128,11 +128,7 @@ func (p *PwaPushService) SendPushNotifications(ctx context.Context, profileID in
 }
 
 func (p *PwaPushService) GetPushSubscriptionEndpoints(ctx context.Context, profileID int) ([]string, error) {
-	subs, err := p.orm.Profile.
-		Query().
-		Where(profile.IDEQ(profileID)).
-		QueryPwaPushSubscriptions().
-		All(ctx)
+	subs, err := p.store.listSubscriptions(ctx, profileID)
 	if err != nil {
 		return nil, err
 	}
@@ -145,23 +141,11 @@ func (p *PwaPushService) GetPushSubscriptionEndpoints(ctx context.Context, profi
 }
 
 func (p *PwaPushService) DeletePushSubscriptionByEndpoint(ctx context.Context, profileID int, endpoint string) error {
-	_, err := p.orm.PwaPushSubscription.Delete().
-		Where(
-			pwapushsubscription.HasProfileWith(profile.IDEQ(profileID)),
-			pwapushsubscription.EndpointEQ(endpoint),
-		).
-		Exec(ctx)
-
-	return err
+	return p.store.deleteByEndpoint(ctx, profileID, endpoint)
 }
 
 func (p *PwaPushService) hasProfilePushSubscriptionEndpoints(ctx context.Context, profileID int) (bool, error) {
-	return p.orm.PwaPushSubscription.
-		Query().
-		Where(
-			pwapushsubscription.HasProfileWith(profile.IDEQ(profileID)),
-		).
-		Exist(ctx)
+	return p.store.hasAnyByProfileID(ctx, profileID)
 }
 
 // TODO: this is bad design, this repo should know NOTHING about permissions
@@ -171,13 +155,7 @@ func (p *PwaPushService) HasPermissionsLeftAndEndpointIsRegistered(
 	endpoint string,
 ) (bool, error) {
 	// Check if the endpoint exists
-	exists, err := p.orm.PwaPushSubscription.
-		Query().
-		Where(
-			pwapushsubscription.HasProfileWith(profile.IDEQ(profileID)),
-			pwapushsubscription.EndpointEQ(endpoint),
-		).
-		Exist(ctx)
+	exists, err := p.store.hasEndpoint(ctx, profileID, endpoint)
 	if err != nil {
 		return false, err
 	}
@@ -185,17 +163,13 @@ func (p *PwaPushService) HasPermissionsLeftAndEndpointIsRegistered(
 		return false, nil
 	}
 
-	// Check if there are any permissions for the given platform
-	count, err := p.orm.NotificationPermission.
-		Query().
-		Where(
-			notificationpermission.HasProfileWith(profile.IDEQ(profileID)),
-			notificationpermission.PlatformEQ(notificationpermission.Platform(domain.NotificationPlatformPush.Value)),
-		).
-		Count(ctx)
+	// Check if there are any permissions for the given platform.
+	hasPerms, err := p.notificationPermissionService.HasPermissionsForPlatform(
+		ctx, profileID, domain.NotificationPlatformPush,
+	)
 	if err != nil {
 		return false, err
 	}
 
-	return count > 0, nil
+	return hasPerms, nil
 }

@@ -57,8 +57,6 @@ func TestAllDailyConvoNotificationsProcessor_ProcessTask(t *testing.T) {
 		t.Parallel()
 		wantErr := errors.New("create failed")
 		p := NewAllDailyConvoNotificationsProcessor(
-			nil,
-			nil,
 			&fakePlannedNotificationRepo{createErr: wantErr},
 			&fakeJobs{},
 			30,
@@ -72,8 +70,6 @@ func TestAllDailyConvoNotificationsProcessor_ProcessTask(t *testing.T) {
 		t.Parallel()
 		wantErr := errors.New("lookup failed")
 		p := NewAllDailyConvoNotificationsProcessor(
-			nil,
-			nil,
 			&fakePlannedNotificationRepo{idsErr: wantErr},
 			&fakeJobs{},
 			30,
@@ -92,8 +88,6 @@ func TestAllDailyConvoNotificationsProcessor_ProcessTask(t *testing.T) {
 		}
 		j := &fakeJobs{}
 		p := NewAllDailyConvoNotificationsProcessor(
-			nil,
-			nil,
 			&fakePlannedNotificationRepo{ids: ids},
 			j,
 			30,

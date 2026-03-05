@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/leomorpho/goship/db/ent"
 	"github.com/leomorpho/goship/framework/context"
 	"github.com/leomorpho/goship/framework/tests"
 
@@ -21,7 +20,7 @@ func TestLoadAuthenticatedUser(t *testing.T) {
 
 	// Not authenticated
 	_ = tests.ExecuteMiddleware(ctx, mw)
-	assert.Nil(t, ctx.Get(context.AuthenticatedUserKey))
+	assert.Nil(t, ctx.Get(context.AuthenticatedUserIDKey))
 
 	// Login
 	err := c.Auth.Login(ctx, usr.ID)
@@ -29,10 +28,20 @@ func TestLoadAuthenticatedUser(t *testing.T) {
 
 	// Verify the midldeware returns the authenticated user
 	_ = tests.ExecuteMiddleware(ctx, mw)
-	require.NotNil(t, ctx.Get(context.AuthenticatedUserKey))
-	ctxUsr, ok := ctx.Get(context.AuthenticatedUserKey).(*ent.User)
+	authUserID, ok := ctx.Get(context.AuthenticatedUserIDKey).(int)
 	require.True(t, ok)
-	assert.Equal(t, usr.ID, ctxUsr.ID)
+	assert.Equal(t, usr.ID, authUserID)
+	authUserName, ok := ctx.Get(context.AuthenticatedUserNameKey).(string)
+	require.True(t, ok)
+	assert.Equal(t, usr.Name, authUserName)
+	authUserEmail, ok := ctx.Get(context.AuthenticatedUserEmailKey).(string)
+	require.True(t, ok)
+	assert.Equal(t, usr.Email, authUserEmail)
+	if raw := ctx.Get(context.AuthenticatedProfileIDKey); raw != nil {
+		profileID, ok := raw.(int)
+		require.True(t, ok)
+		assert.Positive(t, profileID)
+	}
 }
 
 func TestRequireAuthentication(t *testing.T) {
@@ -84,7 +93,7 @@ func TestLoadValidPasswordToken(t *testing.T) {
 	// Add user and password token context but no token and expect a redirect
 	ctx.SetParamNames("user", "password_token")
 	ctx.SetParamValues(fmt.Sprintf("%d", usr.ID), "1")
-	_ = tests.ExecuteMiddleware(ctx, LoadUser(c.ORM))
+	_ = tests.ExecuteMiddleware(ctx, LoadUser(c.Auth))
 	err = tests.ExecuteMiddleware(ctx, LoadValidPasswordToken(c.Auth))
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusFound, ctx.Response().Status)
@@ -92,22 +101,19 @@ func TestLoadValidPasswordToken(t *testing.T) {
 	// Add user context and invalid password token and expect a redirect
 	ctx.SetParamNames("user", "password_token", "token")
 	ctx.SetParamValues(fmt.Sprintf("%d", usr.ID), "1", "faketoken")
-	_ = tests.ExecuteMiddleware(ctx, LoadUser(c.ORM))
+	_ = tests.ExecuteMiddleware(ctx, LoadUser(c.Auth))
 	err = tests.ExecuteMiddleware(ctx, LoadValidPasswordToken(c.Auth))
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusFound, ctx.Response().Status)
 
 	// Create a valid token
-	token, pt, err := c.Auth.GeneratePasswordResetToken(ctx, usr.ID)
+	token, tokenID, err := c.Auth.GeneratePasswordResetToken(ctx, usr.ID)
 	require.NoError(t, err)
 
 	// Add user and valid password token
 	ctx.SetParamNames("user", "password_token", "token")
-	ctx.SetParamValues(fmt.Sprintf("%d", usr.ID), fmt.Sprintf("%d", pt.ID), token)
-	_ = tests.ExecuteMiddleware(ctx, LoadUser(c.ORM))
+	ctx.SetParamValues(fmt.Sprintf("%d", usr.ID), fmt.Sprintf("%d", tokenID), token)
+	_ = tests.ExecuteMiddleware(ctx, LoadUser(c.Auth))
 	err = tests.ExecuteMiddleware(ctx, LoadValidPasswordToken(c.Auth))
 	assert.Nil(t, err)
-	ctxPt, ok := ctx.Get(context.PasswordTokenKey).(*ent.PasswordToken)
-	require.True(t, ok)
-	assert.Equal(t, pt.ID, ctxPt.ID)
 }

@@ -2,33 +2,29 @@ package jobs
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"testing"
 	"time"
 
-	"github.com/leomorpho/goship/db/ent/enttest"
-	"github.com/leomorpho/goship/framework/core"
 	_ "github.com/mattn/go-sqlite3"
 )
 
 func TestSQLJobsEnqueue(t *testing.T) {
 	t.Parallel()
 
-	client := enttest.Open(t, "sqlite3", "file:jobsmod?mode=memory&_fk=1")
-	t.Cleanup(func() { _ = client.Close() })
-	if err := client.Schema.Create(context.Background()); err != nil {
-		t.Fatalf("failed to create schema: %v", err)
+	client, err := sql.Open("sqlite3", "file:jobsmod?mode=memory&_fk=1")
+	if err != nil {
+		t.Fatalf("open sqlite: %v", err)
 	}
+	t.Cleanup(func() { _ = client.Close() })
 
-	mod, err := New(Config{
-		Backend:   BackendSQL,
-		EntClient: client,
-	})
+	mod, err := New(Config{Backend: BackendSQL, SQLDB: client})
 	if err != nil {
 		t.Fatalf("expected nil error, got %v", err)
 	}
 
-	id, err := mod.Jobs().Enqueue(context.Background(), "job.test", []byte(`{"k":"v"}`), core.EnqueueOptions{
+	id, err := mod.Jobs().Enqueue(context.Background(), "job.test", []byte(`{"k":"v"}`), EnqueueOptions{
 		Queue:      "default",
 		RunAt:      time.Now().UTC().Add(2 * time.Second),
 		MaxRetries: 3,
@@ -58,24 +54,24 @@ func TestSQLJobsEnqueue(t *testing.T) {
 	}
 }
 
-func TestSQLJobsNewRequiresEnt(t *testing.T) {
+func TestSQLJobsNewRequiresSQLDB(t *testing.T) {
 	t.Parallel()
 
 	_, err := New(Config{Backend: BackendSQL})
 	if err == nil {
-		t.Fatal("expected error for sql backend without Ent client")
+		t.Fatal("expected error for sql backend without SQL DB")
 	}
 }
 
 func TestSQLJobsWorkerMarksDone(t *testing.T) {
 	t.Parallel()
 
-	client := enttest.Open(t, "sqlite3", "file:jobsmod_worker_done?mode=memory&_fk=1")
-	t.Cleanup(func() { _ = client.Close() })
-	if err := client.Schema.Create(context.Background()); err != nil {
-		t.Fatalf("failed to create schema: %v", err)
+	client, err := sql.Open("sqlite3", "file:jobsmod_worker_done?mode=memory&_fk=1")
+	if err != nil {
+		t.Fatalf("open sqlite: %v", err)
 	}
-	mod, err := New(Config{Backend: BackendSQL, EntClient: client})
+	t.Cleanup(func() { _ = client.Close() })
+	mod, err := New(Config{Backend: BackendSQL, SQLDB: client})
 	if err != nil {
 		t.Fatalf("expected nil error, got %v", err)
 	}
@@ -87,7 +83,7 @@ func TestSQLJobsWorkerMarksDone(t *testing.T) {
 	}); err != nil {
 		t.Fatalf("register failed: %v", err)
 	}
-	if _, err := jobs.Enqueue(context.Background(), "job.done", []byte(`{"v":1}`), core.EnqueueOptions{}); err != nil {
+	if _, err := jobs.Enqueue(context.Background(), "job.done", []byte(`{"v":1}`), EnqueueOptions{}); err != nil {
 		t.Fatalf("enqueue failed: %v", err)
 	}
 
@@ -126,12 +122,12 @@ func TestSQLJobsWorkerMarksDone(t *testing.T) {
 func TestSQLJobsWorkerRetriesThenFails(t *testing.T) {
 	t.Parallel()
 
-	client := enttest.Open(t, "sqlite3", "file:jobsmod_worker_retry?mode=memory&_fk=1")
-	t.Cleanup(func() { _ = client.Close() })
-	if err := client.Schema.Create(context.Background()); err != nil {
-		t.Fatalf("failed to create schema: %v", err)
+	client, err := sql.Open("sqlite3", "file:jobsmod_worker_retry?mode=memory&_fk=1")
+	if err != nil {
+		t.Fatalf("open sqlite: %v", err)
 	}
-	mod, err := New(Config{Backend: BackendSQL, EntClient: client})
+	t.Cleanup(func() { _ = client.Close() })
+	mod, err := New(Config{Backend: BackendSQL, SQLDB: client})
 	if err != nil {
 		t.Fatalf("expected nil error, got %v", err)
 	}
@@ -146,7 +142,7 @@ func TestSQLJobsWorkerRetriesThenFails(t *testing.T) {
 	}); err != nil {
 		t.Fatalf("register failed: %v", err)
 	}
-	if _, err := jobs.Enqueue(context.Background(), "job.retry", []byte(`{"v":1}`), core.EnqueueOptions{
+	if _, err := jobs.Enqueue(context.Background(), "job.retry", []byte(`{"v":1}`), EnqueueOptions{
 		MaxRetries: 1,
 	}); err != nil {
 		t.Fatalf("enqueue failed: %v", err)

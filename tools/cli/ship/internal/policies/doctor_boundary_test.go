@@ -1,0 +1,43 @@
+package policies
+
+import (
+	"os"
+	"path/filepath"
+	"testing"
+)
+
+func TestRunDoctorChecks_BoundaryImports(t *testing.T) {
+	t.Run("controller ent import boundary violation", func(t *testing.T) {
+		root := t.TempDir()
+		writeDoctorFixture(t, root)
+		path := filepath.Join(root, "app", "web", "controllers", "bad.go")
+		content := `package controllers
+
+import "github.com/leomorpho/goship/db/ent"
+
+func _() { _ = ent.User{} }
+`
+		if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		issues := RunDoctorChecks(root)
+		mustContainIssueCode(t, issues, "DX020")
+	})
+
+	t.Run("module isolation direct root import violation", func(t *testing.T) {
+		root := t.TempDir()
+		writeDoctorFixture(t, root)
+		path := filepath.Join(root, "modules", "local", "bad.go")
+		content := `package local
+
+import "github.com/leomorpho/goship/framework/core"
+
+var _ = core.PubSub(nil)
+`
+		if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		issues := RunDoctorChecks(root)
+		mustContainIssueCode(t, issues, "DX020")
+	})
+}

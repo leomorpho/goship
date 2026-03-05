@@ -9,14 +9,14 @@ import (
 
 	"github.com/labstack/echo/v4"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
+	"github.com/leomorpho/goship/app/subscriptions"
 	"github.com/leomorpho/goship/app/views"
 	"github.com/leomorpho/goship/app/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/views/web/pages/gen"
 	routeNames "github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/app/web/viewmodels"
-	"github.com/leomorpho/goship/db/ent"
-	internalContext "github.com/leomorpho/goship/framework/context"
+	customctx "github.com/leomorpho/goship/framework/context"
 	"github.com/leomorpho/goship/framework/domain"
 	"github.com/rs/zerolog/log"
 	"github.com/stripe/stripe-go/v78"
@@ -29,17 +29,15 @@ import (
 type (
 	paymentsRoute struct {
 		ctr                  ui.Controller
-		orm                  *ent.Client
 		subscriptionsService *paidsubscriptions.Service
 	}
 )
 
 func NewPaymentsRoute(
-	ctr ui.Controller, orm *ent.Client, subscriptionsService *paidsubscriptions.Service,
+	ctr ui.Controller, subscriptionsService *paidsubscriptions.Service,
 ) paymentsRoute {
 	return paymentsRoute{
 		ctr:                  ctr,
-		orm:                  orm,
 		subscriptionsService: subscriptionsService,
 	}
 }
@@ -53,7 +51,7 @@ func (p *paymentsRoute) GetPaymentProcessorPublickey(ctx echo.Context) error {
 
 func (p *paymentsRoute) CreateCheckoutSession(ctx echo.Context) error {
 	var form viewmodels.CreateCheckoutSessionForm
-	ctx.Set(internalContext.FormKey, &form)
+	ctx.Set(customctx.FormKey, &form)
 
 	// Parse the form values
 	if err := ctx.Bind(&form); err != nil {
@@ -71,12 +69,18 @@ func (p *paymentsRoute) CreateCheckoutSession(ctx echo.Context) error {
 	cancelURL := ctx.Echo().Reverse(routeNames.RouteNamePreferences)
 	fullCancelUrl := fmt.Sprintf("%s%s", p.ctr.Container.Config.HTTP.Domain, cancelURL)
 
-	usr := ctx.Get(internalContext.AuthenticatedUserKey).(*ent.User)
-	profile := usr.QueryProfile().FirstX(ctx.Request().Context())
+	profileID, err := authenticatedProfileID(ctx)
+	if err != nil {
+		return err
+	}
+	userEmail, err := authenticatedUserEmail(ctx)
+	if err != nil {
+		return err
+	}
 
 	// Create or retrieve the Stripe customer
 	customerParams := &stripe.CustomerParams{
-		Email: stripe.String(usr.Email),
+		Email: stripe.String(userEmail),
 	}
 	customer, err := customer.New(customerParams)
 	if err != nil {
@@ -84,7 +88,7 @@ func (p *paymentsRoute) CreateCheckoutSession(ctx echo.Context) error {
 	}
 
 	// Store the Stripe customer ID in your database
-	err = p.subscriptionsService.StoreStripeCustomerID(ctx.Request().Context(), profile.ID, customer.ID)
+	err = p.subscriptionsService.StoreStripeCustomerID(ctx.Request().Context(), profileID, customer.ID)
 	if err != nil {
 		return ctx.JSON(http.StatusInternalServerError, map[string]string{"error": "failed to store Stripe customer ID"})
 	}
@@ -113,8 +117,14 @@ func (p *paymentsRoute) CreateCheckoutSession(ctx echo.Context) error {
 }
 
 func (p *paymentsRoute) CreatePortalSession(ctx echo.Context) error {
-	usr := ctx.Get(internalContext.AuthenticatedUserKey).(*ent.User)
-	profile := usr.QueryProfile().FirstX(ctx.Request().Context())
+	profileID, err := authenticatedProfileID(ctx)
+	if err != nil {
+		return err
+	}
+	profile, err := p.ctr.Container.ORM.Profile.Get(ctx.Request().Context(), profileID)
+	if err != nil {
+		return err
+	}
 
 	returnURL := ctx.Echo().Reverse(routeNames.RouteNamePreferences)
 	fullReturnsUrl := fmt.Sprintf("%s%s", p.ctr.Container.Config.HTTP.Domain, returnURL)
@@ -278,20 +288,26 @@ func (p *paymentsRoute) PricingPage(ctx echo.Context) error {
 	page.Component = pages.PricingPage(&page)
 	page.Name = templates.PagePricing
 
-	usr := ctx.Get(internalContext.AuthenticatedUserKey).(*ent.User)
-	profile := usr.QueryProfile().FirstX(ctx.Request().Context())
+	profileID, err := authenticatedProfileID(ctx)
+	if err != nil {
+		return err
+	}
 
 	activePlan, subscriptionExpiredOn, isTrial, err := p.subscriptionsService.GetCurrentlyActiveProduct(
-		ctx.Request().Context(), profile.ID,
+		ctx.Request().Context(), profileID,
 	)
 	if err != nil {
 		return err
+	}
+	activePlanDomain := subscriptions.ToDomainProductType(activePlan)
+	if activePlanDomain == nil {
+		activePlanDomain = &domain.ProductTypeFree
 	}
 
 	page.Data = viewmodels.PricingPageData{
 		ProductProCode:        p.ctr.Container.Config.App.OperationalConstants.ProductProCode,
 		ProductProPrice:       fmt.Sprintf("%.2f", p.ctr.Container.Config.App.OperationalConstants.ProductProPrice),
-		ActivePlan:            *activePlan,
+		ActivePlan:            *activePlanDomain,
 		SubscriptionExpiresOn: subscriptionExpiredOn,
 		IsTrial:               isTrial,
 		ProductDescriptions: []viewmodels.ProductDescription{

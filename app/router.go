@@ -148,7 +148,7 @@ func registerPublicRoutes(c *foundation.Container, g *echo.Group, ctr ui.Control
 	userGroup.POST("/password", forgot.Post).Name = routeNames.RouteNameForgotPasswordSubmit
 
 	resetGroup := userGroup.Group("/password/reset",
-		middleware.LoadUser(c.ORM),
+		middleware.LoadUser(c.Auth),
 		middleware.LoadValidPasswordToken(c.Auth),
 	)
 	reset := controllers.NewResetPasswordRoute(ctr)
@@ -201,10 +201,10 @@ func registerAuthRoutes(c *foundation.Container, g *echo.Group, ctr ui.Controlle
 	onboardingGroup.GET("/preferences/delete-account", deleteAccountRoute.DeleteAccountPage).Name = routeNames.RouteNameDeleteAccountPage
 	onboardingGroup.GET("/preferences/delete-account/now", deleteAccountRoute.DeleteAccountRequest).Name = routeNames.RouteNameDeleteAccountRequest
 
-	finishOnboarding := controllers.NewOnboardingRoute(ctr, c.ORM)
+	finishOnboarding := controllers.NewOnboardingRoute(ctr)
 	onboardingGroup.GET("/finish-onboarding", finishOnboarding.Get).Name = routeNames.RouteNameFinishOnboarding
 
-	profilePrefs := controllers.NewProfilePrefsRoute(ctr, c.ORM)
+	profilePrefs := controllers.NewProfilePrefsRoute(ctr)
 	onboardingGroup.GET("/profileBio", profilePrefs.GetBio).Name = routeNames.RouteNameGetBio
 	onboardingGroup.POST("/profileBio/update", profilePrefs.UpdateBio).Name = routeNames.RouteNameUpdateBio
 
@@ -239,10 +239,10 @@ func registerAuthRoutes(c *foundation.Container, g *echo.Group, ctr ui.Controlle
 	onboardedGroup.GET("/currProfilePhoto", currProfilePhoto.Get).Name = routeNames.RouteNameCurrentProfilePhoto
 	onboardedGroup.POST("/currProfilePhoto", currProfilePhoto.Post).Name = routeNames.RouteNameCurrentProfilePhotoSubmit
 
-	normalNotificationsCount := controllers.NewNormalNotificationsCountRoute(ctr, *deps.ProfileService)
+	normalNotificationsCount := controllers.NewNormalNotificationsCountRoute(ctr, deps.ProfileService)
 	onboardedGroup.GET("/notifications/normalNotificationsCount", normalNotificationsCount.Get).Name = routeNames.RouteNameNormalNotificationsCount
 
-	payments := controllers.NewPaymentsRoute(ctr, c.ORM, deps.SubscriptionsRepo)
+	payments := controllers.NewPaymentsRoute(ctr, deps.SubscriptionsRepo)
 	onboardedGroup.GET("/payments/get-public-key", payments.GetPaymentProcessorPublickey).Name = routeNames.RouteNamePaymentProcessorGetPublicKey
 	onboardedGroup.POST("/payments/create-checkout-session", payments.CreateCheckoutSession).Name = routeNames.RouteNameCreateCheckoutSession
 	onboardedGroup.POST("/payments/create-portal-session", payments.CreatePortalSession).Name = routeNames.RouteNameCreatePortalSession
@@ -256,7 +256,7 @@ func registerAuthRoutes(c *foundation.Container, g *echo.Group, ctr ui.Controlle
 }
 
 func registerExternalRoutes(c *foundation.Container, e *echo.Group, ctr ui.Controller, deps *appweb.RouteDeps) error {
-	payments := controllers.NewPaymentsRoute(ctr, c.ORM, deps.SubscriptionsRepo)
+	payments := controllers.NewPaymentsRoute(ctr, deps.SubscriptionsRepo)
 	e.POST(deps.StripeWebhookPath, payments.HandleWebhook).Name = routeNames.RouteNamePaymentProcessorWebhook
 	return nil
 }

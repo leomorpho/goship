@@ -10,8 +10,6 @@ import (
 	"github.com/leomorpho/goship/app/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/app/web/ui"
-	"github.com/leomorpho/goship/db/ent"
-	"github.com/leomorpho/goship/framework/context"
 	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
 
 	"github.com/labstack/echo/v4"
@@ -93,15 +91,13 @@ func (p *uploadPhoto) Post(ctx echo.Context) error {
 	}
 	defer src.Close()
 
-	usr := ctx.Get(context.AuthenticatedUserKey).(*ent.User)
-
-	profile, err := usr.QueryProfile().First(ctx.Request().Context())
+	profileID, err := authenticatedProfileID(ctx)
 	if err != nil {
 		return err
 	}
 
 	if err := p.profileService.UploadPhoto(
-		ctx.Request().Context(), profile.ID, src, file.Filename,
+		ctx.Request().Context(), profileID, src, file.Filename,
 	); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError,
 			"Failed to upload photo: "+err.Error())
@@ -119,8 +115,10 @@ func (p *uploadPhoto) Delete(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid photo ID")
 	}
 
-	usr := ctx.Get(context.AuthenticatedUserKey).(*ent.User)
-	profileID := usr.QueryProfile().FirstX(ctx.Request().Context()).ID
+	profileID, err := authenticatedProfileID(ctx)
+	if err != nil {
+		return err
+	}
 
 	err = p.profileService.DeletePhoto(ctx.Request().Context(), imageID, &profileID)
 	if err != nil {

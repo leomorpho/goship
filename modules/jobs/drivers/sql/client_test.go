@@ -2,31 +2,49 @@ package sql
 
 import (
 	"context"
+	"database/sql"
 	"testing"
 	"time"
 
-	"github.com/leomorpho/goship/db/ent/enttest"
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func TestNewRequiresEntClient(t *testing.T) {
+func TestNewRequiresSQLDB(t *testing.T) {
 	t.Parallel()
 
 	_, err := New(Config{})
 	if err == nil {
-		t.Fatal("expected error for nil Ent client")
+		t.Fatal("expected error for missing SQLDB")
+	}
+}
+
+func TestNewWithSQLDB(t *testing.T) {
+	t.Parallel()
+
+	db, err := sql.Open("sqlite3", "file:jobsmod_driver_sqldb?mode=memory&_fk=1")
+	if err != nil {
+		t.Fatalf("open sqlite: %v", err)
+	}
+	t.Cleanup(func() { _ = db.Close() })
+
+	client, err := New(Config{SQLDB: db})
+	if err != nil {
+		t.Fatalf("new client failed: %v", err)
+	}
+	if client == nil {
+		t.Fatal("expected non-nil client")
 	}
 }
 
 func TestClaimNextAndMarkDone(t *testing.T) {
 	t.Parallel()
 
-	entClient := enttest.Open(t, "sqlite3", "file:jobsmod_driver?mode=memory&_fk=1")
-	t.Cleanup(func() { _ = entClient.Close() })
-	if err := entClient.Schema.Create(context.Background()); err != nil {
-		t.Fatalf("failed to create schema: %v", err)
+	db, err := sql.Open("sqlite3", "file:jobsmod_driver?mode=memory&_fk=1")
+	if err != nil {
+		t.Fatalf("open sqlite: %v", err)
 	}
-	client, err := New(Config{EntClient: entClient})
+	t.Cleanup(func() { _ = db.Close() })
+	client, err := New(Config{SQLDB: db})
 	if err != nil {
 		t.Fatalf("new client failed: %v", err)
 	}

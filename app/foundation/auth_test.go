@@ -3,6 +3,7 @@ package foundation
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -18,7 +19,7 @@ func TestAuthClient_Auth(t *testing.T) {
 	assertNoAuth := func() {
 		_, err := c.Auth.GetAuthenticatedUserID(ctx)
 		assert.True(t, errors.Is(err, NotAuthenticatedError{}))
-		_, err = c.Auth.GetAuthenticatedUser(ctx)
+		_, err = c.Auth.GetAuthenticatedIdentity(ctx)
 		assert.True(t, errors.Is(err, NotAuthenticatedError{}))
 	}
 
@@ -31,14 +32,60 @@ func TestAuthClient_Auth(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, usr.ID, uid)
 
-	u, err := c.Auth.GetAuthenticatedUser(ctx)
+	u, err := c.Auth.GetAuthenticatedIdentity(ctx)
 	require.NoError(t, err)
-	assert.Equal(t, u.ID, usr.ID)
+	assert.Equal(t, u.UserID, usr.ID)
+	assert.Equal(t, u.UserName, usr.Name)
+	assert.Equal(t, u.UserEmail, usr.Email)
 
 	err = c.Auth.Logout(ctx)
 	require.NoError(t, err)
 
 	assertNoAuth()
+}
+
+func TestAuthClient_FindUserRecordByEmail(t *testing.T) {
+	u, err := c.Auth.FindUserRecordByEmail(ctx, usr.Email)
+	require.NoError(t, err)
+	assert.Equal(t, usr.ID, u.UserID)
+	assert.Equal(t, usr.Name, u.Name)
+	assert.Equal(t, usr.Email, u.Email)
+	assert.Equal(t, usr.Password, u.Password)
+	assert.Equal(t, usr.Verified, u.IsVerified)
+}
+
+func TestAuthClient_AuthenticateUserByEmailPassword(t *testing.T) {
+	password := "password"
+	hash, err := c.Auth.HashPassword(password)
+	require.NoError(t, err)
+	loginUser, err := c.ORM.User.
+		Create().
+		SetEmail(fmt.Sprintf("auth-login-%d@localhost.localhost", time.Now().UnixNano())).
+		SetPassword(hash).
+		SetName("Auth Login User").
+		SetVerified(true).
+		Save(context.Background())
+	require.NoError(t, err)
+
+	t.Run("success", func(t *testing.T) {
+		u, err := c.Auth.AuthenticateUserByEmailPassword(ctx, loginUser.Email, password)
+		require.NoError(t, err)
+		assert.Equal(t, loginUser.ID, u.UserID)
+	})
+
+	t.Run("bad email", func(t *testing.T) {
+		_, err := c.Auth.AuthenticateUserByEmailPassword(ctx, "missing@example.com", "password")
+		assert.Error(t, err)
+		_, ok := err.(InvalidCredentialsError)
+		assert.True(t, ok)
+	})
+
+	t.Run("bad password", func(t *testing.T) {
+		_, err := c.Auth.AuthenticateUserByEmailPassword(ctx, loginUser.Email, "not-the-password")
+		assert.Error(t, err)
+		_, ok := err.(InvalidCredentialsError)
+		assert.True(t, ok)
+	})
 }
 
 func TestAuthClient_PasswordHashing(t *testing.T) {
@@ -51,35 +98,36 @@ func TestAuthClient_PasswordHashing(t *testing.T) {
 }
 
 func TestAuthClient_GeneratePasswordResetToken(t *testing.T) {
-	token, pt, err := c.Auth.GeneratePasswordResetToken(ctx, usr.ID)
+	token, tokenID, err := c.Auth.GeneratePasswordResetToken(ctx, usr.ID)
 	require.NoError(t, err)
 	assert.Len(t, token, c.Config.App.PasswordToken.Length)
+	pt, err := c.ORM.PasswordToken.Get(context.Background(), tokenID)
+	require.NoError(t, err)
 	assert.NoError(t, c.Auth.CheckPassword(token, pt.Hash))
 }
 
 func TestAuthClient_GetValidPasswordToken(t *testing.T) {
 	// Check that a fake token is not valid
-	_, err := c.Auth.GetValidPasswordToken(ctx, usr.ID, 1, "faketoken")
+	err := c.Auth.GetValidPasswordToken(ctx, usr.ID, 1, "faketoken")
 	assert.Error(t, err)
 
-	// Generate a valid token and check that it is returned
-	token, pt, err := c.Auth.GeneratePasswordResetToken(ctx, usr.ID)
+	// Generate a valid token and check that it is accepted
+	token, tokenID, err := c.Auth.GeneratePasswordResetToken(ctx, usr.ID)
 	require.NoError(t, err)
-	pt2, err := c.Auth.GetValidPasswordToken(ctx, usr.ID, pt.ID, token)
+	err = c.Auth.GetValidPasswordToken(ctx, usr.ID, tokenID, token)
 	require.NoError(t, err)
-	assert.Equal(t, pt.ID, pt2.ID)
 
 	// Expire the token by pushing the date far enough back
 	count, err := c.ORM.PasswordToken.
 		Update().
 		SetCreatedAt(time.Now().Add(-(c.Config.App.PasswordToken.Expiration + time.Hour))).
-		Where(passwordtoken.ID(pt.ID)).
+		Where(passwordtoken.ID(tokenID)).
 		Save(context.Background())
 	require.NoError(t, err)
 	require.Equal(t, 1, count)
 
 	// Expired tokens should not be valid
-	_, err = c.Auth.GetValidPasswordToken(ctx, usr.ID, pt.ID, token)
+	err = c.Auth.GetValidPasswordToken(ctx, usr.ID, tokenID, token)
 	assert.Error(t, err)
 }
 

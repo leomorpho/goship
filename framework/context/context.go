@@ -6,20 +6,16 @@ import (
 )
 
 const (
-	// AuthenticatedUserKey is the key value used to store the authenticated user in context
-	AuthenticatedUserKey           = "auth_user"
+	AuthenticatedUserIDKey         = "auth_user_id"
+	AuthenticatedUserNameKey       = "auth_user_name"
+	AuthenticatedUserEmailKey      = "auth_user_email"
+	AuthenticatedProfileIDKey      = "auth_profile_id"
 	AuthenticatedUserProfilePicURL = "profile_pic_url"
 	ProfileFullyOnboarded          = "profile_fully_onboarded"
 	ActiveProductPlan              = "product_plan"
 
-	// UserKey is the key value used to store a user in context
-	UserKey = "user"
-
 	// FormKey is the key value used to store a form in context
 	FormKey = "form"
-
-	// PasswordTokenKey is the key value used to store a password token in context
-	PasswordTokenKey = "password_token"
 
 	IsFromIOSApp = "is_from_ios_app"
 )

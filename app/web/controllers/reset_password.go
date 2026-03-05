@@ -1,9 +1,10 @@
 package controllers
 
 import (
+	"net/http"
+
 	routeNames "github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/app/web/ui"
-	"github.com/leomorpho/goship/db/ent"
 	"github.com/leomorpho/goship/framework/context"
 	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
 
@@ -65,21 +66,19 @@ func (c *resetPassword) Post(ctx echo.Context) error {
 		return c.ctr.Fail(err, "unable to hash password")
 	}
 
-	// Get the requesting user
-	usr := ctx.Get(context.UserKey).(*ent.User)
+	userIDRaw := ctx.Get(context.AuthenticatedUserIDKey)
+	userID, ok := userIDRaw.(int)
+	if !ok || userID <= 0 {
+		return echo.NewHTTPError(http.StatusUnauthorized, "authenticated user id missing from context")
+	}
 
 	// Update the user
-	_, err = usr.
-		Update().
-		SetPassword(hash).
-		Save(ctx.Request().Context())
-
-	if err != nil {
+	if err = c.ctr.Container.Auth.SetUserPasswordHashByUserID(ctx, userID, hash); err != nil {
 		return c.ctr.Fail(err, "unable to update password")
 	}
 
 	// Delete all password tokens for this user
-	err = c.ctr.Container.Auth.DeletePasswordTokens(ctx, usr.ID)
+	err = c.ctr.Container.Auth.DeletePasswordTokens(ctx, userID)
 	if err != nil {
 		return c.ctr.Fail(err, "unable to delete password tokens")
 	}

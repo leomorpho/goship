@@ -6,28 +6,35 @@ import (
 	"time"
 
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
-	"github.com/leomorpho/goship/db/ent"
-	"github.com/leomorpho/goship/db/ent/lastseenonline"
-	"github.com/leomorpho/goship/db/ent/notification"
-	"github.com/leomorpho/goship/db/ent/notificationpermission"
-	"github.com/leomorpho/goship/db/ent/notificationtime"
-	"github.com/leomorpho/goship/db/ent/profile"
-	"github.com/leomorpho/goship/db/ent/user"
 	"github.com/leomorpho/goship/framework/domain"
 	"github.com/rs/zerolog/log"
 )
 
+type plannedNotificationCandidate struct {
+	ProfileID                 int
+	NotificationTimeUpdatedAt *time.Time
+}
+
+type plannedNotificationStorage interface {
+	listProfilesForPermission(ctx context.Context, permission domain.NotificationPermissionType, notifType domain.NotificationType) ([]plannedNotificationCandidate, error)
+	deleteStaleLastSeenBefore(ctx context.Context, deleteBeforeTime time.Time) error
+	listLastSeenForProfile(ctx context.Context, profileID int) ([]time.Time, error)
+	upsertNotificationTime(ctx context.Context, profileID int, notificationType domain.NotificationType, sendMinute int) error
+	listProfileIDsCanGetPlannedNotificationNow(
+		ctx context.Context, notifType domain.NotificationType, prevMidnightTimestamp time.Time, timestampMinutesFromMidnight int, profileIDs *[]int,
+	) ([]int, error)
+}
+
 type PlannedNotificationsService struct {
-	orm              *ent.Client
+	store            plannedNotificationStorage
 	subscriptionRepo *paidsubscriptions.Service
 }
 
-func NewPlannedNotificationsService(
-	orm *ent.Client, subscriptionRepo *paidsubscriptions.Service,
+func NewPlannedNotificationsServiceWithStore(
+	store plannedNotificationStorage, subscriptionRepo *paidsubscriptions.Service,
 ) *PlannedNotificationsService {
-
 	return &PlannedNotificationsService{
-		orm:              orm,
+		store:            store,
 		subscriptionRepo: subscriptionRepo,
 	}
 }
@@ -37,22 +44,7 @@ func (p *PlannedNotificationsService) CreateNotificationTimeObjects(
 	notifType domain.NotificationType,
 	permission domain.NotificationPermissionType,
 ) error {
-	profiles, err := p.orm.NotificationPermission.Query().
-		Where(
-			notificationpermission.PermissionEQ(notificationpermission.Permission(permission.Value)),
-		).
-		QueryProfile().
-		Select(profile.FieldID).
-		WithUser(func(u *ent.UserQuery) {
-			u.WithLastSeenAt()
-			u.Select(user.FieldID)
-		}).
-		WithNotificationTimes(
-			func(n *ent.NotificationTimeQuery) {
-				n.Where(notificationtime.TypeEQ(notificationtime.Type(notifType.Value)))
-			},
-		).
-		All(ctx)
+	profiles, err := p.store.listProfilesForPermission(ctx, permission, notifType)
 	if err != nil {
 		return err
 	}
@@ -63,68 +55,56 @@ func (p *PlannedNotificationsService) CreateNotificationTimeObjects(
 	// Currently, we re-evaluate best notif time every day.
 	lastRelevantNotificationTimeGeneration := time.Now().Add(time.Hour * 24 * -1)
 	for _, profile := range profiles {
-		if profile.Edges.NotificationTimes == nil ||
-			len(profile.Edges.NotificationTimes) == 0 ||
-			profile.Edges.NotificationTimes[0].UpdatedAt.Before(lastRelevantNotificationTimeGeneration) {
-
-			p.UpsertNotificationTime(ctx, profile.ID, notifType)
+		if profile.NotificationTimeUpdatedAt == nil || profile.NotificationTimeUpdatedAt.Before(lastRelevantNotificationTimeGeneration) {
+			if _, err := p.UpsertNotificationTime(ctx, profile.ProfileID, notifType); err != nil {
+				log.Debug().
+					Err(err).
+					Int("profileID", profile.ProfileID).
+					Str("notificationType", notifType.Value).
+					Msg("skipping notification time upsert for profile")
+			}
 		}
 	}
 	return nil
 }
 
 func (p *PlannedNotificationsService) DeleteStaleLastSeenObjects(ctx context.Context) {
-	const TIME_TO_KEEP_DAYS = 30
-	deleteBeforeTime := time.Now().Add(time.Hour * 24 * -TIME_TO_KEEP_DAYS)
-	// Make sure all users have a NotificationTime
-	_, err := p.orm.LastSeenOnline.Delete().
-		Where(lastseenonline.SeenAtLTE(deleteBeforeTime)).
-		Exec(ctx)
-	if err != nil {
+	const timeToKeepDays = 30
+	deleteBeforeTime := time.Now().Add(time.Hour * 24 * -timeToKeepDays)
+	if err := p.store.deleteStaleLastSeenBefore(ctx, deleteBeforeTime); err != nil {
 		log.Error().Err(err).
 			Time("deleteBeforeTime", deleteBeforeTime).
 			Msg("failed to delete old LastSeenOnline objects")
 	}
-
 }
 
 func (p *PlannedNotificationsService) UpsertNotificationTime(
 	ctx context.Context, profileID int, notificationType domain.NotificationType,
 ) (int, error) {
-
-	lastSeenTimes, err := p.orm.LastSeenOnline.Query().
-		Where(lastseenonline.HasUserWith(user.HasProfileWith(profile.IDEQ(profileID)))).
-		All(ctx)
+	lastSeenTimes, err := p.store.listLastSeenForProfile(ctx, profileID)
 	if err != nil {
 		return 0, err
 	}
-
 	if len(lastSeenTimes) == 0 {
 		return 0, fmt.Errorf("no connection times found for profileID %d", profileID)
 	}
 
-	// Create a histogram to count occurrences of each time slot
+	// Create a histogram to count occurrences of each time slot.
 	const minutesInDay = 24 * 60
 	histogram := make([]int, minutesInDay)
-
 	for _, lso := range lastSeenTimes {
-		minutesFromMidnight := p.GetMinutesFromMidnight(lso.SeenAt)
+		minutesFromMidnight := p.GetMinutesFromMidnight(lso)
 		histogram[minutesFromMidnight]++
 	}
 
-	// Calculate the peak time over a 20-minute sliding window
-	windowSize := 30     // 30 minutes
-	incrementJumps := 15 // 15 minutes
+	// Calculate the peak time over a 30-minute sliding window with 15-minute jumps.
+	windowSize := 30
+	incrementJumps := 15
 	maxSum := 0
 	maxSumStartMinute := 0
 	maxSumEndMinute := 0
-	peakMinute := 0
-
-	// Slide the window over the histogram at 15 minute increments
 	for i := 0; i < minutesInDay; i += incrementJumps {
-
 		currentSum := 0
-
 		if i+windowSize > minutesInDay {
 			continue
 		}
@@ -137,44 +117,20 @@ func (p *PlannedNotificationsService) UpsertNotificationTime(
 			maxSumEndMinute = i + windowSize
 		}
 	}
+	peakMinute := int((maxSumStartMinute + maxSumEndMinute) / 2)
 
-	// Adjust peakMinute to be the middle of the 20-minute window
-	peakMinute = int((maxSumStartMinute + maxSumEndMinute) / 2)
-
-	// Update the notification time with the peak minute
-	n, err := p.orm.NotificationTime.
-		Update().
-		Where(
-			notificationtime.TypeEQ(notificationtime.Type(notificationType.Value)),
-			notificationtime.HasProfileWith(profile.IDEQ(profileID)),
-		).
-		SetSendMinute(peakMinute).
-		Save(ctx)
-	if err != nil && !ent.IsNotFound(err) {
+	if err := p.store.upsertNotificationTime(ctx, profileID, notificationType, peakMinute); err != nil {
 		return 0, err
-	}
-
-	if n == 0 {
-		// No rows were updated, so create a new record
-		_, err = p.orm.NotificationTime.
-			Create().
-			SetSendMinute(peakMinute).
-			SetProfileID(profileID).
-			SetType(notificationtime.Type(notificationType.Value)).
-			Save(ctx)
-		if err != nil {
-			return 0, err
-		}
 	}
 	return peakMinute, nil
 }
 
-// GetMinutesFromMidnight returns the number of minutes from midnight given a timestamp
+// GetMinutesFromMidnight returns the number of minutes from midnight given a timestamp.
 func (p *PlannedNotificationsService) GetMinutesFromMidnight(t time.Time) int {
 	return t.Hour()*60 + t.Minute()
 }
 
-// GetTimestampFromMinutes returns a timestamp for today at the given minutes from midnight
+// GetTimestampFromMinutes returns a timestamp for today at the given minutes from midnight.
 func (p *PlannedNotificationsService) GetTimestampFromMinutes(minutes int) time.Time {
 	now := time.Now()
 	hour := minutes / 60
@@ -182,51 +138,19 @@ func (p *PlannedNotificationsService) GetTimestampFromMinutes(minutes int) time.
 	return time.Date(now.Year(), now.Month(), now.Day(), hour, minute, 0, 0, now.Location())
 }
 
-// ProfileIDsCanGetNotificatiedNow returns the profile IDs who can get notified now for a notification type
+// ProfileIDsCanGetPlannedNotificationNow returns the profile IDs who can get notified now for a notification type.
 func (p *PlannedNotificationsService) ProfileIDsCanGetPlannedNotificationNow(
 	ctx context.Context, timestamp time.Time, notifType domain.NotificationType, profileIDs *[]int,
 ) ([]int, error) {
-
 	utcTimestamp := timestamp.UTC()
 	prevMidnightTimestamp := time.Date(utcTimestamp.Year(), utcTimestamp.Month(), utcTimestamp.Day(), 0, 0, 0, 0, utcTimestamp.Location())
-
 	timestampMinutesFromMidnight := p.GetMinutesFromMidnight(utcTimestamp)
 
-	query := p.orm.NotificationTime.
-		Query().
-		Where(
-			notificationtime.TypeEQ(notificationtime.Type(notifType.Value)),
-			notificationtime.And(
-				notificationtime.SendMinuteGTE(0),
-				notificationtime.SendMinuteLTE(timestampMinutesFromMidnight),
-			),
-			// The following prevents any overlap and double notifications.
-			notificationtime.Not(
-				notificationtime.HasProfileWith(profile.HasNotificationsWith(
-					notification.CreatedAtGTE(prevMidnightTimestamp),
-					notification.TypeEQ(notification.Type(notifType.Value)),
-				)),
-			),
-		)
-
-	if profileIDs != nil {
-		query.Where(
-			notificationtime.HasProfileWith(profile.IDIn(*profileIDs...)),
-		)
-	}
-
-	profiles, err := query.
-		QueryProfile().
-		Select(profile.FieldID).
-		All(ctx)
-	if err != nil {
-		return []int{}, err
-	}
-
-	var profileIDsCanGetNotif []int
-	for _, n := range profiles {
-		profileIDsCanGetNotif = append(profileIDsCanGetNotif, n.ID)
-	}
-
-	return profileIDsCanGetNotif, nil
+	return p.store.listProfileIDsCanGetPlannedNotificationNow(
+		ctx,
+		notifType,
+		prevMidnightTimestamp,
+		timestampMinutesFromMidnight,
+		profileIDs,
+	)
 }

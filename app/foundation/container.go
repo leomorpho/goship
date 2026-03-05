@@ -393,7 +393,7 @@ func renameColumnHook(next schema.Differ) schema.Differ {
 
 // initAuth initializes the authentication client
 func (c *Container) initAuth() {
-	c.Auth = NewAuthClient(c.Config, c.ORM)
+	c.Auth = NewAuthClient(c.Config, c.ORM, c.Database)
 }
 
 // initMail initialize the mail client

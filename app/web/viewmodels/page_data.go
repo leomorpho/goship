@@ -1,10 +1,10 @@
 package viewmodels
 
-import "github.com/leomorpho/goship/db/ent"
+import "github.com/leomorpho/goship/app/web/ui"
 
 type PageData struct {
 	IsAuth   bool
-	AuthUser *ent.User
+	AuthUser *ui.AuthUserView
 	Data     any
 	ToURL    func(name string, params ...any) string
 }

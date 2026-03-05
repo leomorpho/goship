@@ -11,29 +11,28 @@ import (
 	"time"
 
 	sqldriver "github.com/leomorpho/goship-modules/jobs/drivers/sql"
-	"github.com/leomorpho/goship/framework/core"
 )
 
-var _ core.Jobs = (*sqlCoreJobs)(nil)
+var _ Jobs = (*sqlCoreJobs)(nil)
 
 type sqlCoreJobs struct {
 	client       *sqldriver.Client
-	capabilities core.JobCapabilities
+	capabilities JobCapabilities
 
 	mu       sync.RWMutex
-	handlers map[string]core.JobHandler
+	handlers map[string]JobHandler
 }
 
-func newSQLCoreJobs(client *sqldriver.Client) core.Jobs {
+func newSQLCoreJobs(client *sqldriver.Client) Jobs {
 	return &sqlCoreJobs{
 		client: client,
-		capabilities: core.JobCapabilities{
+		capabilities: JobCapabilities{
 			Delayed:    true,
 			Retries:    true,
 			Cron:       false,
 			DeadLetter: true,
 		},
-		handlers: make(map[string]core.JobHandler),
+		handlers: make(map[string]JobHandler),
 	}
 }
 
@@ -42,7 +41,7 @@ const (
 	sqlWorkerLockDuration = 30 * time.Second
 )
 
-func (s *sqlCoreJobs) Register(name string, handler core.JobHandler) error {
+func (s *sqlCoreJobs) Register(name string, handler JobHandler) error {
 	if name == "" {
 		return errors.New("job name is required")
 	}
@@ -55,7 +54,7 @@ func (s *sqlCoreJobs) Register(name string, handler core.JobHandler) error {
 	return nil
 }
 
-func (s *sqlCoreJobs) Enqueue(ctx context.Context, name string, payload []byte, opts core.EnqueueOptions) (string, error) {
+func (s *sqlCoreJobs) Enqueue(ctx context.Context, name string, payload []byte, opts EnqueueOptions) (string, error) {
 	if s == nil || s.client == nil {
 		return "", errors.New("sql jobs client is not initialized")
 	}
@@ -128,9 +127,9 @@ func (s *sqlCoreJobs) StartWorker(ctx context.Context) error {
 
 func (s *sqlCoreJobs) StartScheduler(context.Context) error { return nil }
 func (s *sqlCoreJobs) Stop(context.Context) error           { return nil }
-func (s *sqlCoreJobs) Capabilities() core.JobCapabilities {
+func (s *sqlCoreJobs) Capabilities() JobCapabilities {
 	if s == nil {
-		return core.JobCapabilities{}
+		return JobCapabilities{}
 	}
 	return s.capabilities
 }
@@ -152,7 +151,7 @@ func (s *sqlCoreJobs) processOne(ctx context.Context, job sqldriver.Job) {
 	_ = s.client.MarkDone(ctx, job.ID)
 }
 
-func (s *sqlCoreJobs) handlerFor(name string) core.JobHandler {
+func (s *sqlCoreJobs) handlerFor(name string) JobHandler {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.handlers[name]

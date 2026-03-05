@@ -9,7 +9,6 @@ import (
 	"github.com/labstack/echo/v4"
 	echomw "github.com/labstack/echo/v4/middleware"
 	"github.com/leomorpho/goship/app/views"
-	"github.com/leomorpho/goship/db/ent"
 	"github.com/leomorpho/goship/framework/context"
 	"github.com/leomorpho/goship/framework/domain"
 	"github.com/leomorpho/goship/framework/htmx"
@@ -18,6 +17,11 @@ import (
 
 type (
 	LayoutComponent func(content templ.Component, page *Page) templ.Component
+	AuthUserView    struct {
+		ID    int
+		Name  string
+		Email string
+	}
 )
 
 // Page consists of all data that will be used to render a page response for a given webui.
@@ -84,12 +88,9 @@ type Page struct {
 	IsFullyOnboarded bool
 
 	// AuthUser stores the authenticated user
-	AuthUser *ent.User
+	AuthUser *AuthUserView
 
 	AuthUserProfilePicURL string
-
-	// AuthProfile stores the authenticated profile
-	AuthProfile *ent.Profile
 
 	// ActiveProduct stores the active product for the profile (limited to 1 for now)
 	ActiveProduct domain.ProductType
@@ -166,16 +167,24 @@ func NewPage(ctx echo.Context) Page {
 		p.CSRF = csrf.(string)
 	}
 
-	if u := ctx.Get(context.AuthenticatedUserKey); u != nil {
+	if u := ctx.Get(context.AuthenticatedUserIDKey); u != nil {
 		p.IsAuth = true
-		p.AuthUser = u.(*ent.User)
-		if p.AuthUser.Edges.Profile != nil {
-			p.AuthProfile = p.AuthUser.Edges.Profile
-			if fullyOnboarded := ctx.Get(context.ProfileFullyOnboarded); fullyOnboarded != nil {
-				p.IsFullyOnboarded = fullyOnboarded.(bool)
-			} else {
-				p.IsFullyOnboarded = false
+		userID, ok := u.(int)
+		if ok && userID > 0 {
+			p.AuthUser = &AuthUserView{
+				ID: userID,
 			}
+			if userName, ok := ctx.Get(context.AuthenticatedUserNameKey).(string); ok {
+				p.AuthUser.Name = userName
+			}
+			if userEmail, ok := ctx.Get(context.AuthenticatedUserEmailKey).(string); ok {
+				p.AuthUser.Email = userEmail
+			}
+		}
+		if fullyOnboarded := ctx.Get(context.ProfileFullyOnboarded); fullyOnboarded != nil {
+			p.IsFullyOnboarded = fullyOnboarded.(bool)
+		} else {
+			p.IsFullyOnboarded = false
 		}
 	}
 	if u := ctx.Get(context.AuthenticatedUserProfilePicURL); u != nil {

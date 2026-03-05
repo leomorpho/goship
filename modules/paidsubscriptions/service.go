@@ -3,9 +3,6 @@ package paidsubscriptions
 import (
 	"context"
 	"time"
-
-	"github.com/leomorpho/goship/db/ent"
-	"github.com/leomorpho/goship/framework/domain"
 )
 
 // Service is the public API for the paid subscriptions module.
@@ -17,7 +14,7 @@ func NewService(store Store) *Service {
 	return &Service{store: store}
 }
 
-func (s *Service) CreateSubscription(ctx context.Context, tx *ent.Tx, profileID int) error {
+func (s *Service) CreateSubscription(ctx context.Context, tx any, profileID int) error {
 	return s.store.CreateSubscription(ctx, tx, profileID)
 }
 
@@ -29,7 +26,7 @@ func (s *Service) UpdateToPaidPro(ctx context.Context, profileID int) error {
 	return s.store.UpdateToPaidPro(ctx, profileID)
 }
 
-func (s *Service) GetCurrentlyActiveProduct(ctx context.Context, profileID int) (*domain.ProductType, *time.Time, bool, error) {
+func (s *Service) GetCurrentlyActiveProduct(ctx context.Context, profileID int) (*ProductType, *time.Time, bool, error) {
 	return s.store.GetCurrentlyActiveProduct(ctx, profileID)
 }
 

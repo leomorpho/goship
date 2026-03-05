@@ -1,9 +1,8 @@
 package jobs
 
 import (
+	"database/sql"
 	"testing"
-
-	"github.com/leomorpho/goship/db/ent"
 )
 
 func TestConfigValidate(t *testing.T) {
@@ -15,11 +14,19 @@ func TestConfigValidate(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "sql requires ent",
+			name: "sql requires sqldb",
 			cfg: Config{
 				Backend: BackendSQL,
 			},
 			wantErr: true,
+		},
+		{
+			name: "sql with sqldb passes",
+			cfg: Config{
+				Backend: BackendSQL,
+				SQLDB:   &sql.DB{},
+			},
+			wantErr: false,
 		},
 		{
 			name: "sql forbids redis settings",
@@ -39,10 +46,10 @@ func TestConfigValidate(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name: "redis forbids ent settings",
+			name: "redis forbids sqldb settings",
 			cfg: Config{
-				Backend:   BackendRedis,
-				EntClient: &ent.Client{},
+				Backend: BackendRedis,
+				SQLDB:   &sql.DB{},
 				Redis: RedisConfig{
 					Addr: "localhost:6379",
 				},

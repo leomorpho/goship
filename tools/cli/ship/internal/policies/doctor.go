@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	rt "github.com/leomorpho/goship/tools/cli/ship/internal/runtime"
 )
 
 type DoctorIssue struct {
@@ -217,8 +219,271 @@ func RunDoctorChecks(root string) []DoctorIssue {
 	issues = append(issues, checkDockerIgnoreCoverage(root)...)
 	issues = append(issues, checkDockerLocalReplaceOrder(root)...)
 	issues = append(issues, checkAgentPolicyArtifacts(root)...)
+	issues = append(issues, checkModulesManifestFormat(root)...)
+	issues = append(issues, checkEnabledModuleDBArtifacts(root)...)
+	issues = append(issues, checkForbiddenCrossBoundaryImports(root)...)
 
 	return issues
+}
+
+func checkModulesManifestFormat(root string) []DoctorIssue {
+	issues := make([]DoctorIssue, 0)
+	path := filepath.Join(root, "config", "modules.yaml")
+	if !hasFile(path) {
+		return issues
+	}
+	_, err := rt.LoadModulesManifest(path)
+	if err != nil {
+		issues = append(issues, DoctorIssue{
+			Code:    "DX018",
+			Message: "invalid config/modules.yaml format",
+			Fix:     fmt.Sprintf("use YAML shape `modules: []` with tokens [a-z0-9_-]: %v", err),
+		})
+	}
+	return issues
+}
+
+func checkEnabledModuleDBArtifacts(root string) []DoctorIssue {
+	issues := make([]DoctorIssue, 0)
+	path := filepath.Join(root, "config", "modules.yaml")
+	if !hasFile(path) {
+		return issues
+	}
+	manifest, err := rt.LoadModulesManifest(path)
+	if err != nil {
+		return issues
+	}
+
+	for _, name := range manifest.Modules {
+		moduleRoot := filepath.Join(root, "modules", name)
+		if !isDir(moduleRoot) {
+			issues = append(issues, DoctorIssue{
+				Code:    "DX019",
+				Message: fmt.Sprintf("enabled module directory missing: modules/%s", name),
+				Fix:     fmt.Sprintf("add modules/%s or remove %q from config/modules.yaml", name, name),
+			})
+			continue
+		}
+
+		migrationsDir := filepath.Join(moduleRoot, "db", "migrate", "migrations")
+		if !isDir(migrationsDir) {
+			issues = append(issues, DoctorIssue{
+				Code:    "DX019",
+				Message: fmt.Sprintf("enabled module missing migrations directory: modules/%s/db/migrate/migrations", name),
+				Fix:     fmt.Sprintf("add module migrations under modules/%s/db/migrate/migrations", name),
+			})
+		}
+
+		bobgenPath := filepath.Join(moduleRoot, "db", "bobgen.yaml")
+		if !hasFile(bobgenPath) {
+			issues = append(issues, DoctorIssue{
+				Code:    "DX019",
+				Message: fmt.Sprintf("enabled module missing bobgen config: modules/%s/db/bobgen.yaml", name),
+				Fix:     fmt.Sprintf("add modules/%s/db/bobgen.yaml", name),
+			})
+		}
+	}
+
+	return issues
+}
+
+func checkForbiddenCrossBoundaryImports(root string) []DoctorIssue {
+	issues := make([]DoctorIssue, 0)
+
+	// Controllers must not directly import Ent packages.
+	controllerDir := filepath.Join(root, "app", "web", "controllers")
+	issues = append(issues, checkImportPrefixForbidden(controllerDir, "github.com/leomorpho/goship/db/ent", "DX020",
+		"controller db boundary violated: app/web/controllers must not import db/ent directly",
+		"move DB access behind foundation/service seams or auth/profile helpers")...)
+
+	// Controllers must not call QueryProfile() directly.
+	issues = append(issues, checkTextForbiddenInDir(controllerDir, "QueryProfile(", "DX020",
+		"controller auth boundary violated: direct QueryProfile() usage is not allowed in app/web/controllers",
+		"use middleware auth identity keys + service/store lookup by id")...)
+
+	// Jobs SQL path must stay Ent-free.
+	issues = append(issues, checkTextForbidden(filepath.Join(root, "modules", "jobs", "config.go"), "EntClient", "DX020",
+		"jobs SQL boundary violated: EntClient found in modules/jobs/config.go",
+		"keep jobs SQL path DB-first (*sql.DB) and adapter-agnostic")...)
+	issues = append(issues, checkTextForbidden(filepath.Join(root, "modules", "jobs", "module.go"), "EntClient", "DX020",
+		"jobs SQL boundary violated: EntClient found in modules/jobs/module.go",
+		"remove Ent coupling from jobs module runtime config")...)
+	issues = append(issues, checkTextForbidden(filepath.Join(root, "modules", "jobs", "drivers", "sql", "client.go"), "EntClient", "DX020",
+		"jobs SQL boundary violated: EntClient found in modules/jobs/drivers/sql/client.go",
+		"keep jobs SQL driver independent from Ent")...)
+	for _, path := range []string{
+		filepath.Join(root, "modules", "jobs", "config.go"),
+		filepath.Join(root, "modules", "jobs", "module.go"),
+		filepath.Join(root, "modules", "jobs", "drivers", "sql", "client.go"),
+	} {
+		issues = append(issues, checkTextForbidden(path, "github.com/leomorpho/goship/db/ent", "DX020",
+			fmt.Sprintf("jobs SQL boundary violated: db/ent import found in %s", filepath.ToSlash(mustRel(root, path))),
+			"remove Ent imports from jobs SQL path")...)
+	}
+
+	// Notifications module must not depend on framework/core directly for pubsub contracts.
+	for _, path := range []string{
+		filepath.Join(root, "modules", "notifications", "module.go"),
+		filepath.Join(root, "modules", "notifications", "notifier.go"),
+		filepath.Join(root, "modules", "notifications", "notifier_test.go"),
+	} {
+		issues = append(issues, checkTextForbidden(path, "github.com/leomorpho/goship/framework/core", "DX020",
+			fmt.Sprintf("notifications pubsub boundary violated: framework/core import found in %s", filepath.ToSlash(mustRel(root, path))),
+			"use module-local contracts and app-level bridge adapters")...)
+	}
+
+	// Module isolation: no direct imports from root app/framework packages, except explicit allowlist paths.
+	issues = append(issues, checkModuleSourceIsolation(root)...)
+
+	return issues
+}
+
+func checkModuleSourceIsolation(root string) []DoctorIssue {
+	issues := make([]DoctorIssue, 0)
+	modulesRoot := filepath.Join(root, "modules")
+	if !isDir(modulesRoot) {
+		return issues
+	}
+	allowlist := loadModuleIsolationAllowlist(filepath.Join(root, "tools", "scripts", "test", "module-isolation-allowlist.txt"))
+	_ = filepath.WalkDir(modulesRoot, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return nil
+		}
+		if d.IsDir() {
+			return nil
+		}
+		if !strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "_test.go") {
+			return nil
+		}
+		rel := filepath.ToSlash(mustRel(root, path))
+		if _, ok := allowlist[rel]; ok {
+			return nil
+		}
+		b, readErr := os.ReadFile(path)
+		if readErr != nil {
+			issues = append(issues, DoctorIssue{
+				Code:    "DX020",
+				Message: fmt.Sprintf("failed reading file for module isolation check: %s", rel),
+				Fix:     readErr.Error(),
+			})
+			return nil
+		}
+		if strings.Contains(string(b), "\"github.com/leomorpho/goship/") {
+			issues = append(issues, DoctorIssue{
+				Code:    "DX020",
+				Message: fmt.Sprintf("module isolation violated: forbidden root import in %s", rel),
+				Fix:     "remove direct github.com/leomorpho/goship/* imports from module runtime code or add a deliberate allowlist entry",
+			})
+		}
+		return nil
+	})
+	return issues
+}
+
+func loadModuleIsolationAllowlist(path string) map[string]struct{} {
+	result := map[string]struct{}{}
+	if !hasFile(path) {
+		return result
+	}
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return result
+	}
+	for _, raw := range strings.Split(string(b), "\n") {
+		line := strings.TrimSpace(raw)
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		result[filepath.ToSlash(line)] = struct{}{}
+	}
+	return result
+}
+
+func checkImportPrefixForbidden(dir string, forbiddenPrefix string, code string, message string, fix string) []DoctorIssue {
+	issues := make([]DoctorIssue, 0)
+	if !isDir(dir) {
+		return issues
+	}
+	_ = filepath.WalkDir(dir, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return nil
+		}
+		if d.IsDir() || !strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "_test.go") {
+			return nil
+		}
+		b, readErr := os.ReadFile(path)
+		if readErr != nil {
+			return nil
+		}
+		if strings.Contains(string(b), "\""+forbiddenPrefix) {
+			issues = append(issues, DoctorIssue{
+				Code:    code,
+				Message: message,
+				Fix:     fix,
+			})
+		}
+		return nil
+	})
+	return issues
+}
+
+func checkTextForbidden(path string, token string, code string, message string, fix string) []DoctorIssue {
+	issues := make([]DoctorIssue, 0)
+	if !hasFile(path) {
+		return issues
+	}
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return append(issues, DoctorIssue{
+			Code:    code,
+			Message: fmt.Sprintf("failed to read boundary file: %s", filepath.ToSlash(path)),
+			Fix:     err.Error(),
+		})
+	}
+	if strings.Contains(string(b), token) {
+		issues = append(issues, DoctorIssue{
+			Code:    code,
+			Message: message,
+			Fix:     fix,
+		})
+	}
+	return issues
+}
+
+func checkTextForbiddenInDir(dir string, token string, code string, message string, fix string) []DoctorIssue {
+	issues := make([]DoctorIssue, 0)
+	if !isDir(dir) {
+		return issues
+	}
+	_ = filepath.WalkDir(dir, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return nil
+		}
+		if d.IsDir() || !strings.HasSuffix(path, ".go") {
+			return nil
+		}
+		b, readErr := os.ReadFile(path)
+		if readErr != nil {
+			return nil
+		}
+		if strings.Contains(string(b), token) {
+			issues = append(issues, DoctorIssue{
+				Code:    code,
+				Message: message,
+				Fix:     fix,
+			})
+		}
+		return nil
+	})
+	return issues
+}
+
+func mustRel(root, path string) string {
+	rel, err := filepath.Rel(root, path)
+	if err != nil {
+		return path
+	}
+	return rel
 }
 
 func checkPackageNaming(root, relDir, expected string) []DoctorIssue {
@@ -323,7 +588,13 @@ func checkFileLengthBudget(root string, maxLines int) []DoctorIssue {
 		rel = filepath.ToSlash(rel)
 
 		if d.IsDir() {
-			if rel == ".git" || rel == "node_modules" || rel == ".cache" || rel == filepath.ToSlash(filepath.Join("db", "ent")) || strings.HasPrefix(rel, filepath.ToSlash(filepath.Join("db", "ent"))+"/") {
+			if rel == ".git" ||
+				rel == "node_modules" ||
+				rel == ".cache" ||
+				filepath.Base(rel) == ".cache" ||
+				strings.Contains(rel, "/.cache/") ||
+				rel == filepath.ToSlash(filepath.Join("db", "ent")) ||
+				strings.HasPrefix(rel, filepath.ToSlash(filepath.Join("db", "ent"))+"/") {
 				return filepath.SkipDir
 			}
 			if strings.HasSuffix(rel, "/gen") {

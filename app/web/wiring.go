@@ -53,7 +53,9 @@ func NewRouteDeps(
 	notificationServices *notifications.Services,
 ) (*RouteDeps, error) {
 	deps := &RouteDeps{}
-	deps.EmailSubscriptions = modemailsubscriptions.New(modemailsubscriptions.NewEntStore(c.ORM))
+	deps.EmailSubscriptions = modemailsubscriptions.New(
+		modemailsubscriptions.NewSQLStore(c.Database, activeDatabaseDialect(c.Config)),
+	)
 	deps.StorageRepo = storagerepo.NewStorageClient(c.Config, c.ORM)
 	deps.SubscriptionsRepo = paidSubscriptions
 	deps.ProfileService = profilesvc.NewProfileService(c.ORM, deps.StorageRepo, deps.SubscriptionsRepo)
@@ -70,6 +72,13 @@ func NewRouteDeps(
 	}
 
 	return deps, nil
+}
+
+func activeDatabaseDialect(cfg *config.Config) string {
+	if cfg.Database.DbMode == config.DBModeEmbedded {
+		return cfg.Database.EmbeddedDriver
+	}
+	return "postgres"
 }
 
 func RegisterStaticRoutes(c *foundation.Container) {

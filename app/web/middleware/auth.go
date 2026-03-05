@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -11,8 +12,8 @@ import (
 	"github.com/leomorpho/goship/app/foundation"
 	profilesvc "github.com/leomorpho/goship/app/profile"
 	"github.com/leomorpho/goship/app/web/routenames"
-	"github.com/leomorpho/goship/db/ent"
 	"github.com/leomorpho/goship/framework/context"
+	"github.com/leomorpho/goship/framework/dberrors"
 	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
 	"github.com/rs/zerolog/log"
 )
@@ -23,30 +24,32 @@ func LoadAuthenticatedUser(
 ) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			u, err := authClient.GetAuthenticatedUser(c)
-			switch err.(type) {
-			case *ent.NotFoundError:
-				c.Logger().Warn("auth user not found")
-			case foundation.NotAuthenticatedError:
-			case nil:
-				c.Set(context.AuthenticatedUserKey, u)
-				if u.Edges.Profile != nil {
-					c.Set(context.ProfileFullyOnboarded, profilesvc.IsProfileFullyOnboarded(u.Edges.Profile))
-
-					// if subscriptionsService != nil {
-					// 	activeProduct, _, err := subscriptionsService.GetCurrentlyActiveProduct(c.Request().Context(), u.Edges.Profile.ID)
-					// 	if err != nil {
-					// 		log.Error().Err(err).Int("userID", u.ID).Int("profileID", u.Edges.Profile.ID).Msg("failed to get active product in middleware for user")
-					// 	}
-					// 	c.Set(context.ActiveProductPlan, activeProduct)
-
-					// }
+			u, err := authClient.GetAuthenticatedIdentity(c)
+			switch {
+			case err == nil:
+				c.Set(context.AuthenticatedUserIDKey, u.UserID)
+				c.Set(context.AuthenticatedUserNameKey, u.UserName)
+				c.Set(context.AuthenticatedUserEmailKey, u.UserEmail)
+				if u.HasProfile {
+					c.Set(context.AuthenticatedProfileIDKey, u.ProfileID)
+					c.Set(context.ProfileFullyOnboarded, u.ProfileFullyOnboarded)
 				}
+				// if subscriptionsService != nil {
+				// 	activeProduct, _, err := subscriptionsService.GetCurrentlyActiveProduct(c.Request().Context(), u.Edges.Profile.ID)
+				// 	if err != nil {
+				// 		log.Error().Err(err).Int("userID", u.ID).Int("profileID", u.Edges.Profile.ID).Msg("failed to get active product in middleware for user")
+				// 	}
+				// 	c.Set(context.ActiveProductPlan, activeProduct)
+
+				// }
 				if profileService != nil {
 					// TODO: cache profile photo URL somewhere in the stack
-					c.Set(context.AuthenticatedUserProfilePicURL, profileService.GetProfilePhotoThumbnailURL(u.ID))
+					c.Set(context.AuthenticatedUserProfilePicURL, profileService.GetProfilePhotoThumbnailURL(u.UserID))
 				}
-				c.Logger().Infof("auth user loaded in to context: %d", u.ID)
+				c.Logger().Infof("auth user loaded in to context: %d", u.UserID)
+			case dberrors.IsNotFound(err):
+				c.Logger().Warn("auth user not found")
+			case errors.Is(err, foundation.NotAuthenticatedError{}):
 			default:
 				return echo.NewHTTPError(
 					http.StatusInternalServerError,
@@ -62,15 +65,16 @@ func LoadAuthenticatedUser(
 // LoadValidPasswordToken loads a valid password token entity that matches the user and token
 // provided in path parameters
 // If the token is invalid, the user will be redirected to the forgot password route
-// This requires that the user owning the token is loaded in to context
+// This requires that the user ID owning the token is loaded in context
+// (e.g. by LoadUser middleware).
 func LoadValidPasswordToken(authClient *foundation.AuthClient) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			// Extract the user parameter
-			if c.Get(context.UserKey) == nil {
+			userIDRaw := c.Get(context.AuthenticatedUserIDKey)
+			userID, ok := userIDRaw.(int)
+			if !ok || userID <= 0 {
 				return echo.NewHTTPError(http.StatusInternalServerError)
 			}
-			usr := c.Get(context.UserKey).(*ent.User)
 
 			// Extract the token ID
 			tokenID, err := strconv.Atoi(c.Param("password_token"))
@@ -79,16 +83,15 @@ func LoadValidPasswordToken(authClient *foundation.AuthClient) echo.MiddlewareFu
 			}
 
 			// Attempt to load a valid password token
-			token, err := authClient.GetValidPasswordToken(
+			err = authClient.GetValidPasswordToken(
 				c,
-				usr.ID,
+				userID,
 				tokenID,
 				c.Param("token"),
 			)
 
 			switch err.(type) {
 			case nil:
-				c.Set(context.PasswordTokenKey, token)
 				return next(c)
 			case foundation.InvalidPasswordTokenError:
 				uxflashmessages.Warning(c, "The link is either invalid or has expired. Please request a new one.")
@@ -108,7 +111,7 @@ func LoadValidPasswordToken(authClient *foundation.AuthClient) echo.MiddlewareFu
 func RequireAuthentication() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			if c.Get(context.AuthenticatedUserKey) == nil {
+			if c.Get(context.AuthenticatedUserIDKey) == nil {
 				// Get the session
 				sess, err := session.Get("session", c)
 				if err != nil {
@@ -137,7 +140,7 @@ func RequireAuthentication() echo.MiddlewareFunc {
 func RequireNoAuthentication() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			if u := c.Get(context.AuthenticatedUserKey); u != nil {
+			if u := c.Get(context.AuthenticatedUserIDKey); u != nil {
 				url := c.Echo().Reverse("home_feed")
 				return c.Redirect(http.StatusSeeOther, url)
 			}

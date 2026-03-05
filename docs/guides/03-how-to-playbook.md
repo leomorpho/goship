@@ -28,26 +28,27 @@ Common failures:
 2. Existing controller file: pick another name or remove conflicting file.
 3. Wrong auth group: use `--auth public|auth`.
 
-## 2) Add a New Ent Model + Migration
+## 2) Add a New Migration + Bob Generation
 
 Goal:
-- add a new schema and create/apply migration.
+- add a DB change, apply it, and regenerate query code.
 
 Steps:
 ```bash
-go run ./tools/cli/ship/cmd/ship make:model Post title:string published_at:time
 go run ./tools/cli/ship/cmd/ship db:make add_posts
 go run ./tools/cli/ship/cmd/ship db:migrate
+go run ./tools/cli/ship/cmd/ship db:generate
 ```
 
 Validation:
 ```bash
 go run ./tools/cli/ship/cmd/ship db:status
+bash tools/scripts/check-bobgen-drift.sh
 ```
 
 Common failures:
-1. Missing Atlas tool: rerun command, `ship` installs pinned atlas automatically.
-2. Embedded DB mode for migrate/rollback: switch to server DB URL for migration commands.
+1. Unsupported DB URL scheme: use `postgres`, `mysql`, `sqlite`, or `sqlite3`.
+2. Missing module migrations/config for enabled module: fix module DB scaffold (`db/migrate/migrations`, `db/bobgen.yaml`).
 3. `PAGODA_DATABASE_URL` set: use `DATABASE_URL` only.
 
 ## 3) Add a New Controller (No View)
@@ -139,6 +140,36 @@ Common failures:
 1. App-specific logic placed in framework package.
 2. Missing shutdown/lifecycle handling in container.
 3. Route/controller code directly using backend package instead of interface seam.
+
+## 7) Add DB Artifacts to an Installable Module
+
+Goal:
+- keep module DB ownership isolated from app core.
+
+Steps:
+```bash
+# scaffold or verify module DB layout
+go run ./tools/cli/ship/cmd/ship make:module MyModule --path modules --dry-run
+
+# for an installed module, add migration + queries + generation config under:
+# modules/<name>/db/migrate/migrations
+# modules/<name>/db/queries
+# modules/<name>/db/bobgen.yaml
+
+go run ./tools/cli/ship/cmd/ship db:migrate
+go run ./tools/cli/ship/cmd/ship db:generate
+```
+
+Validation:
+```bash
+bash tools/scripts/check-module-isolation.sh
+go run ./tools/cli/ship/cmd/ship doctor
+```
+
+Common failures:
+1. Module imports app/core DB package directly: fix imports to module-local DB package.
+2. Missing `db/bobgen.yaml` in enabled module: doctor and `db:generate` fail.
+3. Migration order assumptions: module execution is deterministic sorted order only.
 
 ## References
 

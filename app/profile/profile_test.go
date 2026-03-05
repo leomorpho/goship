@@ -14,6 +14,7 @@ import (
 	"github.com/jackc/pgx/stdlib"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	profilesvc "github.com/leomorpho/goship/app/profile"
+	appsubscriptions "github.com/leomorpho/goship/app/subscriptions"
 	"github.com/leomorpho/goship/db/ent"
 	"github.com/leomorpho/goship/db/ent/profile"
 	"github.com/leomorpho/goship/framework/domain"
@@ -404,7 +405,7 @@ func TestDeleteUserData(t *testing.T) {
 
 	// Create subcription then delete it (mimicking user cancelling before
 	// deleting, this is enforced in the deletion flow).
-	subscriptionsService := paidsubscriptions.NewSubscriptionsRepo(client, 5, 5)
+	subscriptionsService := paidsubscriptions.New(appsubscriptions.NewEntStore(client, 5, 5))
 	err = subscriptionsService.CreateSubscription(ctx, nil, profile1.ID)
 	assert.NoError(t, err)
 

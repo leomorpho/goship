@@ -10,8 +10,6 @@ import (
 	"github.com/leomorpho/goship/app/views/web/pages/gen"
 	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/app/web/viewmodels"
-	"github.com/leomorpho/goship/db/ent"
-	"github.com/leomorpho/goship/framework/context"
 	"github.com/leomorpho/goship/framework/domain"
 	"github.com/nyaruka/phonenumbers"
 	"github.com/rs/zerolog/log"
@@ -41,14 +39,13 @@ const PROFILE_ID_QUERY_PARAM = "profile_id"
 
 func (c *singleProfile) Get(ctx echo.Context) error {
 	var otherProfileID int
-	var selfProfileID int
 	var err error
 	isSelf := true
 
-	usr := ctx.Get(context.AuthenticatedUserKey).(*ent.User)
-
-	selfProfileID = usr.QueryProfile().
-		FirstX(ctx.Request().Context()).ID
+	selfProfileID, err := authenticatedProfileID(ctx)
+	if err != nil {
+		return err
+	}
 
 	var profileData *domain.Profile
 	otherProfileIdStr := ctx.QueryParam(PROFILE_ID_QUERY_PARAM)

@@ -183,6 +183,12 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			wantCalls: []fakeCall{{name: "goose", args: []string{"-dir", gooseDir, "postgres", testDBURL, "status"}}},
 		},
 		{
+			name:      "db generate",
+			args:      []string{"db:generate"},
+			wantCode:  0,
+			wantCalls: []fakeCall{{name: "bobgen-sql", args: []string{"-c", "db/bobgen.yaml"}}},
+		},
+		{
 			name:      "db make",
 			args:      []string{"db:make", "add_posts"},
 			wantCode:  0,
@@ -253,6 +259,12 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			args:     []string{"db:create", "extra"},
 			wantCode: 1,
 			wantErr:  "usage: ship db:create [--dry-run]",
+		},
+		{
+			name:     "db generate extra arg",
+			args:     []string{"db:generate", "extra"},
+			wantCode: 1,
+			wantErr:  "usage: ship db:generate [--config <path>] [--dry-run]",
 		},
 		{
 			name:     "db missing subcommand",

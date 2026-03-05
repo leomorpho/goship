@@ -4,18 +4,17 @@ import (
 	"context"
 
 	sqldriver "github.com/leomorpho/goship-modules/jobs/drivers/sql"
-	"github.com/leomorpho/goship/framework/core"
 )
 
 type sqlJobsInspector struct {
 	client *sqldriver.Client
 }
 
-func newSQLJobsInspector(client *sqldriver.Client) core.JobsInspector {
+func newSQLJobsInspector(client *sqldriver.Client) JobsInspector {
 	return &sqlJobsInspector{client: client}
 }
 
-func (s *sqlJobsInspector) List(ctx context.Context, filter core.JobListFilter) ([]core.JobRecord, error) {
+func (s *sqlJobsInspector) List(ctx context.Context, filter JobListFilter) ([]JobRecord, error) {
 	if s == nil || s.client == nil {
 		return nil, nil
 	}
@@ -27,34 +26,34 @@ func (s *sqlJobsInspector) List(ctx context.Context, filter core.JobListFilter) 
 	if err != nil {
 		return nil, err
 	}
-	out := make([]core.JobRecord, 0, len(rows))
+	out := make([]JobRecord, 0, len(rows))
 	for _, row := range rows {
 		out = append(out, toCoreJobRecord(row))
 	}
 	return out, nil
 }
 
-func (s *sqlJobsInspector) Get(ctx context.Context, id string) (core.JobRecord, bool, error) {
+func (s *sqlJobsInspector) Get(ctx context.Context, id string) (JobRecord, bool, error) {
 	if s == nil || s.client == nil {
-		return core.JobRecord{}, false, nil
+		return JobRecord{}, false, nil
 	}
 	row, ok, err := s.client.Get(ctx, id)
 	if err != nil {
-		return core.JobRecord{}, false, err
+		return JobRecord{}, false, err
 	}
 	if !ok {
-		return core.JobRecord{}, false, nil
+		return JobRecord{}, false, nil
 	}
 	return toCoreJobRecord(row), true, nil
 }
 
-func toCoreJobRecord(row sqldriver.Job) core.JobRecord {
-	return core.JobRecord{
+func toCoreJobRecord(row sqldriver.Job) JobRecord {
+	return JobRecord{
 		ID:         row.ID,
 		Queue:      row.Queue,
 		Name:       row.Name,
 		Payload:    []byte(row.Payload),
-		Status:     core.JobStatus(row.Status),
+		Status:     JobStatus(row.Status),
 		Attempt:    row.Attempt,
 		MaxRetries: row.MaxRetries,
 		RunAt:      row.RunAt,

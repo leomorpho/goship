@@ -12,8 +12,6 @@ import (
 	profilesvc "github.com/leomorpho/goship/app/profile"
 	"github.com/leomorpho/goship/app/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/web/ui"
-	"github.com/leomorpho/goship/db/ent"
-	"github.com/leomorpho/goship/framework/context"
 	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
 
 	"github.com/labstack/echo/v4"
@@ -96,15 +94,13 @@ func (p *currProfilePhoto) Post(ctx echo.Context) error {
 	}
 	defer src.Close()
 
-	usr := ctx.Get(context.AuthenticatedUserKey).(*ent.User)
-
-	profile, err := usr.QueryProfile().First(ctx.Request().Context())
+	profileID, err := authenticatedProfileID(ctx)
 	if err != nil {
 		return err
 	}
 
 	if err := p.profileService.SetProfilePhoto(
-		ctx.Request().Context(), profile.ID, src, file.Filename,
+		ctx.Request().Context(), profileID, src, file.Filename,
 	); err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError,
 			"Failed to upload photo: "+err.Error())

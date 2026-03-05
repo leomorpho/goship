@@ -2,12 +2,10 @@ package controllers
 
 import (
 	"net/http"
-	"strings"
 
+	"github.com/leomorpho/goship/app/foundation"
 	routeNames "github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/app/web/ui"
-	"github.com/leomorpho/goship/db/ent"
-	"github.com/leomorpho/goship/db/ent/user"
 	"github.com/leomorpho/goship/framework/context"
 	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
 
@@ -79,30 +77,18 @@ func (c *login) Post(ctx echo.Context) error {
 		return c.Get(ctx)
 	}
 
-	// Attempt to load the user
-	usr, err := c.ctr.Container.ORM.User.
-		Query().
-		Where(user.Email((strings.ToLower(form.Email)))).
-		Only(ctx.Request().Context())
-
+	usr, err := c.ctr.Container.Auth.AuthenticateUserByEmailPassword(ctx, form.Email, form.Password)
 	switch err.(type) {
-	case *ent.NotFoundError:
-		ctx.Logger().Debug("ent user not found")
-		return authFailed()
 	case nil:
-	default:
-		return c.ctr.Fail(err, "error querying user during login")
-	}
-
-	// Check if the password is correct
-	err = c.ctr.Container.Auth.CheckPassword(form.Password, usr.Password)
-	if err != nil {
-		ctx.Logger().Debug("password incorrect")
+	case foundation.InvalidCredentialsError:
+		ctx.Logger().Debug("credentials incorrect")
 		return authFailed()
+	default:
+		return c.ctr.Fail(err, "error authenticating user during login")
 	}
 
 	// Log the user in
-	err = c.ctr.Container.Auth.Login(ctx, usr.ID)
+	err = c.ctr.Container.Auth.Login(ctx, usr.UserID)
 	if err != nil {
 		return c.ctr.Fail(err, "unable to log in user")
 	}
@@ -117,8 +103,12 @@ func (c *login) Post(ctx echo.Context) error {
 		return nil
 	}
 
-	profile := usr.QueryProfile().FirstX(ctx.Request().Context())
-	if !profilesvc.IsProfileFullyOnboarded(profile) {
+	profileService := profilesvc.NewProfileService(c.ctr.Container.ORM, nil, nil)
+	fullyOnboarded, err := profileService.IsProfileFullyOnboardedByUserID(ctx.Request().Context(), usr.UserID)
+	if err != nil {
+		return c.ctr.Fail(err, "unable to determine profile onboarding status")
+	}
+	if !fullyOnboarded {
 		return c.ctr.Redirect(ctx, routeNames.RouteNamePreferences)
 
 	}

@@ -48,22 +48,34 @@ Templ generation:
 - or `go run ./tools/cli/ship/cmd/ship templ generate --path app`
 - Generated `*_templ.go` files are moved to `gen/` subdirectories beside each templ package.
 
-## Database and Schema
+## Database and Migrations
 
-Entity schema source:
+Canonical runtime:
 
-- `db/schema/*.go`
+- migrations: Goose
+- query generation: Bob (`bobgen-sql`)
+- command surface: `ship db:*`
 
 Common workflow:
 
-1. `make ent-new name=YourEntity` (if new entity)
-2. `go run ./tools/cli/ship/cmd/ship db:make your_change`
-3. `make ent-gen` (or `go run ./tools/cli/ship/cmd/ship make:model ...` when scaffolding a new model)
-4. `go run ./tools/cli/ship/cmd/ship db:migrate`
-5. `go run ./tools/cli/ship/cmd/ship db:status`
-6. Optional reset loop: `go run ./tools/cli/ship/cmd/ship db:reset --yes` (use `--dry-run` first)
+1. Create migration: `go run ./tools/cli/ship/cmd/ship db:make add_feature_x`
+2. Apply migration(s): `go run ./tools/cli/ship/cmd/ship db:migrate`
+3. Generate DB query code: `go run ./tools/cli/ship/cmd/ship db:generate`
+4. Check status: `go run ./tools/cli/ship/cmd/ship db:status`
+5. Optional local reset loop: `go run ./tools/cli/ship/cmd/ship db:reset --yes` (use `--dry-run` first)
 
-Use `ship db:*` as the canonical migration interface; avoid calling migration tools directly.
+Module behavior:
+
+- `db:migrate` runs core first, then enabled modules from `config/modules.yaml` in deterministic sorted order.
+- `db:generate` runs core first, then enabled modules in deterministic sorted order.
+
+Safety:
+
+- `db:drop` and `db:reset` require confirmation (`--yes`), and non-local URLs additionally require `--force`.
+- production targets require both `--force` and `--yes`.
+- supported DB URL schemes are limited to `postgres`, `mysql`, `sqlite`, and `sqlite3`.
+
+Use `ship db:*` as the canonical interface; avoid invoking Goose/Bob directly.
 
 ## Worker and Tasks
 
@@ -89,6 +101,7 @@ Go tests:
 - `make test` (broader suite; may include Docker-backed packages depending on environment)
 - `go run ./tools/cli/ship/cmd/ship test`
 - `make cover`
+- `bash tools/scripts/precommit-tests.sh` (full stateless gate used before commit/CI)
 
 E2E tests:
 
@@ -119,3 +132,15 @@ Guardrails:
 
 - `agent:check` runs in pre-commit and CI.
 - `ship doctor` also validates these artifacts are in sync.
+
+## Documentation Artifacts
+
+LLM reference bundle:
+
+- regenerate `LLM.txt` from `README.md` + `docs/**/*.md` with:
+  - `make llm-txt`
+  - or `bash tools/scripts/generate-llm-txt.sh`
+
+Automation:
+
+- pre-commit hook runs `tools/scripts/precommit-generate-llm-txt.sh` and stages updated `LLM.txt` automatically.

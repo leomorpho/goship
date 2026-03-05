@@ -8,98 +8,84 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
 	"github.com/aws/aws-sdk-go-v2/service/sns/types"
-	"github.com/leomorpho/goship/db/ent"
-	"github.com/leomorpho/goship/db/ent/phoneverificationcode"
-	"github.com/rs/zerolog/log"
 )
 
+type phoneVerificationCodeRecord struct {
+	ID   int
+	Code string
+}
+
+type smsCodeStorage interface {
+	deleteCodesByProfileID(ctx context.Context, profileID int) error
+	createCode(ctx context.Context, profileID int, code string) error
+	findLatestValidCode(ctx context.Context, profileID int, minCreatedAt time.Time) (*phoneVerificationCodeRecord, error)
+	deleteCodeByID(ctx context.Context, id int) error
+}
+
+type smsSendFn func(ctx context.Context, phoneNumber, message string) (*sns.PublishOutput, error)
+
 type SMSSender struct {
-	orm                             *ent.Client
+	store                           smsCodeStorage
 	snsClient                       *sns.Client
 	senderID                        string
 	validationTextExpirationMinutes int
+	sendSMS                         smsSendFn
 }
 
-// NewSMSSender initializes a new SMSSender with the AWS SNS client
-func NewSMSSender(orm *ent.Client, region, senderID string, validationTextExpirationMinutes int) (*SMSSender, error) {
-	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(region))
-	if err != nil {
-		return nil, fmt.Errorf("configuration error: %w", err)
+func newSMSSender(
+	store smsCodeStorage, snsClient *sns.Client, senderID string, validationTextExpirationMinutes int,
+) *SMSSender {
+	s := &SMSSender{
+		store:                           store,
+		snsClient:                       snsClient,
+		senderID:                        senderID,
+		validationTextExpirationMinutes: validationTextExpirationMinutes,
 	}
-
-	client := sns.NewFromConfig(cfg)
-	return &SMSSender{
-		orm:       orm,
-		snsClient: client,
-		senderID:  senderID,
-	}, nil
+	s.sendSMS = s.sendSMSWithSNS
+	return s
 }
 
+// CreateConfirmationCode creates and sends a validation code to the given phone number.
 func (s *SMSSender) CreateConfirmationCode(
 	ctx context.Context, profileID int, phoneNumber string,
 ) (string, error) {
-
-	_, err := s.orm.PhoneVerificationCode.
-		Delete().
-		Where(
-			phoneverificationcode.ProfileIDEQ(profileID),
-		).
-		Exec(ctx)
-
-	if err != nil && !ent.IsNotFound(err) {
+	if err := s.store.deleteCodesByProfileID(ctx, profileID); err != nil {
 		return "", err
 	}
 
 	code := generateRandomIntWithNDigits(4)
-
-	err = s.orm.PhoneVerificationCode.
-		Create().
-		SetCode(fmt.Sprintf("%d", code)).
-		SetProfileID(profileID).
-		Exec(ctx)
-
-	_, err = s.SendSms(ctx, phoneNumber,
-		fmt.Sprintf("Please confirm your phone number for Goship, your code is %d", code))
-	if err != nil {
-		log.Error().Err(err)
+	codeStr := fmt.Sprintf("%d", code)
+	if err := s.store.createCode(ctx, profileID, codeStr); err != nil {
 		return "", err
 	}
 
-	return fmt.Sprintf("%d", code), nil
+	if _, err := s.sendSMS(ctx, phoneNumber, fmt.Sprintf("Please confirm your phone number for Goship, your code is %d", code)); err != nil {
+		return "", err
+	}
+	return codeStr, nil
 }
 
 func (s *SMSSender) VerifyConfirmationCode(ctx context.Context, profileID int, code string) (bool, error) {
-	phoneCodeInDB, err := s.orm.PhoneVerificationCode.
-		Query().
-		Where(
-			phoneverificationcode.ProfileIDEQ(profileID),
-			phoneverificationcode.CreatedAtGTE(time.Now().Add(-time.Minute*time.Duration(s.validationTextExpirationMinutes))),
-		).
-		Only(ctx)
-
+	minCreatedAt := time.Now().Add(-time.Minute * time.Duration(s.validationTextExpirationMinutes))
+	phoneCodeInDB, err := s.store.findLatestValidCode(ctx, profileID, minCreatedAt)
 	if err != nil {
 		return false, err
 	}
-
 	if code != phoneCodeInDB.Code {
 		return false, errors.New("incorrect code")
 	}
-
-	err = s.orm.PhoneVerificationCode.
-		DeleteOneID(phoneCodeInDB.ID).
-		Exec(ctx)
-
-	return true, err
+	if err := s.store.deleteCodeByID(ctx, phoneCodeInDB.ID); err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
-// SendSms sends an SMS message to the specified phone number with the given message
-func (s *SMSSender) SendSms(ctx context.Context, phoneNumber, message string) (*sns.PublishOutput, error) {
+func (s *SMSSender) sendSMSWithSNS(ctx context.Context, phoneNumber, message string) (*sns.PublishOutput, error) {
 	params := &sns.PublishInput{
 		Message:     aws.String(message),
-		PhoneNumber: aws.String(phoneNumber), // In international string format
+		PhoneNumber: aws.String(phoneNumber),
 		MessageAttributes: map[string]types.MessageAttributeValue{
 			"AWS.SNS.SMS.SenderID": {
 				DataType:    aws.String("String"),
@@ -116,8 +102,12 @@ func (s *SMSSender) SendSms(ctx context.Context, phoneNumber, message string) (*
 	if err != nil {
 		return nil, fmt.Errorf("failed to send SMS: %w", err)
 	}
-
 	return resp, nil
+}
+
+// SendSms sends an SMS message to the specified phone number with the given message.
+func (s *SMSSender) SendSms(ctx context.Context, phoneNumber, message string) (*sns.PublishOutput, error) {
+	return s.sendSMS(ctx, phoneNumber, message)
 }
 
 // generateRandomIntWithNDigits generates a random integer with n digits.
@@ -133,7 +123,7 @@ func generateRandomIntWithNDigits(n int) int {
 	return rand.Intn(max-min+1) + min
 }
 
-// pow is a simple power function
+// pow is a simple power function.
 func pow(base, exp int) int {
 	result := 1
 	for exp != 0 {

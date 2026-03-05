@@ -7,10 +7,6 @@ import (
 
 	firebase "firebase.google.com/go/v4"
 	"firebase.google.com/go/v4/messaging"
-	"github.com/leomorpho/goship/db/ent"
-	"github.com/leomorpho/goship/db/ent/fcmsubscriptions"
-	"github.com/leomorpho/goship/db/ent/notificationpermission"
-	"github.com/leomorpho/goship/db/ent/profile"
 	"github.com/leomorpho/goship/framework/domain"
 	"github.com/rs/zerolog/log"
 	"google.golang.org/api/option"
@@ -21,12 +17,40 @@ type FcmSubscription struct {
 }
 
 type FcmPushService struct {
-	orm       *ent.Client
-	fcmClient *messaging.Client
+	store                         fcmPushSubscriptionStore
+	fcmClient                     *messaging.Client
+	notificationPermissionService *NotificationPermissionService
 }
 
-func NewFcmPushService(
-	orm *ent.Client, firebaseJSONAccessKeys *[]byte,
+type fcmPushSubscriptionRecord struct {
+	ProfileID int
+	Token     string
+}
+
+type fcmPushSubscriptionStore interface {
+	addSubscription(ctx context.Context, profileID int, token string) error
+	listSubscriptions(ctx context.Context, profileID int) ([]fcmPushSubscriptionRecord, error)
+	deleteByToken(ctx context.Context, profileID int, token string) error
+	hasAnyByProfileID(ctx context.Context, profileID int) (bool, error)
+	hasToken(ctx context.Context, profileID int, token string) (bool, error)
+}
+
+func newFcmPushService(
+	store fcmPushSubscriptionStore,
+	permissionService *NotificationPermissionService,
+	fcmClient *messaging.Client,
+) *FcmPushService {
+	return &FcmPushService{
+		store:                         store,
+		fcmClient:                     fcmClient,
+		notificationPermissionService: permissionService,
+	}
+}
+
+func newFcmPushServiceWithStore(
+	store fcmPushSubscriptionStore,
+	permissionService *NotificationPermissionService,
+	firebaseJSONAccessKeys *[]byte,
 ) (*FcmPushService, error) {
 
 	var fcmClient *messaging.Client
@@ -44,23 +68,18 @@ func NewFcmPushService(
 		}
 	}
 
-	if orm == nil {
-		return nil, errors.New("orm must be set")
+	if store == nil {
+		return nil, errors.New("fcm store must be set")
+	}
+	if permissionService == nil {
+		return nil, errors.New("notification permission service must be set")
 	}
 
-	return &FcmPushService{
-		orm:       orm,
-		fcmClient: fcmClient,
-	}, nil
+	return newFcmPushService(store, permissionService, fcmClient), nil
 }
 
 func (p *FcmPushService) AddPushSubscription(ctx context.Context, profileID int, sub FcmSubscription) error {
-	_, err := p.orm.FCMSubscriptions.
-		Create().
-		SetProfileID(profileID).
-		SetToken(sub.Token).
-		Save(ctx)
-	return err
+	return p.store.addSubscription(ctx, profileID, sub.Token)
 }
 
 func (p *FcmPushService) SendPushNotifications(ctx context.Context, profileID int, title, message string, numUnreadNotifs int, sendSound bool) error {
@@ -69,16 +88,12 @@ func (p *FcmPushService) SendPushNotifications(ctx context.Context, profileID in
 		return nil
 	}
 
-	subs, err := p.orm.Profile.
-		Query().
-		Where(profile.IDEQ(profileID)).
-		QueryFcmPushSubscriptions().
-		All(ctx)
+	subs, err := p.store.listSubscriptions(ctx, profileID)
 	if err != nil {
 		return err
 	}
 
-	invalidSubscriptions := make([]*ent.FCMSubscriptions, 0)
+	invalidSubscriptions := make([]string, 0)
 
 	var sound string
 	if sendSound {
@@ -109,7 +124,7 @@ func (p *FcmPushService) SendPushNotifications(ctx context.Context, profileID in
 			// Handle invalid tokens and log error
 			if messaging.IsUnregistered(err) || messaging.IsInvalidArgument(err) {
 				log.Warn().Err(err).Str("token", sub.Token).Msg("Invalid FCM token, marking for cleanup")
-				invalidSubscriptions = append(invalidSubscriptions, sub)
+				invalidSubscriptions = append(invalidSubscriptions, sub.Token)
 			} else {
 				log.Error().Err(err).
 					Str("token", sub.Token).
@@ -123,8 +138,8 @@ func (p *FcmPushService) SendPushNotifications(ctx context.Context, profileID in
 
 	// Cleanup invalid subscriptions
 	for _, sub := range invalidSubscriptions {
-		if err := p.DeletePushSubscriptionByToken(ctx, sub.ProfileID, sub.Token); err != nil {
-			log.Error().Err(err).Str("token", sub.Token).Msg("Failed to delete invalid FCM subscription")
+		if err := p.DeletePushSubscriptionByToken(ctx, profileID, sub); err != nil {
+			log.Error().Err(err).Str("token", sub).Msg("Failed to delete invalid FCM subscription")
 			return err // Handle or log failure to delete subscription
 		}
 	}
@@ -133,25 +148,11 @@ func (p *FcmPushService) SendPushNotifications(ctx context.Context, profileID in
 }
 
 func (p *FcmPushService) DeletePushSubscriptionByToken(ctx context.Context, profileID int, token string) error {
-	_, err := p.orm.FCMSubscriptions.Delete().
-		Where(
-			fcmsubscriptions.HasProfileWith(profile.IDEQ(profileID)),
-			fcmsubscriptions.TokenEQ(token),
-		).
-		Exec(ctx)
-	if err != nil {
-		return err
-	}
-	return nil
+	return p.store.deleteByToken(ctx, profileID, token)
 }
 
 func (p *FcmPushService) hasProfilePushSubscriptions(ctx context.Context, profileID int) (bool, error) {
-	return p.orm.FCMSubscriptions.
-		Query().
-		Where(
-			fcmsubscriptions.HasProfileWith(profile.IDEQ(profileID)),
-		).
-		Exist(ctx)
+	return p.store.hasAnyByProfileID(ctx, profileID)
 }
 
 // TODO: this is bad design, this repo should know NOTHING about permissions
@@ -161,13 +162,7 @@ func (p *FcmPushService) HasPermissionsLeftAndTokenIsRegistered(
 	token string,
 ) (bool, error) {
 	// Check if the endpoint exists
-	exists, err := p.orm.FCMSubscriptions.
-		Query().
-		Where(
-			fcmsubscriptions.HasProfileWith(profile.IDEQ(profileID)),
-			fcmsubscriptions.TokenEQ(token),
-		).
-		Exist(ctx)
+	exists, err := p.store.hasToken(ctx, profileID, token)
 	if err != nil {
 		return false, err
 	}
@@ -175,17 +170,13 @@ func (p *FcmPushService) HasPermissionsLeftAndTokenIsRegistered(
 		return false, nil
 	}
 
-	// Check if there are any permissions for the given platform
-	count, err := p.orm.NotificationPermission.
-		Query().
-		Where(
-			notificationpermission.HasProfileWith(profile.IDEQ(profileID)),
-			notificationpermission.PlatformEQ(notificationpermission.Platform(domain.NotificationPlatformFCMPush.Value)),
-		).
-		Count(ctx)
+	// Check if there are any permissions for the given platform.
+	hasPerms, err := p.notificationPermissionService.HasPermissionsForPlatform(
+		ctx, profileID, domain.NotificationPlatformFCMPush,
+	)
 	if err != nil {
 		return false, err
 	}
 
-	return count > 0, nil
+	return hasPerms, nil
 }

@@ -45,13 +45,17 @@ func RunMakeModule(args []string, d ModuleDeps) int {
 	}
 
 	files := map[string]string{
-		filepath.Join(moduleDir, "go.mod"):          renderModuleGoMod(modulePath),
-		filepath.Join(moduleDir, "module.go"):       renderModuleEntrypoint(moduleName),
-		filepath.Join(moduleDir, "contracts.go"):    renderModuleContracts(moduleName),
-		filepath.Join(moduleDir, "types.go"):        renderModuleTypes(moduleName),
-		filepath.Join(moduleDir, "errors.go"):       renderModuleErrors(moduleName),
-		filepath.Join(moduleDir, "service.go"):      renderModuleService(moduleName),
-		filepath.Join(moduleDir, "service_test.go"): renderModuleServiceTest(moduleName),
+		filepath.Join(moduleDir, "go.mod"):                                  renderModuleGoMod(modulePath),
+		filepath.Join(moduleDir, "module.go"):                               renderModuleEntrypoint(moduleName),
+		filepath.Join(moduleDir, "contracts.go"):                            renderModuleContracts(moduleName),
+		filepath.Join(moduleDir, "types.go"):                                renderModuleTypes(moduleName),
+		filepath.Join(moduleDir, "errors.go"):                               renderModuleErrors(moduleName),
+		filepath.Join(moduleDir, "service.go"):                              renderModuleService(moduleName),
+		filepath.Join(moduleDir, "service_test.go"):                         renderModuleServiceTest(moduleName),
+		filepath.Join(moduleDir, "db", "bobgen.yaml"):                       renderModuleBobgenConfig(moduleDir),
+		filepath.Join(moduleDir, "db", "migrate", "migrations", ".gitkeep"): "",
+		filepath.Join(moduleDir, "db", "queries", ".gitkeep"):               "",
+		filepath.Join(moduleDir, "db", "gen", ".gitkeep"):                   "",
 	}
 
 	if opts.DryRun {
@@ -319,4 +323,21 @@ func TestServiceValidationError(t *testing.T) {
 	}
 }
 `, packageName)
+}
+
+func renderModuleBobgenConfig(moduleDir string) string {
+	modulePath := filepath.ToSlash(moduleDir)
+	return fmt.Sprintf(`# Module-local Bob codegen config.
+sql:
+  dialect: psql
+  pattern: "%s"
+  queries:
+    - "%s"
+
+output: "%s"
+`,
+		filepath.ToSlash(filepath.Join(modulePath, "db", "migrate", "migrations", "*.sql")),
+		filepath.ToSlash(filepath.Join(modulePath, "db", "queries")),
+		filepath.ToSlash(filepath.Join(modulePath, "db", "gen")),
+	)
 }

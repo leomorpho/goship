@@ -3,8 +3,6 @@ package jobs
 import (
 	"context"
 	"testing"
-
-	"github.com/leomorpho/goship/framework/core"
 )
 
 func TestRedisInspectorNotImplemented(t *testing.T) {
@@ -23,7 +21,7 @@ func TestRedisInspectorNotImplemented(t *testing.T) {
 	if inspector == nil {
 		t.Fatal("expected inspector")
 	}
-	if _, err := inspector.List(context.Background(), core.JobListFilter{}); err == nil {
+	if _, err := inspector.List(context.Background(), JobListFilter{}); err == nil {
 		t.Fatal("expected redis inspector list to return not implemented error")
 	}
 	if _, _, err := inspector.Get(context.Background(), "id"); err == nil {

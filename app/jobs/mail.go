@@ -7,14 +7,12 @@ import (
 
 	"github.com/hibiken/asynq"
 	"github.com/labstack/echo/v4"
-	modemailsubscriptions "github.com/leomorpho/goship-modules/emailsubscriptions"
 	"github.com/leomorpho/goship/app/foundation"
 	"github.com/leomorpho/goship/app/views/emails/gen"
 	"github.com/leomorpho/goship/app/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/app/web/viewmodels"
 	"github.com/leomorpho/goship/config"
-	"github.com/leomorpho/goship/db/ent"
 	"github.com/leomorpho/goship/framework/repos/mailer"
 )
 
@@ -77,16 +75,14 @@ const TypeEmailUpdates = "email:email_updates"
 
 type (
 	EmailUpdateProcessor struct {
-		emailSender *modemailsubscriptions.UpdateEmailSender
+		emailSender *UpdateEmailSender
 	}
 )
 
 // TODO: no need for all the param this takes, some are in Container. Fix later.
-func NewEmailUpdateProcessor(
-	container *foundation.Container, orm *ent.Client,
-) *EmailUpdateProcessor {
+func NewEmailUpdateProcessor(container *foundation.Container) *EmailUpdateProcessor {
 
-	updateEmailSender := modemailsubscriptions.NewUpdateEmailSender(orm, container)
+	updateEmailSender := NewUpdateEmailSender(container)
 
 	return &EmailUpdateProcessor{
 		emailSender: updateEmailSender,

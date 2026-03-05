@@ -17,6 +17,7 @@ import (
 	"github.com/leomorpho/goship/db/ent/imagesize"
 	"github.com/leomorpho/goship/db/ent/profile"
 	"github.com/leomorpho/goship/db/ent/user"
+	"github.com/leomorpho/goship/framework/dberrors"
 	"github.com/leomorpho/goship/framework/domain"
 	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
 	"github.com/rs/zerolog/log"
@@ -57,7 +58,7 @@ func (p *ProfileService) GetProfilePhotoThumbnailURL(userID int) string {
 			s.WithFile()
 		}).
 		Only(ctx)
-	if ent.IsNotFound(err) {
+	if dberrors.IsNotFound(err) {
 		return defaultProfilePic
 	}
 	photo, err := p.storageRepo.GetImageObjectFromFile(image)
@@ -88,7 +89,7 @@ func (p *ProfileService) SetProfilePhoto(
 		).
 		QueryProfileImage().
 		First(ctx)
-	if err != nil && !ent.IsNotFound(err) {
+	if err != nil && !dberrors.IsNotFound(err) {
 		return err
 	}
 	if err == nil {

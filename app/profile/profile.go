@@ -10,9 +10,9 @@ import (
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/db/ent"
 	"github.com/leomorpho/goship/db/ent/monthlysubscription"
-	"github.com/leomorpho/goship/db/ent/notification"
 	"github.com/leomorpho/goship/db/ent/profile"
 	"github.com/leomorpho/goship/db/ent/user"
+	"github.com/leomorpho/goship/framework/dberrors"
 	"github.com/leomorpho/goship/framework/domain"
 	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
 	"github.com/rs/zerolog/log"
@@ -24,13 +24,27 @@ type ProfileService struct {
 	orm              *ent.Client
 	storageRepo      storagerepo.StorageClientInterface
 	subscriptionRepo *paidsubscriptions.Service
+	notificationRepo NotificationCountStore
 }
 
 func NewProfileService(orm *ent.Client, storageRepo storagerepo.StorageClientInterface, subscriptionRepo *paidsubscriptions.Service) *ProfileService {
+	return NewProfileServiceWithDeps(orm, storageRepo, subscriptionRepo, nil)
+}
+
+func NewProfileServiceWithDeps(
+	orm *ent.Client,
+	storageRepo storagerepo.StorageClientInterface,
+	subscriptionRepo *paidsubscriptions.Service,
+	notificationRepo NotificationCountStore,
+) *ProfileService {
+	if notificationRepo == nil {
+		notificationRepo = NewEntNotificationCountStore(orm)
+	}
 	return &ProfileService{
 		orm:              orm,
 		storageRepo:      storageRepo,
 		subscriptionRepo: subscriptionRepo,
+		notificationRepo: notificationRepo,
 	}
 }
 
@@ -264,11 +278,21 @@ func (p *ProfileService) GetProfileByID(
 }
 
 func (s *ProfileService) GetCountOfUnseenNotifications(ctx context.Context, profileID int) (int, error) {
-	return s.orm.Notification.Query().
-		Where(
-			notification.HasProfileWith(profile.IDEQ(profileID)),
-			notification.ReadEQ(false),
-		).Count(ctx)
+	if s == nil || s.notificationRepo == nil {
+		return 0, ErrNotificationCountStoreNotConfigured
+	}
+	return s.notificationRepo.CountUnseenNotifications(ctx, profileID)
+}
+
+func (p *ProfileService) IsProfileFullyOnboardedByUserID(ctx context.Context, userID int) (bool, error) {
+	profile, err := p.orm.Profile.
+		Query().
+		Where(profile.HasUserWith(user.IDEQ(userID))).
+		Only(ctx)
+	if err != nil {
+		return false, err
+	}
+	return IsProfileFullyOnboarded(profile), nil
 }
 
 func (p *ProfileService) EntProfileToDomainObject(e *ent.Profile) (*domain.Profile, error) {
@@ -348,10 +372,10 @@ func (p *ProfileService) DeleteUserData(ctx context.Context, profileID int) erro
 		WithPayer().
 		WithBenefactors().
 		Only(ctx)
-	if err != nil && !ent.IsNotFound(err) {
+	if err != nil && !dberrors.IsNotFound(err) {
 		return err
 	}
-	if !ent.IsNotFound(err) {
+	if !dberrors.IsNotFound(err) {
 
 		delete := false
 

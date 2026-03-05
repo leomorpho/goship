@@ -2,19 +2,19 @@ package tasks
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"math/rand"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/hibiken/asynq"
 	"github.com/labstack/echo/v4"
 	"github.com/leomorpho/goship-modules/notifications"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
-	profilesvc "github.com/leomorpho/goship/app/profile"
 	"github.com/leomorpho/goship/app/web/routenames"
-	"github.com/leomorpho/goship/db/ent"
-	"github.com/leomorpho/goship/db/ent/notification"
 	"github.com/leomorpho/goship/framework/core"
 	"github.com/leomorpho/goship/framework/domain"
 	"github.com/rs/zerolog/log"
@@ -37,8 +37,6 @@ type (
 	}
 
 	AllDailyConvoNotificationsProcessor struct {
-		orm                     *ent.Client
-		profileService          *profilesvc.ProfileService
 		taskRunner              core.Jobs
 		timespanInMinutes       int
 		plannedNotificationRepo plannedNotificationSource
@@ -46,15 +44,11 @@ type (
 )
 
 func NewAllDailyConvoNotificationsProcessor(
-	orm *ent.Client,
-	profileService *profilesvc.ProfileService,
 	plannedNotificationRepo plannedNotificationSource,
 	taskRunner core.Jobs,
 	timespanInMinutes int,
 ) *AllDailyConvoNotificationsProcessor {
 	return &AllDailyConvoNotificationsProcessor{
-		orm:                     orm,
-		profileService:          profileService,
 		plannedNotificationRepo: plannedNotificationRepo,
 		taskRunner:              taskRunner,
 		timespanInMinutes:       timespanInMinutes,
@@ -110,7 +104,6 @@ const TypeDailyConvoNotification = "notification.subset_daily_conversation"
 
 type (
 	DailyConvoNotificationsProcessor struct {
-		orm                     *ent.Client
 		notifierService         *notifications.NotifierService
 		echoServer              *echo.Echo
 		subscriptionRepo        *paidsubscriptions.Service
@@ -170,7 +163,7 @@ func (d *DailyConvoNotificationsProcessor) ProcessTask(
 		}
 		var title string
 
-		if prod == &domain.ProductTypeFree {
+		if prod != nil && prod.Value == "free" {
 			title = "🌤 Today's free question!"
 		} else {
 			title = "🌤 Today's question!"
@@ -202,46 +195,61 @@ const TypeDeleteStaleNotifications = "notification.recycling"
 
 type (
 	DeleteStaleNotificationsProcessor struct {
-		orm     *ent.Client
-		numDays int
+		db         *sql.DB
+		postgresql bool
+		numDays    int
 	}
 )
 
-func NewDeleteStaleNotificationsProcessor(orm *ent.Client, numDays int) *DeleteStaleNotificationsProcessor {
+func NewDeleteStaleNotificationsProcessor(db *sql.DB, dialect string, numDays int) *DeleteStaleNotificationsProcessor {
+	d := strings.ToLower(strings.TrimSpace(dialect))
 	return &DeleteStaleNotificationsProcessor{
-		orm:     orm,
-		numDays: numDays,
+		db:         db,
+		postgresql: d == "postgres" || d == "postgresql" || d == "pgx",
+		numDays:    numDays,
 	}
 }
 func (d *DeleteStaleNotificationsProcessor) ProcessTask(
 	ctx context.Context, t *asynq.Task,
 ) error {
 
-	_, err := d.orm.Notification.
-		Delete().
-		Where(
-			notification.CreatedAtLT(time.Now().Add(time.Hour * -24 * time.Duration(d.numDays))),
-		).
-		Exec(ctx)
+	_, err := d.db.ExecContext(ctx, d.bind(`
+		DELETE FROM notifications
+		WHERE created_at < ?
+	`), time.Now().Add(time.Hour*-24*time.Duration(d.numDays)))
 
 	if err != nil {
 		return err
 	}
 
 	// Delete all daily notifications that are older than 48h
-	_, err = d.orm.Notification.
-		Delete().
-		Where(
-			notification.CreatedAtLT(time.Now().Add(time.Hour*-48)),
-			notification.TypeIn(
-				notification.Type(domain.NotificationTypeDailyConversationReminder.Value),
-			),
-		).
-		Exec(ctx)
+	_, err = d.db.ExecContext(ctx, d.bind(`
+		DELETE FROM notifications
+		WHERE created_at < ? AND type = ?
+	`), time.Now().Add(time.Hour*-48), domain.NotificationTypeDailyConversationReminder.Value)
 
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (d *DeleteStaleNotificationsProcessor) bind(query string) string {
+	if !d.postgresql || strings.Count(query, "?") == 0 {
+		return query
+	}
+	var b strings.Builder
+	b.Grow(len(query) + 8)
+	arg := 1
+	for _, r := range query {
+		if r == '?' {
+			b.WriteByte('$')
+			b.WriteString(strconv.Itoa(arg))
+			arg++
+			continue
+		}
+		b.WriteRune(r)
+	}
+	return b.String()
 }

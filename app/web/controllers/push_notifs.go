@@ -7,8 +7,7 @@ import (
 	"github.com/labstack/echo/v4"
 	routeNames "github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/app/web/ui"
-	"github.com/leomorpho/goship/db/ent"
-	"github.com/leomorpho/goship/framework/context"
+	"github.com/leomorpho/goship/framework/dberrors"
 	"github.com/leomorpho/goship/framework/domain"
 	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
 
@@ -54,12 +53,12 @@ type PushSubscriptionRequest struct {
 }
 
 func (c *outgoingNotifications) GetPushSubscriptions(ctx echo.Context) error {
-	usr := ctx.Get(context.AuthenticatedUserKey).(*ent.User)
+	profileID, err := authenticatedProfileID(ctx)
+	if err != nil {
+		return err
+	}
 
-	// TODO: why is WithGendersInterestedIn used below?
-	profile := usr.QueryProfile().FirstX(ctx.Request().Context())
-
-	subscribedEndpoints, err := c.pwaPushService.GetPushSubscriptionEndpoints(ctx.Request().Context(), profile.ID)
+	subscribedEndpoints, err := c.pwaPushService.GetPushSubscriptionEndpoints(ctx.Request().Context(), profileID)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not fetch subscription endpoints")
 	}
@@ -87,17 +86,15 @@ func (c *outgoingNotifications) RegisterSubscription(ctx echo.Context) error {
 		notifPermission = domain.NotificationPermissions.Parse(notificationType)
 	}
 
-	usr := ctx.Get(context.AuthenticatedUserKey).(*ent.User)
-	if usr == nil {
-		return echo.NewHTTPError(http.StatusUnauthorized, "User must be logged in")
-	}
-
 	var req PushSubscriptionRequest
 	if err := ctx.Bind(&req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request body")
 	}
 
-	profileID := usr.QueryProfile().FirstX(ctx.Request().Context()).ID
+	profileID, err := authenticatedProfileID(ctx)
+	if err != nil {
+		return err
+	}
 
 	// If the permission is specified, use it, else add all permissions.
 	if notifPermission != nil {
@@ -179,17 +176,15 @@ func (c *outgoingNotifications) DeleteSubscription(ctx echo.Context) error {
 		notifPermission = domain.NotificationPermissions.Parse(notificationType)
 	}
 
-	usr := ctx.Get(context.AuthenticatedUserKey).(*ent.User)
-	if usr == nil {
-		return echo.NewHTTPError(http.StatusUnauthorized, "User must be logged in")
-	}
-
 	var req PushSubscriptionRequest
 	if err := ctx.Bind(&req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request body")
 	}
 
-	profileID := usr.QueryProfile().FirstX(ctx.Request().Context()).ID
+	profileID, err := authenticatedProfileID(ctx)
+	if err != nil {
+		return err
+	}
 
 	// If the permission is specified, use it, else delete all permissions.
 	if notifPermission != nil {
@@ -270,12 +265,11 @@ func (c *outgoingNotifications) DeleteEmailSubscription(ctx echo.Context) error 
 
 	notifPermission := domain.NotificationPermissions.Parse(notificationType)
 
-	usr := ctx.Get(context.AuthenticatedUserKey).(*ent.User)
-	if usr == nil {
-		return echo.NewHTTPError(http.StatusUnauthorized, "User must be logged in")
+	profileID, err := authenticatedProfileID(ctx)
+	if err != nil {
+		return err
 	}
-
-	profileEnt := usr.QueryProfile().FirstX(ctx.Request().Context())
+	profileEnt := c.ctr.Container.ORM.Profile.GetX(ctx.Request().Context(), profileID)
 
 	var notifName string
 
@@ -290,9 +284,9 @@ func (c *outgoingNotifications) DeleteEmailSubscription(ctx echo.Context) error 
 	}
 
 	permissionErr := c.notificationPermissionService.DeletePermission(
-		ctx.Request().Context(), profileEnt.ID, *notifPermission, &domain.NotificationPlatformEmail, &token)
+		ctx.Request().Context(), profileID, *notifPermission, &domain.NotificationPlatformEmail, &token)
 
-	page, err := c.createNotificationsPage(ctx, profileEnt)
+	page, err := c.createNotificationsPage(ctx, profileEnt.ID, profileEnt.PhoneNumberE164, profileEnt.PhoneVerified)
 	if err != nil {
 		return err
 	}
@@ -305,7 +299,7 @@ func (c *outgoingNotifications) DeleteEmailSubscription(ctx echo.Context) error 
 			Str("platform", domain.NotificationPlatformEmail.Value).
 			Str("token", token).
 			Msg("failed to delete email notification permission")
-		if ent.IsNotFound(permissionErr) {
+		if dberrors.IsNotFound(permissionErr) {
 			if notifName != "" {
 				uxflashmessages.Warning(ctx, fmt.Sprintf("You already unsubscribed email notifications for %s.", notifName))
 
@@ -326,14 +320,19 @@ func (c *outgoingNotifications) DeleteEmailSubscription(ctx echo.Context) error 
 	return c.ctr.RenderPage(ctx, *page)
 }
 
-func (c *outgoingNotifications) createNotificationsPage(ctx echo.Context, profileEnt *ent.Profile) (*ui.Page, error) {
+func (c *outgoingNotifications) createNotificationsPage(
+	ctx echo.Context,
+	profileID int,
+	phoneNumberE164 string,
+	phoneVerified bool,
+) (*ui.Page, error) {
 	// Create response page
 	// TODO: create a route to get notif permissions with the below, and use it in prefs. Redirect
 	// to new page below, setting the same message.
 	page := ui.NewPage(ctx)
 
-	permissions, err := c.notificationPermissionService.GetPermissions(ctx.Request().Context(), profileEnt.ID)
-	subscribedEndpoints, err := c.pwaPushService.GetPushSubscriptionEndpoints(ctx.Request().Context(), profileEnt.ID)
+	permissions, err := c.notificationPermissionService.GetPermissions(ctx.Request().Context(), profileID)
+	subscribedEndpoints, err := c.pwaPushService.GetPushSubscriptionEndpoints(ctx.Request().Context(), profileID)
 	if err != nil {
 		return nil, err
 	}
@@ -363,7 +362,7 @@ func (c *outgoingNotifications) createNotificationsPage(ctx echo.Context, profil
 		PermissionDailyNotif:          permissions[domain.NotificationPermissionDailyReminder],
 		PermissionPartnerActivity:     permissions[domain.NotificationPermissionNewFriendActivity],
 		SubscribedEndpoints:           subscribedEndpoints,
-		PhoneSubscriptionEnabled:      profileEnt.PhoneNumberE164 != "" && profileEnt.PhoneVerified,
+		PhoneSubscriptionEnabled:      phoneNumberE164 != "" && phoneVerified,
 		NotificationTypeQueryParamKey: domain.PermissionNotificationType,
 
 		AddPushSubscriptionEndpoint:     addPushSubscriptionEndpoint,
@@ -379,44 +378,6 @@ func (c *outgoingNotifications) createNotificationsPage(ctx echo.Context, profil
 	page.Name = templates.PagePreferences
 	return &page, nil
 }
-
-// type PermissionRequest struct {
-// 	Permission string `json:"permission"`
-// }
-
-// func (c *outgoingNotifications) CreateNotificationPermissions(ctx echo.Context) error {
-// 	usr := ctx.Get(context.AuthenticatedUserKey).(*ent.User)
-// 	if usr == nil {
-// 		return echo.NewHTTPError(http.StatusUnauthorized, "User must be logged in")
-// 	}
-// 	profileID := usr.QueryProfile().FirstX(ctx.Request().Context()).ID
-
-// 	var req PermissionRequest
-// 	if err := ctx.Bind(&req); err != nil {
-// 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid request body")
-// 	}
-
-// 	permission := domain.NotificationPermissions.Parse(req.Permission)
-// 	err := c.notificationPermissionService.CreatePermission(
-// 		ctx.Request().Context(),
-// 		profileID,
-// 		*permission,
-// 		&domain.NotificationPlatformPush,
-// 	)
-
-// 	if err != nil {
-// 		return echo.NewHTTPError(http.StatusInternalServerError, "Failed to delete push subscription")
-// 	}
-
-// 	return ctx.NoContent(http.StatusOK)
-// }
-
-// func (c *outgoingNotifications) DeleteNotificationPermissions(ctx echo.Context) error {
-// 	usr := ctx.Get(context.AuthenticatedUserKey).(*ent.User)
-// 	if usr == nil {
-// 		return echo.NewHTTPError(http.StatusUnauthorized, "User must be logged in")
-// 	}
-// 	profileID := usr.QueryProfile().FirstX(ctx.Request().Context()).ID
 
 // 	var req PermissionRequest
 // 	if err := ctx.Bind(&req); err != nil {

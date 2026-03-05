@@ -2,10 +2,9 @@ package controllers
 
 import (
 	"github.com/labstack/echo/v4"
+	"github.com/leomorpho/goship/app/subscriptions"
 	routeNames "github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/app/web/ui"
-	"github.com/leomorpho/goship/db/ent"
-	"github.com/leomorpho/goship/framework/context"
 	"github.com/leomorpho/goship/framework/domain"
 	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
 
@@ -41,17 +40,20 @@ func NewDeleteAccountRoute(
 func (c *deleteAccount) DeleteAccountPage(ctx echo.Context) error {
 	page := ui.NewPage(ctx)
 
-	usr := ctx.Get(context.AuthenticatedUserKey).(*ent.User)
-	profile := usr.QueryProfile().FirstX(ctx.Request().Context())
+	profileID, err := authenticatedProfileID(ctx)
+	if err != nil {
+		return err
+	}
 
 	activePlan, subscriptionExpiredOn, isTrial, err := c.subscriptionsService.GetCurrentlyActiveProduct(
-		ctx.Request().Context(), profile.ID,
+		ctx.Request().Context(), profileID,
 	)
 
 	if err != nil {
 		return err
 	}
-	uncancelledSubscription := *activePlan == domain.ProductTypePro && !isTrial && subscriptionExpiredOn == nil
+	activePlanDomain := subscriptions.ToDomainProductType(activePlan)
+	uncancelledSubscription := activePlanDomain != nil && *activePlanDomain == domain.ProductTypePro && !isTrial && subscriptionExpiredOn == nil
 
 	page.Layout = layouts.Main
 	page.Name = templates.PageDeleteAccount
@@ -66,10 +68,12 @@ func (c *deleteAccount) DeleteAccountPage(ctx echo.Context) error {
 }
 
 func (c *deleteAccount) DeleteAccountRequest(ctx echo.Context) error {
-	usr := ctx.Get(context.AuthenticatedUserKey).(*ent.User)
-	profileId := usr.QueryProfile().FirstX(ctx.Request().Context()).ID
+	profileID, err := authenticatedProfileID(ctx)
+	if err != nil {
+		return err
+	}
 
-	err := c.profileService.DeleteUserData(ctx.Request().Context(), profileId)
+	err = c.profileService.DeleteUserData(ctx.Request().Context(), profileID)
 	if err != nil {
 		return err
 	}

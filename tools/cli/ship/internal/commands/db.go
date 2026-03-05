@@ -6,8 +6,11 @@ import (
 	"io"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
+
+	rt "github.com/leomorpho/goship/tools/cli/ship/internal/runtime"
 )
 
 type DBDeps struct {
@@ -17,6 +20,7 @@ type DBDeps struct {
 	RunGoose     func(args ...string) int
 	RunCmd       func(name string, args ...string) int
 	GooseDir     string
+	FindGoModule func(start string) (string, string, error)
 }
 
 func RunDB(args []string, d DBDeps) int {
@@ -28,6 +32,8 @@ func RunDB(args []string, d DBDeps) int {
 	switch args[0] {
 	case "create":
 		return runCreate(args[1:], d)
+	case "generate":
+		return runGenerate(args[1:], d)
 	case "make":
 		return runMake(args[1:], d)
 	case "migrate":
@@ -40,7 +46,7 @@ func RunDB(args []string, d DBDeps) int {
 			fmt.Fprintf(d.Err, "failed to resolve database URL: %v\n", err)
 			return 1
 		}
-		return runGooseUp(d, dbURL)
+		return runGooseUpAll(d, dbURL)
 	case "status":
 		return runStatus(args[1:], d)
 	case "reset":
@@ -77,7 +83,7 @@ func runStatus(args []string, d DBDeps) int {
 		return 1
 	}
 
-	return runGooseStatus(d, dbURL)
+	return runGooseStatusAll(d, dbURL)
 }
 
 func runReset(args []string, d DBDeps) int {
@@ -124,10 +130,10 @@ func runReset(args []string, d DBDeps) int {
 		return 0
 	}
 
-	if code := runGooseReset(d, dbURL); code != 0 {
+	if code := runGooseResetAll(d, dbURL); code != 0 {
 		return code
 	}
-	if code := runGooseUp(d, dbURL); code != 0 {
+	if code := runGooseUpAll(d, dbURL); code != 0 {
 		return code
 	}
 	if *seed {
@@ -174,7 +180,7 @@ func runDrop(args []string, d DBDeps) int {
 	if *dryRun {
 		return 0
 	}
-	return runGooseReset(d, dbURL)
+	return runGooseResetAll(d, dbURL)
 }
 
 func runCreate(args []string, d DBDeps) int {
@@ -202,7 +208,7 @@ func runCreate(args []string, d DBDeps) int {
 		return 0
 	}
 
-	if code := runGooseStatus(d, dbURL); code != 0 {
+	if code := runGooseStatusAll(d, dbURL); code != 0 {
 		fmt.Fprintln(d.Err, "database is not reachable or does not exist; create it with your DB provider and retry")
 		return code
 	}
@@ -245,78 +251,86 @@ func runMake(args []string, d DBDeps) int {
 	return d.RunGoose("-dir", d.GooseDir, "create", name, "sql")
 }
 
-func runGooseStatus(d DBDeps, dbURL string) int {
-	driver, conn, err := gooseTarget(dbURL)
-	if err != nil {
-		fmt.Fprintf(d.Err, "failed to resolve goose driver/url: %v\n", err)
+func runGenerate(args []string, d DBDeps) int {
+	fs := flag.NewFlagSet("db:generate", flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+	configPath := fs.String("config", filepath.ToSlash(filepath.Join("db", "bobgen.yaml")), "path to bobgen config")
+	dryRun := fs.Bool("dry-run", false, "print planned generation command without executing")
+	if err := fs.Parse(args); err != nil {
+		fmt.Fprintf(d.Err, "invalid db:generate arguments: %v\n", err)
+		fmt.Fprintln(d.Err, "usage: ship db:generate [--config <path>] [--dry-run]")
 		return 1
 	}
-	return d.RunGoose("-dir", d.GooseDir, driver, conn, "status")
-}
-
-func runGooseUp(d DBDeps, dbURL string) int {
-	driver, conn, err := gooseTarget(dbURL)
-	if err != nil {
-		fmt.Fprintf(d.Err, "failed to resolve goose driver/url: %v\n", err)
+	if fs.NArg() > 0 {
+		fmt.Fprintln(d.Err, "usage: ship db:generate [--config <path>] [--dry-run]")
 		return 1
 	}
-	return d.RunGoose("-dir", d.GooseDir, driver, conn, "up")
-}
 
-func runGooseReset(d DBDeps, dbURL string) int {
-	driver, conn, err := gooseTarget(dbURL)
-	if err != nil {
-		fmt.Fprintf(d.Err, "failed to resolve goose driver/url: %v\n", err)
+	cfg := strings.TrimSpace(*configPath)
+	if cfg == "" {
+		fmt.Fprintln(d.Err, "usage: ship db:generate [--config <path>] [--dry-run]")
 		return 1
 	}
-	return d.RunGoose("-dir", d.GooseDir, driver, conn, "reset")
-}
 
-func runGooseDown(d DBDeps, dbURL string, amount string) int {
-	driver, conn, err := gooseTarget(dbURL)
+	configs, err := resolveBobgenConfigs(d, cfg)
 	if err != nil {
-		fmt.Fprintf(d.Err, "failed to resolve goose driver/url: %v\n", err)
+		fmt.Fprintf(d.Err, "failed to resolve bobgen config paths: %v\n", err)
 		return 1
 	}
-	if amount == "1" {
-		return d.RunGoose("-dir", d.GooseDir, driver, conn, "down")
-	}
-	return d.RunGoose("-dir", d.GooseDir, driver, conn, "down-to", amount)
-}
 
-func gooseTarget(dbURL string) (driver string, conn string, err error) {
-	if strings.HasPrefix(dbURL, "sqlite://") {
-		dsn := strings.TrimPrefix(dbURL, "sqlite://")
-		if strings.TrimSpace(dsn) == "" {
-			return "", "", fmt.Errorf("sqlite URL is missing DSN")
+	fmt.Fprintln(d.Out, "DB generate plan:")
+	for _, config := range configs {
+		fmt.Fprintf(d.Out, "- config: %s\n", config)
+		fmt.Fprintf(d.Out, "- command: bobgen-sql -c %s\n", config)
+	}
+	if *dryRun {
+		fmt.Fprintln(d.Out, "- mode: dry-run (no commands executed)")
+		return 0
+	}
+
+	for _, config := range configs {
+		if code := d.RunCmd("bobgen-sql", "-c", config); code != 0 {
+			return code
 		}
-		return "sqlite3", dsn, nil
 	}
-	if strings.HasPrefix(dbURL, "sqlite3://") {
-		dsn := strings.TrimPrefix(dbURL, "sqlite3://")
-		if strings.TrimSpace(dsn) == "" {
-			return "", "", fmt.Errorf("sqlite3 URL is missing DSN")
+	return 0
+}
+
+func resolveBobgenConfigs(d DBDeps, explicitConfig string) ([]string, error) {
+	if strings.TrimSpace(explicitConfig) != "" && explicitConfig != filepath.ToSlash(filepath.Join("db", "bobgen.yaml")) {
+		return []string{explicitConfig}, nil
+	}
+	configs := []string{filepath.ToSlash(filepath.Join("db", "bobgen.yaml"))}
+	if d.FindGoModule == nil {
+		return configs, nil
+	}
+
+	wd, err := os.Getwd()
+	if err != nil {
+		return nil, err
+	}
+	root, _, err := d.FindGoModule(wd)
+	if err != nil {
+		return nil, err
+	}
+	manifestPath := filepath.Join(root, "config", "modules.yaml")
+	if !pathExists(manifestPath) {
+		return configs, nil
+	}
+
+	manifest, err := rt.LoadModulesManifest(manifestPath)
+	if err != nil {
+		return nil, err
+	}
+	for _, module := range manifest.Modules {
+		configRel := filepath.ToSlash(filepath.Join("modules", module, "db", "bobgen.yaml"))
+		configAbs := filepath.Join(root, filepath.FromSlash(configRel))
+		if !pathExists(configAbs) {
+			return nil, fmt.Errorf("enabled module %q missing bobgen config: %s", module, configRel)
 		}
-		return "sqlite3", dsn, nil
+		configs = append(configs, configRel)
 	}
-	u, parseErr := url.Parse(dbURL)
-	if parseErr != nil {
-		return "", "", parseErr
-	}
-	switch strings.ToLower(u.Scheme) {
-	case "postgres", "postgresql":
-		return "postgres", dbURL, nil
-	case "mysql":
-		return "mysql", dbURL, nil
-	case "sqlite", "sqlite3":
-		dsn := strings.TrimPrefix(dbURL, u.Scheme+"://")
-		if strings.TrimSpace(dsn) == "" {
-			return "", "", fmt.Errorf("%s URL is missing DSN", u.Scheme)
-		}
-		return "sqlite3", dsn, nil
-	default:
-		return "", "", fmt.Errorf("unsupported database scheme %q for goose (supported: postgres, mysql, sqlite)", u.Scheme)
-	}
+	return configs, nil
 }
 
 func IsLocalDBURL(dbURL string) bool {
@@ -380,6 +394,7 @@ func printPlan(w io.Writer, action, dbURL string, local bool, steps []string, se
 func PrintDBHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship db commands:")
 	fmt.Fprintln(w, "  ship db:create [--dry-run]")
+	fmt.Fprintln(w, "  ship db:generate [--config <path>] [--dry-run]")
 	fmt.Fprintln(w, "  ship db:make <migration_name>")
 	fmt.Fprintln(w, "  ship db:migrate")
 	fmt.Fprintln(w, "  ship db:status")

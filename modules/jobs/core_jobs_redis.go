@@ -8,23 +8,22 @@ import (
 
 	"github.com/hibiken/asynq"
 	redisdriver "github.com/leomorpho/goship-modules/jobs/drivers/redis"
-	"github.com/leomorpho/goship/framework/core"
 )
 
-var _ core.Jobs = (*redisCoreJobs)(nil)
+var _ Jobs = (*redisCoreJobs)(nil)
 
 type redisCoreJobs struct {
 	client       *redisdriver.Client
-	capabilities core.JobCapabilities
+	capabilities JobCapabilities
 
 	mu       sync.RWMutex
-	handlers map[string]core.JobHandler
+	handlers map[string]JobHandler
 }
 
-func newRedisCoreJobs(client *redisdriver.Client) core.Jobs {
+func newRedisCoreJobs(client *redisdriver.Client) Jobs {
 	return &redisCoreJobs{
 		client: client,
-		capabilities: core.JobCapabilities{
+		capabilities: JobCapabilities{
 			Delayed:    true,
 			Retries:    true,
 			Cron:       true,
@@ -32,11 +31,11 @@ func newRedisCoreJobs(client *redisdriver.Client) core.Jobs {
 			DeadLetter: true,
 			Dashboard:  true,
 		},
-		handlers: make(map[string]core.JobHandler),
+		handlers: make(map[string]JobHandler),
 	}
 }
 
-func (a *redisCoreJobs) Register(name string, handler core.JobHandler) error {
+func (a *redisCoreJobs) Register(name string, handler JobHandler) error {
 	if name == "" {
 		return errors.New("job name is required")
 	}
@@ -49,7 +48,7 @@ func (a *redisCoreJobs) Register(name string, handler core.JobHandler) error {
 	return nil
 }
 
-func (a *redisCoreJobs) Enqueue(ctx context.Context, name string, payload []byte, opts core.EnqueueOptions) (string, error) {
+func (a *redisCoreJobs) Enqueue(ctx context.Context, name string, payload []byte, opts EnqueueOptions) (string, error) {
 	if a == nil || a.client == nil {
 		return "", errors.New("jobs client is not initialized")
 	}
@@ -79,14 +78,14 @@ func (a *redisCoreJobs) Stop(context.Context) error {
 	return a.client.Close()
 }
 
-func (a *redisCoreJobs) Capabilities() core.JobCapabilities {
+func (a *redisCoreJobs) Capabilities() JobCapabilities {
 	if a == nil {
-		return core.JobCapabilities{}
+		return JobCapabilities{}
 	}
 	return a.capabilities
 }
 
-func toAsynqOptions(opts core.EnqueueOptions) []asynq.Option {
+func toAsynqOptions(opts EnqueueOptions) []asynq.Option {
 	converted := make([]asynq.Option, 0, 5)
 
 	if opts.Queue != "" {

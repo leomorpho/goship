@@ -43,6 +43,10 @@ func TestNewProjectIntegration_IncludesEntAndSupportsMakeModel(t *testing.T) {
 	if _, err := os.Stat(entMigrationsKeep); err != nil {
 		t.Fatalf("expected migrations scaffold at %s: %v", entMigrationsKeep, err)
 	}
+	bobgenConfig := filepath.Join(projectRoot, "db", "bobgen.yaml")
+	if _, err := os.Stat(bobgenConfig); err != nil {
+		t.Fatalf("expected bobgen config scaffold at %s: %v", bobgenConfig, err)
+	}
 
 	if err := os.Chdir(projectRoot); err != nil {
 		t.Fatal(err)
