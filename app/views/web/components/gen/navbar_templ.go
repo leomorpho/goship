@@ -9,11 +9,11 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
+	"github.com/leomorpho/goship/app/controller"
 	"github.com/leomorpho/goship/app/web/routenames"
-	"github.com/leomorpho/goship/app/web/ui"
 )
 
-func Navbar(page *ui.Page) templ.Component {
+func Navbar(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -46,7 +46,7 @@ func Navbar(page *ui.Page) templ.Component {
 			var templ_7745c5c3_Var2 string
 			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameRealtime))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/navbar.templ`, Line: 13, Col: 57}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/navbar.templ`, Line: 13, Col: 57}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 			if templ_7745c5c3_Err != nil {
@@ -64,7 +64,7 @@ func Navbar(page *ui.Page) templ.Component {
 		var templ_7745c5c3_Var3 templ.SafeURL
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(page.ToURL(routenames.RouteNameLandingPage)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/navbar.templ`, Line: 23, Col: 95}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/navbar.templ`, Line: 23, Col: 95}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
@@ -77,7 +77,7 @@ func Navbar(page *ui.Page) templ.Component {
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(page.AppName)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/navbar.templ`, Line: 25, Col: 55}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/navbar.templ`, Line: 25, Col: 55}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
@@ -101,7 +101,7 @@ func Navbar(page *ui.Page) templ.Component {
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameHomeFeed))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/navbar.templ`, Line: 36, Col: 55}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/navbar.templ`, Line: 36, Col: 55}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -119,7 +119,7 @@ func Navbar(page *ui.Page) templ.Component {
 				var templ_7745c5c3_Var6 string
 				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameAboutUs))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/navbar.templ`, Line: 46, Col: 55}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/navbar.templ`, Line: 46, Col: 55}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 				if templ_7745c5c3_Err != nil {
@@ -132,7 +132,7 @@ func Navbar(page *ui.Page) templ.Component {
 				var templ_7745c5c3_Var7 string
 				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs("Contact Us")
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/navbar.templ`, Line: 53, Col: 40}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/navbar.templ`, Line: 53, Col: 40}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 				if templ_7745c5c3_Err != nil {
@@ -151,7 +151,7 @@ func Navbar(page *ui.Page) templ.Component {
 			var templ_7745c5c3_Var8 templ.SafeURL
 			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(page.ToURL(routenames.RouteNameLandingPage)))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/navbar.templ`, Line: 58, Col: 67}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/navbar.templ`, Line: 58, Col: 67}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 			if templ_7745c5c3_Err != nil {
@@ -186,7 +186,7 @@ func Navbar(page *ui.Page) templ.Component {
 			var templ_7745c5c3_Var9 string
 			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL("normalNotifications"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/navbar.templ`, Line: 82, Col: 49}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/navbar.templ`, Line: 82, Col: 49}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
@@ -199,7 +199,7 @@ func Navbar(page *ui.Page) templ.Component {
 			var templ_7745c5c3_Var10 string
 			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL("normalNotificationsCount"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/navbar.templ`, Line: 95, Col: 56}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/navbar.templ`, Line: 95, Col: 56}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 			if templ_7745c5c3_Err != nil {
@@ -229,7 +229,7 @@ func Navbar(page *ui.Page) templ.Component {
 			var templ_7745c5c3_Var12 string
 			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var11).String())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/navbar.templ`, Line: 1, Col: 0}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/navbar.templ`, Line: 1, Col: 0}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 			if templ_7745c5c3_Err != nil {
@@ -247,7 +247,7 @@ func Navbar(page *ui.Page) templ.Component {
 				var templ_7745c5c3_Var13 string
 				templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(page.AuthUserProfilePicURL)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/navbar.templ`, Line: 123, Col: 76}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/navbar.templ`, Line: 123, Col: 76}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 				if templ_7745c5c3_Err != nil {
@@ -265,7 +265,7 @@ func Navbar(page *ui.Page) templ.Component {
 			var templ_7745c5c3_Var14 string
 			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(page.AuthUser.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/navbar.templ`, Line: 140, Col: 29}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/navbar.templ`, Line: 140, Col: 29}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 			if templ_7745c5c3_Err != nil {
@@ -278,7 +278,7 @@ func Navbar(page *ui.Page) templ.Component {
 			var templ_7745c5c3_Var15 string
 			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(page.AuthUser.Email)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/navbar.templ`, Line: 143, Col: 30}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/navbar.templ`, Line: 143, Col: 30}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 			if templ_7745c5c3_Err != nil {
@@ -296,7 +296,7 @@ func Navbar(page *ui.Page) templ.Component {
 				var templ_7745c5c3_Var16 string
 				templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameProfile))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/navbar.templ`, Line: 151, Col: 59}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/navbar.templ`, Line: 151, Col: 59}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 				if templ_7745c5c3_Err != nil {
@@ -314,7 +314,7 @@ func Navbar(page *ui.Page) templ.Component {
 			var templ_7745c5c3_Var17 string
 			templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNamePreferences))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/navbar.templ`, Line: 159, Col: 62}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/navbar.templ`, Line: 159, Col: 62}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 			if templ_7745c5c3_Err != nil {
@@ -327,7 +327,7 @@ func Navbar(page *ui.Page) templ.Component {
 			var templ_7745c5c3_Var18 templ.SafeURL
 			templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(page.ToURL(routenames.RouteNameLogout)))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/navbar.templ`, Line: 166, Col: 66}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/navbar.templ`, Line: 166, Col: 66}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 			if templ_7745c5c3_Err != nil {
@@ -359,7 +359,7 @@ func Navbar(page *ui.Page) templ.Component {
 	})
 }
 
-func LogInButton(page *ui.Page, btnClasses string) templ.Component {
+func LogInButton(page *controller.Page, btnClasses string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -392,7 +392,7 @@ func LogInButton(page *ui.Page, btnClasses string) templ.Component {
 		var templ_7745c5c3_Var21 string
 		templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var20).String())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/navbar.templ`, Line: 1, Col: 0}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/navbar.templ`, Line: 1, Col: 0}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 		if templ_7745c5c3_Err != nil {
@@ -405,7 +405,7 @@ func LogInButton(page *ui.Page, btnClasses string) templ.Component {
 		var templ_7745c5c3_Var22 string
 		templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameLogin))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/navbar.templ`, Line: 188, Col: 48}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/navbar.templ`, Line: 188, Col: 48}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 		if templ_7745c5c3_Err != nil {
@@ -419,7 +419,7 @@ func LogInButton(page *ui.Page, btnClasses string) templ.Component {
 	})
 }
 
-func HomeButton(page *ui.Page, btnClasses string) templ.Component {
+func HomeButton(page *controller.Page, btnClasses string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -447,7 +447,7 @@ func HomeButton(page *ui.Page, btnClasses string) templ.Component {
 		var templ_7745c5c3_Var24 templ.SafeURL
 		templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(page.ToURL(routenames.RouteNameLandingPage)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/navbar.templ`, Line: 208, Col: 65}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/navbar.templ`, Line: 208, Col: 65}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 		if templ_7745c5c3_Err != nil {
@@ -469,7 +469,7 @@ func HomeButton(page *ui.Page, btnClasses string) templ.Component {
 		var templ_7745c5c3_Var26 string
 		templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var25).String())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/navbar.templ`, Line: 1, Col: 0}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/navbar.templ`, Line: 1, Col: 0}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
 		if templ_7745c5c3_Err != nil {
@@ -483,7 +483,7 @@ func HomeButton(page *ui.Page, btnClasses string) templ.Component {
 	})
 }
 
-func FloatingActionButton(page *ui.Page) templ.Component {
+func FloatingActionButton(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -511,7 +511,7 @@ func FloatingActionButton(page *ui.Page) templ.Component {
 		var templ_7745c5c3_Var28 templ.SafeURL
 		templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(page.ToURL(routenames.RouteNameLandingPage)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/navbar.templ`, Line: 226, Col: 65}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/navbar.templ`, Line: 226, Col: 65}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 		if templ_7745c5c3_Err != nil {
@@ -525,7 +525,7 @@ func FloatingActionButton(page *ui.Page) templ.Component {
 	})
 }
 
-func DocsButton(page *ui.Page) templ.Component {
+func DocsButton(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -553,7 +553,7 @@ func DocsButton(page *ui.Page) templ.Component {
 		var templ_7745c5c3_Var30 templ.SafeURL
 		templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(page.ToURL(routenames.RouteNameDocs)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/navbar.templ`, Line: 245, Col: 56}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/navbar.templ`, Line: 245, Col: 56}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var30))
 		if templ_7745c5c3_Err != nil {

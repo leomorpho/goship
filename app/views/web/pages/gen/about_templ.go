@@ -9,12 +9,12 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
+	"github.com/leomorpho/goship/app/controller"
 	"github.com/leomorpho/goship/app/views/web/components/gen"
-	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/app/web/viewmodels"
 )
 
-func About(page *ui.Page) templ.Component {
+func About(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -77,7 +77,7 @@ func aboutUsData(data viewmodels.AboutData) templ.Component {
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs("We're dedicated to improving our app and we'd love to hear from you!")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/about.templ`, Line: 20, Col: 76}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/about.templ`, Line: 20, Col: 76}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
@@ -90,7 +90,7 @@ func aboutUsData(data viewmodels.AboutData) templ.Component {
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs("If you have any bug reports, feature requests, or suggestions, please reach out to us. 🙏😃❤️")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/about.templ`, Line: 23, Col: 109}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/about.templ`, Line: 23, Col: 109}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
@@ -103,7 +103,7 @@ func aboutUsData(data viewmodels.AboutData) templ.Component {
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs("You can send us an email by clicking on the following:")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/about.templ`, Line: 26, Col: 62}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/about.templ`, Line: 26, Col: 62}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
@@ -116,7 +116,7 @@ func aboutUsData(data viewmodels.AboutData) templ.Component {
 		var templ_7745c5c3_Var6 templ.SafeURL
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinURLErrs("mailto:" + templ.SafeURL(data.SupportEmail))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/about.templ`, Line: 30, Col: 56}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/about.templ`, Line: 30, Col: 56}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
@@ -129,7 +129,7 @@ func aboutUsData(data viewmodels.AboutData) templ.Component {
 		var templ_7745c5c3_Var7 string
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(data.SupportEmail)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/about.templ`, Line: 34, Col: 24}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/about.templ`, Line: 34, Col: 24}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {

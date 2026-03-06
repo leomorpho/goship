@@ -8,10 +8,10 @@ package components
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "github.com/leomorpho/goship/app/web/ui"
+import "github.com/leomorpho/goship/app/controller"
 import "github.com/leomorpho/goship/app/web/routenames"
 
-func BottomNav(page *ui.Page) templ.Component {
+func BottomNav(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -39,7 +39,7 @@ func BottomNav(page *ui.Page) templ.Component {
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(templ.JSONString(page.ShowBottomNavbar))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/bottom_nav.templ`, Line: 9, Col: 61}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/bottom_nav.templ`, Line: 9, Col: 61}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -57,7 +57,7 @@ func BottomNav(page *ui.Page) templ.Component {
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameRealtime))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/bottom_nav.templ`, Line: 12, Col: 57}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/bottom_nav.templ`, Line: 12, Col: 57}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -84,7 +84,7 @@ func BottomNav(page *ui.Page) templ.Component {
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var4).String())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/bottom_nav.templ`, Line: 1, Col: 0}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/bottom_nav.templ`, Line: 1, Col: 0}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
@@ -125,7 +125,7 @@ func BottomNav(page *ui.Page) templ.Component {
 		var templ_7745c5c3_Var6 string
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameHomeFeed))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/bottom_nav.templ`, Line: 39, Col: 53}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/bottom_nav.templ`, Line: 39, Col: 53}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
@@ -138,7 +138,7 @@ func BottomNav(page *ui.Page) templ.Component {
 		var templ_7745c5c3_Var7 string
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL("normalNotifications"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/bottom_nav.templ`, Line: 70, Col: 46}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/bottom_nav.templ`, Line: 70, Col: 46}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {
@@ -151,7 +151,7 @@ func BottomNav(page *ui.Page) templ.Component {
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL("normalNotificationsCount"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/bottom_nav.templ`, Line: 100, Col: 54}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/bottom_nav.templ`, Line: 100, Col: 54}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
@@ -174,7 +174,7 @@ func BottomNav(page *ui.Page) templ.Component {
 		var templ_7745c5c3_Var9 string
 		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNamePreferences))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/bottom_nav.templ`, Line: 117, Col: 56}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/bottom_nav.templ`, Line: 117, Col: 56}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {
@@ -187,7 +187,7 @@ func BottomNav(page *ui.Page) templ.Component {
 		var templ_7745c5c3_Var10 string
 		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameProfile))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/bottom_nav.templ`, Line: 148, Col: 52}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/bottom_nav.templ`, Line: 148, Col: 52}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 		if templ_7745c5c3_Err != nil {

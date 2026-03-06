@@ -9,12 +9,12 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
+	"github.com/leomorpho/goship/app/controller"
 	"github.com/leomorpho/goship/app/views/web/components/gen"
 	"github.com/leomorpho/goship/app/web/capabilities"
-	"github.com/leomorpho/goship/app/web/ui"
 )
 
-func DocumentationLandingPage(page *ui.Page) templ.Component {
+func DocumentationLandingPage(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -73,7 +73,7 @@ func DocumentationLandingPage(page *ui.Page) templ.Component {
 	})
 }
 
-func docsPageLayout(page *ui.Page) templ.Component {
+func docsPageLayout(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -106,7 +106,7 @@ func docsPageLayout(page *ui.Page) templ.Component {
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(page.Title)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/documentation.templ`, Line: 40, Col: 50}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/documentation.templ`, Line: 40, Col: 50}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -305,7 +305,7 @@ func listEntry(icon templ.Component, sentence string) templ.Component {
 		var templ_7745c5c3_Var9 string
 		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(sentence)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/documentation.templ`, Line: 88, Col: 34}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/documentation.templ`, Line: 88, Col: 34}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {

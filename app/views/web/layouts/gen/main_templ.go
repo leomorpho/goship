@@ -9,11 +9,11 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
+	"github.com/leomorpho/goship/app/controller"
 	"github.com/leomorpho/goship/app/views/web/components/gen"
-	"github.com/leomorpho/goship/app/web/ui"
 )
 
-func Main(content templ.Component, page *ui.Page) templ.Component {
+func Main(content templ.Component, page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -70,7 +70,7 @@ func Main(content templ.Component, page *ui.Page) templ.Component {
 			var templ_7745c5c3_Var2 string
 			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(page.Title)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/layouts/main.templ`, Line: 44, Col: 70}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/layouts/main.templ`, Line: 44, Col: 70}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 			if templ_7745c5c3_Err != nil {

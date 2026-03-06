@@ -11,12 +11,12 @@ import templruntime "github.com/a-h/templ/runtime"
 import (
 	"fmt"
 
+	"github.com/leomorpho/goship/app/controller"
 	"github.com/leomorpho/goship/app/views/web/helpers/gen"
-	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/app/web/viewmodels"
 )
 
-func Home(page *ui.Page) templ.Component {
+func Home(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -57,7 +57,7 @@ func Home(page *ui.Page) templ.Component {
 	})
 }
 
-func homeTopContent(page *ui.Page) templ.Component {
+func homeTopContent(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -86,7 +86,7 @@ func homeTopContent(page *ui.Page) templ.Component {
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("Hello, %s", page.AuthUser.Name))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/home.templ`, Line: 26, Col: 51}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home.templ`, Line: 26, Col: 51}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -121,7 +121,7 @@ func homeTopContent(page *ui.Page) templ.Component {
 	})
 }
 
-func homePosts(page *ui.Page) templ.Component {
+func homePosts(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -155,7 +155,7 @@ func homePosts(page *ui.Page) templ.Component {
 				var templ_7745c5c3_Var5 string
 				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(helpers.File("gopher.png"))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/home.templ`, Line: 54, Col: 43}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home.templ`, Line: 54, Col: 43}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 				if templ_7745c5c3_Err != nil {
@@ -168,7 +168,7 @@ func homePosts(page *ui.Page) templ.Component {
 				var templ_7745c5c3_Var6 string
 				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(post.Title)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/home.templ`, Line: 57, Col: 39}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home.templ`, Line: 57, Col: 39}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 				if templ_7745c5c3_Err != nil {
@@ -181,7 +181,7 @@ func homePosts(page *ui.Page) templ.Component {
 				var templ_7745c5c3_Var7 string
 				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(post.Body)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/home.templ`, Line: 58, Col: 20}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home.templ`, Line: 58, Col: 20}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 				if templ_7745c5c3_Err != nil {
@@ -205,7 +205,7 @@ func homePosts(page *ui.Page) templ.Component {
 			var templ_7745c5c3_Var8 string
 			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/?page=%d", page.Pager.Page-1))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/home.templ`, Line: 68, Col: 57}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home.templ`, Line: 68, Col: 57}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 			if templ_7745c5c3_Err != nil {
@@ -224,7 +224,7 @@ func homePosts(page *ui.Page) templ.Component {
 			var templ_7745c5c3_Var9 string
 			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/?page=%d", page.Pager.Page+1))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/home.templ`, Line: 75, Col: 57}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home.templ`, Line: 75, Col: 57}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {

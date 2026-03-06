@@ -63,13 +63,13 @@ dev: ## Start local development (infra + web server only)
 .PHONY: dev-worker
 dev-worker: ## Start local development worker only (infra + worker process)
 	bash tools/scripts/up.sh "$(DCO_BIN)"
-	overmind start -f tools/procfiles/Procfile.worker
+	overmind start -f Procfile.worker
 
 .PHONY: dev-full
 dev-full: ## Start local development including web, worker, and JS/CSS watchers
 	bash tools/scripts/up.sh "$(DCO_BIN)"
 	echo "Tip: run 'nvm use v18.20.7' if JS tooling fails."
-	overmind start -f tools/procfiles/Procfile
+	overmind start -f Procfile
 
 .PHONY: dev-reset
 dev-reset: reset deps-js build-js build-css seed watch ## Full reset then start dev (destructive to local DB state)
@@ -197,7 +197,7 @@ watch-go: ## Run the application with air (auto reload changes)
 
 watch: ## Start all dev watchers/processes through overmind
 	@echo "Tip: run 'nvm use v18.20.7' if JS tooling fails."
-	overmind start -f tools/procfiles/Procfile
+	overmind start -f Procfile
 
 .PHONY: test
 test: ## Run Docker-free unit test package set
@@ -236,7 +236,7 @@ cover-treemap: ## Create a treemap view of the coverage report
 .PHONY: worker
 worker: ## Run the worker
 	clear
-	go run cmd/worker/main.go
+	go run ./cmd/worker
 
 .PHONY: workerui
 workerui: ## Run the worker asynq dash

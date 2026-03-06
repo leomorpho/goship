@@ -10,14 +10,14 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"fmt"
+	"github.com/leomorpho/goship/app/controller"
 	"github.com/leomorpho/goship/app/views/web/components/gen"
 	"github.com/leomorpho/goship/app/web/routenames"
-	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/app/web/viewmodels"
 	"strconv"
 )
 
-func HomeFeed(page *ui.Page) templ.Component {
+func HomeFeed(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -45,7 +45,7 @@ func HomeFeed(page *ui.Page) templ.Component {
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameRealtime))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/home_feed.templ`, Line: 16, Col: 56}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 16, Col: 56}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -67,7 +67,7 @@ func HomeFeed(page *ui.Page) templ.Component {
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameGetHomeFeedButtons))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/home_feed.templ`, Line: 21, Col: 63}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 21, Col: 63}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -110,7 +110,7 @@ func HomeFeed(page *ui.Page) templ.Component {
 	})
 }
 
-func hello(page *ui.Page, justFinishedOnboarded bool) templ.Component {
+func hello(page *controller.Page, justFinishedOnboarded bool) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -147,7 +147,7 @@ func hello(page *ui.Page, justFinishedOnboarded bool) templ.Component {
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(page.AuthUser.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/home_feed.templ`, Line: 51, Col: 26}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 51, Col: 26}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -165,7 +165,7 @@ func hello(page *ui.Page, justFinishedOnboarded bool) templ.Component {
 		var templ_7745c5c3_Var6 string
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(templ.JSONString(justFinishedOnboarded))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/home_feed.templ`, Line: 59, Col: 65}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 59, Col: 65}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
@@ -236,7 +236,7 @@ func startDriverJS() templ.ComponentScript {
 	}
 }
 
-func HomeFeedButtons(page *ui.Page) templ.Component {
+func HomeFeedButtons(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -267,7 +267,7 @@ func HomeFeedButtons(page *ui.Page) templ.Component {
 	})
 }
 
-func homeFeedButtonsWithCounts(page *ui.Page, numDrafts, numLikedQuestions, numWaitingOnPartner, leaderboardNotifCount, numWaitingOnYou, maxNumCanWaitOnYou int, loading bool) templ.Component {
+func homeFeedButtonsWithCounts(page *controller.Page, numDrafts, numLikedQuestions, numWaitingOnPartner, leaderboardNotifCount, numWaitingOnYou, maxNumCanWaitOnYou int, loading bool) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -295,7 +295,7 @@ func homeFeedButtonsWithCounts(page *ui.Page, numDrafts, numLikedQuestions, numW
 		var templ_7745c5c3_Var9 string
 		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameGetHomeFeedButtons))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/home_feed.templ`, Line: 136, Col: 61}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 136, Col: 61}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {
@@ -308,7 +308,7 @@ func homeFeedButtonsWithCounts(page *ui.Page, numDrafts, numLikedQuestions, numW
 		var templ_7745c5c3_Var10 string
 		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameHomeFeed))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/home_feed.templ`, Line: 145, Col: 52}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 145, Col: 52}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 		if templ_7745c5c3_Err != nil {
@@ -321,7 +321,7 @@ func homeFeedButtonsWithCounts(page *ui.Page, numDrafts, numLikedQuestions, numW
 		var templ_7745c5c3_Var11 string
 		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs("Feed")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/home_feed.templ`, Line: 175, Col: 12}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 175, Col: 12}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 		if templ_7745c5c3_Err != nil {
@@ -334,7 +334,7 @@ func homeFeedButtonsWithCounts(page *ui.Page, numDrafts, numLikedQuestions, numW
 		var templ_7745c5c3_Var12 string
 		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL("convos"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/home_feed.templ`, Line: 180, Col: 32}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 180, Col: 32}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 		if templ_7745c5c3_Err != nil {
@@ -347,7 +347,7 @@ func homeFeedButtonsWithCounts(page *ui.Page, numDrafts, numLikedQuestions, numW
 		var templ_7745c5c3_Var13 string
 		templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs("All Conversations")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/home_feed.templ`, Line: 216, Col: 25}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 216, Col: 25}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 		if templ_7745c5c3_Err != nil {
@@ -360,7 +360,7 @@ func homeFeedButtonsWithCounts(page *ui.Page, numDrafts, numLikedQuestions, numW
 		var templ_7745c5c3_Var14 string
 		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL("drafts"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/home_feed.templ`, Line: 221, Col: 32}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 221, Col: 32}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 		if templ_7745c5c3_Err != nil {
@@ -373,7 +373,7 @@ func homeFeedButtonsWithCounts(page *ui.Page, numDrafts, numLikedQuestions, numW
 		var templ_7745c5c3_Var15 string
 		templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs("Drafts")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/home_feed.templ`, Line: 251, Col: 14}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 251, Col: 14}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 		if templ_7745c5c3_Err != nil {
@@ -404,7 +404,7 @@ func homeFeedButtonsWithCounts(page *ui.Page, numDrafts, numLikedQuestions, numW
 			var templ_7745c5c3_Var16 string
 			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(numDrafts))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/home_feed.templ`, Line: 264, Col: 30}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 264, Col: 30}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 			if templ_7745c5c3_Err != nil {
@@ -422,7 +422,7 @@ func homeFeedButtonsWithCounts(page *ui.Page, numDrafts, numLikedQuestions, numW
 		var templ_7745c5c3_Var17 string
 		templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL("question.get_liked"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/home_feed.templ`, Line: 269, Col: 44}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 269, Col: 44}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 		if templ_7745c5c3_Err != nil {
@@ -435,7 +435,7 @@ func homeFeedButtonsWithCounts(page *ui.Page, numDrafts, numLikedQuestions, numW
 		var templ_7745c5c3_Var18 string
 		templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs("Liked Questions")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/home_feed.templ`, Line: 299, Col: 23}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 299, Col: 23}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 		if templ_7745c5c3_Err != nil {
@@ -466,7 +466,7 @@ func homeFeedButtonsWithCounts(page *ui.Page, numDrafts, numLikedQuestions, numW
 			var templ_7745c5c3_Var19 string
 			templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(numLikedQuestions))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/home_feed.templ`, Line: 312, Col: 38}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 312, Col: 38}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 			if templ_7745c5c3_Err != nil {
@@ -484,7 +484,7 @@ func homeFeedButtonsWithCounts(page *ui.Page, numDrafts, numLikedQuestions, numW
 		var templ_7745c5c3_Var20 string
 		templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL("question.friends_waiting_for_me"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/home_feed.templ`, Line: 317, Col: 57}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 317, Col: 57}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 		if templ_7745c5c3_Err != nil {
@@ -497,7 +497,7 @@ func homeFeedButtonsWithCounts(page *ui.Page, numDrafts, numLikedQuestions, numW
 		var templ_7745c5c3_Var21 string
 		templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs("Waiting on You")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/home_feed.templ`, Line: 347, Col: 22}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 347, Col: 22}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 		if templ_7745c5c3_Err != nil {
@@ -528,7 +528,7 @@ func homeFeedButtonsWithCounts(page *ui.Page, numDrafts, numLikedQuestions, numW
 			var templ_7745c5c3_Var22 string
 			templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", numWaitingOnYou))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/home_feed.templ`, Line: 361, Col: 41}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 361, Col: 41}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 			if templ_7745c5c3_Err != nil {
@@ -546,7 +546,7 @@ func homeFeedButtonsWithCounts(page *ui.Page, numDrafts, numLikedQuestions, numW
 		var templ_7745c5c3_Var23 string
 		templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL("unansweredForPartner"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/home_feed.templ`, Line: 367, Col: 46}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 367, Col: 46}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 		if templ_7745c5c3_Err != nil {
@@ -559,7 +559,7 @@ func homeFeedButtonsWithCounts(page *ui.Page, numDrafts, numLikedQuestions, numW
 		var templ_7745c5c3_Var24 string
 		templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs("Leaderboard")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/home_feed.templ`, Line: 397, Col: 19}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 397, Col: 19}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 		if templ_7745c5c3_Err != nil {
@@ -590,7 +590,7 @@ func homeFeedButtonsWithCounts(page *ui.Page, numDrafts, numLikedQuestions, numW
 			var templ_7745c5c3_Var25 string
 			templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", leaderboardNotifCount))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/home_feed.templ`, Line: 410, Col: 47}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 410, Col: 47}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
 			if templ_7745c5c3_Err != nil {
@@ -638,7 +638,7 @@ func miniButtonCountSpinner() templ.Component {
 	})
 }
 
-func HomeFeedItems(page *ui.Page) templ.Component {
+func HomeFeedItems(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -672,7 +672,7 @@ func HomeFeedItems(page *ui.Page) templ.Component {
 				var templ_7745c5c3_Var28 string
 				templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(item)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/home_feed.templ`, Line: 435, Col: 12}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 435, Col: 12}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 				if templ_7745c5c3_Err != nil {
@@ -691,7 +691,7 @@ func HomeFeedItems(page *ui.Page) templ.Component {
 				var templ_7745c5c3_Var29 string
 				templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(data.NextPageURL)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/home_feed.templ`, Line: 441, Col: 31}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 441, Col: 31}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
 				if templ_7745c5c3_Err != nil {

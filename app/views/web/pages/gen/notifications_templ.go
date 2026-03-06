@@ -10,14 +10,14 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"fmt"
+	"github.com/leomorpho/goship/app/controller"
 	"github.com/leomorpho/goship/app/views/web/components/gen"
 	"github.com/leomorpho/goship/app/web/routenames"
-	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/app/web/viewmodels"
 	"github.com/leomorpho/goship/framework/domain"
 )
 
-func NotificationsPage(page *ui.Page) templ.Component {
+func NotificationsPage(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -46,7 +46,7 @@ func NotificationsPage(page *ui.Page) templ.Component {
 			var templ_7745c5c3_Var2 string
 			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameMarkAllNotificationsAsRead))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/notifications.templ`, Line: 16, Col: 71}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/notifications.templ`, Line: 16, Col: 71}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 			if templ_7745c5c3_Err != nil {
@@ -72,7 +72,7 @@ func NotificationsPage(page *ui.Page) templ.Component {
 				var templ_7745c5c3_Var3 string
 				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(data.NextPageURL)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/notifications.templ`, Line: 49, Col: 30}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/notifications.templ`, Line: 49, Col: 30}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 				if templ_7745c5c3_Err != nil {
@@ -101,7 +101,7 @@ func NotificationsPage(page *ui.Page) templ.Component {
 	})
 }
 
-func Notification(page *ui.Page, notification domain.Notification) templ.Component {
+func Notification(page *controller.Page, notification domain.Notification) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -136,7 +136,7 @@ func Notification(page *ui.Page, notification domain.Notification) templ.Compone
 		var templ_7745c5c3_Var6 string
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("notification-card-%v", notification.ID))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/notifications.templ`, Line: 73, Col: 59}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/notifications.templ`, Line: 73, Col: 59}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
@@ -149,7 +149,7 @@ func Notification(page *ui.Page, notification domain.Notification) templ.Compone
 		var templ_7745c5c3_Var7 string
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var5).String())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/notifications.templ`, Line: 1, Col: 0}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/notifications.templ`, Line: 1, Col: 0}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {
@@ -167,7 +167,7 @@ func Notification(page *ui.Page, notification domain.Notification) templ.Compone
 			var templ_7745c5c3_Var8 string
 			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameMarkNotificationsAsRead, notification.ID) + "?csrf=" + page.CSRF)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/notifications.templ`, Line: 78, Col: 108}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/notifications.templ`, Line: 78, Col: 108}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 			if templ_7745c5c3_Err != nil {
@@ -190,7 +190,7 @@ func Notification(page *ui.Page, notification domain.Notification) templ.Compone
 			var templ_7745c5c3_Var9 string
 			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameMarkNotificationsAsRead, notification.ID) + "?csrf=" + page.CSRF)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/notifications.templ`, Line: 89, Col: 110}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/notifications.templ`, Line: 89, Col: 110}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
@@ -213,7 +213,7 @@ func Notification(page *ui.Page, notification domain.Notification) templ.Compone
 			var templ_7745c5c3_Var10 string
 			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameMarkNotificationsAsRead, notification.ID) + "?csrf=" + page.CSRF)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/notifications.templ`, Line: 97, Col: 110}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/notifications.templ`, Line: 97, Col: 110}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 			if templ_7745c5c3_Err != nil {
@@ -243,7 +243,7 @@ func Notification(page *ui.Page, notification domain.Notification) templ.Compone
 		var templ_7745c5c3_Var12 string
 		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("{ createdAt: '%s'}", notification.CreatedAt.Format("2006-01-02T15:04:05Z07:00")))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/notifications.templ`, Line: 105, Col: 107}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/notifications.templ`, Line: 105, Col: 107}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 		if templ_7745c5c3_Err != nil {
@@ -256,7 +256,7 @@ func Notification(page *ui.Page, notification domain.Notification) templ.Compone
 		var templ_7745c5c3_Var13 string
 		templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var11).String())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/notifications.templ`, Line: 1, Col: 0}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/notifications.templ`, Line: 1, Col: 0}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 		if templ_7745c5c3_Err != nil {
@@ -269,7 +269,7 @@ func Notification(page *ui.Page, notification domain.Notification) templ.Compone
 		var templ_7745c5c3_Var14 string
 		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(notification.Title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/notifications.templ`, Line: 122, Col: 69}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/notifications.templ`, Line: 122, Col: 69}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 		if templ_7745c5c3_Err != nil {
@@ -282,7 +282,7 @@ func Notification(page *ui.Page, notification domain.Notification) templ.Compone
 		var templ_7745c5c3_Var15 string
 		templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(notification.Text)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/notifications.templ`, Line: 128, Col: 55}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/notifications.templ`, Line: 128, Col: 55}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 		if templ_7745c5c3_Err != nil {
@@ -341,7 +341,7 @@ func SeeMoreButton(btnText string) templ.Component {
 			var templ_7745c5c3_Var17 string
 			templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(btnText)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/notifications.templ`, Line: 155, Col: 12}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/notifications.templ`, Line: 155, Col: 12}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 			if templ_7745c5c3_Err != nil {
@@ -351,7 +351,7 @@ func SeeMoreButton(btnText string) templ.Component {
 			var templ_7745c5c3_Var18 string
 			templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs("See more")
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/notifications.templ`, Line: 157, Col: 15}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/notifications.templ`, Line: 157, Col: 15}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 			if templ_7745c5c3_Err != nil {
@@ -394,7 +394,7 @@ func AcceptCommittedRequest(link string) templ.Component {
 		var templ_7745c5c3_Var20 string
 		templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(link)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/notifications.templ`, Line: 164, Col: 15}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/notifications.templ`, Line: 164, Col: 15}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 		if templ_7745c5c3_Err != nil {
@@ -407,7 +407,7 @@ func AcceptCommittedRequest(link string) templ.Component {
 		var templ_7745c5c3_Var21 string
 		templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs("Accept")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/notifications.templ`, Line: 175, Col: 12}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/notifications.templ`, Line: 175, Col: 12}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 		if templ_7745c5c3_Err != nil {

@@ -36,7 +36,7 @@ func FormCSRF(token string) templ.Component {
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(token)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/forms.templ`, Line: 4, Col: 47}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/forms.templ`, Line: 4, Col: 47}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -79,7 +79,7 @@ func FormFieldErrors(errs []string) templ.Component {
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(err)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/forms.templ`, Line: 23, Col: 8}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/forms.templ`, Line: 23, Col: 8}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {

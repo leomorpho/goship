@@ -9,12 +9,12 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
+	"github.com/leomorpho/goship/app/controller"
 	"github.com/leomorpho/goship/app/web/routenames"
-	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/framework/domain"
 )
 
-func ManageSubscriptionButton(page *ui.Page, subscription domain.ProductType, isTrial bool) templ.Component {
+func ManageSubscriptionButton(page *controller.Page, subscription domain.ProductType, isTrial bool) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -54,7 +54,7 @@ func ManageSubscriptionButton(page *ui.Page, subscription domain.ProductType, is
 	})
 }
 
-func PricingPage(page *ui.Page) templ.Component {
+func PricingPage(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -82,7 +82,7 @@ func PricingPage(page *ui.Page) templ.Component {
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNamePricingPage))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/payments.templ`, Line: 20, Col: 54}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/payments.templ`, Line: 20, Col: 54}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
@@ -96,7 +96,7 @@ func PricingPage(page *ui.Page) templ.Component {
 	})
 }
 
-func StripePortal(page *ui.Page) templ.Component {
+func StripePortal(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -124,7 +124,7 @@ func StripePortal(page *ui.Page) templ.Component {
 		var templ_7745c5c3_Var5 templ.SafeURL
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(page.ToURL(routenames.RouteNameCreatePortalSession)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/payments.templ`, Line: 34, Col: 96}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/payments.templ`, Line: 34, Col: 96}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {

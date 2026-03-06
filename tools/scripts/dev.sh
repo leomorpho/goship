@@ -8,4 +8,4 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo "Starting JS-free dev mode (Go processes only)."
 echo "Use 'make dev-full' if you want JS/CSS watchers enabled."
-overmind start -f tools/procfiles/Procfile.dev
+overmind start -f Procfile.dev

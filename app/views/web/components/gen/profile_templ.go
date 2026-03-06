@@ -10,12 +10,12 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"fmt"
+	"github.com/leomorpho/goship/app/controller"
 	"github.com/leomorpho/goship/app/web/routenames"
-	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/framework/domain"
 )
 
-func Profile(page *ui.Page, profile domain.Profile, isSelf, isPotentialMatch bool, uploadGalleryPicUrl, uploadProfilePicUrl string, galleryPicsMaxCount int) templ.Component {
+func Profile(page *controller.Page, profile domain.Profile, isSelf, isPotentialMatch bool, uploadGalleryPicUrl, uploadProfilePicUrl string, galleryPicsMaxCount int) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -47,7 +47,7 @@ func Profile(page *ui.Page, profile domain.Profile, isSelf, isPotentialMatch boo
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(profile.Bio)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/profile.templ`, Line: 13, Col: 18}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/profile.templ`, Line: 13, Col: 18}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -75,7 +75,7 @@ func Profile(page *ui.Page, profile domain.Profile, isSelf, isPotentialMatch boo
 					var templ_7745c5c3_Var3 string
 					templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL("uploadPhoto.delete", image.ID) + "?csrf=" + page.CSRF)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/profile.templ`, Line: 29, Col: 85}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/profile.templ`, Line: 29, Col: 85}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 					if templ_7745c5c3_Err != nil {
@@ -93,7 +93,7 @@ func Profile(page *ui.Page, profile domain.Profile, isSelf, isPotentialMatch boo
 				var templ_7745c5c3_Var4 string
 				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(image.FullURL)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/profile.templ`, Line: 48, Col: 26}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/profile.templ`, Line: 48, Col: 26}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 				if templ_7745c5c3_Err != nil {
@@ -106,7 +106,7 @@ func Profile(page *ui.Page, profile domain.Profile, isSelf, isPotentialMatch boo
 				var templ_7745c5c3_Var5 string
 				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(image.Alt)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/profile.templ`, Line: 49, Col: 22}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/profile.templ`, Line: 49, Col: 22}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 				if templ_7745c5c3_Err != nil {
@@ -224,7 +224,7 @@ func initCarousel() templ.ComponentScript {
 	}
 }
 
-func ProfileHeader(page *ui.Page, profile *domain.Profile, isSelf, isPotentialMatch, isIndividualConvoView bool, uploadGalleryPicUrl, uploadProfilePicUrl string, galleryPicsMaxCount int) templ.Component {
+func ProfileHeader(page *controller.Page, profile *domain.Profile, isSelf, isPotentialMatch, isIndividualConvoView bool, uploadGalleryPicUrl, uploadProfilePicUrl string, galleryPicsMaxCount int) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -261,7 +261,7 @@ func ProfileHeader(page *ui.Page, profile *domain.Profile, isSelf, isPotentialMa
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var7).String())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/profile.templ`, Line: 1, Col: 0}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/profile.templ`, Line: 1, Col: 0}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
@@ -279,7 +279,7 @@ func ProfileHeader(page *ui.Page, profile *domain.Profile, isSelf, isPotentialMa
 			var templ_7745c5c3_Var9 string
 			templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameProfile, profile.ID))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/profile.templ`, Line: 157, Col: 68}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/profile.templ`, Line: 157, Col: 68}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 			if templ_7745c5c3_Err != nil {
@@ -302,7 +302,7 @@ func ProfileHeader(page *ui.Page, profile *domain.Profile, isSelf, isPotentialMa
 			var templ_7745c5c3_Var10 string
 			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(profile.ProfileImage.ThumbnailURL)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/profile.templ`, Line: 166, Col: 52}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/profile.templ`, Line: 166, Col: 52}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 			if templ_7745c5c3_Err != nil {
@@ -349,7 +349,7 @@ func ProfileHeader(page *ui.Page, profile *domain.Profile, isSelf, isPotentialMa
 		var templ_7745c5c3_Var12 string
 		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var11).String())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/profile.templ`, Line: 1, Col: 0}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/profile.templ`, Line: 1, Col: 0}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 		if templ_7745c5c3_Err != nil {
@@ -367,7 +367,7 @@ func ProfileHeader(page *ui.Page, profile *domain.Profile, isSelf, isPotentialMa
 			var templ_7745c5c3_Var13 string
 			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameProfile, profile.ID))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/profile.templ`, Line: 184, Col: 67}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/profile.templ`, Line: 184, Col: 67}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 			if templ_7745c5c3_Err != nil {
@@ -385,7 +385,7 @@ func ProfileHeader(page *ui.Page, profile *domain.Profile, isSelf, isPotentialMa
 		var templ_7745c5c3_Var14 string
 		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(profile.Name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/profile.templ`, Line: 191, Col: 20}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/profile.templ`, Line: 191, Col: 20}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 		if templ_7745c5c3_Err != nil {
@@ -408,7 +408,7 @@ func ProfileHeader(page *ui.Page, profile *domain.Profile, isSelf, isPotentialMa
 				var templ_7745c5c3_Var15 string
 				templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("{ tooltip: 'Only %d gallery pictures allowed' }", galleryPicsMaxCount))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/profile.templ`, Line: 199, Col: 103}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/profile.templ`, Line: 199, Col: 103}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 				if templ_7745c5c3_Err != nil {
@@ -435,7 +435,7 @@ func ProfileHeader(page *ui.Page, profile *domain.Profile, isSelf, isPotentialMa
 			var templ_7745c5c3_Var16 templ.SafeURL
 			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(page.ToURL(routenames.RouteNameLogout)))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/profile.templ`, Line: 207, Col: 62}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/profile.templ`, Line: 207, Col: 62}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 			if templ_7745c5c3_Err != nil {
@@ -482,7 +482,7 @@ func showContactInfo(profile domain.Profile) templ.Component {
 		var templ_7745c5c3_Var18 string
 		templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(profile.CountryCode)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/profile.templ`, Line: 231, Col: 42}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/profile.templ`, Line: 231, Col: 42}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 		if templ_7745c5c3_Err != nil {
@@ -496,7 +496,7 @@ func showContactInfo(profile domain.Profile) templ.Component {
 			var templ_7745c5c3_Var19 string
 			templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(*profile.PhoneNumberInternational)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/profile.templ`, Line: 233, Col: 38}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/profile.templ`, Line: 233, Col: 38}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 			if templ_7745c5c3_Err != nil {
@@ -506,7 +506,7 @@ func showContactInfo(profile domain.Profile) templ.Component {
 			var templ_7745c5c3_Var20 string
 			templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(profile.PhoneNumberE164)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/profile.templ`, Line: 235, Col: 28}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/profile.templ`, Line: 235, Col: 28}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 			if templ_7745c5c3_Err != nil {
@@ -555,7 +555,7 @@ func contactInfoRequested() templ.Component {
 		var templ_7745c5c3_Var23 string
 		templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var22).String())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/profile.templ`, Line: 1, Col: 0}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/profile.templ`, Line: 1, Col: 0}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 		if templ_7745c5c3_Err != nil {
@@ -568,7 +568,7 @@ func contactInfoRequested() templ.Component {
 		var templ_7745c5c3_Var24 string
 		templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs("Contact info requested")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/profile.templ`, Line: 250, Col: 28}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/profile.templ`, Line: 250, Col: 28}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 		if templ_7745c5c3_Err != nil {
@@ -582,7 +582,7 @@ func contactInfoRequested() templ.Component {
 	})
 }
 
-func requestContactInfo(page *ui.Page, profileID int) templ.Component {
+func requestContactInfo(page *controller.Page, profileID int) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -610,7 +610,7 @@ func requestContactInfo(page *ui.Page, profileID int) templ.Component {
 		var templ_7745c5c3_Var26 string
 		templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL("request_contact_info", profileID))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/profile.templ`, Line: 256, Col: 56}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/profile.templ`, Line: 256, Col: 56}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
 		if templ_7745c5c3_Err != nil {
@@ -623,7 +623,7 @@ func requestContactInfo(page *ui.Page, profileID int) templ.Component {
 		var templ_7745c5c3_Var27 string
 		templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs("Request contact info")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/profile.templ`, Line: 267, Col: 27}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/profile.templ`, Line: 267, Col: 27}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 		if templ_7745c5c3_Err != nil {
@@ -637,7 +637,7 @@ func requestContactInfo(page *ui.Page, profileID int) templ.Component {
 	})
 }
 
-func grantContactInfoRequest(page *ui.Page, profileID int) templ.Component {
+func grantContactInfoRequest(page *controller.Page, profileID int) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -665,7 +665,7 @@ func grantContactInfoRequest(page *ui.Page, profileID int) templ.Component {
 		var templ_7745c5c3_Var29 string
 		templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL("grant_contact_info", profileID))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/profile.templ`, Line: 274, Col: 54}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/profile.templ`, Line: 274, Col: 54}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
 		if templ_7745c5c3_Err != nil {
@@ -678,7 +678,7 @@ func grantContactInfoRequest(page *ui.Page, profileID int) templ.Component {
 		var templ_7745c5c3_Var30 string
 		templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs("Grant access to contact info")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/components/profile.templ`, Line: 287, Col: 35}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/profile.templ`, Line: 287, Col: 35}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var30))
 		if templ_7745c5c3_Err != nil {

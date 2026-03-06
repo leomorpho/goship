@@ -10,15 +10,15 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"fmt"
+	"github.com/leomorpho/goship/app/controller"
 	"github.com/leomorpho/goship/app/views/web/components/gen"
 	"github.com/leomorpho/goship/app/web/routenames"
-	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/app/web/viewmodels"
 	"github.com/leomorpho/goship/framework/domain"
 	"time"
 )
 
-func Settings(page *ui.Page) templ.Component {
+func Settings(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -57,7 +57,7 @@ func Settings(page *ui.Page) templ.Component {
 			var templ_7745c5c3_Var2 string
 			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameGetDisplayName))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/preferences.templ`, Line: 20, Col: 59}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 20, Col: 59}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 			if templ_7745c5c3_Err != nil {
@@ -140,7 +140,7 @@ func firstWelcome() templ.Component {
 	})
 }
 
-func DisplayName(page *ui.Page) templ.Component {
+func DisplayName(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -182,7 +182,7 @@ func DisplayName(page *ui.Page) templ.Component {
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameUpdateDisplayName) + "?csrf=" + page.CSRF)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/preferences.templ`, Line: 67, Col: 87}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 67, Col: 87}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
@@ -195,7 +195,7 @@ func DisplayName(page *ui.Page) templ.Component {
 			var templ_7745c5c3_Var7 string
 			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var5).String())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/preferences.templ`, Line: 1, Col: 0}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 1, Col: 0}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 			if templ_7745c5c3_Err != nil {
@@ -208,7 +208,7 @@ func DisplayName(page *ui.Page) templ.Component {
 			var templ_7745c5c3_Var8 string
 			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(form.DisplayName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/preferences.templ`, Line: 74, Col: 29}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 74, Col: 29}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 			if templ_7745c5c3_Err != nil {
@@ -240,7 +240,7 @@ func DisplayName(page *ui.Page) templ.Component {
 	})
 }
 
-func NotificationPermissions(page *ui.Page, data viewmodels.NotificationPermissionsData) templ.Component {
+func NotificationPermissions(page *controller.Page, data viewmodels.NotificationPermissionsData) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -276,7 +276,7 @@ func NotificationPermissions(page *ui.Page, data viewmodels.NotificationPermissi
 		var templ_7745c5c3_Var10 string
 		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs("What we'll notify you about")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/preferences.templ`, Line: 107, Col: 34}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 107, Col: 34}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 		if templ_7745c5c3_Err != nil {
@@ -323,7 +323,7 @@ func initPermissions(componentID string, d viewmodels.NotificationPermissionsDat
 	}
 }
 
-func subscription(page *ui.Page, fullyOnboarded bool, plan domain.ProductType, expiryTimestap *time.Time, isTrial bool) templ.Component {
+func subscription(page *controller.Page, fullyOnboarded bool, plan domain.ProductType, expiryTimestap *time.Time, isTrial bool) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -357,7 +357,7 @@ func subscription(page *ui.Page, fullyOnboarded bool, plan domain.ProductType, e
 		var templ_7745c5c3_Var12 string
 		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(plan.Value)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/preferences.templ`, Line: 172, Col: 15}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 172, Col: 15}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 		if templ_7745c5c3_Err != nil {
@@ -375,7 +375,7 @@ func subscription(page *ui.Page, fullyOnboarded bool, plan domain.ProductType, e
 			var templ_7745c5c3_Var13 string
 			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs("Expiring on ")
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/preferences.templ`, Line: 182, Col: 20}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 182, Col: 20}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 			if templ_7745c5c3_Err != nil {
@@ -503,7 +503,7 @@ func initNotificationPermissions(componentID, vapidPublicKey, addSubscriptionEnd
 	}
 }
 
-func deleteAccountAndData(page *ui.Page) templ.Component {
+func deleteAccountAndData(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -531,7 +531,7 @@ func deleteAccountAndData(page *ui.Page) templ.Component {
 		var templ_7745c5c3_Var16 string
 		templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameDeleteAccountPage))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/preferences.templ`, Line: 374, Col: 61}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 374, Col: 61}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 		if templ_7745c5c3_Err != nil {
@@ -545,7 +545,7 @@ func deleteAccountAndData(page *ui.Page) templ.Component {
 	})
 }
 
-func AboutMe(page *ui.Page) templ.Component {
+func AboutMe(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -578,7 +578,7 @@ func AboutMe(page *ui.Page) templ.Component {
 			var templ_7745c5c3_Var18 string
 			templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameUpdateBio) + "?csrf=" + page.CSRF)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/preferences.templ`, Line: 405, Col: 80}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 405, Col: 80}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 			if templ_7745c5c3_Err != nil {
@@ -591,7 +591,7 @@ func AboutMe(page *ui.Page) templ.Component {
 			var templ_7745c5c3_Var19 string
 			templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(form.Bio)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/preferences.templ`, Line: 407, Col: 16}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 407, Col: 16}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 			if templ_7745c5c3_Err != nil {
@@ -623,7 +623,7 @@ func AboutMe(page *ui.Page) templ.Component {
 	})
 }
 
-func birthdate(page *ui.Page) templ.Component {
+func birthdate(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -652,7 +652,7 @@ func birthdate(page *ui.Page) templ.Component {
 			var templ_7745c5c3_Var21 string
 			templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(data.SelfBirthdate)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/preferences.templ`, Line: 441, Col: 30}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 441, Col: 30}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 			if templ_7745c5c3_Err != nil {
@@ -665,7 +665,7 @@ func birthdate(page *ui.Page) templ.Component {
 			var templ_7745c5c3_Var22 string
 			templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(data.SelfBirthdate)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/preferences.templ`, Line: 445, Col: 66}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 445, Col: 66}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 			if templ_7745c5c3_Err != nil {
@@ -680,7 +680,7 @@ func birthdate(page *ui.Page) templ.Component {
 	})
 }
 
-func saveAndReloadPrefsPage(page *ui.Page) templ.Component {
+func saveAndReloadPrefsPage(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -708,7 +708,7 @@ func saveAndReloadPrefsPage(page *ui.Page) templ.Component {
 		var templ_7745c5c3_Var24 string
 		templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNamePreferences))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/preferences.templ`, Line: 459, Col: 55}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 459, Col: 55}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 		if templ_7745c5c3_Err != nil {
@@ -755,7 +755,7 @@ func phoneNumberField(phoneNumberInE164Format, countryCode string) templ.Compone
 	})
 }
 
-func finishOnboarding(page *ui.Page) templ.Component {
+func finishOnboarding(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -783,7 +783,7 @@ func finishOnboarding(page *ui.Page) templ.Component {
 		var templ_7745c5c3_Var27 templ.SafeURL
 		templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(page.ToURL(routenames.RouteNameFinishOnboarding)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/preferences.templ`, Line: 473, Col: 71}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 473, Col: 71}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 		if templ_7745c5c3_Err != nil {
@@ -797,7 +797,7 @@ func finishOnboarding(page *ui.Page) templ.Component {
 	})
 }
 
-func savePrefs(page *ui.Page) templ.Component {
+func savePrefs(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -825,7 +825,7 @@ func savePrefs(page *ui.Page) templ.Component {
 		var templ_7745c5c3_Var29 string
 		templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameProfile))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/preferences.templ`, Line: 501, Col: 51}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 501, Col: 51}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
 		if templ_7745c5c3_Err != nil {
@@ -839,7 +839,7 @@ func savePrefs(page *ui.Page) templ.Component {
 	})
 }
 
-func phoneNumber(page *ui.Page, phone string) templ.Component {
+func phoneNumber(page *controller.Page, phone string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -867,7 +867,7 @@ func phoneNumber(page *ui.Page, phone string) templ.Component {
 		var templ_7745c5c3_Var31 string
 		templ_7745c5c3_Var31, templ_7745c5c3_Err = templ.JoinStringErrs(phone)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/preferences.templ`, Line: 525, Col: 18}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 525, Col: 18}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var31))
 		if templ_7745c5c3_Err != nil {
@@ -880,7 +880,7 @@ func phoneNumber(page *ui.Page, phone string) templ.Component {
 		var templ_7745c5c3_Var32 string
 		templ_7745c5c3_Var32, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameGetPhone))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `goship/views/web/pages/preferences.templ`, Line: 539, Col: 53}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 539, Col: 53}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var32))
 		if templ_7745c5c3_Err != nil {
