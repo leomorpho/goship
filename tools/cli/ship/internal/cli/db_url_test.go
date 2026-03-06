@@ -15,9 +15,9 @@ func TestResolveDBURL_PrefersEnv(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	got, err := resolveAtlasDBURL()
+	got, err := resolveRuntimeDBURL()
 	if err != nil {
-		t.Fatalf("resolveAtlasDBURL error = %v", err)
+		t.Fatalf("resolveRuntimeDBURL error = %v", err)
 	}
 	if got != "postgres://env-only" {
 		t.Fatalf("db url = %q, want %q", got, "postgres://env-only")
@@ -27,9 +27,9 @@ func TestResolveDBURL_PrefersEnv(t *testing.T) {
 func TestResolveDBURL_PrefersDatabaseURL(t *testing.T) {
 	t.Setenv("DATABASE_URL", "postgres://primary")
 	t.Setenv("PAGODA_DATABASE_URL", "postgres://secondary")
-	got, err := resolveAtlasDBURL()
+	got, err := resolveRuntimeDBURL()
 	if err != nil {
-		t.Fatalf("resolveAtlasDBURL error = %v", err)
+		t.Fatalf("resolveRuntimeDBURL error = %v", err)
 	}
 	if got != "postgres://primary" {
 		t.Fatalf("db url = %q, want %q", got, "postgres://primary")
@@ -39,7 +39,7 @@ func TestResolveDBURL_PrefersDatabaseURL(t *testing.T) {
 func TestResolveDBURL_RejectsLegacyPagodaDatabaseURL(t *testing.T) {
 	t.Setenv("DATABASE_URL", "")
 	t.Setenv("PAGODA_DATABASE_URL", "postgres://pagoda-env")
-	_, err := resolveAtlasDBURL()
+	_, err := resolveRuntimeDBURL()
 	if err == nil {
 		t.Fatal("expected error for PAGODA_DATABASE_URL, got nil")
 	}
@@ -87,9 +87,9 @@ database:
 		t.Fatal(err)
 	}
 
-	got, err := resolveAtlasDBURL()
+	got, err := resolveRuntimeDBURL()
 	if err != nil {
-		t.Fatalf("resolveAtlasDBURL error = %v", err)
+		t.Fatalf("resolveRuntimeDBURL error = %v", err)
 	}
 	if !strings.Contains(got, "db.local:5432") {
 		t.Fatalf("db url = %q, want host/port", got)
@@ -128,7 +128,7 @@ database:
 		t.Fatal(err)
 	}
 
-	_, err = resolveAtlasDBURL()
+	_, err = resolveRuntimeDBURL()
 	if err == nil {
 		t.Fatal("expected error for embedded mode, got nil")
 	}
@@ -172,9 +172,9 @@ database:
 		t.Fatal(err)
 	}
 
-	got, err := resolveAtlasDBURL()
+	got, err := resolveRuntimeDBURL()
 	if err != nil {
-		t.Fatalf("resolveAtlasDBURL error = %v", err)
+		t.Fatalf("resolveRuntimeDBURL error = %v", err)
 	}
 	if !strings.Contains(got, "/goship_prod") {
 		t.Fatalf("db url = %q, want production database name", got)
@@ -216,9 +216,9 @@ database:
 		t.Fatal(err)
 	}
 
-	got, err := resolveAtlasDBURL()
+	got, err := resolveRuntimeDBURL()
 	if err != nil {
-		t.Fatalf("resolveAtlasDBURL error = %v", err)
+		t.Fatalf("resolveRuntimeDBURL error = %v", err)
 	}
 	if !strings.Contains(got, "/goship_test") {
 		t.Fatalf("db url = %q, want test database name", got)

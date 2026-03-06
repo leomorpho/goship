@@ -31,7 +31,7 @@ func PrintRootHelp(w io.Writer) {
 	fmt.Fprintln(w, "  ship dev worker")
 	fmt.Fprintln(w, "  ship dev --all")
 	fmt.Fprintln(w, "  ship test --integration")
-	fmt.Fprintln(w, "  ship upgrade --to v0.27.1")
+	fmt.Fprintln(w, "  ship upgrade --to v3.27.0")
 	fmt.Fprintln(w, "  ship db:create")
 	fmt.Fprintln(w, "  ship db:generate")
 	fmt.Fprintln(w, "  ship db:make add_posts")

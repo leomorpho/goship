@@ -35,10 +35,10 @@ func (c CLI) resolveDBURL() (string, error) {
 	if c.ResolveDBURL != nil {
 		return c.ResolveDBURL()
 	}
-	return resolveAtlasDBURL()
+	return resolveRuntimeDBURL()
 }
 
-func resolveAtlasDBURL() (string, error) {
+func resolveRuntimeDBURL() (string, error) {
 	return rt.ResolveDBURL()
 }
 

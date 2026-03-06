@@ -151,9 +151,9 @@ Safety matrix:
 - `ship make:controller <Name> --actions ... --wire` -> wire generated routes into `app/router.go` markers
 - `ship make:scaffold <Name> ...` -> orchestration command that composes `make:model`, `db:make`, `make:controller --domain <plural_model> --wire`, and optionally `make:resource --domain <plural_model>` / `db:migrate`
 - `ship make:module <Name>` -> generate isolated module scaffold in `modules/<name>` with its own `go.mod`, module-facing types/contracts, and service tests
-- `ship upgrade --to <version>` -> upgrades the pinned Atlas CLI version used by DB tooling
+- `ship upgrade --to <version>` -> upgrades the pinned Goose CLI go-run fallback version (`gooseGoRunRef` in `tools/cli/ship/internal/cli/cli.go`)
 - `ship upgrade --dry-run` -> prints planned pin change without writing files
-- current scope: Atlas pin only (expandable later; DB runtime path is Goose)
+- current scope: Goose pin only (expandable later)
 
 Doctor checks (current):
 

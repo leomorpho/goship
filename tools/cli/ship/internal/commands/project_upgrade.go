@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	atlasRefPattern = regexp.MustCompile(`(?m)^(\s*(?:const\s+)?atlasGoRunRef\s*=\s*"ariga\.io/atlas/cmd/atlas@)v[^"]+("\s*)$`)
+	gooseRefPattern = regexp.MustCompile(`(?m)^(\s*(?:const\s+)?gooseGoRunRef\s*=\s*"github\.com/pressly/goose/v3/cmd/goose@)v[^"]+("\s*)$`)
 )
 
 type UpgradeDeps struct {
@@ -60,41 +60,41 @@ func RunUpgrade(args []string, d UpgradeDeps) int {
 		return 1
 	}
 
-	return upgradeAtlas(d, root, *to, *dryRun)
+	return upgradeGoose(d, root, *to, *dryRun)
 }
 
-func upgradeAtlas(d UpgradeDeps, root, version string, dryRun bool) int {
+func upgradeGoose(d UpgradeDeps, root, version string, dryRun bool) int {
 	path := filepath.Join(root, "tools", "cli", "ship", "internal", "cli", "cli.go")
-	old, newText, changed, err := RewriteAtlasVersion(path, version)
+	old, newText, changed, err := RewriteGooseVersion(path, version)
 	if err != nil {
-		fmt.Fprintf(d.Err, "failed to update atlas version: %v\n", err)
+		fmt.Fprintf(d.Err, "failed to update goose version: %v\n", err)
 		return 1
 	}
 	if !changed {
-		fmt.Fprintf(d.Out, "atlas already pinned to %s in %s\n", version, path)
+		fmt.Fprintf(d.Out, "goose already pinned to %s in %s\n", version, path)
 		return 0
 	}
 	if dryRun {
-		fmt.Fprintf(d.Out, "dry-run: would update atlas in %s: %s -> %s\n", path, old, version)
+		fmt.Fprintf(d.Out, "dry-run: would update goose in %s: %s -> %s\n", path, old, version)
 		return 0
 	}
 	if err := os.WriteFile(path, []byte(newText), 0o644); err != nil {
 		fmt.Fprintf(d.Err, "failed to write %s: %v\n", path, err)
 		return 1
 	}
-	fmt.Fprintf(d.Out, "updated atlas pin in %s: %s -> %s\n", path, old, version)
+	fmt.Fprintf(d.Out, "updated goose pin in %s: %s -> %s\n", path, old, version)
 	return 0
 }
 
-func RewriteAtlasVersion(path, target string) (oldVersion string, rewritten string, changed bool, err error) {
+func RewriteGooseVersion(path, target string) (oldVersion string, rewritten string, changed bool, err error) {
 	b, err := os.ReadFile(path)
 	if err != nil {
 		return "", "", false, err
 	}
 	text := string(b)
-	match := atlasRefPattern.FindStringSubmatch(text)
+	match := gooseRefPattern.FindStringSubmatch(text)
 	if len(match) == 0 {
-		return "", "", false, fmt.Errorf("atlasGoRunRef constant not found in %s", path)
+		return "", "", false, fmt.Errorf("gooseGoRunRef constant not found in %s", path)
 	}
 	full := match[0]
 	prefix := match[1]
@@ -104,12 +104,12 @@ func RewriteAtlasVersion(path, target string) (oldVersion string, rewritten stri
 		return old, text, false, nil
 	}
 	replacement := prefix + target + suffix
-	updated := atlasRefPattern.ReplaceAllString(text, replacement)
+	updated := gooseRefPattern.ReplaceAllString(text, replacement)
 	return old, updated, true, nil
 }
 
 func PrintUpgradeHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship upgrade commands:")
 	fmt.Fprintln(w, "  ship upgrade --to <version> [--dry-run]")
-	fmt.Fprintln(w, "  (currently upgrades atlas pin only; no auto-latest)")
+	fmt.Fprintln(w, "  (currently upgrades goose pin only; no auto-latest)")
 }

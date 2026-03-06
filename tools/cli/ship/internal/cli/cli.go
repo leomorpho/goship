@@ -17,7 +17,6 @@ const (
 	gooseDir      = "db/migrate/migrations"
 	modelQueryDir = "db/queries"
 	gooseGoRunRef = "github.com/pressly/goose/v3/cmd/goose@v3.26.0"
-	atlasGoRunRef = "ariga.io/atlas/cmd/atlas@v0.27.1"
 )
 
 var (
