@@ -31,6 +31,29 @@ jobs:
       - name: Stateless quality gate
         run: bash tools/scripts/precommit-tests.sh
 
+  cleanroom_bob_verification:
+    needs: backend_tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.x"
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Clean-room Bob/Goose verification
+        run: bash tools/scripts/test-cleanroom.sh
+
   # TODO: these were never set up in the CI
   # tests/e2e:
   #   needs: backend_tests

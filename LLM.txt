@@ -3469,7 +3469,7 @@ Goal: remove Ent once runtime parity is complete.
 Acceptance criteria:
 - [x] `ship doctor` has no Ent-presence expectations.
 - [ ] Full pre-commit and integration suite green without Ent.
-- [ ] Clean-room build/test verifies no hidden Ent dependency remains.
+- [x] Clean-room build/test verifies no hidden Ent dependency remains.
 
 ---
 
@@ -3639,6 +3639,7 @@ Acceptance criteria:
 - 2026-03-06: switched `ship upgrade` from Atlas pin updates to Goose pin updates (`gooseGoRunRef`) and normalized CLI/runtime naming away from Atlas terminology.
 - 2026-03-06: added `tools/scripts/check-no-ent-toolchain.sh` and wired it into pre-commit to block reintroduction of Ent toolchain/artifacts (`db/ent`, `db/schema`, `entgo.io/ent` imports/deps); integration script run is currently sandbox-blocked in this environment due restricted local listener bind on `[::1]`.
 - 2026-03-06: added `tools/scripts/check-llm-txt-drift.sh` to precommit/CI quality gate so generated `LLM.txt` drift fails fast, and marked docs/doctor hardening acceptance criteria complete.
+- 2026-03-06: added CI clean-room verification job (`cleanroom_bob_verification`) backed by `tools/scripts/test-cleanroom.sh`; it scaffolds a fresh app, runs Goose migrations on SQLite, runs Bob generation, and executes `go test ./...` to catch hidden cross-repo/toolchain coupling.
 - 2026-03-06: updated architecture/agent docs to describe Bob+Goose as the canonical data-model path (replacing stale Ent-first wording).
 - 2026-03-06: removed the last non-test runtime Ent imports from `app/foundation/container.go`; schema bootstrap is now SQL-only (Goose migrations for server DBs + minimal embedded SQLite schema bootstrap without Ent), and migration helper logic was split into `container_migrations.go` to satisfy line-budget gates.
 
