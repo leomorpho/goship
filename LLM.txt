@@ -3193,28 +3193,26 @@ Non-goals for this plan:
 - [x] Use **Bob** for DB code generation.
 - [x] Use **Goose** as the default migration tool.
 - [x] Keep one physical DB per app repo.
-- [ ] Keep Ent only as temporary compatibility during migration.
-- [ ] Remove Ent entirely when parity is complete.
+- [x] Keep Ent only as temporary compatibility during migration.
+- [x] Remove Ent entirely when parity is complete.
 
 ## Architecture Target (Definition of Done)
 
-- [ ] Core app owns only core DB artifacts.
-- [ ] Each installable module owns its DB artifacts end-to-end.
+- [x] Core app owns only core DB artifacts.
+- [x] Each installable module owns its DB artifacts end-to-end.
 - [x] `ship db:*` commands run Goose + Bob in a deterministic way.
 - [x] No module DB package imports from app core DB package.
-- [ ] No app feature logic depends directly on Ent.
+- [x] No app feature logic depends directly on Ent.
 
 Target ownership layout:
 
 - Core:
-  - `db/migrate/migrations/*` (transition baseline)
-  - `db/schema/*.go` (Ent transition baseline)
-  - `db/queries/*.sql` (Bob target)
-  - `db/gen/*` (Bob target)
+  - `db/migrate/migrations/*`
+  - `db/queries/*.sql`
+  - `db/gen/*`
 
 - Module:
-  - `modules/<name>/db/migrations/*`
-  - `modules/<name>/db/schema/*.sql` (optional)
+  - `modules/<name>/db/migrate/migrations/*`
   - `modules/<name>/db/queries/*.sql`
   - `modules/<name>/db/gen/*`
 
@@ -3234,15 +3232,15 @@ Test design rules:
 - [ ] Use deterministic test fixtures and temp dirs; no writes to live repo tree.
 - [ ] Avoid hidden coupling between CLI package tests and app runtime tree.
 
-## Current Baseline Snapshot (As of 2026-03-05)
+## Current Baseline Snapshot (As of 2026-03-06)
 
-- [x] Migration runtime is Atlas + Ent today (not Goose + Bob yet).
+- [x] Migration runtime is Goose + Bob (Ent removed from runtime/toolchain paths).
 - [x] Current DB commands are `db:create`, `db:make`, `db:migrate`, `db:status`, `db:drop`, `db:reset`, `db:rollback`, `db:seed`.
 - [x] Destructive DB safety contract exists (`--yes`, `--force`, `--dry-run`, production guards).
 - [x] Installed-module registry file exists at `config/modules.yaml` (`modules: []` baseline).
-- [x] `db:generate` for Bob does not exist yet.
+- [x] `db:generate` exists for core + installed modules.
 - [ ] `make:migration` alias does not exist; `db:make` is current canonical command.
-- [x] Goose runtime package/invocation path does not exist yet.
+- [x] Goose runtime package/invocation path exists.
 
 ---
 
@@ -3454,10 +3452,10 @@ Goal: remove Ent once runtime parity is complete.
 
 ### 5.1 Removal readiness checks
 - [x] Confirm no runtime code paths require Ent.
-- [ ] Confirm migrations and generators run fully via Goose + Bob.
+- [x] Confirm migrations and generators run fully via Goose + Bob.
 
 ### 5.1a Runtime Ent cutover backlog (execution order)
-- [ ] `app/profile`: extract SQL/Bob stores for profile reads/writes/media and remove direct Ent runtime dependency.
+- [x] `app/profile`: extract SQL/Bob stores for profile reads/writes/media and remove direct Ent runtime dependency.
 - [x] `app/jobs`: move notifications/mail/email-update DB access behind SQL/Bob stores.
 - [x] `framework/repos/storage`: remove Ent-typed boundaries (`*ent.Image`) from runtime interfaces.
 - [x] `app/foundation`: remove Ent-default auth/container runtime paths (keep temporary test-only seams only as needed).
@@ -3466,10 +3464,10 @@ Goal: remove Ent once runtime parity is complete.
 ### 5.2 Remove Ent toolchain
 - [x] Remove Ent generation commands from Ship and Make flow.
 - [x] Remove `db/ent` and Ent-specific docs.
-- [ ] Remove Ent dependencies from `go.mod`/`go.work`.
+- [x] Remove Ent dependencies from `go.mod`/`go.work`.
 
 Acceptance criteria:
-- [ ] `ship doctor` has no Ent-related expectations.
+- [x] `ship doctor` has no Ent-presence expectations.
 - [ ] Full pre-commit and integration suite green without Ent.
 - [ ] Clean-room build/test verifies no hidden Ent dependency remains.
 
@@ -3637,6 +3635,8 @@ Acceptance criteria:
 - 2026-03-06: refactored `ship make:model` to Bob/Goose-native scaffolding (writes `db/queries/<model>.sql` + next-step guidance) and removed Ent codegen invocation from the model generator path, with CLI/generator tests updated accordingly.
 - 2026-03-06: deleted obsolete CLI integration smoke test `tools/cli/ship/tests/integration/ent_generate_integration_test.go` after `make:model` moved to Bob-first query scaffolding.
 - 2026-03-06: removed Ent schema bootstrap artifacts from `ship new` scaffolding (`db/schema/user.go` + Ent go.mod pin) and made doctor enforce Bob-first core DB scaffold (`db/queries`, `db/bobgen.yaml`) instead.
+- 2026-03-06: removed legacy Ent source trees (`db/ent`, `db/schema`), removed direct Ent/Atlas deps from root module files, and updated docs to Bob/Goose-first wording.
+- 2026-03-06: switched `ship upgrade` from Atlas pin updates to Goose pin updates (`gooseGoRunRef`) and normalized CLI/runtime naming away from Atlas terminology.
 - 2026-03-06: updated architecture/agent docs to describe Bob+Goose as the canonical data-model path (replacing stale Ent-first wording).
 - 2026-03-06: removed the last non-test runtime Ent imports from `app/foundation/container.go`; schema bootstrap is now SQL-only (Goose migrations for server DBs + minimal embedded SQLite schema bootstrap without Ent), and migration helper logic was split into `container_migrations.go` to satisfy line-budget gates.
 
