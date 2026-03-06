@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func TestResolveAtlasDBURL_PrefersEnv(t *testing.T) {
+func TestResolveDBURL_PrefersEnv(t *testing.T) {
 	prev := os.Getenv("DATABASE_URL")
 	t.Cleanup(func() { _ = os.Setenv("DATABASE_URL", prev) })
 	if err := os.Setenv("DATABASE_URL", "postgres://env-only"); err != nil {
@@ -24,7 +24,7 @@ func TestResolveAtlasDBURL_PrefersEnv(t *testing.T) {
 	}
 }
 
-func TestResolveAtlasDBURL_PrefersDatabaseURL(t *testing.T) {
+func TestResolveDBURL_PrefersDatabaseURL(t *testing.T) {
 	t.Setenv("DATABASE_URL", "postgres://primary")
 	t.Setenv("PAGODA_DATABASE_URL", "postgres://secondary")
 	got, err := resolveAtlasDBURL()
@@ -36,7 +36,7 @@ func TestResolveAtlasDBURL_PrefersDatabaseURL(t *testing.T) {
 	}
 }
 
-func TestResolveAtlasDBURL_RejectsLegacyPagodaDatabaseURL(t *testing.T) {
+func TestResolveDBURL_RejectsLegacyPagodaDatabaseURL(t *testing.T) {
 	t.Setenv("DATABASE_URL", "")
 	t.Setenv("PAGODA_DATABASE_URL", "postgres://pagoda-env")
 	_, err := resolveAtlasDBURL()
@@ -48,7 +48,7 @@ func TestResolveAtlasDBURL_RejectsLegacyPagodaDatabaseURL(t *testing.T) {
 	}
 }
 
-func TestResolveAtlasDBURL_FromConfig(t *testing.T) {
+func TestResolveDBURL_FromConfig(t *testing.T) {
 	root := t.TempDir()
 	prevWD, err := os.Getwd()
 	if err != nil {
@@ -99,7 +99,7 @@ database:
 	}
 }
 
-func TestResolveAtlasDBURL_EmbeddedModeError(t *testing.T) {
+func TestResolveDBURL_EmbeddedModeError(t *testing.T) {
 	root := t.TempDir()
 	prevWD, err := os.Getwd()
 	if err != nil {
@@ -137,7 +137,7 @@ database:
 	}
 }
 
-func TestResolveAtlasDBURL_UsesProductionDatabaseName(t *testing.T) {
+func TestResolveDBURL_UsesProductionDatabaseName(t *testing.T) {
 	root := t.TempDir()
 	prevWD, err := os.Getwd()
 	if err != nil {
@@ -181,7 +181,7 @@ database:
 	}
 }
 
-func TestResolveAtlasDBURL_UsesTestDatabaseName(t *testing.T) {
+func TestResolveDBURL_UsesTestDatabaseName(t *testing.T) {
 	root := t.TempDir()
 	prevWD, err := os.Getwd()
 	if err != nil {

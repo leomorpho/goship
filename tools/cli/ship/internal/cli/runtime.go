@@ -39,7 +39,7 @@ func (c CLI) resolveDBURL() (string, error) {
 }
 
 func resolveAtlasDBURL() (string, error) {
-	return rt.ResolveAtlasDBURL()
+	return rt.ResolveDBURL()
 }
 
 func pathExists(path string) bool {

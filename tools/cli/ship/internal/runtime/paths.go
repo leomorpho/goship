@@ -66,7 +66,7 @@ func HasMakefile() bool {
 	}
 }
 
-type atlasConfig struct {
+type runtimeConfig struct {
 	App struct {
 		Environment string `yaml:"environment"`
 	} `yaml:"app"`
@@ -84,7 +84,7 @@ type atlasConfig struct {
 	} `yaml:"database"`
 }
 
-func ResolveAtlasDBURL() (string, error) {
+func ResolveDBURL() (string, error) {
 	if u := strings.TrimSpace(os.Getenv("DATABASE_URL")); u != "" {
 		return u, nil
 	}
@@ -92,12 +92,12 @@ func ResolveAtlasDBURL() (string, error) {
 		return "", errors.New("PAGODA_DATABASE_URL is not supported; use DATABASE_URL")
 	}
 
-	cfg, err := loadAtlasConfig()
+	cfg, err := loadRuntimeConfig()
 	if err != nil {
 		return "", err
 	}
 	if strings.EqualFold(cfg.Database.DbMode, "embedded") {
-		return "", errors.New("database mode is embedded; set DATABASE_URL or switch runtime profile to server-db for atlas migrations")
+		return "", errors.New("database mode is embedded; set DATABASE_URL or switch runtime profile to server-db for database migrations")
 	}
 
 	env := strings.TrimSpace(os.Getenv("APP_ENV"))
@@ -146,8 +146,8 @@ func ResolveAtlasDBURL() (string, error) {
 	return u.String(), nil
 }
 
-func loadAtlasConfig() (atlasConfig, error) {
-	var cfg atlasConfig
+func loadRuntimeConfig() (runtimeConfig, error) {
+	var cfg runtimeConfig
 	configDir, err := findConfigDir()
 	if err != nil {
 		return cfg, err
@@ -192,7 +192,7 @@ func findConfigDir() (string, error) {
 }
 
 func unmarshalYAMLFile(path string, dst any) error {
-	cfg, ok := dst.(*atlasConfig)
+	cfg, ok := dst.(*runtimeConfig)
 	if !ok {
 		return errors.New("unsupported config type")
 	}
@@ -200,10 +200,10 @@ func unmarshalYAMLFile(path string, dst any) error {
 	if err != nil {
 		return err
 	}
-	return parseAtlasConfigYAML(string(b), cfg)
+	return parseRuntimeConfigYAML(string(b), cfg)
 }
 
-func parseAtlasConfigYAML(content string, cfg *atlasConfig) error {
+func parseRuntimeConfigYAML(content string, cfg *runtimeConfig) error {
 	section := ""
 	lines := strings.Split(content, "\n")
 	for _, raw := range lines {
