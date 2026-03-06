@@ -130,9 +130,8 @@ func ScaffoldNewProject(opts NewProjectOptions, d NewDeps) error {
 		filepath.Join(opts.AppPath, "config", "modules.yaml"):                        renderModulesManifestSkeleton(),
 		filepath.Join(opts.AppPath, "app", "router.go"):                              renderRouterSkeleton(opts.Module),
 		filepath.Join(opts.AppPath, "app", "web", "routenames", "routenames.go"):     renderRouteNamesSkeleton(),
-		filepath.Join(opts.AppPath, "db", "schema", "user.go"):                       renderUserSchemaSkeleton(),
 		filepath.Join(opts.AppPath, "db", "bobgen.yaml"):                             renderBobgenConfigSkeleton(),
-		filepath.Join(opts.AppPath, "db", "queries", ".gitkeep"):                     "",
+		filepath.Join(opts.AppPath, "db", "queries", "user.sql"):                     renderUserQuerySkeleton(),
 		filepath.Join(opts.AppPath, "db", "gen", ".gitkeep"):                         "",
 		filepath.Join(opts.AppPath, "db", "migrate", "migrations", ".gitkeep"):       "",
 		filepath.Join(opts.AppPath, "app", "views", "templates.go"):                  renderTemplatesSkeleton(),
@@ -190,8 +189,6 @@ func renderGoMod(opts NewProjectOptions) string {
 	return fmt.Sprintf(`module %s
 
 go 1.25
-
-require entgo.io/ent v0.14.0
 `, opts.Module)
 }
 
@@ -389,24 +386,16 @@ func main() {
 `
 }
 
-func renderUserSchemaSkeleton() string {
-	return `package schema
+func renderUserQuerySkeleton() string {
+	return `-- Model: User
+-- Table: users
+-- Fields:
+-- - email:string
 
-import (
-	"entgo.io/ent"
-	"entgo.io/ent/schema/field"
-)
+-- name: GetUserByID :one
+SELECT * FROM users WHERE id = ?;
 
-// User holds the schema definition for the User entity.
-type User struct {
-	ent.Schema
-}
-
-// Fields of the User.
-func (User) Fields() []ent.Field {
-	return []ent.Field{
-		field.String("email").NotEmpty(),
-	}
-}
+-- name: GetUserByEmail :one
+SELECT * FROM users WHERE email = ?;
 `
 }

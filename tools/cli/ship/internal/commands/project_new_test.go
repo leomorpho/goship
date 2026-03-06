@@ -60,7 +60,7 @@ func TestScaffoldNewProject(t *testing.T) {
 		filepath.Join(opts.AppPath, "Procfile.worker"),
 		filepath.Join(opts.AppPath, "config", "modules.yaml"),
 		filepath.Join(opts.AppPath, "app", "router.go"),
-		filepath.Join(opts.AppPath, "db", "schema", "user.go"),
+		filepath.Join(opts.AppPath, "db", "queries", "user.sql"),
 		filepath.Join(opts.AppPath, "db", "migrate", "migrations", ".gitkeep"),
 		filepath.Join(opts.AppPath, "app", "web", "routenames", "routenames.go"),
 		filepath.Join(opts.AppPath, "app", "views", "templates.go"),

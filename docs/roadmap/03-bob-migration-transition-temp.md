@@ -460,6 +460,7 @@ Acceptance criteria:
 - 2026-03-06: removed Ent bootstrap from `framework/tests` helpers by making `CreateTestContainerPostgresDB` apply core SQL migrations directly (`db/migrate/migrations`) with deterministic version tracking; deleted unused Ent-only test helper functions from `framework/tests/tests.go`.
 - 2026-03-06: refactored `ship make:model` to Bob/Goose-native scaffolding (writes `db/queries/<model>.sql` + next-step guidance) and removed Ent codegen invocation from the model generator path, with CLI/generator tests updated accordingly.
 - 2026-03-06: deleted obsolete CLI integration smoke test `tools/cli/ship/tests/integration/ent_generate_integration_test.go` after `make:model` moved to Bob-first query scaffolding.
+- 2026-03-06: removed Ent schema bootstrap artifacts from `ship new` scaffolding (`db/schema/user.go` + Ent go.mod pin) and made doctor enforce Bob-first core DB scaffold (`db/queries`, `db/bobgen.yaml`) instead.
 
 ---
 

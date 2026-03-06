@@ -75,7 +75,7 @@ func RunDoctorChecks(root string) []DoctorIssue {
 		filepath.Join("app", "web", "viewmodels"),
 		filepath.Join("app", "jobs"),
 		filepath.Join("app", "views"),
-		filepath.Join("db", "schema"),
+		filepath.Join("db", "queries"),
 		filepath.Join("db", "migrate", "migrations"),
 	}
 	for _, rel := range requiredDirs {
@@ -92,6 +92,7 @@ func RunDoctorChecks(root string) []DoctorIssue {
 		filepath.Join("app", "router.go"),
 		filepath.Join("app", "foundation", "container.go"),
 		filepath.Join("app", "web", "routenames", "routenames.go"),
+		filepath.Join("db", "bobgen.yaml"),
 		filepath.Join("config", "modules.yaml"),
 		filepath.Join("docs", "00-index.md"),
 		filepath.Join("docs", "architecture", "01-architecture.md"),
