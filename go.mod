@@ -3,8 +3,6 @@ module github.com/leomorpho/goship
 go 1.23.0
 
 require (
-	ariga.io/atlas v0.20.1-0.20240321075817-75fd3b1accbf
-	entgo.io/ent v0.14.0
 	firebase.google.com/go/v4 v4.14.1
 	github.com/AfterShip/email-verifier v1.3.3
 	github.com/leomorpho/goship-modules/emailsubscriptions v0.0.0

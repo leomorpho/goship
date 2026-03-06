@@ -264,7 +264,7 @@ func EntOrmLogo(classes string) templ.Component {
 			templ_7745c5c3_Var16 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = TechIcon(classes, "https://entgo.io/", "https://entgo.io/images/assets/logo.png", "Icon for ent orm").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = TechIcon(classes, "https://bob.stephenafamo.com/", "https://bob.stephenafamo.com/images/assets/logo.png", "Icon for Bob SQL toolkit").Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

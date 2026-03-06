@@ -140,8 +140,8 @@ cache-clear: ## Clear the primary cache
 cache-test: ## Connect to the test cache
 	docker exec -it goship_cache redis-cli -n 1
 
-.PHONY: ent-new
-ent-new: ## Create a new model scaffold
+.PHONY: model-new
+model-new: ## Create a new model scaffold
 	go run ./tools/cli/ship/cmd/ship make:model $(name)
  
 .PHONY: generate

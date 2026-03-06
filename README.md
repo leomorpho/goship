@@ -238,36 +238,22 @@ Example:
 ship make:scaffold Post title:string content:text --migrate
 ```
 
-##### Generated Model:
-```go
-// db/schema/post.go
-package schema
+##### Generated Query Scaffold:
+```sql
+-- db/queries/post.sql
+-- name: CreatePost :exec
+INSERT INTO posts (title, content)
+VALUES (:title, :content);
 
-type Post struct {
-  ent.Schema
-}
-
-func (Post) Mixin() []ent.Mixin {
-	return []ent.Mixin{
-		TimeMixin{},
-	}
-}
-
-func (Post) Fields() []ent.Field {
-  return []ent.Field{
-		field.String("title"),
-    field.String("content"),
-	}
-}
-
-func (UsPoster) Edges() []ent.Edge {
-	return nil
-}
+-- name: GetPostByID :one
+SELECT id, title, content, created_at, updated_at
+FROM posts
+WHERE id = :id;
 ```
 
 ##### Route
 ```go
-// app/controllers/post_controller.go
+// app/web/controllers/post.go
 package controllers
 
 type postRoute struct {}

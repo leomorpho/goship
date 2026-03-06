@@ -24,7 +24,7 @@ Last updated: 2026-03-04
 2. `A02` - `architecture/02-structure-and-boundaries.md`: canonical placement rules for app vs framework code.
 3. `A03` - `architecture/03-project-scope-analysis.md`: end-to-end feature and capability analysis.
 4. `A04` - `architecture/04-http-routes.md`: route inventory grouped by access level and purpose.
-5. `A05` - `architecture/05-data-model.md`: Ent entities and domain model coverage.
+5. `A05` - `architecture/05-data-model.md`: Data queries and domain model coverage.
 6. `A06` - `architecture/06-known-gaps-and-risks.md`: confirmed implementation gaps and technical risks.
 7. `A07` - `architecture/07-core-interfaces.md`: backend-agnostic adapter seam contracts.
 8. `A08` - `architecture/08-cognitive-model.md`: cognitive model and DX/LLM reliability guardrails.
@@ -69,7 +69,7 @@ Last updated: 2026-03-04
 - `app/web/controllers/*.go`
 - `app/jobs/*.go`
 - `framework/repos/**/*.go`
-- `db/schema/*.go`
+- `db/queries/*.sql`
 - `config/config.go`
 - `config/application.yaml`
 - `config/environments/*.yaml`

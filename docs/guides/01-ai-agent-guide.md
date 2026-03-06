@@ -52,7 +52,7 @@ Routing and middleware:
 
 Data and domain:
 
-- `db/schema/*.go`
+- `db/queries/*.sql`
 - `framework/repos/**/*.go`
 - `framework/domain/*.go`
 

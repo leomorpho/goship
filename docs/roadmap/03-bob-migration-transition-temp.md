@@ -289,7 +289,7 @@ Goal: remove Ent once runtime parity is complete.
 
 ### 5.2 Remove Ent toolchain
 - [x] Remove Ent generation commands from Ship and Make flow.
-- [ ] Remove `db/ent` and Ent-specific docs.
+- [x] Remove `db/ent` and Ent-specific docs.
 - [ ] Remove Ent dependencies from `go.mod`/`go.work`.
 
 Acceptance criteria:
