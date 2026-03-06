@@ -9,7 +9,6 @@ import (
 	"github.com/leomorpho/goship/framework/context"
 	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
 
-	profilesvc "github.com/leomorpho/goship/app/profile"
 	"github.com/leomorpho/goship/app/views"
 	"github.com/leomorpho/goship/app/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/views/web/pages/gen"
@@ -103,12 +102,11 @@ func (c *login) Post(ctx echo.Context) error {
 		return nil
 	}
 
-	profileService := profilesvc.NewProfileService(c.ctr.Container.ORM, nil, nil)
-	fullyOnboarded, err := profileService.IsProfileFullyOnboardedByUserID(ctx.Request().Context(), usr.UserID)
+	identity, err := c.ctr.Container.Auth.GetIdentityByUserID(ctx.Request().Context(), usr.UserID)
 	if err != nil {
 		return c.ctr.Fail(err, "unable to determine profile onboarding status")
 	}
-	if !fullyOnboarded {
+	if identity == nil || !identity.ProfileFullyOnboarded {
 		return c.ctr.Redirect(ctx, routeNames.RouteNamePreferences)
 
 	}

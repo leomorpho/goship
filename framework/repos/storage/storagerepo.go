@@ -3,16 +3,16 @@ package storagerepo
 import (
 	"context"
 	"crypto/md5"
+	"database/sql"
 	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/leomorpho/goship/config"
-	"github.com/leomorpho/goship/db/ent"
-	"github.com/leomorpho/goship/db/ent/filestorage"
 	"github.com/leomorpho/goship/framework/domain"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
@@ -43,17 +43,30 @@ type StorageClientInterface interface {
 	UploadFile(bucket Bucket, objectName string, fileStream io.Reader) (*int, error)
 	DeleteFile(bucket Bucket, objectName string) error
 	GetPresignedURL(bucket Bucket, objectName string, expiry time.Duration) (string, error)
-	GetImageObjectFromFile(file *ent.Image) (*domain.Photo, error)
-	GetImageObjectsFromFiles(files []*ent.Image) ([]domain.Photo, error)
+	GetImageObjectFromFile(file *ImageFile) (*domain.Photo, error)
+	GetImageObjectsFromFiles(files []*ImageFile) ([]domain.Photo, error)
+}
+
+type ImageFile struct {
+	ID    int
+	Sizes []ImageFileSize
+}
+
+type ImageFileSize struct {
+	Size      string
+	Height    int
+	Width     int
+	ObjectKey string
 }
 
 type StorageClient struct {
 	config      *config.Config
-	orm         *ent.Client
+	db          *sql.DB
+	postgresql  bool
 	minioClient *minio.Client
 }
 
-func NewStorageClient(cfg *config.Config, orm *ent.Client) *StorageClient {
+func NewStorageClient(cfg *config.Config, db *sql.DB, dialect string) *StorageClient {
 	minioClient, err := minio.New(cfg.Storage.S3Endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(cfg.Storage.S3AccessKey, cfg.Storage.S3SecretKey, ""),
 		Secure: cfg.Storage.S3UseSSL,
@@ -64,7 +77,8 @@ func NewStorageClient(cfg *config.Config, orm *ent.Client) *StorageClient {
 
 	return &StorageClient{
 		config:      cfg,
-		orm:         orm,
+		db:          db,
+		postgresql:  strings.EqualFold(strings.TrimSpace(dialect), "postgres") || strings.EqualFold(strings.TrimSpace(dialect), "postgresql") || strings.EqualFold(strings.TrimSpace(dialect), "pgx"),
 		minioClient: minioClient,
 	}
 }
@@ -130,21 +144,11 @@ func (sc *StorageClient) UploadFile(bucket Bucket, objectName string, fileStream
 		return nil, err
 	}
 
-	// Create a new entry in the filestorage table
-	filestorageEntry, err := sc.orm.FileStorage.
-		Create().
-		SetBucketName(bucketName).
-		SetObjectKey(objectName).
-		SetFileSize(size).
-		SetFileHash(fileHash).
-		SetCreatedAt(time.Now()).
-		SetUpdatedAt(time.Now()).
-		Save(ctx)
+	fileID, err := sc.insertFileStorageRow(ctx, bucketName, objectName, size, fileHash)
 	if err != nil {
 		return nil, err
 	}
-
-	return &filestorageEntry.ID, nil
+	return &fileID, nil
 }
 
 func (sc *StorageClient) GetPresignedURL(bucket Bucket, objectName string, expiry time.Duration) (string, error) {
@@ -174,7 +178,10 @@ func (sc *StorageClient) DeleteFile(bucket Bucket, objectName string) error {
 		return err
 	}
 
-	_, err = sc.orm.FileStorage.Delete().Where(filestorage.ObjectKeyEQ(objectName)).Exec(ctx)
+	_, err = sc.db.ExecContext(ctx, sc.bind(`
+		DELETE FROM file_storages
+		WHERE object_key = ?
+	`), objectName)
 
 	if err != nil {
 		return err
@@ -185,8 +192,8 @@ func (sc *StorageClient) DeleteFile(bucket Bucket, objectName string) error {
 // TODO: GetImageObjectFromFile and GetImageObjectsFromFiles can be standardized
 // to return a specific file object. Expiration can also be parametrized if necessary.
 // getPhotoObjectFromFile generates a signed URL for a single file.
-func (sc *StorageClient) GetImageObjectFromFile(image *ent.Image) (*domain.Photo, error) {
-	if image == nil || image.Edges.Sizes == nil {
+func (sc *StorageClient) GetImageObjectFromFile(image *ImageFile) (*domain.Photo, error) {
+	if image == nil || len(image.Sizes) == 0 {
 		return nil, nil
 	}
 
@@ -194,17 +201,16 @@ func (sc *StorageClient) GetImageObjectFromFile(image *ent.Image) (*domain.Photo
 		ID: image.ID,
 	}
 
-	for _, size := range image.Edges.Sizes {
-		if size.Edges.File == nil {
+	for _, size := range image.Sizes {
+		if size.ObjectKey == "" {
 			continue
 		}
-		file := size.Edges.File
 		// Generate a presigned URL with a specified duration
-		url, err := sc.GetPresignedURL(BucketMainApp, file.ObjectKey, 2*24*time.Hour) // Adjust duration as needed
+		url, err := sc.GetPresignedURL(BucketMainApp, size.ObjectKey, 2*24*time.Hour) // Adjust duration as needed
 		if err != nil {
 			return nil, err
 		}
-		switch *domain.ImageSizes.Parse(size.Size.String()) {
+		switch *domain.ImageSizes.Parse(size.Size) {
 		case domain.ImageSizeFull:
 			p.FullURL = url
 			p.FullHeight = size.Height
@@ -224,7 +230,7 @@ func (sc *StorageClient) GetImageObjectFromFile(image *ent.Image) (*domain.Photo
 }
 
 func (sc *StorageClient) GetImageObjectsFromFiles(
-	files []*ent.Image,
+	files []*ImageFile,
 ) ([]domain.Photo, error) {
 	if len(files) == 0 {
 		return nil, &NoImagesInFiles{Message: "no images in files"}
@@ -238,4 +244,54 @@ func (sc *StorageClient) GetImageObjectsFromFiles(
 		photos = append(photos, *photo)
 	}
 	return photos, nil
+}
+
+func (sc *StorageClient) insertFileStorageRow(
+	ctx context.Context,
+	bucketName string,
+	objectName string,
+	size int64,
+	fileHash string,
+) (int, error) {
+	now := time.Now().UTC()
+	if sc.postgresql {
+		var id int
+		err := sc.db.QueryRowContext(ctx, `
+			INSERT INTO file_storages (created_at, updated_at, bucket_name, object_key, file_size, file_hash)
+			VALUES ($1, $2, $3, $4, $5, $6)
+			RETURNING id
+		`, now, now, bucketName, objectName, size, fileHash).Scan(&id)
+		return id, err
+	}
+
+	result, err := sc.db.ExecContext(ctx, `
+		INSERT INTO file_storages (created_at, updated_at, bucket_name, object_key, file_size, file_hash)
+		VALUES (?, ?, ?, ?, ?, ?)
+	`, now, now, bucketName, objectName, size, fileHash)
+	if err != nil {
+		return 0, err
+	}
+	id64, err := result.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+	return int(id64), nil
+}
+
+func (sc *StorageClient) bind(query string) string {
+	if !sc.postgresql {
+		return query
+	}
+	var b strings.Builder
+	b.Grow(len(query) + 8)
+	idx := 1
+	for _, r := range query {
+		if r == '?' {
+			fmt.Fprintf(&b, "$%d", idx)
+			idx++
+			continue
+		}
+		b.WriteRune(r)
+	}
+	return b.String()
 }

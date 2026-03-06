@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/leomorpho/goship/config"
-	"github.com/leomorpho/goship/db/ent"
 	"github.com/leomorpho/goship/framework/tests"
 
 	"github.com/labstack/echo/v4"
@@ -14,7 +13,7 @@ import (
 var (
 	c   *Container
 	ctx echo.Context
-	usr *ent.User
+	usr *tests.UserRecord
 )
 
 func TestMain(m *testing.M) {
@@ -30,7 +29,7 @@ func TestMain(m *testing.M) {
 
 	// Create a test user
 	var err error
-	if usr, err = tests.CreateRandomUser(c.ORM); err != nil {
+	if usr, err = tests.CreateRandomUserDB(c.Database); err != nil {
 		panic(err)
 	}
 

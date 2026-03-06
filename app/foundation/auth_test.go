@@ -1,15 +1,12 @@
 package foundation
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"testing"
 	"time"
 
-	"github.com/leomorpho/goship/db/ent/passwordtoken"
-	"github.com/leomorpho/goship/db/ent/user"
-
+	"github.com/leomorpho/goship/framework/tests"
 	"github.com/stretchr/testify/require"
 
 	"github.com/stretchr/testify/assert"
@@ -58,13 +55,14 @@ func TestAuthClient_AuthenticateUserByEmailPassword(t *testing.T) {
 	password := "password"
 	hash, err := c.Auth.HashPassword(password)
 	require.NoError(t, err)
-	loginUser, err := c.ORM.User.
-		Create().
-		SetEmail(fmt.Sprintf("auth-login-%d@localhost.localhost", time.Now().UnixNano())).
-		SetPassword(hash).
-		SetName("Auth Login User").
-		SetVerified(true).
-		Save(context.Background())
+	loginUser, err := tests.CreateUserDB(
+		ctx.Request().Context(),
+		c.Database,
+		"Auth Login User",
+		fmt.Sprintf("auth-login-%d@localhost.localhost", time.Now().UnixNano()),
+		hash,
+		true,
+	)
 	require.NoError(t, err)
 
 	t.Run("success", func(t *testing.T) {
@@ -101,9 +99,11 @@ func TestAuthClient_GeneratePasswordResetToken(t *testing.T) {
 	token, tokenID, err := c.Auth.GeneratePasswordResetToken(ctx, usr.ID)
 	require.NoError(t, err)
 	assert.Len(t, token, c.Config.App.PasswordToken.Length)
-	pt, err := c.ORM.PasswordToken.Get(context.Background(), tokenID)
+	var tokenHash string
+	err = c.Database.QueryRowContext(ctx.Request().Context(),
+		`SELECT hash FROM password_tokens WHERE id = $1`, tokenID).Scan(&tokenHash)
 	require.NoError(t, err)
-	assert.NoError(t, c.Auth.CheckPassword(token, pt.Hash))
+	assert.NoError(t, c.Auth.CheckPassword(token, tokenHash))
 }
 
 func TestAuthClient_GetValidPasswordToken(t *testing.T) {
@@ -118,12 +118,16 @@ func TestAuthClient_GetValidPasswordToken(t *testing.T) {
 	require.NoError(t, err)
 
 	// Expire the token by pushing the date far enough back
-	count, err := c.ORM.PasswordToken.
-		Update().
-		SetCreatedAt(time.Now().Add(-(c.Config.App.PasswordToken.Expiration + time.Hour))).
-		Where(passwordtoken.ID(tokenID)).
-		Save(context.Background())
+	res, err := c.Database.ExecContext(
+		ctx.Request().Context(),
+		`UPDATE password_tokens SET created_at = $1 WHERE id = $2`,
+		time.Now().Add(-(c.Config.App.PasswordToken.Expiration + time.Hour)),
+		tokenID,
+	)
 	require.NoError(t, err)
+	count64, err := res.RowsAffected()
+	require.NoError(t, err)
+	count := int(count64)
 	require.Equal(t, 1, count)
 
 	// Expired tokens should not be valid
@@ -143,10 +147,12 @@ func TestAuthClient_DeletePasswordTokens(t *testing.T) {
 	require.NoError(t, err)
 
 	// Check that no tokens remain
-	count, err := c.ORM.PasswordToken.
-		Query().
-		Where(passwordtoken.HasUserWith(user.ID(usr.ID))).
-		Count(context.Background())
+	var count int
+	err = c.Database.QueryRowContext(
+		ctx.Request().Context(),
+		`SELECT COUNT(*) FROM password_tokens WHERE password_token_user = $1`,
+		usr.ID,
+	).Scan(&count)
 
 	require.NoError(t, err)
 	assert.Equal(t, 0, count)

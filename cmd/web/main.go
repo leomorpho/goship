@@ -54,9 +54,10 @@ func main() {
 	if err := wireJobsModule(c); err != nil {
 		c.Web.Logger.Fatalf("failed to initialize jobs module: %v", err)
 	}
-	storageClient := storagerepo.NewStorageClient(c.Config, c.ORM)
-	profileService := profilesvc.NewProfileServiceWithDeps(
-		c.ORM,
+	storageClient := storagerepo.NewStorageClient(c.Config, c.Database, c.Config.Adapters.DB)
+	profileService := profilesvc.NewProfileServiceWithDBDeps(
+		c.Database,
+		c.Config.Adapters.DB,
 		storageClient,
 		paidSubscriptionsService,
 		profilesvc.NewBobNotificationCountStore(c.Database, c.Config.Adapters.DB),
@@ -67,7 +68,6 @@ func main() {
 		firebaseJSONAccessKeys = &c.Config.App.FirebaseJSONAccessKeys
 	}
 	notificationServices, err := notifications.New(notifications.RuntimeDeps{
-		ORM:                                 nil,
 		DB:                                  c.Database,
 		DBDialect:                           c.Config.Adapters.DB,
 		PubSub:                              foundation.AdaptNotificationsPubSub(c.CorePubSub),
@@ -125,7 +125,7 @@ func main() {
 	// 	}
 	// }()
 
-	// seeder.RunIdempotentSeeder(c.Config, c.ORM)
+	// seeder.RunIdempotentSeeder(c.Config, c.Database)
 
 	// // Start the scheduled tasks
 	// if err := c.Tasks.

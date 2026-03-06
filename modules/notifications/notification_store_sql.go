@@ -16,6 +16,17 @@ type SQLNotificationStore struct {
 	postgresql bool
 }
 
+// NotificationStorage defines storage operations on notifications.
+type NotificationStorage interface {
+	CreateNotification(ctx context.Context, n domain.Notification) (*domain.Notification, error)
+	GetNotificationsByProfileID(ctx context.Context, profileID int, onlyUnread bool, beforeTimestamp *time.Time, pageSize *int) ([]*domain.Notification, error)
+	MarkNotificationAsRead(ctx context.Context, notificationID int, profileID *int) error
+	MarkAllNotificationAsRead(ctx context.Context, profileID int) error
+	MarkNotificationAsUnread(ctx context.Context, notificationID int, profileID *int) error
+	DeleteNotification(ctx context.Context, notificationID int, profileID *int) error
+	HasNotificationForResourceAndPerson(ctx context.Context, notifType domain.NotificationType, profileIDWhoCausedNotif, resourceID *int, maxAge time.Duration) (exists bool, err error)
+}
+
 func NewSQLNotificationStore(db *sql.DB, dialect string) *SQLNotificationStore {
 	d := strings.ToLower(strings.TrimSpace(dialect))
 	return &SQLNotificationStore{

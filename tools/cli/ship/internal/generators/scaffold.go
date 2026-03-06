@@ -22,13 +22,11 @@ type ScaffoldMakeOptions struct {
 type ScaffoldDeps struct {
 	Out           io.Writer
 	Err           io.Writer
-	ParseDBURL    func() (string, error)
-	RunCmd        func(name string, args ...string) int
 	RunModel      func(args []string) int
 	RunDBMake     func(args []string) int
+	RunDBMigrate  func(args []string) int
 	RunController func(args []string) int
 	RunResource   func(args []string) int
-	AtlasDir      string
 }
 
 func RunMakeScaffold(args []string, d ScaffoldDeps) int {
@@ -88,12 +86,7 @@ func RunMakeScaffold(args []string, d ScaffoldDeps) int {
 	}
 
 	if opts.Migrate {
-		dbURL, err := d.ParseDBURL()
-		if err != nil {
-			fmt.Fprintf(d.Err, "failed to resolve database URL: %v\n", err)
-			return 1
-		}
-		if code := d.RunCmd("atlas", "migrate", "apply", "--dir", d.AtlasDir, "--url", dbURL); code != 0 {
+		if code := d.RunDBMigrate(nil); code != 0 {
 			return code
 		}
 	}

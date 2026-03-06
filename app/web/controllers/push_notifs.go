@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	profilesvc "github.com/leomorpho/goship/app/profile"
 	routeNames "github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/framework/dberrors"
@@ -21,6 +22,7 @@ import (
 
 type outgoingNotifications struct {
 	ctr                           ui.Controller
+	profileService                *profilesvc.ProfileService
 	pwaPushService                *notifications.PwaPushService
 	fcmPushService                *notifications.FcmPushService
 	notificationPermissionService *notifications.NotificationPermissionService
@@ -28,12 +30,14 @@ type outgoingNotifications struct {
 
 func NewPushNotifsRoute(
 	ctr ui.Controller,
+	profileService *profilesvc.ProfileService,
 	pwaPushService *notifications.PwaPushService,
 	fcmPushService *notifications.FcmPushService,
 	notificationPermissionService *notifications.NotificationPermissionService,
 ) outgoingNotifications {
 	return outgoingNotifications{
 		ctr:                           ctr,
+		profileService:                profileService,
 		pwaPushService:                pwaPushService,
 		fcmPushService:                fcmPushService,
 		notificationPermissionService: notificationPermissionService,
@@ -269,7 +273,10 @@ func (c *outgoingNotifications) DeleteEmailSubscription(ctx echo.Context) error 
 	if err != nil {
 		return err
 	}
-	profileEnt := c.ctr.Container.ORM.Profile.GetX(ctx.Request().Context(), profileID)
+	profileData, err := c.profileService.GetProfileSettingsByID(ctx.Request().Context(), profileID)
+	if err != nil {
+		return err
+	}
 
 	var notifName string
 
@@ -286,7 +293,7 @@ func (c *outgoingNotifications) DeleteEmailSubscription(ctx echo.Context) error 
 	permissionErr := c.notificationPermissionService.DeletePermission(
 		ctx.Request().Context(), profileID, *notifPermission, &domain.NotificationPlatformEmail, &token)
 
-	page, err := c.createNotificationsPage(ctx, profileEnt.ID, profileEnt.PhoneNumberE164, profileEnt.PhoneVerified)
+	page, err := c.createNotificationsPage(ctx, profileData.ID, profileData.PhoneNumberE164, profileData.PhoneVerified)
 	if err != nil {
 		return err
 	}
@@ -294,7 +301,7 @@ func (c *outgoingNotifications) DeleteEmailSubscription(ctx echo.Context) error 
 	// TODO: lol this error handling is growse, refactor later.
 	if permissionErr != nil {
 		log.Error().Err(permissionErr).
-			Int("profileID", profileEnt.ID).
+			Int("profileID", profileData.ID).
 			Str("notifPermission", notifPermission.Value).
 			Str("platform", domain.NotificationPlatformEmail.Value).
 			Str("token", token).

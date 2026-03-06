@@ -1,12 +1,15 @@
 package main
 
 import (
+	"log"
+
 	"github.com/leomorpho/goship/app/foundation"
-	"github.com/leomorpho/goship/tools/seeder"
 )
 
 func main() {
 	c := foundation.NewContainer()
-	seeder.SeedUsers(c.Config, c.ORM, c.Database, c.Config.Adapters.DB, true)
-	c.Shutdown()
+	defer func() {
+		_ = c.Shutdown()
+	}()
+	log.Println("seed command is temporarily disabled during Ent removal; use explicit SQL seed scripts")
 }

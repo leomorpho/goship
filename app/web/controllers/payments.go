@@ -9,7 +9,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
-	"github.com/leomorpho/goship/app/subscriptions"
 	"github.com/leomorpho/goship/app/views"
 	"github.com/leomorpho/goship/app/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/views/web/pages/gen"
@@ -34,7 +33,8 @@ type (
 )
 
 func NewPaymentsRoute(
-	ctr ui.Controller, subscriptionsService *paidsubscriptions.Service,
+	ctr ui.Controller,
+	subscriptionsService *paidsubscriptions.Service,
 ) paymentsRoute {
 	return paymentsRoute{
 		ctr:                  ctr,
@@ -121,7 +121,7 @@ func (p *paymentsRoute) CreatePortalSession(ctx echo.Context) error {
 	if err != nil {
 		return err
 	}
-	profile, err := p.ctr.Container.ORM.Profile.Get(ctx.Request().Context(), profileID)
+	stripeCustomerID, err := p.subscriptionsService.GetStripeCustomerIDByProfileID(ctx.Request().Context(), profileID)
 	if err != nil {
 		return err
 	}
@@ -131,7 +131,7 @@ func (p *paymentsRoute) CreatePortalSession(ctx echo.Context) error {
 
 	// Authenticate your user.
 	params := &stripe.BillingPortalSessionParams{
-		Customer:  stripe.String(profile.StripeID),
+		Customer:  stripe.String(stripeCustomerID),
 		ReturnURL: stripe.String(fullReturnsUrl),
 	}
 	ps, err := portalsession.New(params)
@@ -299,7 +299,7 @@ func (p *paymentsRoute) PricingPage(ctx echo.Context) error {
 	if err != nil {
 		return err
 	}
-	activePlanDomain := subscriptions.ToDomainProductType(activePlan)
+	activePlanDomain := toDomainProductType(activePlan)
 	if activePlanDomain == nil {
 		activePlanDomain = &domain.ProductTypeFree
 	}

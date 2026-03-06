@@ -201,14 +201,20 @@ func registerAuthRoutes(c *foundation.Container, g *echo.Group, ctr ui.Controlle
 	onboardingGroup.GET("/preferences/delete-account", deleteAccountRoute.DeleteAccountPage).Name = routeNames.RouteNameDeleteAccountPage
 	onboardingGroup.GET("/preferences/delete-account/now", deleteAccountRoute.DeleteAccountRequest).Name = routeNames.RouteNameDeleteAccountRequest
 
-	finishOnboarding := controllers.NewOnboardingRoute(ctr)
+	finishOnboarding := controllers.NewOnboardingRoute(ctr, deps.ProfileService)
 	onboardingGroup.GET("/finish-onboarding", finishOnboarding.Get).Name = routeNames.RouteNameFinishOnboarding
 
-	profilePrefs := controllers.NewProfilePrefsRoute(ctr)
+	profilePrefs := controllers.NewProfilePrefsRoute(ctr, deps.ProfileService)
 	onboardingGroup.GET("/profileBio", profilePrefs.GetBio).Name = routeNames.RouteNameGetBio
 	onboardingGroup.POST("/profileBio/update", profilePrefs.UpdateBio).Name = routeNames.RouteNameUpdateBio
 
-	outgoingNotifications := controllers.NewPushNotifsRoute(ctr, deps.PwaPushService, deps.FcmPushService, deps.NotificationPermissionService)
+	outgoingNotifications := controllers.NewPushNotifsRoute(
+		ctr,
+		deps.ProfileService,
+		deps.PwaPushService,
+		deps.FcmPushService,
+		deps.NotificationPermissionService,
+	)
 	onboardingGroup.GET("/subscription/push", outgoingNotifications.GetPushSubscriptions).Name = routeNames.RouteNameGetPushSubscriptions
 	onboardingGroup.POST("/subscription/:platform", outgoingNotifications.RegisterSubscription).Name = routeNames.RouteNameRegisterSubscription
 	onboardingGroup.DELETE("/subscription/:platform", outgoingNotifications.DeleteSubscription).Name = routeNames.RouteNameDeleteSubscription

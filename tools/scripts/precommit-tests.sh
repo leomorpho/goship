@@ -2,20 +2,29 @@
 
 set -euo pipefail
 
-export GOCACHE="${GOCACHE:-$(pwd)/.cache/go-build}"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd -- "${SCRIPT_DIR}/../.." && pwd)"
+
+cd "${ROOT_DIR}"
+
+export GOCACHE="${GOCACHE:-${ROOT_DIR}/.cache/go-build}"
 
 echo "Running stateless pre-commit Go tests..."
-bash tools/scripts/test-unit.sh
-bash tools/scripts/check-compile.sh
-bash tools/scripts/check-module-tests.sh
-bash tools/scripts/check-module-isolation.sh
-bash tools/scripts/check-paidsubscriptions-isolation.sh
-bash tools/scripts/check-jobs-sql-boundary.sh
-bash tools/scripts/check-notifications-pubsub-boundary.sh
-bash tools/scripts/check-controller-auth-boundary.sh
-bash tools/scripts/check-controller-no-ent-imports.sh
-bash tools/scripts/check-bobgen-drift.sh
-go run ./tools/cli/ship/cmd/ship agent:check
-go run ./tools/cli/ship/cmd/ship doctor
+bash "${ROOT_DIR}/tools/scripts/test-unit.sh"
+bash "${ROOT_DIR}/tools/scripts/check-compile.sh"
+bash "${ROOT_DIR}/tools/scripts/check-module-tests.sh"
+bash "${ROOT_DIR}/tools/scripts/check-module-isolation.sh"
+bash "${ROOT_DIR}/tools/scripts/check-paidsubscriptions-isolation.sh"
+bash "${ROOT_DIR}/tools/scripts/check-jobs-sql-boundary.sh"
+bash "${ROOT_DIR}/tools/scripts/check-notifications-pubsub-boundary.sh"
+bash "${ROOT_DIR}/tools/scripts/check-app-jobs-no-ent-imports.sh"
+bash "${ROOT_DIR}/tools/scripts/check-app-profile-no-ent-imports.sh"
+bash "${ROOT_DIR}/tools/scripts/check-storage-interface-boundary.sh"
+bash "${ROOT_DIR}/tools/scripts/check-composition-no-ent-module-wiring.sh"
+bash "${ROOT_DIR}/tools/scripts/check-controller-auth-boundary.sh"
+bash "${ROOT_DIR}/tools/scripts/check-controller-no-ent-imports.sh"
+bash "${ROOT_DIR}/tools/scripts/check-bobgen-drift.sh"
+go run "${ROOT_DIR}/tools/cli/ship/cmd/ship" agent:check
+go run "${ROOT_DIR}/tools/cli/ship/cmd/ship" doctor
 
 echo "Pre-commit test suite passed."

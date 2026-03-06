@@ -8,7 +8,6 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
-	"path/filepath"
 	"strings"
 	"sync"
 	"syscall"
@@ -43,35 +42,6 @@ func RunCommand(r CmdRunner, errOut io.Writer, name string, args ...string) int 
 		return 1
 	}
 	return code
-}
-
-func InstallAtlasBinary(out io.Writer, errOut io.Writer, atlasGoRunRef string) (string, error) {
-	toolsDir := filepath.Join(".cache", "tools", "bin")
-	if err := os.MkdirAll(toolsDir, 0o755); err != nil {
-		return "", fmt.Errorf("create tools dir: %w", err)
-	}
-
-	absToolsDir, err := filepath.Abs(toolsDir)
-	if err != nil {
-		return "", fmt.Errorf("resolve tools dir: %w", err)
-	}
-
-	cmd := exec.Command("go", "install", atlasGoRunRef)
-	cmd.Stdout = out
-	cmd.Stderr = errOut
-	cmd.Stdin = os.Stdin
-	cmd.Env = append(os.Environ(), "GOBIN="+absToolsDir)
-
-	if err := cmd.Run(); err != nil {
-		return "", fmt.Errorf("go install atlas: %w", err)
-	}
-
-	atlasBinary := filepath.Join(absToolsDir, "atlas")
-	if _, err := os.Stat(atlasBinary); err != nil {
-		return "", fmt.Errorf("atlas binary missing after install at %s: %w", atlasBinary, err)
-	}
-
-	return atlasBinary, nil
 }
 
 type devProcessExit struct {

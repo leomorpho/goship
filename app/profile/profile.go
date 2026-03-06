@@ -2,46 +2,37 @@ package profiles
 
 import (
 	"context"
+	"database/sql"
 	"errors"
-	"fmt"
-	"sort"
 	"time"
 
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
-	"github.com/leomorpho/goship/db/ent"
-	"github.com/leomorpho/goship/db/ent/monthlysubscription"
-	"github.com/leomorpho/goship/db/ent/profile"
-	"github.com/leomorpho/goship/db/ent/user"
-	"github.com/leomorpho/goship/framework/dberrors"
+	dbgen "github.com/leomorpho/goship/db/gen"
 	"github.com/leomorpho/goship/framework/domain"
 	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
-	"github.com/rs/zerolog/log"
 )
 
 var ErrContactRequestAlreadyExists = errors.New("contact request already exists")
+var ErrProfileDBNotConfigured = errors.New("profile database dependency not configured")
 
 type ProfileService struct {
-	orm              *ent.Client
+	db               *sql.DB
+	dbDialect        string
 	storageRepo      storagerepo.StorageClientInterface
 	subscriptionRepo *paidsubscriptions.Service
 	notificationRepo NotificationCountStore
 }
 
-func NewProfileService(orm *ent.Client, storageRepo storagerepo.StorageClientInterface, subscriptionRepo *paidsubscriptions.Service) *ProfileService {
-	return NewProfileServiceWithDeps(orm, storageRepo, subscriptionRepo, nil)
-}
-
-func NewProfileServiceWithDeps(
-	orm *ent.Client,
+func NewProfileServiceWithDBDeps(
+	db *sql.DB,
+	dbDialect string,
 	storageRepo storagerepo.StorageClientInterface,
 	subscriptionRepo *paidsubscriptions.Service,
 	notificationRepo NotificationCountStore,
 ) *ProfileService {
-	if notificationRepo == nil {
-		notificationRepo = NewEntNotificationCountStore(orm)
-	}
 	return &ProfileService{
-		orm:              orm,
+		db:               db,
+		dbDialect:        dbDialect,
 		storageRepo:      storageRepo,
 		subscriptionRepo: subscriptionRepo,
 		notificationRepo: notificationRepo,
@@ -65,211 +56,162 @@ func CalculateAge(birthdate time.Time) int {
 
 func (p *ProfileService) CreateProfile(
 	ctx context.Context,
-	user *ent.User,
+	userID int,
 	bio string,
 	birthdate time.Time,
 	countryCode, e164PhoneNumber *string,
-) (*ent.Profile, error) {
-	if user == nil {
-		return nil, errors.New("user is nil")
+) (int, error) {
+	if p.db == nil {
+		return 0, ErrProfileDBNotConfigured
 	}
-	// Create profile
-	profile, err := p.orm.Profile.
-		Create().
-		SetUser(user).
-		SetBirthdate(birthdate).
-		SetAge(CalculateAge(birthdate)).
-		SetNillableCountryCode(countryCode).
-		SetNillablePhoneNumberE164(e164PhoneNumber).
-		Save(ctx)
-	if err != nil {
-		return nil, err
+	if userID <= 0 {
+		return 0, errors.New("invalid user id")
 	}
-	return profile, nil
+	now := time.Now().UTC()
+	return dbgen.InsertProfile(
+		ctx,
+		p.db,
+		p.dbDialect,
+		userID,
+		bio,
+		birthdate,
+		CalculateAge(birthdate),
+		countryCode,
+		e164PhoneNumber,
+		now,
+		now,
+	)
 }
 
 func (p *ProfileService) UpdateProfile(
-	ctx context.Context, profile *ent.Profile, bio string,
+	ctx context.Context, profileID int, fullyOnboarded bool, bio string,
 	birthdate time.Time, countryCode, e164PhoneNumber *string,
 ) error {
-	// Begin a transaction
-	tx, err := p.orm.Tx(ctx)
-	if err != nil {
-		return err
+	if p.db == nil {
+		return ErrProfileDBNotConfigured
 	}
-
-	query := tx.Profile.
-		UpdateOneID(profile.ID).
-		SetBio(string(bio))
-
-	if !IsProfileFullyOnboarded(profile) {
-		// There's no reason an onboarded profile would need to change their age.
-		query.SetBirthdate(birthdate)
-		query.SetAge(CalculateAge(birthdate))
+	if profileID <= 0 {
+		return errors.New("invalid profile id")
 	}
-
-	if countryCode != nil {
-		query.SetCountryCode(*countryCode)
+	if fullyOnboarded {
+		return dbgen.UpdateProfileBioByID(ctx, p.db, p.dbDialect, profileID, bio)
 	}
-
-	if e164PhoneNumber != nil {
-		query.SetPhoneNumberE164(*e164PhoneNumber)
-	}
-
-	err = query.Exec(ctx)
-
-	if err != nil {
-		// handle error and possibly rollback the transaction
-		tx.Rollback()
-		return err
-	}
-
-	// Commit the transaction
-	err = tx.Commit()
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return dbgen.UpdateProfileDetailsByID(
+		ctx,
+		p.db,
+		p.dbDialect,
+		profileID,
+		bio,
+		birthdate,
+		CalculateAge(birthdate),
+		countryCode,
+		e164PhoneNumber,
+	)
 }
 
 // GetFriends retrieves all friends
 func (s *ProfileService) GetFriends(
 	ctx context.Context, currentProfileID int,
 ) ([]domain.Profile, error) {
-	entProfiles, err := s.orm.Profile.Query().
-		Where(profile.IDEQ(currentProfileID)).
-		QueryFriends().
-		WithProfileImage(func(pi *ent.ImageQuery) {
-			pi.WithSizes(func(s *ent.ImageSizeQuery) {
-				s.WithFile()
-			})
-		}).
-		WithUser(func(uq *ent.UserQuery) {
-			uq.Select(user.FieldName) // Only select the 'Name' field of the user.
-		}).
-		All(ctx)
+	if s.db == nil {
+		return nil, ErrProfileDBNotConfigured
+	}
+	rows, err := dbgen.GetFriendsByProfileID(ctx, s.db, s.dbDialect, currentProfileID)
 	if err != nil {
 		return nil, err
 	}
-
-	var profiles []domain.Profile
-	for _, entProfile := range entProfiles {
-		newProfile, err := s.EntProfileToDomainObject(entProfile)
-		if err != nil {
-			return nil, err
+	profiles := make([]domain.Profile, 0, len(rows))
+	for _, r := range rows {
+		pf := domain.Profile{
+			ID:              r.ProfileID,
+			Name:            r.Name,
+			Age:             int(r.Age.Int64),
+			Bio:             r.Bio.String,
+			PhoneNumberE164: r.PhoneNumberE164.String,
+			CountryCode:     r.CountryCode.String,
 		}
-		profiles = append(profiles, *newProfile)
+		thumbURL := s.GetProfilePhotoThumbnailURL(r.UserID)
+		if thumbURL != "" {
+			pf.ProfileImage = &domain.Photo{ThumbnailURL: thumbURL}
+		}
+		profiles = append(profiles, pf)
 	}
 	return profiles, nil
 }
 
 // AreProfilesFriends checks if two profiles are friends
 func (p *ProfileService) AreProfilesFriends(ctx context.Context, profileID1, profileID2 int) (bool, error) {
-	// Check if there is a friendship link between the two profiles
-	exists, err := p.orm.Profile.
-		Query().
-		Where(profile.IDEQ(profileID1)).
-		QueryFriends().
-		Where(profile.IDEQ(profileID2)).
-		Exist(ctx)
-
-	if err != nil {
-		log.Error().
-			Err(err).
-			Int("ProfileID1", profileID1).
-			Int("ProfileID2", profileID2).
-			Msg("Error checking friendship status between profiles")
-		return false, fmt.Errorf("error checking if profiles %d and %d are friends: %w", profileID1, profileID2, err)
+	if p.db == nil {
+		return false, ErrProfileDBNotConfigured
 	}
-
-	return exists, nil
+	return dbgen.AreProfilesFriends(ctx, p.db, p.dbDialect, profileID1, profileID2)
 }
 
 // LinkProfilesAsFriends links two profiles as friends.
 func (p *ProfileService) LinkProfilesAsFriends(
 	ctx context.Context, inviterProfileID int, inviteeProfileID int,
 ) error {
-	return p.orm.Profile.
-		UpdateOneID(inviterProfileID).
-		AddFriendIDs(inviteeProfileID).
-		Exec(ctx)
+	if p.db == nil {
+		return ErrProfileDBNotConfigured
+	}
+	return dbgen.LinkProfilesAsFriends(ctx, p.db, p.dbDialect, inviterProfileID, inviteeProfileID)
 }
 
 // UnlinkProfilesAsFriends removes the friendship link between two profiles.
 func (p *ProfileService) UnlinkProfilesAsFriends(
 	ctx context.Context, profileID, friendID int,
 ) error {
-	// Remove friendID from profileID's friends list
-	err := p.orm.Profile.
-		UpdateOneID(profileID).
-		RemoveFriendIDs(friendID).
-		Exec(ctx)
-
-	if err != nil {
-		return err
+	if p.db == nil {
+		return ErrProfileDBNotConfigured
 	}
-
-	return nil
+	return dbgen.UnlinkProfilesAsFriends(ctx, p.db, p.dbDialect, profileID, friendID)
 }
 
 func (p *ProfileService) GetProfileByID(
 	ctx context.Context, profileID int, selfProfileID *int,
 ) (*domain.Profile, error) {
-	query := p.orm.Profile.
-		Query().
-		Where(profile.IDEQ(profileID)).
-		WithUser().
-		WithProfileImage(func(pi *ent.ImageQuery) {
-			pi.WithSizes(func(s *ent.ImageSizeQuery) {
-				s.WithFile()
-			})
-		}).
-		WithPhotos(func(pi *ent.ImageQuery) {
-			pi.WithSizes(func(s *ent.ImageSizeQuery) {
-				s.WithFile()
-			})
-		})
+	if p.db == nil {
+		return nil, ErrProfileDBNotConfigured
+	}
 
-	entProfile, err := query.First(ctx)
-
+	core, err := dbgen.GetProfileCoreByID(ctx, p.db, p.dbDialect, profileID)
 	if err != nil {
 		return nil, err
 	}
 
-	// Sort the photos manually in Go
-	sort.Slice(entProfile.Edges.Photos, func(i, j int) bool {
-		return entProfile.Edges.Photos[i].CreatedAt.After(entProfile.Edges.Photos[j].CreatedAt)
-	})
-
-	photos, err := p.storageRepo.GetImageObjectsFromFiles(entProfile.Edges.Photos)
+	photosRows, err := dbgen.GetProfilePhotosByProfileID(ctx, p.db, p.dbDialect, profileID)
 	if err != nil {
-		if customErr, ok := err.(*storagerepo.NoImagesInFiles); ok {
-			log.Error().Str("Error", customErr.Message)
-		} else {
+		return nil, err
+	}
+	photos, err := p.storageRepo.GetImageObjectsFromFiles(mapProfilePhotoSizeRecordsToStorageImages(photosRows))
+	if err != nil {
+		if _, ok := err.(*storagerepo.NoImagesInFiles); !ok {
 			return nil, err
 		}
 	}
 
 	var currProfilePhoto *domain.Photo
-	if entProfile.Edges.ProfileImage != nil {
-		currProfilePhoto, err = p.storageRepo.GetImageObjectFromFile(entProfile.Edges.ProfileImage)
+	imageRows, err := dbgen.GetProfileImageByProfileID(ctx, p.db, p.dbDialect, profileID)
+	if err != nil {
+		return nil, err
+	}
+	imageFiles := mapProfilePhotoSizeRecordsToStorageImages(imageRows)
+	if len(imageFiles) > 0 {
+		currProfilePhoto, err = p.storageRepo.GetImageObjectFromFile(imageFiles[0])
 		if err != nil {
-			if customErr, ok := err.(*storagerepo.NoImagesInFiles); ok {
-				log.Error().Str("Error", customErr.Message)
-			} else {
+			if _, ok := err.(*storagerepo.NoImagesInFiles); !ok {
 				return nil, err
 			}
 		}
 	}
 
 	profile := &domain.Profile{
-		ID:              entProfile.ID,
-		Name:            entProfile.Edges.User.Name,
-		Age:             entProfile.Age,
-		Bio:             entProfile.Bio,
-		PhoneNumberE164: entProfile.PhoneNumberE164,
-		CountryCode:     entProfile.CountryCode,
+		ID:              core.ProfileID,
+		Name:            core.Name,
+		Age:             int(core.Age.Int64),
+		Bio:             core.Bio.String,
+		PhoneNumberE164: core.PhoneNumberE164.String,
+		CountryCode:     core.CountryCode.String,
 		ProfileImage:    currProfilePhoto,
 		Photos:          photos,
 	}
@@ -285,136 +227,45 @@ func (s *ProfileService) GetCountOfUnseenNotifications(ctx context.Context, prof
 }
 
 func (p *ProfileService) IsProfileFullyOnboardedByUserID(ctx context.Context, userID int) (bool, error) {
-	profile, err := p.orm.Profile.
-		Query().
-		Where(profile.HasUserWith(user.IDEQ(userID))).
-		Only(ctx)
-	if err != nil {
-		return false, err
+	if p.db == nil {
+		return false, ErrProfileDBNotConfigured
 	}
-	return IsProfileFullyOnboarded(profile), nil
-}
-
-func (p *ProfileService) EntProfileToDomainObject(e *ent.Profile) (*domain.Profile, error) {
-	var name string
-	if e.Edges.User != nil {
-		name = e.Edges.User.Name
-	}
-	var profileImage *domain.Photo
-	if e.Edges.ProfileImage != nil {
-		image, err := p.storageRepo.GetImageObjectFromFile(e.Edges.ProfileImage)
-		if err != nil {
-			return nil, err
-		}
-		profileImage = image // Linting error if we don't do that
-	}
-
-	return &domain.Profile{
-		ID:           e.ID,
-		Name:         name,
-		Age:          e.Age,
-		Bio:          e.Bio,
-		ProfileImage: profileImage,
-	}, nil
+	return dbgen.GetProfileFullyOnboardedByUserID(ctx, p.db, p.dbDialect, userID)
 }
 
 func (p *ProfileService) DeleteUserData(ctx context.Context, profileID int) error {
-
-	profileImage, err := p.orm.Profile.
-		Query().
-		Where(
-			profile.IDEQ(profileID),
-		).
-		QueryProfileImage().
-		WithSizes(func(isq *ent.ImageSizeQuery) {
-			isq.WithFile()
-		}).
-		All(ctx)
-	if err != nil {
+	if p.db == nil {
+		return ErrProfileDBNotConfigured
+	}
+	if err := p.deleteProfileStorageFiles(ctx, profileID); err != nil {
 		return err
 	}
 
-	photos, err := p.orm.Profile.
-		Query().
-		Where(
-			profile.IDEQ(profileID),
-		).
-		QueryPhotos().
-		WithSizes(func(isq *ent.ImageSizeQuery) {
-			isq.WithFile()
-		}).
-		All(ctx)
-	if err != nil {
+	sub, err := dbgen.GetSubscriptionForBenefactorByProfileID(ctx, p.db, p.dbDialect, profileID)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return err
 	}
-
-	if profileImage != nil {
-		photos = append(photos, profileImage...)
-	}
-	for _, img := range photos {
-		for _, imgSize := range img.Edges.Sizes {
-			err = p.storageRepo.DeleteFile(storagerepo.BucketMainApp, imgSize.Edges.File.ObjectKey)
-			if err != nil {
-				log.Error().Err(err).
-					Str("objectKey", imgSize.Edges.File.ObjectKey).
-					Int("imageID", img.ID).
-					Int("sizeID", imgSize.ID).
-					Int("fileID", imgSize.Edges.File.ID).
-					Msg("failed to delete file while deleting user data")
-			}
-
-		}
-	}
-
-	sub, err := p.orm.MonthlySubscription.Query().Where(
-		monthlysubscription.HasBenefactorsWith(profile.IDEQ(profileID)),
-	).
-		WithPayer().
-		WithBenefactors().
-		Only(ctx)
-	if err != nil && !dberrors.IsNotFound(err) {
-		return err
-	}
-	if !dberrors.IsNotFound(err) {
-
-		delete := false
-
-		if sub.Edges.Payer.ID == profileID {
-			delete = true
+	if err == nil && sub != nil {
+		benefactorsCount, countErr := dbgen.CountSubscriptionBenefactorsBySubscriptionID(
+			ctx, p.db, p.dbDialect, sub.SubscriptionID,
+		)
+		if countErr != nil {
+			return countErr
 		}
 
-		if len(sub.Edges.Benefactors) > 1 {
-			// One person payed for both in the relationship
-			err = p.orm.MonthlySubscription.
-				UpdateOne(sub).
-				RemoveBenefactorIDs(profileID).
-				Exec(ctx)
-			if err != nil {
+		deleteSub := sub.PayingProfile == profileID || benefactorsCount <= 1
+		if !deleteSub && benefactorsCount > 1 {
+			if err := dbgen.RemoveSubscriptionBenefactorBySubscriptionAndProfile(
+				ctx, p.db, p.dbDialect, sub.SubscriptionID, profileID,
+			); err != nil {
 				return err
 			}
-		} else {
-			delete = true
-		}
-
-		if delete {
-			err = p.orm.MonthlySubscription.
-				DeleteOne(sub).
-				Exec(ctx)
-			if err != nil {
+		} else if deleteSub {
+			if err := dbgen.DeleteSubscriptionByID(ctx, p.db, p.dbDialect, sub.SubscriptionID); err != nil {
 				return err
 			}
 		}
 	}
 
-	_, err = p.orm.User.Delete().Where(
-		user.HasProfileWith(profile.IDEQ(profileID)),
-	).Exec(ctx)
-
-	return err
-}
-
-// TODO: move to ProfileService
-// IsProfileFullyOnboarded determines whether a profile is fully onboarded onto the app or not.
-func IsProfileFullyOnboarded(d *ent.Profile) bool {
-	return d.FullyOnboarded
+	return dbgen.DeleteUserByProfileID(ctx, p.db, p.dbDialect, profileID)
 }

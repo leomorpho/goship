@@ -46,6 +46,10 @@ func TestSQLStore_StripeIDAndCancellation(t *testing.T) {
 	ctx := context.Background()
 
 	require.NoError(t, store.StoreStripeCustomerID(ctx, 1, "cus_123"))
+	customerID, err := store.GetStripeCustomerIDByProfileID(ctx, 1)
+	require.NoError(t, err)
+	require.Equal(t, "cus_123", customerID)
+
 	pid, err := store.GetProfileIDFromStripeCustomerID(ctx, "cus_123")
 	require.NoError(t, err)
 	require.Equal(t, 1, pid)

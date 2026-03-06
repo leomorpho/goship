@@ -3,21 +3,17 @@ package profiles
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"image/jpeg"
 	"io"
 	"path/filepath"
+	"time"
 
 	"github.com/disintegration/imaging"
 	"github.com/google/uuid"
-	"github.com/leomorpho/goship/db/ent"
-	"github.com/leomorpho/goship/db/ent/filestorage"
-	"github.com/leomorpho/goship/db/ent/image"
-	"github.com/leomorpho/goship/db/ent/imagesize"
-	"github.com/leomorpho/goship/db/ent/profile"
-	"github.com/leomorpho/goship/db/ent/user"
-	"github.com/leomorpho/goship/framework/dberrors"
+	dbgen "github.com/leomorpho/goship/db/gen"
 	"github.com/leomorpho/goship/framework/domain"
 	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
 	"github.com/rs/zerolog/log"
@@ -26,16 +22,14 @@ import (
 func (p *ProfileService) GetPhotosByProfileByID(
 	ctx context.Context, profileID int,
 ) ([]domain.Photo, error) {
-	photoObjects, err := p.orm.Profile.
-		Query().
-		Where(profile.IDEQ(profileID)).
-		QueryPhotos().
-		Order(ent.Desc(filestorage.FieldCreatedAt)).
-		All(ctx)
+	if p.db == nil {
+		return nil, ErrProfileDBNotConfigured
+	}
+	rows, err := dbgen.GetProfilePhotosByProfileID(ctx, p.db, p.dbDialect, profileID)
 	if err != nil {
 		return nil, err
 	}
-	photos, err := p.storageRepo.GetImageObjectsFromFiles(photoObjects)
+	photos, err := p.storageRepo.GetImageObjectsFromFiles(mapProfilePhotoSizeRecordsToStorageImages(rows))
 	if err != nil {
 		if customErr, ok := err.(*storagerepo.NoImagesInFiles); ok {
 			log.Error().Str("Error", customErr.Message)
@@ -49,27 +43,29 @@ func (p *ProfileService) GetPhotosByProfileByID(
 
 func (p *ProfileService) GetProfilePhotoThumbnailURL(userID int) string {
 	defaultProfilePic := "https://www.gravatar.com/avatar/?d=mp&s=200"
-	ctx := context.Background()
-	image, err := p.orm.Profile.
-		Query().
-		Where(profile.HasUserWith(user.IDEQ(userID))).
-		QueryProfileImage().
-		WithSizes(func(s *ent.ImageSizeQuery) {
-			s.WithFile()
-		}).
-		Only(ctx)
-	if dberrors.IsNotFound(err) {
+	if p.db == nil || p.storageRepo == nil {
+		log.Warn().Int("userID", userID).Msg("profile thumbnail lookup unavailable: missing db or storage dependency")
 		return defaultProfilePic
 	}
-	photo, err := p.storageRepo.GetImageObjectFromFile(image)
-	if err != nil {
-		if customErr, ok := err.(*storagerepo.NoImagesInFiles); ok {
-			log.Error().Str("Error", customErr.Message)
-		} else {
-			return defaultProfilePic
-		}
+
+	ctx := context.Background()
+	objectKey, err := dbgen.GetProfileThumbnailObjectKeyByUserID(ctx, p.db, p.dbDialect, userID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return defaultProfilePic
 	}
-	return photo.ThumbnailURL
+	if err != nil {
+		log.Error().Err(err).Int("userID", userID).Msg("failed to fetch profile thumbnail object key")
+		return defaultProfilePic
+	}
+	if objectKey == "" {
+		return defaultProfilePic
+	}
+	url, urlErr := p.storageRepo.GetPresignedURL(storagerepo.BucketMainApp, objectKey, 2*24*time.Hour)
+	if urlErr != nil {
+		log.Error().Err(urlErr).Int("userID", userID).Str("objectKey", objectKey).Msg("failed to sign profile thumbnail URL")
+		return defaultProfilePic
+	}
+	return url
 }
 
 func (p *ProfileService) SetProfilePhoto(
@@ -81,19 +77,16 @@ func (p *ProfileService) SetProfilePhoto(
 	if p.storageRepo == nil {
 		return errors.New("storage orm not initialized")
 	}
+	if p.db == nil {
+		return ErrProfileDBNotConfigured
+	}
 
-	profileImage, err := p.orm.Profile.
-		Query().
-		Where(
-			profile.IDEQ(profileID),
-		).
-		QueryProfileImage().
-		First(ctx)
-	if err != nil && !dberrors.IsNotFound(err) {
+	profileImageID, err := dbgen.GetProfileImageIDByProfileID(ctx, p.db, p.dbDialect, profileID)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return err
 	}
-	if err == nil {
-		err = p.DeletePhoto(ctx, profileImage.ID, nil)
+	if err == nil && profileImageID.Valid {
+		err = p.DeletePhoto(ctx, int(profileImageID.Int64), nil)
 		if err != nil {
 			log.Err(err).Str("err", "failed to delete old photo when uploading new profile photo")
 		}
@@ -105,12 +98,7 @@ func (p *ProfileService) SetProfilePhoto(
 	if err != nil {
 		return err
 	}
-
-	_, err = p.orm.Profile.UpdateOneID(profileID).SetProfileImageID(*imageID).Save(ctx)
-	if err != nil {
-		return err
-	}
-	return nil
+	return dbgen.SetProfileImageID(ctx, p.db, p.dbDialect, profileID, *imageID)
 }
 
 func (p *ProfileService) UploadPhoto(
@@ -122,6 +110,9 @@ func (p *ProfileService) UploadPhoto(
 	if p.storageRepo == nil {
 		return errors.New("storage orm not initialized")
 	}
+	if p.db == nil {
+		return ErrProfileDBNotConfigured
+	}
 
 	imageID, err := p.UploadImageSizes(
 		ctx, profileID, fileStream, domain.ImageCategoryProfileGallery, fileName,
@@ -129,11 +120,7 @@ func (p *ProfileService) UploadPhoto(
 	if err != nil {
 		return err
 	}
-	_, err = p.orm.Profile.UpdateOneID(profileID).AddPhotoIDs(*imageID).Save(ctx)
-	if err != nil {
-		return err
-	}
-	return nil
+	return dbgen.AttachGalleryImageToProfile(ctx, p.db, p.dbDialect, *imageID, profileID)
 }
 
 func (p *ProfileService) UploadImageSizes(
@@ -144,6 +131,9 @@ func (p *ProfileService) UploadImageSizes(
 	fileName string,
 	sizes []domain.ImageSize,
 ) (*int, error) {
+	if p.db == nil {
+		return nil, ErrProfileDBNotConfigured
+	}
 
 	// Before decoding, try to seek to the beginning of the stream
 	if seeker, ok := fileStream.(io.Seeker); ok {
@@ -159,7 +149,14 @@ func (p *ProfileService) UploadImageSizes(
 		return nil, fmt.Errorf("failed to decode image: %w", err)
 	}
 
-	var imageSizeIDs []int
+	type uploadedImageSize struct {
+		size      domain.ImageSize
+		width     int
+		height    int
+		fileID    int
+		objectKey string
+	}
+	var uploaded []uploadedImageSize
 
 	for _, sizeName := range sizes {
 
@@ -206,30 +203,17 @@ func (p *ProfileService) UploadImageSizes(
 		}
 
 		// Create an image size record
-		imageSize, err := p.orm.ImageSize.
-			Create().
-			SetSize(imagesize.Size(sizeName.Value)).
-			SetWidth(actualWidth).
-			SetHeight(actualHeight).
-			SetFileID(*filestorageEntryID).
-			Save(ctx)
-		if err != nil {
-			log.Err(err).
-				Str("imageCategory", imageCategory.Value).
-				Str("sizeName", sizeName.Value).
-				Int("profileID", profileID).
-				Msg("failed to save image size objects for profile")
-			return nil, fmt.Errorf("failed to save image size for %s: %w", sizeName, err)
-		}
-
-		imageSizeIDs = append(imageSizeIDs, imageSize.ID)
+		uploaded = append(uploaded, uploadedImageSize{
+			size:      sizeName,
+			width:     actualWidth,
+			height:    actualHeight,
+			fileID:    *filestorageEntryID,
+			objectKey: objectName,
+		})
 	}
 
-	image, err := p.orm.Image.
-		Create().
-		SetType(image.Type(imageCategory.Value)).
-		AddSizeIDs(imageSizeIDs...).
-		Save(ctx)
+	now := time.Now().UTC()
+	imageID, err := dbgen.InsertImage(ctx, p.db, p.dbDialect, imageCategory.Value, now, now)
 	if err != nil {
 		log.Err(err).
 			Str("imageCategory", imageCategory.Value).
@@ -237,12 +221,35 @@ func (p *ProfileService) UploadImageSizes(
 			Msg("failed to create image object for profile")
 		return nil, err
 	}
+
+	for _, item := range uploaded {
+		if err := dbgen.InsertImageSize(
+			ctx,
+			p.db,
+			p.dbDialect,
+			item.size.Value,
+			item.width,
+			item.height,
+			imageID,
+			item.fileID,
+			now,
+			now,
+		); err != nil {
+			log.Err(err).
+				Str("imageCategory", imageCategory.Value).
+				Str("sizeName", item.size.Value).
+				Int("profileID", profileID).
+				Msg("failed to save image size objects for profile")
+			return nil, fmt.Errorf("failed to save image size for %s: %w", item.size.Value, err)
+		}
+	}
+
 	log.Info().
 		Str("imageCategory", imageCategory.Value).
 		Int("profileID", profileID).
 		Msg("Successfully added Image for profile")
 
-	return &image.ID, nil
+	return &imageID, nil
 }
 
 func (p *ProfileService) DeletePhoto(
@@ -254,15 +261,12 @@ func (p *ProfileService) DeletePhoto(
 	if p.storageRepo == nil {
 		return errors.New("storage orm not initialized")
 	}
+	if p.db == nil {
+		return ErrProfileDBNotConfigured
+	}
 
 	if profileID != nil {
-		// Check that the photo belongs to the profile
-		exists, err := p.orm.Profile.
-			Query().
-			Where(
-				profile.HasPhotosWith(image.IDEQ(imageID)),
-				profile.IDEQ(*profileID),
-			).Exist(ctx)
+		exists, err := dbgen.ImageBelongsToProfileGallery(ctx, p.db, p.dbDialect, imageID, *profileID)
 		if err != nil {
 			return err
 		}
@@ -271,31 +275,24 @@ func (p *ProfileService) DeletePhoto(
 		}
 	}
 
-	im, err := p.orm.Image.
-		Query().
-		Where(
-			image.IDEQ(imageID),
-		).
-		WithSizes(func(s *ent.ImageSizeQuery) {
-			s.WithFile()
-		}).
-		Only(ctx)
-
+	rows, err := dbgen.GetImageStorageObjectsByImageID(ctx, p.db, p.dbDialect, imageID)
 	if err != nil {
 		return err
 	}
-
-	for _, size := range im.Edges.Sizes {
-		if size.Edges.File != nil {
-			// Delete the file in S3
-			err = p.storageRepo.DeleteFile(storagerepo.BucketMainApp, size.Edges.File.ObjectKey)
-			if err != nil {
+	imageFiles := mapProfilePhotoSizeRecordsToStorageImages(rows)
+	for _, file := range imageFiles {
+		for _, size := range file.Sizes {
+			if size.ObjectKey == "" {
+				continue
+			}
+			if err := p.storageRepo.DeleteFile(storagerepo.BucketMainApp, size.ObjectKey); err != nil {
 				return err
 			}
-			// NOTE: filestorage object gets deleted by storage repo
 		}
 	}
-
-	// TODO: verify cascade delete works for image size and files linked to image
-	return p.orm.Image.DeleteOneID(imageID).Exec(ctx)
+	// Ensure profile FK is detached before deleting the image row.
+	if err := dbgen.ClearProfileImageByImageID(ctx, p.db, p.dbDialect, imageID); err != nil {
+		return err
+	}
+	return dbgen.DeleteImageByID(ctx, p.db, p.dbDialect, imageID)
 }

@@ -30,7 +30,6 @@ func TestModuleNew_SQLMode_DoesNotRequireORM(t *testing.T) {
 	t.Cleanup(func() { _ = db.Close() })
 
 	services, err := New(RuntimeDeps{
-		ORM:                                 nil,
 		DB:                                  db,
 		DBDialect:                           "sqlite3",
 		PubSub:                              noopPubSub{},
@@ -46,11 +45,10 @@ func TestModuleNew_SQLMode_DoesNotRequireORM(t *testing.T) {
 	}
 }
 
-func TestModuleNew_EntMode_RequiresORM(t *testing.T) {
+func TestModuleNew_RequiresDB(t *testing.T) {
 	t.Parallel()
 
 	_, err := New(RuntimeDeps{
-		ORM:                                 nil,
 		DB:                                  nil,
 		DBDialect:                           "",
 		PubSub:                              noopPubSub{},
@@ -59,6 +57,6 @@ func TestModuleNew_EntMode_RequiresORM(t *testing.T) {
 		GetNumNotificationsForProfileByIDFn: func(context.Context, int) (int, error) { return 0, nil },
 	})
 	if err == nil {
-		t.Fatal("expected error when both DB and ORM are nil")
+		t.Fatal("expected error when DB is nil")
 	}
 }

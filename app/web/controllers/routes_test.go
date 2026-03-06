@@ -17,7 +17,6 @@ import (
 	"github.com/leomorpho/goship/app"
 	"github.com/leomorpho/goship/app/foundation"
 	profilesvc "github.com/leomorpho/goship/app/profile"
-	appsubscriptions "github.com/leomorpho/goship/app/subscriptions"
 	"github.com/leomorpho/goship/config"
 	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
 
@@ -47,14 +46,16 @@ func TestMain(m *testing.M) {
 
 	// Start a new container
 	c = foundation.NewContainer()
-	paidSubscriptions := paidsubscriptions.New(appsubscriptions.NewEntStore(
-		c.ORM,
+	paidSubscriptions := paidsubscriptions.New(paidsubscriptions.NewSQLStore(
+		c.Database,
+		c.Config.Adapters.DB,
 		c.Config.App.OperationalConstants.ProTrialTimespanInDays,
 		c.Config.App.OperationalConstants.PaymentFailedGracePeriodInDays,
 	))
-	storageClient := storagerepo.NewStorageClient(c.Config, c.ORM)
-	profileService := profilesvc.NewProfileServiceWithDeps(
-		c.ORM,
+	storageClient := storagerepo.NewStorageClient(c.Config, c.Database, c.Config.Adapters.DB)
+	profileService := profilesvc.NewProfileServiceWithDBDeps(
+		c.Database,
+		c.Config.Adapters.DB,
 		storageClient,
 		paidSubscriptions,
 		profilesvc.NewSQLNotificationCountStore(c.Database, c.Config.Adapters.DB),
@@ -65,7 +66,6 @@ func TestMain(m *testing.M) {
 		firebaseJSONAccessKeys = &c.Config.App.FirebaseJSONAccessKeys
 	}
 	notificationServices, err := notifications.New(notifications.RuntimeDeps{
-		ORM:                                 c.ORM,
 		DB:                                  c.Database,
 		DBDialect:                           c.Config.Adapters.DB,
 		PubSub:                              foundation.AdaptNotificationsPubSub(c.CorePubSub),

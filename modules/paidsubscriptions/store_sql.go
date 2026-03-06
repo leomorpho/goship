@@ -179,6 +179,12 @@ func (s *SQLStore) GetProfileIDFromStripeCustomerID(ctx context.Context, stripeC
 	return profileID, err
 }
 
+func (s *SQLStore) GetStripeCustomerIDByProfileID(ctx context.Context, profileID int) (string, error) {
+	var stripeCustomerID string
+	err := s.db.QueryRowContext(ctx, s.bind(`SELECT stripe_customer_id FROM subscription_customers WHERE profile_id = ?`), profileID).Scan(&stripeCustomerID)
+	return stripeCustomerID, err
+}
+
 func (s *SQLStore) CancelWithGracePeriod(ctx context.Context, profileID int) error {
 	count, err := s.countActiveSubscriptions(ctx, profileID)
 	if err != nil {

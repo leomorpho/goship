@@ -3191,7 +3191,7 @@ FILE: docs/roadmap/03-bob-migration-transition-temp.md
 
 Status: active temporary execution tracker. Delete this file when all checklist items are complete.
 
-Last updated: 2026-03-05
+Last updated: 2026-03-06
 
 ## Scope
 
@@ -3376,6 +3376,13 @@ Acceptance criteria:
 - [x] Implement Bob-backed adapter for first core path. (notifications unseen-count path via `db/gen` + `BobNotificationCountStore`)
 - [x] Keep Ent adapter temporarily for fallback during migration. (first path now uses `EntNotificationCountStore`)
 
+Progress notes (2026-03-06):
+- `app/profile` runtime read/write paths are DB-first for friends/profile/media/delete-account operations.
+- `DeleteUserData` now uses SQL cleanup for subscription and user removal (no Ent path in runtime flow).
+- Composition roots (`cmd/web`, `cmd/worker`, web wiring/routes tests) no longer inject `c.ORM` into `ProfileService` runtime construction.
+- `app/profile` non-test package no longer imports Ent; precommit now enforces this boundary.
+- `ProfileService` constructors are DB-only (`NewProfileServiceWithDBDeps`), and `CreateProfile`/`UpdateProfile` now operate on SQL-native IDs/fields instead of Ent types.
+
 Acceptance criteria:
 - [x] Unit tests for adapter behavior parity. (first path: Ent + SQL/Bob-path stores covered)
 - [x] No controller imports from Ent package.
@@ -3464,10 +3471,10 @@ Goal: remove Ent once runtime parity is complete.
 
 ### 5.1a Runtime Ent cutover backlog (execution order)
 - [ ] `app/profile`: extract SQL/Bob stores for profile reads/writes/media and remove direct Ent runtime dependency.
-- [ ] `app/jobs`: move notifications/mail/email-update DB access behind SQL/Bob stores.
-- [ ] `framework/repos/storage`: remove Ent-typed boundaries (`*ent.Image`) from runtime interfaces.
-- [ ] `app/foundation`: remove Ent-default auth/container runtime paths (keep temporary test-only seams only as needed).
-- [ ] `cmd/*` + app wiring: validate all module runtime deps run DB-first without Ent at composition root.
+- [x] `app/jobs`: move notifications/mail/email-update DB access behind SQL/Bob stores.
+- [x] `framework/repos/storage`: remove Ent-typed boundaries (`*ent.Image`) from runtime interfaces.
+- [x] `app/foundation`: remove Ent-default auth/container runtime paths (keep temporary test-only seams only as needed).
+- [x] `cmd/*` + app wiring: validate all module runtime deps run DB-first without Ent at composition root.
 
 ### 5.2 Remove Ent toolchain
 - [ ] Remove Ent generation commands from Ship and Make flow.
@@ -3495,11 +3502,11 @@ Goal: ensure long-term maintainability and agent reliability.
   - missing module migrations dir
   - missing module Bob config
   - forbidden cross-boundary imports
-- [ ] Add CI checks for generated-code drift.
+- [x] Add CI checks for generated-code drift.
 
 Acceptance criteria:
 - [ ] `ship doctor` enforces architecture contracts.
-- [ ] CI catches drift and boundary violations.
+- [x] CI catches drift and boundary violations.
 - [ ] Docs checks fail CI when CLI behavior and docs diverge.
 
 ---
@@ -3600,6 +3607,42 @@ Acceptance criteria:
 - 2026-03-05: started `app/profile` migration slice by replacing direct `ent.IsNotFound` checks with `framework/dberrors.IsNotFound` in `profile.go` and `profile_media.go` while preserving current Ent query behavior.
 - 2026-03-05: started `app/jobs` migration slice by removing explicit Ent constructor threading in mail jobs (`NewEmailUpdateProcessor` and `NewUpdateEmailSender` now container-only), reducing composition-root Ent coupling while keeping behavior unchanged.
 - 2026-03-05: continued `app/jobs` migration slice by removing Ent from `notifications` processors (`DeleteStaleNotificationsProcessor` now SQL-backed with dialect binding; `AllDailyConvo` processor no longer accepts Ent/ProfileService deps) and added SQLite unit coverage for stale-notification cleanup.
+- 2026-03-05: continued `app/jobs` migration slice by removing Ent query/predicate dependencies from `email_update_sender` audience + sent-email persistence paths (now SQL-based with dialect binding against `notification_permissions`, `notifications`, and `sent_emails`).
+- 2026-03-05: reduced auth-layer Ent coupling by changing `NewAuthClient` to accept an already-selected store, keeping Ent-specific selection logic in container/selector wiring instead of the core auth client surface.
+- 2026-03-05: cleaned stale Ent-era commented query blocks from `app/jobs/email_update_sender.go`; `app/jobs` runtime sources now show no non-test `db/ent` imports in boundary scans.
+- 2026-03-05: updated auth store selector fallback to be Bob-first for unknown `PAGODA_AUTH_STORE` values when DB is available (Ent fallback only when DB is unavailable), with updated selector unit coverage.
+- 2026-03-05: switched router dependency wiring to Bob-backed profile notification count store (`app/web/wiring.go` now uses `NewProfileServiceWithDeps(..., NewBobNotificationCountStore(...))`), removing an Ent-default path from web route composition.
+- 2026-03-05: added and enforced `app/jobs` Ent-boundary guard (`tools/scripts/check-app-jobs-no-ent-imports.sh`) in precommit, and marked the `app/jobs` Phase 5 cutover item complete.
+- 2026-03-05: removed Ent types from storage runtime interfaces by introducing storage-owned image DTOs (`framework/repos/storage.ImageFile*`) and moving Ent-to-storage mapping into `app/profile`.
+- 2026-03-05: removed Ent fallback as default auth runtime behavior when DB is missing; selector now returns an explicit unavailable auth store unless `PAGODA_AUTH_STORE=ent` is requested.
+- 2026-03-05: hardened precommit script path resolution (`tools/scripts/precommit-tests.sh`) so checks run correctly from any working directory.
+- 2026-03-05: added composition-root guardrail `tools/scripts/check-composition-no-ent-module-wiring.sh` and wired it into precommit to prevent Ent-backed module stores from re-entering runtime wiring in `cmd/*` and `app/web/wiring.go`.
+- 2026-03-05: updated CI workflow (`.github/workflows/test.yml`) to run the stateless precommit quality gate, which now enforces Bob generated-code drift and boundary checks on push/PR.
+- 2026-03-05: removed direct Atlas apply invocation from `make:scaffold --migrate`; scaffold now delegates migration execution through the existing `ship db:migrate` command path (Goose-native flow).
+- 2026-03-05: removed dead Atlas execution/install fallback code paths from Ship CLI runtime (`runAtlasCmd` + `InstallAtlasBinary`), keeping migration command execution focused on Goose.
+- 2026-03-05: fixed `ship upgrade` target file path after CLI refactor (`tools/cli/ship/internal/cli/cli.go`) and kept command tests aligned to the new location.
+- 2026-03-05: removed hidden Ent-default profile notification-count fallback in `NewProfileServiceWithDeps`; profile now requires explicit notification store wiring for migrated paths instead of silently selecting Ent.
+- 2026-03-05: added storage-interface boundary guard `tools/scripts/check-storage-interface-boundary.sh` and wired it into precommit to block Ent type leakage back into storage runtime interfaces.
+- 2026-03-05: migrated login onboarding check to `AuthClient.GetIdentityByUserID` (store-backed/Bob path) and removed controller-level `ProfileService` instantiation for post-login onboarding routing.
+- 2026-03-05: migrated profile read hotspots to DB/Bob path when DB is available: `IsProfileFullyOnboardedByUserID` and `GetProfilePhotoThumbnailURL` now use `db/gen/profile.go` queries first, with Ent fallback retained.
+- 2026-03-05: added profile query registry entries (`db/queries/profile.sql`) and sqlite unit coverage in both `db/gen/profile_test.go` and `app/profile/profile_db_reads_test.go`.
+- 2026-03-05: removed Ent selection path from auth store runtime selector; `selectAuthStore` is now Bob/DB-only with explicit unavailable-store behavior when DB is missing.
+- 2026-03-05: removed dead Ent auth-store implementation (`entAuthStore` + selector wiring); foundation auth persistence path is now Bob-first with unavailable-store fail-fast when DB is absent.
+- 2026-03-05: removed Ent fallback behavior from already-migrated profile read paths: `IsProfileFullyOnboardedByUserID` now requires DB (`ErrProfileDBNotConfigured` when missing), and `GetProfilePhotoThumbnailURL` is DB+Bobsql-only with default-image fallback when dependencies are unavailable.
+- 2026-03-05: switched controller integration harness paid-subscriptions wiring from app Ent store to module SQL store (`paidsubscriptions.NewSQLStore`) to match runtime composition and reduce Ent test-path coupling.
+- 2026-03-05: switched controller integration harness notifications runtime deps to DB-first mode (`ORM: nil`) to match runtime composition and reduce Ent coupling in integration wiring.
+- 2026-03-05: removed `app/subscriptions` wrapper package and inlined product-plan domain mapping into web controllers (`subscription_plan.go`) to reduce app-layer indirection before full Ent decommission.
+- 2026-03-05: fixed Stripe billing-portal source-of-truth mismatch by adding `GetStripeCustomerIDByProfileID` to `modules/paidsubscriptions` and switching portal-session creation to read customer IDs from module-owned `subscription_customers` storage instead of profile Ent fields.
+- 2026-03-05: migrated profile settings read/write paths to DB query helpers (`db/gen/profile.go` + `db/queries/profile.sql`) and updated `ProfileService` settings methods (`GetProfileSettingsByID`, `UpdateProfileBio`, `UpdateProfilePhone`, `MarkProfileFullyOnboarded`) to SQL-first behavior.
+- 2026-03-05: added sqlite coverage for new profile settings query helpers (`db/gen/profile_test.go::TestProfileSettingsQueries_SQLite`) and extended paidsubscriptions SQL tests to cover profile->stripe customer reverse lookup.
+- 2026-03-05: made registration flow DB-first (`RegisterUserWithProfile` now uses SQL transaction path when `*sql.DB` is available, with Ent fallback retained only for transitional compatibility), reducing runtime dependence on Ent transaction APIs in signup path.
+- 2026-03-05: migrated profile friendship read paths to SQL-first behavior (`GetFriends`, `AreProfilesFriends`) via new Bob query helpers and profile-friends SQL queries, with Ent fallback retained for transitional compatibility.
+- 2026-03-05: added Bob query coverage for friendship lookup paths in `db/gen/profile_test.go` and validated full precommit suite after profile SQL-first cutover.
+- 2026-03-05: migrated profile gallery/profile-page read paths to SQL-first behavior (`GetPhotosByProfileByID`, `GetProfileByID`) via new `db/gen/profile` helpers (`GetProfileCoreByID`, `GetProfileImageByProfileID`, `GetProfilePhotosByProfileID`) and storage DTO mapping from SQL rows.
+- 2026-03-05: added SQL query/test coverage for profile core + profile-image joins in `db/gen/profile_test.go` and added mapper coverage for SQL photo-size row grouping in `app/profile/storage_image_mapper_test.go`.
+- 2026-03-05: enforced profile package line-budget compliance by extracting `IsProfileFullyOnboarded` into `app/profile/profile_helpers.go` (keeping `app/profile/profile.go` <= 500 lines) so precommit doctor gates remain green.
+- 2026-03-05: migrated friendship write paths to SQL-first behavior (`LinkProfilesAsFriends`, `UnlinkProfilesAsFriends`) via new `db/gen/profile` exec helpers and DB queries (`link/unlink_profiles_as_friends_*`), with Ent fallback retained for transitional compatibility.
+- 2026-03-05: added sqlite coverage for friendship write helpers (`TestProfileFriendshipWriteQueries_SQLite`) and revalidated full precommit quality gate after line-budget and profile SQL-first updates.
 
 ---
 

@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/app/subscriptions"
 	"github.com/leomorpho/goship/app/web/routenames"
 	routeNames "github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/app/web/ui"
@@ -25,7 +24,8 @@ import (
 
 type (
 	profilePrefsRoute struct {
-		ctr ui.Controller
+		ctr            ui.Controller
+		profileService *profilesvc.ProfileService
 	}
 
 	profileBioFormData struct {
@@ -34,9 +34,10 @@ type (
 	}
 )
 
-func NewProfilePrefsRoute(ctr ui.Controller) profilePrefsRoute {
+func NewProfilePrefsRoute(ctr ui.Controller, profileService *profilesvc.ProfileService) profilePrefsRoute {
 	return profilePrefsRoute{
-		ctr: ctr,
+		ctr:            ctr,
+		profileService: profileService,
 	}
 }
 
@@ -45,7 +46,10 @@ func (p *profilePrefsRoute) GetBio(ctx echo.Context) error {
 	if err != nil {
 		return err
 	}
-	prof := p.ctr.Container.ORM.Profile.GetX(ctx.Request().Context(), profileID)
+	prof, err := p.profileService.GetProfileSettingsByID(ctx.Request().Context(), profileID)
+	if err != nil {
+		return err
+	}
 
 	page := ui.NewPage(ctx)
 	page.Layout = layouts.Main
@@ -84,8 +88,7 @@ func (p *profilePrefsRoute) UpdateBio(ctx echo.Context) error {
 		return err
 	}
 
-	_, err = p.ctr.Container.ORM.Profile.UpdateOneID(profileID).SetBio(profileBioData.Bio).Save(ctx.Request().Context())
-	if err != nil {
+	if err := p.profileService.UpdateProfileBio(ctx.Request().Context(), profileID, profileBioData.Bio); err != nil {
 		return err
 	}
 
@@ -132,7 +135,10 @@ func (g *preferences) Get(ctx echo.Context) error {
 	if err != nil {
 		return err
 	}
-	profile := g.ctr.Container.ORM.Profile.GetX(ctx.Request().Context(), profileID)
+	profile, err := g.profileService.GetProfileSettingsByID(ctx.Request().Context(), profileID)
+	if err != nil {
+		return err
+	}
 
 	data, err = g.getCurrPreferencesData(ctx)
 
@@ -217,7 +223,10 @@ func (g *preferences) getCurrPreferencesData(ctx echo.Context) (*viewmodels.Pref
 	if err != nil {
 		return nil, err
 	}
-	profile := g.ctr.Container.ORM.Profile.GetX(ctx.Request().Context(), profileID)
+	profile, err := g.profileService.GetProfileSettingsByID(ctx.Request().Context(), profileID)
+	if err != nil {
+		return nil, err
+	}
 
 	// Make sure to check if birthdate is non-nil
 	birthdateStr := profile.Birthdate.UTC().Format("2006-01-02")
@@ -229,7 +238,7 @@ func (g *preferences) getCurrPreferencesData(ctx echo.Context) (*viewmodels.Pref
 	if err != nil {
 		return nil, err
 	}
-	activePlanDomain := subscriptions.ToDomainProductType(activePlan)
+	activePlanDomain := toDomainProductType(activePlan)
 	if activePlanDomain == nil {
 		activePlanDomain = &domain.ProductTypeFree
 	}
@@ -239,7 +248,7 @@ func (g *preferences) getCurrPreferencesData(ctx echo.Context) (*viewmodels.Pref
 		PhoneNumberInE164Format: profile.PhoneNumberE164,
 		CountryCode:             profile.CountryCode,
 		SelfBirthdate:           birthdateStr,
-		IsProfileFullyOnboarded: profilesvc.IsProfileFullyOnboarded(profile),
+		IsProfileFullyOnboarded: profile.FullyOnboarded,
 		DefaultBio:              domain.DefaultBio,
 		DefaultBirthdate:        domain.DefaultBirthdate.Format("2006-01-02"),
 
@@ -260,7 +269,10 @@ func (p *preferences) GetPhoneComponent(ctx echo.Context) error {
 	if err != nil {
 		return err
 	}
-	profile := p.ctr.Container.ORM.Profile.GetX(ctx.Request().Context(), profileID)
+	profile, err := p.profileService.GetProfileSettingsByID(ctx.Request().Context(), profileID)
+	if err != nil {
+		return err
+	}
 
 	page := ui.NewPage(ctx)
 	page.Layout = layouts.Main
@@ -282,7 +294,10 @@ func (p *preferences) GetPhoneVerificationComponent(ctx echo.Context) error {
 	if err != nil {
 		return err
 	}
-	profile := p.ctr.Container.ORM.Profile.GetX(ctx.Request().Context(), profileID)
+	profile, err := p.profileService.GetProfileSettingsByID(ctx.Request().Context(), profileID)
+	if err != nil {
+		return err
+	}
 
 	page := ui.NewPage(ctx)
 	page.Layout = layouts.Main
@@ -335,7 +350,10 @@ func (p *preferences) SubmitPhoneVerificationCode(ctx echo.Context) error {
 	if err != nil {
 		return err
 	}
-	profile := p.ctr.Container.ORM.Profile.GetX(ctx.Request().Context(), profileID)
+	profile, err := p.profileService.GetProfileSettingsByID(ctx.Request().Context(), profileID)
+	if err != nil {
+		return err
+	}
 
 	valid, err := p.smsSenderService.VerifyConfirmationCode(ctx.Request().Context(), profile.ID, form.VerificationCode)
 	if err != nil || !valid {
@@ -384,13 +402,12 @@ func (p *preferences) SavePhoneInfo(ctx echo.Context) error {
 		return err
 	}
 
-	_, err = p.ctr.Container.ORM.Profile.
-		UpdateOneID(profileID).
-		SetCountryCode(phoneNumberFormData.CountryCode).
-		SetPhoneNumberE164(phoneNumberFormData.PhoneNumberE164Format).
-		Save(ctx.Request().Context())
-
-	return err
+	return p.profileService.UpdateProfilePhone(
+		ctx.Request().Context(),
+		profileID,
+		phoneNumberFormData.CountryCode,
+		phoneNumberFormData.PhoneNumberE164Format,
+	)
 }
 
 func (p *preferences) GetDisplayName(ctx echo.Context) error {
@@ -450,12 +467,14 @@ func (p *preferences) SaveDisplayName(ctx echo.Context) error {
 }
 
 type onboarding struct {
-	ctr ui.Controller
+	ctr            ui.Controller
+	profileService *profilesvc.ProfileService
 }
 
-func NewOnboardingRoute(ctr ui.Controller) onboarding {
+func NewOnboardingRoute(ctr ui.Controller, profileService *profilesvc.ProfileService) onboarding {
 	return onboarding{
-		ctr: ctr,
+		ctr:            ctr,
+		profileService: profileService,
 	}
 }
 
@@ -465,11 +484,7 @@ func (p *onboarding) Get(ctx echo.Context) error {
 		return err
 	}
 
-	_, err = p.ctr.Container.ORM.Profile.
-		UpdateOneID(profileID).
-		SetFullyOnboarded(true).
-		Save(ctx.Request().Context())
-	if err != nil {
+	if err := p.profileService.MarkProfileFullyOnboarded(ctx.Request().Context(), profileID); err != nil {
 		return err
 	}
 

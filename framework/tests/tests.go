@@ -53,6 +53,14 @@ func AssertHTTPErrorCode(t *testing.T, err error, code int) {
 	assert.Equal(t, code, httpError.Code)
 }
 
+type UserRecord struct {
+	ID       int
+	Name     string
+	Email    string
+	Password string
+	Verified bool
+}
+
 // https://testcontainers.com/guides/getting-started-with-testcontainers-for-go/
 // https://golang.testcontainers.org/modules/postgres/
 func CreateTestContainerPostgresConnStr(t *testing.T) (string, context.Context) {
@@ -107,6 +115,35 @@ func CreateTestContainerPostgresEntClient(t *testing.T) (*ent.Client, context.Co
 	return client, ctx
 }
 
+// CreateTestContainerPostgresEntClientAndDB returns both Ent and *sql.DB handles
+// bound to the same ephemeral Postgres instance for mixed migration-path tests.
+func CreateTestContainerPostgresEntClientAndDB(t *testing.T) (*ent.Client, *sql.DB, string, context.Context) {
+	connStr, ctx := CreateTestContainerPostgresConnStr(t)
+
+	db, err := sql.Open("pgx", connStr)
+	if err != nil {
+		t.Fatalf("failed to connect to database: %v", err)
+	}
+	t.Cleanup(func() {
+		_ = db.Close()
+	})
+
+	_, err = db.Exec("CREATE EXTENSION IF NOT EXISTS vector")
+	if err != nil {
+		t.Fatalf("failed to enable pgvector: %v", err)
+	}
+
+	client := enttest.Open(t, "postgres", connStr)
+	t.Cleanup(func() {
+		client.Close()
+	})
+
+	err = client.Schema.Create(ctx)
+	assert.NoError(t, err)
+
+	return client, db, "postgres", ctx
+}
+
 // CreateUser creates a random user entity
 func CreateRandomUser(orm *ent.Client) (*ent.User, error) {
 	seed := fmt.Sprintf("%d-%d", time.Now().UnixMilli(), rand.Intn(1000000))
@@ -116,6 +153,49 @@ func CreateRandomUser(orm *ent.Client) (*ent.User, error) {
 		SetPassword("password").
 		SetName(fmt.Sprintf("Test User %s", seed)).
 		Save(context.Background())
+}
+
+// CreateRandomUserDB creates a random user through SQL for DB-first tests.
+func CreateRandomUserDB(db *sql.DB) (*UserRecord, error) {
+	seed := fmt.Sprintf("%d-%d", time.Now().UnixMilli(), rand.Intn(1000000))
+	return CreateUserDB(
+		context.Background(),
+		db,
+		fmt.Sprintf("Test User %s", seed),
+		fmt.Sprintf("testuser-%s@localhost.localhost", seed),
+		"password",
+		true,
+	)
+}
+
+// CreateUserDB creates a user through SQL and returns a lightweight record.
+func CreateUserDB(ctx context.Context, db *sql.DB, name, email, password string, verified bool) (*UserRecord, error) {
+	if db == nil {
+		return nil, fmt.Errorf("db is nil")
+	}
+	now := time.Now().UTC()
+	var id int
+	if err := db.QueryRowContext(
+		ctx,
+		`INSERT INTO users (created_at, updated_at, name, email, password, verified)
+		 VALUES ($1, $2, $3, $4, $5, $6)
+		 RETURNING id`,
+		now,
+		now,
+		name,
+		email,
+		password,
+		verified,
+	).Scan(&id); err != nil {
+		return nil, err
+	}
+	return &UserRecord{
+		ID:       id,
+		Name:     name,
+		Email:    email,
+		Password: password,
+		Verified: verified,
+	}, nil
 }
 
 // CreateUser creates a new user and returns its ID.

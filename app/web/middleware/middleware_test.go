@@ -7,13 +7,12 @@ import (
 
 	"github.com/leomorpho/goship/app/foundation"
 	"github.com/leomorpho/goship/config"
-	"github.com/leomorpho/goship/db/ent"
 	"github.com/leomorpho/goship/framework/tests"
 )
 
 var (
 	c   *foundation.Container
-	usr *ent.User
+	usr *tests.UserRecord
 )
 
 func TestMain(m *testing.M) {
@@ -29,7 +28,7 @@ func TestMain(m *testing.M) {
 
 	// Create a user
 	var err error
-	if usr, err = tests.CreateRandomUser(c.ORM); err != nil {
+	if usr, err = tests.CreateRandomUserDB(c.Database); err != nil {
 		panic(err)
 	}
 

@@ -34,6 +34,10 @@ func (s *Service) StoreStripeCustomerID(ctx context.Context, profileID int, stri
 	return s.store.StoreStripeCustomerID(ctx, profileID, stripeCustomerID)
 }
 
+func (s *Service) GetStripeCustomerIDByProfileID(ctx context.Context, profileID int) (string, error) {
+	return s.store.GetStripeCustomerIDByProfileID(ctx, profileID)
+}
+
 func (s *Service) GetProfileIDFromStripeCustomerID(ctx context.Context, stripeCustomerID string) (int, error) {
 	return s.store.GetProfileIDFromStripeCustomerID(ctx, stripeCustomerID)
 }

@@ -77,7 +77,7 @@ func TestRunUpgrade(t *testing.T) {
 		if err := os.WriteFile(filepath.Join(root, "go.mod"), []byte("module example.com/demo\n\ngo 1.25\n"), 0o644); err != nil {
 			t.Fatal(err)
 		}
-		cliPath := filepath.Join(root, "cli", "ship", "cli.go")
+		cliPath := filepath.Join(root, "tools", "cli", "ship", "internal", "cli", "cli.go")
 		if err := os.MkdirAll(filepath.Dir(cliPath), 0o755); err != nil {
 			t.Fatal(err)
 		}
@@ -120,7 +120,7 @@ const atlasGoRunRef = "ariga.io/atlas/cmd/atlas@v0.27.1"
 		if err := os.WriteFile(filepath.Join(root, "go.mod"), []byte("module example.com/demo\n\ngo 1.25\n"), 0o644); err != nil {
 			t.Fatal(err)
 		}
-		cliPath := filepath.Join(root, "cli", "ship", "cli.go")
+		cliPath := filepath.Join(root, "tools", "cli", "ship", "internal", "cli", "cli.go")
 		if err := os.MkdirAll(filepath.Dir(cliPath), 0o755); err != nil {
 			t.Fatal(err)
 		}

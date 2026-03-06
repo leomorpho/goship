@@ -3,7 +3,6 @@ package foundation
 import (
 	stdcontext "context"
 	"crypto/rand"
-	"database/sql"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -12,7 +11,6 @@ import (
 	"github.com/golang-jwt/jwt"
 	"github.com/gorilla/sessions"
 	"github.com/leomorpho/goship/config"
-	"github.com/leomorpho/goship/db/ent"
 	"github.com/leomorpho/goship/framework/context"
 	"github.com/leomorpho/goship/framework/dberrors"
 
@@ -63,10 +61,10 @@ type AuthClient struct {
 }
 
 // NewAuthClient creates a new authentication client
-func NewAuthClient(cfg *config.Config, orm *ent.Client, db *sql.DB) *AuthClient {
+func NewAuthClient(cfg *config.Config, store authStore) *AuthClient {
 	return &AuthClient{
 		config: cfg,
-		store:  selectAuthStore(cfg, orm, db),
+		store:  store,
 	}
 }
 

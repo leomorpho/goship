@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
+	"strings"
 	"time"
 
 	mapset "github.com/deckarep/golang-set/v2"
@@ -16,22 +18,21 @@ import (
 	"github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/app/web/viewmodels"
-	"github.com/leomorpho/goship/db/ent/notification"
-	"github.com/leomorpho/goship/db/ent/notificationpermission"
-	"github.com/leomorpho/goship/db/ent/profile"
-	"github.com/leomorpho/goship/db/ent/sentemail"
 	"github.com/leomorpho/goship/framework/domain"
 	"github.com/rs/zerolog/log"
 )
 
 type UpdateEmailSender struct {
 	// TODO: feels kinda weird pass container here, but refactor later.
-	container *foundation.Container
+	container  *foundation.Container
+	postgresql bool
 }
 
 func NewUpdateEmailSender(container *foundation.Container) *UpdateEmailSender {
+	d := strings.ToLower(strings.TrimSpace(container.Config.Adapters.DB))
 	return &UpdateEmailSender{
-		container: container,
+		container:  container,
+		postgresql: d == "postgres" || d == "postgresql" || d == "pgx",
 	}
 }
 
@@ -43,73 +44,107 @@ func NewUpdateEmailSender(container *foundation.Container) *UpdateEmailSender {
 // On the other hand, if someone has daily update turned on, they will receive an email EVERY day,
 // which contains new questions, as well as any partner updates.
 func (e *UpdateEmailSender) GetAudience(ctx context.Context) ([]int, error) {
+	if e.container == nil || e.container.Database == nil {
+		return nil, errors.New("database not configured")
+	}
 
 	oneDayAgo := time.Now().Add(-24 * time.Hour)
 
-	// We don't want to send more than 1 email a day to any user.
-	alreadySentEmailFilter := profile.Not(
-		profile.HasSentEmailsWith(
-			sentemail.And(
-				sentemail.CreatedAtGTE(oneDayAgo),
-				sentemail.Or(
-					sentemail.TypeEQ(sentemail.TypeDailyReminder),
-					sentemail.TypeEQ(sentemail.TypePartnerActivity),
-				),
-			),
-		),
-	)
+	alreadySentDaily := domain.NotificationPermissionDailyReminder.Value
+	alreadySentPartner := domain.NotificationPermissionNewFriendActivity.Value
 
-	// Get all users who gave permission for daily updates and partner updates
-	profilesWithDailyUpdates, err := e.container.ORM.Profile.Query().
-		Where(
-			profile.HasNotificationPermissionsWith(
-				notificationpermission.PermissionEQ(notificationpermission.Permission(domain.NotificationPermissionDailyReminder.Value)),
-			),
-			alreadySentEmailFilter,
-		).
-		Select(profile.FieldID).
-		All(ctx)
-
+	// Get all profiles who gave permission for daily updates and did not receive a daily/partner update email in last 24h.
+	dailyRows, err := e.container.Database.QueryContext(ctx, e.bind(`
+		SELECT p.id
+		FROM profiles p
+		WHERE EXISTS (
+			SELECT 1
+			FROM notification_permissions np
+			WHERE np.profile_id = p.id
+			  AND np.permission = ?
+		)
+		AND NOT EXISTS (
+			SELECT 1
+			FROM sent_emails se
+			WHERE se.profile_sent_emails = p.id
+			  AND se.created_at >= ?
+			  AND se.type IN (?, ?)
+		)
+	`), domain.NotificationPermissionDailyReminder.Value, oneDayAgo, alreadySentDaily, alreadySentPartner)
 	if err != nil {
 		return nil, err
 	}
+	defer dailyRows.Close()
 
-	// Get all users who gave permission for partner updates
-	profilesWithOnlyPartnerUpdates, err := e.container.ORM.Profile.Query().
-		Where(
-			profile.HasNotificationPermissionsWith(
-				notificationpermission.PermissionEQ(notificationpermission.Permission(domain.NotificationPermissionNewFriendActivity.Value)),
-			),
-			// No need to get those with daily permissions, as they will fall under the profilesWithDailyUpdatesQuery catchment.
-			profile.Not(
-				profile.HasNotificationPermissionsWith(
-					notificationpermission.PermissionEQ(notificationpermission.Permission(domain.NotificationPermissionDailyReminder.Value)),
-				),
-			),
-			// Unread notifications of the below type qualify as "partner updates".
-			profile.HasNotificationsWith(
-				notification.ReadEQ(false),
-				notification.TypeIn(
-					notification.Type(domain.NotificationTypeConnectionEngagedWithQuestion.Value),
-				),
-			),
-			alreadySentEmailFilter,
-		).
-		Select(profile.FieldID).
-		All(ctx)
+	profilesWithDailyUpdates := make([]int, 0)
+	for dailyRows.Next() {
+		var profileID int
+		if err := dailyRows.Scan(&profileID); err != nil {
+			return nil, err
+		}
+		profilesWithDailyUpdates = append(profilesWithDailyUpdates, profileID)
+	}
+	if err := dailyRows.Err(); err != nil {
+		return nil, err
+	}
 
+	// Get all profiles with partner updates (excluding those with daily permission), unread partner-activity notif,
+	// and no daily/partner update email sent in last 24h.
+	partnerRows, err := e.container.Database.QueryContext(ctx, e.bind(`
+		SELECT p.id
+		FROM profiles p
+		WHERE EXISTS (
+			SELECT 1
+			FROM notification_permissions np_partner
+			WHERE np_partner.profile_id = p.id
+			  AND np_partner.permission = ?
+		)
+		AND NOT EXISTS (
+			SELECT 1
+			FROM notification_permissions np_daily
+			WHERE np_daily.profile_id = p.id
+			  AND np_daily.permission = ?
+		)
+		AND EXISTS (
+			SELECT 1
+			FROM notifications n
+			WHERE n.profile_notifications = p.id
+			  AND n.read = ?
+			  AND n.type = ?
+		)
+		AND NOT EXISTS (
+			SELECT 1
+			FROM sent_emails se
+			WHERE se.profile_sent_emails = p.id
+			  AND se.created_at >= ?
+			  AND se.type IN (?, ?)
+		)
+	`), domain.NotificationPermissionNewFriendActivity.Value, domain.NotificationPermissionDailyReminder.Value, false, domain.NotificationTypeConnectionEngagedWithQuestion.Value, oneDayAgo, alreadySentDaily, alreadySentPartner)
 	if err != nil {
+		return nil, err
+	}
+	defer partnerRows.Close()
+
+	profilesWithOnlyPartnerUpdates := make([]int, 0)
+	for partnerRows.Next() {
+		var profileID int
+		if err := partnerRows.Scan(&profileID); err != nil {
+			return nil, err
+		}
+		profilesWithOnlyPartnerUpdates = append(profilesWithOnlyPartnerUpdates, profileID)
+	}
+	if err := partnerRows.Err(); err != nil {
 		return nil, err
 	}
 
 	profileIDs := mapset.NewSet[int]()
 
-	for _, profile := range profilesWithDailyUpdates {
-		profileIDs.Add(profile.ID)
+	for _, profileID := range profilesWithDailyUpdates {
+		profileIDs.Add(profileID)
 	}
 
-	for _, profile := range profilesWithOnlyPartnerUpdates {
-		profileIDs.Add(profile.ID)
+	for _, profileID := range profilesWithOnlyPartnerUpdates {
+		profileIDs.Add(profileID)
 	}
 
 	profileIDsSlice := profileIDs.ToSlice()
@@ -126,42 +161,7 @@ func (e *UpdateEmailSender) GetAudience(ctx context.Context) ([]int, error) {
 }
 
 func (e *UpdateEmailSender) PrepareAndSendUpdateEmailForAll(ctx context.Context) error {
-	// profileIDs, err := e.GetAudience(ctx)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// entProfiles, err := e.orm.Profile.
-	// 	Query().
-	// 	Where(
-	// 		profile.IDIn(profileIDs...),
-	// 	).
-	// 	WithNotifications(func(nq *ent.NotificationQuery) {
-	// 		nq.Where(
-	// 			notification.ReadEQ(false),
-	// 			notification.TypeIn(
-	// 				notification.Type(domain.NotificationTypeCommittedRelationshipRequest.Value),
-	// 				notification.Type(domain.NotificationTypeConnectionReactedToAnswer.Value),
-	// 				notification.Type(domain.NotificationTypeConnectionRequestAccepted.Value),
-	// 				notification.Type(domain.NotificationTypeConnectionEngagedWithQuestion.Value),
-	// 				notification.Type(domain.NotificationTypeMutualQuestionAnswered.Value),
-	// 			),
-	// 		)
-	// 	}).
-	// 	WithNotificationPermissions(func(npq *ent.NotificationPermissionQuery) {
-	// 		npq.Where(notificationpermission.PlatformEQ(notificationpermission.Platform(domain.NotificationPlatformEmail.Value)))
-	// 	}).
-	// 	WithUser(func(uq *ent.UserQuery) {
-	// 		uq.Select(user.FieldEmail, user.FieldName)
-	// 	}).
-	// 	All(ctx)
-
-	// for _, entProfile := range entProfiles {
-	// 	err = e.PrepareAndSendUpdateEmailForProfile(ctx, entProfile)
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// }
+	_ = ctx
 	return nil
 }
 
@@ -256,10 +256,30 @@ func (e *UpdateEmailSender) SendUpdateEmail(
 	if len(questionsAnswered) > 0 {
 		emailType = domain.NotificationPermissionNewFriendActivity
 	}
-	_, err = e.container.ORM.SentEmail.Create().
-		SetProfileID(profileID).
-		SetType(sentemail.Type(emailType.Value)).
-		Save(ctx)
+	now := time.Now().UTC()
+	_, err = e.container.Database.ExecContext(ctx, e.bind(`
+		INSERT INTO sent_emails (created_at, updated_at, type, profile_sent_emails)
+		VALUES (?, ?, ?, ?)
+	`), now, now, emailType.Value, profileID)
 
 	return err
+}
+
+func (e *UpdateEmailSender) bind(query string) string {
+	if !e.postgresql || strings.Count(query, "?") == 0 {
+		return query
+	}
+	var b strings.Builder
+	b.Grow(len(query) + 8)
+	arg := 1
+	for _, r := range query {
+		if r == '?' {
+			b.WriteByte('$')
+			b.WriteString(strconv.Itoa(arg))
+			arg++
+			continue
+		}
+		b.WriteRune(r)
+	}
+	return b.String()
 }

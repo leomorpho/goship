@@ -1,11 +1,11 @@
-package subscriptions
+package controllers
 
 import (
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/framework/domain"
 )
 
-func ToDomainProductType(pt *paidsubscriptions.ProductType) *domain.ProductType {
+func toDomainProductType(pt *paidsubscriptions.ProductType) *domain.ProductType {
 	if pt == nil {
 		return nil
 	}

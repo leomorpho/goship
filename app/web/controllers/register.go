@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/leomorpho/goship/app/web/routenames"
 	routeNames "github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/framework/context"
@@ -118,70 +117,35 @@ func (c *register) Post(ctx echo.Context) error {
 		return c.Get(ctx) // Re-render the register page with the warning message
 	}
 
-	// Start a transaction
-	tx, err := c.ctr.Container.ORM.Tx(ctx.Request().Context())
+	registration, err := c.profileService.RegisterUserWithProfile(
+		ctx.Request().Context(),
+		form.Name,
+		form.Email,
+		pwHash,
+		birthdate,
+		c.subscriptionsService,
+	)
 	if err != nil {
-		return c.ctr.Fail(err, "failed to start transaction")
-	}
-
-	// Attempt creating the user
-	u, err := tx.User.
-		Create().
-		SetName(form.Name).
-		SetEmail(form.Email).
-		SetPassword(pwHash).
-		Save(ctx.Request().Context())
-
-	if err != nil {
-		tx.Rollback()
 		switch {
 		case dberrors.IsConstraint(err):
 			uxflashmessages.Warning(ctx, "A user with this email address already exists. Please log in.")
 			return c.ctr.Redirect(ctx, routeNames.RouteNameLogin)
 		default:
-			return c.ctr.Fail(err, "unable to create user")
+			return c.ctr.Fail(err, "unable to create user and profile")
 		}
 	}
-
-	profile, err := tx.Profile.
-		Create().
-		SetUser(u).
-		SetBio(domain.DefaultBio).
-		SetBirthdate(birthdate).
-		SetAge(profilesvc.CalculateAge(birthdate)).
-		Save(ctx.Request().Context())
-
-	if err != nil {
-		tx.Rollback()
-		ctx.Logger().Errorf("failed to create profile: %v", err)
-		uxflashmessages.Info(ctx, "unable to create user")
-		return c.ctr.Redirect(ctx, routenames.RouteNameLogin)
-	}
-
-	err = c.subscriptionsService.CreateSubscription(ctx.Request().Context(), tx, profile.ID)
-	if err != nil {
-		tx.Rollback()
-		ctx.Logger().Errorf("failed to create trial pro subscription for profile: %v", err)
-	}
-
-	// If all operations were successful, commit the transaction
-	err = tx.Commit()
-	if err != nil {
-		return c.ctr.Fail(err, "failed to commit transaction")
-	}
-
-	ctx.Logger().Infof("user and profile created successfully: %s", u.Name)
+	ctx.Logger().Infof("user and profile created successfully: %s", registration.UserName)
 
 	for _, perm := range domain.NotificationPermissions.Members() {
 		err := c.notificationPermissionService.CreatePermission(
-			ctx.Request().Context(), profile.ID, perm, &domain.NotificationPlatformEmail)
+			ctx.Request().Context(), registration.ProfileID, perm, &domain.NotificationPlatformEmail)
 		if err != nil {
-			log.Error().Err(err).Int("profileID", profile.ID).Msg("failed to create notification permission")
+			log.Error().Err(err).Int("profileID", registration.ProfileID).Msg("failed to create notification permission")
 		}
 	}
 
 	// Log the user in
-	err = c.ctr.Container.Auth.Login(ctx, u.ID)
+	err = c.ctr.Container.Auth.Login(ctx, registration.UserID)
 	if err != nil {
 		ctx.Logger().Errorf("unable to log in: %v", err)
 		uxflashmessages.Info(ctx, "Your account has been created.")
@@ -191,7 +155,7 @@ func (c *register) Post(ctx echo.Context) error {
 	uxflashmessages.Success(ctx, "Your account has been created. You are now logged in. 👌")
 
 	// Send the verification email
-	c.sendVerificationEmail(ctx, u.Email)
+	c.sendVerificationEmail(ctx, registration.UserEmail)
 
 	redirect, err := redirectAfterLogin(ctx)
 	if err != nil {

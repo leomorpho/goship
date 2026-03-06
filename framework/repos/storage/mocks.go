@@ -5,7 +5,6 @@ import (
 	"io"
 	"time"
 
-	"github.com/leomorpho/goship/db/ent"
 	"github.com/leomorpho/goship/framework/domain"
 	"github.com/leomorpho/goship/framework/repos/pubsub"
 	"github.com/stretchr/testify/mock"
@@ -43,11 +42,11 @@ func (msc *MockStorageClient) GetPresignedURL(bucket Bucket, objectName string, 
 	return "https://mockurl.com/" + objectName, nil
 }
 
-func (msc *MockStorageClient) GetImageObjectFromFile(file *ent.Image) (*domain.Photo, error) {
+func (msc *MockStorageClient) GetImageObjectFromFile(file *ImageFile) (*domain.Photo, error) {
 	return nil, nil
 }
 
-func (msc *MockStorageClient) GetImageObjectsFromFiles(files []*ent.Image) ([]domain.Photo, error) {
+func (msc *MockStorageClient) GetImageObjectsFromFiles(files []*ImageFile) ([]domain.Photo, error) {
 	return nil, nil
 }
 

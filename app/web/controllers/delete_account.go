@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/app/subscriptions"
 	routeNames "github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/framework/domain"
@@ -52,7 +51,7 @@ func (c *deleteAccount) DeleteAccountPage(ctx echo.Context) error {
 	if err != nil {
 		return err
 	}
-	activePlanDomain := subscriptions.ToDomainProductType(activePlan)
+	activePlanDomain := toDomainProductType(activePlan)
 	uncancelledSubscription := activePlanDomain != nil && *activePlanDomain == domain.ProductTypePro && !isTrial && subscriptionExpiredOn == nil
 
 	page.Layout = layouts.Main

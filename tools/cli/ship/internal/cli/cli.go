@@ -25,11 +25,7 @@ var (
 		_, ok := r.(rt.ExecRunner)
 		return ok
 	}
-	atlasLookPathFn = exec.LookPath
 	gooseLookPathFn = exec.LookPath
-	atlasInstallFn  = func(out io.Writer, errOut io.Writer) (string, error) {
-		return rt.InstallAtlasBinary(out, errOut, atlasGoRunRef)
-	}
 )
 
 type CmdRunner = rt.CmdRunner
@@ -261,12 +257,10 @@ func (c CLI) runMakeScaffold(args []string) int {
 	return gen.RunMakeScaffold(args, gen.ScaffoldDeps{
 		Out:           c.Out,
 		Err:           c.Err,
-		ParseDBURL:    c.resolveDBURL,
-		RunCmd:        c.runCmd,
 		RunModel:      c.runGenerateModel,
 		RunDBMake:     c.runDBMake,
+		RunDBMigrate:  func(args []string) int { return c.runDB(append([]string{"migrate"}, args...)) },
 		RunController: c.runMakeController,
 		RunResource:   c.runGenerateResource,
-		AtlasDir:      "file://" + gooseDir,
 	})
 }

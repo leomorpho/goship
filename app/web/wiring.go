@@ -56,9 +56,15 @@ func NewRouteDeps(
 	deps.EmailSubscriptions = modemailsubscriptions.New(
 		modemailsubscriptions.NewSQLStore(c.Database, activeDatabaseDialect(c.Config)),
 	)
-	deps.StorageRepo = storagerepo.NewStorageClient(c.Config, c.ORM)
+	deps.StorageRepo = storagerepo.NewStorageClient(c.Config, c.Database, c.Config.Adapters.DB)
 	deps.SubscriptionsRepo = paidSubscriptions
-	deps.ProfileService = profilesvc.NewProfileService(c.ORM, deps.StorageRepo, deps.SubscriptionsRepo)
+	deps.ProfileService = profilesvc.NewProfileServiceWithDBDeps(
+		c.Database,
+		c.Config.Adapters.DB,
+		deps.StorageRepo,
+		deps.SubscriptionsRepo,
+		profilesvc.NewBobNotificationCountStore(c.Database, c.Config.Adapters.DB),
+	)
 	if notificationServices != nil {
 		deps.NotificationPermissionService = notificationServices.Permission
 		deps.PwaPushService = notificationServices.PwaPush

@@ -19,7 +19,7 @@ func (f fakeNotificationCountStore) CountUnseenNotifications(context.Context, in
 }
 
 func TestProfileService_GetCountOfUnseenNotifications_UsesStore(t *testing.T) {
-	svc := NewProfileServiceWithDeps(nil, nil, nil, fakeNotificationCountStore{count: 7})
+	svc := NewProfileServiceWithDBDeps(nil, "", nil, nil, fakeNotificationCountStore{count: 7})
 	got, err := svc.GetCountOfUnseenNotifications(context.Background(), 42)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
@@ -31,7 +31,7 @@ func TestProfileService_GetCountOfUnseenNotifications_UsesStore(t *testing.T) {
 
 func TestProfileService_GetCountOfUnseenNotifications_PropagatesStoreError(t *testing.T) {
 	wantErr := errors.New("boom")
-	svc := NewProfileServiceWithDeps(nil, nil, nil, fakeNotificationCountStore{err: wantErr})
+	svc := NewProfileServiceWithDBDeps(nil, "", nil, nil, fakeNotificationCountStore{err: wantErr})
 	_, err := svc.GetCountOfUnseenNotifications(context.Background(), 42)
 	if !errors.Is(err, wantErr) {
 		t.Fatalf("error = %v, want %v", err, wantErr)

@@ -64,7 +64,7 @@ func RunUpgrade(args []string, d UpgradeDeps) int {
 }
 
 func upgradeAtlas(d UpgradeDeps, root, version string, dryRun bool) int {
-	path := filepath.Join(root, "cli", "ship", "cli.go")
+	path := filepath.Join(root, "tools", "cli", "ship", "internal", "cli", "cli.go")
 	old, newText, changed, err := RewriteAtlasVersion(path, version)
 	if err != nil {
 		fmt.Fprintf(d.Err, "failed to update atlas version: %v\n", err)

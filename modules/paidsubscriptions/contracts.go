@@ -12,6 +12,7 @@ type Store interface {
 	UpdateToPaidPro(ctx context.Context, profileID int) error
 	GetCurrentlyActiveProduct(ctx context.Context, profileID int) (*ProductType, *time.Time, bool, error)
 	StoreStripeCustomerID(ctx context.Context, profileID int, stripeCustomerID string) error
+	GetStripeCustomerIDByProfileID(ctx context.Context, profileID int) (string, error)
 	GetProfileIDFromStripeCustomerID(ctx context.Context, stripeCustomerID string) (int, error)
 	CancelWithGracePeriod(ctx context.Context, profileID int) error
 	CancelOrRenew(ctx context.Context, profileID int, cancelDate *time.Time) error

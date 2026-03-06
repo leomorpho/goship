@@ -35,6 +35,10 @@ func (s *stubStore) StoreStripeCustomerID(context.Context, int, string) error {
 	return nil
 }
 
+func (s *stubStore) GetStripeCustomerIDByProfileID(context.Context, int) (string, error) {
+	return "", nil
+}
+
 func (s *stubStore) GetProfileIDFromStripeCustomerID(context.Context, string) (int, error) {
 	return 0, nil
 }

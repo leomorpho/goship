@@ -30,7 +30,7 @@ func TestNewPage(t *testing.T) {
 	assert.False(t, p.Cache.Enabled)
 
 	ctx, _ = tests.NewContext(c.Web, "/abc?def=123")
-	usr, err := tests.CreateRandomUser(c.ORM)
+	usr, err := tests.CreateRandomUserDB(c.Database)
 	require.NoError(t, err)
 	ctx.Set(context.AuthenticatedUserIDKey, usr.ID)
 	ctx.Set(context.AuthenticatedUserNameKey, usr.Name)

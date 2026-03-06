@@ -12,14 +12,14 @@ jobs:
   backend_tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         with:
-          go-version: 1.22.2
+          go-version: "1.23.x"
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: |
             ~/.cache/go-build
@@ -28,22 +28,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
 
-      - name: Start containers
-        run: |
-          docker compose -f infra/docker/docker-compose.yml up -d
-          sleep 3
-
-      - name: Doctor
-        run: go run ./tools/cli/ship/cmd/ship doctor
-
-      - name: Agent policy check
-        run: go run ./tools/cli/ship/cmd/ship agent:check
-
-      - name: Module unit tests
-        run: bash tools/scripts/check-module-tests.sh
-
-      - name: Test
-        run: go test -p 1 ./...
+      - name: Stateless quality gate
+        run: bash tools/scripts/precommit-tests.sh
 
   # TODO: these were never set up in the CI
   # tests/e2e:

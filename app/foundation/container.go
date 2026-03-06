@@ -3,7 +3,6 @@ package foundation
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"strings"
 
@@ -11,9 +10,6 @@ import (
 
 	"entgo.io/ent/dialect"
 	entsql "entgo.io/ent/dialect/sql"
-	"entgo.io/ent/dialect/sql/schema"
-
-	atlas "ariga.io/atlas/sql/schema"
 	"github.com/getsentry/sentry-go"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/labstack/echo/v4"
@@ -24,7 +20,6 @@ import (
 
 	"github.com/leomorpho/goship-modules/notifications"
 	"github.com/leomorpho/goship/config"
-	"github.com/leomorpho/goship/db/ent"
 	"github.com/leomorpho/goship/framework/core"
 	coreadapters "github.com/leomorpho/goship/framework/core/adapters"
 	"github.com/leomorpho/goship/framework/repos/mailer"
@@ -32,7 +27,6 @@ import (
 	// Required by ent
 	"github.com/leomorpho/goship/db/ent/migrate"
 	_ "github.com/leomorpho/goship/db/ent/runtime"
-	"github.com/leomorpho/goship/db/ent/user"
 )
 
 type SentryHook struct{}
@@ -69,9 +63,6 @@ type Container struct {
 	Database    *sql.DB
 	databaseDSN string
 
-	// ORM stores a client to the ORM
-	ORM *ent.Client
-
 	// Mail stores an email sending client
 	Mail *mailer.MailClient
 
@@ -103,7 +94,7 @@ func NewContainer() *Container {
 	c.initWeb()
 	// c.initCache()
 	c.initDatabase()
-	c.initORM()
+	c.initSchema()
 	c.initAuth()
 	// c.initNotifier()
 	c.initMail()
@@ -136,11 +127,6 @@ func (c *Container) initCoreAdapters() {
 func (c *Container) Shutdown() error {
 	if c.Cache != nil {
 		if err := c.Cache.Close(); err != nil {
-			return err
-		}
-	}
-	if c.ORM != nil {
-		if err := c.ORM.Close(); err != nil {
 			return err
 		}
 	}
@@ -337,8 +323,8 @@ func openEmbeddedDB(driver, connection string) (*sql.DB, error) {
 	return sql.Open(driver, connection)
 }
 
-// initORM initializes the ORM
-func (c *Container) initORM() {
+// initSchema initializes the DB schema.
+func (c *Container) initSchema() {
 	var activeDialect string
 	if c.Config.Database.DbMode == config.DBModeEmbedded {
 		activeDialect = c.Config.Database.EmbeddedDriver
@@ -347,10 +333,8 @@ func (c *Container) initORM() {
 	}
 
 	drv := entsql.OpenDB(activeDialect, c.Database)
-	c.ORM = ent.NewClient(ent.Driver(drv))
-	if err := c.ORM.Schema.Create(
+	if err := migrate.NewSchema(drv).Create(
 		context.Background(),
-		schema.WithDiffHook(renameColumnHook),
 		migrate.WithDropIndex(true),
 		migrate.WithDropColumn(true),
 	); err != nil {
@@ -358,42 +342,9 @@ func (c *Container) initORM() {
 	}
 }
 
-// TODO: not quite sure why I added the below ent hook. Might be removable for streamlining.
-func renameColumnHook(next schema.Differ) schema.Differ {
-	return schema.DiffFunc(func(current, desired *atlas.Schema) ([]atlas.Change, error) {
-		changes, err := next.Diff(current, desired)
-		if err != nil {
-			return nil, err
-		}
-		for _, c := range changes {
-			m, ok := c.(*atlas.ModifyTable)
-			// Skip if the change is not a ModifyTable,
-			// or if the table is not the "users" table.
-			if !ok || m.T.Name != user.Table {
-				continue
-			}
-			changes := atlas.Changes(m.Changes)
-			switch i, j := changes.IndexDropColumn("old_name"), changes.IndexAddColumn("new_name"); {
-			case i != -1 && j != -1:
-				// Append a new renaming change.
-				changes = append(changes, &atlas.RenameColumn{
-					From: changes[i].(*atlas.DropColumn).C,
-					To:   changes[j].(*atlas.AddColumn).C,
-				})
-				// Remove the drop and add changes.
-				changes.RemoveIndex(i, j)
-				m.Changes = changes
-			case i != -1 || j != -1:
-				return nil, errors.New("old_name and new_name must be present or absent")
-			}
-		}
-		return changes, nil
-	})
-}
-
 // initAuth initializes the authentication client
 func (c *Container) initAuth() {
-	c.Auth = NewAuthClient(c.Config, c.ORM, c.Database)
+	c.Auth = NewAuthClient(c.Config, selectAuthStore(c.Config, c.Database))
 }
 
 // initMail initialize the mail client

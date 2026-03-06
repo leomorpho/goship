@@ -2,7 +2,6 @@ package generators
 
 import (
 	"bytes"
-	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -10,8 +9,7 @@ import (
 )
 
 const (
-	scaffoldTestDBURL = "postgres://test-user:test-pass@localhost:5432/test_db?sslmode=disable"
-	scaffoldAtlasDir  = "file://db/migrate/migrations"
+	scaffoldGooseDir = "db/migrate/migrations"
 )
 
 func TestParseMakeScaffoldArgs(t *testing.T) {
@@ -78,7 +76,7 @@ func TestRunMakeScaffold_DryRun(t *testing.T) {
 	out := &bytes.Buffer{}
 	errOut := &bytes.Buffer{}
 	runner := &fakeRunner{}
-	code := RunMakeScaffold([]string{"Post", "title:string", "--dry-run"}, makeScaffoldDeps(out, errOut, runner, scaffoldTestDBURL, nil))
+	code := RunMakeScaffold([]string{"Post", "title:string", "--dry-run"}, makeScaffoldDeps(out, errOut, runner))
 	if code != 0 {
 		t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
 	}
@@ -94,7 +92,7 @@ func TestRunMakeScaffold_DryRunAPIOmitsResourceStep(t *testing.T) {
 	out := &bytes.Buffer{}
 	errOut := &bytes.Buffer{}
 	runner := &fakeRunner{}
-	code := RunMakeScaffold([]string{"Post", "title:string", "--dry-run", "--api"}, makeScaffoldDeps(out, errOut, runner, scaffoldTestDBURL, nil))
+	code := RunMakeScaffold([]string{"Post", "title:string", "--dry-run", "--api"}, makeScaffoldDeps(out, errOut, runner))
 	if code != 0 {
 		t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
 	}
@@ -120,7 +118,7 @@ func TestRunMakeScaffold_Integration(t *testing.T) {
 
 	seedScaffoldTargets(t, root)
 
-	code := RunMakeScaffold([]string{"Post", "title:string"}, makeScaffoldDeps(out, errOut, runner, scaffoldTestDBURL, nil))
+	code := RunMakeScaffold([]string{"Post", "title:string"}, makeScaffoldDeps(out, errOut, runner))
 	if code != 0 {
 		t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
 	}
@@ -155,7 +153,7 @@ func TestRunMakeScaffold_IntegrationAPI_NoResourceArtifacts(t *testing.T) {
 	runner := &fakeRunner{}
 	seedScaffoldTargets(t, root)
 
-	code := RunMakeScaffold([]string{"Post", "title:string", "--api"}, makeScaffoldDeps(out, errOut, runner, scaffoldTestDBURL, nil))
+	code := RunMakeScaffold([]string{"Post", "title:string", "--api"}, makeScaffoldDeps(out, errOut, runner))
 	if code != 0 {
 		t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
 	}
@@ -167,7 +165,7 @@ func TestRunMakeScaffold_IntegrationAPI_NoResourceArtifacts(t *testing.T) {
 	}
 }
 
-func TestRunMakeScaffold_IntegrationMigrate_CallsAtlasApply(t *testing.T) {
+func TestRunMakeScaffold_IntegrationMigrate_CallsDBMigrate(t *testing.T) {
 	root := t.TempDir()
 	prevWD, err := os.Getwd()
 	if err != nil {
@@ -183,61 +181,27 @@ func TestRunMakeScaffold_IntegrationMigrate_CallsAtlasApply(t *testing.T) {
 	runner := &fakeRunner{}
 	seedScaffoldTargets(t, root)
 
-	code := RunMakeScaffold([]string{"Post", "title:string", "--migrate"}, makeScaffoldDeps(out, errOut, runner, scaffoldTestDBURL, nil))
+	code := RunMakeScaffold([]string{"Post", "title:string", "--migrate"}, makeScaffoldDeps(out, errOut, runner))
 	if code != 0 {
 		t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
 	}
 
-	var foundApply bool
+	var foundMigrate bool
 	for _, call := range runner.calls {
-		if call.name == "atlas" && strings.Join(call.args, " ") == "migrate apply --dir "+scaffoldAtlasDir+" --url "+scaffoldTestDBURL {
-			foundApply = true
+		if call.name == "shipdb" && strings.Join(call.args, " ") == "migrate" {
+			foundMigrate = true
 			break
 		}
 	}
-	if !foundApply {
-		t.Fatalf("expected atlas migrate apply call, calls=%v", runner.calls)
+	if !foundMigrate {
+		t.Fatalf("expected db migrate call, calls=%v", runner.calls)
 	}
 }
 
-func TestRunMakeScaffold_MigrateMissingDBURLFails(t *testing.T) {
-	root := t.TempDir()
-	prevWD, err := os.Getwd()
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() { _ = os.Chdir(prevWD) })
-	if err := os.Chdir(root); err != nil {
-		t.Fatal(err)
-	}
-
-	out := &bytes.Buffer{}
-	errOut := &bytes.Buffer{}
-	runner := &fakeRunner{}
-	seedScaffoldTargets(t, root)
-
-	code := RunMakeScaffold([]string{"Post", "title:string", "--migrate"}, makeScaffoldDeps(out, errOut, runner, "", errors.New("missing db url")))
-	if code != 1 {
-		t.Fatalf("exit code = %d, want 1", code)
-	}
-	if !strings.Contains(errOut.String(), "failed to resolve database URL") {
-		t.Fatalf("stderr = %q, want db url failure", errOut.String())
-	}
-}
-
-func makeScaffoldDeps(out, errOut *bytes.Buffer, runner *fakeRunner, dbURL string, dbErr error) ScaffoldDeps {
+func makeScaffoldDeps(out, errOut *bytes.Buffer, runner *fakeRunner) ScaffoldDeps {
 	return ScaffoldDeps{
 		Out: out,
 		Err: errOut,
-		ParseDBURL: func() (string, error) {
-			if dbErr != nil {
-				return "", dbErr
-			}
-			return dbURL, nil
-		},
-		RunCmd: func(name string, args ...string) int {
-			return runner.RunCode(name, args...)
-		},
 		RunModel: func(args []string) int {
 			return RunGenerateModel(args, GenerateModelDeps{
 				Out: out,
@@ -253,7 +217,10 @@ func makeScaffoldDeps(out, errOut *bytes.Buffer, runner *fakeRunner, dbURL strin
 			if len(args) != 1 {
 				return 1
 			}
-			return runner.RunCode("atlas", "migrate", "diff", args[0], "--dir", scaffoldAtlasDir, "--to", "ent://db/schema", "--dev-url", "sqlite://file?mode=memory&_fk=1")
+			return runner.RunCode("goose", "-dir", scaffoldGooseDir, "create", args[0], "sql")
+		},
+		RunDBMigrate: func(args []string) int {
+			return runner.RunCode("shipdb", append([]string{"migrate"}, args...)...)
 		},
 		RunController: func(args []string) int {
 			return RunMakeController(args, ControllerDeps{
@@ -267,7 +234,6 @@ func makeScaffoldDeps(out, errOut *bytes.Buffer, runner *fakeRunner, dbURL strin
 		RunResource: func(args []string) int {
 			return RunGenerateResource(args, out, errOut)
 		},
-		AtlasDir: scaffoldAtlasDir,
 	}
 }
 
