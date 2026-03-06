@@ -40,7 +40,7 @@ Naming normalization from roadmap:
 - Web rendering helpers: `app/web/ui/*`
 - Background jobs/processors: `app/jobs/*`
 - Framework/infrastructure layer: `framework/*`
-- ORM schema: `db/schema/*`
+- DB queries + generation: `db/queries/*`, `db/gen/*`
 - Config: `config/*`
 - Templates: `app/views/**/*.templ`
 

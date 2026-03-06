@@ -13,7 +13,7 @@ The application follows a layered structure:
 - `framework/repos` + `modules/*`: reusable data access and external service adapters
 - `app/web/ui`: rendering, page object, redirect helpers
 - `app/views`: Templ source files (`.templ`) and generated Go (`gen/*_templ.go`)
-- `db/ent`: generated ORM
+- `db/queries` + `db/gen`: Bob SQL query sources and generated DB layer
 - `app/jobs`: task processors
 
 ## Web Runtime Flow
@@ -40,7 +40,7 @@ Currently initialized in `NewContainer()`:
 - Validator
 - Echo web server + logger
 - DB connection
-- Ent ORM
+- DB migrations + Bob query generation
 - Auth client
 - Mail client
 - Stripe API key setup
@@ -90,8 +90,8 @@ HTMX behavior is integrated in the page object (`Page.HTMX`) and controller rend
 
 ## Data Layer
 
-- Ent ORM (`db/ent`) is authoritative for schema and query generation.
-- Schema create/migrate is invoked in app startup via `c.ORM.Schema.Create(...)`.
+- Goose SQL migrations (`db/migrate/migrations`) are authoritative for schema changes.
+- Bob query files (`db/queries/*.sql`) are authoritative for generated DB access code in `db/gen`.
 - Repository packages encapsulate higher-level domain operations.
 
 ## Async + Notifications Architecture

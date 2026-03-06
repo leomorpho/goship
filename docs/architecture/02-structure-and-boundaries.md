@@ -17,7 +17,7 @@ This document defines where code belongs as GoShip evolves into a Rails-like fra
 - `tests/`: e2e and cross-package test assets
 - `config/`: runtime configuration
 - `db/`: monolith-owned schema and migration history
-- `db/ent/`: schema and generated ORM
+- `db/queries/` + `db/gen/`: Bob query sources and generated DB layer
 - `docs/`: internal design and implementation documentation
 
 Monorepo note:
@@ -63,7 +63,7 @@ Service/store rule:
 
 Data ownership rule:
 
-- `db/schema` and `db/migrate/migrations` are monolith-level (workspace-global) data ownership, not per mini-app.
+- `db/queries` and `db/migrate/migrations` are monolith-level (workspace-global) data ownership, not per mini-app.
 - There is one migration history for the monolith.
 - Installable modules must integrate with this single DB history through explicit registration/wiring, not by owning separate histories.
 

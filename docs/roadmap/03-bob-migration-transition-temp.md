@@ -288,7 +288,7 @@ Goal: remove Ent once runtime parity is complete.
 - [x] `cmd/*` + app wiring: validate all module runtime deps run DB-first without Ent at composition root.
 
 ### 5.2 Remove Ent toolchain
-- [ ] Remove Ent generation commands from Ship and Make flow.
+- [x] Remove Ent generation commands from Ship and Make flow.
 - [ ] Remove `db/ent` and Ent-specific docs.
 - [ ] Remove Ent dependencies from `go.mod`/`go.work`.
 
@@ -461,6 +461,7 @@ Acceptance criteria:
 - 2026-03-06: refactored `ship make:model` to Bob/Goose-native scaffolding (writes `db/queries/<model>.sql` + next-step guidance) and removed Ent codegen invocation from the model generator path, with CLI/generator tests updated accordingly.
 - 2026-03-06: deleted obsolete CLI integration smoke test `tools/cli/ship/tests/integration/ent_generate_integration_test.go` after `make:model` moved to Bob-first query scaffolding.
 - 2026-03-06: removed Ent schema bootstrap artifacts from `ship new` scaffolding (`db/schema/user.go` + Ent go.mod pin) and made doctor enforce Bob-first core DB scaffold (`db/queries`, `db/bobgen.yaml`) instead.
+- 2026-03-06: updated architecture/agent docs to describe Bob+Goose as the canonical data-model path (replacing stale Ent-first wording).
 
 ---
 

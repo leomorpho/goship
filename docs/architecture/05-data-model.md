@@ -1,7 +1,8 @@
 # Data Model
-<!-- FRONTEND_SYNC: Landing capability explorer in app/views/web/pages/landing_page.templ links here for Models and ORM (Ent). Keep both landing copy and this doc aligned. -->
+<!-- FRONTEND_SYNC: Landing capability explorer in app/views/web/pages/landing_page.templ links here for Models and ORM (Bob). Keep both landing copy and this doc aligned. -->
 
-Primary schema is defined in `db/schema/*.go` and compiled into generated Ent code in `db/ent/`.
+Primary schema evolution is defined by Goose SQL migrations in `db/migrate/migrations/*.sql`.
+Primary query behavior is defined in `db/queries/*.sql` and generated into `db/gen/` via Bob.
 
 ## Core Entities
 
