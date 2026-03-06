@@ -6,12 +6,14 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
+	"runtime"
+	"sort"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/leomorpho/goship/db/ent"
-	"github.com/leomorpho/goship/db/ent/enttest"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
@@ -89,35 +91,8 @@ func CreateTestContainerPostgresConnStr(t *testing.T) (string, context.Context) 
 	return connStr, ctx
 }
 
-func CreateTestContainerPostgresEntClient(t *testing.T) (*ent.Client, context.Context) {
-	connStr, ctx := CreateTestContainerPostgresConnStr(t)
-
-	// Initialize a connection to the database using the connection string
-	db, err := sql.Open("pgx", connStr)
-	if err != nil {
-		t.Fatalf("failed to connect to database: %v", err)
-	}
-
-	// Ensure the pgvector extension is installed
-	_, err = db.Exec("CREATE EXTENSION IF NOT EXISTS vector")
-	if err != nil {
-		t.Fatalf("failed to enable pgvector: %v", err)
-	}
-
-	// Initialize Ent client with a test schema.
-	client := enttest.Open(t, "postgres", connStr)
-	t.Cleanup(func() {
-		client.Close()
-	})
-
-	err = client.Schema.Create(ctx)
-	assert.NoError(t, err)
-	return client, ctx
-}
-
-// CreateTestContainerPostgresEntClientAndDB returns both Ent and *sql.DB handles
-// bound to the same ephemeral Postgres instance for mixed migration-path tests.
-func CreateTestContainerPostgresEntClientAndDB(t *testing.T) (*ent.Client, *sql.DB, string, context.Context) {
+// CreateTestContainerPostgresDB returns a migration-ready DB handle for integration tests.
+func CreateTestContainerPostgresDB(t *testing.T) (*sql.DB, string, context.Context) {
 	connStr, ctx := CreateTestContainerPostgresConnStr(t)
 
 	db, err := sql.Open("pgx", connStr)
@@ -133,33 +108,10 @@ func CreateTestContainerPostgresEntClientAndDB(t *testing.T) (*ent.Client, *sql.
 		t.Fatalf("failed to enable pgvector: %v", err)
 	}
 
-	client := enttest.Open(t, "postgres", connStr)
-	t.Cleanup(func() {
-		client.Close()
-	})
-
-	err = client.Schema.Create(ctx)
-	assert.NoError(t, err)
-
-	return client, db, "postgres", ctx
-}
-
-// CreateTestContainerPostgresDB returns a migration-ready DB handle for integration tests.
-// The current bootstrap path still provisions schema through Ent under the hood.
-func CreateTestContainerPostgresDB(t *testing.T) (*sql.DB, string, context.Context) {
-	_, db, dialect, ctx := CreateTestContainerPostgresEntClientAndDB(t)
-	return db, dialect, ctx
-}
-
-// CreateUser creates a random user entity
-func CreateRandomUser(orm *ent.Client) (*ent.User, error) {
-	seed := fmt.Sprintf("%d-%d", time.Now().UnixMilli(), rand.Intn(1000000))
-	return orm.User.
-		Create().
-		SetEmail(fmt.Sprintf("testuser-%s@localhost.localhost", seed)).
-		SetPassword("password").
-		SetName(fmt.Sprintf("Test User %s", seed)).
-		Save(context.Background())
+	if err := applyCoreMigrations(t, db); err != nil {
+		t.Fatalf("failed to apply migrations: %v", err)
+	}
+	return db, "postgres", ctx
 }
 
 // CreateRandomUserDB creates a random user through SQL for DB-first tests.
@@ -223,34 +175,66 @@ func LinkFriendsDB(ctx context.Context, db *sql.DB, profileID int, matchIDs []in
 	return nil
 }
 
-// CreateUser creates a new user and returns its ID.
-func CreateUser(ctx context.Context, client *ent.Client, name string, email string, password string, verified bool) *ent.User {
-	// Create a new user with the provided arguments
-	return client.User.
-		Create().
-		SetName(name).
-		SetEmail(email).
-		SetPassword(password).
-		SetVerified(verified).
-		SaveX(ctx)
-}
-
-// LinkProfilesAsMatches links two profiles as matches.
-func LinkFriends(ctx context.Context, client *ent.Client, profileID int, matchIDs []int) {
-	profile, err := client.Profile.Get(ctx, profileID)
+func applyCoreMigrations(t *testing.T, db *sql.DB) error {
+	t.Helper()
+	_, currentFile, _, ok := runtime.Caller(0)
+	if !ok {
+		return fmt.Errorf("resolve current file path for migrations")
+	}
+	repoRoot := filepath.Clean(filepath.Join(filepath.Dir(currentFile), "..", ".."))
+	migrationsDir := filepath.Join(repoRoot, "db", "migrate", "migrations")
+	entries, err := os.ReadDir(migrationsDir)
 	if err != nil {
-		panic(fmt.Sprintf("Failed fetching profile for linking matches: %v", err))
+		return fmt.Errorf("read migrations dir %q: %w", migrationsDir, err)
+	}
+	sort.Slice(entries, func(i, j int) bool { return entries[i].Name() < entries[j].Name() })
+
+	if _, err := db.Exec(`
+CREATE TABLE IF NOT EXISTS goship_schema_migrations (
+	version VARCHAR(255) PRIMARY KEY,
+	applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+)`); err != nil {
+		return fmt.Errorf("ensure migration tracking table: %w", err)
 	}
 
-	// Link the services.
-	for _, matchID := range matchIDs {
-		err := client.Profile.
-			UpdateOneID(profile.ID).
-			AddFriendIDs(matchID).
-			Exec(ctx)
+	for _, entry := range entries {
+		if entry.IsDir() || filepath.Ext(entry.Name()) != ".sql" {
+			continue
+		}
+		version := strings.SplitN(entry.Name(), ".", 2)[0]
+		if version == "" {
+			continue
+		}
 
+		var applied int
+		err := db.QueryRow(`SELECT 1 FROM goship_schema_migrations WHERE version = $1`, version).Scan(&applied)
+		if err == nil {
+			continue
+		}
+		if err != sql.ErrNoRows {
+			return fmt.Errorf("check migration version %q: %w", version, err)
+		}
+
+		content, err := os.ReadFile(filepath.Join(migrationsDir, entry.Name()))
 		if err != nil {
-			panic(fmt.Sprintf("Failed linking profile %d and %d: %v", profile.ID, matchID, err))
+			return fmt.Errorf("read migration %q: %w", entry.Name(), err)
+		}
+
+		tx, err := db.Begin()
+		if err != nil {
+			return fmt.Errorf("begin tx for %q: %w", entry.Name(), err)
+		}
+		if _, err := tx.Exec(string(content)); err != nil {
+			_ = tx.Rollback()
+			return fmt.Errorf("execute migration %q: %w", entry.Name(), err)
+		}
+		if _, err := tx.Exec(`INSERT INTO goship_schema_migrations (version) VALUES ($1)`, version); err != nil {
+			_ = tx.Rollback()
+			return fmt.Errorf("record migration %q: %w", entry.Name(), err)
+		}
+		if err := tx.Commit(); err != nil {
+			return fmt.Errorf("commit migration %q: %w", entry.Name(), err)
 		}
 	}
+	return nil
 }
