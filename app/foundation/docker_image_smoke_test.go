@@ -4,7 +4,9 @@ package foundation
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
@@ -71,7 +73,32 @@ func mustRepoRoot(t *testing.T) string {
 	if !ok {
 		t.Fatal("failed to resolve test file path")
 	}
-	return filepath.Clean(filepath.Join(filepath.Dir(thisFile), "..", "..", ".."))
+	start := filepath.Dir(thisFile)
+	root, err := findRepoRoot(start)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return root
+}
+
+func findRepoRoot(start string) (string, error) {
+	dir := filepath.Clean(start)
+	for {
+		if hasFile(filepath.Join(dir, "go.mod")) && hasFile(filepath.Join(dir, "infra", "docker", "Dockerfile")) {
+			return dir, nil
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			break
+		}
+		dir = parent
+	}
+	return "", errors.New("failed to locate repo root (expected go.mod and infra/docker/Dockerfile)")
+}
+
+func hasFile(path string) bool {
+	info, err := os.Stat(path)
+	return err == nil && !info.IsDir()
 }
 
 func runCommand(ctx context.Context, name string, args ...string) error {
