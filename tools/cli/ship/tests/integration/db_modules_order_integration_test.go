@@ -24,7 +24,7 @@ func TestShipDBMigrateRunsCoreThenSortedModules(t *testing.T) {
 	buildCtx, buildCancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer buildCancel()
 
-	build := exec.CommandContext(buildCtx, "go", "build", "-o", shipBin, "./cmd/ship")
+	build := exec.CommandContext(buildCtx, "go", "build", "-o", shipBin, "./tools/cli/ship/cmd/ship")
 	build.Dir = repoRoot
 	if out, err := build.CombinedOutput(); err != nil {
 		t.Fatalf("build ship binary: %v: %s", err, string(out))

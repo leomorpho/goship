@@ -30,7 +30,16 @@ if [[ "${#packages[@]}" -eq 0 ]]; then
 fi
 
 for pkg in "${packages[@]}"; do
-  go test -tags=integration "${pkg}"
+  start_ts="$(date '+%Y-%m-%d %H:%M:%S')"
+  echo "[${start_ts}] START ${pkg}"
+  if go test -v -tags=integration "${pkg}"; then
+    end_ts="$(date '+%Y-%m-%d %H:%M:%S')"
+    echo "[${end_ts}] PASS  ${pkg}"
+  else
+    end_ts="$(date '+%Y-%m-%d %H:%M:%S')"
+    echo "[${end_ts}] FAIL  ${pkg}"
+    exit 1
+  fi
 done
 
 echo "Integration test package set passed."

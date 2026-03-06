@@ -23,7 +23,7 @@ func TestShipModuleFlow_MigrateAndGenerate(t *testing.T) {
 
 	buildCtx, buildCancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer buildCancel()
-	build := exec.CommandContext(buildCtx, "go", "build", "-o", shipBin, "./cmd/ship")
+	build := exec.CommandContext(buildCtx, "go", "build", "-o", shipBin, "./tools/cli/ship/cmd/ship")
 	build.Dir = repoRoot
 	if out, err := build.CombinedOutput(); err != nil {
 		t.Fatalf("build ship binary: %v: %s", err, string(out))
@@ -108,7 +108,7 @@ func TestShipModuleMigrateFailsWhenModuleMigrationsMissing(t *testing.T) {
 
 	repoRoot := mustRepoRootFromFile(t)
 	shipBin := filepath.Join(t.TempDir(), "ship")
-	build := exec.Command("go", "build", "-o", shipBin, "./cmd/ship")
+	build := exec.Command("go", "build", "-o", shipBin, "./tools/cli/ship/cmd/ship")
 	build.Dir = repoRoot
 	if out, err := build.CombinedOutput(); err != nil {
 		t.Fatalf("build ship binary: %v: %s", err, string(out))

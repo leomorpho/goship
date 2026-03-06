@@ -24,7 +24,7 @@ func TestShipNewModelAndMigrationsFlow(t *testing.T) {
 	buildCtx, buildCancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer buildCancel()
 
-	build := exec.CommandContext(buildCtx, "go", "build", "-o", shipBin, "./cmd/ship")
+	build := exec.CommandContext(buildCtx, "go", "build", "-o", shipBin, "./tools/cli/ship/cmd/ship")
 	build.Dir = repoRoot
 	buildOut, buildErr := build.CombinedOutput()
 	if buildErr != nil {
@@ -62,8 +62,8 @@ func TestShipNewModelAndMigrationsFlow(t *testing.T) {
 	projectRoot := filepath.Join(workspace, "demo")
 
 	runShip(projectRoot, nil, "make:model", "Post", "title:string")
-	if _, err := os.Stat(filepath.Join(projectRoot, "db", "schema", "post.go")); err != nil {
-		t.Fatalf("expected generated schema for Post: %v", err)
+	if _, err := os.Stat(filepath.Join(projectRoot, "db", "queries", "post.sql")); err != nil {
+		t.Fatalf("expected generated query scaffold for Post: %v", err)
 	}
 
 	runShip(projectRoot, nil, "db:make", "add_posts")
@@ -104,7 +104,7 @@ func TestShipDBResetNonLocalSafety(t *testing.T) {
 
 	repoRoot := mustRepoRootFromFile(t)
 	shipBin := filepath.Join(t.TempDir(), "ship")
-	build := exec.Command("go", "build", "-o", shipBin, "./cmd/ship")
+	build := exec.Command("go", "build", "-o", shipBin, "./tools/cli/ship/cmd/ship")
 	build.Dir = repoRoot
 	if out, err := build.CombinedOutput(); err != nil {
 		t.Fatalf("build ship binary: %v: %s", err, string(out))
