@@ -7,15 +7,15 @@ import (
 )
 
 func TestRunDoctorChecks_BoundaryImports(t *testing.T) {
-	t.Run("controller ent import boundary violation", func(t *testing.T) {
+	t.Run("controller db import boundary violation", func(t *testing.T) {
 		root := t.TempDir()
 		writeDoctorFixture(t, root)
 		path := filepath.Join(root, "app", "web", "controllers", "bad.go")
 		content := `package controllers
 
-import "github.com/leomorpho/goship/db/ent"
+import "github.com/leomorpho/goship/db/gen/user"
 
-func _() { _ = ent.User{} }
+func _() { _ = user.FindUserByID }
 `
 		if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
 			t.Fatal(err)

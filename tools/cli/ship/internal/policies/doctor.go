@@ -291,10 +291,10 @@ func checkEnabledModuleDBArtifacts(root string) []DoctorIssue {
 func checkForbiddenCrossBoundaryImports(root string) []DoctorIssue {
 	issues := make([]DoctorIssue, 0)
 
-	// Controllers must not directly import Ent packages.
+	// Controllers must not directly import DB implementation packages.
 	controllerDir := filepath.Join(root, "app", "web", "controllers")
-	issues = append(issues, checkImportPrefixForbidden(controllerDir, "github.com/leomorpho/goship/db/ent", "DX020",
-		"controller db boundary violated: app/web/controllers must not import db/ent directly",
+	issues = append(issues, checkImportPrefixForbidden(controllerDir, "github.com/leomorpho/goship/db/gen", "DX020",
+		"controller db boundary violated: app/web/controllers must not import db/gen directly",
 		"move DB access behind foundation/service seams or auth/profile helpers")...)
 
 	// Controllers must not call QueryProfile() directly.
@@ -302,24 +302,14 @@ func checkForbiddenCrossBoundaryImports(root string) []DoctorIssue {
 		"controller auth boundary violated: direct QueryProfile() usage is not allowed in app/web/controllers",
 		"use middleware auth identity keys + service/store lookup by id")...)
 
-	// Jobs SQL path must stay Ent-free.
-	issues = append(issues, checkTextForbidden(filepath.Join(root, "modules", "jobs", "config.go"), "EntClient", "DX020",
-		"jobs SQL boundary violated: EntClient found in modules/jobs/config.go",
-		"keep jobs SQL path DB-first (*sql.DB) and adapter-agnostic")...)
-	issues = append(issues, checkTextForbidden(filepath.Join(root, "modules", "jobs", "module.go"), "EntClient", "DX020",
-		"jobs SQL boundary violated: EntClient found in modules/jobs/module.go",
-		"remove Ent coupling from jobs module runtime config")...)
-	issues = append(issues, checkTextForbidden(filepath.Join(root, "modules", "jobs", "drivers", "sql", "client.go"), "EntClient", "DX020",
-		"jobs SQL boundary violated: EntClient found in modules/jobs/drivers/sql/client.go",
-		"keep jobs SQL driver independent from Ent")...)
 	for _, path := range []string{
 		filepath.Join(root, "modules", "jobs", "config.go"),
 		filepath.Join(root, "modules", "jobs", "module.go"),
 		filepath.Join(root, "modules", "jobs", "drivers", "sql", "client.go"),
 	} {
-		issues = append(issues, checkTextForbidden(path, "github.com/leomorpho/goship/db/ent", "DX020",
-			fmt.Sprintf("jobs SQL boundary violated: db/ent import found in %s", filepath.ToSlash(mustRel(root, path))),
-			"remove Ent imports from jobs SQL path")...)
+		issues = append(issues, checkTextForbidden(path, "github.com/leomorpho/goship/db/gen", "DX020",
+			fmt.Sprintf("jobs SQL boundary violated: db/gen import found in %s", filepath.ToSlash(mustRel(root, path))),
+			"keep jobs SQL path module-local and adapter-agnostic")...)
 	}
 
 	// Notifications module must not depend on framework/core directly for pubsub contracts.
@@ -594,8 +584,8 @@ func checkFileLengthBudget(root string, maxLines int) []DoctorIssue {
 				rel == ".cache" ||
 				filepath.Base(rel) == ".cache" ||
 				strings.Contains(rel, "/.cache/") ||
-				rel == filepath.ToSlash(filepath.Join("db", "ent")) ||
-				strings.HasPrefix(rel, filepath.ToSlash(filepath.Join("db", "ent"))+"/") {
+				rel == filepath.ToSlash(filepath.Join("db", "schema")) ||
+				strings.HasPrefix(rel, filepath.ToSlash(filepath.Join("db", "schema"))+"/") {
 				return filepath.SkipDir
 			}
 			if strings.HasSuffix(rel, "/gen") {

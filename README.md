@@ -70,7 +70,7 @@ Use docs as the source of truth for architecture, workflows, and plans:
 GoShip originally started from Pagoda and has since diverged significantly in structure and goals.
 - `IsProfileFullyOnboarded`: to check if a profile is fully onboarded. This is used in the onboarding flow to check if the profile has completed the onboarding process. Edit as needed. On startup, a non-onboarded profile is redirected to the onboarding page.
 
-Note that a method `EntProfileToDomainObject` is used to convert the ent profile object to a domain profile object, which is a more generic object that is used throughout the app. Generally, domain objects are preferred over ent objects as they are more generic and are not tied to a specific ORM.
+Domain objects are preferred over generated DB objects so application logic stays ORM-agnostic and easier to evolve.
 
 
 ## File Uploads

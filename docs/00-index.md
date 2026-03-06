@@ -49,7 +49,6 @@ Last updated: 2026-03-04
 ### Roadmap
 
 1. `M01` - `roadmap/01-framework-plan.md`: long-term framework strategy and execution tracker.
-2. `M02` - `roadmap/03-bob-migration-transition-temp.md`: temporary living transition plan for Bob + migration-tool switch (delete when done).
 
 ## Primary Source Files Used For This Analysis
 

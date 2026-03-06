@@ -184,7 +184,7 @@ Non-goal:
 
 ## Confirmed Decisions
 
-1. Keep Ent as the ORM for now.
+1. Use Bob + Goose as the canonical ORM/migrations path.
 2. Use a monorepo with multiple Go modules plus `go.work` for maintainers.
 3. Ship installable/versioned modules (auth, billing, notifications, storage, admin).
 4. Keep one blessed default stack, but support both single-node and distributed runtime modes via adapters.
@@ -419,7 +419,7 @@ Create stable contracts in `core` so app code is backend-agnostic:
 - attach files to entities;
 - support local + S3 backends;
 - simple URL + variant APIs.
-4. Admin scaffolding from Ent schema.
+4. Admin scaffolding from Bob query/model metadata.
 5. Background jobs with retries/scheduling.
 
 ## Frontend Strategy (HTMX-First, Svelte as Islands)

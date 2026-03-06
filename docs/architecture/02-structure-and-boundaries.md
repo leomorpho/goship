@@ -58,7 +58,7 @@ Service/store rule:
 - App business logic should live in feature packages under `app/<feature>` (for example `app/profile`).
 - Avoid generic buckets like `app/services` and `app/repos`.
 - Services should depend on explicit interfaces (store ports) for persistence/external calls.
-- Concrete adapters may use Ent/SQL/clients directly, but those details stay behind service dependencies.
+- Concrete adapters may use SQL clients directly, but those details stay behind service dependencies.
 - This keeps testability (mocks/fakes) without forcing repository pattern across every feature.
 
 Data ownership rule:

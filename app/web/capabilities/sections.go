@@ -14,8 +14,8 @@ func LandingSections() []viewmodels.CapabilitySection {
 		},
 		{
 			Key:         "models",
-			Title:       "Models and ORM (Ent)",
-			Description: "Use Ent schemas to model entities, relationships, and constraints. Keep domain logic close to your data model without ad hoc SQL everywhere.",
+			Title:       "Models and ORM (Bob)",
+			Description: "Define schema and query logic through SQL-first Bob tooling with generated, typed accessors. Keep domain logic close to your data model without ad hoc runtime SQL sprawl.",
 			Docs: []viewmodels.CapabilityDocLink{
 				{Path: "docs/architecture/05-data-model.md", Label: "Data Model"},
 			},
@@ -92,7 +92,7 @@ func LandingSections() []viewmodels.CapabilitySection {
 func DocsSections() []viewmodels.CapabilitySection {
 	return []viewmodels.CapabilitySection{
 		{Key: "routing", Title: "Routing and Controllers", Description: "Define routes from one canonical router and keep handlers focused on request parsing, orchestration, and response rendering."},
-		{Key: "models", Title: "Models and ORM (Ent)", Description: "Model entities and relations using Ent schemas, then query through typed APIs that keep data logic explicit and testable."},
+		{Key: "models", Title: "Models and ORM (Bob)", Description: "Model entities and relations with SQL-first Bob generation, then query through typed APIs that keep data logic explicit and testable."},
 		{Key: "views", Title: "Views and Server UI", Description: "Compose HTML with Templ, add HTMX where needed, and keep page behavior server-driven for simpler flow and clearer ownership."},
 		{Key: "auth", Title: "Authentication and Authorization", Description: "Use built-in auth defaults and extend authorization policies explicitly at route and service boundaries."},
 		{Key: "migrations", Title: "Database and Migrations", Description: "Run repeatable schema migrations and keep environments aligned. Start server-db first, then opt into embedded modes when needed."},

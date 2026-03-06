@@ -24,7 +24,7 @@ To enforce that, app and module code should depend on core interfaces instead of
 ## Module DB Binding Rule
 
 Installable modules should expose a module-local `Store` interface for data access.
-The app binds that interface to a concrete adapter (for now, typically Ent-backed),
+The app binds that interface to a concrete adapter (for now, Bob/SQL-backed),
 so module runtime logic stays decoupled from app-specific DB model wiring.
 
 This package is the current source of truth for adapter seam contracts.
@@ -97,7 +97,7 @@ First migrated call site:
 These interfaces are runtime seams, not domain/repository APIs.
 
 - Do not force app repos to become generic CRUD wrappers.
-- Keep domain modeling in Ent + app/framework repos.
+- Keep domain modeling in Bob/SQL + app/framework repos.
 - Use `framework/core` only where backend swapability or startup validation is required.
 
 ## Migration Plan

@@ -9,7 +9,7 @@ import (
 )
 
 // SQLNotificationCountStore provides a DB/sql-backed implementation that does not
-// depend on Ent query builders. This is the bridge path toward Bob-generated stores.
+// depend on generated query builders. This is the bridge path toward Bob-generated stores.
 type SQLNotificationCountStore struct {
 	db      *sql.DB
 	dialect string

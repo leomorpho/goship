@@ -9,7 +9,7 @@ Last updated: 2026-03-04
 - Provide one backend-agnostic jobs seam (`framework/core.Jobs`) with strict runtime backend selection.
 - Support exactly one backend at a time:
   - `redis` (Asynq driver)
-  - `sql` (Ent/DB-backed queue)
+  - `sql` (DB-backed queue)
 
 ## Runtime Contract
 
@@ -33,8 +33,8 @@ Container seam fields:
 
 `modules/jobs/config.go` enforces strict XOR config:
 
-- `BackendSQL` requires `EntClient` and forbids redis settings.
-- `BackendRedis` requires `Redis.Addr` and forbids `EntClient`.
+- `BackendSQL` requires `DB` and forbids redis settings.
+- `BackendRedis` requires `Redis.Addr` and forbids `DB`.
 
 Validation tests:
 

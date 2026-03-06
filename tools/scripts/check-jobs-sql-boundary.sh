@@ -4,13 +4,13 @@ set -euo pipefail
 
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
 
-violations="$(rg -n "EntClient|github.com/leomorpho/goship/db/ent" \
+violations="$(rg -n "github.com/leomorpho/goship/db/gen|github.com/leomorpho/goship/framework/core" \
   "$ROOT_DIR/modules/jobs/config.go" \
   "$ROOT_DIR/modules/jobs/module.go" \
   "$ROOT_DIR/modules/jobs/drivers/sql/client.go" || true)"
 
 if [[ -n "$violations" ]]; then
-  echo "ERROR: jobs SQL boundary violated (Ent coupling reintroduced):"
+  echo "ERROR: jobs SQL boundary violated (module-local SQL path coupled to app/framework internals):"
   echo "$violations"
   exit 1
 fi

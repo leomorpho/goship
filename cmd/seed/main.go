@@ -11,5 +11,5 @@ func main() {
 	defer func() {
 		_ = c.Shutdown()
 	}()
-	log.Println("seed command is temporarily disabled during Ent removal; use explicit SQL seed scripts")
+	log.Println("seed command is temporarily disabled; use explicit SQL seed scripts")
 }
