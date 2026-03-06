@@ -314,9 +314,9 @@ Goal: ensure long-term maintainability and agent reliability.
 - [x] Add CI checks for generated-code drift.
 
 Acceptance criteria:
-- [ ] `ship doctor` enforces architecture contracts.
+- [x] `ship doctor` enforces architecture contracts.
 - [x] CI catches drift and boundary violations.
-- [ ] Docs checks fail CI when CLI behavior and docs diverge.
+- [x] Docs checks fail CI when CLI behavior and docs diverge.
 
 ---
 
@@ -462,6 +462,7 @@ Acceptance criteria:
 - 2026-03-06: removed legacy Ent source trees (`db/ent`, `db/schema`), removed direct Ent/Atlas deps from root module files, and updated docs to Bob/Goose-first wording.
 - 2026-03-06: switched `ship upgrade` from Atlas pin updates to Goose pin updates (`gooseGoRunRef`) and normalized CLI/runtime naming away from Atlas terminology.
 - 2026-03-06: added `tools/scripts/check-no-ent-toolchain.sh` and wired it into pre-commit to block reintroduction of Ent toolchain/artifacts (`db/ent`, `db/schema`, `entgo.io/ent` imports/deps); integration script run is currently sandbox-blocked in this environment due restricted local listener bind on `[::1]`.
+- 2026-03-06: added `tools/scripts/check-llm-txt-drift.sh` to precommit/CI quality gate so generated `LLM.txt` drift fails fast, and marked docs/doctor hardening acceptance criteria complete.
 - 2026-03-06: updated architecture/agent docs to describe Bob+Goose as the canonical data-model path (replacing stale Ent-first wording).
 - 2026-03-06: removed the last non-test runtime Ent imports from `app/foundation/container.go`; schema bootstrap is now SQL-only (Goose migrations for server DBs + minimal embedded SQLite schema bootstrap without Ent), and migration helper logic was split into `container_migrations.go` to satisfy line-budget gates.
 

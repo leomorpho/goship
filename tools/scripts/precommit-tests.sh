@@ -25,6 +25,7 @@ bash "${ROOT_DIR}/tools/scripts/check-composition-no-ent-module-wiring.sh"
 bash "${ROOT_DIR}/tools/scripts/check-controller-auth-boundary.sh"
 bash "${ROOT_DIR}/tools/scripts/check-controller-no-ent-imports.sh"
 bash "${ROOT_DIR}/tools/scripts/check-bobgen-drift.sh"
+bash "${ROOT_DIR}/tools/scripts/check-llm-txt-drift.sh"
 go run "${ROOT_DIR}/tools/cli/ship/cmd/ship" agent:check
 go run "${ROOT_DIR}/tools/cli/ship/cmd/ship" doctor
 
