@@ -3,16 +3,34 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-PKG_FILE="${ROOT_DIR}/tools/scripts/test/integration-packages.txt"
 
 mkdir -p "${ROOT_DIR}/.cache/go-build"
 export GOCACHE="${ROOT_DIR}/.cache/go-build"
 
 echo "Running integration test package set (may require Docker/infra)..."
 
+packages=()
 while IFS= read -r pkg; do
-  [[ -z "${pkg}" || "${pkg}" =~ ^# ]] && continue
+  packages+=("$pkg")
+done < <(
+  cd "${ROOT_DIR}" && \
+  rg -l '^//go:build integration' \
+    --glob '**/*_test.go' \
+    --glob '!**/node_modules/**' \
+    --glob '!**/.git/**' \
+    --glob '!**/.cache/**' \
+  | xargs -I{} dirname "{}" \
+  | sort -u \
+  | sed 's#^#./#'
+)
+
+if [[ "${#packages[@]}" -eq 0 ]]; then
+  echo "No integration-tagged test packages found."
+  exit 0
+fi
+
+for pkg in "${packages[@]}"; do
   go test -tags=integration "${pkg}"
-done < "${PKG_FILE}"
+done
 
 echo "Integration test package set passed."

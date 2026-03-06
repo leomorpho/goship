@@ -1,9 +1,0 @@
-# Packages with infrastructure-heavy tests
-./app/web/controllers
-./modules/emailsubscriptions
-./app/notifications
-./app/profile
-./modules/paidsubscriptions
-./tools/seeder
-./app/foundation
-./tools/cli/ship
