@@ -123,8 +123,8 @@ func TestRunMakeScaffold_Integration(t *testing.T) {
 		t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
 	}
 
-	if !testHasFile(filepath.Join(root, "db", "schema", "post.go")) {
-		t.Fatalf("missing scaffolded model schema")
+	if !testHasFile(filepath.Join(root, "db", "queries", "post.sql")) {
+		t.Fatalf("missing scaffolded model query file")
 	}
 	if !testHasFile(filepath.Join(root, "app", "web", "controllers", "posts.go")) {
 		t.Fatalf("missing scaffolded controller file")
@@ -209,8 +209,8 @@ func makeScaffoldDeps(out, errOut *bytes.Buffer, runner *fakeRunner) ScaffoldDep
 				RunCmd: func(name string, args ...string) int {
 					return runner.RunCode(name, args...)
 				},
-				HasFile:      testHasFile,
-				EntSchemaDir: "db/schema",
+				HasFile:  testHasFile,
+				QueryDir: "db/queries",
 			})
 		},
 		RunDBMake: func(args []string) int {

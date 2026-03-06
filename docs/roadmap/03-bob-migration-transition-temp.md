@@ -458,6 +458,7 @@ Acceptance criteria:
 - 2026-03-06: removed legacy `make ent-gen` target from root Makefile and updated agent workflow docs to use `ship db:generate` for DB codegen.
 - 2026-03-06: converted `app/profile/profile_test.go` integration assertions and fixture setup to DB-first SQL paths (no Ent imports in the test package) and added DB helper `tests.LinkFriendsDB` plus `tests.CreateTestContainerPostgresDB` for DB-only integration harness usage.
 - 2026-03-06: removed Ent bootstrap from `framework/tests` helpers by making `CreateTestContainerPostgresDB` apply core SQL migrations directly (`db/migrate/migrations`) with deterministic version tracking; deleted unused Ent-only test helper functions from `framework/tests/tests.go`.
+- 2026-03-06: refactored `ship make:model` to Bob/Goose-native scaffolding (writes `db/queries/<model>.sql` + next-step guidance) and removed Ent codegen invocation from the model generator path, with CLI/generator tests updated accordingly.
 
 ---
 

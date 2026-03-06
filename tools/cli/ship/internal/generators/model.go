@@ -2,7 +2,6 @@ package generators
 
 import (
 	"fmt"
-	"go/format"
 	"io"
 	"os"
 	"path/filepath"
@@ -20,11 +19,11 @@ type ModelField struct {
 }
 
 type GenerateModelDeps struct {
-	Out          io.Writer
-	Err          io.Writer
-	RunCmd       func(name string, args ...string) int
-	HasFile      func(path string) bool
-	EntSchemaDir string
+	Out      io.Writer
+	Err      io.Writer
+	RunCmd   func(name string, args ...string) int
+	HasFile  func(path string) bool
+	QueryDir string
 }
 
 func RunGenerateModel(args []string, d GenerateModelDeps) int {
@@ -34,33 +33,36 @@ func RunGenerateModel(args []string, d GenerateModelDeps) int {
 		return 1
 	}
 
-	schemaPath := filepath.Join(d.EntSchemaDir, ModelFileName(name)+".go")
-	if d.HasFile(schemaPath) && !force {
-		fmt.Fprintf(d.Err, "refusing to overwrite existing schema %s (use --force)\n", schemaPath)
+	queryPath := filepath.Join(d.QueryDir, ModelFileName(name)+".sql")
+	if d.HasFile(queryPath) && !force {
+		fmt.Fprintf(d.Err, "refusing to overwrite existing model query file %s (use --force)\n", queryPath)
 		return 1
 	}
-	content, renderErr := RenderEntSchema(name, fields)
-	if renderErr != nil {
-		fmt.Fprintf(d.Err, "failed to render schema: %v\n", renderErr)
+	content := RenderModelQueryTemplate(name, fields)
+	if content == "" {
+		fmt.Fprintln(d.Err, "failed to render model query template")
 		return 1
 	}
-	if err := os.MkdirAll(filepath.Dir(schemaPath), 0o755); err != nil {
-		fmt.Fprintf(d.Err, "failed to create schema directory: %v\n", err)
+	if d.QueryDir == "" {
+		fmt.Fprintln(d.Err, "missing query directory")
 		return 1
 	}
-	if err := os.WriteFile(schemaPath, []byte(content), 0o644); err != nil {
-		fmt.Fprintf(d.Err, "failed to write schema file: %v\n", err)
+	if err := os.MkdirAll(filepath.Dir(queryPath), 0o755); err != nil {
+		fmt.Fprintf(d.Err, "failed to create query directory: %v\n", err)
 		return 1
 	}
-	fmt.Fprintf(d.Out, "Wrote schema: %s\n", schemaPath)
+	if err := os.WriteFile(queryPath, []byte(content), 0o644); err != nil {
+		fmt.Fprintf(d.Err, "failed to write model query file: %v\n", err)
+		return 1
+	}
+	fmt.Fprintf(d.Out, "Wrote model query scaffold: %s\n", queryPath)
 
-	if code := d.RunCmd("go", "run", "-mod=mod", "entgo.io/ent/cmd/ent", "generate", "--feature", "sql/upsert,sql/execquery", "--target", "./db/ent", "./"+d.EntSchemaDir); code != 0 {
-		return code
-	}
-
+	tableName := ModelFileName(name) + "s"
 	fmt.Fprintln(d.Out, "Next:")
-	fmt.Fprintf(d.Out, "- ship db:make add_%ss\n", ModelFileName(name))
+	fmt.Fprintf(d.Out, "- ship db:make create_%s_table\n", tableName)
+	fmt.Fprintf(d.Out, "- edit db/migrate/migrations/*_create_%s_table.sql\n", tableName)
 	fmt.Fprintln(d.Out, "- ship db:migrate")
+	fmt.Fprintln(d.Out, "- ship db:generate")
 	return 0
 }
 
@@ -110,58 +112,50 @@ func parseModelField(token string) (ModelField, error) {
 	}
 }
 
-func RenderEntSchema(name string, fields []ModelField) (string, error) {
+func RenderModelQueryTemplate(name string, fields []ModelField) string {
 	var b strings.Builder
-	b.WriteString("package schema\n\n")
-	b.WriteString("import (\n")
-	b.WriteString("\t\"entgo.io/ent\"\n")
-	b.WriteString("\t\"entgo.io/ent/schema/field\"\n")
-	b.WriteString(")\n\n")
-	b.WriteString("// ")
-	b.WriteString(name)
-	b.WriteString(" holds the schema definition for the ")
-	b.WriteString(name)
-	b.WriteString(" entity.\n")
-	b.WriteString("type ")
-	b.WriteString(name)
-	b.WriteString(" struct {\n\tent.Schema\n}\n\n")
-	b.WriteString("// Fields of the ")
-	b.WriteString(name)
-	b.WriteString(".\n")
-	b.WriteString("func (")
-	b.WriteString(name)
-	b.WriteString(") Fields() []ent.Field {\n")
-	b.WriteString("\treturn []ent.Field{\n")
-	for _, f := range fields {
-		b.WriteString("\t\t")
-		b.WriteString(renderFieldCall(f))
-		b.WriteString(",\n")
-	}
-	b.WriteString("\t}\n")
-	b.WriteString("}\n")
+	tableName := ModelFileName(name) + "s"
+	insertName := "Insert" + name
+	selectByIDName := "Get" + name + "ByID"
 
-	out, err := format.Source([]byte(b.String()))
-	if err != nil {
-		return "", err
+	b.WriteString("-- Model: ")
+	b.WriteString(name)
+	b.WriteString("\n")
+	b.WriteString("-- Table: ")
+	b.WriteString(tableName)
+	b.WriteString("\n")
+	b.WriteString("-- Fields:\n")
+	if len(fields) == 0 {
+		b.WriteString("-- - id:int\n")
+	} else {
+		for _, f := range fields {
+			b.WriteString("-- - ")
+			b.WriteString(f.Name)
+			b.WriteString(":")
+			b.WriteString(f.Type)
+			b.WriteString("\n")
+		}
 	}
-	return string(out), nil
-}
+	b.WriteString("\n")
 
-func renderFieldCall(f ModelField) string {
-	switch f.Type {
-	case "text":
-		return fmt.Sprintf("field.Text(%q)", f.Name)
-	case "int":
-		return fmt.Sprintf("field.Int(%q)", f.Name)
-	case "bool":
-		return fmt.Sprintf("field.Bool(%q)", f.Name)
-	case "time":
-		return fmt.Sprintf("field.Time(%q)", f.Name)
-	case "float":
-		return fmt.Sprintf("field.Float(%q)", f.Name)
-	default:
-		return fmt.Sprintf("field.String(%q)", f.Name)
-	}
+	b.WriteString("-- name: ")
+	b.WriteString(insertName)
+	b.WriteString(" :one\n")
+	b.WriteString("-- TODO: add INSERT columns and values for ")
+	b.WriteString(tableName)
+	b.WriteString("\n")
+	b.WriteString("INSERT INTO ")
+	b.WriteString(tableName)
+	b.WriteString(" DEFAULT VALUES RETURNING id;\n\n")
+
+	b.WriteString("-- name: ")
+	b.WriteString(selectByIDName)
+	b.WriteString(" :one\n")
+	b.WriteString("SELECT * FROM ")
+	b.WriteString(tableName)
+	b.WriteString(" WHERE id = ?;\n")
+
+	return b.String()
 }
 
 func ModelFileName(name string) string {

@@ -378,20 +378,16 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			wantErr:  "usage: ship make:controller",
 		},
 		{
-			name:     "make model",
-			args:     []string{"make:model", "Post"},
-			wantCode: 0,
-			wantCalls: []fakeCall{
-				{name: "go", args: []string{"run", "-mod=mod", "entgo.io/ent/cmd/ent", "generate", "--feature", "sql/upsert,sql/execquery", "--target", "./db/ent", "./db/schema"}},
-			},
+			name:      "make model",
+			args:      []string{"make:model", "Post"},
+			wantCode:  0,
+			wantCalls: nil,
 		},
 		{
-			name:     "make model with fields",
-			args:     []string{"make:model", "Post", "title:string"},
-			wantCode: 0,
-			wantCalls: []fakeCall{
-				{name: "go", args: []string{"run", "-mod=mod", "entgo.io/ent/cmd/ent", "generate", "--feature", "sql/upsert,sql/execquery", "--target", "./db/ent", "./db/schema"}},
-			},
+			name:      "make model with fields",
+			args:      []string{"make:model", "Post", "title:string"},
+			wantCode:  0,
+			wantCalls: nil,
 		},
 		{
 			name:     "check help",

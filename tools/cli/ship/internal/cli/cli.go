@@ -15,7 +15,7 @@ import (
 
 const (
 	gooseDir      = "db/migrate/migrations"
-	entSchemaDir  = "db/schema"
+	modelQueryDir = "db/queries"
 	gooseGoRunRef = "github.com/pressly/goose/v3/cmd/goose@v3.26.0"
 	atlasGoRunRef = "ariga.io/atlas/cmd/atlas@v0.27.1"
 )
@@ -232,7 +232,10 @@ func (c CLI) runDBMake(args []string) int {
 }
 
 func (c CLI) runGenerateModel(args []string) int {
-	return gen.RunGenerateModel(args, gen.GenerateModelDeps{Out: c.Out, Err: c.Err, RunCmd: c.runCmd, HasFile: hasFile, EntSchemaDir: entSchemaDir})
+	return gen.RunGenerateModel(args, gen.GenerateModelDeps{
+		Out: c.Out, Err: c.Err,
+		RunCmd: c.runCmd, HasFile: hasFile, QueryDir: modelQueryDir,
+	})
 }
 
 func (c CLI) runGenerateResource(args []string) int {

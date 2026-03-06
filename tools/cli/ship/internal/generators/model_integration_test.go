@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func TestGenerateModelIntegration_WithFieldsWritesSchemaAndNextSteps(t *testing.T) {
+func TestGenerateModelIntegration_WithFieldsWritesQueryScaffoldAndNextSteps(t *testing.T) {
 	root := t.TempDir()
 	prevWD, err := os.Getwd()
 	if err != nil {
@@ -28,39 +28,36 @@ func TestGenerateModelIntegration_WithFieldsWritesSchemaAndNextSteps(t *testing.
 		RunCmd: func(name string, args ...string) int {
 			return runner.RunCode(name, args...)
 		},
-		HasFile:      testHasFile,
-		EntSchemaDir: "db/schema",
+		HasFile:  testHasFile,
+		QueryDir: "db/queries",
 	})
 	if code != 0 {
 		t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
 	}
 
-	schemaPath := filepath.Join(root, "db", "schema", "blog_post.go")
-	content, err := os.ReadFile(schemaPath)
+	queryPath := filepath.Join(root, "db", "queries", "blog_post.sql")
+	content, err := os.ReadFile(queryPath)
 	if err != nil {
-		t.Fatalf("read schema: %v", err)
+		t.Fatalf("read query file: %v", err)
 	}
 	text := string(content)
-	if !strings.Contains(text, "type BlogPost struct") {
-		t.Fatalf("missing type declaration:\n%s", text)
+	if !strings.Contains(text, "-- Model: BlogPost") {
+		t.Fatalf("missing model declaration:\n%s", text)
 	}
-	if !strings.Contains(text, `field.String("title")`) {
-		t.Fatalf("missing title field:\n%s", text)
+	if !strings.Contains(text, "-- - title:string") {
+		t.Fatalf("missing title field comment:\n%s", text)
 	}
-	if !strings.Contains(text, `field.Time("published_at")`) {
-		t.Fatalf("missing published_at field:\n%s", text)
+	if !strings.Contains(text, "-- - published_at:time") {
+		t.Fatalf("missing published_at field comment:\n%s", text)
 	}
-	if !strings.Contains(text, `field.Bool("is_live")`) {
-		t.Fatalf("missing is_live field:\n%s", text)
+	if !strings.Contains(text, "-- - is_live:bool") {
+		t.Fatalf("missing is_live field comment:\n%s", text)
 	}
 
-	if len(runner.calls) != 1 {
-		t.Fatalf("runner call count = %d, want 1", len(runner.calls))
+	if len(runner.calls) != 0 {
+		t.Fatalf("runner call count = %d, want 0", len(runner.calls))
 	}
-	if runner.calls[0].name != "go" || !strings.Contains(strings.Join(runner.calls[0].args, " "), "ent generate") {
-		t.Fatalf("unexpected runner call: %s %v", runner.calls[0].name, runner.calls[0].args)
-	}
-	if !strings.Contains(out.String(), "Next:") || !strings.Contains(out.String(), "ship db:make add_blog_posts") {
+	if !strings.Contains(out.String(), "Next:") || !strings.Contains(out.String(), "ship db:make create_blog_posts_table") {
 		t.Fatalf("stdout missing next-step guidance:\n%s", out.String())
 	}
 }
@@ -76,11 +73,11 @@ func TestGenerateModelIntegration_ForceOverwritesSchema(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	schemaPath := filepath.Join(root, "db", "schema", "post.go")
-	if err := os.MkdirAll(filepath.Dir(schemaPath), 0o755); err != nil {
+	queryPath := filepath.Join(root, "db", "queries", "post.sql")
+	if err := os.MkdirAll(filepath.Dir(queryPath), 0o755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(schemaPath, []byte("package schema\n\n// old\n"), 0o644); err != nil {
+	if err := os.WriteFile(queryPath, []byte("-- old\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -93,18 +90,18 @@ func TestGenerateModelIntegration_ForceOverwritesSchema(t *testing.T) {
 		RunCmd: func(name string, args ...string) int {
 			return runner.RunCode(name, args...)
 		},
-		HasFile:      testHasFile,
-		EntSchemaDir: "db/schema",
+		HasFile:  testHasFile,
+		QueryDir: "db/queries",
 	})
 	if code != 0 {
 		t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
 	}
 
-	content, err := os.ReadFile(schemaPath)
+	content, err := os.ReadFile(queryPath)
 	if err != nil {
-		t.Fatalf("read schema: %v", err)
+		t.Fatalf("read query file: %v", err)
 	}
 	if strings.Contains(string(content), "// old") {
-		t.Fatalf("schema file was not overwritten:\n%s", string(content))
+		t.Fatalf("query file was not overwritten:\n%s", string(content))
 	}
 }

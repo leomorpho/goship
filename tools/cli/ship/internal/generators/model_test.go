@@ -34,23 +34,20 @@ func TestParseGenerateModelArgs_InvalidField(t *testing.T) {
 	}
 }
 
-func TestRenderEntSchema(t *testing.T) {
-	content, err := RenderEntSchema("Post", []ModelField{
+func TestRenderModelQueryTemplate(t *testing.T) {
+	content := RenderModelQueryTemplate("Post", []ModelField{
 		{Name: "title", Type: "string"},
 		{Name: "published_at", Type: "time"},
 		{Name: "is_live", Type: "bool"},
 	})
-	if err != nil {
-		t.Fatalf("renderEntSchema error = %v", err)
+	if !strings.Contains(content, "-- Model: Post") {
+		t.Fatalf("missing model declaration:\n%s", content)
 	}
-	if !strings.Contains(content, "type Post struct") {
-		t.Fatalf("missing schema type declaration:\n%s", content)
+	if !strings.Contains(content, "-- - title:string") {
+		t.Fatalf("missing title field comment:\n%s", content)
 	}
-	if !strings.Contains(content, `field.String("title")`) {
-		t.Fatalf("missing string field call:\n%s", content)
-	}
-	if !strings.Contains(content, `field.Time("published_at")`) {
-		t.Fatalf("missing time field call:\n%s", content)
+	if !strings.Contains(content, "name: InsertPost") {
+		t.Fatalf("missing insert query section:\n%s", content)
 	}
 }
 
@@ -74,26 +71,23 @@ func TestRunGenerateModel_WithFieldsWritesSchema(t *testing.T) {
 		RunCmd: func(name string, args ...string) int {
 			return runner.RunCode(name, args...)
 		},
-		HasFile:      testHasFile,
-		EntSchemaDir: "db/schema",
+		HasFile:  testHasFile,
+		QueryDir: "db/queries",
 	})
 	if code != 0 {
 		t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
 	}
 
-	schemaPath := filepath.Join(root, "db", "schema", "post.go")
-	b, err := os.ReadFile(schemaPath)
+	queryPath := filepath.Join(root, "db", "queries", "post.sql")
+	b, err := os.ReadFile(queryPath)
 	if err != nil {
-		t.Fatalf("read schema: %v", err)
+		t.Fatalf("read query file: %v", err)
 	}
-	if !strings.Contains(string(b), `field.String("title")`) {
-		t.Fatalf("generated schema missing field:\n%s", string(b))
+	if !strings.Contains(string(b), "-- - title:string") {
+		t.Fatalf("generated query scaffold missing field:\n%s", string(b))
 	}
-	if len(runner.calls) != 1 {
-		t.Fatalf("runner calls len = %d, want 1", len(runner.calls))
-	}
-	if runner.calls[0].name != "go" {
-		t.Fatalf("runner call name = %q, want go", runner.calls[0].name)
+	if len(runner.calls) != 0 {
+		t.Fatalf("runner calls len = %d, want 0", len(runner.calls))
 	}
 }
 
@@ -107,11 +101,11 @@ func TestRunGenerateModel_RefuseOverwriteWithoutForce(t *testing.T) {
 	if err := os.Chdir(root); err != nil {
 		t.Fatal(err)
 	}
-	schemaPath := filepath.Join(root, "db", "schema", "post.go")
-	if err := os.MkdirAll(filepath.Dir(schemaPath), 0o755); err != nil {
+	queryPath := filepath.Join(root, "db", "queries", "post.sql")
+	if err := os.MkdirAll(filepath.Dir(queryPath), 0o755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(schemaPath, []byte("package schema\n"), 0o644); err != nil {
+	if err := os.WriteFile(queryPath, []byte("-- existing\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -124,8 +118,8 @@ func TestRunGenerateModel_RefuseOverwriteWithoutForce(t *testing.T) {
 		RunCmd: func(name string, args ...string) int {
 			return runner.RunCode(name, args...)
 		},
-		HasFile:      testHasFile,
-		EntSchemaDir: "db/schema",
+		HasFile:  testHasFile,
+		QueryDir: "db/queries",
 	})
 	if code != 1 {
 		t.Fatalf("exit code = %d, want 1", code)
