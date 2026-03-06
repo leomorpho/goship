@@ -144,6 +144,13 @@ func CreateTestContainerPostgresEntClientAndDB(t *testing.T) (*ent.Client, *sql.
 	return client, db, "postgres", ctx
 }
 
+// CreateTestContainerPostgresDB returns a migration-ready DB handle for integration tests.
+// The current bootstrap path still provisions schema through Ent under the hood.
+func CreateTestContainerPostgresDB(t *testing.T) (*sql.DB, string, context.Context) {
+	_, db, dialect, ctx := CreateTestContainerPostgresEntClientAndDB(t)
+	return db, dialect, ctx
+}
+
 // CreateUser creates a random user entity
 func CreateRandomUser(orm *ent.Client) (*ent.User, error) {
 	seed := fmt.Sprintf("%d-%d", time.Now().UnixMilli(), rand.Intn(1000000))
@@ -196,6 +203,24 @@ func CreateUserDB(ctx context.Context, db *sql.DB, name, email, password string,
 		Password: password,
 		Verified: verified,
 	}, nil
+}
+
+// LinkFriendsDB links a profile to friend profile IDs through SQL.
+func LinkFriendsDB(ctx context.Context, db *sql.DB, profileID int, matchIDs []int) error {
+	if db == nil {
+		return fmt.Errorf("db is nil")
+	}
+	for _, matchID := range matchIDs {
+		if _, err := db.ExecContext(
+			ctx,
+			`INSERT INTO profile_friends (profile_id, friend_id) VALUES ($1, $2)`,
+			profileID,
+			matchID,
+		); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // CreateUser creates a new user and returns its ID.

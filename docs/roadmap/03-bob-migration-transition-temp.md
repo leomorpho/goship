@@ -456,6 +456,7 @@ Acceptance criteria:
 - 2026-03-05: added sqlite coverage for friendship write helpers (`TestProfileFriendshipWriteQueries_SQLite`) and revalidated full precommit quality gate after line-budget and profile SQL-first updates.
 - 2026-03-06: removed Ent schema bootstrap from server-DB runtime path in `app/foundation/container.go` by introducing SQL migration application from `db/migrate/migrations` with migration-version tracking; embedded DB mode temporarily keeps Ent schema fallback until SQLite migration parity is complete.
 - 2026-03-06: removed legacy `make ent-gen` target from root Makefile and updated agent workflow docs to use `ship db:generate` for DB codegen.
+- 2026-03-06: converted `app/profile/profile_test.go` integration assertions and fixture setup to DB-first SQL paths (no Ent imports in the test package) and added DB helper `tests.LinkFriendsDB` plus `tests.CreateTestContainerPostgresDB` for DB-only integration harness usage.
 
 ---
 
