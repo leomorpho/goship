@@ -3467,7 +3467,7 @@ Acceptance criteria:
 Goal: remove Ent once runtime parity is complete.
 
 ### 5.1 Removal readiness checks
-- [ ] Confirm no runtime code paths require Ent.
+- [x] Confirm no runtime code paths require Ent.
 - [ ] Confirm migrations and generators run fully via Goose + Bob.
 
 ### 5.1a Runtime Ent cutover backlog (execution order)
@@ -3652,6 +3652,7 @@ Acceptance criteria:
 - 2026-03-06: deleted obsolete CLI integration smoke test `tools/cli/ship/tests/integration/ent_generate_integration_test.go` after `make:model` moved to Bob-first query scaffolding.
 - 2026-03-06: removed Ent schema bootstrap artifacts from `ship new` scaffolding (`db/schema/user.go` + Ent go.mod pin) and made doctor enforce Bob-first core DB scaffold (`db/queries`, `db/bobgen.yaml`) instead.
 - 2026-03-06: updated architecture/agent docs to describe Bob+Goose as the canonical data-model path (replacing stale Ent-first wording).
+- 2026-03-06: removed the last non-test runtime Ent imports from `app/foundation/container.go`; schema bootstrap is now SQL-only (Goose migrations for server DBs + minimal embedded SQLite schema bootstrap without Ent), and migration helper logic was split into `container_migrations.go` to satisfy line-budget gates.
 
 ---
 

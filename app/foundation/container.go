@@ -1,18 +1,12 @@
 package foundation
 
 import (
-	"context"
 	"database/sql"
-	"errors"
 	"fmt"
-	"io/fs"
 	"strings"
 
 	"os"
-	"path/filepath"
 
-	"entgo.io/ent/dialect"
-	entsql "entgo.io/ent/dialect/sql"
 	"github.com/getsentry/sentry-go"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/labstack/echo/v4"
@@ -23,8 +17,6 @@ import (
 
 	"github.com/leomorpho/goship-modules/notifications"
 	"github.com/leomorpho/goship/config"
-	"github.com/leomorpho/goship/db/ent/migrate"
-	_ "github.com/leomorpho/goship/db/ent/runtime"
 	"github.com/leomorpho/goship/framework/core"
 	coreadapters "github.com/leomorpho/goship/framework/core/adapters"
 	"github.com/leomorpho/goship/framework/repos/mailer"
@@ -326,120 +318,26 @@ func openEmbeddedDB(driver, connection string) (*sql.DB, error) {
 
 // initSchema runs DB migrations for the app.
 func (c *Container) initSchema() {
-	migrationsDir := filepath.Join("db", "migrate", "migrations")
-
+	migrationsDir, err := resolveMigrationsDir()
+	if err != nil {
+		panic(fmt.Sprintf("failed to resolve migrations directory: %v", err))
+	}
+	driver := "postgres"
 	if c.Config.Database.DbMode == config.DBModeEmbedded {
-		// Temporary fallback while embedded/sqlite runtime still relies on Ent-managed schema.
-		if err := runEntSchema(c.Database, c.Config.Database.EmbeddedDriver); err != nil {
-			panic(fmt.Sprintf("failed to create embedded database schema: %v", err))
+		driver = strings.ToLower(c.Config.Database.EmbeddedDriver)
+		if driver == "sqlite" {
+			driver = "sqlite3"
+		}
+	}
+	if driver == "sqlite3" {
+		if err := ensureEmbeddedSQLiteSchema(c.Database); err != nil {
+			panic(fmt.Sprintf("failed to initialize embedded sqlite schema: %v", err))
 		}
 		return
 	}
-
-	if err := applySQLMigrations(c.Database, migrationsDir); err != nil {
+	if err := applySQLMigrations(c.Database, migrationsDir, driver); err != nil {
 		panic(fmt.Sprintf("failed to run SQL migrations: %v", err))
 	}
-}
-
-func runEntSchema(db *sql.DB, driver string) error {
-	activeDialect := dialect.Postgres
-	if strings.EqualFold(driver, "sqlite") || strings.EqualFold(driver, "sqlite3") {
-		activeDialect = dialect.SQLite
-	}
-
-	drv := entsql.OpenDB(activeDialect, db)
-	return migrate.NewSchema(drv).Create(
-		context.Background(),
-		migrate.WithDropIndex(true),
-		migrate.WithDropColumn(true),
-	)
-}
-
-func applySQLMigrations(db *sql.DB, migrationsDir string) error {
-	if _, err := os.Stat(migrationsDir); err != nil {
-		return fmt.Errorf("find migrations directory %q: %w", migrationsDir, err)
-	}
-
-	if _, err := db.Exec(`
-CREATE TABLE IF NOT EXISTS goship_schema_migrations (
-	version VARCHAR(255) PRIMARY KEY,
-	applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-)`); err != nil {
-		return fmt.Errorf("ensure goship_schema_migrations table: %w", err)
-	}
-
-	entries, err := os.ReadDir(migrationsDir)
-	if err != nil {
-		return fmt.Errorf("read migrations directory: %w", err)
-	}
-
-	for _, entry := range entries {
-		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".sql") {
-			continue
-		}
-		version := migrationVersion(entry)
-		if version == "" {
-			continue
-		}
-
-		applied, err := hasAppliedMigration(db, version)
-		if err != nil {
-			return err
-		}
-		if applied {
-			continue
-		}
-
-		content, err := os.ReadFile(filepath.Join(migrationsDir, entry.Name()))
-		if err != nil {
-			return fmt.Errorf("read migration %s: %w", entry.Name(), err)
-		}
-
-		if err := applySingleMigration(db, version, string(content)); err != nil {
-			return fmt.Errorf("apply migration %s: %w", entry.Name(), err)
-		}
-	}
-
-	return nil
-}
-
-func migrationVersion(entry fs.DirEntry) string {
-	name := entry.Name()
-	if idx := strings.Index(name, "."); idx > 0 {
-		return name[:idx]
-	}
-	return ""
-}
-
-func hasAppliedMigration(db *sql.DB, version string) (bool, error) {
-	var marker int
-	err := db.QueryRow(`SELECT 1 FROM goship_schema_migrations WHERE version = $1`, version).Scan(&marker)
-	if err == nil {
-		return true, nil
-	}
-	if errors.Is(err, sql.ErrNoRows) {
-		return false, nil
-	}
-	return false, fmt.Errorf("check migration version %q: %w", version, err)
-}
-
-func applySingleMigration(db *sql.DB, version string, sqlText string) error {
-	tx, err := db.Begin()
-	if err != nil {
-		return fmt.Errorf("begin transaction: %w", err)
-	}
-	defer tx.Rollback()
-
-	if _, err := tx.Exec(sqlText); err != nil {
-		return fmt.Errorf("execute SQL: %w", err)
-	}
-	if _, err := tx.Exec(`INSERT INTO goship_schema_migrations (version) VALUES ($1)`, version); err != nil {
-		return fmt.Errorf("record migration version %q: %w", version, err)
-	}
-	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("commit migration %q: %w", version, err)
-	}
-	return nil
 }
 
 // initAuth initializes the authentication client
