@@ -71,7 +71,6 @@ Common commands:
 - `make test`
 - `make testall`
 - `make templ-gen`
-- `make ent-gen`
 - `make makemigrations name=your_change`
 - `make migrate`
 - `make db-status`

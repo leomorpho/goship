@@ -140,16 +140,8 @@ cache-clear: ## Clear the primary cache
 cache-test: ## Connect to the test cache
 	docker exec -it goship_cache redis-cli -n 1
 
-.PHONY: ent-install
-ent-install: ## Install Ent code-generation module
-	go get -d entgo.io/ent/cmd/ent
-
-.PHONY: ent-gen
-ent-gen: ## Generate Ent code
-	go run entgo.io/ent/cmd/ent generate --feature sql/upsert,sql/execquery --target ./db/ent ./db/schema
-
 .PHONY: ent-new
-ent-new: ## Create a new Ent entity
+ent-new: ## Create a new model scaffold
 	go run ./tools/cli/ship/cmd/ship make:model $(name)
  
 .PHONY: generate

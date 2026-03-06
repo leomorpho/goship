@@ -80,7 +80,7 @@ UI and rendering:
 - `make build-js`
 - `make build-css`
 - `make templ-gen`
-- `make ent-gen`
+- `go run ./tools/cli/ship/cmd/ship db:generate`
 - `go run ./tools/cli/ship/cmd/ship db:make your_change`
 - `go run ./tools/cli/ship/cmd/ship db:migrate`
 - `go run ./tools/cli/ship/cmd/ship db:status`

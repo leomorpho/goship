@@ -455,6 +455,7 @@ Acceptance criteria:
 - 2026-03-05: migrated friendship write paths to SQL-first behavior (`LinkProfilesAsFriends`, `UnlinkProfilesAsFriends`) via new `db/gen/profile` exec helpers and DB queries (`link/unlink_profiles_as_friends_*`), with Ent fallback retained for transitional compatibility.
 - 2026-03-05: added sqlite coverage for friendship write helpers (`TestProfileFriendshipWriteQueries_SQLite`) and revalidated full precommit quality gate after line-budget and profile SQL-first updates.
 - 2026-03-06: removed Ent schema bootstrap from server-DB runtime path in `app/foundation/container.go` by introducing SQL migration application from `db/migrate/migrations` with migration-version tracking; embedded DB mode temporarily keeps Ent schema fallback until SQLite migration parity is complete.
+- 2026-03-06: removed legacy `make ent-gen` target from root Makefile and updated agent workflow docs to use `ship db:generate` for DB codegen.
 
 ---
 
