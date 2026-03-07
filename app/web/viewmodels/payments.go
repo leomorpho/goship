@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/leomorpho/goship/app/web/ui"
-	"github.com/leomorpho/goship/framework/domain"
 )
 
 type (
@@ -18,16 +17,17 @@ type (
 	}
 
 	ProductDescription struct {
-		Name        string
-		Subtitle    string
-		Price       string
-		Points      []string
-		ProductType domain.ProductType
+		Name     string
+		Subtitle string
+		Price    string
+		Points   []string
+		PlanKey  string
 	}
 	PricingPageData struct {
 		ProductProCode        string
 		ProductProPrice       string
-		ActivePlan            domain.ProductType
+		ActivePlanKey         string
+		ActivePlanIsPaid      bool
 		IsTrial               bool
 		SubscriptionExpiresOn *time.Time
 		ProductDescriptions   []ProductDescription

@@ -21,7 +21,8 @@ type (
 		DefaultBirthdate        string
 
 		IsPaymentsEnabled             bool
-		ActiveSubscriptionPlan        domain.ProductType
+		ActiveSubscriptionPlanKey     string
+		ActiveSubscriptionPlanIsPaid  bool
 		IsTrial                       bool
 		MonthlySybscriptionExpiration *time.Time
 

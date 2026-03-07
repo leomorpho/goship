@@ -4,7 +4,6 @@ import (
 	"github.com/labstack/echo/v4"
 	routeNames "github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/app/web/ui"
-	"github.com/leomorpho/goship/framework/domain"
 	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
 
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
@@ -51,8 +50,8 @@ func (c *deleteAccount) DeleteAccountPage(ctx echo.Context) error {
 	if err != nil {
 		return err
 	}
-	activePlanDomain := toDomainProductType(activePlan)
-	uncancelledSubscription := activePlanDomain != nil && *activePlanDomain == domain.ProductTypePro && !isTrial && subscriptionExpiredOn == nil
+	planKey := activePlanKey(activePlan)
+	uncancelledSubscription := isPaidPlanKey(planKey) && !isTrial && subscriptionExpiredOn == nil
 
 	page.Layout = layouts.Main
 	page.Name = templates.PageDeleteAccount

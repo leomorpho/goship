@@ -9,6 +9,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
+	appsubscriptions "github.com/leomorpho/goship/app/subscriptions"
 	"github.com/leomorpho/goship/app/views"
 	"github.com/leomorpho/goship/app/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/views/web/pages/gen"
@@ -226,7 +227,7 @@ func (p *paymentsRoute) HandleWebhook(c echo.Context) error {
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError)
 		}
-		err = p.subscriptionsService.UpdateToPaidPro(c.Request().Context(), profileID)
+		err = p.subscriptionsService.ActivatePlan(c.Request().Context(), profileID, appsubscriptions.PlanProKey)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError)
 		}
@@ -299,15 +300,13 @@ func (p *paymentsRoute) PricingPage(ctx echo.Context) error {
 	if err != nil {
 		return err
 	}
-	activePlanDomain := toDomainProductType(activePlan)
-	if activePlanDomain == nil {
-		activePlanDomain = &domain.ProductTypeFree
-	}
+	activePlanKey := activePlanKey(activePlan)
 
 	page.Data = viewmodels.PricingPageData{
 		ProductProCode:        p.ctr.Container.Config.App.OperationalConstants.ProductProCode,
 		ProductProPrice:       fmt.Sprintf("%.2f", p.ctr.Container.Config.App.OperationalConstants.ProductProPrice),
-		ActivePlan:            *activePlanDomain,
+		ActivePlanKey:         activePlanKey,
+		ActivePlanIsPaid:      isPaidPlanKey(activePlanKey),
 		SubscriptionExpiresOn: subscriptionExpiredOn,
 		IsTrial:               isTrial,
 		ProductDescriptions: []viewmodels.ProductDescription{

@@ -2,7 +2,7 @@ package pages
 
 import (
 	"github.com/leomorpho/goship/app/controller"
-	"github.com/leomorpho/goship/framework/domain"
+	appsubscriptions "github.com/leomorpho/goship/app/subscriptions"
 	"github.com/leomorpho/goship/app/web/viewmodels"
 	"github.com/leomorpho/goship/app/views/web/components/gen"
 	"github.com/leomorpho/goship/app/web/routenames"
@@ -11,20 +11,20 @@ import (
 templ PricingPage(page *controller.Page) {
 	@components.PrevNavBarWithTitle(page.ToURL(routenames.RouteNamePreferences), "", "🍻 Subscription")
 	if data, ok := page.Data.(viewmodels.PricingPageData); ok {
-		@pricingCards(page, data.ProductProPrice, data.ProductProCode, &data.ActivePlan, data.IsTrial)
+		@pricingCards(page, data.ProductProPrice, data.ProductProCode, data.ActivePlanKey, data.ActivePlanIsPaid, data.IsTrial)
 	}
 }
 
-templ pricingCards(page *controller.Page, productProPrice, productProCode string, activeProduct *domain.ProductType, isTrial bool) {
+templ pricingCards(page *controller.Page, productProPrice, productProCode, activePlanKey string, activePlanIsPaid bool, isTrial bool) {
 	<div class="py-8 px-4 mx-auto max-w-screen-xl lg:py-16 lg:px-6">
 		<div class="space-y-8 lg:grid lg:grid-cols-2 sm:gap-6 xl:gap-10 lg:space-y-0">
-			@pricingCard(page, "Starter", "Forever free.", "0", []string{"Answer up to 1 question every 24h", "Save up to 3 questions for later"}, "", domain.ProductTypeFree, activeProduct, isTrial)
-			@pricingCard(page, "Committed", "You like diving deep.", productProPrice, []string{"Unlimited everything"}, productProCode, domain.ProductTypePro, activeProduct, isTrial)
+			@pricingCard(page, "Starter", "Forever free.", "0", []string{"Answer up to 1 question every 24h", "Save up to 3 questions for later"}, "", appsubscriptions.PlanFreeKey, activePlanKey, activePlanIsPaid, isTrial)
+			@pricingCard(page, "Committed", "You like diving deep.", productProPrice, []string{"Unlimited everything"}, productProCode, appsubscriptions.PlanProKey, activePlanKey, activePlanIsPaid, isTrial)
 		</div>
 	</div>
 }
 
-templ pricingCard(page *controller.Page, title, subtitle, price string, points []string, checkoutValue string, targetPlan domain.ProductType, activePlan *domain.ProductType, isTrial bool) {
+templ pricingCard(page *controller.Page, title, subtitle, price string, points []string, checkoutValue string, targetPlanKey, activePlanKey string, activePlanIsPaid bool, isTrial bool) {
 	<!-- Pricing Card -->
 	<div class="flex flex-col p-6 lg:max-w-sm text-center text-gray-900 bg-blue-100 rounded-lg border border-gray-100 shadow dark:border-gray-600 dark:bg-gray-800 dark:text-white lg:flex-grow">
 		<h3 class="mb-4 text-2xl font-semibold lg:h-10">{ title }</h3>
@@ -42,7 +42,7 @@ templ pricingCard(page *controller.Page, title, subtitle, price string, points [
 					<span>{ point }</span>
 				</li>
 			}
-			if activePlan == nil && targetPlan == domain.ProductTypePro {
+			if activePlanKey == "" && targetPlanKey == appsubscriptions.PlanProKey {
 				<li class="flex items-center space-x-3">
 					<!-- Icon -->
 					<svg class="flex-shrink-0 w-5 h-5 text-green-500 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>
@@ -50,8 +50,8 @@ templ pricingCard(page *controller.Page, title, subtitle, price string, points [
 				</li>
 			}
 		</ul>
-		if activePlan != nil {
-			if *activePlan == targetPlan {
+		if activePlanKey != "" {
+			if activePlanKey == targetPlanKey {
 				<div>
 					<button
 						disabled
@@ -64,7 +64,7 @@ templ pricingCard(page *controller.Page, title, subtitle, price string, points [
 					</button>
 				</div>
 			} else {
-				if *activePlan == domain.ProductTypeFree {
+				if !activePlanIsPaid {
 					<form
 						action={ templ.SafeURL(page.ToURL("stripe.create_checkout_session")) }
 						method="POST"
@@ -82,7 +82,7 @@ templ pricingCard(page *controller.Page, title, subtitle, price string, points [
 						>Get started</button>
 					</form>
 				} else {
-					@components.ManageSubscriptionButton(page, *activePlan, isTrial)
+					@components.ManageSubscriptionButton(page, activePlanKey, isTrial, activePlanIsPaid)
 				}
 			}
 		}

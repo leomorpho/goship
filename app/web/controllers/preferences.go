@@ -238,10 +238,7 @@ func (g *preferences) getCurrPreferencesData(ctx echo.Context) (*viewmodels.Pref
 	if err != nil {
 		return nil, err
 	}
-	activePlanDomain := toDomainProductType(activePlan)
-	if activePlanDomain == nil {
-		activePlanDomain = &domain.ProductTypeFree
-	}
+	activePlanKey := activePlanKey(activePlan)
 
 	data := &viewmodels.PreferencesData{
 		Bio:                     profile.Bio,
@@ -253,9 +250,10 @@ func (g *preferences) getCurrPreferencesData(ctx echo.Context) (*viewmodels.Pref
 		DefaultBirthdate:        domain.DefaultBirthdate.Format("2006-01-02"),
 
 		// if IsPaymentsEnabled is true, none of the subscription stuff matters and the entire app will be free
-		IsPaymentsEnabled:      g.ctr.Container.Config.App.OperationalConstants.PaymentsEnabled,
-		ActiveSubscriptionPlan: *activePlanDomain,
-		IsTrial:                isTrial,
+		IsPaymentsEnabled:            g.ctr.Container.Config.App.OperationalConstants.PaymentsEnabled,
+		ActiveSubscriptionPlanKey:    activePlanKey,
+		ActiveSubscriptionPlanIsPaid: isPaidPlanKey(activePlanKey),
+		IsTrial:                      isTrial,
 	}
 
 	if subscriptionExpiredOn != nil {

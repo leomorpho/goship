@@ -13,6 +13,7 @@ import (
 	"github.com/leomorpho/goship/app/foundation"
 	"github.com/leomorpho/goship/app/jobs"
 	profilesvc "github.com/leomorpho/goship/app/profile"
+	appsubscriptions "github.com/leomorpho/goship/app/subscriptions"
 	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
 )
 
@@ -57,12 +58,16 @@ func main() {
 		},
 	)
 
-	paidSubscriptionsService := paidsubscriptions.New(paidsubscriptions.NewSQLStore(
+	plansCatalog, err := appsubscriptions.BuildPlanCatalog()
+	if err != nil {
+		log.Fatalf("failed to build subscription plans catalog: %v", err)
+	}
+	paidSubscriptionsService := paidsubscriptions.NewServiceWithCatalog(paidsubscriptions.NewSQLStore(
 		c.Database,
 		c.Config.Adapters.DB,
 		c.Config.App.OperationalConstants.ProTrialTimespanInDays,
 		c.Config.App.OperationalConstants.PaymentFailedGracePeriodInDays,
-	))
+	), plansCatalog)
 	if err := wireJobsModule(c); err != nil {
 		log.Fatalf("failed to initialize jobs module: %v", err)
 	}

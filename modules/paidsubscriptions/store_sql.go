@@ -27,7 +27,15 @@ func NewSQLStore(db *sql.DB, dialect string, proTrialTimespanInDays, paymentFail
 	}
 }
 
-func (s *SQLStore) CreateSubscription(ctx context.Context, tx any, profileID int) error {
+func (s *SQLStore) CreateSubscription(
+	ctx context.Context,
+	tx any,
+	profileID int,
+	planKey string,
+	paid bool,
+	isTrial bool,
+	expiresOn *time.Time,
+) error {
 	txx, ownTx, err := s.resolveTx(ctx, tx)
 	if err != nil {
 		return err
@@ -41,7 +49,12 @@ func (s *SQLStore) CreateSubscription(ctx context.Context, tx any, profileID int
 	if err != nil {
 		return err
 	}
-	if _, err := txx.ExecContext(ctx, s.bind(createSubscriptionQuery), now, now, ProductTypePro.Value, true, false, true, now, now.Add(s.proTrialTimespan), nil, profileID); err != nil {
+	expiry := expiresOn
+	if isTrial && expiry == nil {
+		t := now.Add(s.proTrialTimespan)
+		expiry = &t
+	}
+	if _, err := txx.ExecContext(ctx, s.bind(createSubscriptionQuery), now, now, normalizePlanKey(planKey), true, paid, isTrial, now, expiry, nil, profileID); err != nil {
 		return err
 	}
 
@@ -68,7 +81,14 @@ func (s *SQLStore) DeactivateExpiredSubscriptions(ctx context.Context) error {
 	return err
 }
 
-func (s *SQLStore) UpdateToPaidPro(ctx context.Context, profileID int) error {
+func (s *SQLStore) UpdateToPlan(
+	ctx context.Context,
+	profileID int,
+	planKey string,
+	paid bool,
+	isTrial bool,
+	expiresOn *time.Time,
+) error {
 	count, err := s.countActiveSubscriptions(ctx, profileID)
 	if err != nil {
 		return err
@@ -79,18 +99,22 @@ func (s *SQLStore) UpdateToPaidPro(ctx context.Context, profileID int) error {
 	case count > 1:
 		return errors.New("there should only ever be 1 active subscription for a profile")
 	case count == 1:
-		query, lookupErr := dbqueries.Get("update_to_paid_pro_existing")
+		query, lookupErr := dbqueries.Get("update_active_plan_existing")
 		if lookupErr != nil {
 			return lookupErr
 		}
-		_, err = s.db.ExecContext(ctx, s.bind(query), now, ProductTypePro.Value, false, true, now, profileID, true)
+		_, err = s.db.ExecContext(ctx, s.bind(query), now, normalizePlanKey(planKey), paid, isTrial, true, now, expiresOn, profileID, true)
 		return err
 	default:
 		createSubscriptionQuery, lookupErr := dbqueries.Get("create_subscription")
 		if lookupErr != nil {
 			return lookupErr
 		}
-		if _, err := s.db.ExecContext(ctx, s.bind(createSubscriptionQuery), now, now, ProductTypePro.Value, true, false, false, now, nil, nil, profileID); err != nil {
+		if isTrial && expiresOn == nil {
+			t := now.Add(s.proTrialTimespan)
+			expiresOn = &t
+		}
+		if _, err := s.db.ExecContext(ctx, s.bind(createSubscriptionQuery), now, now, normalizePlanKey(planKey), true, paid, isTrial, now, expiresOn, nil, profileID); err != nil {
 			return err
 		}
 		createLinkQuery, lookupErr := dbqueries.Get("create_subscription_benefactor_link")

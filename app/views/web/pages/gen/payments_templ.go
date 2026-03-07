@@ -10,10 +10,10 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"github.com/leomorpho/goship/app/controller"
+	appsubscriptions "github.com/leomorpho/goship/app/subscriptions"
 	"github.com/leomorpho/goship/app/views/web/components/gen"
 	"github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/app/web/viewmodels"
-	"github.com/leomorpho/goship/framework/domain"
 )
 
 func PricingPage(page *controller.Page) templ.Component {
@@ -42,7 +42,7 @@ func PricingPage(page *controller.Page) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		if data, ok := page.Data.(viewmodels.PricingPageData); ok {
-			templ_7745c5c3_Err = pricingCards(page, data.ProductProPrice, data.ProductProCode, &data.ActivePlan, data.IsTrial).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = pricingCards(page, data.ProductProPrice, data.ProductProCode, data.ActivePlanKey, data.ActivePlanIsPaid, data.IsTrial).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -51,7 +51,7 @@ func PricingPage(page *controller.Page) templ.Component {
 	})
 }
 
-func pricingCards(page *controller.Page, productProPrice, productProCode string, activeProduct *domain.ProductType, isTrial bool) templ.Component {
+func pricingCards(page *controller.Page, productProPrice, productProCode, activePlanKey string, activePlanIsPaid bool, isTrial bool) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -76,11 +76,11 @@ func pricingCards(page *controller.Page, productProPrice, productProCode string,
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = pricingCard(page, "Starter", "Forever free.", "0", []string{"Answer up to 1 question every 24h", "Save up to 3 questions for later"}, "", domain.ProductTypeFree, activeProduct, isTrial).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = pricingCard(page, "Starter", "Forever free.", "0", []string{"Answer up to 1 question every 24h", "Save up to 3 questions for later"}, "", appsubscriptions.PlanFreeKey, activePlanKey, activePlanIsPaid, isTrial).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = pricingCard(page, "Committed", "You like diving deep.", productProPrice, []string{"Unlimited everything"}, productProCode, domain.ProductTypePro, activeProduct, isTrial).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = pricingCard(page, "Committed", "You like diving deep.", productProPrice, []string{"Unlimited everything"}, productProCode, appsubscriptions.PlanProKey, activePlanKey, activePlanIsPaid, isTrial).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -92,7 +92,7 @@ func pricingCards(page *controller.Page, productProPrice, productProCode string,
 	})
 }
 
-func pricingCard(page *controller.Page, title, subtitle, price string, points []string, checkoutValue string, targetPlan domain.ProductType, activePlan *domain.ProductType, isTrial bool) templ.Component {
+func pricingCard(page *controller.Page, title, subtitle, price string, points []string, checkoutValue string, targetPlanKey, activePlanKey string, activePlanIsPaid bool, isTrial bool) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -175,7 +175,7 @@ func pricingCard(page *controller.Page, title, subtitle, price string, points []
 				return templ_7745c5c3_Err
 			}
 		}
-		if activePlan == nil && targetPlan == domain.ProductTypePro {
+		if activePlanKey == "" && targetPlanKey == appsubscriptions.PlanProKey {
 			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "<li class=\"flex items-center space-x-3\"><!-- Icon --><svg class=\"flex-shrink-0 w-5 h-5 text-green-500 dark:text-green-400\" fill=\"currentColor\" viewBox=\"0 0 20 20\" xmlns=\"http://www.w3.org/2000/svg\"><path fill-rule=\"evenodd\" d=\"M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z\" clip-rule=\"evenodd\"></path></svg> <span>Free 15 day trial after registration</span></li>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -185,8 +185,8 @@ func pricingCard(page *controller.Page, title, subtitle, price string, points []
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if activePlan != nil {
-			if *activePlan == targetPlan {
+		if activePlanKey != "" {
+			if activePlanKey == targetPlanKey {
 				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<div><button disabled class=\"text-white bg-purple-400 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:text-white\">✅ Currently on this plan ")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
@@ -202,7 +202,7 @@ func pricingCard(page *controller.Page, title, subtitle, price string, points []
 					return templ_7745c5c3_Err
 				}
 			} else {
-				if *activePlan == domain.ProductTypeFree {
+				if !activePlanIsPaid {
 					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<form action=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
@@ -242,7 +242,7 @@ func pricingCard(page *controller.Page, title, subtitle, price string, points []
 						return templ_7745c5c3_Err
 					}
 				} else {
-					templ_7745c5c3_Err = components.ManageSubscriptionButton(page, *activePlan, isTrial).Render(ctx, templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = components.ManageSubscriptionButton(page, activePlanKey, isTrial, activePlanIsPaid).Render(ctx, templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}

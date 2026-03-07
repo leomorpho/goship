@@ -7,104 +7,118 @@ import (
 	"time"
 
 	"github.com/leomorpho/goship-modules/paidsubscriptions"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type stubStore struct {
-	updateToPaidProErr error
-	updateToFreeErr    error
+	createCalled bool
+	updateCalled bool
+
+	createPlan  string
+	createPaid  bool
+	createTrial bool
+
+	updatePlan  string
+	updatePaid  bool
+	updateTrial bool
+
+	createErr error
+	updateErr error
 }
 
-func (s *stubStore) CreateSubscription(context.Context, any, int) error {
-	return nil
+func (s *stubStore) CreateSubscription(_ context.Context, _ any, _ int, planKey string, paid bool, isTrial bool, _ *time.Time) error {
+	s.createCalled = true
+	s.createPlan = planKey
+	s.createPaid = paid
+	s.createTrial = isTrial
+	return s.createErr
 }
 
-func (s *stubStore) DeactivateExpiredSubscriptions(context.Context) error {
-	return nil
-}
+func (s *stubStore) DeactivateExpiredSubscriptions(context.Context) error { return nil }
 
-func (s *stubStore) UpdateToPaidPro(context.Context, int) error {
-	return s.updateToPaidProErr
+func (s *stubStore) UpdateToPlan(_ context.Context, _ int, planKey string, paid bool, isTrial bool, _ *time.Time) error {
+	s.updateCalled = true
+	s.updatePlan = planKey
+	s.updatePaid = paid
+	s.updateTrial = isTrial
+	return s.updateErr
 }
 
 func (s *stubStore) GetCurrentlyActiveProduct(context.Context, int) (*paidsubscriptions.ProductType, *time.Time, bool, error) {
 	return &paidsubscriptions.ProductTypeFree, nil, false, nil
 }
-
-func (s *stubStore) StoreStripeCustomerID(context.Context, int, string) error {
-	return nil
-}
-
+func (s *stubStore) StoreStripeCustomerID(context.Context, int, string) error { return nil }
 func (s *stubStore) GetStripeCustomerIDByProfileID(context.Context, int) (string, error) {
 	return "", nil
 }
-
 func (s *stubStore) GetProfileIDFromStripeCustomerID(context.Context, string) (int, error) {
 	return 0, nil
 }
+func (s *stubStore) CancelWithGracePeriod(context.Context, int) error     { return nil }
+func (s *stubStore) CancelOrRenew(context.Context, int, *time.Time) error { return nil }
+func (s *stubStore) UpdateToFree(context.Context, int) error              { return nil }
 
-func (s *stubStore) CancelWithGracePeriod(context.Context, int) error {
-	return nil
-}
-
-func (s *stubStore) CancelOrRenew(context.Context, int, *time.Time) error {
-	return nil
-}
-
-func (s *stubStore) UpdateToFree(context.Context, int) error {
-	return s.updateToFreeErr
-}
-
-func TestServiceForwardsOperations(t *testing.T) {
+func TestService_ActivatePlan_UsesCatalogMetadata(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct {
-		name    string
-		store   *stubStore
-		call    func(s *paidsubscriptions.Service) error
-		wantErr error
-	}{
-		{
-			name: "update paid pro error",
-			store: &stubStore{
-				updateToPaidProErr: errors.New("boom"),
-			},
-			call: func(s *paidsubscriptions.Service) error {
-				return s.UpdateToPaidPro(context.Background(), 1)
-			},
-			wantErr: errors.New("boom"),
+	catalog, err := paidsubscriptions.NewStaticPlanCatalog(
+		[]paidsubscriptions.Plan{
+			{Key: "free", Paid: false},
+			{Key: "starter", Paid: false},
+			{Key: "team", Paid: true},
 		},
-		{
-			name: "update free error",
-			store: &stubStore{
-				updateToFreeErr: errors.New("fail"),
-			},
-			call: func(s *paidsubscriptions.Service) error {
-				return s.UpdateToFree(context.Background(), 1)
-			},
-			wantErr: errors.New("fail"),
-		},
-		{
-			name:  "update paid pro success",
-			store: &stubStore{},
-			call: func(s *paidsubscriptions.Service) error {
-				return s.UpdateToPaidPro(context.Background(), 1)
-			},
-			wantErr: nil,
-		},
-	}
+		"free",
+		"starter",
+	)
+	require.NoError(t, err)
 
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			svc := paidsubscriptions.New(tt.store)
-			err := tt.call(svc)
-			if tt.wantErr == nil {
-				assert.NoError(t, err)
-				return
-			}
-			assert.EqualError(t, err, tt.wantErr.Error())
-		})
-	}
+	store := &stubStore{}
+	svc := paidsubscriptions.NewServiceWithCatalog(store, catalog)
+
+	require.NoError(t, svc.ActivatePlan(context.Background(), 123, "team"))
+	require.True(t, store.updateCalled)
+	require.Equal(t, "team", store.updatePlan)
+	require.True(t, store.updatePaid)
+	require.False(t, store.updateTrial)
+}
+
+func TestService_CreateSubscription_UsesDefaultTrialPlan(t *testing.T) {
+	t.Parallel()
+
+	catalog, err := paidsubscriptions.NewStaticPlanCatalog(
+		[]paidsubscriptions.Plan{
+			{Key: "free", Paid: false},
+			{Key: "starter", Paid: false},
+			{Key: "team", Paid: true},
+		},
+		"free",
+		"starter",
+	)
+	require.NoError(t, err)
+
+	store := &stubStore{}
+	svc := paidsubscriptions.NewServiceWithCatalog(store, catalog)
+	require.NoError(t, svc.CreateSubscription(context.Background(), nil, 7))
+
+	require.True(t, store.createCalled)
+	require.Equal(t, "starter", store.createPlan)
+	require.False(t, store.createPaid)
+	require.True(t, store.createTrial)
+}
+
+func TestService_StartTrial_UnknownPlan(t *testing.T) {
+	t.Parallel()
+	store := &stubStore{}
+	svc := paidsubscriptions.NewService(store)
+	err := svc.StartTrial(context.Background(), nil, 9, "missing")
+	require.EqualError(t, err, `subscription plan "missing" not found in catalog`)
+}
+
+func TestService_ForwardStoreErrors(t *testing.T) {
+	t.Parallel()
+
+	store := &stubStore{updateErr: errors.New("boom")}
+	svc := paidsubscriptions.NewService(store)
+	err := svc.ActivatePlan(context.Background(), 1, "pro")
+	require.EqualError(t, err, "boom")
 }

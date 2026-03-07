@@ -697,7 +697,7 @@ func pricingForLandingPage(page *controller.Page, data viewmodels.LandingPage) t
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = pricingCards(page, data.ProductProPrice, data.ProductProCode, nil, false).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = pricingCards(page, data.ProductProPrice, data.ProductProCode, "", false, false).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

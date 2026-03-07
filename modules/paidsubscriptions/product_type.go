@@ -13,14 +13,10 @@ var (
 )
 
 func ParseProductType(v string) *ProductType {
-	switch strings.ToLower(strings.TrimSpace(v)) {
-	case ProductTypeFree.Value:
-		p := ProductTypeFree
-		return &p
-	case ProductTypePro.Value:
-		p := ProductTypePro
-		return &p
-	default:
+	key := strings.ToLower(strings.TrimSpace(v))
+	if key == "" {
 		return nil
 	}
+	p := ProductType{Value: key}
+	return &p
 }

@@ -16,15 +16,16 @@ UPDATE monthly_subscriptions
 SET is_active = ?, expired_on = ?
 WHERE is_active = ? AND expired_on IS NOT NULL AND expired_on <= ?;
 
--- name: update_to_paid_pro_existing
+-- name: update_active_plan_existing
 UPDATE monthly_subscriptions
 SET
 	updated_at = ?,
 	product = ?,
+	paid = ?,
 	is_trial = ?,
 	is_active = ?,
 	started_at = ?,
-	expired_on = NULL,
+	expired_on = ?,
 	cancelled_at = NULL
 WHERE paying_profile_id = ? AND is_active = ?;
 
@@ -85,4 +86,3 @@ WHERE paying_profile_id = ? AND is_active = ?;
 SELECT COUNT(*)
 FROM monthly_subscriptions
 WHERE paying_profile_id = ? AND is_active = ?;
-

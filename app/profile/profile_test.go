@@ -371,7 +371,7 @@ func TestDeleteUserData(t *testing.T) {
 	err = subscriptionsService.CreateSubscription(ctx, nil, profile1ID)
 	assert.NoError(t, err)
 
-	err = subscriptionsService.UpdateToPaidPro(ctx, profile1ID)
+	err = subscriptionsService.ActivatePlan(ctx, profile1ID, "pro")
 	assert.NoError(t, err)
 	now := time.Now()
 	err = subscriptionsService.CancelOrRenew(ctx, profile1ID, &now)

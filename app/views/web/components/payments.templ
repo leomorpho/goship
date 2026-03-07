@@ -2,12 +2,12 @@ package components
 
 import (
 	"github.com/leomorpho/goship/app/controller"
-	"github.com/leomorpho/goship/framework/domain"
+	appsubscriptions "github.com/leomorpho/goship/app/subscriptions"
 	"github.com/leomorpho/goship/app/web/routenames"
 )
 
-templ ManageSubscriptionButton(page *controller.Page, subscription domain.ProductType, isTrial bool) {
-	if subscription == domain.ProductTypeFree || (subscription == domain.ProductTypePro && isTrial) {
+templ ManageSubscriptionButton(page *controller.Page, subscriptionPlanKey string, isTrial bool, isPaidPlan bool) {
+	if !isPaidPlan || (isPaidPlan && isTrial) || subscriptionPlanKey == appsubscriptions.PlanFreeKey {
 		@PricingPage(page)
 	} else {
 		// This is an existing customer

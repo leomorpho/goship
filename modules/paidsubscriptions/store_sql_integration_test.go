@@ -26,7 +26,7 @@ func TestSQLStore_WithModuleMigration_EndToEnd(t *testing.T) {
 	ctx := context.Background()
 	store := NewSQLStore(db, "sqlite3", 15, 3)
 
-	require.NoError(t, store.CreateSubscription(ctx, nil, 1))
+	require.NoError(t, store.CreateSubscription(ctx, nil, 1, "pro", true, true, nil))
 	product, expiry, isTrial, err := store.GetCurrentlyActiveProduct(ctx, 1)
 	require.NoError(t, err)
 	require.NotNil(t, product)
@@ -34,7 +34,7 @@ func TestSQLStore_WithModuleMigration_EndToEnd(t *testing.T) {
 	require.NotNil(t, expiry)
 	require.True(t, isTrial)
 
-	require.NoError(t, store.UpdateToPaidPro(ctx, 1))
+	require.NoError(t, store.UpdateToPlan(ctx, 1, "pro", true, false, nil))
 	product, expiry, isTrial, err = store.GetCurrentlyActiveProduct(ctx, 1)
 	require.NoError(t, err)
 	require.NotNil(t, product)

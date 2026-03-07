@@ -2,19 +2,16 @@ package controllers
 
 import (
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
-	"github.com/leomorpho/goship/framework/domain"
+	appsubscriptions "github.com/leomorpho/goship/app/subscriptions"
 )
 
-func toDomainProductType(pt *paidsubscriptions.ProductType) *domain.ProductType {
-	if pt == nil {
-		return nil
+func activePlanKey(pt *paidsubscriptions.ProductType) string {
+	if pt == nil || pt.Value == "" {
+		return appsubscriptions.PlanFreeKey
 	}
-	switch pt.Value {
-	case paidsubscriptions.ProductTypePro.Value:
-		p := domain.ProductTypePro
-		return &p
-	default:
-		p := domain.ProductTypeFree
-		return &p
-	}
+	return pt.Value
+}
+
+func isPaidPlanKey(planKey string) bool {
+	return planKey != appsubscriptions.PlanFreeKey
 }

@@ -15,7 +15,7 @@ func TestSQLStore_SubscriptionLifecycle(t *testing.T) {
 	store := NewSQLStore(db, "sqlite3", 15, 3)
 	ctx := context.Background()
 
-	require.NoError(t, store.CreateSubscription(ctx, nil, 1))
+	require.NoError(t, store.CreateSubscription(ctx, nil, 1, "pro", true, true, nil))
 	prod, expiry, isTrial, err := store.GetCurrentlyActiveProduct(ctx, 1)
 	require.NoError(t, err)
 	require.NotNil(t, prod)
@@ -23,7 +23,7 @@ func TestSQLStore_SubscriptionLifecycle(t *testing.T) {
 	require.NotNil(t, expiry)
 	require.True(t, isTrial)
 
-	require.NoError(t, store.UpdateToPaidPro(ctx, 1))
+	require.NoError(t, store.UpdateToPlan(ctx, 1, "pro", true, false, nil))
 	prod, expiry, isTrial, err = store.GetCurrentlyActiveProduct(ctx, 1)
 	require.NoError(t, err)
 	require.NotNil(t, prod)
@@ -54,7 +54,13 @@ func TestSQLStore_StripeIDAndCancellation(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, pid)
 
-	require.NoError(t, store.CreateSubscription(ctx, nil, 1))
+	require.NoError(t, store.CreateSubscription(ctx, nil, 1, "pro", true, true, nil))
+
+	require.NoError(t, store.UpdateToPlan(ctx, 1, "team", true, false, nil))
+	prod, _, _, err := store.GetCurrentlyActiveProduct(ctx, 1)
+	require.NoError(t, err)
+	require.NotNil(t, prod)
+	require.Equal(t, "team", prod.Value)
 	require.NoError(t, store.CancelWithGracePeriod(ctx, 1))
 	cancelAt := time.Now().UTC().Add(48 * time.Hour)
 	require.NoError(t, store.CancelOrRenew(ctx, 1, &cancelAt))

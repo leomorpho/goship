@@ -80,7 +80,7 @@ func Settings(page *controller.Page) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			if data.IsPaymentsEnabled {
-				templ_7745c5c3_Err = subscription(page, data.IsProfileFullyOnboarded, data.ActiveSubscriptionPlan, data.MonthlySybscriptionExpiration, data.IsTrial).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = subscription(page, data.IsProfileFullyOnboarded, data.ActiveSubscriptionPlanKey, data.ActiveSubscriptionPlanIsPaid, data.MonthlySybscriptionExpiration, data.IsTrial).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -323,7 +323,7 @@ func initPermissions(componentID string, d viewmodels.NotificationPermissionsDat
 	}
 }
 
-func subscription(page *controller.Page, fullyOnboarded bool, plan domain.ProductType, expiryTimestap *time.Time, isTrial bool) templ.Component {
+func subscription(page *controller.Page, fullyOnboarded bool, planKey string, isPaidPlan bool, expiryTimestap *time.Time, isTrial bool) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -355,9 +355,9 @@ func subscription(page *controller.Page, fullyOnboarded bool, plan domain.Produc
 			}
 		}
 		var templ_7745c5c3_Var12 string
-		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(plan.Value)
+		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(planKey)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 172, Col: 15}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 172, Col: 12}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 		if templ_7745c5c3_Err != nil {
@@ -395,12 +395,12 @@ func subscription(page *controller.Page, fullyOnboarded bool, plan domain.Produc
 			}
 		}
 		if fullyOnboarded {
-			if !(plan == domain.ProductTypePro && isTrial) {
+			if !(isPaidPlan && isTrial) {
 				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<div class=\"flex justify-center\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = components.ManageSubscriptionButton(page, plan, isTrial).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = components.ManageSubscriptionButton(page, planKey, isTrial, isPaidPlan).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

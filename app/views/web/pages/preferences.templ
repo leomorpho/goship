@@ -26,7 +26,7 @@ templ Settings(page *controller.Page) {
 			</div>
 			@NotificationPermissions(page, data.NotificationPermissionsData)
 			if data.IsPaymentsEnabled {
-				@subscription(page, data.IsProfileFullyOnboarded, data.ActiveSubscriptionPlan, data.MonthlySybscriptionExpiration, data.IsTrial)
+				@subscription(page, data.IsProfileFullyOnboarded, data.ActiveSubscriptionPlanKey, data.ActiveSubscriptionPlanIsPaid, data.MonthlySybscriptionExpiration, data.IsTrial)
 			}
 			// TODO: not allowing this new phone flow for now
 			if data.IsProfileFullyOnboarded {
@@ -156,7 +156,7 @@ script initPermissions(componentID string, d viewmodels.NotificationPermissionsD
 	});
 }
 
-templ subscription(page *controller.Page, fullyOnboarded bool, plan domain.ProductType, expiryTimestap *time.Time, isTrial bool) {
+templ subscription(page *controller.Page, fullyOnboarded bool, planKey string, isPaidPlan bool, expiryTimestap *time.Time, isTrial bool) {
 	<h1 class="text-3xl md:text-4xl font-semibold mb-4 pt-10 md:pt-14 lg:pt-16 mb-4">
 		💳 Subscription
 	</h1>
@@ -169,7 +169,7 @@ templ subscription(page *controller.Page, fullyOnboarded bool, plan domain.Produ
 			if isTrial {
 				<span class="mr-1">15 days free</span>
 			}
-			{ plan.Value }
+			{ planKey }
 		</span> plan.
 	</div>
 	if expiryTimestap != nil {
@@ -186,9 +186,9 @@ templ subscription(page *controller.Page, fullyOnboarded bool, plan domain.Produ
 		</div>
 	}
 	if fullyOnboarded {
-		if  !(plan == domain.ProductTypePro && isTrial) {
+		if  !(isPaidPlan && isTrial) {
 			<div class="flex justify-center">
-				@components.ManageSubscriptionButton(page, plan, isTrial)
+				@components.ManageSubscriptionButton(page, planKey, isTrial, isPaidPlan)
 			</div>
 		} else {
 			<div class="my-2">
