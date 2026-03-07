@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+
+	dbqueries "github.com/leomorpho/goship/db/queries"
 )
 
 func resolveMigrationsDir() (string, error) {
@@ -33,17 +35,13 @@ func applySQLMigrations(db *sql.DB, migrationsDir string, driver string) error {
 		return fmt.Errorf("find migrations directory %q: %w", migrationsDir, err)
 	}
 
-	trackingDDL := `
-CREATE TABLE IF NOT EXISTS goship_schema_migrations (
-	version VARCHAR(255) PRIMARY KEY,
-	applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-)`
+	queryName := "create_schema_migrations_table_postgres"
 	if driver == "sqlite3" {
-		trackingDDL = `
-CREATE TABLE IF NOT EXISTS goship_schema_migrations (
-	version TEXT PRIMARY KEY,
-	applied_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-)`
+		queryName = "create_schema_migrations_table_sqlite"
+	}
+	trackingDDL, err := dbqueries.Get(queryName)
+	if err != nil {
+		return fmt.Errorf("load tracking table DDL query %q: %w", queryName, err)
 	}
 	if _, err := db.Exec(trackingDDL); err != nil {
 		return fmt.Errorf("ensure goship_schema_migrations table: %w", err)
@@ -94,11 +92,15 @@ func migrationVersion(entry os.DirEntry) string {
 
 func hasAppliedMigration(db *sql.DB, driver string, version string) (bool, error) {
 	var marker int
-	query := `SELECT 1 FROM goship_schema_migrations WHERE version = $1`
+	queryName := "select_schema_migration_version_postgres"
 	if driver == "sqlite3" {
-		query = `SELECT 1 FROM goship_schema_migrations WHERE version = ?`
+		queryName = "select_schema_migration_version_sqlite"
 	}
-	err := db.QueryRow(query, version).Scan(&marker)
+	query, err := dbqueries.Get(queryName)
+	if err != nil {
+		return false, fmt.Errorf("load hasAppliedMigration query %q: %w", queryName, err)
+	}
+	err = db.QueryRow(query, version).Scan(&marker)
 	if err == nil {
 		return true, nil
 	}
@@ -118,9 +120,13 @@ func applySingleMigration(db *sql.DB, driver string, version string, sqlText str
 	if _, err := tx.Exec(sqlText); err != nil {
 		return fmt.Errorf("execute SQL: %w", err)
 	}
-	insert := `INSERT INTO goship_schema_migrations (version) VALUES ($1)`
+	queryName := "insert_schema_migration_version_postgres"
 	if driver == "sqlite3" {
-		insert = `INSERT INTO goship_schema_migrations (version) VALUES (?)`
+		queryName = "insert_schema_migration_version_sqlite"
+	}
+	insert, err := dbqueries.Get(queryName)
+	if err != nil {
+		return fmt.Errorf("load applySingleMigration query %q: %w", queryName, err)
 	}
 	if _, err := tx.Exec(insert, version); err != nil {
 		return fmt.Errorf("record migration version %q: %w", version, err)

@@ -273,6 +273,16 @@ WHERE profile_id = $1 AND friend_id = $2;
 DELETE FROM profile_friends
 WHERE profile_id = ? AND friend_id = ?;
 
+-- name: count_unseen_notifications_by_profile_id_postgres
+SELECT COUNT(*)
+FROM notifications
+WHERE profile_notifications = $1 AND read = $2;
+
+-- name: count_unseen_notifications_by_profile_id_sqlite
+SELECT COUNT(*)
+FROM notifications
+WHERE profile_notifications = ? AND read = ?;
+
 -- name: get_profile_image_id_by_profile_id_postgres
 SELECT profile_profile_image
 FROM profiles

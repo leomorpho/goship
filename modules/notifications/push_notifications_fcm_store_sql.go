@@ -3,6 +3,7 @@ package notifications
 import (
 	"context"
 	"database/sql"
+	dbqueries "github.com/leomorpho/goship-modules/notifications/db/queries"
 	"strconv"
 	"strings"
 	"time"
@@ -38,22 +39,22 @@ func (s *sqlFcmPushSubscriptionStore) addSubscription(
 	ctx context.Context, profileID int, token string,
 ) error {
 	now := time.Now().UTC()
-	_, err := s.db.ExecContext(ctx, s.bind(`
-		INSERT INTO fcm_subscriptions (
-			created_at, updated_at, token, profile_id
-		) VALUES (?, ?, ?, ?)
-	`), now, now, token, profileID)
+	query, err := dbqueries.Get("insert_fcm_subscription")
+	if err != nil {
+		return err
+	}
+	_, err = s.db.ExecContext(ctx, s.bind(query), now, now, token, profileID)
 	return err
 }
 
 func (s *sqlFcmPushSubscriptionStore) listSubscriptions(
 	ctx context.Context, profileID int,
 ) ([]fcmPushSubscriptionRecord, error) {
-	rows, err := s.db.QueryContext(ctx, s.bind(`
-		SELECT profile_id, token
-		FROM fcm_subscriptions
-		WHERE profile_id = ?
-	`), profileID)
+	query, err := dbqueries.Get("list_fcm_subscriptions_by_profile")
+	if err != nil {
+		return nil, err
+	}
+	rows, err := s.db.QueryContext(ctx, s.bind(query), profileID)
 	if err != nil {
 		return nil, err
 	}
@@ -73,22 +74,23 @@ func (s *sqlFcmPushSubscriptionStore) listSubscriptions(
 func (s *sqlFcmPushSubscriptionStore) deleteByToken(
 	ctx context.Context, profileID int, token string,
 ) error {
-	_, err := s.db.ExecContext(ctx, s.bind(`
-		DELETE FROM fcm_subscriptions
-		WHERE profile_id = ? AND token = ?
-	`), profileID, token)
+	query, err := dbqueries.Get("delete_fcm_subscription_by_token")
+	if err != nil {
+		return err
+	}
+	_, err = s.db.ExecContext(ctx, s.bind(query), profileID, token)
 	return err
 }
 
 func (s *sqlFcmPushSubscriptionStore) hasAnyByProfileID(
 	ctx context.Context, profileID int,
 ) (bool, error) {
+	query, err := dbqueries.Get("count_fcm_subscriptions_by_profile")
+	if err != nil {
+		return false, err
+	}
 	var count int
-	if err := s.db.QueryRowContext(ctx, s.bind(`
-		SELECT COUNT(*)
-		FROM fcm_subscriptions
-		WHERE profile_id = ?
-	`), profileID).Scan(&count); err != nil {
+	if err := s.db.QueryRowContext(ctx, s.bind(query), profileID).Scan(&count); err != nil {
 		return false, err
 	}
 	return count > 0, nil
@@ -97,12 +99,12 @@ func (s *sqlFcmPushSubscriptionStore) hasAnyByProfileID(
 func (s *sqlFcmPushSubscriptionStore) hasToken(
 	ctx context.Context, profileID int, token string,
 ) (bool, error) {
+	query, err := dbqueries.Get("count_fcm_subscription_by_token")
+	if err != nil {
+		return false, err
+	}
 	var count int
-	if err := s.db.QueryRowContext(ctx, s.bind(`
-		SELECT COUNT(*)
-		FROM fcm_subscriptions
-		WHERE profile_id = ? AND token = ?
-	`), profileID, token).Scan(&count); err != nil {
+	if err := s.db.QueryRowContext(ctx, s.bind(query), profileID, token).Scan(&count); err != nil {
 		return false, err
 	}
 	return count > 0, nil

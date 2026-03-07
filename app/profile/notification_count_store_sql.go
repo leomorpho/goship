@@ -5,7 +5,13 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	dbqueries "github.com/leomorpho/goship/db/queries"
 	"strings"
+)
+
+var (
+	countUnseenNotificationsByProfileIDPostgres = mustQuery("count_unseen_notifications_by_profile_id_postgres")
+	countUnseenNotificationsByProfileIDSQLite   = mustQuery("count_unseen_notifications_by_profile_id_sqlite")
 )
 
 // SQLNotificationCountStore provides a DB/sql-backed implementation that does not
@@ -41,10 +47,18 @@ func (s *SQLNotificationCountStore) CountUnseenNotifications(ctx context.Context
 func (s *SQLNotificationCountStore) countQuery(profileID int) (string, []any) {
 	switch s.dialect {
 	case "postgres", "postgresql", "pgx":
-		return "SELECT COUNT(*) FROM notifications WHERE profile_notifications = $1 AND read = $2", []any{profileID, false}
+		return countUnseenNotificationsByProfileIDPostgres, []any{profileID, false}
 	default:
-		return "SELECT COUNT(*) FROM notifications WHERE profile_notifications = ? AND read = ?", []any{profileID, false}
+		return countUnseenNotificationsByProfileIDSQLite, []any{profileID, false}
 	}
+}
+
+func mustQuery(name string) string {
+	query, err := dbqueries.Get(name)
+	if err != nil {
+		panic(err)
+	}
+	return query
 }
 
 func (s *SQLNotificationCountStore) String() string {

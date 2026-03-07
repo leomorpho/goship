@@ -9,6 +9,7 @@ import (
 	"time"
 
 	dbmigrate "github.com/leomorpho/goship-modules/jobs/db/migrate"
+	dbqueries "github.com/leomorpho/goship-modules/jobs/db/queries"
 )
 
 type Config struct {
@@ -69,11 +70,13 @@ func (c *Client) Enqueue(
 	maxRetries int,
 ) error {
 	now := time.Now().UTC()
-	_, err := c.db.ExecContext(
+	query, err := dbqueries.Get("insert_job")
+	if err != nil {
+		return err
+	}
+	_, err = c.db.ExecContext(
 		ctx,
-		`INSERT INTO goship_jobs
-		(id, queue, name, payload, status, run_at, attempt, max_retries, created_at, updated_at)
-		VALUES (?, ?, ?, ?, 'queued', ?, 0, ?, ?, ?)`,
+		query,
 		id,
 		queue,
 		name,
@@ -88,18 +91,13 @@ func (c *Client) Enqueue(
 
 func (c *Client) ClaimNext(ctx context.Context, workerID string, lockUntil time.Time) (Job, bool, error) {
 	now := time.Now().UTC()
+	claimQuery, err := dbqueries.Get("claim_next_job")
+	if err != nil {
+		return Job{}, false, err
+	}
 	res, err := c.db.ExecContext(
 		ctx,
-		`UPDATE goship_jobs
-		SET status = 'running', locked_by = ?, lock_until = ?, updated_at = ?
-		WHERE id = (
-			SELECT id FROM goship_jobs
-			WHERE status = 'queued'
-			  AND run_at <= ?
-			  AND (lock_until IS NULL OR lock_until <= ?)
-			ORDER BY run_at ASC, created_at ASC
-			LIMIT 1
-		)`,
+		claimQuery,
 		workerID,
 		lockUntil.UTC(),
 		now,
@@ -117,13 +115,13 @@ func (c *Client) ClaimNext(ctx context.Context, workerID string, lockUntil time.
 		return Job{}, false, nil
 	}
 
+	selectClaimedQuery, err := dbqueries.Get("select_claimed_job")
+	if err != nil {
+		return Job{}, false, err
+	}
 	rows, err := c.db.QueryContext(
 		ctx,
-		`SELECT id, queue, name, payload, status, attempt, max_retries, run_at, created_at, updated_at, COALESCE(last_error, '')
-		FROM goship_jobs
-		WHERE status = 'running' AND locked_by = ?
-		ORDER BY updated_at DESC
-		LIMIT 1`,
+		selectClaimedQuery,
 		workerID,
 	)
 	if err != nil {
@@ -154,11 +152,13 @@ func (c *Client) ClaimNext(ctx context.Context, workerID string, lockUntil time.
 }
 
 func (c *Client) MarkDone(ctx context.Context, id string) error {
-	_, err := c.db.ExecContext(
+	query, err := dbqueries.Get("mark_done")
+	if err != nil {
+		return err
+	}
+	_, err = c.db.ExecContext(
 		ctx,
-		`UPDATE goship_jobs
-		SET status = 'done', locked_by = NULL, lock_until = NULL, updated_at = ?
-		WHERE id = ?`,
+		query,
 		time.Now().UTC(),
 		id,
 	)
@@ -166,17 +166,13 @@ func (c *Client) MarkDone(ctx context.Context, id string) error {
 }
 
 func (c *Client) MarkRetry(ctx context.Context, id string, runAt time.Time, lastError string) error {
-	_, err := c.db.ExecContext(
+	query, err := dbqueries.Get("mark_retry")
+	if err != nil {
+		return err
+	}
+	_, err = c.db.ExecContext(
 		ctx,
-		`UPDATE goship_jobs
-		SET status = 'queued',
-		    attempt = attempt + 1,
-		    run_at = ?,
-		    last_error = ?,
-		    locked_by = NULL,
-		    lock_until = NULL,
-		    updated_at = ?
-		WHERE id = ?`,
+		query,
 		runAt.UTC(),
 		lastError,
 		time.Now().UTC(),
@@ -186,16 +182,13 @@ func (c *Client) MarkRetry(ctx context.Context, id string, runAt time.Time, last
 }
 
 func (c *Client) MarkFailed(ctx context.Context, id string, lastError string) error {
-	_, err := c.db.ExecContext(
+	query, err := dbqueries.Get("mark_failed")
+	if err != nil {
+		return err
+	}
+	_, err = c.db.ExecContext(
 		ctx,
-		`UPDATE goship_jobs
-		SET status = 'failed',
-		    attempt = attempt + 1,
-		    last_error = ?,
-		    locked_by = NULL,
-		    lock_until = NULL,
-		    updated_at = ?
-		WHERE id = ?`,
+		query,
 		lastError,
 		time.Now().UTC(),
 		id,
@@ -204,8 +197,10 @@ func (c *Client) MarkFailed(ctx context.Context, id string, lastError string) er
 }
 
 func (c *Client) List(ctx context.Context, queue string, statuses []string, limit int, offset int) ([]Job, error) {
-	query := `SELECT id, queue, name, payload, status, attempt, max_retries, run_at, created_at, updated_at, COALESCE(last_error, '')
-	FROM goship_jobs`
+	query, err := dbqueries.Get("list_base")
+	if err != nil {
+		return nil, err
+	}
 	where := make([]string, 0, 2)
 	args := make([]any, 0, 6)
 
@@ -268,10 +263,13 @@ func (c *Client) List(ctx context.Context, queue string, statuses []string, limi
 }
 
 func (c *Client) Get(ctx context.Context, id string) (Job, bool, error) {
+	query, err := dbqueries.Get("get_by_id")
+	if err != nil {
+		return Job{}, false, err
+	}
 	rows, err := c.db.QueryContext(
 		ctx,
-		`SELECT id, queue, name, payload, status, attempt, max_retries, run_at, created_at, updated_at, COALESCE(last_error, '')
-		FROM goship_jobs WHERE id = ? LIMIT 1`,
+		query,
 		id,
 	)
 	if err != nil {

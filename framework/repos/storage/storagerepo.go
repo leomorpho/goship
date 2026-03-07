@@ -14,6 +14,7 @@ import (
 
 	"github.com/leomorpho/goship/config"
 	"github.com/leomorpho/goship/framework/domain"
+	storagequeries "github.com/leomorpho/goship/framework/repos/storage/queries"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 )
@@ -178,10 +179,15 @@ func (sc *StorageClient) DeleteFile(bucket Bucket, objectName string) error {
 		return err
 	}
 
-	_, err = sc.db.ExecContext(ctx, sc.bind(`
-		DELETE FROM file_storages
-		WHERE object_key = ?
-	`), objectName)
+	queryName := "delete_file_storage_by_object_key_sqlite"
+	if sc.postgresql {
+		queryName = "delete_file_storage_by_object_key_postgres"
+	}
+	query, err := storagequeries.Get(queryName)
+	if err != nil {
+		return err
+	}
+	_, err = sc.db.ExecContext(ctx, query, objectName)
 
 	if err != nil {
 		return err
@@ -255,19 +261,20 @@ func (sc *StorageClient) insertFileStorageRow(
 ) (int, error) {
 	now := time.Now().UTC()
 	if sc.postgresql {
+		query, err := storagequeries.Get("insert_file_storage_returning_id_postgres")
+		if err != nil {
+			return 0, err
+		}
 		var id int
-		err := sc.db.QueryRowContext(ctx, `
-			INSERT INTO file_storages (created_at, updated_at, bucket_name, object_key, file_size, file_hash)
-			VALUES ($1, $2, $3, $4, $5, $6)
-			RETURNING id
-		`, now, now, bucketName, objectName, size, fileHash).Scan(&id)
+		err = sc.db.QueryRowContext(ctx, query, now, now, bucketName, objectName, size, fileHash).Scan(&id)
 		return id, err
 	}
 
-	result, err := sc.db.ExecContext(ctx, `
-		INSERT INTO file_storages (created_at, updated_at, bucket_name, object_key, file_size, file_hash)
-		VALUES (?, ?, ?, ?, ?, ?)
-	`, now, now, bucketName, objectName, size, fileHash)
+	query, err := storagequeries.Get("insert_file_storage_sqlite")
+	if err != nil {
+		return 0, err
+	}
+	result, err := sc.db.ExecContext(ctx, query, now, now, bucketName, objectName, size, fileHash)
 	if err != nil {
 		return 0, err
 	}
@@ -276,22 +283,4 @@ func (sc *StorageClient) insertFileStorageRow(
 		return 0, err
 	}
 	return int(id64), nil
-}
-
-func (sc *StorageClient) bind(query string) string {
-	if !sc.postgresql {
-		return query
-	}
-	var b strings.Builder
-	b.Grow(len(query) + 8)
-	idx := 1
-	for _, r := range query {
-		if r == '?' {
-			fmt.Fprintf(&b, "$%d", idx)
-			idx++
-			continue
-		}
-		b.WriteRune(r)
-	}
-	return b.String()
 }

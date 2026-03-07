@@ -3,6 +3,7 @@ package notifications
 import (
 	"context"
 	"database/sql"
+	dbqueries "github.com/leomorpho/goship-modules/notifications/db/queries"
 	"strconv"
 	"strings"
 	"time"
@@ -40,22 +41,22 @@ func (s *sqlPwaPushSubscriptionStore) addSubscription(
 	ctx context.Context, profileID int, sub Subscription,
 ) error {
 	now := time.Now().UTC()
-	_, err := s.db.ExecContext(ctx, s.bind(`
-		INSERT INTO pwa_push_subscriptions (
-			created_at, updated_at, endpoint, p256dh, auth, profile_id
-		) VALUES (?, ?, ?, ?, ?, ?)
-	`), now, now, sub.Endpoint, sub.P256dh, sub.Auth, profileID)
+	query, err := dbqueries.Get("insert_pwa_subscription")
+	if err != nil {
+		return err
+	}
+	_, err = s.db.ExecContext(ctx, s.bind(query), now, now, sub.Endpoint, sub.P256dh, sub.Auth, profileID)
 	return err
 }
 
 func (s *sqlPwaPushSubscriptionStore) listSubscriptions(
 	ctx context.Context, profileID int,
 ) ([]pwaPushSubscriptionRecord, error) {
-	rows, err := s.db.QueryContext(ctx, s.bind(`
-		SELECT profile_id, endpoint, p256dh, auth
-		FROM pwa_push_subscriptions
-		WHERE profile_id = ?
-	`), profileID)
+	query, err := dbqueries.Get("list_pwa_subscriptions_by_profile")
+	if err != nil {
+		return nil, err
+	}
+	rows, err := s.db.QueryContext(ctx, s.bind(query), profileID)
 	if err != nil {
 		return nil, err
 	}
@@ -75,22 +76,23 @@ func (s *sqlPwaPushSubscriptionStore) listSubscriptions(
 func (s *sqlPwaPushSubscriptionStore) deleteByEndpoint(
 	ctx context.Context, profileID int, endpoint string,
 ) error {
-	_, err := s.db.ExecContext(ctx, s.bind(`
-		DELETE FROM pwa_push_subscriptions
-		WHERE profile_id = ? AND endpoint = ?
-	`), profileID, endpoint)
+	query, err := dbqueries.Get("delete_pwa_subscription_by_endpoint")
+	if err != nil {
+		return err
+	}
+	_, err = s.db.ExecContext(ctx, s.bind(query), profileID, endpoint)
 	return err
 }
 
 func (s *sqlPwaPushSubscriptionStore) hasAnyByProfileID(
 	ctx context.Context, profileID int,
 ) (bool, error) {
+	query, err := dbqueries.Get("count_pwa_subscriptions_by_profile")
+	if err != nil {
+		return false, err
+	}
 	var count int
-	if err := s.db.QueryRowContext(ctx, s.bind(`
-		SELECT COUNT(*)
-		FROM pwa_push_subscriptions
-		WHERE profile_id = ?
-	`), profileID).Scan(&count); err != nil {
+	if err := s.db.QueryRowContext(ctx, s.bind(query), profileID).Scan(&count); err != nil {
 		return false, err
 	}
 	return count > 0, nil
@@ -99,12 +101,12 @@ func (s *sqlPwaPushSubscriptionStore) hasAnyByProfileID(
 func (s *sqlPwaPushSubscriptionStore) hasEndpoint(
 	ctx context.Context, profileID int, endpoint string,
 ) (bool, error) {
+	query, err := dbqueries.Get("count_pwa_subscription_by_endpoint")
+	if err != nil {
+		return false, err
+	}
 	var count int
-	if err := s.db.QueryRowContext(ctx, s.bind(`
-		SELECT COUNT(*)
-		FROM pwa_push_subscriptions
-		WHERE profile_id = ? AND endpoint = ?
-	`), profileID, endpoint).Scan(&count); err != nil {
+	if err := s.db.QueryRowContext(ctx, s.bind(query), profileID, endpoint).Scan(&count); err != nil {
 		return false, err
 	}
 	return count > 0, nil

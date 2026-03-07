@@ -3,6 +3,7 @@ package notifications
 import (
 	"context"
 	"database/sql"
+	dbqueries "github.com/leomorpho/goship-modules/notifications/db/queries"
 	"strconv"
 	"strings"
 	"time"
@@ -36,14 +37,11 @@ func newSQLPlannedNotificationStore(db *sql.DB, dialect string) *sqlPlannedNotif
 func (s *sqlPlannedNotificationStore) listProfilesForPermission(
 	ctx context.Context, permission domain.NotificationPermissionType, notifType domain.NotificationType,
 ) ([]plannedNotificationCandidate, error) {
-	rows, err := s.db.QueryContext(ctx, s.bind(`
-		SELECT np.profile_id, MAX(nt.updated_at) AS nt_updated_at
-		FROM notification_permissions np
-		LEFT JOIN notification_times nt
-		  ON nt.profile_id = np.profile_id AND nt.type = ?
-		WHERE np.permission = ?
-		GROUP BY np.profile_id
-	`), notifType.Value, permission.Value)
+	query, err := dbqueries.Get("list_profiles_for_permission")
+	if err != nil {
+		return nil, err
+	}
+	rows, err := s.db.QueryContext(ctx, s.bind(query), notifType.Value, permission.Value)
 	if err != nil {
 		return nil, err
 	}
@@ -70,23 +68,22 @@ func (s *sqlPlannedNotificationStore) listProfilesForPermission(
 func (s *sqlPlannedNotificationStore) deleteStaleLastSeenBefore(
 	ctx context.Context, deleteBeforeTime time.Time,
 ) error {
-	_, err := s.db.ExecContext(ctx, s.bind(`
-		DELETE FROM last_seen_onlines
-		WHERE seen_at <= ?
-	`), deleteBeforeTime)
+	query, err := dbqueries.Get("delete_stale_last_seen_before")
+	if err != nil {
+		return err
+	}
+	_, err = s.db.ExecContext(ctx, s.bind(query), deleteBeforeTime)
 	return err
 }
 
 func (s *sqlPlannedNotificationStore) listLastSeenForProfile(
 	ctx context.Context, profileID int,
 ) ([]time.Time, error) {
-	rows, err := s.db.QueryContext(ctx, s.bind(`
-		SELECT lso.seen_at
-		FROM last_seen_onlines lso
-		JOIN users u ON lso.user_last_seen_at = u.id
-		JOIN profiles p ON p.user_profile = u.id
-		WHERE p.id = ?
-	`), profileID)
+	query, err := dbqueries.Get("list_last_seen_for_profile")
+	if err != nil {
+		return nil, err
+	}
+	rows, err := s.db.QueryContext(ctx, s.bind(query), profileID)
 	if err != nil {
 		return nil, err
 	}
@@ -107,14 +104,11 @@ func (s *sqlPlannedNotificationStore) upsertNotificationTime(
 	ctx context.Context, profileID int, notificationType domain.NotificationType, sendMinute int,
 ) error {
 	now := time.Now().UTC()
-	_, err := s.db.ExecContext(ctx, s.bind(`
-		INSERT INTO notification_times (
-			created_at, updated_at, type, send_minute, profile_id
-		) VALUES (?, ?, ?, ?, ?)
-		ON CONFLICT(profile_id, type) DO UPDATE SET
-			send_minute = excluded.send_minute,
-			updated_at = excluded.updated_at
-	`), now, now, notificationType.Value, sendMinute, profileID)
+	query, err := dbqueries.Get("upsert_notification_time")
+	if err != nil {
+		return err
+	}
+	_, err = s.db.ExecContext(ctx, s.bind(query), now, now, notificationType.Value, sendMinute, profileID)
 	return err
 }
 
@@ -122,20 +116,10 @@ func (s *sqlPlannedNotificationStore) listProfileIDsCanGetPlannedNotificationNow
 	ctx context.Context, notifType domain.NotificationType, prevMidnightTimestamp time.Time, timestampMinutesFromMidnight int, profileIDs *[]int,
 ) ([]int, error) {
 	var args []any
-	q := `
-		SELECT nt.profile_id
-		FROM notification_times nt
-		WHERE nt.type = ?
-		  AND nt.send_minute >= 0
-		  AND nt.send_minute <= ?
-		  AND NOT EXISTS (
-			  SELECT 1
-			  FROM notifications n
-			  WHERE n.profile_id = nt.profile_id
-			    AND n.created_at >= ?
-			    AND n.type = ?
-		  )
-	`
+	q, err := dbqueries.Get("list_profile_ids_can_get_planned_notification_now_base")
+	if err != nil {
+		return nil, err
+	}
 	args = append(args, notifType.Value, timestampMinutesFromMidnight, prevMidnightTimestamp, notifType.Value)
 
 	if profileIDs != nil && len(*profileIDs) > 0 {

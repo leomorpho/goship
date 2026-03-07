@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	dbqueries "github.com/leomorpho/goship-modules/notifications/db/queries"
 	"strconv"
 	"strings"
 	"time"
@@ -41,20 +42,21 @@ func newSQLSMSCodeStore(db *sql.DB, dialect string) *sqlSMSCodeStore {
 }
 
 func (s *sqlSMSCodeStore) deleteCodesByProfileID(ctx context.Context, profileID int) error {
-	_, err := s.db.ExecContext(ctx, s.bind(`
-		DELETE FROM phone_verification_codes
-		WHERE profile_id = ?
-	`), profileID)
+	query, err := dbqueries.Get("delete_sms_codes_by_profile")
+	if err != nil {
+		return err
+	}
+	_, err = s.db.ExecContext(ctx, s.bind(query), profileID)
 	return err
 }
 
 func (s *sqlSMSCodeStore) createCode(ctx context.Context, profileID int, code string) error {
 	now := time.Now().UTC()
-	_, err := s.db.ExecContext(ctx, s.bind(`
-		INSERT INTO phone_verification_codes (
-			created_at, updated_at, code, profile_id
-		) VALUES (?, ?, ?, ?)
-	`), now, now, code, profileID)
+	query, err := dbqueries.Get("insert_sms_code")
+	if err != nil {
+		return err
+	}
+	_, err = s.db.ExecContext(ctx, s.bind(query), now, now, code, profileID)
 	return err
 }
 
@@ -62,13 +64,11 @@ func (s *sqlSMSCodeStore) findLatestValidCode(
 	ctx context.Context, profileID int, minCreatedAt time.Time,
 ) (*phoneVerificationCodeRecord, error) {
 	rec := &phoneVerificationCodeRecord{}
-	err := s.db.QueryRowContext(ctx, s.bind(`
-		SELECT id, code
-		FROM phone_verification_codes
-		WHERE profile_id = ? AND created_at >= ?
-		ORDER BY created_at DESC
-		LIMIT 1
-	`), profileID, minCreatedAt).Scan(&rec.ID, &rec.Code)
+	query, err := dbqueries.Get("find_latest_valid_sms_code")
+	if err != nil {
+		return nil, err
+	}
+	err = s.db.QueryRowContext(ctx, s.bind(query), profileID, minCreatedAt).Scan(&rec.ID, &rec.Code)
 	if err != nil {
 		return nil, err
 	}
@@ -76,10 +76,11 @@ func (s *sqlSMSCodeStore) findLatestValidCode(
 }
 
 func (s *sqlSMSCodeStore) deleteCodeByID(ctx context.Context, id int) error {
-	_, err := s.db.ExecContext(ctx, s.bind(`
-		DELETE FROM phone_verification_codes
-		WHERE id = ?
-	`), id)
+	query, err := dbqueries.Get("delete_sms_code_by_id")
+	if err != nil {
+		return err
+	}
+	_, err = s.db.ExecContext(ctx, s.bind(query), id)
 	return err
 }
 

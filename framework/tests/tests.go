@@ -14,6 +14,7 @@ import (
 	"testing"
 	"time"
 
+	dbqueries "github.com/leomorpho/goship/db/queries"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
@@ -133,12 +134,14 @@ func CreateUserDB(ctx context.Context, db *sql.DB, name, email, password string,
 		return nil, fmt.Errorf("db is nil")
 	}
 	now := time.Now().UTC()
+	query, err := dbqueries.Get("insert_test_user_returning_id_postgres")
+	if err != nil {
+		return nil, err
+	}
 	var id int
 	if err := db.QueryRowContext(
 		ctx,
-		`INSERT INTO users (created_at, updated_at, name, email, password, verified)
-		 VALUES ($1, $2, $3, $4, $5, $6)
-		 RETURNING id`,
+		query,
 		now,
 		now,
 		name,
@@ -162,10 +165,14 @@ func LinkFriendsDB(ctx context.Context, db *sql.DB, profileID int, matchIDs []in
 	if db == nil {
 		return fmt.Errorf("db is nil")
 	}
+	query, err := dbqueries.Get("insert_test_profile_friend_postgres")
+	if err != nil {
+		return err
+	}
 	for _, matchID := range matchIDs {
-		if _, err := db.ExecContext(
+		if _, err = db.ExecContext(
 			ctx,
-			`INSERT INTO profile_friends (profile_id, friend_id) VALUES ($1, $2)`,
+			query,
 			profileID,
 			matchID,
 		); err != nil {
@@ -189,11 +196,11 @@ func applyCoreMigrations(t *testing.T, db *sql.DB) error {
 	}
 	sort.Slice(entries, func(i, j int) bool { return entries[i].Name() < entries[j].Name() })
 
-	if _, err := db.Exec(`
-CREATE TABLE IF NOT EXISTS goship_schema_migrations (
-	version VARCHAR(255) PRIMARY KEY,
-	applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-)`); err != nil {
+	createTracking, err := dbqueries.Get("create_schema_migrations_table_postgres")
+	if err != nil {
+		return fmt.Errorf("load create migration table query: %w", err)
+	}
+	if _, err := db.Exec(createTracking); err != nil {
 		return fmt.Errorf("ensure migration tracking table: %w", err)
 	}
 
@@ -206,8 +213,12 @@ CREATE TABLE IF NOT EXISTS goship_schema_migrations (
 			continue
 		}
 
+		selectApplied, err := dbqueries.Get("select_schema_migration_version_postgres")
+		if err != nil {
+			return fmt.Errorf("load select migration version query: %w", err)
+		}
 		var applied int
-		err := db.QueryRow(`SELECT 1 FROM goship_schema_migrations WHERE version = $1`, version).Scan(&applied)
+		err = db.QueryRow(selectApplied, version).Scan(&applied)
 		if err == nil {
 			continue
 		}
@@ -228,7 +239,12 @@ CREATE TABLE IF NOT EXISTS goship_schema_migrations (
 			_ = tx.Rollback()
 			return fmt.Errorf("execute migration %q: %w", entry.Name(), err)
 		}
-		if _, err := tx.Exec(`INSERT INTO goship_schema_migrations (version) VALUES ($1)`, version); err != nil {
+		insertApplied, err := dbqueries.Get("insert_schema_migration_version_postgres")
+		if err != nil {
+			_ = tx.Rollback()
+			return fmt.Errorf("load insert migration version query: %w", err)
+		}
+		if _, err := tx.Exec(insertApplied, version); err != nil {
 			_ = tx.Rollback()
 			return fmt.Errorf("record migration %q: %w", entry.Name(), err)
 		}

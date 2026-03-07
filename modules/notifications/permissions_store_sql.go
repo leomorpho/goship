@@ -3,6 +3,7 @@ package notifications
 import (
 	"context"
 	"database/sql"
+	dbqueries "github.com/leomorpho/goship-modules/notifications/db/queries"
 	"strconv"
 	"strings"
 	"time"
@@ -30,24 +31,27 @@ func newSQLNotificationPermissionStore(db *sql.DB, dialect string) *sqlNotificat
 func (s *sqlNotificationPermissionStore) deleteAllPermissions(
 	ctx context.Context, profileID int, platform *domain.NotificationPlatform,
 ) error {
-	query := "DELETE FROM notification_permissions WHERE profile_id = ?"
+	query, err := dbqueries.Get("delete_permissions_by_profile_base")
+	if err != nil {
+		return err
+	}
 	args := []any{profileID}
 	if platform != nil {
 		query += " AND platform = ?"
 		args = append(args, platform.Value)
 	}
-	_, err := s.db.ExecContext(ctx, s.bind(query), args...)
+	_, err = s.db.ExecContext(ctx, s.bind(query), args...)
 	return err
 }
 
 func (s *sqlNotificationPermissionStore) listPermissionsByProfileID(
 	ctx context.Context, profileID int,
 ) ([]notificationPermissionRecord, error) {
-	rows, err := s.db.QueryContext(ctx, s.bind(`
-		SELECT permission, platform, token
-		FROM notification_permissions
-		WHERE profile_id = ?
-	`), profileID)
+	query, err := dbqueries.Get("list_permissions_by_profile")
+	if err != nil {
+		return nil, err
+	}
+	rows, err := s.db.QueryContext(ctx, s.bind(query), profileID)
 	if err != nil {
 		return nil, err
 	}
@@ -68,14 +72,11 @@ func (s *sqlNotificationPermissionStore) createPermission(
 	ctx context.Context, profileID int, permission domain.NotificationPermissionType, platform domain.NotificationPlatform, token string,
 ) error {
 	now := time.Now().UTC()
-	_, err := s.db.ExecContext(ctx, s.bind(`
-		INSERT INTO notification_permissions (
-			created_at, updated_at, permission, platform, profile_id, token
-		) VALUES (?, ?, ?, ?, ?, ?)
-		ON CONFLICT(profile_id, permission, platform) DO UPDATE SET
-			updated_at = excluded.updated_at,
-			token = excluded.token
-	`), now, now, permission.Value, platform.Value, profileID, token)
+	query, err := dbqueries.Get("insert_or_upsert_permission")
+	if err != nil {
+		return err
+	}
+	_, err = s.db.ExecContext(ctx, s.bind(query), now, now, permission.Value, platform.Value, profileID, token)
 	return err
 }
 
@@ -86,10 +87,10 @@ func (s *sqlNotificationPermissionStore) deletePermission(
 	platform *domain.NotificationPlatform,
 	token *string,
 ) error {
-	query := `
-		DELETE FROM notification_permissions
-		WHERE profile_id = ? AND permission = ?
-	`
+	query, err := dbqueries.Get("delete_permission_base")
+	if err != nil {
+		return err
+	}
 	args := []any{profileID, permission.Value}
 	if token != nil && strings.TrimSpace(*token) != "" {
 		query += " AND token = ?"
@@ -117,12 +118,12 @@ func (s *sqlNotificationPermissionStore) deletePermission(
 func (s *sqlNotificationPermissionStore) countPermissionsForPlatform(
 	ctx context.Context, profileID int, platform domain.NotificationPlatform,
 ) (int, error) {
+	query, err := dbqueries.Get("count_permissions_for_platform")
+	if err != nil {
+		return 0, err
+	}
 	var count int
-	err := s.db.QueryRowContext(ctx, s.bind(`
-		SELECT COUNT(*)
-		FROM notification_permissions
-		WHERE profile_id = ? AND platform = ?
-	`), profileID, platform.Value).Scan(&count)
+	err = s.db.QueryRowContext(ctx, s.bind(query), profileID, platform.Value).Scan(&count)
 	return count, err
 }
 

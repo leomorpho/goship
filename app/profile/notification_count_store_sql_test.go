@@ -3,6 +3,7 @@ package profiles
 import (
 	"context"
 	"database/sql"
+	"strings"
 	"testing"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -44,7 +45,8 @@ func TestSQLNotificationCountStore_CountUnseenNotifications_SQLite(t *testing.T)
 func TestSQLNotificationCountStore_CountQuery_PostgresPlaceholders(t *testing.T) {
 	store := NewSQLNotificationCountStore(nil, "postgres")
 	query, args := store.countQuery(12)
-	if query != "SELECT COUNT(*) FROM notifications WHERE profile_notifications = $1 AND read = $2" {
+	normalized := strings.Join(strings.Fields(query), " ")
+	if normalized != "SELECT COUNT(*) FROM notifications WHERE profile_notifications = $1 AND read = $2;" {
 		t.Fatalf("query = %q", query)
 	}
 	if len(args) != 2 || args[0] != 12 || args[1] != false {

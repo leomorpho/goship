@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	dbqueries "github.com/leomorpho/goship-modules/paidsubscriptions/db/queries"
 	"strings"
 	"time"
 )
@@ -36,22 +37,19 @@ func (s *SQLStore) CreateSubscription(ctx context.Context, tx any, profileID int
 	}
 
 	now := time.Now().UTC()
-	if _, err := txx.ExecContext(ctx, s.bind(`
-		INSERT INTO monthly_subscriptions
-			(created_at, updated_at, product, is_active, paid, is_trial, started_at, expired_on, cancelled_at, paying_profile_id)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-	`), now, now, ProductTypePro.Value, true, false, true, now, now.Add(s.proTrialTimespan), nil, profileID); err != nil {
+	createSubscriptionQuery, err := dbqueries.Get("create_subscription")
+	if err != nil {
+		return err
+	}
+	if _, err := txx.ExecContext(ctx, s.bind(createSubscriptionQuery), now, now, ProductTypePro.Value, true, false, true, now, now.Add(s.proTrialTimespan), nil, profileID); err != nil {
 		return err
 	}
 
-	if _, err := txx.ExecContext(ctx, s.bind(`
-		INSERT INTO monthly_subscription_benefactors (monthly_subscription_id, profile_id)
-		SELECT id, ?
-		FROM monthly_subscriptions
-		WHERE paying_profile_id = ? AND is_active = ?
-		ORDER BY id DESC
-		LIMIT 1
-	`), profileID, profileID, true); err != nil {
+	createLinkQuery, err := dbqueries.Get("create_subscription_benefactor_link")
+	if err != nil {
+		return err
+	}
+	if _, err := txx.ExecContext(ctx, s.bind(createLinkQuery), profileID, profileID, true); err != nil {
 		return err
 	}
 
@@ -62,11 +60,11 @@ func (s *SQLStore) CreateSubscription(ctx context.Context, tx any, profileID int
 }
 
 func (s *SQLStore) DeactivateExpiredSubscriptions(ctx context.Context) error {
-	_, err := s.db.ExecContext(ctx, s.bind(`
-		UPDATE monthly_subscriptions
-		SET is_active = ?, expired_on = ?
-		WHERE is_active = ? AND expired_on IS NOT NULL AND expired_on <= ?
-	`), false, time.Now().UTC(), true, time.Now().UTC())
+	query, err := dbqueries.Get("deactivate_expired_subscriptions")
+	if err != nil {
+		return err
+	}
+	_, err = s.db.ExecContext(ctx, s.bind(query), false, time.Now().UTC(), true, time.Now().UTC())
 	return err
 }
 
@@ -81,35 +79,25 @@ func (s *SQLStore) UpdateToPaidPro(ctx context.Context, profileID int) error {
 	case count > 1:
 		return errors.New("there should only ever be 1 active subscription for a profile")
 	case count == 1:
-		_, err = s.db.ExecContext(ctx, s.bind(`
-			UPDATE monthly_subscriptions
-			SET
-				updated_at = ?,
-				product = ?,
-				is_trial = ?,
-				is_active = ?,
-				started_at = ?,
-				expired_on = NULL,
-				cancelled_at = NULL
-			WHERE paying_profile_id = ? AND is_active = ?
-		`), now, ProductTypePro.Value, false, true, now, profileID, true)
+		query, lookupErr := dbqueries.Get("update_to_paid_pro_existing")
+		if lookupErr != nil {
+			return lookupErr
+		}
+		_, err = s.db.ExecContext(ctx, s.bind(query), now, ProductTypePro.Value, false, true, now, profileID, true)
 		return err
 	default:
-		if _, err := s.db.ExecContext(ctx, s.bind(`
-			INSERT INTO monthly_subscriptions
-				(created_at, updated_at, product, is_active, paid, is_trial, started_at, expired_on, cancelled_at, paying_profile_id)
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-		`), now, now, ProductTypePro.Value, true, false, false, now, nil, nil, profileID); err != nil {
+		createSubscriptionQuery, lookupErr := dbqueries.Get("create_subscription")
+		if lookupErr != nil {
+			return lookupErr
+		}
+		if _, err := s.db.ExecContext(ctx, s.bind(createSubscriptionQuery), now, now, ProductTypePro.Value, true, false, false, now, nil, nil, profileID); err != nil {
 			return err
 		}
-		_, err := s.db.ExecContext(ctx, s.bind(`
-			INSERT INTO monthly_subscription_benefactors (monthly_subscription_id, profile_id)
-			SELECT id, ?
-			FROM monthly_subscriptions
-			WHERE paying_profile_id = ? AND is_active = ?
-			ORDER BY id DESC
-			LIMIT 1
-		`), profileID, profileID, true)
+		createLinkQuery, lookupErr := dbqueries.Get("create_subscription_benefactor_link")
+		if lookupErr != nil {
+			return lookupErr
+		}
+		_, err := s.db.ExecContext(ctx, s.bind(createLinkQuery), profileID, profileID, true)
 		return err
 	}
 }
@@ -120,13 +108,11 @@ func (s *SQLStore) GetCurrentlyActiveProduct(
 	var productRaw string
 	var expiredOn sql.NullTime
 	var isTrial bool
-	err := s.db.QueryRowContext(ctx, s.bind(`
-		SELECT product, expired_on, is_trial
-		FROM monthly_subscriptions
-		WHERE is_active = ? AND paying_profile_id = ?
-		ORDER BY id DESC
-		LIMIT 1
-	`), true, profileID).Scan(&productRaw, &expiredOn, &isTrial)
+	query, err := dbqueries.Get("get_currently_active_product")
+	if err != nil {
+		return nil, nil, false, err
+	}
+	err = s.db.QueryRowContext(ctx, s.bind(query), true, profileID).Scan(&productRaw, &expiredOn, &isTrial)
 	if errors.Is(err, sql.ErrNoRows) {
 		return &ProductTypeFree, nil, false, nil
 	}
@@ -146,17 +132,18 @@ func (s *SQLStore) GetCurrentlyActiveProduct(
 
 func (s *SQLStore) StoreStripeCustomerID(ctx context.Context, profileID int, stripeCustomerID string) error {
 	var existing string
-	err := s.db.QueryRowContext(ctx, s.bind(`
-		SELECT stripe_customer_id
-		FROM subscription_customers
-		WHERE profile_id = ?
-	`), profileID).Scan(&existing)
+	getQuery, err := dbqueries.Get("get_stripe_customer_id_by_profile")
+	if err != nil {
+		return err
+	}
+	err = s.db.QueryRowContext(ctx, s.bind(getQuery), profileID).Scan(&existing)
 	switch {
 	case errors.Is(err, sql.ErrNoRows):
-		_, err = s.db.ExecContext(ctx, s.bind(`
-			INSERT INTO subscription_customers (profile_id, stripe_customer_id)
-			VALUES (?, ?)
-		`), profileID, stripeCustomerID)
+		insertQuery, lookupErr := dbqueries.Get("insert_stripe_customer_id")
+		if lookupErr != nil {
+			return lookupErr
+		}
+		_, err = s.db.ExecContext(ctx, s.bind(insertQuery), profileID, stripeCustomerID)
 		return err
 	case err != nil:
 		return err
@@ -164,24 +151,32 @@ func (s *SQLStore) StoreStripeCustomerID(ctx context.Context, profileID int, str
 		if existing == stripeCustomerID {
 			return nil
 		}
-		_, err = s.db.ExecContext(ctx, s.bind(`
-			UPDATE subscription_customers
-			SET stripe_customer_id = ?
-			WHERE profile_id = ?
-		`), stripeCustomerID, profileID)
+		updateQuery, lookupErr := dbqueries.Get("update_stripe_customer_id")
+		if lookupErr != nil {
+			return lookupErr
+		}
+		_, err = s.db.ExecContext(ctx, s.bind(updateQuery), stripeCustomerID, profileID)
 		return err
 	}
 }
 
 func (s *SQLStore) GetProfileIDFromStripeCustomerID(ctx context.Context, stripeCustomerID string) (int, error) {
+	query, err := dbqueries.Get("get_profile_id_by_stripe_customer")
+	if err != nil {
+		return 0, err
+	}
 	var profileID int
-	err := s.db.QueryRowContext(ctx, s.bind(`SELECT profile_id FROM subscription_customers WHERE stripe_customer_id = ?`), stripeCustomerID).Scan(&profileID)
+	err = s.db.QueryRowContext(ctx, s.bind(query), stripeCustomerID).Scan(&profileID)
 	return profileID, err
 }
 
 func (s *SQLStore) GetStripeCustomerIDByProfileID(ctx context.Context, profileID int) (string, error) {
+	query, err := dbqueries.Get("get_stripe_customer_id_by_profile")
+	if err != nil {
+		return "", err
+	}
 	var stripeCustomerID string
-	err := s.db.QueryRowContext(ctx, s.bind(`SELECT stripe_customer_id FROM subscription_customers WHERE profile_id = ?`), profileID).Scan(&stripeCustomerID)
+	err = s.db.QueryRowContext(ctx, s.bind(query), profileID).Scan(&stripeCustomerID)
 	return stripeCustomerID, err
 }
 
@@ -198,24 +193,22 @@ func (s *SQLStore) CancelWithGracePeriod(ctx context.Context, profileID int) err
 	}
 
 	var expiredOn sql.NullTime
-	err = s.db.QueryRowContext(ctx, s.bind(`
-		SELECT expired_on
-		FROM monthly_subscriptions
-		WHERE paying_profile_id = ? AND is_active = ?
-		ORDER BY id DESC
-		LIMIT 1
-	`), profileID, true).Scan(&expiredOn)
+	getLatestExpiryQuery, err := dbqueries.Get("get_latest_expired_on")
+	if err != nil {
+		return err
+	}
+	err = s.db.QueryRowContext(ctx, s.bind(getLatestExpiryQuery), profileID, true).Scan(&expiredOn)
 	if err != nil {
 		return err
 	}
 
 	limit := time.Now().UTC().Add(s.paymentFailedGracePeriodInDays)
 	if !expiredOn.Valid || expiredOn.Time.After(limit) {
-		_, err = s.db.ExecContext(ctx, s.bind(`
-			UPDATE monthly_subscriptions
-			SET expired_on = ?
-			WHERE paying_profile_id = ? AND is_active = ?
-		`), limit, profileID, true)
+		updateExpiryQuery, lookupErr := dbqueries.Get("update_expired_on_for_active")
+		if lookupErr != nil {
+			return lookupErr
+		}
+		_, err = s.db.ExecContext(ctx, s.bind(updateExpiryQuery), limit, profileID, true)
 		return err
 	}
 	return nil
@@ -223,11 +216,11 @@ func (s *SQLStore) CancelWithGracePeriod(ctx context.Context, profileID int) err
 
 func (s *SQLStore) CancelOrRenew(ctx context.Context, profileID int, cancelDate *time.Time) error {
 	if cancelDate == nil {
-		_, err := s.db.ExecContext(ctx, s.bind(`
-			UPDATE monthly_subscriptions
-			SET cancelled_at = NULL, expired_on = NULL
-			WHERE paying_profile_id = ? AND is_active = ?
-		`), profileID, true)
+		query, err := dbqueries.Get("cancel_or_renew_clear")
+		if err != nil {
+			return err
+		}
+		_, err = s.db.ExecContext(ctx, s.bind(query), profileID, true)
 		return err
 	}
 
@@ -242,11 +235,11 @@ func (s *SQLStore) CancelOrRenew(ctx context.Context, profileID int, cancelDate 
 		return errors.New("there should only ever be 1 active subscription for a profile")
 	}
 
-	_, err = s.db.ExecContext(ctx, s.bind(`
-		UPDATE monthly_subscriptions
-		SET expired_on = ?, cancelled_at = ?
-		WHERE paying_profile_id = ? AND is_active = ?
-	`), cancelDate.UTC(), time.Now().UTC(), profileID, true)
+	query, err := dbqueries.Get("cancel_or_renew_set")
+	if err != nil {
+		return err
+	}
+	_, err = s.db.ExecContext(ctx, s.bind(query), cancelDate.UTC(), time.Now().UTC(), profileID, true)
 	return err
 }
 
@@ -261,21 +254,21 @@ func (s *SQLStore) UpdateToFree(ctx context.Context, profileID int) error {
 	case count > 1:
 		return errors.New("there should only ever be 1 active subscription for a profile")
 	}
-	_, err = s.db.ExecContext(ctx, s.bind(`
-		UPDATE monthly_subscriptions
-		SET expired_on = ?, is_active = ?
-		WHERE paying_profile_id = ? AND is_active = ?
-	`), time.Now().UTC(), false, profileID, true)
+	query, err := dbqueries.Get("update_to_free")
+	if err != nil {
+		return err
+	}
+	_, err = s.db.ExecContext(ctx, s.bind(query), time.Now().UTC(), false, profileID, true)
 	return err
 }
 
 func (s *SQLStore) countActiveSubscriptions(ctx context.Context, profileID int) (int, error) {
+	query, err := dbqueries.Get("count_active_subscriptions")
+	if err != nil {
+		return 0, err
+	}
 	var count int
-	err := s.db.QueryRowContext(ctx, s.bind(`
-		SELECT COUNT(*)
-		FROM monthly_subscriptions
-		WHERE paying_profile_id = ? AND is_active = ?
-	`), profileID, true).Scan(&count)
+	err = s.db.QueryRowContext(ctx, s.bind(query), profileID, true).Scan(&count)
 	return count, err
 }
 

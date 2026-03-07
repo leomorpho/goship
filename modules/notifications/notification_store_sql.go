@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	dbqueries "github.com/leomorpho/goship-modules/notifications/db/queries"
 	"strings"
 	"time"
 
@@ -59,12 +60,11 @@ func (s *SQLNotificationStore) ensureSchema(ctx context.Context) error {
 
 func (s *SQLNotificationStore) CreateNotification(ctx context.Context, n domain.Notification) (*domain.Notification, error) {
 	now := time.Now().UTC()
-	result, err := s.db.ExecContext(ctx, s.bind(`
-		INSERT INTO notifications (
-			created_at, updated_at, type, title, text, link, read, read_at, profile_id,
-			profile_id_who_caused_notification, resource_id_tied_to_notif, read_in_notifications_center
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-	`),
+	query, err := dbqueries.Get("insert_notification")
+	if err != nil {
+		return nil, err
+	}
+	result, err := s.db.ExecContext(ctx, s.bind(query),
 		now,
 		now,
 		n.Type.Value,
@@ -95,12 +95,10 @@ func (s *SQLNotificationStore) CreateNotification(ctx context.Context, n domain.
 func (s *SQLNotificationStore) GetNotificationsByProfileID(
 	ctx context.Context, profileID int, onlyUnread bool, beforeTimestamp *time.Time, pageSize *int,
 ) ([]*domain.Notification, error) {
-	query := `
-		SELECT id, type, title, text, link, created_at, read, read_at,
-		       profile_id, profile_id_who_caused_notification, resource_id_tied_to_notif, read_in_notifications_center
-		FROM notifications
-		WHERE profile_id = ?
-	`
+	query, err := dbqueries.Get("select_notifications_by_profile_base")
+	if err != nil {
+		return nil, err
+	}
 	args := []any{profileID}
 	if onlyUnread {
 		query += " AND read = ?"
@@ -181,30 +179,38 @@ func (s *SQLNotificationStore) MarkNotificationAsRead(ctx context.Context, notif
 	}
 
 	var notifTypeRaw string
-	err := s.db.QueryRowContext(ctx, s.bind(`SELECT type FROM notifications WHERE id = ?`), notificationID).Scan(&notifTypeRaw)
+	query, err := dbqueries.Get("select_notification_type_by_id")
+	if err != nil {
+		return err
+	}
+	err = s.db.QueryRowContext(ctx, s.bind(query), notificationID).Scan(&notifTypeRaw)
 	if err != nil {
 		return err
 	}
 
 	parsed := domain.NotificationTypes.Parse(notifTypeRaw)
 	if parsed != nil && domain.DeleteOnceReadNotificationTypesMap[*parsed] {
-		_, err = s.db.ExecContext(ctx, s.bind(`DELETE FROM notifications WHERE id = ?`), notificationID)
+		deleteQuery, lookupErr := dbqueries.Get("delete_notification_by_id")
+		if lookupErr != nil {
+			return lookupErr
+		}
+		_, err = s.db.ExecContext(ctx, s.bind(deleteQuery), notificationID)
 		return err
 	}
-	_, err = s.db.ExecContext(ctx, s.bind(`
-		UPDATE notifications
-		SET read = ?, read_at = ?, updated_at = ?
-		WHERE id = ?
-	`), true, time.Now().UTC(), time.Now().UTC(), notificationID)
+	updateQuery, lookupErr := dbqueries.Get("mark_notification_read_by_id")
+	if lookupErr != nil {
+		return lookupErr
+	}
+	_, err = s.db.ExecContext(ctx, s.bind(updateQuery), true, time.Now().UTC(), time.Now().UTC(), notificationID)
 	return err
 }
 
 func (s *SQLNotificationStore) MarkAllNotificationAsRead(ctx context.Context, profileID int) error {
-	_, err := s.db.ExecContext(ctx, s.bind(`
-		UPDATE notifications
-		SET read = ?, read_at = ?, updated_at = ?
-		WHERE profile_id = ?
-	`), true, time.Now().UTC(), time.Now().UTC(), profileID)
+	query, err := dbqueries.Get("mark_all_notifications_read_by_profile")
+	if err != nil {
+		return err
+	}
+	_, err = s.db.ExecContext(ctx, s.bind(query), true, time.Now().UTC(), time.Now().UTC(), profileID)
 	return err
 }
 
@@ -214,11 +220,11 @@ func (s *SQLNotificationStore) MarkNotificationAsUnread(ctx context.Context, not
 			return err
 		}
 	}
-	_, err := s.db.ExecContext(ctx, s.bind(`
-		UPDATE notifications
-		SET read = ?, read_at = NULL, updated_at = ?
-		WHERE id = ?
-	`), false, time.Now().UTC(), notificationID)
+	query, err := dbqueries.Get("mark_notification_unread_by_id")
+	if err != nil {
+		return err
+	}
+	_, err = s.db.ExecContext(ctx, s.bind(query), false, time.Now().UTC(), notificationID)
 	return err
 }
 
@@ -228,18 +234,21 @@ func (s *SQLNotificationStore) DeleteNotification(ctx context.Context, notificat
 			return err
 		}
 	}
-	_, err := s.db.ExecContext(ctx, s.bind(`DELETE FROM notifications WHERE id = ?`), notificationID)
+	query, err := dbqueries.Get("delete_notification_by_id")
+	if err != nil {
+		return err
+	}
+	_, err = s.db.ExecContext(ctx, s.bind(query), notificationID)
 	return err
 }
 
 func (s *SQLNotificationStore) HasNotificationForResourceAndPerson(
 	ctx context.Context, notifType domain.NotificationType, profileIDWhoCausedNotif, resourceID *int, maxAge time.Duration,
 ) (bool, error) {
-	query := `
-		SELECT COUNT(*)
-		FROM notifications
-		WHERE type = ? AND created_at > ?
-	`
+	query, err := dbqueries.Get("count_notifications_for_type_since_base")
+	if err != nil {
+		return false, err
+	}
 	args := []any{notifType.Value, time.Now().UTC().Add(-maxAge)}
 	if profileIDWhoCausedNotif != nil {
 		query += " AND profile_id_who_caused_notification = ?"
@@ -259,12 +268,12 @@ func (s *SQLNotificationStore) HasNotificationForResourceAndPerson(
 func (s *SQLNotificationStore) checkNotificationBelongsToProfile(
 	ctx context.Context, profileID, notificationID int,
 ) error {
+	query, err := dbqueries.Get("count_notification_belongs_to_profile")
+	if err != nil {
+		return err
+	}
 	var count int
-	if err := s.db.QueryRowContext(ctx, s.bind(`
-		SELECT COUNT(*)
-		FROM notifications
-		WHERE id = ? AND profile_id = ?
-	`), notificationID, profileID).Scan(&count); err != nil {
+	if err := s.db.QueryRowContext(ctx, s.bind(query), notificationID, profileID).Scan(&count); err != nil {
 		return err
 	}
 	if count == 0 {

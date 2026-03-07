@@ -15,6 +15,7 @@ import (
 	"github.com/leomorpho/goship-modules/notifications"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/app/web/routenames"
+	dbqueries "github.com/leomorpho/goship/db/queries"
 	"github.com/leomorpho/goship/framework/core"
 	"github.com/leomorpho/goship/framework/domain"
 	"github.com/rs/zerolog/log"
@@ -212,21 +213,22 @@ func NewDeleteStaleNotificationsProcessor(db *sql.DB, dialect string, numDays in
 func (d *DeleteStaleNotificationsProcessor) ProcessTask(
 	ctx context.Context, t *asynq.Task,
 ) error {
-
-	_, err := d.db.ExecContext(ctx, d.bind(`
-		DELETE FROM notifications
-		WHERE created_at < ?
-	`), time.Now().Add(time.Hour*-24*time.Duration(d.numDays)))
+	deleteBeforeQuery, err := dbqueries.Get("delete_notifications_before")
+	if err != nil {
+		return err
+	}
+	_, err = d.db.ExecContext(ctx, d.bind(deleteBeforeQuery), time.Now().Add(time.Hour*-24*time.Duration(d.numDays)))
 
 	if err != nil {
 		return err
 	}
 
 	// Delete all daily notifications that are older than 48h
-	_, err = d.db.ExecContext(ctx, d.bind(`
-		DELETE FROM notifications
-		WHERE created_at < ? AND type = ?
-	`), time.Now().Add(time.Hour*-48), domain.NotificationTypeDailyConversationReminder.Value)
+	deleteDailyBeforeQuery, lookupErr := dbqueries.Get("delete_daily_notifications_before")
+	if lookupErr != nil {
+		return lookupErr
+	}
+	_, err = d.db.ExecContext(ctx, d.bind(deleteDailyBeforeQuery), time.Now().Add(time.Hour*-48), domain.NotificationTypeDailyConversationReminder.Value)
 
 	if err != nil {
 		return err

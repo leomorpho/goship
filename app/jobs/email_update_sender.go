@@ -18,6 +18,7 @@ import (
 	"github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/app/web/viewmodels"
+	dbqueries "github.com/leomorpho/goship/db/queries"
 	"github.com/leomorpho/goship/framework/domain"
 	"github.com/rs/zerolog/log"
 )
@@ -53,24 +54,12 @@ func (e *UpdateEmailSender) GetAudience(ctx context.Context) ([]int, error) {
 	alreadySentDaily := domain.NotificationPermissionDailyReminder.Value
 	alreadySentPartner := domain.NotificationPermissionNewFriendActivity.Value
 
+	dailyAudienceQuery, err := dbqueries.Get("select_daily_update_audience")
+	if err != nil {
+		return nil, err
+	}
 	// Get all profiles who gave permission for daily updates and did not receive a daily/partner update email in last 24h.
-	dailyRows, err := e.container.Database.QueryContext(ctx, e.bind(`
-		SELECT p.id
-		FROM profiles p
-		WHERE EXISTS (
-			SELECT 1
-			FROM notification_permissions np
-			WHERE np.profile_id = p.id
-			  AND np.permission = ?
-		)
-		AND NOT EXISTS (
-			SELECT 1
-			FROM sent_emails se
-			WHERE se.profile_sent_emails = p.id
-			  AND se.created_at >= ?
-			  AND se.type IN (?, ?)
-		)
-	`), domain.NotificationPermissionDailyReminder.Value, oneDayAgo, alreadySentDaily, alreadySentPartner)
+	dailyRows, err := e.container.Database.QueryContext(ctx, e.bind(dailyAudienceQuery), domain.NotificationPermissionDailyReminder.Value, oneDayAgo, alreadySentDaily, alreadySentPartner)
 	if err != nil {
 		return nil, err
 	}
@@ -88,38 +77,13 @@ func (e *UpdateEmailSender) GetAudience(ctx context.Context) ([]int, error) {
 		return nil, err
 	}
 
+	partnerAudienceQuery, err := dbqueries.Get("select_partner_update_audience")
+	if err != nil {
+		return nil, err
+	}
 	// Get all profiles with partner updates (excluding those with daily permission), unread partner-activity notif,
 	// and no daily/partner update email sent in last 24h.
-	partnerRows, err := e.container.Database.QueryContext(ctx, e.bind(`
-		SELECT p.id
-		FROM profiles p
-		WHERE EXISTS (
-			SELECT 1
-			FROM notification_permissions np_partner
-			WHERE np_partner.profile_id = p.id
-			  AND np_partner.permission = ?
-		)
-		AND NOT EXISTS (
-			SELECT 1
-			FROM notification_permissions np_daily
-			WHERE np_daily.profile_id = p.id
-			  AND np_daily.permission = ?
-		)
-		AND EXISTS (
-			SELECT 1
-			FROM notifications n
-			WHERE n.profile_notifications = p.id
-			  AND n.read = ?
-			  AND n.type = ?
-		)
-		AND NOT EXISTS (
-			SELECT 1
-			FROM sent_emails se
-			WHERE se.profile_sent_emails = p.id
-			  AND se.created_at >= ?
-			  AND se.type IN (?, ?)
-		)
-	`), domain.NotificationPermissionNewFriendActivity.Value, domain.NotificationPermissionDailyReminder.Value, false, domain.NotificationTypeConnectionEngagedWithQuestion.Value, oneDayAgo, alreadySentDaily, alreadySentPartner)
+	partnerRows, err := e.container.Database.QueryContext(ctx, e.bind(partnerAudienceQuery), domain.NotificationPermissionNewFriendActivity.Value, domain.NotificationPermissionDailyReminder.Value, false, domain.NotificationTypeConnectionEngagedWithQuestion.Value, oneDayAgo, alreadySentDaily, alreadySentPartner)
 	if err != nil {
 		return nil, err
 	}
@@ -257,10 +221,11 @@ func (e *UpdateEmailSender) SendUpdateEmail(
 		emailType = domain.NotificationPermissionNewFriendActivity
 	}
 	now := time.Now().UTC()
-	_, err = e.container.Database.ExecContext(ctx, e.bind(`
-		INSERT INTO sent_emails (created_at, updated_at, type, profile_sent_emails)
-		VALUES (?, ?, ?, ?)
-	`), now, now, emailType.Value, profileID)
+	insertSentEmailQuery, lookupErr := dbqueries.Get("insert_sent_email")
+	if lookupErr != nil {
+		return lookupErr
+	}
+	_, err = e.container.Database.ExecContext(ctx, e.bind(insertSentEmailQuery), now, now, emailType.Value, profileID)
 
 	return err
 }

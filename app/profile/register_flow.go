@@ -7,6 +7,7 @@ import (
 
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	dbgen "github.com/leomorpho/goship/db/gen"
+	dbqueries "github.com/leomorpho/goship/db/queries"
 	"github.com/leomorpho/goship/framework/domain"
 )
 
@@ -50,7 +51,10 @@ func (p *ProfileService) registerUserWithProfileSQL(
 	now := time.Now().UTC()
 	normalizedEmail := strings.ToLower(strings.TrimSpace(email))
 
-	userInsertQuery, profileInsertQuery := p.registerInsertQueries()
+	userInsertQuery, profileInsertQuery, err := p.registerInsertQueries()
+	if err != nil {
+		return nil, err
+	}
 
 	var userID int
 	if err := tx.QueryRowContext(
@@ -98,50 +102,32 @@ func (p *ProfileService) registerUserWithProfileSQL(
 	}, nil
 }
 
-func (p *ProfileService) registerInsertQueries() (userInsert, profileInsert string) {
-	switch strings.ToLower(strings.TrimSpace(p.dbDialect)) {
+func (p *ProfileService) registerInsertQueries() (userInsert, profileInsert string, err error) {
+	switch normalizeDialect(p.dbDialect) {
 	case "postgres", "postgresql", "pgx":
-		userInsert = `
-			INSERT INTO users (name, email, password, verified)
-			VALUES ($1, $2, $3, $4)
-			RETURNING id
-		`
-		profileInsert = `
-			INSERT INTO profiles (
-				created_at,
-				updated_at,
-				bio,
-				birthdate,
-				age,
-				fully_onboarded,
-				phone_verified,
-				user_profile
-			)
-			VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-			RETURNING id
-		`
+		userInsert, err = dbqueries.Get("insert_user_returning_id_postgres")
+		if err != nil {
+			return "", "", err
+		}
+		profileInsert, err = dbqueries.Get("insert_profile_returning_id_postgres")
+		if err != nil {
+			return "", "", err
+		}
 	default:
-		userInsert = `
-			INSERT INTO users (name, email, password, verified)
-			VALUES (?, ?, ?, ?)
-			RETURNING id
-		`
-		profileInsert = `
-			INSERT INTO profiles (
-				created_at,
-				updated_at,
-				bio,
-				birthdate,
-				age,
-				fully_onboarded,
-				phone_verified,
-				user_profile
-			)
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-			RETURNING id
-		`
+		userInsert, err = dbqueries.Get("insert_user_returning_id_sqlite")
+		if err != nil {
+			return "", "", err
+		}
+		profileInsert, err = dbqueries.Get("insert_profile_returning_id_sqlite")
+		if err != nil {
+			return "", "", err
+		}
 	}
-	return userInsert, profileInsert
+	return userInsert, profileInsert, nil
+}
+
+func normalizeDialect(dialect string) string {
+	return strings.ToLower(strings.TrimSpace(dialect))
 }
 
 func (p *ProfileService) MarkPhoneVerified(ctx context.Context, profileID int) error {
