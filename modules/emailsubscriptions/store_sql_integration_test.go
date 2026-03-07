@@ -35,7 +35,12 @@ func TestSQLStore_WithModuleMigration_EndToEnd(t *testing.T) {
 	require.False(t, sub.Verified)
 
 	require.NoError(t, service.Confirm(ctx, sub.ConfirmationCode))
+	// legacy no-token unsubscribe path remains supported
 	require.NoError(t, service.Unsubscribe(ctx, "alice@example.com", "", list))
+
+	sub, err = service.Subscribe(ctx, "alice@example.com", list, nil, nil)
+	require.NoError(t, err)
+	require.NoError(t, service.Unsubscribe(ctx, "alice@example.com", sub.ConfirmationCode, list))
 }
 
 func applyModuleMigration(t *testing.T, db *sql.DB) {

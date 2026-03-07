@@ -17,6 +17,9 @@ func (e *ErrAlreadySubscribed) Error() string {
 var ErrInvalidEmailConfirmationCode = errors.New("email confirmation code is invalid")
 var ErrEmailSyntaxInvalid = errors.New("email address syntax is invalid")
 var ErrEmailAddressInvalidCatchAll = errors.New("invalid email address")
+var ErrListNotAllowed = errors.New("subscription list is not allowed by catalog")
+var ErrListInactive = errors.New("subscription list is inactive")
+var ErrInvalidUnsubscribeToken = errors.New("unsubscribe token is invalid")
 
 type ErrEmailVerificationFailed struct {
 	Err error

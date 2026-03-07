@@ -116,16 +116,27 @@ func (s *SQLStore) Subscribe(
 	return toDomainSubscription(sub), nil
 }
 
-func (s *SQLStore) Unsubscribe(ctx context.Context, email string, _ string, emailList List) error {
+func (s *SQLStore) Unsubscribe(ctx context.Context, email string, token string, emailList List) error {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	sub, err := gen.FindSubscriptionByEmail(ctx, tx, s.dialect(), email)
-	if err != nil {
-		return err
+	var sub gen.SQLSubscription
+	if strings.TrimSpace(token) != "" {
+		sub, err = gen.FindSubscriptionByEmailAndCode(ctx, tx, s.dialect(), email, token)
+		if errors.Is(err, sql.ErrNoRows) {
+			return ErrInvalidUnsubscribeToken
+		}
+		if err != nil {
+			return err
+		}
+	} else {
+		sub, err = gen.FindSubscriptionByEmail(ctx, tx, s.dialect(), email)
+		if err != nil {
+			return err
+		}
 	}
 
 	listID, err := gen.FindListID(ctx, tx, s.dialect(), string(emailList), false)

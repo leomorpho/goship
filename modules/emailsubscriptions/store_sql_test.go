@@ -38,6 +38,24 @@ func TestSQLStore_SubscribeConfirmUnsubscribe(t *testing.T) {
 	require.Equal(t, 0, count)
 }
 
+func TestSQLStore_UnsubscribeWithToken(t *testing.T) {
+	db := openTestDB(t)
+	store := NewSQLStore(db, "sqlite3")
+	ctx := context.Background()
+
+	list := List("newsletter")
+	require.NoError(t, store.CreateList(ctx, list))
+
+	sub, err := store.Subscribe(ctx, "alice@example.com", list, nil, nil)
+	require.NoError(t, err)
+	require.NotEmpty(t, sub.ConfirmationCode)
+
+	err = store.Unsubscribe(ctx, "alice@example.com", "wrong-token", list)
+	require.ErrorIs(t, err, ErrInvalidUnsubscribeToken)
+
+	require.NoError(t, store.Unsubscribe(ctx, "alice@example.com", sub.ConfirmationCode, list))
+}
+
 func TestSQLStore_ConfirmInvalidCode(t *testing.T) {
 	db := openTestDB(t)
 	store := NewSQLStore(db, "sqlite3")

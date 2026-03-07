@@ -65,6 +65,16 @@ func FindSubscriptionByEmail(ctx context.Context, q QueryRower, dialect string, 
 	return sub, err
 }
 
+func FindSubscriptionByEmailAndCode(ctx context.Context, q QueryRower, dialect string, email, code string) (SQLSubscription, error) {
+	var sub SQLSubscription
+	query, err := queries.Get("find_subscription_by_email_and_code")
+	if err != nil {
+		return sub, err
+	}
+	err = q.QueryRowContext(ctx, bind(query, dialect), email, code).Scan(&sub.ID, &sub.Email, &sub.Verified, &sub.ConfirmationCode, &sub.Lat, &sub.Lon)
+	return sub, err
+}
+
 func InsertSubscription(
 	ctx context.Context, e Execer, dialect string, now time.Time, email string, confirmationCode string, lat sql.NullFloat64, lon sql.NullFloat64,
 ) (int, error) {

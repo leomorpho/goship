@@ -10,14 +10,39 @@ import (
 type Service struct {
 	store      Store
 	verifyFunc func(email string) error
+	catalog    ListCatalog
+	strict     bool
 }
 
 func NewService(store Store) *Service {
-	return NewServiceWithVerifier(store, verifyWithAfterShip())
+	return NewServiceWithOptions(store, Options{
+		VerifyFunc: verifyWithAfterShip(),
+	})
 }
 
 func NewServiceWithVerifier(store Store, verifyFunc func(email string) error) *Service {
-	return &Service{store: store, verifyFunc: verifyFunc}
+	return NewServiceWithOptions(store, Options{
+		VerifyFunc: verifyFunc,
+	})
+}
+
+type Options struct {
+	VerifyFunc        func(email string) error
+	ListCatalog       ListCatalog
+	StrictListCatalog bool
+}
+
+func NewServiceWithOptions(store Store, opts Options) *Service {
+	verifyFunc := opts.VerifyFunc
+	if verifyFunc == nil {
+		verifyFunc = verifyWithAfterShip()
+	}
+	return &Service{
+		store:      store,
+		verifyFunc: verifyFunc,
+		catalog:    opts.ListCatalog,
+		strict:     opts.StrictListCatalog,
+	}
 }
 
 func verifyWithAfterShip() func(email string) error {
@@ -44,13 +69,27 @@ func (s *Service) VerifyEmailValidity(email string) error {
 
 // CreateList creates a new subscription list.
 func (s *Service) CreateList(ctx context.Context, emailList List) error {
-	return s.store.CreateList(ctx, emailList)
+	list := NormalizeList(emailList)
+	if list == "" {
+		return ErrListNotAllowed
+	}
+	if err := s.validateList(list); err != nil {
+		return err
+	}
+	return s.store.CreateList(ctx, list)
 }
 
 // Subscribe subscribes an email to a mailing list.
 func (s *Service) Subscribe(
 	ctx context.Context, email string, emailList List, latitude, longitude *float64,
 ) (*Subscription, error) {
+	emailList = NormalizeList(emailList)
+	if emailList == "" {
+		return nil, ErrListNotAllowed
+	}
+	if err := s.validateList(emailList); err != nil {
+		return nil, err
+	}
 	if err := s.VerifyEmailValidity(email); err != nil {
 		return nil, ErrEmailAddressInvalidCatchAll
 	}
@@ -58,9 +97,46 @@ func (s *Service) Subscribe(
 }
 
 func (s *Service) Unsubscribe(ctx context.Context, email string, token string, emailList List) error {
+	emailList = NormalizeList(emailList)
+	if emailList == "" {
+		return ErrListNotAllowed
+	}
+	if err := s.validateList(emailList); err != nil {
+		return err
+	}
 	return s.store.Unsubscribe(ctx, email, token, emailList)
 }
 
 func (s *Service) Confirm(ctx context.Context, code string) error {
 	return s.store.Confirm(ctx, code)
+}
+
+// EnsureCatalog bootstraps known lists into the store for installable module setup.
+func (s *Service) EnsureCatalog(ctx context.Context) error {
+	if s.catalog == nil {
+		return nil
+	}
+	for _, spec := range s.catalog.Lists() {
+		if err := s.store.CreateList(ctx, NormalizeList(spec.Key)); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s *Service) validateList(list List) error {
+	if s.catalog == nil {
+		return nil
+	}
+	spec, ok := s.catalog.ListByKey(list)
+	if !ok {
+		if s.strict {
+			return ErrListNotAllowed
+		}
+		return nil
+	}
+	if !spec.Active {
+		return ErrListInactive
+	}
+	return nil
 }

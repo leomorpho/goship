@@ -16,6 +16,12 @@ FROM email_subscriptions
 WHERE email = ?
 LIMIT 1;
 
+-- name: find_subscription_by_email_and_code
+SELECT id, email, verified, confirmation_code, latitude, longitude
+FROM email_subscriptions
+WHERE email = ? AND confirmation_code = ?
+LIMIT 1;
+
 -- name: insert_subscription
 INSERT INTO email_subscriptions (created_at, updated_at, email, verified, confirmation_code, latitude, longitude)
 VALUES (?, ?, ?, ?, ?, ?, ?);
