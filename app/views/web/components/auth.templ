@@ -5,6 +5,7 @@ import (
 	"github.com/leomorpho/goship/app/web/routenames"
 )
 
+// Renders: horizontal divider with "or" label followed by conditional login, register, and forgot-password buttons
 templ AuthButtons(page *controller.Page, showLoginBtn, showRegisterBtn, showResetPasswordBtn bool) {
 	<div class="inline-flex items-center justify-center w-full">
 		<hr class="w-64 h-px my-5 bg-gray-200 border-0 dark:bg-gray-700"/>

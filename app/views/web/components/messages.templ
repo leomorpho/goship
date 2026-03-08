@@ -36,6 +36,7 @@ templ message(className, text string) {
 
 templ StyledMessage(msgType, color, text, bgColorClass, contentColorClass string) {
 	<div
+		data-component="styled-message"
 		x-data="{ alertId: 'alert-' + Date.now(), show: true }"
 		:id="alertId"
 		x-show="show"

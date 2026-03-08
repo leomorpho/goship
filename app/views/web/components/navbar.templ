@@ -7,6 +7,7 @@ import (
 
 templ Navbar(page *controller.Page) {
 	<nav
+		data-component="navbar"
 		id="navbar"
 		if page.IsAuth && page.IsFullyOnboarded {
 			hx-ext="sse"
@@ -184,6 +185,7 @@ templ Navbar(page *controller.Page) {
 
 templ LogInButton(page *controller.Page, btnClasses string) {
 	<button
+		data-component="log-in-button"
 		class={ "bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 text-white font-medium rounded-full flex justify-center items-center w-full", btnClasses }
 		hx-get={ page.ToURL(routenames.RouteNameLogin) }
 		hx-target="#main-content"
@@ -205,7 +207,7 @@ templ LogInButton(page *controller.Page, btnClasses string) {
 }
 
 templ HomeButton(page *controller.Page, btnClasses string) {
-	<a href={ templ.URL(page.ToURL(routenames.RouteNameLandingPage)) }>
+	<a data-component="home-button" href={ templ.URL(page.ToURL(routenames.RouteNameLandingPage)) }>
 		<button
 			class={ "bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 text-white font-medium rounded-full flex justify-center items-center w-full", btnClasses }
 		>
@@ -223,7 +225,7 @@ templ HomeButton(page *controller.Page, btnClasses string) {
 }
 
 templ FloatingActionButton(page *controller.Page) {
-	<a href={ templ.URL(page.ToURL(routenames.RouteNameLandingPage)) }>
+	<a data-component="floating-action-button" href={ templ.URL(page.ToURL(routenames.RouteNameLandingPage)) }>
 		<div class="group fixed top-0 right-0 p-2 flex items-end justify-end w-16 h-16 z-50">
 			<!-- main -->
 			<div class="text-white shadow-xl flex items-center justify-center p-3 rounded-full bg-gradient-to-r from-cyan-500 to-blue-500 z-50 absolute  ">
@@ -242,6 +244,7 @@ templ FloatingActionButton(page *controller.Page) {
 
 templ DocsButton(page *controller.Page) {
 	<a
+		data-component="docs-button"
 		href={ templ.URL(page.ToURL(routenames.RouteNameDocs)) }
 		class="flex items-center w-9 h-9 lg:w-fit lg:h-8 lg:px-4 bg-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600 dark:bg-slate-500 rounded-full mx-2 flex items-center justify-center relative cursor-pointer"
 		id="meet"
@@ -264,6 +267,7 @@ templ DocsButton(page *controller.Page) {
 
 templ BlogButton() {
 	<a
+		data-component="blog-button"
 		href="https://tobyluxembourg.com"
 		id="blog-header-menu-item"
 		target="_blank"

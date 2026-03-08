@@ -9,7 +9,7 @@ HeatmapComponent is a component that displays a heatmap of the number of interac
 but not in Goship. Left here for reference. It needs to consume the countsByDay slice of viewmodels.CountByDay.
 */
 templ HeatmapComponent(countsByDay []viewmodels.CountByDay) {
-	<div class=" w-screen md:w-full md:overflow-hidden">
+	<div data-component="heatmap-component" class=" w-screen md:w-full md:overflow-hidden">
 		<div
 			id="horizontal-scroll-container"
 			class="flex flex-col justify-center items-center p-4 w-full overflow-x-auto h-min"

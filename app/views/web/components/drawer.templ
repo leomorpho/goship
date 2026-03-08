@@ -7,7 +7,8 @@ import (
 
 templ Drawer(page *controller.Page, showTopBar bool) {
 	<div
-		x-data="{ 
+		data-component="drawer"
+		x-data="{
 			isOpen: window.innerWidth >= 1024,
 			conditionalToggle() {
 				if (window.innerWidth < 1024) {

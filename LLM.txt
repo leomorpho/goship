@@ -415,6 +415,8 @@ Last updated: 2026-03-04
 ### Roadmap
 
 1. `M01` - `roadmap/01-framework-plan.md`: long-term framework strategy and execution tracker.
+2. `M02` - `roadmap/02-architecture-evolution.md`: architectural direction — islands JS, module extraction, app split, MCP expansion.
+3. `M03` - `roadmap/03-atomic-tasks.md`: atomic task list for implementing M02, pickup-ready for any LLM agent.
 
 ## Primary Source Files Used For This Analysis
 
@@ -1406,6 +1408,22 @@ When code behavior changes, update at least:
 
 - Integration tests must use `//go:build integration`.
 - Keep default tests (`ship test`) stateless and fast by tagging infra-dependent tests.
+
+## UI Agent Convention
+
+Before any UI work, read `docs/ui/style-guide.md` for design system context.
+
+The full `data-*` attribute rules and templ comment rules are defined in `UI_CONVENTION.md` at the monorepo root (the shared `UI_CONVENTION.md` at the pagoda-based root, `../../../UI_CONVENTION.md` relative to this file).
+
+### LLM Workflow for a UI Task
+
+1. Read `docs/ui/style-guide.md` for design system context.
+2. Grep `data-component="<component-name>"` to locate the target component's root element.
+3. Grep `data-slot="<slot-name>"` to locate the specific sub-element.
+4. Make the change, preserving existing Tailwind class patterns unless the style guide says otherwise.
+5. Never use `data-component`, `data-slot`, or `data-action` in CSS selectors.
+
+`data-*` attributes are semantic only — never for styling.
 
 ---
 FILE: docs/guides/02-development-workflows.md
@@ -3169,4 +3187,1139 @@ Current progress:
 3. Optional batteries are added via CLI without copy-paste.
 4. LLMs can reliably reason over framework structure using `llm.txt` + MCP.
 5. Cherie can upgrade to current GoShip with a documented, repeatable process.
+
+---
+FILE: docs/roadmap/02-architecture-evolution.md
+---
+# GoShip Architecture Evolution
+
+**Status:** Active planning — tasks tracked in `03-atomic-tasks.md`
+**Last updated:** 2026-03-08
+
+This document captures the architectural direction for GoShip as a Rails/Laravel-inspired, LLM-forward Go framework. It is the reference for understanding *why* changes are being made, not just what they are.
+
+---
+
+## Vision
+
+GoShip should be:
+
+1. **Minimal core** — the framework provides just enough to wire a Go web app (routing, DI, config, DB, auth primitives, rendering). Everything else is opt-in.
+2. **Self-contained modules** — each optional capability (notifications, payments, profile, PWA, etc.) ships as a module that brings its own schema, migrations, routes, and views, and can be installed/removed via CLI.
+3. **LLM-forward** — the codebase structure, tooling, and conventions are optimized so that an LLM can scaffold, edit, and verify changes reliably with minimal human correction.
+4. **Islands-first JS** — JS components are lazy-loaded per-page via an islands architecture. Each component is a proper JS/TS file with full tooling. No monolithic bundle.
+5. **Two distinct apps** — the GoShip repo contains a `landing` app (goship.run marketing site) and a `starter` app (minimal skeleton used by `ship new`). They are separate entrypoints.
+
+---
+
+## 1. JS Islands Architecture
+
+### Problem with Current Approach
+
+The current setup:
+- Bundles all Svelte components into one `svelte_bundle.js` (~all pages load all components)
+- Mounts components via `window.renderSvelteComponent('Name', id, props)` global
+- No code splitting, no lazy loading
+- Svelte-only (wiring a React or Vue component requires significant plumbing)
+- TypeScript/linting in Svelte files works, but the wiring to templ is a magic string
+
+### Target Architecture: Data-Attribute Islands
+
+**Runtime contract:**
+
+In templ, declare a mount point:
+```templ
+<div data-island="ThemeToggle" data-props={ templ.JSONString(props) }></div>
+```
+
+A small runtime script (`islands-runtime.js`, ~30 lines) runs on page load and after every HTMX swap:
+1. Finds all `[data-island]` elements that aren't mounted yet
+2. Looks up the island name in a build manifest
+3. Dynamically imports the island's JS chunk (framework-agnostic)
+4. Calls the island's exported `mount(el, props)` function
+
+**Island file contract** (each island is a standalone file):
+```
+frontend/islands/ThemeToggle.svelte     → exports mount(el, props)
+frontend/islands/EmojiPicker.tsx        → exports mount(el, props)
+frontend/islands/MapView.vue            → exports mount(el, props)
+```
+
+Each framework adapter (Svelte, React, Preact, Vue) is ~3 lines to implement `mount`. The runtime doesn't care which framework the island uses.
+
+**Build tool: Vite**
+
+Switch from esbuild to Vite:
+- Vite handles per-island code splitting natively via Rollup
+- `@sveltejs/vite-plugin-svelte`, `@vitejs/plugin-react`, `@vitejs/plugin-vue` all maintained
+- Generates a manifest (`islands-manifest.json`) mapping island names → hashed chunk URLs
+- HMR during development
+- Tailwind CSS via Vite plugin (replaces standalone Tailwind CLI invocation)
+
+**HTMX compatibility:**
+- Islands runtime re-scans after `htmx:afterSettle` event
+- Islands are idempotent: `el.__island_mounted` flag prevents double-mount
+- No conflict with HTMX swapping regions that contain islands — the island remounts cleanly
+
+**What changes in templ:**
+- Remove `script` blocks that call `renderSvelteComponent()`
+- Replace with `<div data-island="..." data-props="...">` mount points
+- Remove import of `svelte_bundle.js` from core layout
+- Add import of `islands-runtime.js` (small, loads once)
+
+### Migration Path
+
+1. Build Vite config with island splitting
+2. Write `islands-runtime.js`
+3. Write per-framework `mount()` adapter conventions
+4. Migrate existing Svelte components one by one (ThemeToggle, EmojiPicker, etc.)
+5. Remove old esbuild setup and global registry
+
+---
+
+## 2. Module System Evolution
+
+### What a Module Should Be
+
+A self-contained Go package that provides:
+
+```
+modules/mymodule/
+├── module.go          # Module ID, config schema, dependency declarations
+├── service.go         # Business logic (exported API)
+├── store.go           # Storage interface
+├── store_sql.go       # SQL implementation
+├── routes.go          # Route registration (optional)
+├── views/             # Templ templates (optional)
+│   └── web/
+├── db/                # Migrations
+│   └── migrations/
+└── *_test.go
+```
+
+`module.go` exports a `Module` struct conforming to a framework interface:
+
+```go
+type Module interface {
+    ID() string
+    Configure(cfg any) error
+    Migrations() []string          // paths to migration files
+    RegisterRoutes(router Router) error  // optional
+}
+```
+
+### Module Installation: `ship module:add <name>`
+
+When you run `ship module:add notifications`, the CLI:
+1. Adds the import to `go.mod`
+2. Adds the module to `config/modules.yaml`
+3. Inserts wiring into `app/foundation/container.go` at a marker comment
+4. Inserts route registration into `app/router.go` at a marker comment
+5. Runs `db:migrate` if the module has migrations
+
+When you run `ship module:remove notifications`, it reverses all of the above.
+
+This is the same marker-comment pattern already used for route wiring in `app/router.go`.
+
+### What Should Become a Module
+
+| Currently in `app/` | Becomes module | Notes |
+|---|---|---|
+| `web/controllers/login.go`, `register.go`, `logout.go`, `forgot_password.go` | `modules/auth` | Auth flows + views. Auth primitives stay in framework. |
+| `profile/`, `web/controllers/profile.go`, `profile_photo.go`, `upload_photo.go` | `modules/profile` | User profile domain, photo management, settings |
+| `web/controllers/preferences.go` (490 lines) | `modules/preferences` | Wraps notifications + profile settings. Depends on `notifications` module. |
+| `web/controllers/push_notifs.go` | Merge into `modules/notifications` | Already a module; route handler should move in |
+| `web/controllers/email_subscribe.go` | Merge into `modules/emailsubscriptions` | Already a module; route handler should move in |
+| PWA service worker, manifest, install prompt | `modules/pwa` | Brings own JS, manifest template, install route |
+| `web/controllers/home_feed.go` | Stays in app (app-specific) or `modules/feed` | Depends on product |
+| `web/controllers/landing.go`, `about.go`, `contact.go` | Stays in app (app-specific) | Landing is always app-specific |
+| `web/controllers/payments.go` | Merge into `modules/paidsubscriptions` | Already a module; route handler should move in |
+
+### What Stays in Framework Core
+
+- HTTP routing adapter (Echo wrapper)
+- DI container infrastructure
+- Config management
+- DB connection + migration runner
+- Session handling
+- Auth primitives (token generation, password hashing) — not auth flows
+- Middleware infrastructure (CSRF, logging, error handling)
+- Templ rendering pipeline
+- Static asset serving
+- Background job infrastructure (adapter interface)
+- Healthcheck endpoint
+
+---
+
+## 3. App Split: Landing vs Starter
+
+### Problem
+
+The current `app/` serves two purposes:
+1. It's the `goship.run` landing page / marketing site
+2. It's the reference implementation / template for `ship new myapp`
+
+These have different audiences, different update cadences, and different complexity requirements.
+
+### Target Structure
+
+```
+cmd/
+├── web/          # Shared web process entrypoint
+├── worker/       # Shared worker process entrypoint
+└── seed/         # Shared seeder
+
+app/              # The landing/marketing app (goship.run)
+                  # Showcases all modules, has real content
+                  # NOT the template for new projects
+
+starter/          # Minimal skeleton used by `ship new`
+├── app/          # Bare app: auth, profile, home feed — nothing else
+├── cmd/
+└── docs/
+```
+
+OR (simpler): `starter/` is maintained as a separate repository `goship-starter` and `ship new` clones/fetches it. This keeps the main repo clean.
+
+**Recommendation:** Start with `starter/` as a subdirectory of this repo, then extract to its own repo once stable.
+
+The landing app should showcase:
+- All available modules (install and demonstrate them)
+- The Vite islands architecture
+- GoShip DX features (ship CLI, doctor, MCP)
+
+The starter app should be:
+- Auth + one example page (home feed)
+- Minimal: no payments, no push notifications unless opted in via `ship module:add`
+- What `ship new myapp` generates
+
+---
+
+## 4. MCP Expansion
+
+### Current State
+
+3 tools: `ship_help`, `docs_search`, `docs_get` — read-only, documentation-only.
+
+### Why MCP Matters
+
+The highest-value pattern for LLM development is: **act → verify → fix**, autonomously. The LLM writes code, calls `ship_doctor` via MCP, gets structured errors, fixes them — without human intervention.
+
+This loop requires MCP tools that provide:
+- **Verification**: does my change break anything structurally?
+- **Inspection**: what routes/schema/modules exist, so I don't create conflicts?
+- **Action**: can I scaffold without needing shell access?
+
+### Tools to Add
+
+| Tool | Input | Output | Value |
+|---|---|---|---|
+| `ship_doctor` | — | JSON: `{issues: [{type, file, detail}]}` | LLM self-validates after changes |
+| `ship_routes` | — | JSON: route inventory (method, path, auth, handler) | LLM avoids route conflicts |
+| `ship_schema` | — | JSON: DB tables + columns + types | LLM writes correct migrations |
+| `ship_modules` | — | JSON: installed modules + their routes/config | LLM knows what's available |
+| `ship_scaffold` | model name + fields | Runs `make:scaffold`, returns generated file paths | LLM creates resources |
+| `ship_make_migration` | migration name | Creates migration file, returns path | LLM creates schema changes |
+
+All outputs should be JSON with consistent `{ok: bool, data: any, errors: [string]}` envelope.
+
+### Integration Recommendation
+
+Make `ship doctor` produce machine-readable JSON output (flag: `--json`). The MCP tool just calls it and passes through. This way the CLI and MCP stay in sync automatically.
+
+---
+
+## 5. Container Initialization Fix
+
+### Current Bug
+
+`app/foundation/container.go` has these commented out:
+```go
+// c.initCache()
+// c.initNotifier()
+// c.initTasks()
+```
+
+But runtime code in several places assumes these are initialized and calls `.Close()` on them at shutdown — risk of nil pointer panics.
+
+### Fix
+
+The container should use a capability-based initialization pattern:
+
+```go
+func NewContainer() *Container {
+    // ...
+    if c.Config.Cache.Enabled {
+        c.initCache()
+    }
+    if c.Config.Notifications.Enabled {
+        c.initNotifier()
+    }
+    if c.Config.Jobs.Enabled {
+        c.initTasks()
+    }
+}
+```
+
+All `.Close()` calls must nil-check or use the adapter pattern (`c.CoreCache` is already the right abstraction — use it exclusively).
+
+---
+
+## 6. LLM-Forward Conventions
+
+Beyond the `data-*` UI attribute convention (tracked in `UI_CONVENTION.md`), the following make the codebase LLM-reliable:
+
+### Marker Comments for Code Generation
+
+The router already uses `// ship:routes:auth:start` markers. Extend this pattern:
+- `// ship:container:start` / `// ship:container:end` — container wiring insertion points
+- `// ship:module:start` / `// ship:module:end` — module registration
+- `// ship:routes:public:start` etc. — route group markers
+
+These allow `ship module:add` to insert code without regex guessing.
+
+### One Canonical Path Per Concern
+
+Already the GoShip philosophy. Enforce it in `ship doctor`:
+- No controller outside `app/web/controllers/`
+- No route registration outside `app/router.go`
+- No business logic in controllers (must delegate to service/domain layer)
+
+### Structured Error Output from CLI
+
+All CLI commands should support `--json` flag for machine-readable output. MCP tools consume these directly.
+
+---
+FILE: docs/roadmap/03-atomic-tasks.md
+---
+# GoShip Atomic Task List
+
+**Reference:** `docs/roadmap/02-architecture-evolution.md` — read this first for context on *why*.
+
+Tasks are grouped by area. Within each group, items are ordered by dependency.
+Mark `[x]` when done before starting dependents.
+Tasks marked `(parallel)` can run concurrently with other parallel tasks in the same group.
+
+---
+
+## Group A — Critical Bug Fixes (do first, unblocks everything)
+
+### A01 — Fix container initialization for optional services
+
+**Status:** `[ ] todo`
+**Files:** `app/foundation/container.go`
+**Depends on:** nothing
+**Context:**
+`initCache()`, `initNotifier()`, `initTasks()` are commented out in `NewContainer()`. Shutdown code calls `.Close()` on potentially nil fields. This is a latent nil-pointer panic.
+
+**What to do:**
+1. Read `app/foundation/container.go` fully.
+2. Uncomment `c.initCache()`, `c.initNotifier()`, `c.initTasks()` — but wrap each in a config guard:
+   ```go
+   if c.Config.Cache.Enabled { c.initCache() }
+   ```
+3. For each guarded service, update the shutdown logic to nil-check before calling `.Close()`:
+   ```go
+   if c.Cache != nil { c.Cache.Close() }
+   ```
+4. Verify `Config` struct has appropriate `Enabled` booleans; add them if not.
+5. Run `go build ./...` and `make test-unit`.
+
+**Done when:** No commented-out init calls remain. Shutdown is nil-safe. `go build ./...` passes.
+
+---
+
+### A02 — Add `--json` output flag to `ship doctor`
+
+**Status:** `[ ] todo`
+**Files:** `tools/cli/ship/internal/commands/doctor.go` (or equivalent)
+**Depends on:** nothing
+**Context:**
+`ship doctor` currently outputs human-readable text. For MCP integration and LLM self-validation, it needs a machine-readable JSON mode.
+
+**What to do:**
+1. Read the doctor command implementation.
+2. Add a `--json` flag.
+3. When `--json` is set, output:
+   ```json
+   {"ok": true, "issues": [{"type": "string", "file": "string", "detail": "string", "severity": "error|warning"}]}
+   ```
+4. Exit code: 0 if no errors (warnings allowed), 1 if any errors.
+5. Existing non-JSON output must be unchanged when flag is absent.
+
+**Done when:** `ship doctor --json` outputs valid JSON matching the schema above. Existing output unchanged.
+
+---
+
+## Group B — JS Islands Architecture
+
+### B01 — Set up Vite build config with island splitting (parallel)
+
+**Status:** `[ ] todo`
+**Files:** `frontend/vite.config.ts` (new), `frontend/package.json`
+**Depends on:** nothing
+**Context:**
+Replace esbuild with Vite. Vite splits each island in `frontend/islands/` into its own chunk. Read `docs/roadmap/02-architecture-evolution.md` section 1 for full design.
+
+**What to do:**
+1. Read `frontend/build.mjs`, `frontend/package.json`, `frontend/tailwind.config.js`.
+2. Add Vite and plugins to `package.json` devDependencies:
+   - `vite`, `@sveltejs/vite-plugin-svelte`, `@vitejs/plugin-react` (optional, for future), `vite-plugin-tailwindcss` or use postcss
+3. Create `frontend/vite.config.ts`:
+   - Entry point: glob all files in `frontend/islands/` as separate chunks
+   - Output: `app/static/islands/[name]-[hash].js`
+   - Also output: `app/static/islands-manifest.json` mapping island name → hashed URL
+   - Also build: `frontend/javascript/vanilla/main.js` → `app/static/vanilla_bundle.js`
+   - Tailwind via postcss config (reuse existing `tailwind.config.js`)
+4. Create `frontend/islands/` directory with a `.gitkeep`.
+5. Update `Makefile` targets: replace esbuild build commands with `vite build` and `vite` for dev.
+6. Keep old `build.mjs` until all Svelte components are migrated (Group B03+).
+
+**Done when:** `make js-build` runs Vite successfully. Output files appear in `app/static/`. Old esbuild build still works via a separate target.
+
+---
+
+### B02 — Write the islands runtime (parallel)
+
+**Status:** `[ ] todo`
+**Files:** `frontend/javascript/vanilla/islands-runtime.js` (new), `app/views/web/components/core.templ`
+**Depends on:** nothing (can write runtime before Vite is set up)
+**Context:**
+Small vanilla JS script that discovers `[data-island]` elements, fetches the manifest, dynamically imports island chunks, and calls their `mount(el, props)`. Must re-run after HTMX swaps.
+
+**What to do:**
+1. Create `frontend/javascript/vanilla/islands-runtime.js`:
+   ```js
+   // Fetches /static/islands-manifest.json once, caches it
+   // On DOMContentLoaded and after htmx:afterSettle:
+   //   querySelectorAll('[data-island]:not([data-island-mounted])')
+   //   For each: mark data-island-mounted="true", import chunk, call mount(el, props)
+   // props = JSON.parse(el.dataset.props || '{}')
+   // Log warning if island name not in manifest
+   ```
+2. Include `islands-runtime.js` in `app/views/web/components/core.templ` JS block (after HTMX loads).
+3. Do NOT remove existing `svelte_bundle.js` include yet — both coexist during migration.
+
+**Done when:** Script exists. When included in a page with a `[data-island]` element, it correctly imports and mounts the island. Can be tested manually with a simple test island.
+
+---
+
+### B03 — Create island adapter convention + migrate ThemeToggle (parallel)
+
+**Status:** `[ ] todo`
+**Files:** `frontend/islands/ThemeToggle.svelte` (new), `app/views/web/components/theme_toggle.templ`
+**Depends on:** B01, B02
+**Context:**
+First real island migration. ThemeToggle is a good candidate — small, self-contained.
+The island convention: each island file exports `mount(el, props)`. For Svelte:
+```js
+export function mount(el, props) {
+  new MyComponent({ target: el, props })
+}
+```
+
+**What to do:**
+1. Read the current Svelte `ThemeToggle` component and its templ mounting code.
+2. Create `frontend/islands/ThemeToggle.svelte` with the component logic + the `mount` export.
+3. Update `app/views/web/components/theme_toggle.templ`:
+   - Replace `<div id={id}>` + `@initThemeToggle(id)` script block
+   - With `<div data-island="ThemeToggle" data-props={ templ.JSONString(props) }></div>`
+4. Delete the old templ `script` block for this component.
+5. Run `make templ` to regenerate Go files.
+6. Test in dev: theme toggle should still work.
+
+**Done when:** ThemeToggle works via the islands runtime. Old `renderSvelteComponent('ThemeToggle', ...)` call is gone.
+
+---
+
+### B04 — Migrate remaining Svelte components to islands
+
+**Status:** `[ ] todo`
+**Files:** All Svelte components in `frontend/javascript/svelte/`, corresponding templ files
+**Depends on:** B03 (use ThemeToggle as the proven pattern)
+**Context:**
+Migrate each remaining Svelte component one at a time. Current components (from `main.js` registry):
+`MultiSelectComponent`, `PhotoUploader`, `SingleSelect`, `PhoneNumberPicker`, `PwaInstallButton`, `PwaSubscribePush`, `NotificationPermissions`.
+
+**What to do:**
+For each component:
+1. Read the Svelte source + the templ mounting code.
+2. Create `frontend/islands/{ComponentName}.svelte` with `mount` export.
+3. Update the templ file to use `data-island` pattern.
+4. Remove the old `script` block from templ.
+5. Test manually or via Playwright.
+
+Do components one by one. Each is a separate commit.
+
+**Done when:** All components migrated. `window.renderSvelteComponent` is no longer called anywhere. `svelte_bundle.js` is no longer included in `core.templ`.
+
+---
+
+### B05 — Remove old esbuild setup
+
+**Status:** `[ ] todo`
+**Files:** `frontend/build.mjs`, `frontend/javascript/svelte/main.js`, `Makefile`
+**Depends on:** B04 (all components migrated)
+
+**What to do:**
+1. Delete `frontend/build.mjs`.
+2. Delete `frontend/javascript/svelte/main.js` (registry file).
+3. Remove esbuild from `package.json` devDependencies.
+4. Update all `Makefile` targets that referenced old build commands.
+5. Run `make js-build` and confirm clean build.
+
+**Done when:** No esbuild references remain. `make js-build` uses Vite exclusively.
+
+---
+
+## Group C — Module System
+
+### C01 — Define the Module interface in framework (parallel)
+
+**Status:** `[ ] todo`
+**Files:** `framework/core/interfaces.go` or new `framework/core/module.go`
+**Depends on:** nothing
+**Context:**
+Add a `Module` interface to the framework that all installable modules must implement. Read `docs/roadmap/02-architecture-evolution.md` section 2 for the design.
+
+**What to do:**
+1. Read `framework/core/interfaces.go`.
+2. Add to the framework (new file or existing):
+   ```go
+   type Module interface {
+       ID() string
+       Migrations() fs.FS  // embedded migration files, nil if none
+   }
+
+   type RoutableModule interface {
+       Module
+       RegisterRoutes(r Router) error
+   }
+   ```
+   Where `Router` is a minimal interface wrapping Echo group registration.
+3. Do NOT change any existing modules yet — this is additive.
+4. Run `go build ./...`.
+
+**Done when:** Interface defined, project compiles.
+
+---
+
+### C02 — Add marker comments to `app/router.go` and `app/foundation/container.go` (parallel)
+
+**Status:** `[ ] todo`
+**Files:** `app/router.go`, `app/foundation/container.go`
+**Depends on:** nothing
+**Context:**
+Marker comments are the insertion points for `ship module:add`. They already exist for routes but need to be standardized and extended.
+
+**What to do:**
+1. Read both files.
+2. In `app/router.go`, ensure these markers exist at correct insertion points:
+   ```go
+   // ship:routes:public:start
+   // ship:routes:public:end
+   // ship:routes:auth:start
+   // ship:routes:auth:end
+   // ship:routes:external:start
+   // ship:routes:external:end
+   ```
+3. In `app/foundation/container.go`, add:
+   ```go
+   // ship:container:start
+   // ship:container:end
+   ```
+   At the location where module service initialization should be inserted.
+4. Do NOT change any logic — only add/normalize comments.
+
+**Done when:** Markers exist in both files. `go build ./...` passes.
+
+---
+
+### C03 — Implement `ship module:add` CLI command
+
+**Status:** `[ ] todo`
+**Files:** `tools/cli/ship/internal/cli/cli.go`, new `tools/cli/ship/internal/commands/module.go`
+**Depends on:** C01, C02
+**Context:**
+`ship module:add <name>` should install a module by: adding import, updating `config/modules.yaml`, inserting wiring at marker comments in container + router. Read `docs/roadmap/02-architecture-evolution.md` section 2 for full spec.
+
+Supported modules for initial implementation: `notifications`, `paidsubscriptions`, `emailsubscriptions`, `jobs`, `pwa` (once extracted).
+
+**What to do:**
+1. Read existing `make:controller` or `make:scaffold` generators to understand the code-insertion pattern used (marker comments + text replacement).
+2. Create `tools/cli/ship/internal/commands/module.go` with:
+   - `module:add <name>` subcommand
+   - For each known module: define what wiring lines to insert at each marker
+   - Insert import into container file
+   - Insert service init into container at `ship:container:start` marker
+   - Insert route registration into router at appropriate `ship:routes:*:start` marker
+   - Update `config/modules.yaml`
+3. Register the command in `cli.go`.
+4. Add `--dry-run` flag that shows what would change without writing.
+
+**Done when:** `ship module:add notifications --dry-run` outputs correct diff. `ship module:add notifications` correctly wires the module (verify by reading modified files).
+
+---
+
+### C04 — Implement `ship module:remove` CLI command
+
+**Status:** `[ ] todo`
+**Files:** `tools/cli/ship/internal/commands/module.go`
+**Depends on:** C03
+**Context:**
+Reverse of C03. Removes wiring inserted by `ship module:add`.
+
+**What to do:**
+1. For each module, define the lines to remove (must match exactly what C03 inserts).
+2. Remove from container, router, modules.yaml.
+3. Do NOT remove DB migrations (data safety — user must handle that manually). Print a reminder.
+4. Add `--dry-run` flag.
+
+**Done when:** `ship module:remove notifications` correctly removes wiring. Compile check passes.
+
+---
+
+### C05 — Add `ship_modules` and `ship_routes` tools to MCP server (parallel)
+
+**Status:** `[ ] todo`
+**Files:** `tools/mcp/ship/`
+**Depends on:** A02 (for `ship_doctor`), nothing else
+**Context:**
+Expand MCP from 3 read-only tools to include inspection and validation tools. See `docs/roadmap/02-architecture-evolution.md` section 4.
+
+**What to do:**
+1. Read `tools/mcp/ship/` fully.
+2. Add tools:
+   - `ship_doctor`: runs `ship doctor --json`, returns parsed JSON
+   - `ship_routes`: parses `app/router.go` to extract route inventory, returns JSON array of `{method, path, auth, handler}`
+   - `ship_modules`: reads `config/modules.yaml` + scans `modules/` directory, returns installed modules + available modules as JSON
+3. Each tool: clear name, description, input schema (if any), output schema documented in tool definition.
+4. Test each tool returns valid JSON.
+
+**Done when:** Three new MCP tools work and return valid JSON. Existing tools unchanged.
+
+---
+
+## Group D — Module Extraction
+
+> Each extraction is independent. Do them in any order, but do C01–C02 first.
+
+### D01 — Extract auth controllers into `modules/auth` (parallel)
+
+**Status:** `[ ] todo`
+**Files:** `app/web/controllers/login.go`, `register.go`, `logout.go`, `forgot_password.go`, new `modules/auth/`
+**Depends on:** C01
+**Context:**
+Auth flows (login, register, logout, password reset) are currently app-level controllers. They should be a self-contained module. Auth *primitives* (token generation, password hashing) stay in framework.
+
+**What to do:**
+1. Read all four controller files + their views in `app/views/web/pages/` and `app/views/web/components/auth.templ`.
+2. Create `modules/auth/`:
+   - `module.go` — implements `Module` interface, ID: `"auth"`
+   - `routes.go` — registers `/login`, `/register`, `/logout`, `/forgot-password`, `/reset-password`
+   - `service.go` — thin wrapper delegating to framework auth primitives
+   - `views/` — move auth templ files here
+3. Update `app/router.go` to call `authModule.RegisterRoutes(...)` instead of directly registering routes.
+4. Delete the four original controller files (or keep as thin shims temporarily).
+5. Run `go build ./...` and `make test-unit`.
+
+**Done when:** Auth routes work via the module. Old controllers deleted. Tests pass.
+
+---
+
+### D02 — Extract profile into `modules/profile` (parallel)
+
+**Status:** `[ ] todo`
+**Files:** `app/profile/`, `app/web/controllers/profile.go`, `profile_photo.go`, `upload_photo.go`, new `modules/profile/`
+**Depends on:** C01
+**Context:**
+User profile management (view, edit, photo upload) + the profile domain logic in `app/profile/`.
+
+**What to do:**
+1. Read all profile files and their views.
+2. Create `modules/profile/`:
+   - `module.go` — ID: `"profile"`
+   - `service.go` — wraps existing profile domain logic
+   - `store.go` / `store_sql.go` — any profile-specific DB queries
+   - `routes.go` — `/profile/*`, `/uploadPhoto/*`
+   - `views/` — profile templ files
+   - `db/migrations/` — any profile-specific schema (if separable)
+3. Wire via `modules/profile` in router. Delete originals.
+4. Run `go build ./...` and `make test-unit`.
+
+**Done when:** Profile routes work via module. Tests pass.
+
+---
+
+### D03 — Move paidsubscriptions route handler into module (parallel)
+
+**Status:** `[ ] todo`
+**Files:** `app/web/controllers/payments.go`, `modules/paidsubscriptions/routes.go` (new)
+**Depends on:** C01
+**Context:**
+`modules/paidsubscriptions` already has service + store. The route handler (`payments.go`) is still in `app/web/controllers/`. Move it into the module.
+
+**What to do:**
+1. Read `app/web/controllers/payments.go` and `modules/paidsubscriptions/`.
+2. Create `modules/paidsubscriptions/routes.go` with the handler logic (moved from controller).
+3. Have the module implement `RoutableModule` and register its own routes.
+4. Delete `app/web/controllers/payments.go`.
+5. Update `app/router.go` to call `paidsubscriptionsModule.RegisterRoutes(...)`.
+6. Run `go build ./...` and tests.
+
+**Done when:** Payments routes work via module. Old controller deleted.
+
+---
+
+### D04 — Move notifications route handlers into module (parallel)
+
+**Status:** `[ ] todo`
+**Files:** `app/web/controllers/notifications.go`, `push_notifs.go`, `modules/notifications/routes.go` (new)
+**Depends on:** C01
+**Context:**
+Same pattern as D03. `notifications.go` (249 lines) and `push_notifs.go` (407 lines) belong in the notifications module.
+
+**What to do:**
+1. Read both controllers and `modules/notifications/`.
+2. Create `modules/notifications/routes.go`.
+3. Move handler logic. Implement `RoutableModule`.
+4. Delete old controllers.
+5. Update router.
+6. Run `go build ./...` and tests.
+
+**Done when:** Notification routes work via module. Old controllers deleted.
+
+---
+
+### D05 — Create `modules/pwa` (parallel)
+
+**Status:** `[ ] todo`
+**Files:** `app/web/controllers/install_app.go`, PWA-related templ components, service worker, manifest, new `modules/pwa/`
+**Depends on:** C01
+**Context:**
+PWA support (service worker registration, manifest.json, install prompt, push subscription) is scattered across the app. Extract into a self-contained module.
+
+**What to do:**
+1. Find all PWA-related files (service worker, manifest, install_app controller, pwa_install templ component, push notif subscription).
+2. Create `modules/pwa/`:
+   - `module.go` — ID: `"pwa"`
+   - `routes.go` — `/install-app`, serve manifest, service worker
+   - `views/` — PWA install UI components
+   - Static assets: manifest template, service worker JS
+3. Wire via module. Delete originals.
+
+**Done when:** PWA install flow works via module. Old files deleted.
+
+---
+
+## Group E — App Split: Landing vs Starter
+
+### E01 — Create `starter/` skeleton app (parallel)
+
+**Status:** `[ ] todo`
+**Files:** new `starter/` directory
+**Depends on:** D01, D02 (so auth + profile modules exist to include)
+**Context:**
+Create a minimal app skeleton that becomes the template for `ship new`. It should include auth, profile, home feed — nothing else. No landing page, no payments, no push notifications.
+
+**What to do:**
+1. Create `starter/` mirroring the `app/` structure but minimal:
+   - `starter/router.go` — only public routes (landing placeholder) + auth module + profile module
+   - `starter/foundation/container.go` — minimal container (DB, auth, mail only)
+   - `starter/views/web/pages/home_feed.templ` — simple home feed page
+   - `starter/views/web/pages/landing.templ` — minimal landing placeholder
+2. Ensure it compiles standalone: `cd starter && go build ./...`
+3. Document in `starter/README.md`: "This is the minimal GoShip starter. Add modules with `ship module:add`."
+
+**Done when:** `starter/` compiles. Contains only auth + profile + home feed. No payments/push/etc.
+
+---
+
+### E02 — Wire `ship new` to use `starter/` as template
+
+**Status:** `[ ] todo`
+**Files:** `tools/cli/ship/internal/commands/new.go`
+**Depends on:** E01
+**Context:**
+`ship new myapp` should scaffold from the `starter/` skeleton, not the full app.
+
+**What to do:**
+1. Read the current `ship new` implementation.
+2. Update it to copy/template from `starter/` (either embedded in CLI binary or fetched from a known URL).
+3. Replace placeholder names (module name, package paths) in generated files.
+4. Print post-install instructions: `cd myapp && ship module:add <module> && make dev`.
+
+**Done when:** `ship new testapp` generates a working minimal app based on starter.
+
+---
+
+## Group F — Documentation Updates
+
+### F01 — Update `docs/00-index.md` with new roadmap docs (parallel)
+
+**Status:** `[ ] todo`
+**Files:** `docs/00-index.md`
+**Depends on:** nothing
+
+**What to do:**
+Read `docs/00-index.md`. Add entries for:
+- `M02` — `roadmap/02-architecture-evolution.md`
+- `M03` — `roadmap/03-atomic-tasks.md` (this file)
+
+**Done when:** Index references both new roadmap documents.
+
+---
+
+### F02 — Update `docs/architecture/01-architecture.md` to reflect module system (parallel)
+
+**Status:** `[ ] todo`
+**Files:** `docs/architecture/01-architecture.md`
+**Depends on:** C01 (so the module interface exists to document)
+
+**What to do:**
+1. Read the current architecture doc.
+2. Add a "Module System" section explaining:
+   - The `Module` and `RoutableModule` interfaces
+   - How modules are installed (`ship module:add`)
+   - What a module can bring (routes, views, migrations)
+   - List of available modules with one-line descriptions
+3. Update the request flow diagram if it exists to show module route registration.
+
+**Done when:** Architecture doc accurately describes the module system.
+
+---
+
+### F03 — Update `docs/reference/01-cli.md` with new commands (parallel)
+
+**Status:** `[ ] todo`
+**Files:** `docs/reference/01-cli.md`
+**Depends on:** C03, C04, A02 (so commands exist before documenting)
+
+**What to do:**
+Add entries for:
+- `ship module:add <name>` — description, options, examples
+- `ship module:remove <name>` — description, warnings (no auto-migration rollback)
+- `ship doctor --json` — new flag, output schema
+
+**Done when:** CLI reference accurately documents new commands.
+
+---
+
+### F04 — Update `docs/reference/02-mcp.md` with new MCP tools (parallel)
+
+**Status:** `[ ] todo`
+**Files:** `docs/reference/02-mcp.md`
+**Depends on:** C05
+
+**What to do:**
+Document the 3 new MCP tools (`ship_doctor`, `ship_routes`, `ship_modules`) with input schema, output schema, and example responses.
+
+**Done when:** MCP reference covers all 6 tools (3 existing + 3 new).
+
+---
+
+## Completion Tracker
+
+```
+Group A — Critical Fixes
+[ ] A01  Container initialization bug fixed
+[ ] A02  ship doctor --json flag added
+
+Group B — JS Islands
+[ ] B01  Vite config set up
+[ ] B02  Islands runtime written
+[ ] B03  ThemeToggle migrated (first island)
+[ ] B04  All Svelte components migrated
+[ ] B05  Old esbuild setup removed
+
+Group C — Module System
+[ ] C01  Module interface defined in framework
+[ ] C02  Marker comments added to router + container
+[ ] C03  ship module:add implemented
+[ ] C04  ship module:remove implemented
+[ ] C05  MCP tools: ship_doctor, ship_routes, ship_modules
+
+Group D — Module Extraction (all parallel after C01)
+[ ] D01  Auth → modules/auth
+[ ] D02  Profile → modules/profile
+[ ] D03  Payments handler → modules/paidsubscriptions
+[ ] D04  Notifications handler → modules/notifications
+[ ] D05  PWA → modules/pwa
+
+Group E — App Split
+[ ] E01  starter/ skeleton created
+[ ] E02  ship new uses starter/
+
+Group F — Documentation
+[ ] F01  docs/00-index.md updated
+[ ] F02  Architecture doc updated with module system
+[ ] F03  CLI reference updated
+[ ] F04  MCP reference updated
+```
+
+---
+
+## Recommended Execution Order
+
+1. **A01, A02** — fix critical bugs first (parallel)
+2. **B01, B02, C01, C02, F01** — foundation work (all parallel)
+3. **B03, C03** — first island + module:add (B03 needs B01+B02; C03 needs C01+C02)
+4. **B04, C04, C05, D01, D02, D03, D04, D05, F02** — main body of work (mostly parallel)
+5. **B05, E01** — cleanup and starter (B05 needs B04; E01 needs D01+D02)
+6. **E02, F03, F04** — final wiring (E02 needs E01; F03 needs C03+C04+A02; F04 needs C05)
+
+---
+FILE: docs/ui/style-guide.md
+---
+# UI Style Guide
+
+This document describes the visual design system for the GoShip codebase.
+It is intended as a reference for developers and AI agents before editing any UI file.
+
+Last updated: 2026-03-07
+
+---
+
+## 1. Theme Tokens
+
+GoShip uses two DaisyUI themes: `lightmode` (extends `cmyk`) and `darkmode` (extends `business`).
+The active theme is set via `data-theme` on the `<html>` element.
+
+| Token | Light value + description | Dark value + description |
+|---|---|---|
+| `primary` | `white` — navbar and drawer background surface | `#111827` — near-black navy, navbar and drawer background |
+| `secondary` | `#DEFBFB` — very pale cyan, used for subtle info banners | `#222833` — dark blue-grey, used for card surfaces |
+| `accent` | `#FA6A7D` — rose pink, primary CTA highlight color | `#FA6A7D` — same rose pink, unchanged across themes |
+| `neutral` | `#919191` — mid-grey, muted text and borders | `#494949` — dark grey, muted text and borders |
+| `base-100` | `""` (inherits cmyk default) — base page background | `#010D14` — near-black blue, page background |
+| `base-200` | cmyk default — slightly darker surface than base-100 | business default — slightly lighter than base-100 |
+| `base-300` | cmyk default — used for dividers and input backgrounds | business default — used for dividers and input backgrounds |
+| `info` | `#623CEA` — violet-purple, informational accents | `#623CEA` — same violet-purple, unchanged |
+| `success` | `#87FF65` — bright lime green, success states | `#80D569` — muted green, success states |
+| `warning` | `#FFC759` — amber, warning states | `#FFC759` — same amber, unchanged |
+| `error` | `#A30000` — dark red, error states | `#A30000` — same dark red, unchanged |
+
+> `primary-content`, `secondary-content`, `accent-content`, etc. are derived automatically by DaisyUI from the base token.
+
+---
+
+## 2. Typography
+
+### Font families
+
+| Font | Declaration | Where applied |
+|---|---|---|
+| `Playfair Display` | Loaded via Google Fonts (`ital,wght@0,400..900;1,400..900`). Registered in Tailwind as `font-PlayfairDisplay`. | Decorative headings and brand moments where a serif is desired. Apply with `font-PlayfairDisplay`. |
+| System sans-serif | Default Tailwind/DaisyUI stack (inherited from theme). | All body text, UI labels, buttons, navigation — the default everywhere no font class is set. |
+| `font-mono` | Tailwind default monospace stack. | App name wordmark in navbar and drawer top bar (`font-mono` class). |
+
+### Usage notes
+
+- Body text, labels, and interactive elements use the default sans-serif. No class is needed.
+- Use `font-PlayfairDisplay` sparingly for large display headings or hero text.
+- The `font-mono` class appears on the logo/brand name text.
+
+---
+
+## 3. Dark Mode Mechanism
+
+### How it works
+
+Dark mode is controlled by two parallel mechanisms that must stay in sync:
+
+1. **DaisyUI theme** — `data-theme="lightmode"` or `data-theme="darkmode"` on `<html>`. This drives all DaisyUI semantic tokens (`bg-primary`, `text-primary-content`, etc.).
+2. **Tailwind `dark:` prefix** — The `dark` class on `<html>`. This enables `dark:` variant utility overrides (e.g., `dark:bg-gray-800`).
+
+### Initialization (FOUC prevention)
+
+The `darkModeSwitcher` script in `core.templ` runs inline in `<head>` before paint:
+
+```js
+if (localStorage.getItem('color-theme') === 'darkmode' || ...) {
+    document.documentElement.classList.add('dark');
+    document.documentElement.setAttribute('data-theme', 'darkmode');
+    document.documentElement.style.setProperty('--brightness-hover', 'var(--brightness-hover-dark)');
+} else {
+    document.documentElement.classList.remove('dark');
+    document.documentElement.setAttribute('data-theme', 'lightmode');
+    document.documentElement.style.setProperty('--brightness-hover', 'var(--brightness-hover-light)');
+}
+```
+
+### User toggle
+
+The `ThemeToggle` component (`theme_toggle.templ`) renders a Svelte component that writes `color-theme` to `localStorage` and updates `data-theme` and the `dark` class in real time. There are two toggle instances: one in the navbar (`#navbar-theme-toggle`) and one in the drawer (`#drawer-theme-toggle`).
+
+### CSS custom properties for hover effects
+
+`styles.css` defines brightness variables used for hover darkening/lightening:
+
+```css
+:root {
+  --brightness-normal: 1;
+  --brightness-hover-light: 0.15;
+  --brightness-hover-dark: 0.3;
+}
+```
+
+The `.hover-brightness` utility class applies a `linear-gradient` overlay on hover using `--brightness-hover`, which is set dynamically to the light or dark value.
+
+### Writing dark-mode-aware styles
+
+- **Prefer DaisyUI semantic tokens** (`bg-primary`, `text-base-content`) — they respond to `data-theme` automatically with no extra classes.
+- **Use `dark:` prefix** for overrides where semantic tokens don't apply directly (e.g., `dark:bg-gray-700`, `dark:text-white`).
+- Both patterns coexist throughout the codebase. Do not rely on only one.
+
+---
+
+## 4. Responsive Breakpoints
+
+GoShip uses Tailwind's default breakpoints with a **mobile-first** approach.
+
+| Breakpoint | Min-width | Primary use |
+|---|---|---|
+| (default) | 0px | Mobile layout — single column, compact spacing |
+| `sm:` | 640px | Minor text scaling, occasional layout adjustments |
+| `md:` | 768px | Occasional layout shifts (e.g., navbar items appear, footer switches to flex row) |
+| `lg:` | 1024px | **Primary desktop breakpoint.** Sidebar/drawer becomes always-visible. Major layout changes occur here. |
+| `xl:` | 1280px | Rare — minor size tweaks |
+
+### Common responsive patterns
+
+- **Hamburger menu vs. always-on drawer:** The drawer uses Alpine.js `isOpen: window.innerWidth >= 1024` and `@resize.window`. The hamburger toggle button has `class="... lg:hidden"` — it disappears at `lg`.
+- **Hidden on mobile, shown on desktop:** `hidden md:flex` (navbar desktop links), `hidden lg:block` (text labels next to icons, e.g., "Docs" label).
+- **Text size scaling:** Headings scale across breakpoints, e.g., `text-xl sm:text-2xl md:text-3xl`.
+- **Drawer is fixed on mobile, static on desktop:** The drawer panel uses `fixed top-0 lg:top-auto left-0 lg:left-auto`.
+
+---
+
+## 5. Recurring Layout Patterns
+
+The following patterns appear across many pages. Class strings are copied verbatim — do not abstract them.
+
+### Pattern 1: Page container (navbar, general content)
+
+Used for horizontal centering with padding inside a full-width bar:
+
+```html
+<div class="container mx-auto px-4 py-2 flex justify-between items-center">
+```
+
+Used inside the navbar to align logo, nav links, and user controls.
+
+### Pattern 2: Card / feed item
+
+Used for individual content cards in the home feed:
+
+```html
+<div class="bg-slate-100 dark:bg-slate-700 rounded-xl my-4 p-5 flex justify-center items-center">
+```
+
+Light mode: light grey card. Dark mode: slate-700 card. Rounded corners, vertical margin, internal padding.
+
+### Pattern 3: Sidebar / drawer panel
+
+The left sidebar that holds navigation:
+
+```html
+<div class="fixed top-0 lg:top-auto left-0 lg:left-auto z-50 h-screen p-4 overflow-y-auto
+    -translate-x-full lg:translate-x-0 transform transition duration-150
+    bg-primary text-primary-content w-64">
+```
+
+- `bg-primary` / `text-primary-content` — picks up the correct surface color from the active theme.
+- Slides in from left on mobile (`-translate-x-full` toggled by Alpine), always visible at `lg`.
+- Width is fixed at `w-64`.
+
+### Pattern 4: Form input
+
+Standard text input used across login, register, and other forms:
+
+```html
+<input class="bg-gray-50 border border-gray-300 text-gray-900 text-sm md:text-base rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full md:ps-5 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+```
+
+Uses `dark:` prefixes explicitly — this is the standard pattern for form inputs throughout the app.
+
+### Pattern 5: Pill / tab button group
+
+Used in the home feed for switching between views (Feed, Conversations, Drafts, etc.):
+
+```html
+<button class="bg-gray-400 dark:bg-gray-500 hover:bg-gray-400 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-100 font-bold py-2 px-4 rounded-full inline-flex items-center m-2">
+```
+
+Active state uses `bg-gray-400 dark:bg-gray-500`. Inactive state uses `bg-gray-300 dark:bg-gray-800`. The active/inactive swap is done at runtime with Hyperscript (`_="on click ..."`).
+
+---
+
+## 6. HTMX Swap Patterns
+
+The following `hx-swap` values appear in the codebase.
+
+### `outerHTML show:window:top`
+
+```html
+hx-swap="outerHTML show:window:top"
+```
+
+The most common full-page navigation pattern. Replaces the entire `#main-content` element and scrolls the window to the top. Used on the navbar, drawer, and footer navigation links. Always paired with:
+
+```html
+hx-target="#main-content"
+hx-select="#main-content"
+hx-push-url="true"
+```
+
+### `outerHTML`
+
+```html
+hx-swap="outerHTML"
+```
+
+Replaces a specific component in place without a scroll side-effect. Used when refreshing a component that re-renders itself (e.g., `homeFeedButtonsWithCounts`).
+
+### `innerHTML`
+
+```html
+hx-swap="innerHTML"
+```
+
+Updates only the inner content of a target element. Used when loading a section into a container that must persist (e.g., loading a tab's content into `#homeFeedItems`, or updating a notification count badge).
+
+### `beforeend swap:outerHTML`
+
+```html
+hx-swap="beforeend swap:outerHTML"
+```
+
+Used for infinite scroll pagination. A sentinel `<div>` triggers on `intersect once`, appends new items (`.temporalized-home-feed`) to the list, and then the sentinel itself is swapped away via `swap:outerHTML`.
+
+### `hx-push-url="false"`
+
+Used whenever the swap should not update the browser URL (e.g., inline notification count updates, tab content loads within a page that has already been navigated to).
+
+---
+
+## 7. Component Libraries Available
+
+The following UI libraries are available and already loaded globally.
+
+| Library | Version | How loaded | Priority |
+|---|---|---|---|
+| **DaisyUI** | bundled via Tailwind plugin | `tailwind.config.js` | **First choice.** Use DaisyUI component classes (`btn`, `badge`, `alert`, `card`, `drawer`, etc.) and semantic tokens (`bg-primary`, `text-error`, etc.) before writing custom Tailwind. |
+| **Flowbite** | 2.2.1 / 2.3.0 | CDN JS in `beforeBodyEnd` + Tailwind plugin | **Second choice.** Flowbite datepicker is explicitly loaded. Other Flowbite interactive components are available via `flowbite.min.js`. Use for components DaisyUI doesn't cover well (e.g., complex dropdowns, date pickers). |
+| **Alpine.js** | 3.x | CDN (deferred) | Used for client-side interactivity (`x-data`, `x-show`, `@click`, `x-cloak`). Also loaded: `@alpinejs/collapse`, `@alpinejs/morph`, `@alpinejs/mask`, `alpine-timeago`, `alpine-tooltip`, `alpine-clipboard`. |
+| **HTMX** | 1.9.10 | CDN | All server-driven UI updates. SSE extension (`sse.js`) is also loaded for real-time updates. |
+| **Hyperscript** | 0.9.12 | CDN (deferred) | Used for simple DOM scripting inline on elements (the `_="on click ..."` attribute). Prefer Alpine for stateful logic; prefer Hyperscript for one-off DOM manipulations. |
+| **Swiper** | 11.x | CDN (deferred) | Available for carousel/slider components. |
+| **Tippy.js** | 6.x | CDN (deferred CSS) | Available for tooltips. The `alpine-tooltip` plugin wraps this. |
+| **Driver.js** | 1.0.1 | CDN | Available for product tour / onboarding overlays. |
+
+### Priority order for new UI work
+
+1. Use a **DaisyUI** component class if one exists for the pattern.
+2. Fall back to **Flowbite** for interactive widgets not in DaisyUI.
+3. Write custom **Tailwind utility classes** last, only when neither library covers the need.
+4. For interactivity: **Alpine.js** for stateful reactive behaviour, **Hyperscript** for simple one-shot DOM actions, **HTMX** for any server round-trip.
 

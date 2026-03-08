@@ -5,6 +5,7 @@ import "github.com/leomorpho/goship/app/web/routenames"
 
 templ BottomNav(page *controller.Page) {
 	<div
+		data-component="bottom-nav"
 		id="bottom-navbar"
 		navbar-state-data={ templ.JSONString(page.ShowBottomNavbar) }
 		if page.IsAuth && page.IsFullyOnboarded {

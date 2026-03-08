@@ -3,6 +3,7 @@ package components
 import "github.com/leomorpho/goship/app/controller"
 import "github.com/leomorpho/goship/app/web/routenames"
 
+// Renders: gradient pill button with a download cloud icon and "Install App" label
 templ InstallButtonRedirectsToInstallPage(page *controller.Page, classes string) {
 	<button
 		class={ "bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 text-white font-medium rounded-full flex justify-center items-center " + classes }
@@ -29,6 +30,7 @@ templ InstallButtonRedirectsToInstallPage(page *controller.Page, classes string)
 	</button>
 }
 
+// Renders: hidden install app button in the navbar that appears only when the app is not already running in standalone mode
 templ NavbarPWAMobileInstallButton(page *controller.Page) {
 	<div id="navbar-install-button-container" class="hidden">
 		@InstallButtonRedirectsToInstallPage(page, "w-32 p-1")
@@ -36,6 +38,7 @@ templ NavbarPWAMobileInstallButton(page *controller.Page) {
 	@HideIfStandalone("navbar-install-button-container")
 }
 
+// Renders: sticky centered install app button visible on mobile screens when the app is not in standalone mode
 templ PWAMobileInstallButton(page *controller.Page) {
 	<div id="mobile-install-button-container" class="hidden">
 		<div class="block lg:hidden sticky top-0 z-10 flex flex-row justify-center items-center m-2">
