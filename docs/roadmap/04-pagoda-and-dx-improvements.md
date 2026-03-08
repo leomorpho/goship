@@ -103,14 +103,38 @@ This is significantly more ergonomic than a raw `Get(key)/Set(key, val, ttl)` in
 2. A single `admin.go` handler serves all entity routes dynamically.
 3. The UI uses gomponents (pagoda's rendering engine) to build forms dynamically from the Ent graph data structure.
 
-**GoShip adaptation:**
-- Since GoShip uses templ (not gomponents), the UI layer needs reimplementation.
-- The Ent extension approach is reusable regardless of rendering engine.
-- Ship as `modules/admin` — opt-in via `ship module:add admin`.
-- Admin panel routes: `/admin/entities/{type}`, `/admin/entities/{type}/{id}`, `/admin/queues`.
-- Protect with `middleware.RequireAdmin`.
+**How it works without Ent (GoShip uses Bob):**
+Pagoda's approach requires Ent's schema graph. GoShip uses Bob. Instead, use Go reflection + generics:
 
-**Scope:** This is a large but high-value task. The Ent extension code can be ported from pagoda directly. The UI layer (~300 lines in pagoda) needs rewriting for templ.
+```go
+// Register any Go struct type with the admin module
+admin.Register[Post](admin.Config{
+    TableName:  "posts",
+    ListFields: []string{"title", "published_at"},
+    Sensitive:  []string{"internal_notes"},
+})
+```
+
+`admin.Register[T]()` uses `reflect.TypeOf(*new(T))` at runtime to enumerate exported fields, derive their types, and build a slice of `AdminField` descriptors. The admin module then drives all CRUD via raw SQL through `database/sql` (not Bob's codegen, since the resource type is dynamic).
+
+**The UI — templ components, data-driven:**
+GoShip uses templ, not gomponents. Templ is compiled, so templates cannot be generated at runtime — but they CAN be fully dynamic through data. The admin templ components receive `[]AdminField` at runtime and `switch` on field type to render the appropriate input:
+
+```templ
+templ AdminFieldInput(field AdminField) {
+    switch field.Type {
+    case "string":  <input type="text" name={field.Name} value={field.StringValue}>
+    case "bool":    <input type="checkbox" name={field.Name} checked?={field.BoolValue}>
+    case "int":     <input type="number" name={field.Name} value={field.IntValue}>
+    case "time":    <input type="datetime-local" ...>
+    case "text":    <textarea name={field.Name}>{ field.StringValue }</textarea>
+    }
+}
+```
+
+The dynamic behavior is in the **data** (field descriptors derived from reflection), not the template. This works perfectly with templ's compiled model.
+
+**No Ent. No Ent extension. No Ent for admin-only.** Pure reflection + Bob runtime queries + templ components.
 
 ---
 
@@ -261,6 +285,30 @@ session:
 
 **Value:** Standard pattern every developer expects. Makes `ship new myapp` produce a project that works immediately after editing `.env`.
 
+**Chosen library: `cleanenv` (`github.com/ilyakaznacheev/cleanenv`)**
+
+Wins over `envconfig` (Kelsey Hightower):
+- Built-in `.env` file loading (no separate godotenv needed)
+- Auto-generates help/usage text for `ship config:validate`
+- `required` and `env-default` tags built-in
+- One dependency replaces Viper + godotenv
+
+Config struct pattern:
+```go
+type Config struct {
+    DatabaseURL string `env:"DATABASE_URL,required"`
+    SecretKey   string `env:"SECRET_KEY,required"`
+    Port        int    `env:"PORT" env-default:"8080"`
+    RedisURL    string `env:"REDIS_URL"`
+}
+
+func Load() (*Config, error) {
+    cfg := &Config{}
+    _ = cleanenv.ReadConfig(".env", cfg) // load .env if present, ignore if absent
+    return cfg, cleanenv.ReadEnv(cfg)    // overlay actual env vars
+}
+```
+
 ---
 
 ### 2.8 Pagination as First-Class
@@ -319,3 +367,58 @@ For GoShip to support `ship new myapp && make run` with zero external dependenci
 ```
 
 When all boxes are checked, GoShip can legitimately claim: **one binary, zero dependencies, production-ready**.
+
+---
+
+## Part 4 — Nil Safety: Eliminating Nil Deref Panics
+
+Go + templ nil dereference panics are the most common runtime crash class. The fix is architectural, not defensive.
+
+### Root causes
+1. Domain model pointers (`*User`, `*string`) flowing directly into templ components
+2. Uninitialized nested structs in viewmodels
+3. Optional DB columns as `*string` instead of `sql.NullString`
+
+### The architecture fix: value-type viewmodels
+
+Create a hard boundary between domain models and viewmodels:
+
+- **Domain models** (`db/gen/`, `framework/domain/`) — pointers allowed for nullable DB columns
+- **Viewmodels** (`app/web/viewmodels/`) — **zero pointer fields**. All value types, fully initialized
+- **Templ components** — accept viewmodel types or primitives only. Never `*DomainModel`
+- **Controllers** — own the domain → viewmodel transformation. All nil handling happens here
+
+```go
+// Domain model — pointer fields OK
+type User struct { Name *string }
+
+// Viewmodel — value type only
+type UserCardVM struct { DisplayName string }  // empty string = absent, never nil
+
+// Controller transforms
+func toUserCardVM(u *User) UserCardVM {
+    return UserCardVM{DisplayName: stringOr(u.Name, "")}
+}
+```
+
+### Nil-safe domain accessors
+
+```go
+func (u *User) DisplayName() string {
+    if u == nil || u.Name == nil { return "" }
+    return *u.Name
+}
+```
+
+Go methods on nil pointer receivers are legal if they nil-guard at entry.
+
+### Enforcement
+
+- **`nilaway`** (Uber) in CI — statically traces nil flows across function boundaries
+- **`middleware.Recover()`** as first middleware — panics return 500, app stays alive
+- **Route smoke tests** with zero-value data — nil deref shows up in test, not production
+- **Viewmodel constructors** — `NewUserCardVM(u *User) UserCardVM` guarantees all fields set
+
+### Priority
+
+Add to `app/web/viewmodels/` convention: no pointer fields, ever. This is a permanent architectural rule, enforced by nilaway in CI.

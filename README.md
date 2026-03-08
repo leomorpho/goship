@@ -59,7 +59,7 @@ Use docs as the source of truth for architecture, workflows, and plans:
 ## Repository Shape
 
 - `app/`: app-specific code (routes, views, app router)
-- `pkg/`: reusable framework-level packages
+- `framework/`: reusable framework-level packages
 - `cmd/`: process entrypoints (`web`, `worker`, `seed`)
 - `tools/cli/ship/`: standalone `ship` CLI module
 - `tools/mcp/ship/`: standalone MCP module
@@ -75,7 +75,7 @@ Domain objects are preferred over generated DB objects so application logic stay
 
 ## File Uploads
 
-The `StorageClient` handles all the file storage logic and lives at `pkg/repos/storage/storagerepo.go`. It uses minio under the hood to handle the file uploads with AWS S3 API, which means you can easily swap out the storage backend to any S3-compatible service. 
+The `StorageClient` handles all the file storage logic and lives at `framework/repos/storage/storagerepo.go`. It uses minio under the hood to handle the file uploads with AWS S3 API, which means you can easily swap out the storage backend to any S3-compatible service. 
 
 The following methods are available:
 - `CreateBucket`: to create a new bucket.

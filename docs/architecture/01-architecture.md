@@ -25,10 +25,10 @@ The application follows a layered structure:
 
 ## Worker Runtime Flow
 
-1. `cmd/worker/main.go` creates app container and validates that jobs adapter is `asynq` via `c.Config`.
-2. Starts Asynq server from cache config and builds router (for reverse route URLs in tasks).
+1. `cmd/worker/main.go` creates app container and validates that the jobs adapter supports a dedicated worker process (e.g., `asynq`). Single-binary mode (`backlite`) runs the dispatcher in-process with the web server instead.
+2. Initializes the jobs adapter (driver-specific: Asynq server for Redis-backed; Backlite dispatcher for SQLite-backed).
 3. Constructs repo instances needed by task processors.
-4. Registers handlers on Asynq mux and runs worker.
+4. Registers task handlers and starts the worker.
 
 ## Container Composition
 
@@ -96,7 +96,7 @@ HTMX behavior is integrated in the page object (`Page.HTMX`) and controller rend
 
 ## Async + Notifications Architecture
 
-- Asynq handles background jobs with Redis backend.
+- Jobs adapter handles background tasks. Driver is configurable: `asynq` (Redis-backed, separate worker process) or `backlite` (SQLite-backed, runs in-process for single-binary mode).
 - Notification system is designed around:
   - persistent DB notifications
   - pub/sub events for SSE
