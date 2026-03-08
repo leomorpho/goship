@@ -97,3 +97,19 @@ When code behavior changes, update at least:
 
 - Integration tests must use `//go:build integration`.
 - Keep default tests (`ship test`) stateless and fast by tagging infra-dependent tests.
+
+## UI Agent Convention
+
+Before any UI work, read `docs/ui/style-guide.md` for design system context.
+
+The full `data-*` attribute rules and templ comment rules are defined in `UI_CONVENTION.md` at the monorepo root (the shared `UI_CONVENTION.md` at the pagoda-based root, `../../../UI_CONVENTION.md` relative to this file).
+
+### LLM Workflow for a UI Task
+
+1. Read `docs/ui/style-guide.md` for design system context.
+2. Grep `data-component="<component-name>"` to locate the target component's root element.
+3. Grep `data-slot="<slot-name>"` to locate the specific sub-element.
+4. Make the change, preserving existing Tailwind class patterns unless the style guide says otherwise.
+5. Never use `data-component`, `data-slot`, or `data-action` in CSS selectors.
+
+`data-*` attributes are semantic only — never for styling.
