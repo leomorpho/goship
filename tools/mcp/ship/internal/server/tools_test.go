@@ -79,7 +79,7 @@ func TestHandleToolsCall(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	s := &mcpServer{docsRoot: docsRoot}
+	s := &mcpServer{docsRoot: docsRoot, repoRoot: docsRoot}
 	prevLookPath := lookPathShip
 	prevRunShip := runShipJSON
 	t.Cleanup(func() {
@@ -135,7 +135,8 @@ func TestHandleToolsCall(t *testing.T) {
 }
 
 func TestCallShipDoctor(t *testing.T) {
-	s := &mcpServer{docsRoot: t.TempDir()}
+	docsRoot := t.TempDir()
+	s := &mcpServer{docsRoot: docsRoot, repoRoot: docsRoot}
 
 	t.Run("returns ship doctor payload", func(t *testing.T) {
 		prevLookPath := lookPathShip
@@ -199,7 +200,8 @@ func TestCallShipDoctor(t *testing.T) {
 }
 
 func TestCallShipRoutesAndModules(t *testing.T) {
-	s := &mcpServer{docsRoot: t.TempDir()}
+	docsRoot := t.TempDir()
+	s := &mcpServer{docsRoot: docsRoot, repoRoot: docsRoot}
 
 	baseDescribeJSON := `{"routes":[{"method":"GET","path":"/","handler":"landingPage.Get","auth":false,"file":"app/router.go:1"},{"method":"GET","path":"/auth","handler":"home.Get","auth":true,"file":"app/router.go:2"}],"modules":[{"id":"notifications","installed":true,"routes":0,"migrations":1}]}`
 
@@ -271,7 +273,8 @@ func TestCallShipRoutesAndModules(t *testing.T) {
 }
 
 func TestCallShipVerify(t *testing.T) {
-	s := &mcpServer{docsRoot: t.TempDir()}
+	docsRoot := t.TempDir()
+	s := &mcpServer{docsRoot: docsRoot, repoRoot: docsRoot}
 
 	t.Run("returns ship verify payload", func(t *testing.T) {
 		prevLookPath := lookPathShip
@@ -333,6 +336,110 @@ func TestCallShipVerify(t *testing.T) {
 		}
 		if !strings.Contains(res.Content[0].Text, `"invalid ship verify JSON output: not-json"`) {
 			t.Fatalf("content = %q, want invalid json message", res.Content[0].Text)
+		}
+	})
+}
+
+func TestCallShipScaffold(t *testing.T) {
+	docsRoot := t.TempDir()
+	s := &mcpServer{docsRoot: docsRoot, repoRoot: docsRoot}
+
+	t.Run("success", func(t *testing.T) {
+		prevLookPath := lookPathShip
+		prevRunShip := runShipJSON
+		prevRunGit := runGitStatus
+		t.Cleanup(func() {
+			lookPathShip = prevLookPath
+			runShipJSON = prevRunShip
+			runGitStatus = prevRunGit
+		})
+
+		lookPathShip = func(file string) (string, error) { return "/usr/bin/ship", nil }
+		var usedArgs []string
+		runShipJSON = func(name string, args ...string) ([]byte, error) {
+			usedArgs = args
+			return []byte("done"), nil
+		}
+		statusCalls := 0
+		runGitStatus = func(dir string) (map[string]string, error) {
+			statusCalls++
+			if statusCalls == 1 {
+				return map[string]string{"README.md": "??"}, nil
+			}
+			return map[string]string{
+				"README.md":                   "??",
+				"app/web/controllers/posts.go": "??",
+			}, nil
+		}
+
+		res, err := s.callShipScaffold(json.RawMessage(`{"resource":"Post","fields":[{"name":"Title","type":"string"}]}`))
+		if err != nil {
+			t.Fatalf("callShipScaffold error: %v", err)
+		}
+		if res.IsError {
+			t.Fatalf("unexpected IsError")
+		}
+		if len(usedArgs) != 3 || usedArgs[0] != "make:scaffold" || usedArgs[1] != "Post" || usedArgs[2] != "title:string" {
+			t.Fatalf("args = %v, want make:scaffold Post title:string", usedArgs)
+		}
+
+		var payload shipScaffoldResult
+		if len(res.Content) == 0 {
+			t.Fatalf("missing content")
+		}
+		if err := json.Unmarshal([]byte(res.Content[0].Text), &payload); err != nil {
+			t.Fatalf("unmarshal payload: %v", err)
+		}
+		if !payload.OK {
+			t.Fatalf("expected ok true")
+		}
+		if len(payload.FilesCreated) != 1 || payload.FilesCreated[0] != "app/web/controllers/posts.go" {
+			t.Fatalf("files = %v, want posts controller", payload.FilesCreated)
+		}
+		if len(payload.Errors) != 0 {
+			t.Fatalf("unexpected errors: %v", payload.Errors)
+		}
+	})
+
+	t.Run("missing resource", func(t *testing.T) {
+		_, err := s.callShipScaffold(json.RawMessage(`{"fields":[]}`))
+		if err == nil {
+			t.Fatalf("expected error for missing resource")
+		}
+	})
+
+	t.Run("missing ship binary", func(t *testing.T) {
+		prevLookPath := lookPathShip
+		prevRunGit := runGitStatus
+		t.Cleanup(func() {
+			lookPathShip = prevLookPath
+			runGitStatus = prevRunGit
+		})
+
+		lookPathShip = func(file string) (string, error) { return "", errors.New("no ship") }
+		runGitStatus = func(dir string) (map[string]string, error) {
+			return map[string]string{}, nil
+		}
+
+		res, err := s.callShipScaffold(json.RawMessage(`{"resource":"Post","fields":[]}`))
+		if err != nil {
+			t.Fatalf("callShipScaffold error: %v", err)
+		}
+		if len(res.Content) == 0 {
+			t.Fatalf("missing content")
+		}
+		var payload shipScaffoldResult
+		if err := json.Unmarshal([]byte(res.Content[0].Text), &payload); err != nil {
+			t.Fatalf("unmarshal missing binary payload: %v", err)
+		}
+		if payload.OK {
+			t.Fatalf("expected ok false")
+		}
+		if !res.IsError {
+			t.Fatalf("expected IsError true")
+		}
+		if len(payload.Errors) == 0 || !strings.Contains(payload.Errors[0], "ship binary not found") {
+			t.Fatalf("errors = %v, want ship binary message", payload.Errors)
 		}
 	})
 }

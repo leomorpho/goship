@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -15,7 +16,12 @@ const protocolVersion = "2024-11-05"
 
 // Run serves a minimal MCP server over stdio.
 func Run(ctx context.Context, in io.Reader, out io.Writer, log io.Writer, docsRoot string) error {
-	s := &mcpServer{docsRoot: docsRoot, out: out, log: log}
+	absDocsRoot, err := filepath.Abs(docsRoot)
+	if err != nil {
+		return fmt.Errorf("resolve docs root: %w", err)
+	}
+	repoRoot := filepath.Dir(absDocsRoot)
+	s := &mcpServer{docsRoot: docsRoot, repoRoot: repoRoot, out: out, log: log}
 	reader := bufio.NewReader(in)
 
 	for {
@@ -52,6 +58,7 @@ func Run(ctx context.Context, in io.Reader, out io.Writer, log io.Writer, docsRo
 
 type mcpServer struct {
 	docsRoot string
+	repoRoot string
 	out      io.Writer
 	log      io.Writer
 }

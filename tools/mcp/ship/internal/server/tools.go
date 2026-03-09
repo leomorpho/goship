@@ -9,8 +9,10 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
+	"unicode"
 )
 
 type toolCallParams struct {
@@ -113,6 +115,32 @@ func toolDefinitions() []map[string]any {
 			},
 		},
 		{
+			"name":        "ship_scaffold",
+			"description": "Run `ship make:scaffold` and report the files that were touched.",
+			"inputSchema": map[string]any{
+				"type": "object",
+				"properties": map[string]any{
+					"resource": map[string]any{
+						"type":        "string",
+						"description": "PascalCase name for the resource to scaffold.",
+					},
+					"fields": map[string]any{
+						"type":        "array",
+						"description": "List of field definitions for the model.",
+						"items": map[string]any{
+							"type": "object",
+							"properties": map[string]any{
+								"name": map[string]any{"type": "string"},
+								"type": map[string]any{"type": "string"},
+							},
+							"required": []string{"name", "type"},
+						},
+					},
+				},
+				"required": []string{"resource"},
+			},
+		},
+		{
 			"name":        "ship_verify",
 			"description": "Run `ship verify --json` and return the step-by-step verification result.",
 			"inputSchema": map[string]any{
@@ -157,6 +185,8 @@ func (s *mcpServer) handleToolsCall(paramsJSON json.RawMessage) (toolCallResult,
 		return s.callShipRoutes(params.Arguments)
 	case "ship_modules":
 		return s.callShipModules(params.Arguments)
+	case "ship_scaffold":
+		return s.callShipScaffold(params.Arguments)
 	case "ship_verify":
 		return s.callShipVerify(params.Arguments)
 	case "docs_search":
@@ -205,10 +235,37 @@ type shipVerifyResult struct {
 	Steps []shipVerifyStep `json:"steps"`
 }
 
+type shipScaffoldField struct {
+	Name string `json:"name"`
+	Type string `json:"type"`
+}
+
+type shipScaffoldInput struct {
+	Resource string               `json:"resource"`
+	Fields   []shipScaffoldField  `json:"fields,omitempty"`
+}
+
+type shipScaffoldResult struct {
+	OK           bool     `json:"ok"`
+	FilesCreated []string `json:"files_created"`
+	Errors       []string `json:"errors"`
+}
+
 var (
 	lookPathShip = exec.LookPath
 	runShipJSON  = func(name string, args ...string) ([]byte, error) {
 		return exec.Command(name, args...).CombinedOutput()
+	}
+	runGitStatus = func(dir string) (map[string]string, error) {
+		cmd := exec.Command("git", "status", "--short")
+		if dir != "" {
+			cmd.Dir = dir
+		}
+		out, err := cmd.CombinedOutput()
+		if err != nil {
+			return nil, fmt.Errorf("git status --short: %w (%s)", err, strings.TrimSpace(string(out)))
+		}
+		return parseGitStatusOutput(out), nil
 	}
 )
 
@@ -400,6 +457,78 @@ func (s *mcpServer) callShipVerify(arguments json.RawMessage) (toolCallResult, e
 	}}}, nil
 }
 
+func (s *mcpServer) callShipScaffold(arguments json.RawMessage) (toolCallResult, error) {
+	var in shipScaffoldInput
+	if len(arguments) == 0 {
+		return toolCallResult{}, errors.New("ship_scaffold requires arguments")
+	}
+	if err := json.Unmarshal(arguments, &in); err != nil {
+		return toolCallResult{}, fmt.Errorf("invalid ship_scaffold arguments: %w", err)
+	}
+	in.Resource = strings.TrimSpace(in.Resource)
+	if in.Resource == "" {
+		return toolCallResult{}, errors.New("ship_scaffold resource is required")
+	}
+	args, err := buildShipScaffoldArgs(in)
+	if err != nil {
+		return toolCallResult{}, err
+	}
+
+	repoRoot := s.repoRoot
+	if repoRoot == "" {
+		repoRoot = "."
+	}
+	before, beforeErr := runGitStatus(repoRoot)
+
+	shipPath, lookErr := lookPathShip("ship")
+	if lookErr != nil {
+		res := shipScaffoldResult{
+			OK:           false,
+			FilesCreated: []string{},
+			Errors:       []string{fmt.Sprintf("ship binary not found: %v", lookErr)},
+		}
+		if beforeErr != nil {
+			res.Errors = append(res.Errors, fmt.Sprintf("git status (before) failed: %v", beforeErr))
+		}
+		return toolCallResult{
+			Content: []toolContent{{Type: "text", Text: marshalShipScaffoldResult(res)}},
+			IsError: true,
+		}, nil
+	}
+
+	output, cmdErr := runShipJSON(shipPath, args...)
+	after, afterErr := runGitStatus(repoRoot)
+	files := diffGitStatus(before, after)
+
+	errs := make([]string, 0, 3)
+	if beforeErr != nil {
+		errs = append(errs, fmt.Sprintf("git status (before) failed: %v", beforeErr))
+	}
+	if cmdErr != nil {
+		trimmed := strings.TrimSpace(string(output))
+		if trimmed != "" {
+			errs = append(errs, fmt.Sprintf("ship make:scaffold failed: %v: %s", cmdErr, trimmed))
+		} else {
+			errs = append(errs, fmt.Sprintf("ship make:scaffold failed: %v", cmdErr))
+		}
+	}
+	if afterErr != nil {
+		errs = append(errs, fmt.Sprintf("git status (after) failed: %v", afterErr))
+	}
+
+	ok := cmdErr == nil
+	hasError := !ok || beforeErr != nil || afterErr != nil
+	res := shipScaffoldResult{
+		OK:           ok,
+		FilesCreated: files,
+		Errors:       errs,
+	}
+	return toolCallResult{
+		Content: []toolContent{{Type: "text", Text: marshalShipScaffoldResult(res)}},
+		IsError: hasError,
+	}, nil
+}
+
 func (s *mcpServer) callDocsGet(arguments json.RawMessage) (toolCallResult, error) {
 	var in struct {
 		Path string `json:"path"`
@@ -512,6 +641,14 @@ func marshalShipVerifyResult(result shipVerifyResult) string {
 	return string(b)
 }
 
+func marshalShipScaffoldResult(result shipScaffoldResult) string {
+	b, err := json.Marshal(result)
+	if err != nil {
+		return `{"ok":false,"files_created":[],"errors":["failed to encode ship scaffold result"]}`
+	}
+	return string(b)
+}
+
 func shipBinaryMissingVerifyResult() shipVerifyResult {
 	return shipVerifyResult{
 		OK: false,
@@ -521,6 +658,144 @@ func shipBinaryMissingVerifyResult() shipVerifyResult {
 			Output: "ship binary not found in PATH",
 		}},
 	}
+}
+
+func buildShipScaffoldArgs(in shipScaffoldInput) ([]string, error) {
+	resource := toPascalCase(in.Resource)
+	if resource == "" {
+		return nil, fmt.Errorf("invalid resource name %q", in.Resource)
+	}
+	args := []string{"make:scaffold", resource}
+	for _, field := range in.Fields {
+		arg, err := formatShipScaffoldField(field)
+		if err != nil {
+			return nil, err
+		}
+		args = append(args, arg)
+	}
+	return args, nil
+}
+
+func formatShipScaffoldField(field shipScaffoldField) (string, error) {
+	name := strings.TrimSpace(field.Name)
+	typ := strings.TrimSpace(field.Type)
+	if name == "" || typ == "" {
+		return "", errors.New("each field requires a name and type")
+	}
+	snake := toSnakeCase(name)
+	if snake == "" {
+		return "", fmt.Errorf("invalid field name %q", field.Name)
+	}
+	return fmt.Sprintf("%s:%s", snake, strings.ToLower(typ)), nil
+}
+
+func toPascalCase(input string) string {
+	var parts []string
+	var buffer []rune
+	addPart := func() {
+		if len(buffer) == 0 {
+			return
+		}
+		parts = append(parts, string(buffer))
+		buffer = buffer[:0]
+	}
+	for _, r := range input {
+		if unicode.IsLetter(r) || unicode.IsDigit(r) {
+			buffer = append(buffer, r)
+			continue
+		}
+		addPart()
+	}
+	addPart()
+	if len(parts) == 0 {
+		return ""
+	}
+	for i, part := range parts {
+		runes := []rune(strings.ToLower(part))
+		if len(runes) == 0 {
+			continue
+		}
+		runes[0] = unicode.ToUpper(runes[0])
+		parts[i] = string(runes)
+	}
+	return strings.Join(parts, "")
+}
+
+func toSnakeCase(input string) string {
+	var out []rune
+	lastWasSep := false
+	for _, r := range input {
+		if unicode.IsLetter(r) || unicode.IsDigit(r) {
+			if unicode.IsUpper(r) && len(out) > 0 && !lastWasSep && (unicode.IsLower(out[len(out)-1]) || unicode.IsDigit(out[len(out)-1])) {
+				out = append(out, '_')
+			}
+			out = append(out, unicode.ToLower(r))
+			lastWasSep = false
+			continue
+		}
+		if len(out) > 0 && !lastWasSep {
+			out = append(out, '_')
+			lastWasSep = true
+		}
+	}
+	for len(out) > 0 && out[0] == '_' {
+		out = out[1:]
+	}
+	for len(out) > 0 && out[len(out)-1] == '_' {
+		out = out[:len(out)-1]
+	}
+	return string(out)
+}
+
+func diffGitStatus(before, after map[string]string) []string {
+	if before == nil {
+		before = map[string]string{}
+	}
+	if after == nil {
+		after = map[string]string{}
+	}
+	changed := make(map[string]struct{})
+	for path, status := range after {
+		if prev, ok := before[path]; !ok || prev != status {
+			changed[path] = struct{}{}
+		}
+	}
+	for path := range before {
+		if _, ok := after[path]; !ok {
+			changed[path] = struct{}{}
+		}
+	}
+	files := make([]string, 0, len(changed))
+	for path := range changed {
+		files = append(files, filepath.ToSlash(path))
+	}
+	sort.Strings(files)
+	return files
+}
+
+func parseGitStatusOutput(out []byte) map[string]string {
+	result := make(map[string]string)
+	norm := strings.ReplaceAll(strings.ReplaceAll(string(out), "\r\n", "\n"), "\r", "\n")
+	for _, line := range strings.Split(norm, "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" || len(line) < 3 {
+			continue
+		}
+		status := strings.TrimSpace(line[:2])
+		path := extractGitPath(strings.TrimSpace(line[2:]))
+		if path == "" {
+			continue
+		}
+		result[path] = status
+	}
+	return result
+}
+
+func extractGitPath(raw string) string {
+	if idx := strings.Index(raw, "->"); idx != -1 {
+		raw = raw[idx+2:]
+	}
+	return strings.TrimSpace(raw)
 }
 
 func runShipDescribePayload() (shipDescribeResult, error) {
