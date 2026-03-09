@@ -12,9 +12,14 @@ import (
 )
 
 type AgentDeps struct {
-	Out          io.Writer
-	Err          io.Writer
-	FindGoModule func(start string) (string, string, error)
+	Out               io.Writer
+	Err               io.Writer
+	FindGoModule      func(start string) (string, string, error)
+	RunGitWorktreeAdd func(root, worktreePath, branch string) error
+	DescribeJSON      func(root string) (string, error)
+	RunVerify         func(worktreePath string) error
+	RunGit            func(dir string, args ...string) error
+	RunGh             func(root string, args ...string) error
 }
 
 func RunAgent(args []string, d AgentDeps) int {
@@ -28,6 +33,10 @@ func RunAgent(args []string, d AgentDeps) int {
 		return runAgentSetup(args[1:], d)
 	case "check":
 		return runAgentCheck(args[1:], d)
+	case "start":
+		return runAgentStart(args[1:], d)
+	case "finish":
+		return runAgentFinish(args[1:], d)
 	case "status":
 		return runAgentStatus(args[1:], d)
 	case "help", "-h", "--help":
@@ -169,6 +178,8 @@ func printAgentHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship agent commands:")
 	fmt.Fprintln(w, "  ship agent:setup")
 	fmt.Fprintln(w, "  ship agent:setup --check")
+	fmt.Fprintln(w, "  ship agent:start --task \"Add feature\" [--id ID]")
+	fmt.Fprintln(w, "  ship agent:finish --id TASK --message \"feat(...)\" [--pr]")
 	fmt.Fprintln(w, "  ship agent:check")
 	fmt.Fprintln(w, "  ship agent:status [--codex-file <path>] [--claude-file <path>] [--gemini-file <path>]")
 	fmt.Fprintln(w, "  (syncs/checks generated allowlist artifacts for Codex, Claude, and Gemini)")
