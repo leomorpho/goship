@@ -56,6 +56,12 @@ Canonical runtime:
 - query generation: Bob (`bobgen-sql`)
 - command surface: `ship db:*`
 
+Current nuance:
+
+- `db/queries/*.sql` is the canonical source of SQL.
+- `db/gen/` is still hybrid during the Bob transition: some query families have maintained wrappers there, while other callers use `dbqueries.Get(...)` directly.
+- The pre-commit Bob drift check currently enforces sync only for query files that have a same-name wrapper sibling in `db/gen/`.
+
 Common workflow:
 
 1. Create migration: `go run ./tools/cli/ship/cmd/ship db:make add_feature_x`

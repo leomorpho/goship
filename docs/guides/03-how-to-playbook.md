@@ -46,6 +46,10 @@ go run ./tools/cli/ship/cmd/ship db:status
 bash tools/scripts/check-bobgen-drift.sh
 ```
 
+Current nuance:
+- the Bob drift check only tracks query files that currently have same-name maintained wrappers in `db/gen/`.
+- queries used directly through `dbqueries.Get(...)` do not require a `db/gen` timestamp update yet.
+
 Common failures:
 1. Unsupported DB URL scheme: use `postgres`, `mysql`, `sqlite`, or `sqlite3`.
 2. Missing module migrations/config for enabled module: fix module DB scaffold (`db/migrate/migrations`, `db/bobgen.yaml`).

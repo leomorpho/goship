@@ -2,7 +2,13 @@
 <!-- FRONTEND_SYNC: Landing capability explorer in app/views/web/pages/landing_page.templ links here for Models and ORM (Bob). Keep both landing copy and this doc aligned. -->
 
 Primary schema evolution is defined by Goose SQL migrations in `db/migrate/migrations/*.sql`.
-Primary query behavior is defined in `db/queries/*.sql` and generated into `db/gen/` via Bob.
+Primary query behavior is defined in `db/queries/*.sql`.
+
+Current repo state is hybrid:
+- some query families have maintained wrappers in `db/gen/`
+- some callers load named SQL directly via `dbqueries.Get(...)`
+
+Full Bob-only generation for all query families is still in transition.
 
 ## Core Entities
 

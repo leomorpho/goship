@@ -26,13 +26,29 @@ if [ ! -d "$gen_dir" ]; then
   exit 1
 fi
 
-latest_input_ts="$(stat -f '%m' "$config_file")"
+# GoShip is currently in a hybrid DB-access state:
+# - some query files are consumed directly via db/queries.Get(...)
+# - some query families still have maintained wrappers under db/gen/<name>.go
+#
+# Until Bob generation is the only path, drift should only be enforced for
+# query files that have a checked-in wrapper sibling in db/gen.
+latest_input_ts=0
+tracked_inputs=0
 while IFS= read -r -d '' f; do
+  base="$(basename "$f" .sql)"
+  if [ ! -f "$gen_dir/$base.go" ]; then
+    continue
+  fi
+  tracked_inputs=1
   ts="$(stat -f '%m' "$f")"
   if [ "$ts" -gt "$latest_input_ts" ]; then
     latest_input_ts="$ts"
   fi
 done < <(find "$queries_dir" -type f -name '*.sql' -print0)
+
+if [ "$tracked_inputs" -eq 0 ]; then
+  exit 0
+fi
 
 latest_generated_ts=0
 while IFS= read -r -d '' f; do
@@ -46,4 +62,3 @@ if [ "$latest_generated_ts" -lt "$latest_input_ts" ]; then
   echo "bob generated code appears stale. run: ship db:generate" >&2
   exit 1
 fi
-

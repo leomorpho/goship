@@ -27,6 +27,11 @@ type AuthIdentity struct {
 	ProfileFullyOnboarded bool
 }
 
+// QueryRower is the minimal query contract used by generated read helpers.
+type QueryRower interface {
+	QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row
+}
+
 // Execer is the minimal exec contract used by generated write helpers.
 type Execer interface {
 	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)

@@ -345,6 +345,26 @@ func GetProfileCoreByID(
 	return &rec, nil
 }
 
+func CountUnseenNotificationsByProfile(
+	ctx context.Context,
+	db QueryRower,
+	dialect string,
+	profileID int,
+) (int, error) {
+	if db == nil {
+		return 0, errors.New("query runner is nil")
+	}
+	query, args := countUnseenNotificationsByProfileQuery(strings.ToLower(strings.TrimSpace(dialect)), profileID)
+	var count int
+	if err := db.QueryRowContext(ctx, query, args...).Scan(&count); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return 0, nil
+		}
+		return 0, err
+	}
+	return count, nil
+}
+
 func GetProfileImageByProfileID(
 	ctx context.Context,
 	db Queryer,
@@ -798,6 +818,15 @@ func getProfileCoreByIDQuery(dialect string, profileID int) (string, []any) {
 		panic(err)
 	}
 	return query, []any{profileID}
+}
+
+func countUnseenNotificationsByProfileQuery(dialect string, profileID int) (string, []any) {
+	key := "count_unseen_notifications_by_profile_id_" + dialectSuffix(dialect)
+	query, err := queries.Get(key)
+	if err != nil {
+		panic(err)
+	}
+	return query, []any{profileID, false}
 }
 
 func getProfileImageByProfileIDQuery(dialect string, profileID int) (string, []any) {
