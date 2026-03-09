@@ -314,6 +314,13 @@ func renderContainerSkeleton() string {
 	return `package foundation
 
 type Container struct{}
+
+func NewContainer() *Container {
+	c := &Container{}
+	// ship:container:start
+	// ship:container:end
+	return c
+}
 `
 }
 

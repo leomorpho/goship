@@ -93,6 +93,15 @@ func TestScaffoldNewProject(t *testing.T) {
 	if !strings.Contains(router, "ship:routes:public:start") || !strings.Contains(router, "ship:routes:auth:start") {
 		t.Fatalf("router markers missing:\n%s", router)
 	}
+
+	containerBytes, err := os.ReadFile(filepath.Join(opts.AppPath, "app", "foundation", "container.go"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	container := string(containerBytes)
+	if !strings.Contains(container, "ship:container:start") || !strings.Contains(container, "ship:container:end") {
+		t.Fatalf("container markers missing:\n%s", container)
+	}
 }
 
 func TestScaffoldNewProjectDryRun(t *testing.T) {

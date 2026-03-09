@@ -1,7 +1,9 @@
 package ship
 
 import (
+	"errors"
 	"fmt"
+	"os/exec"
 
 	rt "github.com/leomorpho/goship/tools/cli/ship/internal/runtime"
 )
@@ -20,6 +22,19 @@ func (c CLI) runGooseCmd(args ...string) int {
 
 func (c CLI) runCmd(name string, args ...string) int {
 	return rt.RunCommand(c.getRunner(), c.Err, name, args...)
+}
+
+func (c CLI) runCmdCapture(name string, args ...string) (int, string, error) {
+	cmd := exec.Command(name, args...)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		var exitErr *exec.ExitError
+		if errors.As(err, &exitErr) {
+			return exitErr.ExitCode(), string(out), nil
+		}
+		return 1, string(out), err
+	}
+	return 0, string(out), nil
 }
 
 func (c CLI) getRunner() CmdRunner {

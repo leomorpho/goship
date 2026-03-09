@@ -112,7 +112,7 @@ func registerAuthRoutes() {
 		mustContainIssueCode(t, issues, "DX009")
 	})
 
-	t.Run("new oversized go file trips line budget", func(t *testing.T) {
+	t.Run("new large go file triggers file size issue", func(t *testing.T) {
 		root := t.TempDir()
 		writeDoctorFixture(t, root)
 		path := filepath.Join(root, "app", "web", "ui", "too_big.go")
@@ -313,7 +313,17 @@ func registerAuthRoutes() {
 	// ship:routes:auth:end
 }
 `,
-		filepath.Join(root, "app", "foundation", "container.go"):             "package foundation\n",
+		filepath.Join(root, "app", "foundation", "container.go"): `package foundation
+
+func NewContainer() *Container {
+	c := &Container{}
+	// ship:container:start
+	// ship:container:end
+	return c
+}
+
+type Container struct{}
+`,
 		filepath.Join(root, "app", "web", "ui", "page.go"):                   "package ui\n",
 		filepath.Join(root, "app", "web", "viewmodels", "page_data.go"):      "package viewmodels\n",
 		filepath.Join(root, "app", "web", "routenames", "routenames.go"):     "package routenames\n",

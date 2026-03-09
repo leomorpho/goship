@@ -93,6 +93,8 @@ func NewContainer() *Container {
 	// c.initNotifier()
 	c.initMail()
 	c.initPaymentProcessor()
+	// ship:container:start
+	// ship:container:end
 	// c.initTasks()
 	c.initCoreAdapters()
 	return c

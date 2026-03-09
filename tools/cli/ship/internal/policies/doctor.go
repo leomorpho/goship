@@ -88,18 +88,18 @@ func RunDoctor(args []string, d DoctorDeps) int {
 		return writeDoctorJSON(d.Out, !hasDoctorErrors(issues), issues)
 	}
 
-	if !hasDoctorErrors(issues) {
+	if !hasDoctorErrors(issues) && len(issues) == 0 {
 		fmt.Fprintf(d.Out, "ship doctor: OK (%s)\n", root)
+		return 0
+	}
+	if !hasDoctorErrors(issues) {
+		fmt.Fprintf(d.Out, "ship doctor: OK with %d warning(s) (%s)\n", len(issues), root)
+		printDoctorIssues(d.Out, issues)
 		return 0
 	}
 
 	fmt.Fprintf(d.Err, "ship doctor: found %d issue(s)\n", len(issues))
-	for _, issue := range issues {
-		fmt.Fprintf(d.Err, "- [%s] %s\n", issue.Code, issue.Message)
-		if issue.Fix != "" {
-			fmt.Fprintf(d.Err, "  fix: %s\n", issue.Fix)
-		}
-	}
+	printDoctorIssues(d.Err, issues)
 	return 1
 }
 
@@ -154,6 +154,15 @@ func doctorIssueSeverity(issue DoctorIssue) string {
 		return "error"
 	}
 	return issue.Severity
+}
+
+func printDoctorIssues(w io.Writer, issues []DoctorIssue) {
+	for _, issue := range issues {
+		fmt.Fprintf(w, "- [%s] %s\n", issue.Code, issue.Message)
+		if issue.Fix != "" {
+			fmt.Fprintf(w, "  fix: %s\n", issue.Fix)
+		}
+	}
 }
 
 func RunDoctorChecks(root string) []DoctorIssue {
@@ -255,59 +264,11 @@ func RunDoctorChecks(root string) []DoctorIssue {
 		}
 	}
 
-	router := filepath.Join(root, "app", "router.go")
-	if hasFile(router) {
-		b, err := os.ReadFile(router)
-		if err != nil {
-			issues = append(issues, DoctorIssue{
-				Code:    "DX004",
-				Message: "failed to read router.go for marker checks",
-				Fix:     err.Error(),
-			})
-		} else {
-			content := string(b)
-			markers := []string{
-				"// ship:routes:public:start",
-				"// ship:routes:public:end",
-				"// ship:routes:auth:start",
-				"// ship:routes:auth:end",
-			}
-			for _, marker := range markers {
-				if !strings.Contains(content, marker) {
-					issues = append(issues, DoctorIssue{
-						Code:    "DX005",
-						Message: fmt.Sprintf("missing router marker: %s", marker),
-						Fix:     "restore route markers in app/router.go to keep generator wiring deterministic",
-					})
-				}
-			}
-
-			type markerPair struct {
-				start string
-				end   string
-			}
-			pairs := []markerPair{
-				{start: "// ship:routes:public:start", end: "// ship:routes:public:end"},
-				{start: "// ship:routes:auth:start", end: "// ship:routes:auth:end"},
-			}
-			for _, pair := range pairs {
-				startIdx := strings.Index(content, pair.start)
-				endIdx := strings.Index(content, pair.end)
-				if startIdx >= 0 && endIdx >= 0 && startIdx > endIdx {
-					issues = append(issues, DoctorIssue{
-						Code:    "DX011",
-						Message: fmt.Sprintf("router marker order invalid: %s appears after %s", pair.start, pair.end),
-						Fix:     "place start marker before end marker to keep --wire deterministic",
-					})
-				}
-			}
-		}
-	}
-
+	issues = append(issues, checkMarkerIntegrity(root)...)
 	issues = append(issues, checkPackageNaming(root, filepath.Join("app", "web", "ui"), "ui")...)
 	issues = append(issues, checkPackageNaming(root, filepath.Join("app", "web", "viewmodels"), "viewmodels")...)
 	issues = append(issues, checkTopLevelDirs(root)...)
-	issues = append(issues, checkFileLengthBudget(root, 500)...)
+	issues = append(issues, checkFileSizes(root)...)
 	issues = append(issues, checkCLIDocsCoverage(root)...)
 	issues = append(issues, checkGoWorkModules(root)...)
 	issues = append(issues, checkDockerIgnoreCoverage(root)...)
@@ -708,6 +669,108 @@ func doctorIsAllowedMigrationPath(rel string) bool {
 	return false
 }
 
+type doctorMarkerPair struct {
+	file       string
+	start      string
+	end        string
+	missingFix string
+	orderFix   string
+}
+
+func checkMarkerIntegrity(root string) []DoctorIssue {
+	issues := make([]DoctorIssue, 0)
+	pairs := []doctorMarkerPair{
+		{
+			file:       filepath.ToSlash(filepath.Join("app", "router.go")),
+			start:      "// ship:routes:public:start",
+			end:        "// ship:routes:public:end",
+			missingFix: "restore route markers in app/router.go to keep generator wiring deterministic",
+			orderFix:   "place start marker before end marker to keep generator wiring deterministic",
+		},
+		{
+			file:       filepath.ToSlash(filepath.Join("app", "router.go")),
+			start:      "// ship:routes:auth:start",
+			end:        "// ship:routes:auth:end",
+			missingFix: "restore route markers in app/router.go to keep generator wiring deterministic",
+			orderFix:   "place start marker before end marker to keep generator wiring deterministic",
+		},
+		{
+			file:       filepath.ToSlash(filepath.Join("app", "foundation", "container.go")),
+			start:      "// ship:container:start",
+			end:        "// ship:container:end",
+			missingFix: "restore container markers in app/foundation/container.go to keep module wiring deterministic",
+			orderFix:   "place ship:container:start before ship:container:end to keep module wiring deterministic",
+		},
+	}
+
+	fileContents := map[string]string{}
+	readFailed := map[string]bool{}
+	for _, pair := range pairs {
+		path := filepath.Join(root, filepath.FromSlash(pair.file))
+		if !hasFile(path) {
+			continue
+		}
+		content, ok := fileContents[pair.file]
+		if !ok && !readFailed[pair.file] {
+			b, err := os.ReadFile(path)
+			if err != nil {
+				issues = append(issues, DoctorIssue{
+					Code:    "DX004",
+					File:    pair.file,
+					Message: fmt.Sprintf("failed to read %s for marker checks", pair.file),
+					Fix:     err.Error(),
+				})
+				readFailed[pair.file] = true
+				continue
+			}
+			content = string(b)
+			fileContents[pair.file] = content
+		}
+		if readFailed[pair.file] {
+			continue
+		}
+
+		hasStart := strings.Contains(content, pair.start)
+		hasEnd := strings.Contains(content, pair.end)
+		switch {
+		case !hasStart && !hasEnd:
+			issues = append(issues, DoctorIssue{
+				Code:    "DX005",
+				File:    pair.file,
+				Message: fmt.Sprintf("missing required marker pair in %s: %s / %s", pair.file, pair.start, pair.end),
+				Fix:     pair.missingFix,
+			})
+		case hasStart != hasEnd:
+			missing := pair.start
+			present := pair.end
+			if hasStart {
+				missing = pair.end
+				present = pair.start
+			}
+			issues = append(issues, DoctorIssue{
+				Code:     "DX005",
+				File:     pair.file,
+				Message:  fmt.Sprintf("unpaired marker in %s: missing %s for %s", pair.file, missing, present),
+				Fix:      pair.missingFix,
+				Severity: "warning",
+			})
+		default:
+			startIdx := strings.Index(content, pair.start)
+			endIdx := strings.Index(content, pair.end)
+			if startIdx > endIdx {
+				issues = append(issues, DoctorIssue{
+					Code:    "DX011",
+					File:    pair.file,
+					Message: fmt.Sprintf("marker order invalid in %s: %s appears after %s", pair.file, pair.start, pair.end),
+					Fix:     pair.orderFix,
+				})
+			}
+		}
+	}
+
+	return issues
+}
+
 func checkModulesManifestFormat(root string) []DoctorIssue {
 	issues := make([]DoctorIssue, 0)
 	path := filepath.Join(root, "config", "modules.yaml")
@@ -1038,68 +1101,107 @@ func hasFile(path string) bool {
 	return err == nil
 }
 
-func checkFileLengthBudget(root string, maxLines int) []DoctorIssue {
+func checkFileSizes(root string) []DoctorIssue {
 	issues := make([]DoctorIssue, 0)
-	allowlist := map[string]struct{}{
-		filepath.ToSlash(filepath.Join("tools", "cli", "ship", "internal", "cli", "cli_test.go")):             {},
-		filepath.ToSlash(filepath.Join("tools", "cli", "ship", "internal", "generators", "resource.go")):      {},
-		filepath.ToSlash(filepath.Join("tools", "cli", "ship", "internal", "policies", "doctor.go")):          {},
-		filepath.ToSlash(filepath.Join("app", "profiles", "repo.go")):                                         {},
-		filepath.ToSlash(filepath.Join("tools", "cli", "ship", "internal", "commands", "project_new.go")):     {},
-		filepath.ToSlash(filepath.Join("tools", "cli", "ship", "internal", "commands", "project_upgrade.go")): {},
+	hardCapAllowlist := map[string]struct{}{
+		filepath.ToSlash(filepath.Join("tools", "cli", "ship", "internal", "policies", "doctor.go")): {},
+		filepath.ToSlash(filepath.Join("app", "views", "web", "pages", "home_feed.templ")):           {},
+		filepath.ToSlash(filepath.Join("app", "views", "web", "pages", "landing_page.templ")):        {},
+		filepath.ToSlash(filepath.Join("app", "views", "web", "pages", "preferences.templ")):         {},
+		filepath.ToSlash(filepath.Join("app", "views", "emails", "password_reset.templ")):            {},
+		filepath.ToSlash(filepath.Join("app", "views", "emails", "registration_confirmation.templ")): {},
+		filepath.ToSlash(filepath.Join("app", "views", "emails", "update.templ")):                    {},
 	}
 
-	_ = filepath.WalkDir(root, func(path string, d os.DirEntry, err error) error {
-		if err != nil {
-			return nil
+	scanRoots := []string{
+		filepath.Join(root, "app"),
+		filepath.Join(root, "framework"),
+		filepath.Join(root, "tools"),
+		filepath.Join(root, "config"),
+	}
+	for _, scanRoot := range scanRoots {
+		if !isDir(scanRoot) {
+			continue
 		}
-		rel, relErr := filepath.Rel(root, path)
-		if relErr != nil {
-			return nil
-		}
-		rel = filepath.ToSlash(rel)
+		_ = filepath.WalkDir(scanRoot, func(path string, d os.DirEntry, err error) error {
+			if err != nil {
+				return nil
+			}
+			rel := filepath.ToSlash(mustRel(root, path))
 
-		if d.IsDir() {
-			if rel == ".git" ||
-				rel == "node_modules" ||
-				rel == ".cache" ||
-				filepath.Base(rel) == ".cache" ||
-				strings.Contains(rel, "/.cache/") ||
-				rel == filepath.ToSlash(filepath.Join("db", "schema")) ||
-				strings.HasPrefix(rel, filepath.ToSlash(filepath.Join("db", "schema"))+"/") {
-				return filepath.SkipDir
+			if d.IsDir() {
+				if rel == "vendor" ||
+					strings.HasPrefix(rel, "vendor/") ||
+					rel == ".git" ||
+					rel == "node_modules" ||
+					rel == ".cache" ||
+					filepath.Base(rel) == ".cache" ||
+					strings.Contains(rel, "/.cache/") ||
+					strings.HasSuffix(rel, "/gen") {
+					return filepath.SkipDir
+				}
+				return nil
 			}
-			if strings.HasSuffix(rel, "/gen") {
-				return filepath.SkipDir
+
+			kind, warnThreshold, errorThreshold, skip := doctorFileSizeKind(rel)
+			if skip {
+				return nil
 			}
-			return nil
-		}
-		if !strings.HasSuffix(rel, ".go") {
-			return nil
-		}
-		if _, ok := allowlist[rel]; ok {
-			return nil
-		}
-		lines, lineErr := countLines(path)
-		if lineErr != nil {
+
+			lines, lineErr := countNonBlankLines(path)
+			if lineErr != nil {
+				issues = append(issues, DoctorIssue{
+					Code:    "DX010",
+					File:    rel,
+					Message: fmt.Sprintf("failed counting non-blank lines for %s", rel),
+					Fix:     lineErr.Error(),
+				})
+				return nil
+			}
+			if lines <= warnThreshold {
+				return nil
+			}
+
+			severity := "warning"
+			message := fmt.Sprintf("%s file exceeds recommended size (%d > %d non-blank lines): %s", kind, lines, warnThreshold, rel)
+			if lines > errorThreshold {
+				if _, ok := hardCapAllowlist[rel]; ok {
+					message = fmt.Sprintf("%s file exceeds hard size cap but is grandfathered (%d > %d non-blank lines): %s", kind, lines, errorThreshold, rel)
+				} else {
+					severity = "error"
+					message = fmt.Sprintf("%s file exceeds hard size cap (%d > %d non-blank lines): %s", kind, lines, errorThreshold, rel)
+				}
+			}
+
 			issues = append(issues, DoctorIssue{
-				Code:    "DX010",
-				Message: fmt.Sprintf("failed counting lines for %s", rel),
-				Fix:     lineErr.Error(),
+				Code:     "DX010",
+				File:     rel,
+				Message:  message,
+				Fix:      "split by responsibility to keep files LLM-friendly",
+				Severity: severity,
 			})
 			return nil
-		}
-		if lines > maxLines {
-			issues = append(issues, DoctorIssue{
-				Code:    "DX010",
-				Message: fmt.Sprintf("file exceeds line budget (%d > %d): %s", lines, maxLines, rel),
-				Fix:     "split by responsibility to keep files LLM-friendly",
-			})
-		}
-		return nil
-	})
+		})
+	}
 
 	return issues
+}
+
+func doctorFileSizeKind(rel string) (kind string, warnThreshold int, errorThreshold int, skip bool) {
+	switch {
+	case strings.HasSuffix(rel, ".go"):
+		if strings.HasSuffix(rel, "_test.go") ||
+			strings.HasSuffix(rel, ".templ.go") ||
+			strings.HasSuffix(rel, "_sql.go") ||
+			strings.HasPrefix(filepath.Base(rel), "bob_") {
+			return "", 0, 0, true
+		}
+		return "Go", 300, 600, false
+	case strings.HasSuffix(rel, ".templ"):
+		return "templ", 200, 400, false
+	default:
+		return "", 0, 0, true
+	}
 }
 
 func checkTopLevelDirs(root string) []DoctorIssue {
@@ -1153,7 +1255,7 @@ func checkTopLevelDirs(root string) []DoctorIssue {
 	return issues
 }
 
-func countLines(path string) (int, error) {
+func countNonBlankLines(path string) (int, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return 0, err
@@ -1162,6 +1264,9 @@ func countLines(path string) (int, error) {
 	s := bufio.NewScanner(f)
 	lines := 0
 	for s.Scan() {
+		if strings.TrimSpace(s.Text()) == "" {
+			continue
+		}
 		lines++
 	}
 	if err := s.Err(); err != nil {

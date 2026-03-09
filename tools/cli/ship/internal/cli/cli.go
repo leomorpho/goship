@@ -73,6 +73,8 @@ func (c CLI) Run(args []string) int {
 		return c.runCheck(args[1:])
 	case "doctor":
 		return c.runDoctor(args[1:])
+	case "verify":
+		return c.runVerify(args[1:])
 	case "test":
 		return c.runTest(args[1:])
 	case "agent":
@@ -147,6 +149,16 @@ func (c CLI) runCheck(args []string) int {
 
 func (c CLI) runTest(args []string) int {
 	return cmd.RunTest(args, cmd.QualityDeps{Out: c.Out, Err: c.Err, RunCmd: c.runCmd})
+}
+
+func (c CLI) runVerify(args []string) int {
+	return cmd.RunVerify(args, cmd.VerifyDeps{
+		Out:          c.Out,
+		Err:          c.Err,
+		FindGoModule: findGoModule,
+		RunStep:      c.runCmdCapture,
+		LookPath:     exec.LookPath,
+	})
 }
 
 func (c CLI) runDB(args []string) int {
