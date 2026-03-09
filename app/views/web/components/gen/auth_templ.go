@@ -13,6 +13,7 @@ import (
 	"github.com/leomorpho/goship/app/web/routenames"
 )
 
+// Renders: horizontal divider with "or" label followed by conditional login, register, and forgot-password buttons
 func AuthButtons(page *controller.Page, showLoginBtn, showRegisterBtn, showResetPasswordBtn bool) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -34,7 +35,7 @@ func AuthButtons(page *controller.Page, showLoginBtn, showRegisterBtn, showReset
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"inline-flex items-center justify-center w-full\"><hr class=\"w-64 h-px my-5 bg-gray-200 border-0 dark:bg-gray-700\"><span class=\"absolute px-3 font-medium text-gray-900 -translate-x-1/2 bg-white left-1/2 dark:text-white dark:bg-gray-900\">or</span></div><div class=\"text-sm text-center\" hx-target=\"#main-content\" hx-select=\"#main-content\" hx-indicator=\"next #page-loading\" hx-swap=\"outerHTML show:window:top\" hx-push-url=\"true\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div data-component=\"auth-buttons\" class=\"inline-flex items-center justify-center w-full\"><hr class=\"w-64 h-px my-5 bg-gray-200 border-0 dark:bg-gray-700\"><span class=\"absolute px-3 font-medium text-gray-900 -translate-x-1/2 bg-white left-1/2 dark:text-white dark:bg-gray-900\">or</span></div><div class=\"text-sm text-center\" hx-target=\"#main-content\" hx-select=\"#main-content\" hx-indicator=\"next #page-loading\" hx-swap=\"outerHTML show:window:top\" hx-push-url=\"true\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -46,7 +47,7 @@ func AuthButtons(page *controller.Page, showLoginBtn, showRegisterBtn, showReset
 			var templ_7745c5c3_Var2 string
 			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameLogin))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/auth.templ`, Line: 23, Col: 50}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/auth.templ`, Line: 24, Col: 50}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 			if templ_7745c5c3_Err != nil {
@@ -65,7 +66,7 @@ func AuthButtons(page *controller.Page, showLoginBtn, showRegisterBtn, showReset
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameRegister))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/auth.templ`, Line: 40, Col: 53}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/auth.templ`, Line: 41, Col: 53}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -84,7 +85,7 @@ func AuthButtons(page *controller.Page, showLoginBtn, showRegisterBtn, showReset
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameForgotPassword))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/auth.templ`, Line: 61, Col: 59}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/auth.templ`, Line: 62, Col: 59}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {

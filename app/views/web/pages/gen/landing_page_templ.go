@@ -17,6 +17,7 @@ import (
 	"github.com/leomorpho/goship/app/web/viewmodels"
 )
 
+// Renders: landing-page component.
 func LandingPage(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -38,7 +39,7 @@ func LandingPage(page *controller.Page) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"top-0 z-50 flex flex-row justify-center items-center flex-wrap\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div data-component=\"landing-page\" class=\"top-0 z-50 flex flex-row justify-center items-center flex-wrap\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -250,6 +251,7 @@ func mobileDarkModeButton() templ.Component {
 	})
 }
 
+// Renders: animate-on-scroll-library component.
 func AnimateOnScrollLibrary() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -271,7 +273,7 @@ func AnimateOnScrollLibrary() templ.Component {
 			templ_7745c5c3_Var4 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<!-- Animate on scroll library --><link href=\"https://unpkg.com/aos@2.3.1/dist/aos.css\" rel=\"stylesheet\"><script src=\"https://unpkg.com/aos@2.3.1/dist/aos.js\"></script><script>\n        AOS.init();\n    </script>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<!-- Animate on scroll library --><link data-component=\"animate-on-scroll-library\" href=\"https://unpkg.com/aos@2.3.1/dist/aos.css\" rel=\"stylesheet\"><script src=\"https://unpkg.com/aos@2.3.1/dist/aos.js\"></script><script>\n        AOS.init();\n    </script>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -307,7 +309,7 @@ func welcomeScreen(page *controller.Page, d viewmodels.LandingPage) templ.Compon
 		var templ_7745c5c3_Var6 string
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(d.AppName)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/landing_page.templ`, Line: 93, Col: 64}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/landing_page.templ`, Line: 95, Col: 64}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
@@ -320,7 +322,7 @@ func welcomeScreen(page *controller.Page, d viewmodels.LandingPage) templ.Compon
 		var templ_7745c5c3_Var7 string
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(d.Title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/landing_page.templ`, Line: 101, Col: 13}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/landing_page.templ`, Line: 103, Col: 13}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {
@@ -333,7 +335,7 @@ func welcomeScreen(page *controller.Page, d viewmodels.LandingPage) templ.Compon
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(d.Subtitle)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/landing_page.templ`, Line: 104, Col: 36}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/landing_page.templ`, Line: 106, Col: 36}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
@@ -472,7 +474,7 @@ func getStartedButton(page *controller.Page) templ.Component {
 		var templ_7745c5c3_Var11 templ.SafeURL
 		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(page.ToURL(routenames.RouteNameDocs)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/landing_page.templ`, Line: 173, Col: 56}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/landing_page.templ`, Line: 175, Col: 56}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 		if templ_7745c5c3_Err != nil {
@@ -657,7 +659,7 @@ func newsletterRegistration(page *controller.Page) templ.Component {
 			var templ_7745c5c3_Var19 string
 			templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL("emailSubscribe"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/landing_page.templ`, Line: 278, Col: 45}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/landing_page.templ`, Line: 280, Col: 45}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 			if templ_7745c5c3_Err != nil {
@@ -709,6 +711,7 @@ func pricingForLandingPage(page *controller.Page, data viewmodels.LandingPage) t
 	})
 }
 
+// Renders: q-a-section component.
 func QASection(questions []viewmodels.QAItem) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -730,7 +733,7 @@ func QASection(questions []viewmodels.QAItem) templ.Component {
 			templ_7745c5c3_Var21 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "<div class=\"w-full py-8 px-4 md:px-6\"><div class=\"max-w-3xl mx-auto\"><div data-aos=\"fade-up\" data-aos-once=\"true\"><div class=\"pb-1 flex justify-center w-full font-black text-5xl md:text-6xl bg-gradient-to-r from-red-500 to-purple-500 inline-block text-transparent bg-clip-text\">Common Questions</div></div><div class=\"grid grid-cols-1 gap-4 mt-4\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "<div data-component=\"q-a-section\" class=\"w-full py-8 px-4 md:px-6\"><div class=\"max-w-3xl mx-auto\"><div data-aos=\"fade-up\" data-aos-once=\"true\"><div class=\"pb-1 flex justify-center w-full font-black text-5xl md:text-6xl bg-gradient-to-r from-red-500 to-purple-500 inline-block text-transparent bg-clip-text\">Common Questions</div></div><div class=\"grid grid-cols-1 gap-4 mt-4\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -776,7 +779,7 @@ func qaIndividualSection(qa viewmodels.QAItem) templ.Component {
 		var templ_7745c5c3_Var23 string
 		templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(qa.Question)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/landing_page.templ`, Line: 321, Col: 97}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/landing_page.templ`, Line: 324, Col: 97}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 		if templ_7745c5c3_Err != nil {
@@ -789,7 +792,7 @@ func qaIndividualSection(qa viewmodels.QAItem) templ.Component {
 		var templ_7745c5c3_Var24 string
 		templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(qa.Answer)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/landing_page.templ`, Line: 323, Col: 14}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/landing_page.templ`, Line: 326, Col: 14}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 		if templ_7745c5c3_Err != nil {
@@ -831,7 +834,7 @@ func madeWithLove(d viewmodels.LandingPage) templ.Component {
 		var templ_7745c5c3_Var26 string
 		templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs("Made With Sprinkles of Love and Tears of Frustration.")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/landing_page.templ`, Line: 349, Col: 60}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/landing_page.templ`, Line: 352, Col: 60}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
 		if templ_7745c5c3_Err != nil {
@@ -873,7 +876,7 @@ func socialMedia(d viewmodels.LandingPage) templ.Component {
 		var templ_7745c5c3_Var28 templ.SafeURL
 		templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(fmt.Sprintf("mailto:%s", d.ContactEmail)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/landing_page.templ`, Line: 444, Col: 65}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/landing_page.templ`, Line: 447, Col: 65}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 		if templ_7745c5c3_Err != nil {
@@ -974,7 +977,7 @@ func questionExample(questionType, prompt string) templ.Component {
 		var templ_7745c5c3_Var34 string
 		templ_7745c5c3_Var34, templ_7745c5c3_Err = templ.JoinStringErrs(prompt)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/landing_page.templ`, Line: 490, Col: 47}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/landing_page.templ`, Line: 493, Col: 47}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var34))
 		if templ_7745c5c3_Err != nil {

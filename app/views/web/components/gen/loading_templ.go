@@ -8,6 +8,7 @@ package components
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
+// Renders: page-loading-indicator component.
 func PageLoadingIndicator() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -29,7 +30,7 @@ func PageLoadingIndicator() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"page-loading\" class=\"loading-overlay fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 w-screen h-screen\"><div class=\"flex justify-center items-center w-full h-full text-black dark:text-white\"><svg fill=\"currentColor\" class=\"w-1/12 h-auto\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\"><style>.spinner_b2T7{animation:spinner_xe7Q .8s linear infinite}.spinner_YRVV{animation-delay:-.65s}.spinner_c9oY{animation-delay:-.5s}@keyframes spinner_xe7Q{93.75%,100%{r:3px}46.875%{r:.2px}}</style><circle class=\"spinner_b2T7\" cx=\"4\" cy=\"12\" r=\"3\"></circle><circle class=\"spinner_b2T7 spinner_YRVV\" cx=\"12\" cy=\"12\" r=\"3\"></circle><circle class=\"spinner_b2T7 spinner_c9oY\" cx=\"20\" cy=\"12\" r=\"3\"></circle></svg></div></div><style>\n    .loading-overlay {\n        z-index: 9999;         /* High z-index to be on top of other content */\n        display:none;\n    }\n\n    .htmx-request .loading-overlay{\n        display:inline;\n    }\n    .htmx-request.loading-overlay{\n        display:inline;\n    }\n    </style>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div data-component=\"page-loading-indicator\" id=\"page-loading\" class=\"loading-overlay fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 w-screen h-screen\"><div class=\"flex justify-center items-center w-full h-full text-black dark:text-white\"><svg fill=\"currentColor\" class=\"w-1/12 h-auto\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\"><style>.spinner_b2T7{animation:spinner_xe7Q .8s linear infinite}.spinner_YRVV{animation-delay:-.65s}.spinner_c9oY{animation-delay:-.5s}@keyframes spinner_xe7Q{93.75%,100%{r:3px}46.875%{r:.2px}}</style><circle class=\"spinner_b2T7\" cx=\"4\" cy=\"12\" r=\"3\"></circle><circle class=\"spinner_b2T7 spinner_YRVV\" cx=\"12\" cy=\"12\" r=\"3\"></circle><circle class=\"spinner_b2T7 spinner_c9oY\" cx=\"20\" cy=\"12\" r=\"3\"></circle></svg></div></div><style>\n    .loading-overlay {\n        z-index: 9999;         /* High z-index to be on top of other content */\n        display:none;\n    }\n\n    .htmx-request .loading-overlay{\n        display:inline;\n    }\n    .htmx-request.loading-overlay{\n        display:inline;\n    }\n    </style>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -37,6 +38,7 @@ func PageLoadingIndicator() templ.Component {
 	})
 }
 
+// Renders: bottom-loading-indicator component.
 func BottomLoadingIndicator() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -58,7 +60,7 @@ func BottomLoadingIndicator() templ.Component {
 			templ_7745c5c3_Var2 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div id=\"bottom-loading\" class=\"flex justify-center items-center z-50 w-full h-full\"><div class=\"flex justify-center items-center w-full h-full text-black dark:text-white\"><svg fill=\"currentColor\" class=\"w-1/12 h-auto\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\"><style>.spinner_b2T7{animation:spinner_xe7Q .8s linear infinite}.spinner_YRVV{animation-delay:-.65s}.spinner_c9oY{animation-delay:-.5s}@keyframes spinner_xe7Q{93.75%,100%{r:3px}46.875%{r:.2px}}</style><circle class=\"spinner_b2T7\" cx=\"4\" cy=\"12\" r=\"3\"></circle><circle class=\"spinner_b2T7 spinner_YRVV\" cx=\"12\" cy=\"12\" r=\"3\"></circle><circle class=\"spinner_b2T7 spinner_c9oY\" cx=\"20\" cy=\"12\" r=\"3\"></circle></svg></div></div><style>\n    .loading-overlay {\n        z-index: 9999;         /* High z-index to be on top of other content */\n        display:none;\n    }\n\n    .htmx-request .loading-overlay{\n        display:inline;\n    }\n    .htmx-request.loading-overlay{\n        display:inline;\n    }\n    </style>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div data-component=\"bottom-loading-indicator\" id=\"bottom-loading\" class=\"flex justify-center items-center z-50 w-full h-full\"><div class=\"flex justify-center items-center w-full h-full text-black dark:text-white\"><svg fill=\"currentColor\" class=\"w-1/12 h-auto\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\"><style>.spinner_b2T7{animation:spinner_xe7Q .8s linear infinite}.spinner_YRVV{animation-delay:-.65s}.spinner_c9oY{animation-delay:-.5s}@keyframes spinner_xe7Q{93.75%,100%{r:3px}46.875%{r:.2px}}</style><circle class=\"spinner_b2T7\" cx=\"4\" cy=\"12\" r=\"3\"></circle><circle class=\"spinner_b2T7 spinner_YRVV\" cx=\"12\" cy=\"12\" r=\"3\"></circle><circle class=\"spinner_b2T7 spinner_c9oY\" cx=\"20\" cy=\"12\" r=\"3\"></circle></svg></div></div><style>\n    .loading-overlay {\n        z-index: 9999;         /* High z-index to be on top of other content */\n        display:none;\n    }\n\n    .htmx-request .loading-overlay{\n        display:inline;\n    }\n    .htmx-request.loading-overlay{\n        display:inline;\n    }\n    </style>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

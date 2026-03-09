@@ -14,6 +14,7 @@ import (
 	"github.com/leomorpho/goship/app/web/viewmodels"
 )
 
+// Renders: email-subscribe component.
 func EmailSubscribe(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -36,7 +37,7 @@ func EmailSubscribe(page *controller.Page) templ.Component {
 		}
 		ctx = templ.ClearChildren(ctx)
 		if data, ok := page.Data.(viewmodels.EmailSubscriptionData); ok {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div hx-swap=\"innerHTML\" hx-target=\"this\"><div class=\"md:flex md:items-stretch min-h-fit\"><div class=\"md:w-1/2 w-full min-h-min p-5 pl-10\"><div class=\"font-black text-3xl md:text-5xl mb-5 lg:mt-5 bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 inline-block text-transparent bg-clip-text\">Be the First to Know</div><div class=\"flex items-center\"><div><button onclick=\"getLocation()\" class=\"bg-blue-500 hover:bg-blue-700 transition-colors duration-200 text-white py-3 px-5 rounded-full inline-flex items-center min-w-full\" aria-label=\"Locate my position\"><svg xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\" stroke-width=\"1.5\" stroke=\"currentColor\" class=\"w-4 h-4 mr-1\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M15 10.5a3 3 0 11-6 0 3 3 0 016 0z\"></path> <path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z\"></path></svg> <span class=\"text-sm whitespace-nowrap\">Locate Me</span></button></div><p class=\"flex py-3 px-5 items-center text-white\">A rough idea of your city is enough. We'll notify you when we're ready close by. Just the essentials, no spam.</p></div><div id=\"message\" class=\"text-white mt-4\"></div><!-- Dynamic placeholder -->")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div data-component=\"email-subscribe\" hx-swap=\"innerHTML\" hx-target=\"this\"><div class=\"md:flex md:items-stretch min-h-fit\"><div class=\"md:w-1/2 w-full min-h-min p-5 pl-10\"><div class=\"font-black text-3xl md:text-5xl mb-5 lg:mt-5 bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 inline-block text-transparent bg-clip-text\">Be the First to Know</div><div class=\"flex items-center\"><div><button onclick=\"getLocation()\" class=\"bg-blue-500 hover:bg-blue-700 transition-colors duration-200 text-white py-3 px-5 rounded-full inline-flex items-center min-w-full\" aria-label=\"Locate my position\"><svg xmlns=\"http://www.w3.org/2000/svg\" fill=\"none\" viewBox=\"0 0 24 24\" stroke-width=\"1.5\" stroke=\"currentColor\" class=\"w-4 h-4 mr-1\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M15 10.5a3 3 0 11-6 0 3 3 0 016 0z\"></path> <path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z\"></path></svg> <span class=\"text-sm whitespace-nowrap\">Locate Me</span></button></div><p class=\"flex py-3 px-5 items-center text-white\">A rough idea of your city is enough. We'll notify you when we're ready close by. Just the essentials, no spam.</p></div><div id=\"message\" class=\"text-white mt-4\"></div><!-- Dynamic placeholder -->")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -94,7 +95,7 @@ func subscribeForm(page *controller.Page) templ.Component {
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL("emailSubscribe.post"))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/email_subscribe.templ`, Line: 90, Col: 46}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/email_subscribe.templ`, Line: 91, Col: 46}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -116,7 +117,7 @@ func subscribeForm(page *controller.Page) templ.Component {
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(form.Email)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/email_subscribe.templ`, Line: 97, Col: 22}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/email_subscribe.templ`, Line: 98, Col: 22}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {

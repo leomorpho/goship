@@ -13,6 +13,7 @@ import (
 	"github.com/leomorpho/goship/app/web/viewmodels"
 )
 
+// Renders: invitations-component component.
 func InvitationsComponent(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -34,14 +35,14 @@ func InvitationsComponent(page *controller.Page) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"replacing\" class=\"invite-person-to-dating w-full flex justify-center items-center\" hx-swap=\"this\" hx-trigger=\"click\" hx-select=\"#replacing\" hx-get=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div data-component=\"invitations-component\" id=\"replacing\" class=\"invite-person-to-dating w-full flex justify-center items-center\" hx-swap=\"this\" hx-trigger=\"click\" hx-select=\"#replacing\" hx-get=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL("invitations"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/invitations.templ`, Line: 15, Col: 36}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/invitations.templ`, Line: 16, Col: 36}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {

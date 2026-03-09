@@ -17,6 +17,7 @@ import (
 	"strconv"
 )
 
+// Renders: home-feed component.
 func HomeFeed(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -38,14 +39,14 @@ func HomeFeed(page *controller.Page) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"homefeed-page\" hx-ext=\"sse\" sse-connect=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div data-component=\"home-feed\" id=\"homefeed-page\" hx-ext=\"sse\" sse-connect=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameRealtime))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 16, Col: 56}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 17, Col: 56}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -67,7 +68,7 @@ func HomeFeed(page *controller.Page) templ.Component {
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameGetHomeFeedButtons))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 21, Col: 63}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 22, Col: 63}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -147,7 +148,7 @@ func hello(page *controller.Page, justFinishedOnboarded bool) templ.Component {
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(page.AuthUser.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 51, Col: 26}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 52, Col: 26}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -165,7 +166,7 @@ func hello(page *controller.Page, justFinishedOnboarded bool) templ.Component {
 		var templ_7745c5c3_Var6 string
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(templ.JSONString(justFinishedOnboarded))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 59, Col: 65}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 60, Col: 65}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
@@ -236,6 +237,7 @@ func startDriverJS() templ.ComponentScript {
 	}
 }
 
+// Renders: home-feed-buttons component.
 func HomeFeedButtons(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -288,14 +290,14 @@ func homeFeedButtonsWithCounts(page *controller.Page, numDrafts, numLikedQuestio
 			templ_7745c5c3_Var8 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<div id=\"homeFeedButtonGroup\" hx-get=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<div data-component=\"home-feed-buttons\" id=\"homeFeedButtonGroup\" hx-get=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var9 string
 		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameGetHomeFeedButtons))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 136, Col: 61}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 138, Col: 61}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {
@@ -308,7 +310,7 @@ func homeFeedButtonsWithCounts(page *controller.Page, numDrafts, numLikedQuestio
 		var templ_7745c5c3_Var10 string
 		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameHomeFeed))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 145, Col: 52}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 147, Col: 52}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 		if templ_7745c5c3_Err != nil {
@@ -321,7 +323,7 @@ func homeFeedButtonsWithCounts(page *controller.Page, numDrafts, numLikedQuestio
 		var templ_7745c5c3_Var11 string
 		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs("Feed")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 175, Col: 12}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 177, Col: 12}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 		if templ_7745c5c3_Err != nil {
@@ -334,7 +336,7 @@ func homeFeedButtonsWithCounts(page *controller.Page, numDrafts, numLikedQuestio
 		var templ_7745c5c3_Var12 string
 		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL("convos"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 180, Col: 32}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 182, Col: 32}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 		if templ_7745c5c3_Err != nil {
@@ -347,7 +349,7 @@ func homeFeedButtonsWithCounts(page *controller.Page, numDrafts, numLikedQuestio
 		var templ_7745c5c3_Var13 string
 		templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs("All Conversations")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 216, Col: 25}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 218, Col: 25}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 		if templ_7745c5c3_Err != nil {
@@ -360,7 +362,7 @@ func homeFeedButtonsWithCounts(page *controller.Page, numDrafts, numLikedQuestio
 		var templ_7745c5c3_Var14 string
 		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL("drafts"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 221, Col: 32}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 223, Col: 32}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 		if templ_7745c5c3_Err != nil {
@@ -373,7 +375,7 @@ func homeFeedButtonsWithCounts(page *controller.Page, numDrafts, numLikedQuestio
 		var templ_7745c5c3_Var15 string
 		templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs("Drafts")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 251, Col: 14}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 253, Col: 14}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 		if templ_7745c5c3_Err != nil {
@@ -404,7 +406,7 @@ func homeFeedButtonsWithCounts(page *controller.Page, numDrafts, numLikedQuestio
 			var templ_7745c5c3_Var16 string
 			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(numDrafts))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 264, Col: 30}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 266, Col: 30}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 			if templ_7745c5c3_Err != nil {
@@ -422,7 +424,7 @@ func homeFeedButtonsWithCounts(page *controller.Page, numDrafts, numLikedQuestio
 		var templ_7745c5c3_Var17 string
 		templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL("question.get_liked"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 269, Col: 44}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 271, Col: 44}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 		if templ_7745c5c3_Err != nil {
@@ -435,7 +437,7 @@ func homeFeedButtonsWithCounts(page *controller.Page, numDrafts, numLikedQuestio
 		var templ_7745c5c3_Var18 string
 		templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs("Liked Questions")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 299, Col: 23}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 301, Col: 23}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 		if templ_7745c5c3_Err != nil {
@@ -466,7 +468,7 @@ func homeFeedButtonsWithCounts(page *controller.Page, numDrafts, numLikedQuestio
 			var templ_7745c5c3_Var19 string
 			templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(numLikedQuestions))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 312, Col: 38}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 314, Col: 38}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 			if templ_7745c5c3_Err != nil {
@@ -484,7 +486,7 @@ func homeFeedButtonsWithCounts(page *controller.Page, numDrafts, numLikedQuestio
 		var templ_7745c5c3_Var20 string
 		templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL("question.friends_waiting_for_me"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 317, Col: 57}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 319, Col: 57}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 		if templ_7745c5c3_Err != nil {
@@ -497,7 +499,7 @@ func homeFeedButtonsWithCounts(page *controller.Page, numDrafts, numLikedQuestio
 		var templ_7745c5c3_Var21 string
 		templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs("Waiting on You")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 347, Col: 22}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 349, Col: 22}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 		if templ_7745c5c3_Err != nil {
@@ -528,7 +530,7 @@ func homeFeedButtonsWithCounts(page *controller.Page, numDrafts, numLikedQuestio
 			var templ_7745c5c3_Var22 string
 			templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", numWaitingOnYou))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 361, Col: 41}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 363, Col: 41}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 			if templ_7745c5c3_Err != nil {
@@ -546,7 +548,7 @@ func homeFeedButtonsWithCounts(page *controller.Page, numDrafts, numLikedQuestio
 		var templ_7745c5c3_Var23 string
 		templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL("unansweredForPartner"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 367, Col: 46}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 369, Col: 46}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 		if templ_7745c5c3_Err != nil {
@@ -559,7 +561,7 @@ func homeFeedButtonsWithCounts(page *controller.Page, numDrafts, numLikedQuestio
 		var templ_7745c5c3_Var24 string
 		templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs("Leaderboard")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 397, Col: 19}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 399, Col: 19}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 		if templ_7745c5c3_Err != nil {
@@ -590,7 +592,7 @@ func homeFeedButtonsWithCounts(page *controller.Page, numDrafts, numLikedQuestio
 			var templ_7745c5c3_Var25 string
 			templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", leaderboardNotifCount))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 410, Col: 47}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 412, Col: 47}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
 			if templ_7745c5c3_Err != nil {
@@ -638,6 +640,7 @@ func miniButtonCountSpinner() templ.Component {
 	})
 }
 
+// Renders: home-feed-items component.
 func HomeFeedItems(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -660,7 +663,7 @@ func HomeFeedItems(page *controller.Page) templ.Component {
 		}
 		ctx = templ.ClearChildren(ctx)
 		if data, ok := page.Data.(viewmodels.HomeFeedData); ok {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "<div id=\"homeFeedQuestions\"><div class=\"temporalized-home-feed\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "<div data-component=\"home-feed-items\" id=\"homeFeedQuestions\"><div class=\"temporalized-home-feed\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -672,7 +675,7 @@ func HomeFeedItems(page *controller.Page) templ.Component {
 				var templ_7745c5c3_Var28 string
 				templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(item)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 435, Col: 12}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 438, Col: 12}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 				if templ_7745c5c3_Err != nil {
@@ -691,7 +694,7 @@ func HomeFeedItems(page *controller.Page) templ.Component {
 				var templ_7745c5c3_Var29 string
 				templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(data.NextPageURL)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 441, Col: 31}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/home_feed.templ`, Line: 444, Col: 31}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
 				if templ_7745c5c3_Err != nil {
@@ -727,6 +730,7 @@ func HomeFeedItems(page *controller.Page) templ.Component {
 	})
 }
 
+// Renders: local-loading-indicator component.
 func LocalLoadingIndicator() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -748,7 +752,7 @@ func LocalLoadingIndicator() templ.Component {
 			templ_7745c5c3_Var30 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, "<div id=\"local-page-loading\" class=\"loading-overlay absolute top-0 left-0 flex justify-center items-center z-50 w-full h-full rounded-xl fading-bg\"><div class=\"flex justify-center items-center w-full h-full text-black dark:text-white\"><svg fill=\"currentColor\" class=\"w-1/12 h-auto\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\"><style>.spinner_b2T7{animation:spinner_xe7Q .8s linear infinite}.spinner_YRVV{animation-delay:-.65s}.spinner_c9oY{animation-delay:-.5s}@keyframes spinner_xe7Q{93.75%,100%{r:3px}46.875%{r:.2px}}</style><circle class=\"spinner_b2T7\" cx=\"4\" cy=\"12\" r=\"3\"></circle><circle class=\"spinner_b2T7 spinner_YRVV\" cx=\"12\" cy=\"12\" r=\"3\"></circle><circle class=\"spinner_b2T7 spinner_c9oY\" cx=\"20\" cy=\"12\" r=\"3\"></circle></svg></div></div><style>\n\t\t.loading-overlay {\n\t\t\tz-index: 9999;         /* High z-index to be on top of other content */\n\t\t\tdisplay:none;\n\t\t}\n\n\t\t.htmx-request .loading-overlay{\n\t\t\tdisplay:inline;\n\t\t}\n\t\t.htmx-request.loading-overlay{\n\t\t\tdisplay:inline;\n\t\t}\n\n\t\t.fading-bg {\n\t\t\tbackground: radial-gradient(\n\t\t\t\tellipse at center,\n\t\t\t\trgba(0, 0, 0, 0.2) 0%,\n\t\t\t\trgba(0, 0, 0, 0.07) 70%,\n\t\t\t\trgba(0, 0, 0, 0) 100%\n\t\t\t);\n\t\t}\n    </style>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, "<div data-component=\"local-loading-indicator\" id=\"local-page-loading\" class=\"loading-overlay absolute top-0 left-0 flex justify-center items-center z-50 w-full h-full rounded-xl fading-bg\"><div class=\"flex justify-center items-center w-full h-full text-black dark:text-white\"><svg fill=\"currentColor\" class=\"w-1/12 h-auto\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\"><style>.spinner_b2T7{animation:spinner_xe7Q .8s linear infinite}.spinner_YRVV{animation-delay:-.65s}.spinner_c9oY{animation-delay:-.5s}@keyframes spinner_xe7Q{93.75%,100%{r:3px}46.875%{r:.2px}}</style><circle class=\"spinner_b2T7\" cx=\"4\" cy=\"12\" r=\"3\"></circle><circle class=\"spinner_b2T7 spinner_YRVV\" cx=\"12\" cy=\"12\" r=\"3\"></circle><circle class=\"spinner_b2T7 spinner_c9oY\" cx=\"20\" cy=\"12\" r=\"3\"></circle></svg></div></div><style>\n\t\t.loading-overlay {\n\t\t\tz-index: 9999;         /* High z-index to be on top of other content */\n\t\t\tdisplay:none;\n\t\t}\n\n\t\t.htmx-request .loading-overlay{\n\t\t\tdisplay:inline;\n\t\t}\n\t\t.htmx-request.loading-overlay{\n\t\t\tdisplay:inline;\n\t\t}\n\n\t\t.fading-bg {\n\t\t\tbackground: radial-gradient(\n\t\t\t\tellipse at center,\n\t\t\t\trgba(0, 0, 0, 0.2) 0%,\n\t\t\t\trgba(0, 0, 0, 0.07) 70%,\n\t\t\t\trgba(0, 0, 0, 0) 100%\n\t\t\t);\n\t\t}\n    </style>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -4,11 +4,7 @@ package components
 templ ThemeToggle(id string) {
 	<div data-component="theme-toggle"
 		id={ id }
+		data-island="ThemeToggle"
+		data-props={ templ.JSONString(map[string]any{}) }
 	></div>
-	@initThemeToggle(id)
 }
-
-script initThemeToggle(id string ) {
-	renderSvelteComponent('ThemeToggle', id, {});
-}
-

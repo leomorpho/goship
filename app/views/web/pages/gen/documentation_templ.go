@@ -14,6 +14,7 @@ import (
 	"github.com/leomorpho/goship/app/web/capabilities"
 )
 
+// Renders: documentation-landing-page component.
 func DocumentationLandingPage(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -47,7 +48,7 @@ func DocumentationLandingPage(page *controller.Page) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "Build production web apps with Go + HTML-first conventions and a batteries-included workflow.<h2 class=\"text-2xl font-semibold py-3\">Why GoShip</h2><p>GoShip exists to remove repeated setup work so teams can focus on product logic. It keeps strong conventions for routing, rendering, data access, and operations while still letting you swap infrastructure adapters over time.</p><p>It is opinionated where it helps speed, modular where teams need flexibility, and designed to work well with both human developers and LLM-assisted workflows.</p><div class=\"flex items-center p-4 mb-4 text-sm text-yellow-800 rounded-lg bg-yellow-50 dark:bg-gray-800 dark:text-yellow-300\" role=\"alert\"><svg class=\"flex-shrink-0 inline w-4 h-4 me-3\" aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" fill=\"currentColor\" viewBox=\"0 0 20 20\"><path d=\"M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z\"></path></svg> <span class=\"sr-only\">Info</span><div><span class=\"font-medium\">Warning alert!</span> this project is in active development as I am adding things after first trying them out in prod for <a href=\"https://cherie.chatbond.app/\" target=\"_blank\" class=\"font-mono text-blue-500 hover:text-purple-500 transition-colors transition ease-in-out delay-50 underline\">Chérie</a>, a relationship app to grow your couple. Note that I would welcome any help to develop this boilerplate ❤️.</div></div><h2 class=\"text-2xl font-semibold py-3\">Core Capabilities</h2>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "Build production web apps with Go + HTML-first conventions and a batteries-included workflow.<h2 data-component=\"documentation-landing-page\" class=\"text-2xl font-semibold py-3\">Why GoShip</h2><p>GoShip exists to remove repeated setup work so teams can focus on product logic. It keeps strong conventions for routing, rendering, data access, and operations while still letting you swap infrastructure adapters over time.</p><p>It is opinionated where it helps speed, modular where teams need flexibility, and designed to work well with both human developers and LLM-assisted workflows.</p><div class=\"flex items-center p-4 mb-4 text-sm text-yellow-800 rounded-lg bg-yellow-50 dark:bg-gray-800 dark:text-yellow-300\" role=\"alert\"><svg class=\"flex-shrink-0 inline w-4 h-4 me-3\" aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" fill=\"currentColor\" viewBox=\"0 0 20 20\"><path d=\"M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z\"></path></svg> <span class=\"sr-only\">Info</span><div><span class=\"font-medium\">Warning alert!</span> this project is in active development as I am adding things after first trying them out in prod for <a href=\"https://cherie.chatbond.app/\" target=\"_blank\" class=\"font-mono text-blue-500 hover:text-purple-500 transition-colors transition ease-in-out delay-50 underline\">Chérie</a>, a relationship app to grow your couple. Note that I would welcome any help to develop this boilerplate ❤️.</div></div><h2 class=\"text-2xl font-semibold py-3\">Core Capabilities</h2>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -106,7 +107,7 @@ func docsPageLayout(page *controller.Page) templ.Component {
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(page.Title)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/documentation.templ`, Line: 40, Col: 50}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/documentation.templ`, Line: 41, Col: 50}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -305,7 +306,7 @@ func listEntry(icon templ.Component, sentence string) templ.Component {
 		var templ_7745c5c3_Var9 string
 		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(sentence)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/documentation.templ`, Line: 88, Col: 34}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/documentation.templ`, Line: 89, Col: 34}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {

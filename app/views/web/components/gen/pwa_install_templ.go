@@ -11,6 +11,7 @@ import templruntime "github.com/a-h/templ/runtime"
 import "github.com/leomorpho/goship/app/controller"
 import "github.com/leomorpho/goship/app/web/routenames"
 
+// Renders: gradient pill button with a download cloud icon and "Install App" label
 func InstallButtonRedirectsToInstallPage(page *controller.Page, classes string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -37,7 +38,7 @@ func InstallButtonRedirectsToInstallPage(page *controller.Page, classes string) 
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<button class=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<button data-component=\"install-button-redirects-to-install-page\" class=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -57,7 +58,7 @@ func InstallButtonRedirectsToInstallPage(page *controller.Page, classes string) 
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameInstallApp))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/pwa_install.templ`, Line: 9, Col: 53}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/pwa_install.templ`, Line: 10, Col: 53}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
@@ -71,6 +72,7 @@ func InstallButtonRedirectsToInstallPage(page *controller.Page, classes string) 
 	})
 }
 
+// Renders: hidden install app button in the navbar that appears only when the app is not already running in standalone mode
 func NavbarPWAMobileInstallButton(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -92,7 +94,7 @@ func NavbarPWAMobileInstallButton(page *controller.Page) templ.Component {
 			templ_7745c5c3_Var5 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div id=\"navbar-install-button-container\" class=\"hidden\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<div data-component=\"navbar-p-w-a-mobile-install-button\" id=\"navbar-install-button-container\" class=\"hidden\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -112,6 +114,7 @@ func NavbarPWAMobileInstallButton(page *controller.Page) templ.Component {
 	})
 }
 
+// Renders: sticky centered install app button visible on mobile screens when the app is not in standalone mode
 func PWAMobileInstallButton(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -133,7 +136,7 @@ func PWAMobileInstallButton(page *controller.Page) templ.Component {
 			templ_7745c5c3_Var6 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<div id=\"mobile-install-button-container\" class=\"hidden\"><div class=\"block lg:hidden sticky top-0 z-10 flex flex-row justify-center items-center m-2\"><div class=\"w-32 sm:w-48 md:w-60\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<div data-component=\"p-w-a-mobile-install-button\" id=\"mobile-install-button-container\" class=\"hidden\"><div class=\"block lg:hidden sticky top-0 z-10 flex flex-row justify-center items-center m-2\"><div class=\"w-32 sm:w-48 md:w-60\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

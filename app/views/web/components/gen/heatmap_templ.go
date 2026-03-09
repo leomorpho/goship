@@ -16,7 +16,7 @@ import (
 HeatmapComponent is a component that displays a heatmap of the number of interactions per day. It is used in Chérie Companion App
 but not in Goship. Left here for reference. It needs to consume the countsByDay slice of viewmodels.CountByDay.
 */
-
+// Renders: heatmap-component component.
 func HeatmapComponent(countsByDay []viewmodels.CountByDay) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -38,7 +38,7 @@ func HeatmapComponent(countsByDay []viewmodels.CountByDay) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"w-screen md:w-full md:overflow-hidden\"><div id=\"horizontal-scroll-container\" class=\"flex flex-col justify-center items-center p-4 w-full overflow-x-auto h-min\"><div id=\"cal-heatmap\" class=\"m-2 p-5\"></div><!-- <div id=\"legend\"></div> --></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div data-component=\"heatmap-component\" class=\"w-screen md:w-full md:overflow-hidden\"><div id=\"horizontal-scroll-container\" class=\"flex flex-col justify-center items-center p-4 w-full overflow-x-auto h-min\"><div id=\"cal-heatmap\" class=\"m-2 p-5\"></div><!-- <div id=\"legend\"></div> --></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -38,7 +38,7 @@ Mark `[x]` before starting any task that depends on it.
 
 ### A02 — Add `--json` output flag to `ship doctor`
 
-**Status:** `[ ] todo`
+**Status:** `[x] done`
 **Depends on:** nothing
 **Files:** `tools/cli/ship/internal/commands/` (doctor command)
 
@@ -59,7 +59,7 @@ Mark `[x]` before starting any task that depends on it.
 
 ### B01 — Set up Vite build config with island code-splitting (parallel)
 
-**Status:** `[ ] todo`
+**Status:** `[x] done`
 **Depends on:** nothing
 **Files:** `frontend/vite.config.ts` (new), `frontend/package.json`
 
@@ -83,7 +83,7 @@ Mark `[x]` before starting any task that depends on it.
 
 ### B02 — Write the islands runtime (parallel)
 
-**Status:** `[ ] todo`
+**Status:** `[x] done`
 **Depends on:** nothing
 **Files:** `frontend/javascript/vanilla/islands-runtime.js` (new), `app/views/web/components/core.templ`
 

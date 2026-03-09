@@ -13,6 +13,7 @@ import (
 	"github.com/leomorpho/goship/framework/domain"
 )
 
+// Renders: permissions-buttons component.
 func PermissionsButtons(platforms map[domain.NotificationPlatform]bool, notifsPermissions viewmodels.NotificationPermissionsData) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -34,7 +35,7 @@ func PermissionsButtons(platforms map[domain.NotificationPlatform]bool, notifsPe
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div id=\"push-notification-toggles\"></div><div id=\"push-notification-toggle\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div data-component=\"permissions-buttons\" id=\"push-notification-toggles\"></div><div id=\"push-notification-toggle\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -77,6 +78,7 @@ func initNotificationPermissions(componentID string, platforms map[domain.Notifi
 	}
 }
 
+// Renders: platform-permission-button component.
 func PlatformPermissionButton(platformName domain.NotificationPlatform, permissionGranted bool) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -106,7 +108,7 @@ func PlatformPermissionButton(platformName domain.NotificationPlatform, permissi
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<button type=\"button\" class=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<button data-component=\"platform-permission-button\" type=\"button\" class=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

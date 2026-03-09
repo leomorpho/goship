@@ -8,6 +8,7 @@ package components
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
+// Renders: bonfire-banner component.
 func BonfireBanner() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -29,7 +30,7 @@ func BonfireBanner() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!-- Banner (hidden initially) --><div id=\"bonfire-banner\" class=\"hidden fixed bottom-0 left-0 w-full bg-orange-500 text-white text-sm flex items-center justify-between px-4 py-2 z-50\"><div class=\"w-full flex items-center justify-center\"><span>🚀 Check out our new event platform!  <a href=\"https://bnfr-events.app\" target=\"_blank\" class=\"font-bold underline ml-1\">Try Bonfire for free</a></span></div><!-- Dismiss Button --><button onclick=\"dismissBonfireBanner()\" class=\"text-white opacity-70 hover:opacity-100 text-lg\">✖</button></div><script>\n\t\t// Show the banner if it hasn't been dismissed before\n\t\t(function () {\n\t\t\tif (!localStorage.getItem(\"hideBonfireBanner\")) {\n\t\t\t\tdocument.getElementById(\"bonfire-banner\").style.display = \"flex\";\n\t\t\t\tconsole.log(\"Banner should be visible\");\n\t\t\t} else {\n\t\t\t\tconsole.log(\"Banner should be hidden\");\n\t\t\t}\n\t\t})();\n\n\t\t// Function to dismiss the banner and remember the preference\n\t\tfunction dismissBonfireBanner() {\n\t\t\tconsole.log(\"Dismissing banner\");\n\t\t\tdocument.getElementById(\"bonfire-banner\").style.display = \"none\";\n\t\t\tlocalStorage.setItem(\"hideBonfireBanner\", \"true\");\n\t\t}\n\t</script>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!-- Banner (hidden initially) --><div data-component=\"bonfire-banner\" id=\"bonfire-banner\" class=\"hidden fixed bottom-0 left-0 w-full bg-orange-500 text-white text-sm flex items-center justify-between px-4 py-2 z-50\"><div class=\"w-full flex items-center justify-center\"><span>🚀 Check out our new event platform!  <a href=\"https://bnfr-events.app\" target=\"_blank\" class=\"font-bold underline ml-1\">Try Bonfire for free</a></span></div><!-- Dismiss Button --><button onclick=\"dismissBonfireBanner()\" class=\"text-white opacity-70 hover:opacity-100 text-lg\">✖</button></div><script>\n\t\t// Show the banner if it hasn't been dismissed before\n\t\t(function () {\n\t\t\tif (!localStorage.getItem(\"hideBonfireBanner\")) {\n\t\t\t\tdocument.getElementById(\"bonfire-banner\").style.display = \"flex\";\n\t\t\t\tconsole.log(\"Banner should be visible\");\n\t\t\t} else {\n\t\t\t\tconsole.log(\"Banner should be hidden\");\n\t\t\t}\n\t\t})();\n\n\t\t// Function to dismiss the banner and remember the preference\n\t\tfunction dismissBonfireBanner() {\n\t\t\tconsole.log(\"Dismissing banner\");\n\t\t\tdocument.getElementById(\"bonfire-banner\").style.display = \"none\";\n\t\t\tlocalStorage.setItem(\"hideBonfireBanner\", \"true\");\n\t\t}\n\t</script>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

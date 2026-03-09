@@ -5,7 +5,6 @@ import PhoneNumberPicker from "./components/PhoneNumberPicker.svelte";
 import PhotoUploader from "./components/PhotoUploader.svelte";
 import PwaInstallButton from "./components/PwaInstallButton.svelte";
 import SingleSelect from "./components/SingleSelect.svelte";
-import ThemeToggle from "./components/ThemeToggle.svelte";
 import PwaSubscribePush from "./components/notifications/PwaSubscribePush.svelte";
 
 // Define a registry object that maps names to Svelte component classes
@@ -17,7 +16,6 @@ const SvelteComponentRegistry = {
   PhoneNumberPicker,
   PwaInstallButton,
   PwaSubscribePush,
-  ThemeToggle,
   NotificationPermissions,
 };
 
