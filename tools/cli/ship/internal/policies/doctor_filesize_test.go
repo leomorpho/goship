@@ -11,8 +11,8 @@ func TestRunDoctorChecks_FileSizes(t *testing.T) {
 	t.Run("go file over warning threshold is warning", func(t *testing.T) {
 		root := t.TempDir()
 		writeDoctorFixture(t, root)
-		path := filepath.Join(root, "app", "web", "ui", "warn.go")
-		writeSizedGoFile(t, path, "package ui\n", 320)
+	path := filepath.Join(root, "app", "web", "ui", "warn.go")
+	writeSizedGoFile(t, path, "package ui\n", 820)
 
 		issues := RunDoctorChecks(root)
 		issue := mustFindIssueCode(t, issues, "DX010")
@@ -41,7 +41,7 @@ func TestRunDoctorChecks_FileSizes(t *testing.T) {
 		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 			t.Fatal(err)
 		}
-		writeSizedTemplFile(t, path, "templ Warn() {\n", 220)
+	writeSizedTemplFile(t, path, "templ Warn() {\n", 620)
 
 		issues := RunDoctorChecks(root)
 		issue := mustFindIssueCode(t, issues, "DX010")
@@ -57,7 +57,7 @@ func TestRunDoctorChecks_FileSizes(t *testing.T) {
 		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 			t.Fatal(err)
 		}
-		writeSizedTemplFile(t, path, "templ Error() {\n", 420)
+	writeSizedTemplFile(t, path, "templ Error() {\n", 820)
 
 		issues := RunDoctorChecks(root)
 		issue := mustFindIssueCode(t, issues, "DX010")
@@ -73,7 +73,7 @@ func TestRunDoctorChecks_FileSizes(t *testing.T) {
 		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 			t.Fatal(err)
 		}
-		writeSizedTemplFile(t, path, "templ Preferences() {\n", 420)
+	writeSizedTemplFile(t, path, "templ Preferences() {\n", 820)
 
 		issues := RunDoctorChecks(root)
 		issue := mustFindIssueCode(t, issues, "DX010")

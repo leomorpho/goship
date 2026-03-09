@@ -1397,9 +1397,9 @@ func doctorFileSizeKind(rel string) (kind string, warnThreshold int, errorThresh
 			strings.HasPrefix(filepath.Base(rel), "bob_") {
 			return "", 0, 0, true
 		}
-		return "Go", 300, 1000, false
+		return "Go", 800, 1000, false
 	case strings.HasSuffix(rel, ".templ"):
-		return "templ", 200, 400, false
+		return "templ", 600, 800, false
 	default:
 		return "", 0, 0, true
 	}

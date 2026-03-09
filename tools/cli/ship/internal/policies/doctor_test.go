@@ -190,7 +190,7 @@ func registerAuthRoutes() {
 		path := filepath.Join(root, "app", "web", "ui", "too_big.go")
 		var b strings.Builder
 		b.WriteString("package ui\n")
-		for i := 0; i < 520; i++ {
+		for i := 0; i < 820; i++ {
 			b.WriteString("var _ = 1\n")
 		}
 		if err := os.WriteFile(path, []byte(b.String()), 0o644); err != nil {

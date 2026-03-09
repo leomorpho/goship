@@ -17,7 +17,7 @@ func TestDoctorCommand_WarningsOnly(t *testing.T) {
 	}
 
 	warnPath := filepath.Join(root, "app", "web", "ui", "warn.go")
-	writeSizedGoFile(t, warnPath, "package ui\n", 320)
+	writeSizedGoFile(t, warnPath, "package ui\n", 820)
 
 	prevWD, err := os.Getwd()
 	if err != nil {
