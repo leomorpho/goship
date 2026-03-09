@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
+import sveltePreprocess from "svelte-preprocess";
 
 const frontendRoot = __dirname;
 const outputDir = path.resolve(frontendRoot, "../app/static");
@@ -82,7 +83,12 @@ function islandsManifestPlugin() {
 }
 
 export default defineConfig({
-  plugins: [svelte(), islandsManifestPlugin()],
+  plugins: [
+    svelte({
+      preprocess: sveltePreprocess({ typescript: true }),
+    }),
+    islandsManifestPlugin(),
+  ],
   publicDir: false,
   build: {
     outDir: outputDir,

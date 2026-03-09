@@ -466,8 +466,21 @@ templ saveAndReloadPrefsPage(page *controller.Page) {
 }
 
 templ phoneNumberField(phoneNumberInE164Format, countryCode string) {
-	<div id="phone-number-placeholder" class="w-full"></div>
-	@components.InitPhoneNumberPicker("phone-number-placeholder", phoneNumberInE164Format, countryCode, "savePhoneNumber", "phone_number_e164", "country_code", false, false)
+	<div
+		id="phone-number-placeholder"
+		class="w-full"
+		data-island="PhoneNumberPicker"
+		data-props={ templ.JSONString(map[string]any{
+			"componentID": "phone-number-placeholder",
+			"value": phoneNumberInE164Format,
+			"country": countryCode,
+			"saveEventName": "savePhoneNumber",
+			"formInputNameE164": "phone_number_e164",
+			"formInputNameCountryCode": "country_code",
+			"disabled": false,
+			"readonly": false,
+		}) }
+	></div>
 }
 
 templ finishOnboarding(page *controller.Page) {
@@ -545,4 +558,3 @@ templ phoneNumber(page *controller.Page, phone string) {
 		</div>
 	</div>
 }
-

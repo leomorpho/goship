@@ -291,17 +291,3 @@ templ grantContactInfoRequest(page *controller.Page, profileID int) {
 	</a>
 }
 
-script InitPhoneNumberPicker(elementID, phoneE164, countryCode, saveEventName, formInputNameE164, formInputNameCountryCode string, disabled, readOnly bool) {
-	renderSvelteComponent('PhoneNumberPicker', elementID, {
-		"componentID": elementID,
-		"value": phoneE164,
-		"country": countryCode,
-		"saveEventName": saveEventName,
-		"formInputNameE164": formInputNameE164,
-		"formInputNameCountryCode": formInputNameCountryCode,
-		"disabled": disabled,
-		"readonly": readOnly,
-	});
-}
-
-

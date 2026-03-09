@@ -694,23 +694,4 @@ func grantContactInfoRequest(page *controller.Page, profileID int) templ.Compone
 	})
 }
 
-func InitPhoneNumberPicker(elementID, phoneE164, countryCode, saveEventName, formInputNameE164, formInputNameCountryCode string, disabled, readOnly bool) templ.ComponentScript {
-	return templ.ComponentScript{
-		Name: `__templ_InitPhoneNumberPicker_4db0`,
-		Function: `function __templ_InitPhoneNumberPicker_4db0(elementID, phoneE164, countryCode, saveEventName, formInputNameE164, formInputNameCountryCode, disabled, readOnly){renderSvelteComponent('PhoneNumberPicker', elementID, {
-		"componentID": elementID,
-		"value": phoneE164,
-		"country": countryCode,
-		"saveEventName": saveEventName,
-		"formInputNameE164": formInputNameE164,
-		"formInputNameCountryCode": formInputNameCountryCode,
-		"disabled": disabled,
-		"readonly": readOnly,
-	});
-}`,
-		Call:       templ.SafeScript(`__templ_InitPhoneNumberPicker_4db0`, elementID, phoneE164, countryCode, saveEventName, formInputNameE164, formInputNameCountryCode, disabled, readOnly),
-		CallInline: templ.SafeScriptInline(`__templ_InitPhoneNumberPicker_4db0`, elementID, phoneE164, countryCode, saveEventName, formInputNameE164, formInputNameCountryCode, disabled, readOnly),
-	}
-}
-
 var _ = templruntime.GeneratedTemplate
