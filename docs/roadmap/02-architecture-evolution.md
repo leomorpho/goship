@@ -274,7 +274,7 @@ All `.Close()` calls must nil-check or use the adapter pattern (`c.CoreCache` is
 
 ## 6. LLM-Forward Conventions
 
-Beyond the `data-*` UI attribute convention (tracked in `UI_CONVENTION.md`), the following make the codebase LLM-reliable:
+Beyond the `data-*` UI attribute convention (tracked in `docs/ui/convention.md`), the following make the codebase LLM-reliable:
 
 ### Marker Comments for Code Generation
 

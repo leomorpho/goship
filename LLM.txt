@@ -381,6 +381,7 @@ Last updated: 2026-03-04
 
 1. `README` - `../README.md`: concise repo landing page for new contributors.
 2. `DOCS` - `00-index.md`: documentation hub and map of all internal docs.
+3. `MCP` - `../MCP_TOOLS.md`: recommended external MCP tools for contributors (GitHub MCP, GoShip MCP, Playwright MCP).
 
 ## Structure
 
@@ -408,6 +409,11 @@ Last updated: 2026-03-04
 1. `R01` - `reference/01-cli.md`: living CLI specification (`ship`) for developers and agents.
 2. `R02` - `reference/02-mcp.md`: living MCP spec (`ship-mcp`) for LLM-facing docs and CLI support.
 
+### UI
+
+1. `U01` - `ui/style-guide.md`: design system reference — theme tokens, typography, dark mode, layout patterns, HTMX swap patterns, component libraries. **Read before any UI work.**
+2. `U02` - `ui/convention.md`: `data-component`, `data-slot`, `data-action`, `// Renders:`, `// Route(s):` annotation rules for templ components.
+
 ### Policies
 
 1. `P01` - `policies/01-engineering-standards.md`: baseline requirements for maintainable repositories (hooks, CI, tests, docs, versioning).
@@ -421,6 +427,7 @@ Last updated: 2026-03-04
 5. `M05` - `roadmap/05-llm-dx-agent-friendly.md`: convention-over-configuration enforcement, ship verify, ship describe, hierarchical CLAUDE.md, route contracts, test-first scaffolding, agent worktree workflow, MCP tool expansion.
 6. `M06` - `roadmap/06-dx-and-infrastructure.md`: ship dev unified command, GitHub Actions CI/CD, SQLite multi-process safety, slog structured logging, security headers, health checks, email system (mailer interface, templ templates, dev previews), cron scheduling, app-level CLI commands.
 7. `M07` - `roadmap/07-modules-and-capabilities.md`: OAuth/social login, 2FA/TOTP, AI module (Anthropic + OpenAI + OpenRouter + streaming), domain events, soft deletes, feature flags, audit log, SSE, JSON API pattern, OpenAPI spec generation, test data factories, HTTP test helpers, i18n.
+8. `M08` - `roadmap/08-ui-agent-context.md`: work order for applying UI agent convention (data-* attributes, templ comments, route annotations) across this repo.
 
 ## Primary Source Files Used For This Analysis
 
@@ -1426,15 +1433,34 @@ When code behavior changes, update at least:
 
 Before any UI work, read `docs/ui/style-guide.md` for design system context.
 
-The full `data-*` attribute rules and templ comment rules are defined in `UI_CONVENTION.md` at the monorepo root (the shared `UI_CONVENTION.md` at the pagoda-based root, `../../../UI_CONVENTION.md` relative to this file).
+The full `data-*` attribute rules and templ comment rules are defined in `docs/ui/convention.md`.
+
+For Playwright MCP setup, see `MCP_TOOLS.md` at the repo root.
 
 ### LLM Workflow for a UI Task
 
+**Without a running dev server (grep-only mode):**
 1. Read `docs/ui/style-guide.md` for design system context.
-2. Grep `data-component="<component-name>"` to locate the target component's root element.
-3. Grep `data-slot="<slot-name>"` to locate the specific sub-element.
-4. Make the change, preserving existing Tailwind class patterns unless the style guide says otherwise.
-5. Never use `data-component`, `data-slot`, or `data-action` in CSS selectors.
+2. Grep `data-component="<name>"` to locate the component file.
+3. Read the `// Renders:` comment to understand the visual output.
+4. Grep `data-slot="<slot>"` to locate the target sub-element.
+5. Make the change, preserving existing Tailwind class patterns.
+6. Never use `data-component`, `data-slot`, or `data-action` in CSS selectors.
+
+**With a running dev server + Playwright MCP (preferred):**
+1. Read `docs/ui/style-guide.md` for design system context.
+2. Grep `data-component="<name>"` to locate the component file.
+3. Read the `// Route(s):` comment above the component to know where to navigate.
+4. Use `browser_navigate` to go to that route on the local dev server (`make dev`).
+5. Use `browser_screenshot` to capture the current state (before).
+6. Use `browser_snapshot` to inspect the accessibility tree and confirm component structure.
+7. Make the code change.
+8. After server reload, use `browser_screenshot` again to verify the visual result (after).
+
+**When the route is unknown:**
+- If `// Route(s):` says `embedded in <Parent>`, navigate to the parent's route instead.
+- If route is genuinely unknown: use the GoShip MCP `ship_routes` tool to list all registered routes,
+  then navigate candidate routes and confirm via `browser_snapshot` which `data-component` values appear.
 
 `data-*` attributes are semantic only — never for styling.
 
@@ -3510,7 +3536,7 @@ All `.Close()` calls must nil-check or use the adapter pattern (`c.CoreCache` is
 
 ## 6. LLM-Forward Conventions
 
-Beyond the `data-*` UI attribute convention (tracked in `UI_CONVENTION.md`), the following make the codebase LLM-reliable:
+Beyond the `data-*` UI attribute convention (tracked in `docs/ui/convention.md`), the following make the codebase LLM-reliable:
 
 ### Marker Comments for Code Generation
 
@@ -3541,7 +3567,7 @@ FILE: docs/roadmap/03-atomic-tasks.md
 - `docs/roadmap/02-architecture-evolution.md` — JS islands, module system, app split, MCP
 - `docs/roadmap/04-pagoda-and-dx-improvements.md` — single binary, admin panel, DX improvements
 - `docs/guides/01-ai-agent-guide.md` — conventions, safe change workflow
-- `UI_CONVENTION.md` (repo root) — data-component / data-slot / Renders: comment rules
+- `docs/ui/convention.md` — data-component / data-slot / Renders: comment rules
 
 **Task format:** Each task is self-contained. It includes full context, exact files to touch,
 and a "done when" acceptance criterion. A task is complete only when its criterion is met.
@@ -5274,7 +5300,7 @@ FILE: docs/roadmap/05-llm-dx-agent-friendly.md
 - `docs/roadmap/02-architecture-evolution.md` — architecture evolution (islands, modules, MCP)
 - `docs/roadmap/03-atomic-tasks.md` — the main implementation task list (M03)
 - `docs/guides/01-ai-agent-guide.md` — conventions, safe change workflow
-- `UI_CONVENTION.md` (repo root) — data-component / data-slot / Renders: comment rules
+- `docs/ui/convention.md` — data-component / data-slot / Renders: comment rules
 
 **Task format:** Each task is self-contained — full context, exact files to touch, and a "done when"
 acceptance criterion. A task is complete only when its criterion is met. Mark `[x]` before starting
@@ -5708,7 +5734,7 @@ creating framework-level code in the app layer.
 2. Controllers live in `app/web/controllers/` — one file per resource.
 3. Route registration: only in `app/router.go` at the ship:routes marker comments.
 4. Container wiring: only in `app/foundation/container.go` at the ship:container markers.
-5. Views: only in `app/views/` — follow `UI_CONVENTION.md` for data-component / Renders: rules.
+5. Views: only in `app/views/` — follow `docs/ui/convention.md` for data-component / Renders: rules.
 6. No business logic in controllers — delegate to service layer or module services.
 7. No SQL in controllers — all DB goes through repository pattern.
 8. Run `ship verify` after every change.
@@ -5989,7 +6015,7 @@ cleans up the worktree. `--pr` creates a PR via gh CLI.
 **Depends on:** nothing (parallel)
 **Files:** All `*.templ` files in `app/views/`
 
-**Context:** Per `UI_CONVENTION.md`, every exported templ function must have a `// Renders:`
+**Context:** Per `docs/ui/convention.md`, every exported templ function must have a `// Renders:`
 comment on the line above it. This is a one-line visual description of what the component
 renders. Agents use it instead of reading the full templ file to understand component output.
 
@@ -6000,7 +6026,7 @@ templ Navbar(user *User) {
 ```
 
 **What to do:**
-1. Read `UI_CONVENTION.md` for the full convention.
+1. Read `docs/ui/convention.md` for the full convention.
 2. For each exported templ function (starts with uppercase) in `app/views/`:
    - If no `// Renders:` comment exists on the immediately preceding line, add one.
    - Write a 1-line description of what the component visually renders.
@@ -6044,7 +6070,7 @@ Correctly handles functions with existing comments (no false positives).
 **Depends on:** L01 (doctor infrastructure)
 **Files:** `tools/cli/ship/internal/commands/doctor.go`
 
-**Context:** Per `UI_CONVENTION.md`, every exported templ component's root element must have
+**Context:** Per `docs/ui/convention.md`, every exported templ component's root element must have
 a `data-component="<kebab-name>"` attribute. Doctor should enforce this.
 
 **Rule:** Any exported `templ Foo(` function that does not contain `data-component=` in its
@@ -6672,7 +6698,7 @@ container.Mailer.Send(ctx, core.Email{
 5. Run `templ generate` to verify no syntax errors.
 
 **Done when:** Each email template renders to valid HTML. `RenderEmail` returns non-empty HTML
-and text strings. The templates follow `UI_CONVENTION.md` where applicable.
+and text strings. The templates follow `docs/ui/convention.md` where applicable.
 
 ---
 
@@ -8214,6 +8240,347 @@ lists untranslated keys. `ship verify` passes.
 - M03 I03 (Otter) before Y03
 - M03 I04 (in-memory test DB) before AA01, AA02
 - M05 O01 (route contracts) before Z03
+
+---
+FILE: docs/roadmap/08-ui-agent-context.md
+---
+# UI Agent Context: LLM-Friendly UI Convention
+
+Make it easy for any LLM to navigate and edit the Go/HTMX/Templ UI in this repository.
+
+Convention spec: `docs/ui/convention.md`
+Playwright MCP setup: `MCP_TOOLS.md`
+
+---
+
+## Dependency Graph
+
+```
+T01 (convention spec)        ← DONE: docs/ui/convention.md
+├── T02 (style guide)
+├── T04 (agent guide)        ← DONE
+├── T06 (data-component)
+│   └── T08 (data-slot/action) ← BLOCKED on T06
+└── T10 (templ comments + routes)
+
+T12 (Playwright MCP)         ← DONE: MCP_TOOLS.md
+└── T13 (agent guide visual workflow) ← DONE
+```
+
+---
+
+## Tasks
+
+---
+
+### T02 — Write Style Guide
+
+**Status:** `[ ] todo`
+
+**Context:**
+GoShip uses Tailwind CSS + DaisyUI with two custom themes: `lightmode` and `darkmode`.
+Theme config: `frontend/tailwind.config.js`. CSS source: `app/styles/styles.css`.
+LLMs need a reference for what tokens like `accent`, `base-200`, `primary` look like before touching a template.
+
+**What to do:**
+Write `docs/ui/style-guide.md` with:
+
+1. **Theme tokens table** — for each DaisyUI token (`primary`, `secondary`, `accent`, `neutral`, `base-100/200/300`, `info`, `success`, `warning`, `error`):
+   - Light theme hex value + visual description
+   - Dark theme hex value + visual description
+   Pull exact values from `frontend/tailwind.config.js`.
+
+2. **Typography** — fonts in use (Playfair Display for branding, system sans for body), where each is applied.
+
+3. **Dark mode** — mechanism: `data-theme="lightmode"` or `data-theme="darkmode"` on HTML root, set by Alpine.js, persisted to localStorage.
+
+4. **Responsive breakpoints** — `lg:` is the primary desktop breakpoint. Mobile is default. `md:` is used occasionally.
+
+5. **Recurring layout patterns** — describe the 3-4 layout patterns that appear across many pages (page container, card, feed-item). Show actual Tailwind class strings — do not abstract them.
+
+6. **HTMX swap patterns** — list common `hx-swap` values and when each is appropriate.
+
+7. **Component libraries** — available: DaisyUI, Flowbite, Alpine.js, HTMX. Policy: prefer DaisyUI first, Flowbite second, custom Tailwind last.
+
+Also add a reference to `docs/ui/style-guide.md` from `docs/00-index.md` under the UI section.
+
+**Done when:** `docs/ui/style-guide.md` exists covering all 7 sections and is linked from `docs/00-index.md`.
+
+---
+
+### T04 — Update Agent Guide with UI Convention ✓
+
+**Status:** `[x] done` → `docs/guides/01-ai-agent-guide.md`
+
+---
+
+### T06 — Apply `data-component` to Templ Component Roots
+
+**Status:** `[ ] todo`
+
+**Context:**
+Templ components live in `app/views/web/components/` and `app/views/web/layouts/`.
+Each exported templ function needs `data-component="<kebab-case-name>"` on its outermost HTML element.
+See `docs/ui/convention.md` section 1 for the naming rule.
+
+**What to do:**
+For every exported templ function in `app/views/web/components/` and `app/views/web/layouts/`:
+1. Identify the outermost HTML element.
+2. Add `data-component="<kebab-case-function-name>"` to it.
+3. If the outermost element is a Go fragment (no single root), wrap in `<div data-component="...">` only if it does not break layout. If wrapping would break layout (e.g., a `<tr>`), skip and leave a comment.
+
+Do NOT touch:
+- Unexported (lowercase) templ functions.
+- Generated `*_templ.go` files.
+- Page templates in `app/views/web/pages/` — handled in T10.
+
+After editing, run `make templ-gen` to regenerate `*_templ.go` and confirm no compile errors.
+
+**Done when:** All exported components in `components/` and `layouts/` have `data-component` on their root element and the project compiles cleanly.
+
+---
+
+### T08 — Apply `data-slot` and `data-action` to Components
+
+**Status:** `[ ] todo — BLOCKED on T06`
+
+**Context:**
+After `data-component` marks every component root (T06), this task adds `data-slot` and `data-action` to meaningful sub-elements. Goal is not exhaustive — only elements an LLM would plausibly need to target independently.
+
+**What to do:**
+For each component in `app/views/web/components/`, read it and add:
+- `data-slot="<role>"` to named sub-elements with distinct identity.
+- `data-action="<verb-noun>"` to interactive elements where intent is ambiguous.
+
+Priority targets:
+- `navbar.templ`: slots `home-link`, `notification-bell`, `notification-count`, `profile-menu`, `theme-toggle`; actions `toggle-theme`, `open-profile-menu`
+- `bottom_nav.templ`: slots for each nav item
+- `forms.templ`: slots `error-message`, `field-wrapper`
+- `messages.templ`: slots `flash-message`, `flash-text`
+- `loading.templ`: slot `spinner`
+- `payments.templ`: slots `plan-card`, `subscribe-button`
+
+After edits, run `make templ-gen` and verify compile.
+
+**Done when:** All components have meaningful `data-slot` and `data-action` annotations per `docs/ui/convention.md` and the project compiles.
+
+---
+
+### T10 — Add Inline Visual Comments to Templ Functions
+
+**Status:** `[ ] todo`
+
+**Context:**
+Exported templ functions in `app/views/web/` currently have no standard description comment.
+Convention: two lines immediately above each exported function — `// Renders:` then `// Route(s):`.
+See `docs/ui/convention.md` section 4 for the full rule.
+
+**What to do:**
+Add both comment lines above every exported templ function in:
+- `app/views/web/components/`
+- `app/views/web/layouts/`
+- `app/views/web/pages/`
+
+For `// Renders:`, describe what the user sees, not how it works.
+
+For `// Route(s):`, read `app/router.go` to trace which handler renders which templ component:
+- Page components: use the exact route pattern (e.g., `// Route(s): /`)
+- Layout/base components: `// Route(s): all pages` or `// Route(s): all authenticated pages (via base layout)`
+- HTMX partials with their own endpoint: use that endpoint's route
+- Sub-components embedded inside another templ with no direct route: `// Route(s): embedded in <ParentName>`
+
+Do NOT run `make templ-gen` for comment-only changes — comments in `.templ` files do not affect generated output.
+
+**Done when:** Every exported templ function in `app/views/web/` has both `// Renders:` and `// Route(s):` comments.
+
+---
+
+### T12 — Playwright MCP Setup ✓
+
+**Status:** `[x] done` → `MCP_TOOLS.md`
+
+---
+
+### T13 — Agent Guide: Visual Discovery Workflow ✓
+
+**Status:** `[x] done` → `docs/guides/01-ai-agent-guide.md`
+
+---
+
+## Completion Checklist
+
+```
+[x] T01  Convention spec          → docs/ui/convention.md
+[ ] T02  Style guide              → docs/ui/style-guide.md (exists but may be incomplete)
+[x] T04  Agent guide UI section   → docs/guides/01-ai-agent-guide.md
+[ ] T06  data-component roots     → app/views/web/components/ + layouts/
+[ ] T08  data-slot / data-action  ← BLOCKED on T06
+[ ] T10  Templ comments + routes  → app/views/web/ (components, layouts, pages)
+[x] T12  Playwright MCP           → MCP_TOOLS.md
+[x] T13  Agent guide visual workflow → docs/guides/01-ai-agent-guide.md
+```
+
+To resume: T02, T06, T10 are all unblocked and independent of each other. T08 requires T06 first.
+
+---
+FILE: docs/ui/convention.md
+---
+# UI Agent Convention
+
+Specification for `data-*` attribute annotations and inline visual comments
+in Go/Templ/HTMX UI code in this repository.
+
+---
+
+## 1. `data-component` Rule
+
+Add `data-component` to the **root HTML element** of every exported templ component function.
+
+**Value:** the templ function name converted to kebab-case.
+
+```templ
+// Navbar → data-component="navbar"
+templ Navbar(page *ui.Page) {
+  <nav data-component="navbar" class="...">
+    ...
+  </nav>
+}
+
+// AnswerEmojiReactions → data-component="answer-emoji-reactions"
+templ AnswerEmojiReactions(...) {
+  <div data-component="answer-emoji-reactions" class="...">
+    ...
+  </div>
+}
+```
+
+**Rules:**
+- One `data-component` per component — on the root element only, never on children.
+- Never used in CSS selectors or for styling.
+- If the component has no single root element (Go fragment), wrap in a `<div data-component="...">` only if it does not break layout (e.g., wrapping a `<tr>` would break a table — skip in that case and leave a comment noting it).
+- Unexported (lowercase) templ helpers do not need this attribute.
+- Page templates (in `pages/`) may also carry this attribute using the same rule.
+
+**Purpose:** allows any LLM or test to locate a component's rendered root in one grep:
+```
+grep -r 'data-component="navbar"'
+```
+
+---
+
+## 2. `data-slot` Rule
+
+Add `data-slot` to **named sub-elements** within a component that have distinct identity — elements an LLM or test would need to target independently.
+
+**Value:** a kebab-case description of the element's role within the component.
+
+```templ
+templ Navbar(page *ui.Page) {
+  <nav data-component="navbar" class="...">
+    <a data-slot="home-link" href="...">...</a>
+    <button data-slot="notification-bell" ...>
+      <span data-slot="notification-count">{ count }</span>
+    </button>
+    <div data-slot="profile-menu" ...>...</div>
+    <button data-slot="theme-toggle" ...>...</button>
+  </nav>
+}
+```
+
+**Rules:**
+- Only add where the element has a meaningful, distinct role within the component. Not every element needs one.
+- Ask: "Would an LLM be asked to change this element specifically?" If yes, add `data-slot`. If no, skip.
+- Values should be nouns or noun-phrases describing role, not appearance. Use `notification-count` not `red-badge`.
+- Never used in CSS selectors or for styling.
+- A `data-slot` element may also carry `data-action` (see below) — they are not mutually exclusive.
+
+---
+
+## 3. `data-action` Rule
+
+Add `data-action` to **interactive elements** (buttons, links, form triggers) where the intent is not immediately obvious from surrounding HTMX or Alpine attributes alone.
+
+**Value:** a verb-noun in kebab-case describing what the interaction does.
+
+```templ
+<button
+  data-action="toggle-theme"
+  @click="toggleTheme()"
+  class="...">
+  ...
+</button>
+```
+
+**Rules:**
+- Skip if the element already has a clear `hx-post`, `hx-get`, or `@click` that makes the intent self-evident. Only add when there is genuine ambiguity.
+- Use active verb-noun form: `open-emoji-picker`, `submit-answer`, `toggle-theme`, `delete-answer`.
+- Never used in CSS selectors or for styling.
+
+---
+
+## 4. Inline Visual Comment Rule
+
+Every **exported** templ component function gets two comment lines immediately above it: `// Renders:` and `// Route(s):`.
+
+**Format:**
+```go
+// Renders: <plain English description of what the user sees>
+// Route(s): <comma-separated route patterns where this component appears>
+templ ComponentName(...) {
+```
+
+**Examples:**
+```go
+// Renders: sticky top nav with logo, home icon, notification bell with unread count badge, profile dropdown, and theme toggle button
+// Route(s): all authenticated pages (via base layout)
+templ Navbar(page *ui.Page) {
+
+// Renders: mobile bottom navigation bar with icons for home, notifications, and profile
+// Route(s): all authenticated pages (via base layout)
+templ BottomNav(page *ui.Page) {
+
+// Renders: inline validation error list below a form field, styled as red warning text
+// Route(s): embedded in form components
+templ FormFieldErrors(errs []string) {
+
+// Renders: full landing page with hero section, feature highlights, pricing table, and FAQ accordion
+// Route(s): /
+templ LandingPage(page *ui.Page) {
+```
+
+**`// Renders:` rules:**
+- Describes what the **user sees** — not implementation, not props, not HTMX wiring.
+- One line only. If it needs more, the component is likely doing too much.
+- For unexported (lowercase) templ helpers, the comment is optional but encouraged.
+- Do not duplicate the function name — describe the visual output.
+
+**`// Route(s):` rules:**
+- Use the same route pattern syntax as `app/router.go` (e.g., `/settings/plan`).
+- For layout or base components rendered on every page: `// Route(s): all pages` or `// Route(s): all authenticated pages (via base layout)`.
+- For HTMX partial/fragment components rendered from a swap endpoint: use the endpoint route.
+- For deeply nested sub-components embedded within a parent templ function with no direct route: `// Route(s): embedded in <ParentComponentName>`.
+- Multiple routes: comma-separated on one line.
+- Keep it accurate. When a route changes or a component moves to a new page, update this comment alongside the code change.
+
+---
+
+## 5. What These Attributes Are NOT For
+
+- **Not for styling.** CSS selectors must never target `data-component`, `data-slot`, or `data-action`.
+- **Not a replacement for `data-testid`.** Playwright tests may continue to use `data-testid`. These attributes are complementary — `data-component`/`data-slot` are permanent semantic annotations; `data-testid` is test-scoped.
+- **Not exhaustive.** Do not annotate every element. The target is: component root + meaningful slots + ambiguous actions. Over-annotation creates noise.
+
+---
+
+## 6. Quick Reference
+
+| Attribute | Where | Value format | Required? |
+|---|---|---|---|
+| `data-component` | Root element of exported templ function | kebab-case function name | Yes, all exported components |
+| `data-slot` | Named sub-elements with distinct role | kebab-case role noun | Only where independently targetable |
+| `data-action` | Interactive elements with ambiguous intent | kebab-case verb-noun | Only where HTMX/Alpine attributes are insufficient |
+| `// Renders:` | Line above exported templ function | Plain English visual description | Yes, all exported functions |
+| `// Route(s):` | Line below `// Renders:` | Route pattern(s) from router.go | Yes, all exported functions |
 
 ---
 FILE: docs/ui/style-guide.md

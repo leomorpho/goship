@@ -8,7 +8,7 @@
 - `docs/roadmap/02-architecture-evolution.md` — architecture evolution (islands, modules, MCP)
 - `docs/roadmap/03-atomic-tasks.md` — the main implementation task list (M03)
 - `docs/guides/01-ai-agent-guide.md` — conventions, safe change workflow
-- `UI_CONVENTION.md` (repo root) — data-component / data-slot / Renders: comment rules
+- `docs/ui/convention.md` — data-component / data-slot / Renders: comment rules
 
 **Task format:** Each task is self-contained — full context, exact files to touch, and a "done when"
 acceptance criterion. A task is complete only when its criterion is met. Mark `[x]` before starting
@@ -442,7 +442,7 @@ creating framework-level code in the app layer.
 2. Controllers live in `app/web/controllers/` — one file per resource.
 3. Route registration: only in `app/router.go` at the ship:routes marker comments.
 4. Container wiring: only in `app/foundation/container.go` at the ship:container markers.
-5. Views: only in `app/views/` — follow `UI_CONVENTION.md` for data-component / Renders: rules.
+5. Views: only in `app/views/` — follow `docs/ui/convention.md` for data-component / Renders: rules.
 6. No business logic in controllers — delegate to service layer or module services.
 7. No SQL in controllers — all DB goes through repository pattern.
 8. Run `ship verify` after every change.
@@ -723,7 +723,7 @@ cleans up the worktree. `--pr` creates a PR via gh CLI.
 **Depends on:** nothing (parallel)
 **Files:** All `*.templ` files in `app/views/`
 
-**Context:** Per `UI_CONVENTION.md`, every exported templ function must have a `// Renders:`
+**Context:** Per `docs/ui/convention.md`, every exported templ function must have a `// Renders:`
 comment on the line above it. This is a one-line visual description of what the component
 renders. Agents use it instead of reading the full templ file to understand component output.
 
@@ -734,7 +734,7 @@ templ Navbar(user *User) {
 ```
 
 **What to do:**
-1. Read `UI_CONVENTION.md` for the full convention.
+1. Read `docs/ui/convention.md` for the full convention.
 2. For each exported templ function (starts with uppercase) in `app/views/`:
    - If no `// Renders:` comment exists on the immediately preceding line, add one.
    - Write a 1-line description of what the component visually renders.
@@ -778,7 +778,7 @@ Correctly handles functions with existing comments (no false positives).
 **Depends on:** L01 (doctor infrastructure)
 **Files:** `tools/cli/ship/internal/commands/doctor.go`
 
-**Context:** Per `UI_CONVENTION.md`, every exported templ component's root element must have
+**Context:** Per `docs/ui/convention.md`, every exported templ component's root element must have
 a `data-component="<kebab-name>"` attribute. Doctor should enforce this.
 
 **Rule:** Any exported `templ Foo(` function that does not contain `data-component=` in its

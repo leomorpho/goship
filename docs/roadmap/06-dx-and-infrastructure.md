@@ -551,7 +551,7 @@ container.Mailer.Send(ctx, core.Email{
 5. Run `templ generate` to verify no syntax errors.
 
 **Done when:** Each email template renders to valid HTML. `RenderEmail` returns non-empty HTML
-and text strings. The templates follow `UI_CONVENTION.md` where applicable.
+and text strings. The templates follow `docs/ui/convention.md` where applicable.
 
 ---
 

@@ -105,14 +105,33 @@ When code behavior changes, update at least:
 
 Before any UI work, read `docs/ui/style-guide.md` for design system context.
 
-The full `data-*` attribute rules and templ comment rules are defined in `UI_CONVENTION.md` at the monorepo root (the shared `UI_CONVENTION.md` at the pagoda-based root, `../../../UI_CONVENTION.md` relative to this file).
+The full `data-*` attribute rules and templ comment rules are defined in `docs/ui/convention.md`.
+
+For Playwright MCP setup, see `MCP_TOOLS.md` at the repo root.
 
 ### LLM Workflow for a UI Task
 
+**Without a running dev server (grep-only mode):**
 1. Read `docs/ui/style-guide.md` for design system context.
-2. Grep `data-component="<component-name>"` to locate the target component's root element.
-3. Grep `data-slot="<slot-name>"` to locate the specific sub-element.
-4. Make the change, preserving existing Tailwind class patterns unless the style guide says otherwise.
-5. Never use `data-component`, `data-slot`, or `data-action` in CSS selectors.
+2. Grep `data-component="<name>"` to locate the component file.
+3. Read the `// Renders:` comment to understand the visual output.
+4. Grep `data-slot="<slot>"` to locate the target sub-element.
+5. Make the change, preserving existing Tailwind class patterns.
+6. Never use `data-component`, `data-slot`, or `data-action` in CSS selectors.
+
+**With a running dev server + Playwright MCP (preferred):**
+1. Read `docs/ui/style-guide.md` for design system context.
+2. Grep `data-component="<name>"` to locate the component file.
+3. Read the `// Route(s):` comment above the component to know where to navigate.
+4. Use `browser_navigate` to go to that route on the local dev server (`make dev`).
+5. Use `browser_screenshot` to capture the current state (before).
+6. Use `browser_snapshot` to inspect the accessibility tree and confirm component structure.
+7. Make the code change.
+8. After server reload, use `browser_screenshot` again to verify the visual result (after).
+
+**When the route is unknown:**
+- If `// Route(s):` says `embedded in <Parent>`, navigate to the parent's route instead.
+- If route is genuinely unknown: use the GoShip MCP `ship_routes` tool to list all registered routes,
+  then navigate candidate routes and confirm via `browser_snapshot` which `data-component` values appear.
 
 `data-*` attributes are semantic only — never for styling.

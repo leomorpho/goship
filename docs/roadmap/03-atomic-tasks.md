@@ -4,7 +4,7 @@
 - `docs/roadmap/02-architecture-evolution.md` — JS islands, module system, app split, MCP
 - `docs/roadmap/04-pagoda-and-dx-improvements.md` — single binary, admin panel, DX improvements
 - `docs/guides/01-ai-agent-guide.md` — conventions, safe change workflow
-- `UI_CONVENTION.md` (repo root) — data-component / data-slot / Renders: comment rules
+- `docs/ui/convention.md` — data-component / data-slot / Renders: comment rules
 
 **Task format:** Each task is self-contained. It includes full context, exact files to touch,
 and a "done when" acceptance criterion. A task is complete only when its criterion is met.
