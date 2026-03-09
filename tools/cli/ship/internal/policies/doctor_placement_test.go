@@ -26,6 +26,27 @@ func (h *badHandler) Get(ctx echo.Context) error { return nil }
 		mustContainIssueCode(t, issues, "DX021")
 	})
 
+	t.Run("free helper with echo.Context is ignored", func(t *testing.T) {
+		root := t.TempDir()
+		writeDoctorFixture(t, root)
+		path := filepath.Join(root, "app", "web", "helpers.go")
+		content := `package web
+
+import "github.com/labstack/echo/v4"
+
+func helper(ctx echo.Context) error { return nil }
+`
+		if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		issues := RunDoctorChecks(root)
+		for _, issue := range issues {
+			if issue.Code == "DX021" && issue.File == "app/web/helpers.go" {
+				t.Fatalf("unexpected DX021 issue for helper function: %+v", issue)
+			}
+		}
+	})
+
 	t.Run("route registration outside router is rejected", func(t *testing.T) {
 		root := t.TempDir()
 		writeDoctorFixture(t, root)
@@ -45,6 +66,32 @@ func registerBadRoutes(r router) {
 		}
 		issues := RunDoctorChecks(root)
 		mustContainIssueCode(t, issues, "DX021")
+	})
+
+	t.Run("route registration without literal path is ignored", func(t *testing.T) {
+		root := t.TempDir()
+		writeDoctorFixture(t, root)
+		path := filepath.Join(root, "app", "web", "rogue_routes.go")
+		content := `package web
+
+type router struct{}
+
+func (router) GET(string, ...any) {}
+
+func registerBadRoutes(r router) {
+	const path = "/bad"
+	r.GET(path)
+}
+`
+		if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		issues := RunDoctorChecks(root)
+		for _, issue := range issues {
+			if issue.Code == "DX021" && issue.File == "app/web/rogue_routes.go" {
+				t.Fatalf("unexpected DX021 issue for non-literal route: %+v", issue)
+			}
+		}
 	})
 
 	t.Run("inline sql outside store layer is rejected", func(t *testing.T) {

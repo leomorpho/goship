@@ -297,7 +297,7 @@ func checkCanonicalFilePlacement(root string) []DoctorIssue {
 
 func checkHandlerPlacement(root string) []DoctorIssue {
 	issues := make([]DoctorIssue, 0)
-	handlerName := regexp.MustCompile(`^(Get|Post|Put|Delete|Patch|Handle|Create|Update|Submit|Save|Register|Mark|Index|Show|Destroy|List|Edit)`)
+	handlerName := regexp.MustCompile(`^(Get|Post|Put|Delete|Patch|Handle|Create|Update|Submit|Save|Register|Mark|Index|Show|Destroy|List|Edit)`) 
 	controllersDir := filepath.ToSlash(filepath.Join("app", "web", "controllers")) + "/"
 	webDir := filepath.Join(root, "app", "web")
 	if !isDir(webDir) {
@@ -325,6 +325,9 @@ func checkHandlerPlacement(root string) []DoctorIssue {
 		for _, decl := range file.Decls {
 			fn, ok := decl.(*ast.FuncDecl)
 			if !ok || fn.Name == nil || !handlerName.MatchString(fn.Name.Name) {
+				continue
+			}
+			if !funcHasReceiver(fn) {
 				continue
 			}
 			if !funcHasEchoContextParam(fn) || !funcReturnsOnlyError(fn) {
@@ -381,7 +384,7 @@ func checkRoutePlacement(root string) []DoctorIssue {
 			})
 			return nil
 		}
-		if fileHasSelectorCall(file, methods) {
+		if fileHasRouteRegistration(file, methods) {
 			issues = append(issues, DoctorIssue{
 				Code:    "DX021",
 				File:    rel,
@@ -733,6 +736,10 @@ func funcHasEchoContextParam(fn *ast.FuncDecl) bool {
 	return false
 }
 
+func funcHasReceiver(fn *ast.FuncDecl) bool {
+	return fn.Recv != nil && len(fn.Recv.List) > 0
+}
+
 func funcReturnsOnlyError(fn *ast.FuncDecl) bool {
 	if fn.Type == nil || fn.Type.Results == nil || len(fn.Type.Results.List) != 1 {
 		return false
@@ -773,6 +780,37 @@ func fileHasSelectorCall(file *ast.File, names map[string]struct{}) bool {
 			return false
 		}
 		return true
+	})
+	return found
+}
+
+func callHasStringLiteralArg(call *ast.CallExpr) bool {
+	if len(call.Args) == 0 {
+		return false
+	}
+	lit, ok := call.Args[0].(*ast.BasicLit)
+	return ok && lit.Kind == token.STRING
+}
+
+func fileHasRouteRegistration(file *ast.File, names map[string]struct{}) bool {
+	found := false
+	ast.Inspect(file, func(n ast.Node) bool {
+		call, ok := n.(*ast.CallExpr)
+		if !ok {
+			return true
+		}
+		sel, ok := call.Fun.(*ast.SelectorExpr)
+		if !ok || sel.Sel == nil {
+			return true
+		}
+		if _, ok := names[sel.Sel.Name]; !ok {
+			return true
+		}
+		if !callHasStringLiteralArg(call) {
+			return true
+		}
+		found = true
+		return false
 	})
 	return found
 }
