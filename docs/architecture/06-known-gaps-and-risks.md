@@ -3,20 +3,17 @@
 
 This list is based on direct code inspection and is intended to guide contributor priorities.
 
-## 1) Container Initialization Mismatch (High)
+## 1) Cache Adapter Coverage Is Incomplete (Medium)
 
-In `app/foundation/container.go`, `NewContainer()` does not call:
-
-- `initCache()`
-- `initNotifier()`
-- `initTasks()`
-
-Yet runtime code assumes these dependencies exist in multiple places, and `Shutdown()` calls `c.Tasks.Close()` and `c.Cache.Close()` unconditionally.
+`app/foundation/container.go` now initializes the legacy repo-level cache client only when the
+selected cache adapter is Redis. That avoids nil-pointer panics and accidental Redis dials in the
+default `memory` cache profile, but it also means page-cache middleware remains unavailable until a
+memory-backed cache implementation exists behind the same seam.
 
 Impact:
 
-- Potential nil-pointer panics on shutdown or during feature paths that rely on tasks/notifier/cache.
-- Web and worker behavior can diverge from intended architecture.
+- Local/default runtime does not currently exercise page-cache paths.
+- Cache behavior differs between `memory` and `redis` adapter selections beyond pure backend choice.
 
 ## 2) Realtime Dependency Requirements (High for distributed realtime features)
 
@@ -72,7 +69,7 @@ Impact:
 
 ## Suggested Priority Order
 
-1. Fix container/service initialization and safe shutdown semantics.
+1. Complete cache adapter coverage so page caching works consistently across supported backends.
 2. Harden adapter/config validation so realtime capability mismatch is explicit at startup.
 3. Re-enable or remove notification-center routes consistently.
 4. Refresh e2e tests to match current GoShip flows.

@@ -166,6 +166,9 @@ func (c *Controller) cachePage(ctx echo.Context, page Page, html *bytes.Buffer) 
 	if !page.Cache.Enabled || page.IsAuth {
 		return
 	}
+	if c == nil || c.Container == nil || c.Container.Cache == nil {
+		return
+	}
 
 	// If no expiration time was provided, default to the configuration value
 	if page.Cache.Expiration == 0 {

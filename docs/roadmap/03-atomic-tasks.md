@@ -20,7 +20,7 @@ Mark `[x]` before starting any task that depends on it.
 
 ### A01 — Fix container initialization for optional services
 
-**Status:** `[ ] todo`
+**Status:** `[x] done`
 **Depends on:** nothing
 **Files:** `app/foundation/container.go`
 

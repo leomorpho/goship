@@ -214,4 +214,14 @@ func TestController_RenderPage(t *testing.T) {
 			Fetch(context.Background())
 		assert.Error(t, err)
 	})
+
+	t.Run("page cache without cache service", func(t *testing.T) {
+		ctx, _, ctr, p := setup()
+		p.Cache.Enabled = true
+
+		ctr.Container.Cache = nil
+
+		err := ctr.RenderPage(ctx, p)
+		require.NoError(t, err)
+	})
 }

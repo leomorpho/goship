@@ -19,7 +19,11 @@ func TestNewContainer(t *testing.T) {
 	assert.NotNil(t, c.Database)
 	assert.NotNil(t, c.Mail)
 	assert.NotNil(t, c.Auth)
-	assert.Nil(t, c.Cache)
+	if c.Adapters.Selection.Cache == "redis" {
+		assert.NotNil(t, c.Cache)
+	} else {
+		assert.Nil(t, c.Cache)
+	}
 	assert.Nil(t, c.Notifier)
 	assert.NotNil(t, c.CoreCache)
 	assert.NotNil(t, c.CoreJobs)

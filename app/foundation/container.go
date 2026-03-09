@@ -86,18 +86,32 @@ func NewContainer() *Container {
 	c.validateAdapterPlan()
 	c.initValidator()
 	c.initWeb()
-	// c.initCache()
+	c.initOptionalServices()
 	c.initDatabase()
 	c.initSchema()
 	c.initAuth()
-	// c.initNotifier()
 	c.initMail()
 	c.initPaymentProcessor()
 	// ship:container:start
 	// ship:container:end
-	// c.initTasks()
 	c.initCoreAdapters()
 	return c
+}
+
+func (c *Container) initOptionalServices() {
+	if c.shouldInitCache() {
+		c.initCache()
+	}
+}
+
+func (c *Container) shouldInitCache() bool {
+	if c == nil {
+		return false
+	}
+
+	// The repo-level cache client is currently Redis-backed. Memory cache support
+	// is tracked separately via the adapter seam and should not eagerly dial Redis.
+	return c.Adapters.Selection.Cache == "redis"
 }
 
 func (c *Container) validateAdapterPlan() {
