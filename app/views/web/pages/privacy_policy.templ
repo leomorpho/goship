@@ -6,6 +6,7 @@ import (
 	"github.com/leomorpho/goship/app/views/web/components/gen"
 )
 
+// Renders: privacy-policy component.
 templ PrivacyPolicy(page *controller.Page) {
 	@components.PrevNavBarWithTitle("", "", "🔐 Privacy")
 	if data, ok := page.Data.(viewmodels.AboutData); ok {
@@ -14,7 +15,7 @@ templ PrivacyPolicy(page *controller.Page) {
 }
 
 templ privacyPolicy(data viewmodels.AboutData) {
-	<div class="max-w-3xl mx-auto p-6 space-y-6">
+	<div data-component="privacy-policy" class="max-w-3xl mx-auto p-6 space-y-6">
 		<div class="space-y-4">
 			<h2 class="text-xl font-semibold">Privacy Policy</h2>
 			<p class="text-base">
@@ -95,3 +96,4 @@ templ privacyPolicy(data viewmodels.AboutData) {
 		</div>
 	</div>
 }
+

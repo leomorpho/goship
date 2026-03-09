@@ -9,8 +9,9 @@ import (
 	"github.com/leomorpho/goship/app/web/routenames"
 )
 
+// Renders: landing-page component.
 templ LandingPage(page *controller.Page) {
-	<div class="top-0 z-50 flex flex-row justify-center items-center flex-wrap ">
+	<div data-component="landing-page" class="top-0 z-50 flex flex-row justify-center items-center flex-wrap ">
 		if !page.IsIosDevice {
 			@components.PWAMobileInstallButton(page)
 		}
@@ -75,9 +76,10 @@ templ mobileDarkModeButton() {
 	</div>
 }
 
+// Renders: animate-on-scroll-library component.
 templ AnimateOnScrollLibrary() {
 	<!-- Animate on scroll library -->
-	<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet"/>
+	<link data-component="animate-on-scroll-library" href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet"/>
 	<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 	<script>
         AOS.init();
@@ -296,8 +298,9 @@ templ pricingForLandingPage(page *controller.Page, data viewmodels.LandingPage) 
 	</div>
 }
 
+// Renders: q-a-section component.
 templ QASection(questions []viewmodels.QAItem) {
-	<div class="w-full py-8 px-4 md:px-6">
+	<div data-component="q-a-section" class="w-full py-8 px-4 md:px-6">
 		<div class="max-w-3xl mx-auto">
 			<div data-aos="fade-up" data-aos-once="true">
 				<div
@@ -516,3 +519,4 @@ script landingPageJS() {
         }
     }
 }
+

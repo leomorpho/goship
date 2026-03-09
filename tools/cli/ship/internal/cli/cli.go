@@ -73,6 +73,8 @@ func (c CLI) Run(args []string) int {
 		return c.runCheck(args[1:])
 	case "doctor":
 		return c.runDoctor(args[1:])
+	case "describe":
+		return c.runDescribe(args[1:])
 	case "verify":
 		return c.runVerify(args[1:])
 	case "test":
@@ -153,11 +155,20 @@ func (c CLI) runTest(args []string) int {
 
 func (c CLI) runVerify(args []string) int {
 	return cmd.RunVerify(args, cmd.VerifyDeps{
+		Out:           c.Out,
+		Err:           c.Err,
+		FindGoModule:  findGoModule,
+		RunStep:       c.runCmdCapture,
+		LookPath:      exec.LookPath,
+		RelocateTempl: relocateTemplGenerated,
+	})
+}
+
+func (c CLI) runDescribe(args []string) int {
+	return cmd.RunDescribe(args, cmd.DescribeDeps{
 		Out:          c.Out,
 		Err:          c.Err,
 		FindGoModule: findGoModule,
-		RunStep:      c.runCmdCapture,
-		LookPath:     exec.LookPath,
 	})
 }
 

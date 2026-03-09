@@ -6,17 +6,21 @@ import (
 	"github.com/leomorpho/goship/app/web/routenames"
 )
 
+// Renders: manage-subscription-button component.
 templ ManageSubscriptionButton(page *controller.Page, subscriptionPlanKey string, isTrial bool, isPaidPlan bool) {
-	if !isPaidPlan || (isPaidPlan && isTrial) || subscriptionPlanKey == appsubscriptions.PlanFreeKey {
-		@PricingPage(page)
-	} else {
-		// This is an existing customer
-		@StripePortal(page)
-	}
+	<div data-component="manage-subscription-button">
+		if !isPaidPlan || (isPaidPlan && isTrial) || subscriptionPlanKey == appsubscriptions.PlanFreeKey {
+			@PricingPage(page)
+		} else {
+			// This is an existing customer
+			@StripePortal(page)
+		}
+	</div>
 }
 
+// Renders: pricing-page component.
 templ PricingPage(page *controller.Page) {
-	<button
+	<button data-component="pricing-page"
 		hx-get={ page.ToURL(routenames.RouteNamePricingPage) }
 		hx-target="#main-content"
 		hx-select="#main-content"
@@ -30,8 +34,9 @@ templ PricingPage(page *controller.Page) {
 	</button>
 }
 
+// Renders: stripe-portal component.
 templ StripePortal(page *controller.Page) {
-	<form method="POST" action={ templ.SafeURL(page.ToURL(routenames.RouteNameCreatePortalSession)) }>
+	<form data-component="stripe-portal" method="POST" action={ templ.SafeURL(page.ToURL(routenames.RouteNameCreatePortalSession)) }>
 		@FormCSRF(page.CSRF)
 		<button
 			type="submit"

@@ -3,8 +3,9 @@ package components
 import "github.com/leomorpho/goship/app/controller"
 import "github.com/leomorpho/goship/app/web/routenames"
 
+// Renders: bottom-nav component.
 templ BottomNav(page *controller.Page) {
-	<div
+	<div data-component="bottom-nav"
 		data-component="bottom-nav"
 		id="bottom-navbar"
 		navbar-state-data={ templ.JSONString(page.ShowBottomNavbar) }
@@ -177,3 +178,4 @@ templ BottomNav(page *controller.Page) {
 		</div>
 	</div>
 }
+

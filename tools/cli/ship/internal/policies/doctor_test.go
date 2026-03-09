@@ -92,6 +92,78 @@ func registerAuthRoutes() {
 		mustContainIssueCode(t, issues, "DX013")
 	})
 
+	t.Run("intentional githooks directory is allowed", func(t *testing.T) {
+		root := t.TempDir()
+		writeDoctorFixture(t, root)
+		if err := os.MkdirAll(filepath.Join(root, ".githooks"), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		issues := RunDoctorChecks(root)
+		mustNotContainIssueCode(t, issues, "DX013")
+	})
+
+	t.Run("missing renders comment triggers warning", func(t *testing.T) {
+		root := t.TempDir()
+		writeDoctorFixture(t, root)
+		targetDir := filepath.Join(root, "app", "views", "web", "components")
+		if err := os.MkdirAll(targetDir, 0o755); err != nil {
+			t.Fatal(err)
+		}
+		target := filepath.Join(targetDir, "missing.templ")
+		if err := os.WriteFile(target, []byte("templ MissingComponent() {}\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		issues := RunDoctorChecks(root)
+		mustContainIssueCode(t, issues, "DX023")
+	})
+
+	t.Run("renders comment suppresses warning", func(t *testing.T) {
+		root := t.TempDir()
+		writeDoctorFixture(t, root)
+		targetDir := filepath.Join(root, "app", "views", "web", "components")
+		if err := os.MkdirAll(targetDir, 0o755); err != nil {
+			t.Fatal(err)
+		}
+		target := filepath.Join(targetDir, "describe.templ")
+		content := "// Renders: sample component\ntempl DescribeComponent() {}\n"
+		if err := os.WriteFile(target, []byte(content), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		issues := RunDoctorChecks(root)
+		mustNotContainIssueCode(t, issues, "DX023")
+	})
+
+	t.Run("missing data-component triggers warning", func(t *testing.T) {
+		root := t.TempDir()
+		writeDoctorFixture(t, root)
+		targetDir := filepath.Join(root, "app", "views", "web", "components")
+		if err := os.MkdirAll(targetDir, 0o755); err != nil {
+			t.Fatal(err)
+		}
+		target := filepath.Join(targetDir, "missing_attr.templ")
+		if err := os.WriteFile(target, []byte("templ MissingAttr() {\n<div></div>\n}\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		issues := RunDoctorChecks(root)
+		mustContainIssueCode(t, issues, "DX024")
+	})
+
+	t.Run("wrong data-component value warns", func(t *testing.T) {
+		root := t.TempDir()
+		writeDoctorFixture(t, root)
+		targetDir := filepath.Join(root, "app", "views", "web", "components")
+		if err := os.MkdirAll(targetDir, 0o755); err != nil {
+			t.Fatal(err)
+		}
+		target := filepath.Join(targetDir, "wrong_attr.templ")
+		content := "templ WrongAttr() {\n<div data-component=\"wrong-name\"></div>\n}\n"
+		if err := os.WriteFile(target, []byte(content), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		issues := RunDoctorChecks(root)
+		mustContainIssueCode(t, issues, "DX024")
+	})
+
 	t.Run("root binary artifact present", func(t *testing.T) {
 		root := t.TempDir()
 		writeDoctorFixture(t, root)
@@ -457,4 +529,13 @@ func mustContainIssueCode(t *testing.T, issues []DoctorIssue, code string) {
 		}
 	}
 	t.Fatalf("expected issue code %s, got %+v", code, issues)
+}
+
+func mustNotContainIssueCode(t *testing.T, issues []DoctorIssue, code string) {
+	t.Helper()
+	for _, issue := range issues {
+		if issue.Code == code {
+			t.Fatalf("did not expect issue code %s, got %+v", code, issues)
+		}
+	}
 }

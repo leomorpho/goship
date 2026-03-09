@@ -564,8 +564,10 @@ var emailUpdateGoTemplate = template.Must(template.New("content").Parse(`
 </html>
 `))
 
+// Renders: email-update component.
 templ EmailUpdate(page *controller.Page) {
 	if data, ok := page.Data.(viewmodels.EmailUpdate); ok {
 		@templ.FromGoHTML(emailUpdateGoTemplate, data)
 	}
 }
+

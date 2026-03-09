@@ -5,8 +5,9 @@ import (
 	"github.com/leomorpho/goship/app/web/viewmodels"
 )
 
+// Renders: invitations-component component.
 templ InvitationsComponent(page *controller.Page) {
-	<div
+	<div data-component="invitations-component"
 		id="replacing"
 		class="invite-person-to-dating w-full flex justify-center items-center"
 		hx-swap="this"
@@ -61,3 +62,4 @@ script initInvitationToastNotifications(id, textToCopy string) {
 	// Initialize the click listener on page load
 	initClickListener();
 }
+

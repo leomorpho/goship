@@ -5,9 +5,10 @@ import (
 	"github.com/leomorpho/goship/app/views/web/components/gen"
 )
 
+// Renders: main component.
 templ Main(content templ.Component, page *controller.Page) {
-	<!DOCTYPE html>
-	<html lang="en" class="min-h-screen">
+	@Doctype()
+	<html lang="en" class="min-h-screen" data-component="main">
 		<head>
 			@components.Metatags(page)
 			@components.CSS()

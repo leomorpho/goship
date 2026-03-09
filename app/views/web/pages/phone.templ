@@ -10,9 +10,10 @@ import (
 
 var showVerificationComponentHandle = templ.NewOnceHandle()
 
+// Renders: edit-phone-page component.
 templ EditPhonePage(page *controller.Page) {
 	@components.PrevNavBarWithTitle(page.ToURL(routenames.RouteNamePreferences), "", "Edit Phone")
-	<div id="phone-number-section">
+	<div data-component="edit-phone-page" id="phone-number-section">
 		if data, ok := page.Data.(*viewmodels.PhoneNumber); ok {
 			<h1 class="text-3xl md:text-4xl font-semibold mb-4 pt-10 md:pt-14 lg:pt-16">📱 Phone Number</h1>
 			<!-- Phone number -->
@@ -58,8 +59,9 @@ templ EditPhonePage(page *controller.Page) {
 	}
 }
 
+// Renders: phone-verification-field component.
 templ PhoneVerificationField(page *controller.Page) {
-	<div id="phone-verification-section">
+	<div data-component="phone-verification-field" id="phone-verification-section">
 		if form, ok := page.Form.(*viewmodels.PhoneNumberVerification); ok {
 			<form
 				class="flex items-center flex-col"
@@ -105,3 +107,4 @@ templ PhoneVerificationField(page *controller.Page) {
 		}
 	</div>
 }
+

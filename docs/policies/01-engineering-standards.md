@@ -37,6 +37,7 @@ Rules:
 1. No bypass by default.
 2. Hook runtime should stay fast (target under ~60s on normal changes).
 3. Integration tests are not required in pre-commit.
+4. Conventional commit messages are required and enforced by the `commit-msg` hook.
 
 ## 4) CI Requirements (Required)
 
@@ -72,9 +73,10 @@ For each behavior/architecture change:
 
 ## 8) Commit and PR Standards
 
-1. Use conventional commit prefixes (`feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `ci`).
-2. Keep commits scoped and reviewable.
-3. PR description must include:
+1. Use conventional commits: `<type>(<optional-scope>): <description>`.
+2. Allowed commit types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `perf`, `style`, `build`, `ci`.
+3. Keep commits scoped and reviewable.
+4. PR description must include:
 : what changed
 : why it changed
 : test evidence

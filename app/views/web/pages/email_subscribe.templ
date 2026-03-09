@@ -6,9 +6,10 @@ import (
 	"github.com/leomorpho/goship/app/views/web/components/gen"
 )
 
+// Renders: email-subscribe component.
 templ EmailSubscribe(page *controller.Page) {
 	if data, ok := page.Data.(viewmodels.EmailSubscriptionData); ok {
-		<div hx-swap="innerHTML" hx-target="this">
+		<div data-component="email-subscribe" hx-swap="innerHTML" hx-target="this">
 			<div class="md:flex md:items-stretch min-h-fit">
 				<div class="md:w-1/2 w-full min-h-min p-5 pl-10">
 					<div
@@ -247,3 +248,4 @@ script emailSubscribeJS(latitude, longitude float64) {
 	});
 
 }
+

@@ -1,7 +1,8 @@
 package components
 
+// Renders: theme-toggle component.
 templ ThemeToggle(id string) {
-	<div
+	<div data-component="theme-toggle"
 		id={ id }
 	></div>
 	@initThemeToggle(id)
@@ -10,3 +11,4 @@ templ ThemeToggle(id string) {
 script initThemeToggle(id string ) {
 	renderSvelteComponent('ThemeToggle', id, {});
 }
+

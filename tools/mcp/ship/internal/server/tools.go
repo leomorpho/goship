@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -25,6 +26,26 @@ type toolContent struct {
 type toolCallResult struct {
 	Content []toolContent `json:"content"`
 	IsError bool          `json:"isError,omitempty"`
+}
+
+type shipDescribeRoute struct {
+	Method  string `json:"method"`
+	Path    string `json:"path"`
+	Handler string `json:"handler"`
+	Auth    bool   `json:"auth"`
+	File    string `json:"file"`
+}
+
+type shipDescribeModule struct {
+	ID         string `json:"id"`
+	Installed  bool   `json:"installed"`
+	Routes     int    `json:"routes"`
+	Migrations int    `json:"migrations"`
+}
+
+type shipDescribeResult struct {
+	Routes  []shipDescribeRoute  `json:"routes"`
+	Modules []shipDescribeModule `json:"modules"`
 }
 
 func toolDefinitions() []map[string]any {
@@ -62,6 +83,49 @@ func toolDefinitions() []map[string]any {
 			},
 		},
 		{
+			"name":        "ship_doctor",
+			"description": "Run `ship doctor --json` and return the structured result.",
+			"inputSchema": map[string]any{
+				"type":       "object",
+				"properties": map[string]any{},
+			},
+		},
+		{
+			"name":        "ship_routes",
+			"description": "Run `ship describe` and return the route inventory.",
+			"inputSchema": map[string]any{
+				"type": "object",
+				"properties": map[string]any{
+					"filter": map[string]any{
+						"type":        "string",
+						"enum":        []string{"public", "auth", "admin"},
+						"description": "Optional route auth filter.",
+					},
+				},
+			},
+		},
+		{
+			"name":        "ship_modules",
+			"description": "Run `ship describe` and return the installed module list.",
+			"inputSchema": map[string]any{
+				"type":       "object",
+				"properties": map[string]any{},
+			},
+		},
+		{
+			"name":        "ship_verify",
+			"description": "Run `ship verify --json` and return the step-by-step verification result.",
+			"inputSchema": map[string]any{
+				"type": "object",
+				"properties": map[string]any{
+					"skip_tests": map[string]any{
+						"type":        "boolean",
+						"description": "Skip the final go test ./... step.",
+					},
+				},
+			},
+		},
+		{
 			"name":        "docs_get",
 			"description": "Read one markdown doc by relative path under docs/.",
 			"inputSchema": map[string]any{
@@ -87,6 +151,14 @@ func (s *mcpServer) handleToolsCall(paramsJSON json.RawMessage) (toolCallResult,
 	switch params.Name {
 	case "ship_help":
 		return s.callShipHelp(params.Arguments)
+	case "ship_doctor":
+		return s.callShipDoctor(params.Arguments)
+	case "ship_routes":
+		return s.callShipRoutes(params.Arguments)
+	case "ship_modules":
+		return s.callShipModules(params.Arguments)
+	case "ship_verify":
+		return s.callShipVerify(params.Arguments)
 	case "docs_search":
 		return s.callDocsSearch(params.Arguments)
 	case "docs_get":
@@ -108,6 +180,224 @@ func (s *mcpServer) callShipHelp(arguments json.RawMessage) (toolCallResult, err
 
 	text := shipHelpByTopic(strings.TrimSpace(strings.ToLower(in.Topic)))
 	return toolCallResult{Content: []toolContent{{Type: "text", Text: text}}}, nil
+}
+
+type shipDoctorIssue struct {
+	Type     string `json:"type"`
+	File     string `json:"file"`
+	Detail   string `json:"detail"`
+	Severity string `json:"severity"`
+}
+
+type shipDoctorResult struct {
+	OK     bool              `json:"ok"`
+	Issues []shipDoctorIssue `json:"issues"`
+}
+
+type shipVerifyStep struct {
+	Name   string `json:"name"`
+	OK     bool   `json:"ok"`
+	Output string `json:"output"`
+}
+
+type shipVerifyResult struct {
+	OK    bool             `json:"ok"`
+	Steps []shipVerifyStep `json:"steps"`
+}
+
+var (
+	lookPathShip = exec.LookPath
+	runShipJSON  = func(name string, args ...string) ([]byte, error) {
+		return exec.Command(name, args...).CombinedOutput()
+	}
+)
+
+func (s *mcpServer) callShipDoctor(arguments json.RawMessage) (toolCallResult, error) {
+	if len(arguments) > 0 && string(arguments) != "{}" {
+		var in map[string]any
+		if err := json.Unmarshal(arguments, &in); err != nil {
+			return toolCallResult{}, fmt.Errorf("invalid ship_doctor arguments: %w", err)
+		}
+		if len(in) > 0 {
+			return toolCallResult{}, errors.New("ship_doctor does not accept arguments")
+		}
+	}
+
+	shipPath, err := lookPathShip("ship")
+	if err != nil {
+		return toolCallResult{Content: []toolContent{{Type: "text", Text: marshalShipDoctorResult(shipBinaryMissingDoctorResult())}}}, nil
+	}
+
+	out, err := runShipJSON(shipPath, "doctor", "--json")
+	if err != nil {
+		return toolCallResult{Content: []toolContent{{
+			Type: "text",
+			Text: marshalShipDoctorResult(shipDoctorResult{
+				OK: false,
+				Issues: []shipDoctorIssue{{
+					Type:     "config",
+					File:     "",
+					Detail:   fmt.Sprintf("failed to run ship doctor --json: %v", err),
+					Severity: "error",
+				}},
+			}),
+		}}}, nil
+	}
+
+	var payload shipDoctorResult
+	if err := json.Unmarshal(out, &payload); err != nil {
+		return toolCallResult{Content: []toolContent{{
+			Type: "text",
+			Text: marshalShipDoctorResult(shipDoctorResult{
+				OK: false,
+				Issues: []shipDoctorIssue{{
+					Type:     "config",
+					File:     "",
+					Detail:   fmt.Sprintf("invalid ship doctor JSON output: %s", strings.TrimSpace(string(out))),
+					Severity: "error",
+				}},
+			}),
+		}}}, nil
+	}
+
+	return toolCallResult{Content: []toolContent{{
+		Type: "text",
+		Text: marshalShipDoctorResult(payload),
+	}}}, nil
+}
+
+func (s *mcpServer) callShipRoutes(arguments json.RawMessage) (toolCallResult, error) {
+	var in struct {
+		Filter string `json:"filter"`
+	}
+	if len(arguments) > 0 {
+		if err := json.Unmarshal(arguments, &in); err != nil {
+			return toolCallResult{}, fmt.Errorf("invalid ship_routes arguments: %w", err)
+		}
+	}
+	filter := strings.TrimSpace(strings.ToLower(in.Filter))
+	if filter != "" && filter != "public" && filter != "auth" && filter != "admin" {
+		return toolCallResult{}, errors.New("ship_routes filter must be one of public, auth, admin")
+	}
+
+	payload, toolErr := runShipDescribePayload()
+	if toolErr != nil {
+		return toolCallResult{
+			Content: []toolContent{{Type: "text", Text: `{"routes":[]}`}},
+			IsError: true,
+		}, nil
+	}
+
+	routes := payload.Routes
+	if filter != "" {
+		filtered := make([]shipDescribeRoute, 0, len(routes))
+		for _, route := range routes {
+			switch filter {
+			case "public":
+				if !route.Auth {
+					filtered = append(filtered, route)
+				}
+			case "auth":
+				if route.Auth {
+					filtered = append(filtered, route)
+				}
+			case "admin":
+				// Current describe schema does not distinguish admin routes yet.
+			}
+		}
+		routes = filtered
+	}
+
+	b, err := json.Marshal(map[string]any{"routes": routes})
+	if err != nil {
+		return toolCallResult{}, err
+	}
+	return toolCallResult{Content: []toolContent{{Type: "text", Text: string(b)}}}, nil
+}
+
+func (s *mcpServer) callShipModules(arguments json.RawMessage) (toolCallResult, error) {
+	if len(arguments) > 0 && string(arguments) != "{}" {
+		var in map[string]any
+		if err := json.Unmarshal(arguments, &in); err != nil {
+			return toolCallResult{}, fmt.Errorf("invalid ship_modules arguments: %w", err)
+		}
+		if len(in) > 0 {
+			return toolCallResult{}, errors.New("ship_modules does not accept arguments")
+		}
+	}
+
+	payload, toolErr := runShipDescribePayload()
+	if toolErr != nil {
+		return toolCallResult{
+			Content: []toolContent{{Type: "text", Text: `{"modules":[]}`}},
+			IsError: true,
+		}, nil
+	}
+
+	b, err := json.Marshal(map[string]any{"modules": payload.Modules})
+	if err != nil {
+		return toolCallResult{}, err
+	}
+	return toolCallResult{Content: []toolContent{{Type: "text", Text: string(b)}}}, nil
+}
+
+func (s *mcpServer) callShipVerify(arguments json.RawMessage) (toolCallResult, error) {
+	var in struct {
+		SkipTests bool `json:"skip_tests"`
+	}
+	if len(arguments) > 0 {
+		if err := json.Unmarshal(arguments, &in); err != nil {
+			return toolCallResult{}, fmt.Errorf("invalid ship_verify arguments: %w", err)
+		}
+	}
+
+	shipPath, err := lookPathShip("ship")
+	if err != nil {
+		return toolCallResult{Content: []toolContent{{
+			Type: "text",
+			Text: marshalShipVerifyResult(shipBinaryMissingVerifyResult()),
+		}}}, nil
+	}
+
+	args := []string{"verify", "--json"}
+	if in.SkipTests {
+		args = append(args, "--skip-tests")
+	}
+
+	out, err := runShipJSON(shipPath, args...)
+	if err != nil {
+		return toolCallResult{Content: []toolContent{{
+			Type: "text",
+			Text: marshalShipVerifyResult(shipVerifyResult{
+				OK: false,
+				Steps: []shipVerifyStep{{
+					Name:   strings.Join(append([]string{"ship"}, args...), " "),
+					OK:     false,
+					Output: fmt.Sprintf("failed to run %s: %v", strings.Join(args, " "), err),
+				}},
+			}),
+		}}}, nil
+	}
+
+	var payload shipVerifyResult
+	if err := json.Unmarshal(out, &payload); err != nil {
+		return toolCallResult{Content: []toolContent{{
+			Type: "text",
+			Text: marshalShipVerifyResult(shipVerifyResult{
+				OK: false,
+				Steps: []shipVerifyStep{{
+					Name:   strings.Join(append([]string{"ship"}, args...), " "),
+					OK:     false,
+					Output: fmt.Sprintf("invalid ship verify JSON output: %s", strings.TrimSpace(string(out))),
+				}},
+			}),
+		}}}, nil
+	}
+
+	return toolCallResult{Content: []toolContent{{
+		Type: "text",
+		Text: marshalShipVerifyResult(payload),
+	}}}, nil
 }
 
 func (s *mcpServer) callDocsGet(arguments json.RawMessage) (toolCallResult, error) {
@@ -192,6 +482,61 @@ func shipHelpByTopic(topic string) string {
 	default:
 		return "ship - GoShip CLI\n\nUsage:\n  ship dev [worker|all] [--worker|--all]\n  ship test [--integration]\n  ship db <create|migrate|rollback|seed>"
 	}
+}
+
+func marshalShipDoctorResult(result shipDoctorResult) string {
+	b, err := json.Marshal(result)
+	if err != nil {
+		return `{"ok":false,"issues":[{"type":"config","file":"","detail":"failed to encode ship doctor result","severity":"error"}]}`
+	}
+	return string(b)
+}
+
+func shipBinaryMissingDoctorResult() shipDoctorResult {
+	return shipDoctorResult{
+		OK: false,
+		Issues: []shipDoctorIssue{{
+			Type:     "config",
+			File:     "",
+			Detail:   "ship binary not found in PATH",
+			Severity: "error",
+		}},
+	}
+}
+
+func marshalShipVerifyResult(result shipVerifyResult) string {
+	b, err := json.Marshal(result)
+	if err != nil {
+		return `{"ok":false,"steps":[{"name":"ship verify --json","ok":false,"output":"failed to encode ship verify result"}]}`
+	}
+	return string(b)
+}
+
+func shipBinaryMissingVerifyResult() shipVerifyResult {
+	return shipVerifyResult{
+		OK: false,
+		Steps: []shipVerifyStep{{
+			Name:   "ship verify --json",
+			OK:     false,
+			Output: "ship binary not found in PATH",
+		}},
+	}
+}
+
+func runShipDescribePayload() (shipDescribeResult, error) {
+	shipPath, err := lookPathShip("ship")
+	if err != nil {
+		return shipDescribeResult{}, err
+	}
+	out, err := runShipJSON(shipPath, "describe")
+	if err != nil {
+		return shipDescribeResult{}, err
+	}
+	var payload shipDescribeResult
+	if err := json.Unmarshal(out, &payload); err != nil {
+		return shipDescribeResult{}, fmt.Errorf("invalid ship describe JSON output: %s", strings.TrimSpace(string(out)))
+	}
+	return payload, nil
 }
 
 type searchMatch struct {

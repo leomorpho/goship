@@ -2,8 +2,9 @@ package components
 
 import ()
 
+// Renders: empty-page-message component.
 templ EmptyPageMessage(message, styleClasses string) {
-	<div
+	<div data-component="empty-page-message"
 		data-component="empty-page-message"
 		class={ templ.KV("flex flex-col justify-center items-center mt-10 px-2 max-h-screen", styleClasses == ""),
 				templ.KV(styleClasses, styleClasses!="") }
@@ -11,3 +12,4 @@ templ EmptyPageMessage(message, styleClasses string) {
 		{ message }
 	</div>
 }
+

@@ -8,6 +8,7 @@ import (
 	"github.com/leomorpho/goship/app/views/web/helpers/gen"
 )
 
+// Renders: home component.
 templ Home(page *controller.Page) {
 	if page.HTMX.Request.Target != "posts" {
 		@homeTopContent(page)
@@ -19,7 +20,7 @@ templ Home(page *controller.Page) {
 }
 
 templ homeTopContent(page *controller.Page) {
-	<div class="bg-secondary text-secondary-content py-6 rounded-lg">
+	<div data-component="home" class="bg-secondary text-secondary-content py-6 rounded-lg">
 		<div class="container mx-auto px-4">
 			<h1 class="text-3xl font-semibold">
 				if page.IsAuth {
@@ -99,3 +100,4 @@ templ homeFileMsg() {
 		</div>
 	</div>
 }
+

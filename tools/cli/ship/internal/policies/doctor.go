@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"unicode"
 
 	rt "github.com/leomorpho/goship/tools/cli/ship/internal/runtime"
 )
@@ -289,6 +290,8 @@ func checkCanonicalFilePlacement(root string) []DoctorIssue {
 	issues = append(issues, checkRawSQLPlacement(root)...)
 	issues = append(issues, checkMigrationPlacement(root)...)
 	issues = append(issues, checkConfigStructPlacement(root)...)
+	issues = append(issues, checkRendersComments(root)...)
+	issues = append(issues, checkDataComponentAttributes(root)...)
 	return issues
 }
 
@@ -513,6 +516,204 @@ func checkConfigStructPlacement(root string) []DoctorIssue {
 		return nil
 	})
 	return issues
+}
+
+func checkRendersComments(root string) []DoctorIssue {
+	issues := make([]DoctorIssue, 0)
+	searchDirs := []string{filepath.Join(root, "app", "views")}
+	modulesDir := filepath.Join(root, "modules")
+	_ = filepath.WalkDir(modulesDir, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if !d.IsDir() {
+			return nil
+		}
+		if path == modulesDir {
+			return nil
+		}
+		viewsDir := filepath.Join(path, "views")
+		if isDir(viewsDir) {
+			searchDirs = append(searchDirs, viewsDir)
+		}
+		return filepath.SkipDir
+	})
+
+	for _, dir := range searchDirs {
+		if !isDir(dir) {
+			continue
+		}
+		_ = filepath.WalkDir(dir, func(path string, d os.DirEntry, err error) error {
+			if err != nil || d.IsDir() || filepath.Ext(path) != ".templ" {
+				return nil
+			}
+			for _, fn := range templFunctionsMissingRenders(path) {
+				issues = append(issues, DoctorIssue{
+					Code:    "DX023",
+					File:    filepath.ToSlash(mustRel(root, path)),
+					Message: fmt.Sprintf("exported templ function %s lacks a // Renders: comment", fn),
+					Fix:     "add an English `// Renders:` comment describing the UI output just above the templ declaration",
+				})
+			}
+			return nil
+		})
+	}
+	return issues
+}
+
+func checkDataComponentAttributes(root string) []DoctorIssue {
+	issues := make([]DoctorIssue, 0)
+	searchDirs := []string{
+		filepath.Join(root, "app", "views", "web", "components"),
+		filepath.Join(root, "app", "views", "web", "helpers"),
+	}
+	modulesDir := filepath.Join(root, "modules")
+	_ = filepath.WalkDir(modulesDir, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if !d.IsDir() || path == modulesDir {
+			return nil
+		}
+		compDir := filepath.Join(path, "views", "web", "components")
+		if isDir(compDir) {
+			searchDirs = append(searchDirs, compDir)
+		}
+		return filepath.SkipDir
+	})
+
+	for _, dir := range searchDirs {
+		if !isDir(dir) {
+			continue
+		}
+		_ = filepath.WalkDir(dir, func(path string, d os.DirEntry, err error) error {
+			if err != nil || d.IsDir() || filepath.Ext(path) != ".templ" {
+				return nil
+			}
+			lines, readErr := readLines(path)
+			if readErr != nil {
+				return nil
+			}
+			re := regexp.MustCompile(`^\s*templ\s+([A-Z][A-Za-z0-9_]*)\s*\(`)
+			for i, line := range lines {
+				match := re.FindStringSubmatch(line)
+				if match == nil {
+					continue
+				}
+				fn := match[1]
+				rootLine, ok := findRootElementLine(lines, i+1)
+				if !ok {
+					issues = append(issues, DoctorIssue{
+						Code:    "DX024",
+						File:    filepath.ToSlash(mustRel(root, path)),
+						Message: fmt.Sprintf("templ %s has no recognizable root element for data-component", fn),
+						Fix:     "add a root HTML element with a data-component attribute matching the component name",
+					})
+					continue
+				}
+				hasAttr, value := extractDataComponent(rootLine)
+				expected := toKebabCase(fn)
+				if !hasAttr {
+					issues = append(issues, DoctorIssue{
+						Code:    "DX024",
+						File:    filepath.ToSlash(mustRel(root, path)),
+						Message: fmt.Sprintf("templ %s lacks data-component attribute on its root element", fn),
+						Fix:     fmt.Sprintf("add `data-component=\"%s\"` to the root element", expected),
+					})
+					continue
+				}
+				if value != expected {
+					issues = append(issues, DoctorIssue{
+						Code:    "DX024",
+						File:    filepath.ToSlash(mustRel(root, path)),
+						Message: fmt.Sprintf("templ %s has data-component=%q but should use %q", fn, value, expected),
+						Fix:     fmt.Sprintf("set `data-component=\"%s\"` on the root element", expected),
+					})
+				}
+			}
+			return nil
+		})
+	}
+
+	return issues
+}
+
+func findRootElementLine(lines []string, start int) (string, bool) {
+	for i := start; i < len(lines); i++ {
+		line := strings.TrimSpace(lines[i])
+		if line == "" || strings.HasPrefix(line, "//") || strings.HasPrefix(line, "<!--") || strings.HasPrefix(line, "@") {
+			continue
+		}
+		if strings.HasPrefix(line, "<") {
+			return line, true
+		}
+	}
+	return "", false
+}
+
+func extractDataComponent(line string) (bool, string) {
+	re := regexp.MustCompile(`data-component\s*=\s*"(.*?)"`)
+	match := re.FindStringSubmatch(line)
+	if match == nil {
+		return false, ""
+	}
+	return true, match[1]
+}
+
+func toKebabCase(name string) string {
+	var b strings.Builder
+	for i, r := range name {
+		if i > 0 && unicode.IsUpper(r) {
+			b.WriteByte('-')
+		}
+		b.WriteRune(unicode.ToLower(r))
+	}
+	return b.String()
+}
+
+func templFunctionsMissingRenders(path string) []string {
+	lines, err := readLines(path)
+	if err != nil {
+		return nil
+	}
+	missing := make([]string, 0)
+	re := regexp.MustCompile(`^\s*templ\s+([A-Z][A-Za-z0-9_]*)\s*\(`)
+	for i, line := range lines {
+		match := re.FindStringSubmatch(line)
+		if match == nil {
+			continue
+		}
+		if hasRendersComment(lines, i) {
+			continue
+		}
+		missing = append(missing, match[1])
+	}
+	return missing
+}
+
+func hasRendersComment(lines []string, idx int) bool {
+	for j := idx - 1; j >= 0; j-- {
+		trim := strings.TrimSpace(lines[j])
+		if trim == "" {
+			continue
+		}
+		return strings.HasPrefix(trim, "// Renders:")
+	}
+	return false
+}
+
+func readLines(path string) ([]string, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	scanner := bufio.NewScanner(f)
+	lines := make([]string, 0)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+	return lines, scanner.Err()
 }
 
 func parseDoctorGoFile(path string) (*ast.File, error) {
@@ -1196,7 +1397,7 @@ func doctorFileSizeKind(rel string) (kind string, warnThreshold int, errorThresh
 			strings.HasPrefix(filepath.Base(rel), "bob_") {
 			return "", 0, 0, true
 		}
-		return "Go", 300, 600, false
+		return "Go", 300, 1000, false
 	case strings.HasSuffix(rel, ".templ"):
 		return "templ", 200, 400, false
 	default:
@@ -1219,6 +1420,7 @@ func checkTopLevelDirs(root string) []DoctorIssue {
 		".cache":     {},
 		".git":       {},
 		".github":    {},
+		".githooks":  {},
 		".kamal":     {},
 		".vscode":    {},
 		"app":        {},

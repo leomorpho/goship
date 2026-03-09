@@ -38,9 +38,16 @@ ensure-compose:
 		exit 1; \
 	fi
 
-.PHONY: hooks
-hooks: ## Install git hooks via lefthook
-	lefthook install
+.PHONY: hooks hooks-install
+hooks: hooks-install ## Install git hooks
+
+.PHONY: hooks-install
+hooks-install: ## Install git hooks and commit-msg enforcement
+	mkdir -p .githooks
+	chmod +x .githooks/pre-commit
+	chmod +x .githooks/prepare-commit-msg
+	chmod +x .githooks/commit-msg
+	git config core.hooksPath .githooks
 
 .PHONY: llm-txt
 llm-txt: ## Generate root LLM.txt from README and docs markdown files

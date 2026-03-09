@@ -22,6 +22,12 @@ func TestRunVerify(t *testing.T) {
 			Out:          &bytes.Buffer{},
 			Err:          &bytes.Buffer{},
 			FindGoModule: findVerifyGoModule,
+			RelocateTempl: func(rootPath string) error {
+				if rootPath != "." {
+					t.Fatalf("rootPath = %q, want .", rootPath)
+				}
+				return nil
+			},
 			RunStep: func(name string, args ...string) (int, string, error) {
 				calls = append(calls, name+" "+strings.Join(args, " "))
 				return 0, "ok", nil
@@ -64,6 +70,12 @@ func TestRunVerify(t *testing.T) {
 			Out:          out,
 			Err:          errOut,
 			FindGoModule: findVerifyGoModule,
+			RelocateTempl: func(rootPath string) error {
+				if rootPath != "." {
+					t.Fatalf("rootPath = %q, want .", rootPath)
+				}
+				return nil
+			},
 			RunStep: func(name string, args ...string) (int, string, error) {
 				calls = append(calls, name+" "+strings.Join(args, " "))
 				if len(calls) == 2 {
@@ -105,6 +117,12 @@ func TestRunVerify(t *testing.T) {
 			Out:          out,
 			Err:          errOut,
 			FindGoModule: findVerifyGoModule,
+			RelocateTempl: func(rootPath string) error {
+				if rootPath != "." {
+					t.Fatalf("rootPath = %q, want .", rootPath)
+				}
+				return nil
+			},
 			RunStep: func(name string, args ...string) (int, string, error) {
 				return 0, name + " ok", nil
 			},
@@ -134,6 +152,43 @@ func TestRunVerify(t *testing.T) {
 		}
 		if payload.Steps[2].Name != "ship doctor --json" {
 			t.Fatalf("doctor step name = %q, want ship doctor --json", payload.Steps[2].Name)
+		}
+	})
+
+	t.Run("fails when templ relocation fails", func(t *testing.T) {
+		root := t.TempDir()
+		writeVerifyGoMod(t, root)
+		prevWD := chdirVerifyRoot(t, root)
+		t.Cleanup(func() { _ = os.Chdir(prevWD) })
+
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+		code := RunVerify([]string{}, VerifyDeps{
+			Out:          out,
+			Err:          errOut,
+			FindGoModule: findVerifyGoModule,
+			RelocateTempl: func(rootPath string) error {
+				return errors.New("relocate failed")
+			},
+			RunStep: func(name string, args ...string) (int, string, error) {
+				return 0, "ok", nil
+			},
+			LookPath: func(file string) (string, error) {
+				return "/usr/bin/" + file, nil
+			},
+			RunDoctor: func() (int, string, error) {
+				t.Fatal("doctor should not run after templ relocation failure")
+				return 0, "", nil
+			},
+		})
+		if code != 1 {
+			t.Fatalf("exit code = %d, want 1", code)
+		}
+		if !strings.Contains(errOut.String(), "verify failed at templ generate") {
+			t.Fatalf("stderr = %q, want templ generate failure step", errOut.String())
+		}
+		if !strings.Contains(errOut.String(), "relocate failed") {
+			t.Fatalf("stderr = %q, want relocation failure output", errOut.String())
 		}
 	})
 }

@@ -15,12 +15,13 @@ import (
 )
 
 type VerifyDeps struct {
-	Out          io.Writer
-	Err          io.Writer
-	FindGoModule func(start string) (string, string, error)
-	RunStep      func(name string, args ...string) (int, string, error)
-	LookPath     func(file string) (string, error)
-	RunDoctor    func() (int, string, error)
+	Out           io.Writer
+	Err           io.Writer
+	FindGoModule  func(start string) (string, string, error)
+	RunStep       func(name string, args ...string) (int, string, error)
+	LookPath      func(file string) (string, error)
+	RelocateTempl func(rootPath string) error
+	RunDoctor     func() (int, string, error)
 }
 
 type verifyJSONStep struct {
@@ -75,6 +76,10 @@ func RunVerify(args []string, d VerifyDeps) int {
 	if runStep == nil {
 		runStep = defaultVerifyRunStep
 	}
+	relocateTempl := d.RelocateTempl
+	if relocateTempl == nil {
+		relocateTempl = func(string) error { return nil }
+	}
 	lookPath := d.LookPath
 	if lookPath == nil {
 		lookPath = exec.LookPath
@@ -102,6 +107,11 @@ func RunVerify(args []string, d VerifyDeps) int {
 
 	if err := withWorkingDir(root, func() error {
 		code, output, runErr := runStep("templ", "generate", "-path", ".")
+		if code == 0 && runErr == nil {
+			if relocateErr := relocateTempl("."); relocateErr != nil {
+				runErr = relocateErr
+			}
+		}
 		appendStep("templ generate", code == 0 && runErr == nil, mergeVerifyOutput(output, runErr))
 		if failed != nil {
 			return nil

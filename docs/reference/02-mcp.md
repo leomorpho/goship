@@ -34,11 +34,27 @@ Provide an LLM-facing interface for:
 - Returns usage/help text for core `ship` commands.
 - Input: optional `topic` (`general`, `dev`, `test`, `db`).
 
-2. `docs_search`
+2. `ship_doctor`
+- Runs `ship doctor --json` and returns the structured result.
+- Input: none.
+
+3. `ship_routes`
+- Runs `ship describe` and returns the route inventory.
+- Input: optional `filter` (`public`, `auth`, `admin`).
+
+4. `ship_modules`
+- Runs `ship describe` and returns the installed module list.
+- Input: none.
+
+5. `ship_verify`
+- Runs `ship verify --json` and returns step-by-step verification results.
+- Input: optional `skip_tests` boolean.
+
+6. `docs_search`
 - Searches markdown files under `docs/`.
 - Input: `query` (required), `limit` (optional, default 20, max 50).
 
-3. `docs_get`
+7. `docs_get`
 - Returns a single markdown document from `docs/`.
 - Input: `path` (required), relative to `docs/`.
 

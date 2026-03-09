@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -70,8 +71,6 @@ func TestSearchDocs(t *testing.T) {
 }
 
 func TestHandleToolsCall(t *testing.T) {
-	t.Parallel()
-
 	docsRoot := t.TempDir()
 	if err := os.MkdirAll(filepath.Join(docsRoot, "reference"), 0o755); err != nil {
 		t.Fatal(err)
@@ -81,6 +80,12 @@ func TestHandleToolsCall(t *testing.T) {
 	}
 
 	s := &mcpServer{docsRoot: docsRoot}
+	prevLookPath := lookPathShip
+	prevRunShip := runShipJSON
+	t.Cleanup(func() {
+		lookPathShip = prevLookPath
+		runShipJSON = prevRunShip
+	})
 
 	tests := []struct {
 		name     string
@@ -127,4 +132,207 @@ func TestHandleToolsCall(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestCallShipDoctor(t *testing.T) {
+	s := &mcpServer{docsRoot: t.TempDir()}
+
+	t.Run("returns ship doctor payload", func(t *testing.T) {
+		prevLookPath := lookPathShip
+		prevRunShip := runShipJSON
+		t.Cleanup(func() {
+			lookPathShip = prevLookPath
+			runShipJSON = prevRunShip
+		})
+		lookPathShip = func(file string) (string, error) { return "/usr/bin/ship", nil }
+		runShipJSON = func(name string, args ...string) ([]byte, error) {
+			return []byte(`{"ok":true,"issues":[]}`), nil
+		}
+
+		res, err := s.callShipDoctor(json.RawMessage(`{}`))
+		if err != nil {
+			t.Fatalf("callShipDoctor error: %v", err)
+		}
+		if len(res.Content) != 1 || res.Content[0].Text != `{"ok":true,"issues":[]}` {
+			t.Fatalf("content = %+v, want doctor json", res.Content)
+		}
+	})
+
+	t.Run("missing ship binary returns config issue", func(t *testing.T) {
+		prevLookPath := lookPathShip
+		prevRunShip := runShipJSON
+		t.Cleanup(func() {
+			lookPathShip = prevLookPath
+			runShipJSON = prevRunShip
+		})
+		lookPathShip = func(file string) (string, error) { return "", errors.New("missing") }
+
+		res, err := s.callShipDoctor(json.RawMessage(`{}`))
+		if err != nil {
+			t.Fatalf("callShipDoctor error: %v", err)
+		}
+		if !strings.Contains(res.Content[0].Text, `"ship binary not found in PATH"`) {
+			t.Fatalf("content = %q, want missing ship message", res.Content[0].Text)
+		}
+	})
+
+	t.Run("invalid json output returns config issue", func(t *testing.T) {
+		prevLookPath := lookPathShip
+		prevRunShip := runShipJSON
+		t.Cleanup(func() {
+			lookPathShip = prevLookPath
+			runShipJSON = prevRunShip
+		})
+		lookPathShip = func(file string) (string, error) { return "/usr/bin/ship", nil }
+		runShipJSON = func(name string, args ...string) ([]byte, error) {
+			return []byte("not-json"), nil
+		}
+
+		res, err := s.callShipDoctor(json.RawMessage(`{}`))
+		if err != nil {
+			t.Fatalf("callShipDoctor error: %v", err)
+		}
+		if !strings.Contains(res.Content[0].Text, `"invalid ship doctor JSON output: not-json"`) {
+			t.Fatalf("content = %q, want invalid json message", res.Content[0].Text)
+		}
+	})
+}
+
+func TestCallShipRoutesAndModules(t *testing.T) {
+	s := &mcpServer{docsRoot: t.TempDir()}
+
+	baseDescribeJSON := `{"routes":[{"method":"GET","path":"/","handler":"landingPage.Get","auth":false,"file":"app/router.go:1"},{"method":"GET","path":"/auth","handler":"home.Get","auth":true,"file":"app/router.go:2"}],"modules":[{"id":"notifications","installed":true,"routes":0,"migrations":1}]}`
+
+	t.Run("ship_routes returns filtered routes", func(t *testing.T) {
+		prevLookPath := lookPathShip
+		prevRunShip := runShipJSON
+		t.Cleanup(func() {
+			lookPathShip = prevLookPath
+			runShipJSON = prevRunShip
+		})
+		lookPathShip = func(file string) (string, error) { return "/usr/bin/ship", nil }
+		runShipJSON = func(name string, args ...string) ([]byte, error) {
+			return []byte(baseDescribeJSON), nil
+		}
+
+		res, err := s.callShipRoutes(json.RawMessage(`{"filter":"auth"}`))
+		if err != nil {
+			t.Fatalf("callShipRoutes error: %v", err)
+		}
+		if res.IsError {
+			t.Fatalf("expected non-error result, got %+v", res)
+		}
+		if !strings.Contains(res.Content[0].Text, `"/auth"`) || strings.Contains(res.Content[0].Text, `"path":"/"`) {
+			t.Fatalf("content = %q, want only auth route", res.Content[0].Text)
+		}
+	})
+
+	t.Run("ship_modules returns modules", func(t *testing.T) {
+		prevLookPath := lookPathShip
+		prevRunShip := runShipJSON
+		t.Cleanup(func() {
+			lookPathShip = prevLookPath
+			runShipJSON = prevRunShip
+		})
+		lookPathShip = func(file string) (string, error) { return "/usr/bin/ship", nil }
+		runShipJSON = func(name string, args ...string) ([]byte, error) {
+			return []byte(baseDescribeJSON), nil
+		}
+
+		res, err := s.callShipModules(json.RawMessage(`{}`))
+		if err != nil {
+			t.Fatalf("callShipModules error: %v", err)
+		}
+		if res.IsError {
+			t.Fatalf("expected non-error result, got %+v", res)
+		}
+		if !strings.Contains(res.Content[0].Text, `"notifications"`) {
+			t.Fatalf("content = %q, want module payload", res.Content[0].Text)
+		}
+	})
+
+	t.Run("ship_routes missing binary returns empty error payload", func(t *testing.T) {
+		prevLookPath := lookPathShip
+		prevRunShip := runShipJSON
+		t.Cleanup(func() {
+			lookPathShip = prevLookPath
+			runShipJSON = prevRunShip
+		})
+		lookPathShip = func(file string) (string, error) { return "", errors.New("missing") }
+
+		res, err := s.callShipRoutes(json.RawMessage(`{}`))
+		if err != nil {
+			t.Fatalf("callShipRoutes error: %v", err)
+		}
+		if !res.IsError || res.Content[0].Text != `{"routes":[]}` {
+			t.Fatalf("result = %+v, want empty error payload", res)
+		}
+	})
+}
+
+func TestCallShipVerify(t *testing.T) {
+	s := &mcpServer{docsRoot: t.TempDir()}
+
+	t.Run("returns ship verify payload", func(t *testing.T) {
+		prevLookPath := lookPathShip
+		prevRunShip := runShipJSON
+		t.Cleanup(func() {
+			lookPathShip = prevLookPath
+			runShipJSON = prevRunShip
+		})
+		lookPathShip = func(file string) (string, error) { return "/usr/bin/ship", nil }
+		runShipJSON = func(name string, args ...string) ([]byte, error) {
+			if got := strings.Join(args, " "); got != "verify --json --skip-tests" {
+				t.Fatalf("args = %q, want verify --json --skip-tests", got)
+			}
+			return []byte(`{"ok":true,"steps":[{"name":"go test ./...","ok":true,"output":"skipped via --skip-tests"}]}`), nil
+		}
+
+		res, err := s.callShipVerify(json.RawMessage(`{"skip_tests":true}`))
+		if err != nil {
+			t.Fatalf("callShipVerify error: %v", err)
+		}
+		if len(res.Content) != 1 || !strings.Contains(res.Content[0].Text, `"skipped via --skip-tests"`) {
+			t.Fatalf("content = %+v, want verify json", res.Content)
+		}
+	})
+
+	t.Run("missing ship binary returns structured failure", func(t *testing.T) {
+		prevLookPath := lookPathShip
+		prevRunShip := runShipJSON
+		t.Cleanup(func() {
+			lookPathShip = prevLookPath
+			runShipJSON = prevRunShip
+		})
+		lookPathShip = func(file string) (string, error) { return "", errors.New("missing") }
+
+		res, err := s.callShipVerify(json.RawMessage(`{}`))
+		if err != nil {
+			t.Fatalf("callShipVerify error: %v", err)
+		}
+		if !strings.Contains(res.Content[0].Text, `"ship binary not found in PATH"`) {
+			t.Fatalf("content = %q, want missing ship message", res.Content[0].Text)
+		}
+	})
+
+	t.Run("invalid json output returns structured failure", func(t *testing.T) {
+		prevLookPath := lookPathShip
+		prevRunShip := runShipJSON
+		t.Cleanup(func() {
+			lookPathShip = prevLookPath
+			runShipJSON = prevRunShip
+		})
+		lookPathShip = func(file string) (string, error) { return "/usr/bin/ship", nil }
+		runShipJSON = func(name string, args ...string) ([]byte, error) {
+			return []byte("not-json"), nil
+		}
+
+		res, err := s.callShipVerify(json.RawMessage(`{}`))
+		if err != nil {
+			t.Fatalf("callShipVerify error: %v", err)
+		}
+		if !strings.Contains(res.Content[0].Text, `"invalid ship verify JSON output: not-json"`) {
+			t.Fatalf("content = %q, want invalid json message", res.Content[0].Text)
+		}
+	})
 }

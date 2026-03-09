@@ -5,9 +5,10 @@ import (
 	"github.com/leomorpho/goship/app/views/web/components/gen"
 )
 
+// Renders: documentation component.
 templ Documentation(content templ.Component, page *controller.Page) {
-	<!DOCTYPE html>
-	<html lang="en" class="min-h-screen">
+	@Doctype()
+	<html lang="en" class="min-h-screen" data-component="documentation">
 		<head>
 			@components.Metatags(page)
 			@components.CSS()

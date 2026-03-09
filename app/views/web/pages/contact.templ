@@ -6,9 +6,10 @@ import (
 	"github.com/leomorpho/goship/app/views/web/components/gen"
 )
 
+// Renders: contact component.
 templ Contact(page *controller.Page) {
 	if page.HTMX.Request.Target != "contact" {
-		<article class="message is-link">
+		<article data-component="contact" class="message is-link">
 			<div class="message-body">
 				<p>This is an example of a form with inline, server-side validation and HTMX-powered AJAX submissions without writing a single line of JavaScript.</p>
 				<p>Only the form below will update async upon submission.</p>
@@ -49,3 +50,4 @@ templ contactForm(page *controller.Page) {
 		}
 	}
 }
+

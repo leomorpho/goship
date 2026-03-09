@@ -6,9 +6,10 @@ import (
 	"github.com/leomorpho/goship/app/web/routenames"
 )
 
+// Renders: auth component.
 templ Auth(content templ.Component, page *controller.Page) {
-	<!DOCTYPE html>
-	<html lang="en">
+	@Doctype()
+	<html lang="en" data-component="auth">
 		<head>
 			@components.Metatags(page)
 			@components.CSS()

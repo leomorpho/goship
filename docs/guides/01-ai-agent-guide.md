@@ -5,8 +5,10 @@ This guide is for code agents making changes in this repository.
 ## Start Here
 
 1. Read `docs/architecture/03-project-scope-analysis.md` and `docs/architecture/06-known-gaps-and-risks.md`.
-2. Inspect route wiring in `app/router.go` before editing handlers.
-3. Inspect `app/foundation/container.go` before assuming a dependency is initialized.
+2. Read the nearest scoped `CLAUDE.md` before changing `framework/`, `app/`, or a module under `modules/`.
+3. If no scoped `CLAUDE.md` exists for the area you are editing, fall back to this guide.
+4. Inspect route wiring in `app/router.go` before editing handlers.
+5. Inspect `app/foundation/container.go` before assuming a dependency is initialized.
 
 ## Architectural Conventions
 
@@ -14,6 +16,7 @@ This guide is for code agents making changes in this repository.
 - Domain logic should prefer repository/module packages (`framework/repos/...`, `modules/...`) over route-level DB logic.
 - Rendering is typically done via `controller.Page` + templ components.
 - Enums/constants are centralized in `framework/domain`.
+- Module-specific work should start by reading that module's `CLAUDE.md`.
 
 ## Safe Change Workflow
 

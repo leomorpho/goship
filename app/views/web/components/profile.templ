@@ -7,9 +7,10 @@ import (
 	"github.com/leomorpho/goship/app/web/routenames"
 )
 
+// Renders: profile component.
 templ Profile(page *controller.Page, profile domain.Profile, isSelf, isPotentialMatch bool, uploadGalleryPicUrl, uploadProfilePicUrl string, galleryPicsMaxCount int) {
 	@ProfileHeader(page, &profile, isSelf, isPotentialMatch, false, uploadGalleryPicUrl, uploadProfilePicUrl, galleryPicsMaxCount)
-	<div class="m-5">
+	<div data-component="profile" class="m-5">
 		<p>{ profile.Bio }</p>
 	</div>
 	if len(profile.Photos) > 0 {
@@ -143,8 +144,9 @@ script initCarousel() {
 	});
 }
 
+// Renders: profile-header component.
 templ ProfileHeader(page *controller.Page, profile *domain.Profile, isSelf, isPotentialMatch, isIndividualConvoView bool, uploadGalleryPicUrl, uploadProfilePicUrl string, galleryPicsMaxCount int) {
-	<div class="flex flex-wrap items-start">
+	<div data-component="profile-header" class="flex flex-wrap items-start">
 		<div class="flex flex-col items-center sm:flex-row sm:justify-between w-full">
 			<div class="flex items-center">
 				<!-- Avatar and edit profile image button -->
@@ -301,4 +303,5 @@ script InitPhoneNumberPicker(elementID, phoneE164, countryCode, saveEventName, f
 		"readonly": readOnly,
 	});
 }
+
 

@@ -6,6 +6,7 @@ import (
 	"github.com/leomorpho/goship/app/views/web/components/gen"
 )
 
+// Renders: about component.
 templ About(page *controller.Page) {
 	@components.PrevNavBarWithTitle("", "", "☎️ Contact us")
 	if data, ok := page.Data.(viewmodels.AboutData); ok {
@@ -14,7 +15,7 @@ templ About(page *controller.Page) {
 }
 
 templ aboutUsData(data viewmodels.AboutData) {
-	<div class="max-w-3xl mx-auto p-6 space-y-6">
+	<div data-component="about" class="max-w-3xl mx-auto p-6 space-y-6">
 		<div class="space-y-4">
 			<p class="text-base">
 				{ "We're dedicated to improving our app and we'd love to hear from you!" }
@@ -37,3 +38,4 @@ templ aboutUsData(data viewmodels.AboutData) {
 		</div>
 	</div>
 }
+

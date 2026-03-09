@@ -6,19 +6,22 @@ import (
 )
 
 // TODO: I think i broke the way the messages are dismissed in the original pagoda system.
+// Renders: messages component.
 templ Messages(page *controller.Page) {
-	for _, m := range page.GetMessages("success") {
-		@message("success", string(m))
-	}
-	for _, m := range page.GetMessages("info") {
-		@message("info", string(m))
-	}
-	for _, m := range page.GetMessages("warning") {
-		@message("warning", string(m))
-	}
-	for _, m := range page.GetMessages("danger") {
-		@message("danger", string(m))
-	}
+	<div data-component="messages">
+		for _, m := range page.GetMessages("success") {
+			@message("success", string(m))
+		}
+		for _, m := range page.GetMessages("info") {
+			@message("info", string(m))
+		}
+		for _, m := range page.GetMessages("warning") {
+			@message("warning", string(m))
+		}
+		for _, m := range page.GetMessages("danger") {
+			@message("danger", string(m))
+		}
+	</div>
 }
 
 templ message(className, text string) {
@@ -34,9 +37,9 @@ templ message(className, text string) {
 	}
 }
 
+// Renders: styled-message component.
 templ StyledMessage(msgType, color, text, bgColorClass, contentColorClass string) {
-	<div
-		data-component="styled-message"
+	<div data-component="styled-message"
 		x-data="{ alertId: 'alert-' + Date.now(), show: true }"
 		:id="alertId"
 		x-show="show"

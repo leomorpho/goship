@@ -6,10 +6,11 @@ import (
 	"github.com/leomorpho/goship/app/views/web/components/gen"
 )
 
+// Renders: documentation-landing-page component.
 templ DocumentationLandingPage(page *controller.Page) {
 	@docsPageLayout(page) {
 		Build production web apps with Go + HTML-first conventions and a batteries-included workflow.
-		<h2 class="text-2xl font-semibold py-3">Why GoShip</h2>
+		<h2 data-component="documentation-landing-page" class="text-2xl font-semibold py-3">Why GoShip</h2>
 		<p>
 			GoShip exists to remove repeated setup work so teams can focus on product logic. It keeps strong conventions for routing, rendering, data access, and operations while still letting you swap infrastructure adapters over time.
 		</p>
@@ -90,3 +91,4 @@ templ listEntry(icon templ.Component, sentence string) {
 		{ children... }
 	</li>
 }
+

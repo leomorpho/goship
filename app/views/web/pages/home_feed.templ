@@ -9,8 +9,9 @@ import (
 	"strconv"
 )
 
+// Renders: home-feed component.
 templ HomeFeed(page *controller.Page) {
-	<div
+	<div data-component="home-feed"
 		id="homefeed-page"
 		hx-ext="sse"
 		sse-connect={ page.ToURL(routenames.RouteNameRealtime) }
@@ -124,6 +125,7 @@ script startDriverJS() {
 	});
 }
 
+// Renders: home-feed-buttons component.
 templ HomeFeedButtons(page *controller.Page) {
 	if data, ok := page.Data.(viewmodels.HomeFeedButtonsData); ok {
 		@homeFeedButtonsWithCounts(page, data.NumDrafts, data.NumLikedQuestions, data.NumWaitingOnPartner, data.NumWaitingOnYou, data.MaxNumCanWaitOnYou, 0, false)
@@ -131,7 +133,7 @@ templ HomeFeedButtons(page *controller.Page) {
 }
 
 templ homeFeedButtonsWithCounts(page *controller.Page, numDrafts, numLikedQuestions, numWaitingOnPartner, leaderboardNotifCount, numWaitingOnYou, maxNumCanWaitOnYou int, loading bool) {
-	<div
+	<div data-component="home-feed-buttons"
 		id="homeFeedButtonGroup"
 		hx-get={ page.ToURL(routenames.RouteNameGetHomeFeedButtons) }
 		hx-swap="outerHTML"
@@ -426,9 +428,10 @@ templ miniButtonCountSpinner() {
 	</svg>
 }
 
+// Renders: home-feed-items component.
 templ HomeFeedItems(page *controller.Page) {
 	if data, ok := page.Data.(viewmodels.HomeFeedData); ok {
-		<div id="homeFeedQuestions">
+		<div data-component="home-feed-items" id="homeFeedQuestions">
 			<div class="temporalized-home-feed">
 				for _, item := range []string{"Pizza", "Pepperoni", "Genoa", "Salami", "Sashimi", "Spaghetti", "Bolognese"} {
 					<div class="bg-slate-100 dark:bg-slate-700 rounded-xl my-4 p-5 flex justify-center items-center">
@@ -468,8 +471,9 @@ templ HomeFeedItems(page *controller.Page) {
 	}
 }
 
+// Renders: local-loading-indicator component.
 templ LocalLoadingIndicator() {
-	<div id="local-page-loading" class="loading-overlay absolute top-0 left-0 flex justify-center items-center z-50 w-full h-full rounded-xl fading-bg">
+	<div data-component="local-loading-indicator" id="local-page-loading" class="loading-overlay absolute top-0 left-0 flex justify-center items-center z-50 w-full h-full rounded-xl fading-bg">
 		<div class="flex justify-center items-center w-full h-full text-black dark:text-white">
 			<svg fill="currentColor" class="w-1/12 h-auto" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
 				<style>.spinner_b2T7{animation:spinner_xe7Q .8s linear infinite}.spinner_YRVV{animation-delay:-.65s}.spinner_c9oY{animation-delay:-.5s}@keyframes spinner_xe7Q{93.75%,100%{r:3px}46.875%{r:.2px}}</style>
@@ -500,3 +504,4 @@ templ LocalLoadingIndicator() {
 		}
     </style>
 }
+

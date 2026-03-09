@@ -9,9 +9,10 @@ import (
 	"github.com/leomorpho/goship/app/views/web/components/gen"
 )
 
+// Renders: notifications-page component.
 templ NotificationsPage(page *controller.Page) {
 	if data, ok := page.Data.(viewmodels.NormalNotificationsPageData); ok {
-		<div class="flex justify-center items-center w-full">
+		<div data-component="notifications-page" class="flex justify-center items-center w-full">
 			<button
 				hx-get={ page.ToURL(routenames.RouteNameMarkAllNotificationsAsRead) }
 				hx-target="#main-content"
@@ -68,8 +69,9 @@ templ NotificationsPage(page *controller.Page) {
     </style>
 }
 
+// Renders: notification component.
 templ Notification(page *controller.Page, notification domain.Notification) {
-	<div
+	<div data-component="notification"
 		id={ fmt.Sprintf("notification-card-%v", notification.ID) }
 		class={ "notification-card p-4 rounded-lg shadow mb-4 relative flex items-center justify-between cursor-pointer",
                         templ.KV("bg-slate-100 dark:bg-slate-600 text-black dark:text-white font-bold", !notification.Read),
@@ -144,8 +146,9 @@ templ Notification(page *controller.Page, notification domain.Notification) {
 	</div>
 }
 
+// Renders: see-more-button component.
 templ SeeMoreButton(btnText string) {
-	<button
+	<button data-component="see-more-button"
 		type="button"
 		class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 
 							font-medium rounded-lg text-sm px-5 py-2.5
@@ -159,8 +162,9 @@ templ SeeMoreButton(btnText string) {
 	</button>
 }
 
+// Renders: accept-committed-request component.
 templ AcceptCommittedRequest(link string) {
-	<button
+	<button data-component="accept-committed-request"
 		hx-get={ link }
 		hx-target="#main-content"
 		hx-select="#main-content"
@@ -175,3 +179,4 @@ templ AcceptCommittedRequest(link string) {
 		{ "Accept" }
 	</button>
 }
+

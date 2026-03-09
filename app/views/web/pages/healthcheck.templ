@@ -2,8 +2,10 @@ package pages
 
 import "github.com/leomorpho/goship/app/controller"
 
+// Renders: health-check component.
 templ HealthCheck(page *controller.Page) {
-	<div class="bg-green-500 h-screen flex items-center justify-center">
+	<div data-component="health-check" class="bg-green-500 h-screen flex items-center justify-center">
 		<h1 class="text-white text-3xl">Service is up and running!</h1>
 	</div>
 }
+

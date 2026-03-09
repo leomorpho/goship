@@ -10,9 +10,10 @@ import (
 	"time"
 )
 
+// Renders: settings component.
 templ Settings(page *controller.Page) {
 	if data, ok := page.Data.(*viewmodels.PreferencesData); ok {
-		<div class="sm:mt-0 mb-10 mx-2 sm:mx-4 md:mx-6 lg:mx-14 xl:mx-24 space-y-4" id="preferences">
+		<div data-component="settings" class="sm:mt-0 mb-10 mx-2 sm:mx-4 md:mx-6 lg:mx-14 xl:mx-24 space-y-4" id="preferences">
 			if !data.IsProfileFullyOnboarded {
 				@firstWelcome()
 			}
@@ -50,8 +51,9 @@ templ firstWelcome() {
 	</h1>
 }
 
+// Renders: display-name component.
 templ DisplayName(page *controller.Page) {
-	<div
+	<div data-component="display-name"
 		id="displayName"
 	>
 		<h1 class="text-3xl md:text-4xl font-semibold mb-4 pt-10 md:pt-14 lg:pt-16 mb-4">
@@ -88,8 +90,9 @@ templ DisplayName(page *controller.Page) {
 	</div>
 }
 
+// Renders: notification-permissions component.
 templ NotificationPermissions(page *controller.Page, data viewmodels.NotificationPermissionsData) {
-	<h1 class="text-3xl md:text-4xl font-semibold mb-4 pt-10 md:pt-14 lg:pt-16 mb-4">
+	<h1 data-component="notification-permissions" class="text-3xl md:text-4xl font-semibold mb-4 pt-10 md:pt-14 lg:pt-16 mb-4">
 		🔔 Notifications 
 	</h1>
 	<div class="text-base my-3">
@@ -383,8 +386,9 @@ templ deleteAccountAndData(page *controller.Page) {
 	</div>
 }
 
+// Renders: about-me component.
 templ AboutMe(page *controller.Page) {
-	<div id="aboutMe">
+	<div data-component="about-me" id="aboutMe">
 		<h1 class="text-3xl md:text-4xl font-semibold mb-4 pt-10 md:pt-14 lg:pt-16">🙋 About Me</h1>
 		<div id="bioTextInput">
 			if form, ok := page.Form.(*viewmodels.ProfileBioFormData); ok {
@@ -541,3 +545,4 @@ templ phoneNumber(page *controller.Page, phone string) {
 		</div>
 	</div>
 }
+

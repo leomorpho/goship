@@ -7,10 +7,11 @@ import (
 	"github.com/leomorpho/goship/app/views/web/components/gen"
 )
 
+// Renders: register component.
 templ Register(page *controller.Page) {
 	if form, ok := page.Form.(*viewmodels.RegisterForm); ok {
 		if data, ok := page.Data.(viewmodels.RegisterData);ok {
-			<form
+			<form data-component="register"
 				method="post"
 				action={ templ.URL(page.ToURL(routenames.RouteNameRegisterSubmit)) }
 				class="space-y-4"
@@ -128,3 +129,4 @@ templ Register(page *controller.Page) {
 		}
 	}
 }
+

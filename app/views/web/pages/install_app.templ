@@ -5,10 +5,11 @@ import (
 	"github.com/leomorpho/goship/app/views/web/components/gen"
 )
 
+// Renders: install-app component.
 templ InstallApp(page *controller.Page) {
 	@components.PrevNavBarWithTitle("", "", "📲 Install the Mobile App")
 	// @installAppDisclaimer()
-	<div class="flex flex-col w-full justify-center">
+	<div data-component="install-app" class="flex flex-col w-full justify-center">
 		@installIos("h-24 sm:h-28")
 		@installAndroid("h-24 sm:h-28")
 		@addToHomeScreen("h-24 sm:h-28")
@@ -189,3 +190,4 @@ templ screen(url, alt string) {
 		/>
 	</div>
 }
+

@@ -5,12 +5,13 @@ import (
 	"github.com/leomorpho/goship/app/web/viewmodels"
 )
 
+// Renders: capability-explorer component.
 templ CapabilityExplorer(defaultKey string, sections []viewmodels.CapabilitySection, showDocLinks bool) {
 	if len(sections) == 0 {
 		return
 	}
 
-	<div class="mt-6 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/60 dark:bg-slate-900/40 p-3 md:p-5" x-data={ fmt.Sprintf("{ selected: '%s' }", defaultKey) }>
+	<div data-component="capability-explorer" class="mt-6 rounded-xl border border-slate-200 dark:border-slate-700 bg-white/60 dark:bg-slate-900/40 p-3 md:p-5" x-data={ fmt.Sprintf("{ selected: '%s' }", defaultKey) }>
 		<div class="md:hidden">
 			<div class="overflow-x-auto pb-2">
 				<div class="flex gap-2 w-max min-w-full">
@@ -83,3 +84,4 @@ templ CapabilityExplorer(defaultKey string, sections []viewmodels.CapabilitySect
 templ repoDocLink(path, label string) {
 	<a href={ templ.SafeURL(fmt.Sprintf("https://github.com/leomorpho/GoShip/blob/main/%s", path)) } target="_blank" class="underline hover:text-blue-600 dark:hover:text-blue-400">{ label }</a>
 }
+

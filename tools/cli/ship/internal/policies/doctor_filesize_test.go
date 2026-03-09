@@ -24,8 +24,8 @@ func TestRunDoctorChecks_FileSizes(t *testing.T) {
 	t.Run("go file over hard cap is error", func(t *testing.T) {
 		root := t.TempDir()
 		writeDoctorFixture(t, root)
-		path := filepath.Join(root, "app", "web", "ui", "error.go")
-		writeSizedGoFile(t, path, "package ui\n", 620)
+	path := filepath.Join(root, "app", "web", "ui", "error.go")
+	writeSizedGoFile(t, path, "package ui\n", 1105)
 
 		issues := RunDoctorChecks(root)
 		issue := mustFindIssueCode(t, issues, "DX010")

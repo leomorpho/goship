@@ -1,12 +1,14 @@
 package components
 
+// Renders: form-c-s-r-f component.
 templ FormCSRF(token string) {
-	<input type="hidden" name="csrf" value={ token }/>
+	<input data-component="form-c-s-r-f" type="hidden" name="csrf" value={ token }/>
 }
 
+// Renders: form-field-errors component.
 templ FormFieldErrors(errs []string) {
 	for _, err := range errs {
-		<div
+		<div data-component="form-field-errors"
 			class="p-2 pl-4 my-1 text-sm text-yellow-800 rounded-lg bg-yellow-100 
             dark:bg-gray-800 dark:text-yellow-300 flex flex-row flex-wrap items-center"
 			role="alert"
@@ -24,3 +26,4 @@ templ FormFieldErrors(errs []string) {
 		</div>
 	}
 }
+

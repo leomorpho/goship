@@ -7,6 +7,7 @@ import (
 	"github.com/leomorpho/goship/app/web/routenames"
 )
 
+// Renders: delete-account-page component.
 templ DeleteAccountPage(page *controller.Page) {
 	if data, ok := page.Data.(*viewmodels.DeleteAccountData); ok {
 		@deleteAccountPage(page, data)
@@ -15,7 +16,7 @@ templ DeleteAccountPage(page *controller.Page) {
 
 templ deleteAccountPage(page *controller.Page, data *viewmodels.DeleteAccountData) {
 	@components.PrevNavBarWithTitle("", "", "Delete Account")
-	<div
+	<div data-component="delete-account-page"
 		class="flex flex-col space-y-4"
 	>
 		if data.HasUncancelledSubscription {
@@ -61,3 +62,4 @@ templ deleteAccountPage(page *controller.Page, data *viewmodels.DeleteAccountDat
 		</a>
 	</div>
 }
+

@@ -1,8 +1,9 @@
 package components
 
+// Renders: bonfire-banner component.
 templ BonfireBanner() {
 	<!-- Banner (hidden initially) -->
-	<div id="bonfire-banner" class="hidden fixed bottom-0 left-0 w-full bg-orange-500 text-white text-sm flex items-center justify-between px-4 py-2 z-50">
+	<div data-component="bonfire-banner" id="bonfire-banner" class="hidden fixed bottom-0 left-0 w-full bg-orange-500 text-white text-sm flex items-center justify-between px-4 py-2 z-50">
 		<div class="w-full flex items-center justify-center">
 			<span>
 				🚀 Check out our new event platform! 
@@ -33,3 +34,4 @@ templ BonfireBanner() {
 		}
 	</script>
 }
+

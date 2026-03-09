@@ -8,6 +8,7 @@ import (
 	"github.com/leomorpho/goship/app/web/routenames"
 )
 
+// Renders: pricing-page component.
 templ PricingPage(page *controller.Page) {
 	@components.PrevNavBarWithTitle(page.ToURL(routenames.RouteNamePreferences), "", "🍻 Subscription")
 	if data, ok := page.Data.(viewmodels.PricingPageData); ok {
@@ -16,7 +17,7 @@ templ PricingPage(page *controller.Page) {
 }
 
 templ pricingCards(page *controller.Page, productProPrice, productProCode, activePlanKey string, activePlanIsPaid bool, isTrial bool) {
-	<div class="py-8 px-4 mx-auto max-w-screen-xl lg:py-16 lg:px-6">
+	<div data-component="pricing-page" class="py-8 px-4 mx-auto max-w-screen-xl lg:py-16 lg:px-6">
 		<div class="space-y-8 lg:grid lg:grid-cols-2 sm:gap-6 xl:gap-10 lg:space-y-0">
 			@pricingCard(page, "Starter", "Forever free.", "0", []string{"Answer up to 1 question every 24h", "Save up to 3 questions for later"}, "", appsubscriptions.PlanFreeKey, activePlanKey, activePlanIsPaid, isTrial)
 			@pricingCard(page, "Committed", "You like diving deep.", productProPrice, []string{"Unlimited everything"}, productProCode, appsubscriptions.PlanProKey, activePlanKey, activePlanIsPaid, isTrial)
@@ -89,8 +90,9 @@ templ pricingCard(page *controller.Page, title, subtitle, price string, points [
 	</div>
 }
 
+// Renders: payment-success component.
 templ PaymentSuccess(page *controller.Page) {
-	<div
+	<div data-component="payment-success"
 		class="text-xl md:text-2xl lg:text-3xl font-heavy flex flex-col justify-center items-center min-h-screen"
 	>
 		<div>{ "Success! 🤗🎉" }</div>
@@ -113,3 +115,4 @@ templ PaymentSuccess(page *controller.Page) {
 		</div>
 	</div>
 }
+

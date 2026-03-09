@@ -8,8 +8,9 @@ import (
 	"strings"
 )
 
+// Renders: metatags component.
 templ Metatags(page *controller.Page) {
-	<title>
+	<title data-component="metatags">
 		{ page.AppName }
 		if len(page.Title) > 0 {
 			{ fmt.Sprintf("| %s", page.Title) }
@@ -36,8 +37,9 @@ templ Metatags(page *controller.Page) {
 	<meta name="description" content="Goship is a Go/HTMX starter kit here to help you get your idea to market before you can sneeze once."/>
 }
 
+// Renders: c-s-s component.
 templ CSS() {
-	<link rel="stylesheet" href={ helpers.File("svelte_bundle.css") }/>
+	<link data-component="c-s-s" rel="stylesheet" href={ helpers.File("svelte_bundle.css") }/>
 	<link rel="stylesheet" href={ helpers.File("styles_bundle.css") }/>
 	<link rel="manifest" crossorigin="use-credentials" href={ helpers.File("manifest.json") }/>
 	// Defer loading swiper styles (see https://www.giftofspeed.com/defer-loading-css/)
@@ -68,9 +70,10 @@ templ CSS() {
 	</style>
 }
 
+// Renders: j-s component.
 templ JS() {
 	// START PWA splash screen (TODO: not working lol)
-	<script src="https://cdn.jsdelivr.net/npm/ios-pwa-splash@1.0.0/cdn.min.js"></script>
+	<script data-component="j-s" src="https://cdn.jsdelivr.net/npm/ios-pwa-splash@1.0.0/cdn.min.js"></script>
 	<script id="dynamic-splash-screen" icon-url-data={ templ.JSONString(helpers.File("icon.png")) }>
 		(function(){
 			const dynamicSplashScreen = document.getElementById("dynamic-splash-screen");
@@ -156,6 +159,7 @@ script htmxBeforeSwap() {
     });
 }
 
+// Renders: j-s-footer component.
 templ JSFooter(page *controller.Page) {
 	if len(page.CSRF) > 0 {
 		@csrfJS(page.CSRF)
@@ -194,11 +198,12 @@ script htmxWindowOnLoad() {
 }
 
 templ beforeBodyEnd() {
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
+	<script data-component="j-s-footer" src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
 }
 
+// Renders: text-footer component.
 templ TextFooter(page *controller.Page) {
-	<div class="mx-1 sm:mx-2 py-3">
+	<div data-component="text-footer" class="mx-1 sm:mx-2 py-3">
 		<footer class="bg-slate-100 dark:bg-gray-800 rounded-lg shadow m-4">
 			<div class="w-full mx-auto max-w-screen-xl p-4 md:flex md:items-center md:justify-between">
 				<span class="text-sm text-gray-500 sm:text-center dark:text-gray-400">
@@ -236,3 +241,4 @@ templ TextFooter(page *controller.Page) {
 		document.getElementById('currentYear').textContent = new Date().getFullYear();
 	</script>
 }
+

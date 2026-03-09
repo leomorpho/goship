@@ -27,8 +27,9 @@ func File(filepath string) string {
 }
 
 // Link outputs HTML for a link element, providing the ability to dynamically set the active class
+// Renders: link component.
 templ Link(url, text, currentPath string, classes ...string) {
-	<a class={ classes, isEqualValue(currentPath, url, "is-active") } href={ templ.URL(url) }>{ text }</a>
+	<a data-component="link" class={ classes, isEqualValue(currentPath, url, "is-active") } href={ templ.URL(url) }>{ text }</a>
 }
 
 func isEqualValue(item, expected, val string) string {
@@ -73,3 +74,4 @@ func jsonString(s any) string {
 	ss, _ := json.Marshal(s)
 	return string(ss)
 }
+
