@@ -2,6 +2,8 @@ package policies
 
 import (
 	"bufio"
+	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"os"
@@ -13,9 +15,11 @@ import (
 )
 
 type DoctorIssue struct {
-	Code    string
-	Message string
-	Fix     string
+	Code     string
+	Message  string
+	Fix      string
+	File     string
+	Severity string
 }
 
 type DoctorDeps struct {
@@ -31,24 +35,57 @@ func RunDoctor(args []string, d DoctorDeps) int {
 			return 0
 		}
 	}
-	if len(args) > 0 {
-		fmt.Fprintf(d.Err, "unexpected doctor arguments: %v\n", args)
+
+	fs := flag.NewFlagSet("doctor", flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+	jsonOutput := fs.Bool("json", false, "output doctor issues as JSON")
+	if err := fs.Parse(args); err != nil {
+		fmt.Fprintf(d.Err, "invalid doctor arguments: %v\n", err)
+		return 1
+	}
+	if fs.NArg() > 0 {
+		if *jsonOutput {
+			return writeDoctorJSON(d.Out, false, []DoctorIssue{{
+				Code:     "config",
+				Message:  fmt.Sprintf("unexpected doctor arguments: %v", fs.Args()),
+				Severity: "error",
+			}})
+		}
+		fmt.Fprintf(d.Err, "unexpected doctor arguments: %v\n", fs.Args())
 		return 1
 	}
 
 	wd, err := os.Getwd()
 	if err != nil {
+		if *jsonOutput {
+			return writeDoctorJSON(d.Out, false, []DoctorIssue{{
+				Code:     "config",
+				Message:  fmt.Sprintf("failed to resolve working directory: %v", err),
+				Severity: "error",
+			}})
+		}
 		fmt.Fprintf(d.Err, "failed to resolve working directory: %v\n", err)
 		return 1
 	}
 	root, _, err := d.FindGoModule(wd)
 	if err != nil {
+		if *jsonOutput {
+			return writeDoctorJSON(d.Out, false, []DoctorIssue{{
+				Code:     "config",
+				Message:  fmt.Sprintf("failed to resolve project root (go.mod): %v", err),
+				Severity: "error",
+			}})
+		}
 		fmt.Fprintf(d.Err, "failed to resolve project root (go.mod): %v\n", err)
 		return 1
 	}
 
 	issues := RunDoctorChecks(root)
-	if len(issues) == 0 {
+	if *jsonOutput {
+		return writeDoctorJSON(d.Out, !hasDoctorErrors(issues), issues)
+	}
+
+	if !hasDoctorErrors(issues) {
 		fmt.Fprintf(d.Out, "ship doctor: OK (%s)\n", root)
 		return 0
 	}
@@ -61,6 +98,59 @@ func RunDoctor(args []string, d DoctorDeps) int {
 		}
 	}
 	return 1
+}
+
+type doctorJSONIssue struct {
+	Type     string `json:"type"`
+	File     string `json:"file"`
+	Detail   string `json:"detail"`
+	Severity string `json:"severity"`
+}
+
+type doctorJSONResult struct {
+	OK     bool              `json:"ok"`
+	Issues []doctorJSONIssue `json:"issues"`
+}
+
+func writeDoctorJSON(w io.Writer, ok bool, issues []DoctorIssue) int {
+	payload := doctorJSONResult{
+		OK:     ok,
+		Issues: make([]doctorJSONIssue, 0, len(issues)),
+	}
+	for _, issue := range issues {
+		payload.Issues = append(payload.Issues, doctorJSONIssue{
+			Type:     issue.Code,
+			File:     filepath.ToSlash(issue.File),
+			Detail:   issue.Message,
+			Severity: doctorIssueSeverity(issue),
+		})
+	}
+
+	enc := json.NewEncoder(w)
+	if err := enc.Encode(payload); err != nil {
+		fmt.Fprintf(w, "{\"ok\":false,\"issues\":[{\"type\":\"config\",\"file\":\"\",\"detail\":%q,\"severity\":\"error\"}]}\n", fmt.Sprintf("failed to encode doctor JSON: %v", err))
+		return 1
+	}
+	if ok {
+		return 0
+	}
+	return 1
+}
+
+func hasDoctorErrors(issues []DoctorIssue) bool {
+	for _, issue := range issues {
+		if doctorIssueSeverity(issue) != "warning" {
+			return true
+		}
+	}
+	return false
+}
+
+func doctorIssueSeverity(issue DoctorIssue) string {
+	if issue.Severity == "" {
+		return "error"
+	}
+	return issue.Severity
 }
 
 func RunDoctorChecks(root string) []DoctorIssue {
@@ -977,7 +1067,7 @@ func checkAgentPolicyArtifacts(root string) []DoctorIssue {
 
 func printDoctorHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship doctor commands:")
-	fmt.Fprintln(w, "  ship doctor")
+	fmt.Fprintln(w, "  ship doctor [--json]")
 	fmt.Fprintln(w, "  (validates canonical app structure and LLM/DX conventions)")
 }
 
