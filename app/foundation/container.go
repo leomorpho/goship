@@ -17,6 +17,7 @@ import (
 
 	"github.com/leomorpho/goship-modules/notifications"
 	"github.com/leomorpho/goship/config"
+	dbqueries "github.com/leomorpho/goship/db/queries"
 	"github.com/leomorpho/goship/framework/core"
 	coreadapters "github.com/leomorpho/goship/framework/core/adapters"
 	"github.com/leomorpho/goship/framework/repos/mailer"
@@ -272,11 +273,19 @@ func (c *Container) initDatabase() {
 
 		// Check if this is a test environment
 		if c.Config.App.Environment == config.EnvTest {
+			dropTestDatabase, err := dbqueries.Get("drop_database_postgres")
+			if err != nil {
+				panic(fmt.Sprintf("failed to load test DB drop query: %v", err))
+			}
 			// Drop the test database, ignoring errors in case it doesn't yet exist
-			_, _ = c.Database.Exec("DROP DATABASE " + c.Config.Database.TestDatabase)
+			_, _ = c.Database.Exec(dropTestDatabase + c.Config.Database.TestDatabase)
 
+			createTestDatabase, err := dbqueries.Get("create_database_postgres")
+			if err != nil {
+				panic(fmt.Sprintf("failed to load test DB create query: %v", err))
+			}
 			// Create the test database
-			if _, err = c.Database.Exec("CREATE DATABASE " + c.Config.Database.TestDatabase); err != nil {
+			if _, err = c.Database.Exec(createTestDatabase + c.Config.Database.TestDatabase); err != nil {
 				panic(fmt.Sprintf("failed to create test database: %v", err))
 			}
 
@@ -290,7 +299,11 @@ func (c *Container) initDatabase() {
 			}
 		}
 		// Create the pgvector extension
-		_, err = c.Database.Exec("CREATE EXTENSION IF NOT EXISTS vector")
+		createVectorExtension, err := dbqueries.Get("create_pgvector_extension_postgres")
+		if err != nil {
+			panic(fmt.Sprintf("failed to load pgvector extension query: %v", err))
+		}
+		_, err = c.Database.Exec(createVectorExtension)
 		if err != nil {
 			panic(fmt.Sprintf("failed to enable pgvector: %v", err))
 		}

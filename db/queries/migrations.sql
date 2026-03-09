@@ -21,3 +21,12 @@ INSERT INTO goship_schema_migrations (version) VALUES ($1)
 
 -- name: insert_schema_migration_version_sqlite
 INSERT INTO goship_schema_migrations (version) VALUES (?)
+
+-- name: drop_database_postgres
+DROP DATABASE 
+
+-- name: create_database_postgres
+CREATE DATABASE 
+
+-- name: create_pgvector_extension_postgres
+CREATE EXTENSION IF NOT EXISTS vector
