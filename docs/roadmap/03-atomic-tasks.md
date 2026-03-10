@@ -1023,7 +1023,7 @@ func (r *Redirect) Go() error  // detects HX-Request header, sets HX-Redirect if
 
 ### K03 — `ship routes` command (parallel)
 
-**Status:** `[ ] todo`
+**Status:** `[x] done`
 **Depends on:** nothing
 **Files:** `tools/cli/ship/internal/commands/routes.go` (new)
 

@@ -39,6 +39,7 @@ Project lifecycle:
 
 - `ship new <app> [--module <module-path>] [--dry-run] [--force]`
 - `ship doctor [--json]`
+- `ship routes [--json]`
 - `ship agent:setup`
 - `ship agent:check`
 - `ship agent:status`
@@ -92,7 +93,8 @@ Command grammar policy:
 2. `ship dev` and `ship test` must never auto-upgrade toolchain versions.
 3. `ship doctor` reports version drift and prints explicit fix commands.
 4. `ship doctor --json` emits `{"ok","issues":[{"type","file","detail","severity"}]}` for agent tooling.
-5. Only `ship upgrade` may intentionally bump pinned versions.
+5. `ship routes --json` emits a JSON array of route objects (`method`, `path`, `auth`, `handler`, `file`).
+6. Only `ship upgrade` may intentionally bump pinned versions.
 
 ## Implementation Mapping (Current Repo)
 
@@ -142,6 +144,8 @@ Safety matrix:
 - `ship agent:check` -> fail if generated artifacts drift from canonical allowlist (for pre-commit/CI parity)
 - `ship agent:status` -> show best-effort local Codex/Claude/Gemini install status vs repo policy
 - `ship doctor --json` -> machine-readable doctor result on stdout; exit code 0 when there are no errors, 1 when any error is reported
+- `ship routes` -> prints a route inventory table from `app/router.go` AST parsing (`METHOD PATH AUTH HANDLER`)
+- `ship routes --json` -> prints the same route inventory as a JSON array
 - `ship make:resource <name>` -> scaffold handler (+ optional templ page), ensure route-name constant, and print route snippet for manual insertion in `app/router.go`
 - `ship make:resource <name> --domain <name>` -> generate domain-aware constructor slot (`domainService any`) and route wiring using `nil` placeholder
 - `ship make:resource <name> --wire` -> also insert snippet behind ship markers in `app/router.go`
@@ -250,5 +254,4 @@ Rule:
 ## Deferred (Not In V1)
 
 - `ship console`
-- `ship routes`
 - advanced generator variants

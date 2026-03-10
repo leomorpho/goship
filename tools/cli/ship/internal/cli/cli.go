@@ -73,6 +73,8 @@ func (c CLI) Run(args []string) int {
 		return c.runCheck(args[1:])
 	case "doctor":
 		return c.runDoctor(args[1:])
+	case "routes":
+		return c.runRoutes(args[1:])
 	case "describe":
 		return c.runDescribe(args[1:])
 	case "verify":
@@ -168,6 +170,14 @@ func (c CLI) runVerify(args []string) int {
 
 func (c CLI) runDescribe(args []string) int {
 	return cmd.RunDescribe(args, cmd.DescribeDeps{
+		Out:          c.Out,
+		Err:          c.Err,
+		FindGoModule: findGoModule,
+	})
+}
+
+func (c CLI) runRoutes(args []string) int {
+	return cmd.RunRoutes(args, cmd.RoutesDeps{
 		Out:          c.Out,
 		Err:          c.Err,
 		FindGoModule: findGoModule,
