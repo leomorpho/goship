@@ -237,7 +237,7 @@ Where `Router` is a minimal interface over Echo group registration (define it he
 
 ### C04 — Implement `ship module:remove` CLI command
 
-**Status:** `[ ] todo`
+**Status:** `[x] done`
 **Depends on:** C03
 **Files:** `tools/cli/ship/internal/commands/module.go`
 

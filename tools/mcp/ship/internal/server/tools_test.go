@@ -199,6 +199,66 @@ func TestCallShipDoctor(t *testing.T) {
 	})
 }
 
+func TestCallShipRoutes(t *testing.T) {
+	s := &mcpServer{}
+	prev := runShipDescribePayload
+	t.Cleanup(func() { runShipDescribePayload = prev })
+	runShipDescribePayload = func() (shipDescribeResult, error) {
+		return shipDescribeResult{
+			Routes: []shipDescribeRoute{
+				{Path: "/public", Method: "GET", Auth: false},
+				{Path: "/auth", Method: "POST", Auth: true},
+			},
+		}, nil
+	}
+
+	res, err := s.callShipRoutes(json.RawMessage(`{}`))
+	if err != nil {
+		t.Fatalf("callShipRoutes error: %v", err)
+	}
+	if !strings.Contains(res.Content[0].Text, `/public`) || !strings.Contains(res.Content[0].Text, `/auth`) {
+		t.Fatalf("unexpected routes payload: %s", res.Content[0].Text)
+	}
+
+	res, err = s.callShipRoutes(json.RawMessage(`{"filter":"public"}`))
+	if err != nil {
+		t.Fatalf("filter error: %v", err)
+	}
+	if strings.Contains(res.Content[0].Text, `/auth`) {
+		t.Fatalf("filter did not exclude auth route: %s", res.Content[0].Text)
+	}
+
+	res, err = s.callShipRoutes(json.RawMessage(`{"filter":"auth"}`))
+	if err != nil {
+		t.Fatalf("filter error: %v", err)
+	}
+	if strings.Contains(res.Content[0].Text, `/public`) {
+		t.Fatalf("filter did not exclude public route: %s", res.Content[0].Text)
+	}
+}
+
+func TestCallShipModules(t *testing.T) {
+	s := &mcpServer{}
+	prev := runShipDescribePayload
+	t.Cleanup(func() { runShipDescribePayload = prev })
+	runShipDescribePayload = func() (shipDescribeResult, error) {
+		return shipDescribeResult{
+			Modules: []shipDescribeModule{
+				{ID: "notifications", Installed: true},
+				{ID: "jobs", Installed: false},
+			},
+		}, nil
+	}
+
+	res, err := s.callShipModules(json.RawMessage(`{}`))
+	if err != nil {
+		t.Fatalf("callShipModules error: %v", err)
+	}
+	if !strings.Contains(res.Content[0].Text, `"installed":true`) || !strings.Contains(res.Content[0].Text, `"installed":false`) {
+		t.Fatalf("unexpected modules payload: %s", res.Content[0].Text)
+	}
+}
+
 func TestCallShipRoutesAndModules(t *testing.T) {
 	docsRoot := t.TempDir()
 	s := &mcpServer{docsRoot: docsRoot, repoRoot: docsRoot}
@@ -367,7 +427,7 @@ func TestCallShipScaffold(t *testing.T) {
 				return map[string]string{"README.md": "??"}, nil
 			}
 			return map[string]string{
-				"README.md":                   "??",
+				"README.md":                    "??",
 				"app/web/controllers/posts.go": "??",
 			}, nil
 		}

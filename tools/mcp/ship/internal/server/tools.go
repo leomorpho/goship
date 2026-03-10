@@ -241,8 +241,8 @@ type shipScaffoldField struct {
 }
 
 type shipScaffoldInput struct {
-	Resource string               `json:"resource"`
-	Fields   []shipScaffoldField  `json:"fields,omitempty"`
+	Resource string              `json:"resource"`
+	Fields   []shipScaffoldField `json:"fields,omitempty"`
 }
 
 type shipScaffoldResult struct {
@@ -798,7 +798,7 @@ func extractGitPath(raw string) string {
 	return strings.TrimSpace(raw)
 }
 
-func runShipDescribePayload() (shipDescribeResult, error) {
+var runShipDescribePayload = func() (shipDescribeResult, error) {
 	shipPath, err := lookPathShip("ship")
 	if err != nil {
 		return shipDescribeResult{}, err
