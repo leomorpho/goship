@@ -123,6 +123,8 @@ func RunModule(args []string, d ModuleDeps) int {
 	switch sub {
 	case "add":
 		return runModuleAdd(rest, d)
+	case "remove":
+		return runModuleRemove(rest, d)
 	default:
 		fmt.Fprintf(d.Err, "unknown module command: %s\n", sub)
 		return 1
@@ -130,7 +132,7 @@ func RunModule(args []string, d ModuleDeps) int {
 }
 
 func runModuleAdd(args []string, d ModuleDeps) int {
-	name, dryRun, err := parseAddArgs(args)
+	name, dryRun, err := parseModuleArgs(args)
 	if err != nil {
 		fmt.Fprintf(d.Err, "invalid module:add arguments: %v\n", err)
 		return 1
@@ -156,7 +158,35 @@ func runModuleAdd(args []string, d ModuleDeps) int {
 	return 0
 }
 
-func parseAddArgs(args []string) (string, bool, error) {
+func runModuleRemove(args []string, d ModuleDeps) int {
+	name, dryRun, err := parseModuleArgs(args)
+	if err != nil {
+		fmt.Fprintf(d.Err, "invalid module:remove arguments: %v\n", err)
+		return 1
+	}
+	info, ok := moduleCatalog[name]
+	if !ok {
+		fmt.Fprintf(d.Err, "unknown module %q\n", name)
+		return 1
+	}
+	root, _, err := d.FindGoModule(".")
+	if err != nil {
+		fmt.Fprintf(d.Err, "failed to locate project root: %v\n", err)
+		return 1
+	}
+
+	if err := applyModuleRemove(root, info, dryRun, d.Out); err != nil {
+		fmt.Fprintf(d.Err, "module:remove failed: %v\n", err)
+		return 1
+	}
+	fmt.Fprintln(d.Out, "Reminder: module:remove does not roll back related DB migrations.")
+	if dryRun {
+		fmt.Fprintln(d.Out, "Dry-run mode: no files were written.")
+	}
+	return 0
+}
+
+func parseModuleArgs(args []string) (string, bool, error) {
 	var name string
 	var dryRun bool
 	for i := 0; i < len(args); i++ {
@@ -248,6 +278,61 @@ func applyModuleAdd(root string, info moduleInfo, dryRun bool, out io.Writer) er
 	return nil
 }
 
+func applyModuleRemove(root string, info moduleInfo, dryRun bool, out io.Writer) error {
+	var changed bool
+
+	manifestPath := filepath.Join(root, "config", "modules.yaml")
+	removed, manifestContent, err := removeModuleFromManifest(manifestPath, info.ID)
+	if err != nil {
+		return err
+	}
+	if removed {
+		if err := writeOrDiff(manifestPath, manifestContent, dryRun, out); err != nil {
+			return err
+		}
+		changed = true
+	}
+
+	containerPath := filepath.Join(root, "app", "foundation", "container.go")
+	containerContent, err := os.ReadFile(containerPath)
+	if err != nil {
+		return fmt.Errorf("read container: %w", err)
+	}
+	containerUpdated, containerChanged := removeSnippetFromContent(string(containerContent), info.ContainerSnippet)
+	if containerChanged {
+		if err := writeOrDiff(containerPath, containerUpdated, dryRun, out); err != nil {
+			return err
+		}
+		changed = true
+	}
+
+	routerPath := filepath.Join(root, "app", "router.go")
+	routerContent, err := os.ReadFile(routerPath)
+	if err != nil {
+		return fmt.Errorf("read router: %w", err)
+	}
+	currentRouter := string(routerContent)
+	routerChanged := false
+	var changedSnippet bool
+	for _, snippet := range info.RouterSnippets {
+		currentRouter, changedSnippet = removeSnippetFromContent(currentRouter, snippet)
+		if changedSnippet {
+			routerChanged = true
+		}
+	}
+	if routerChanged {
+		if err := writeOrDiff(routerPath, currentRouter, dryRun, out); err != nil {
+			return err
+		}
+		changed = true
+	}
+
+	if !changed {
+		fmt.Fprintln(out, "Module was not wired; no changes needed.")
+	}
+	return nil
+}
+
 func buildModulesManifest(path, moduleID string) (bool, string, error) {
 	manifest := rt.ModulesManifest{}
 	modules := []string{}
@@ -273,11 +358,77 @@ func buildModulesManifest(path, moduleID string) (bool, string, error) {
 	if err != nil {
 		return false, "", fmt.Errorf("normalize modules: %w", err)
 	}
-	result := modulesManifestHeader
-	for _, mod := range normalizedModules {
-		result += fmt.Sprintf("  - %s\n", mod)
+	return true, renderModulesManifest(normalizedModules), nil
+}
+
+func renderModulesManifest(modules []string) string {
+	var b strings.Builder
+	b.WriteString(modulesManifestHeader)
+	for _, mod := range modules {
+		b.WriteString("  - ")
+		b.WriteString(mod)
+		b.WriteByte('\n')
 	}
-	return true, result, nil
+	return b.String()
+}
+
+func removeModuleFromManifest(path, moduleID string) (bool, string, error) {
+	modules := []string{}
+	if _, err := os.Stat(path); err == nil {
+		m, err := rt.LoadModulesManifest(path)
+		if err != nil {
+			return false, "", fmt.Errorf("parse %s: %w", path, err)
+		}
+		modules = m.Modules
+	} else if !os.IsNotExist(err) {
+		return false, "", fmt.Errorf("read %s: %w", path, err)
+	}
+
+	normalized := strings.TrimSpace(strings.ToLower(moduleID))
+	var found bool
+	var filtered []string
+	for _, module := range modules {
+		if module == normalized {
+			found = true
+			continue
+		}
+		filtered = append(filtered, module)
+	}
+	if !found {
+		return false, "", nil
+	}
+
+	normalizedModules, err := rt.NormalizeModules(filtered)
+	if err != nil {
+		return false, "", fmt.Errorf("normalize modules: %w", err)
+	}
+	return true, renderModulesManifest(normalizedModules), nil
+}
+
+func removeSnippetFromContent(src, snippet string) (string, bool) {
+	trimmed := strings.TrimSpace(snippet)
+	if trimmed == "" {
+		return src, false
+	}
+	idx := strings.Index(src, trimmed)
+	if idx == -1 {
+		return src, false
+	}
+	start := idx
+	for start > 0 && (src[start-1] == '\n' || src[start-1] == '\r' || src[start-1] == ' ' || src[start-1] == '\t') {
+		start--
+		if src[start] == '\n' {
+			break
+		}
+	}
+	end := idx + len(trimmed)
+	for end < len(src) && (src[end] == '\n' || src[end] == '\r' || src[end] == ' ' || src[end] == '\t') {
+		end++
+		if end > 0 && src[end-1] == '\n' {
+			break
+		}
+	}
+	return src[:start] + src[end:], true
 }
 
 func insertBetweenMarkers(src, start, end, snippet string) (string, bool, error) {

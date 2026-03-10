@@ -216,7 +216,7 @@ Where `Router` is a minimal interface over Echo group registration (define it he
 
 ### C03 — Implement `ship module:add` CLI command
 
-**Status:** `[ ] todo`
+**Status:** `[x] done`
 **Depends on:** C01, C02
 **Files:** `tools/cli/ship/internal/commands/module.go` (new), `tools/cli/ship/internal/cli/cli.go`
 

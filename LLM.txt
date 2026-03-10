@@ -1135,6 +1135,13 @@ Impact:
 
 - UI may represent scaffolding rather than production data behavior in some sections.
 
+## 8) Docker-heavy integration tests tax iteration speed (Medium)
+
+- Many integration packages drop into `testcontainers-go` and spin up Docker containers every time `make test-integration` runs.
+- That end-to-end surface is important, but it makes the default integration loop take several minutes, especially for the `app/foundation`/`app/profile` packages.
+- Where possible, migrate the behavior being exercised (SQL migrations, module wiring, notification/email flows) into smaller unit tests that mock infrastructure so contributors can run fast, deterministic builds without constantly creating/tearing down containers.
+- Until those migrations happen, keep per-package tooling (like the new `INTEGRATION_PARALLEL` runner) and reusable helper contexts so we can run the heaviest suites less frequently.
+
 ## Suggested Priority Order
 
 1. Complete cache adapter coverage so page caching works consistently across supported backends.
@@ -3776,7 +3783,7 @@ Where `Router` is a minimal interface over Echo group registration (define it he
 
 ### C03 — Implement `ship module:add` CLI command
 
-**Status:** `[ ] todo`
+**Status:** `[x] done`
 **Depends on:** C01, C02
 **Files:** `tools/cli/ship/internal/commands/module.go` (new), `tools/cli/ship/internal/cli/cli.go`
 

@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -22,7 +23,7 @@ func TestParseAddArgs(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, dry, err := parseAddArgs(tt.args)
+			got, dry, err := parseModuleArgs(tt.args)
 			if (err != nil) != tt.wantErr {
 				t.Fatalf("parseAddArgs error = %v, wantErr=%v", err, tt.wantErr)
 			}
@@ -78,5 +79,40 @@ func TestBuildModulesManifest(t *testing.T) {
 	}
 	if !strings.Contains(content, "- notifications") {
 		t.Fatalf("module entry missing: %s", content)
+	}
+}
+
+func TestRemoveSnippetFromContent(t *testing.T) {
+	content := "start\n\t// ship:module:test\n\t// TODO: remove me\nend\n"
+	updated, removed := removeSnippetFromContent(content, `
+	// ship:module:test
+	// TODO: remove me
+`)
+	if !removed {
+		t.Fatal("expected snippet removal")
+	}
+	if strings.Contains(updated, "remove me") {
+		t.Fatalf("snippet not removed: %s", updated)
+	}
+}
+
+func TestRemoveModuleFromManifest(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "modules.yaml")
+	if err := os.WriteFile(path, []byte(modulesManifestHeader+"  - notifications\n  - jobs\n"), 0o644); err != nil {
+		t.Fatalf("write manifest: %v", err)
+	}
+	removed, content, err := removeModuleFromManifest(path, "notifications")
+	if err != nil {
+		t.Fatalf("remove manifest: %v", err)
+	}
+	if !removed {
+		t.Fatal("expected manifest change")
+	}
+	if strings.Contains(content, "- notifications") {
+		t.Fatalf("module still present: %s", content)
+	}
+	if !strings.Contains(content, "- jobs") {
+		t.Fatalf("unexpected manifest: %s", content)
 	}
 }
