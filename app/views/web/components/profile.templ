@@ -92,29 +92,6 @@ templ Profile(page *controller.Page, profile domain.Profile, isSelf, isPotential
 	</style>
 }
 
-script initProfilePhotoUploaders(uploadProfilePicUrl, uploadGalleryPicUrl string, galleryPicsUploadEnabled bool) {
-	renderSvelteComponent('PhotoUploader', "edit-profile-pic", {
-		"postURL": uploadProfilePicUrl,
-		"uploadEnabled": true,
-		"isProfilePhotoCornerUploader": true,
-		"stylingClassesUploadEnabled":  "",
-		"stylingClassesUploadDisabled": "",
-		"buttonText":"",
-
-	});
-}
-
-script initGalleryPhotoUploaders(uploadProfilePicUrl, uploadGalleryPicUrl string, galleryPicsUploadEnabled bool) {
-	renderSvelteComponent('PhotoUploader', "photo-uploader", {
-		"postURL": uploadGalleryPicUrl,
-		"uploadEnabled": galleryPicsUploadEnabled,
-		"isProfilePhotoCornerUploader": false,
-		"stylingClassesUploadEnabled":  "px-3 py-2 text-xs font-medium text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 rounded-full text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 transition-colors duration-200",
-		"stylingClassesUploadDisabled": "px-3 py-2 text-xs font-medium text-white bg-slate-700 hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-300 rounded-full text-center me-2 mb-2 dark:bg-slate-600 dark:hover:bg-slate-700 dark:focus:ring-slate-800 transition-colors duration-200 cursor-not-allowed",
-		"buttonText": "Upload photo",
-	});
-}
-
 script initCarousel() {
 	const swiper = new Swiper('.swiper', {
 		// mousewheel: true,
@@ -172,8 +149,18 @@ templ ProfileHeader(page *controller.Page, profile *domain.Profile, isSelf, isPo
 						</div>
 						if isSelf {
 							<!-- Edit profile image -->
-							<div id="edit-profile-pic"></div>
-							@initProfilePhotoUploaders(uploadProfilePicUrl, uploadGalleryPicUrl, len(profile.Photos) < galleryPicsMaxCount)
+							<div
+								id="edit-profile-pic"
+								data-island="PhotoUploader"
+								data-props={ templ.JSONString(map[string]any{
+									"postURL": uploadProfilePicUrl,
+									"uploadEnabled": true,
+									"isProfilePhotoCornerUploader": true,
+									"stylingClassesUploadEnabled": "",
+									"stylingClassesUploadDisabled": "",
+									"buttonText": "",
+								}) }
+							></div>
 						}
 					</div>
 				</div>
@@ -199,11 +186,35 @@ templ ProfileHeader(page *controller.Page, profile *domain.Profile, isSelf, isPo
 				>
 					if len(profile.Photos) >= galleryPicsMaxCount {
 						<div x-data={ fmt.Sprintf("{ tooltip: 'Only %d gallery pictures allowed' }", galleryPicsMaxCount) }>
-							<div x-tooltip="tooltip" class="my-2" id="photo-uploader"></div>
+							<div
+								x-tooltip="tooltip"
+								class="my-2"
+								id="photo-uploader"
+								data-island="PhotoUploader"
+								data-props={ templ.JSONString(map[string]any{
+									"postURL": uploadGalleryPicUrl,
+									"uploadEnabled": false,
+									"isProfilePhotoCornerUploader": false,
+									"stylingClassesUploadEnabled": "px-3 py-2 text-xs font-medium text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 rounded-full text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 transition-colors duration-200",
+									"stylingClassesUploadDisabled": "px-3 py-2 text-xs font-medium text-white bg-slate-700 hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-300 rounded-full text-center me-2 mb-2 dark:bg-slate-600 dark:hover:bg-slate-700 dark:focus:ring-slate-800 transition-colors duration-200 cursor-not-allowed",
+									"buttonText": "Upload photo",
+								}) }
+							></div>
 						</div>
 					} else {
-						<div class="my-2" id="photo-uploader"></div>
-						@initGalleryPhotoUploaders(uploadProfilePicUrl, uploadGalleryPicUrl, len(profile.Photos) < galleryPicsMaxCount)
+						<div
+							class="my-2"
+							id="photo-uploader"
+							data-island="PhotoUploader"
+							data-props={ templ.JSONString(map[string]any{
+								"postURL": uploadGalleryPicUrl,
+								"uploadEnabled": true,
+								"isProfilePhotoCornerUploader": false,
+								"stylingClassesUploadEnabled": "px-3 py-2 text-xs font-medium text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 rounded-full text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 transition-colors duration-200",
+								"stylingClassesUploadDisabled": "px-3 py-2 text-xs font-medium text-white bg-slate-700 hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-300 rounded-full text-center me-2 mb-2 dark:bg-slate-600 dark:hover:bg-slate-700 dark:focus:ring-slate-800 transition-colors duration-200 cursor-not-allowed",
+								"buttonText": "Upload photo",
+							}) }
+						></div>
 					}
 					<a
 						href={ templ.URL(page.ToURL(routenames.RouteNameLogout)) }
@@ -290,4 +301,3 @@ templ grantContactInfoRequest(page *controller.Page, profileID int) {
 		</button>
 	</a>
 }
-

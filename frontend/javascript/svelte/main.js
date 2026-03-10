@@ -1,6 +1,5 @@
 import { toast } from "wc-toast";
 import MultiSelectComponent from "./components/MultiSelectComponent.svelte";
-import PhotoUploader from "./components/PhotoUploader.svelte";
 import PwaInstallButton from "./components/PwaInstallButton.svelte";
 import SingleSelect from "./components/SingleSelect.svelte";
 import PwaSubscribePush from "./components/notifications/PwaSubscribePush.svelte";
@@ -9,7 +8,6 @@ import PwaSubscribePush from "./components/notifications/PwaSubscribePush.svelte
 const SvelteComponentRegistry = {
   MultiSelectComponent,
   // Mostly from https://github.com/flo-bit/svelte-swiper-cards
-  PhotoUploader,
   SingleSelect,
   PwaInstallButton,
   PwaSubscribePush,
