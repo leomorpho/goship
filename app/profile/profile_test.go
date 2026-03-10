@@ -28,6 +28,8 @@ func init() {
 	sql.Register("postgres", stdlib.GetDefaultDriver())
 }
 
+// TODO: move most of these scenarios into SQLite-backed unit tests and keep a single Postgres/pgvector run
+// for schema wiring, to avoid restarting containers for every subtest.
 func TestGetProfileByID(t *testing.T) {
 	db, dialect, ctx := tests.CreateTestContainerPostgresDB(t)
 
