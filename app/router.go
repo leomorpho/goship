@@ -17,6 +17,7 @@ import (
 	"github.com/leomorpho/goship/config"
 	"github.com/leomorpho/goship/framework/runtimeplan"
 	authmodule "github.com/leomorpho/goship/modules/auth"
+	profilemodule "github.com/leomorpho/goship/modules/profile"
 	"github.com/rs/zerolog/log"
 )
 
@@ -215,17 +216,14 @@ func registerAuthRoutes(c *foundation.Container, g *echo.Group, ctr ui.Controlle
 	onboardedGroup.GET("/homeFeed", homeFeed.Get, middleware.SetLastSeenOnline(c.Auth)).Name = routeNames.RouteNameHomeFeed
 	onboardedGroup.GET("/homeFeed/buttons", homeFeed.GetHomeButtons).Name = routeNames.RouteNameGetHomeFeedButtons
 
-	singleProfile := controllers.NewProfileRoutes(ctr, deps.ProfileService)
-	onboardedGroup.GET("/profile", singleProfile.Get).Name = routeNames.RouteNameProfile
-
-	uploadPhoto := controllers.NewUploadPhotoRoutes(ctr, deps.ProfileService, deps.StorageRepo, c.Config.Storage.PhotosMaxFileSizeMB)
-	onboardedGroup.GET("/uploadPhoto", uploadPhoto.Get).Name = routeNames.RouteNameUploadPhoto
-	onboardedGroup.POST("/uploadPhoto", uploadPhoto.Post).Name = routeNames.RouteNameUploadPhotoSubmit
-	onboardedGroup.DELETE("/uploadPhoto/:image_id", uploadPhoto.Delete).Name = routeNames.RouteNameUploadPhotoDelete
-
-	currProfilePhoto := controllers.NewCurrProfilePhotoRoutes(ctr, deps.ProfileService, deps.StorageRepo, c.Config.Storage.PhotosMaxFileSizeMB)
-	onboardedGroup.GET("/currProfilePhoto", currProfilePhoto.Get).Name = routeNames.RouteNameCurrentProfilePhoto
-	onboardedGroup.POST("/currProfilePhoto", currProfilePhoto.Post).Name = routeNames.RouteNameCurrentProfilePhotoSubmit
+	profileModule := profilemodule.NewModule(profilemodule.ModuleDeps{
+		Controller:     ctr,
+		ProfileService: deps.ProfileService,
+		MaxFileSizeMB:  c.Config.Storage.PhotosMaxFileSizeMB,
+	})
+	if err := profileModule.RegisterRoutes(onboardedGroup); err != nil {
+		return err
+	}
 
 	normalNotificationsCount := controllers.NewNormalNotificationsCountRoute(ctr, deps.ProfileService)
 	onboardedGroup.GET("/notifications/normalNotificationsCount", normalNotificationsCount.Get).Name = routeNames.RouteNameNormalNotificationsCount

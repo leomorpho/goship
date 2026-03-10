@@ -21,6 +21,32 @@ ship CLI (`tools/cli/ship/`), MCP server (`tools/mcp/ship/`), Vite islands front
 
 ---
 
+## Key File Map (read before touching any task)
+
+| Concern | File / Fact |
+|---------|-------------|
+| Doctor logic (checks) | `tools/cli/ship/internal/policies/doctor.go` → `RunDoctorChecks(root string) []DoctorIssue` |
+| Doctor CLI wiring | `tools/cli/ship/internal/cli/cli.go` → `c.runDoctor()` dispatches to `cmd.RunDoctor(args, deps)` |
+| DoctorIssue struct | `{ Code, Message, Fix, File, Severity string }` |
+| Ship CLI dispatch | `tools/cli/ship/internal/cli/cli.go` → `func (c CLI) Run(args []string) int` with `switch args[0]` |
+| Ship command pattern | `func RunXxx(args []string, d XxxDeps) int` in `tools/cli/ship/internal/commands/*.go`; deps injected via struct |
+| Ship command example | `tools/cli/ship/internal/commands/infra.go` — read this as the canonical simple command template |
+| MCP server entrypoint | `tools/mcp/ship/cmd/ship-mcp/main.go` → calls `server.Run(ctx, stdin, stdout, stderr, docsRoot)` |
+| MCP tools registration | `tools/mcp/ship/internal/server/tools.go` — read this file to see how tools are registered and how to add new ones |
+| MCP server logic | `tools/mcp/ship/internal/server/server.go` |
+| App router | `app/router.go` — route markers: `// ship:routes:public:start/end`, `// ship:routes:auth:start/end`, `// ship:routes:external:start/end` |
+| Container | `app/foundation/container.go` — container marker: `// ship:container:start` / `// ship:container:end` at line ~95 |
+| Core interfaces | `framework/core/interfaces.go` — defines `Cache`, `Jobs`, `PubSub`, `Mailer`, `BlobStorage`, `Module`, `RoutableModule` |
+| App controllers | `app/web/controllers/` (30 files) |
+| App views | `app/views/` |
+| App viewmodels | `app/web/viewmodels/` |
+| Config struct | `config/config.go` → `type Config struct { HTTP, App, Runtime, Adapters, Cache, Database, Mail, … }` |
+| Templ generate | `make templ-gen` |
+| Test commands | `make test` (unit, no Docker), `make test-integration` (Docker required), `make e2e` (Playwright) |
+| Already implemented | `tools/cli/ship/internal/commands/describe.go`, `verify.go`, `agent_start.go`, `agent_finish.go`, `dev.go` all **exist** — check actual content before re-implementing |
+
+---
+
 ## Why Convention-Over-Configuration?
 
 LLMs make fewer errors when there is exactly one correct place to put each kind of thing.
@@ -47,11 +73,13 @@ Every violation must be a structured error that an agent can read and fix.
 
 **Status:** `[ ] todo`
 **Depends on:** M03 A02 (ship doctor --json flag)
-**Files:** `tools/cli/ship/internal/commands/doctor.go` (or equivalent doctor command file)
+**Files:** `tools/cli/ship/internal/policies/doctor.go`
+
+> **IMPORTANT:** The doctor command logic lives in `tools/cli/ship/internal/policies/doctor.go` (1,897 lines), NOT in `commands/`. The CLI wiring is in `tools/cli/ship/internal/cli/cli.go → c.runDoctor()`. The main check function is `RunDoctorChecks(root string) []DoctorIssue`. Each check appends to a `[]DoctorIssue` slice. The `DoctorIssue` struct has fields `{ Code, Message, Fix, File, Severity string }`. Read `policies/doctor.go` in full before editing — many checks already exist and the pattern is established.
 
 **Context:** GoShip has one canonical path for every concern. Agents violate these when they
 have no enforcement. `ship doctor` must catch placement violations and report them as structured
-errors. Read M03 A02 for the `--json` output format: `{"type", "file", "detail", "severity"}`.
+errors. The `--json` output format is: `{"type", "file", "detail", "severity"}` — match existing issue format in `policies/doctor.go`.
 
 **Rules to enforce:**
 1. No `*.go` file defining an HTTP handler func outside `app/web/controllers/`
@@ -61,12 +89,33 @@ errors. Read M03 A02 for the `--json` output format: `{"type", "file", "detail",
 4. No migration files outside `db/migrations/`
 5. No config struct definitions outside `config/config.go`
 
+**Exact pattern to follow** (copy this for every new check — do NOT deviate):
+```go
+// Add this function anywhere in policies/doctor.go
+func checkHandlerPlacement(root string) []DoctorIssue {
+    issues := make([]DoctorIssue, 0)
+    // walk files, detect violation, then:
+    issues = append(issues, DoctorIssue{
+        Code:     "DX020",  // use the next available DX0XX code not already in the file
+        Message:  "HTTP handler defined outside app/web/controllers/",
+        Fix:      "move the handler to app/web/controllers/",
+        File:     "path/to/offending/file.go",  // the specific file that violated the rule
+        Severity: "error",  // "error" blocks the build; "warning" just warns
+    })
+    return issues
+}
+
+// Then in RunDoctorChecks (around line 169), add ONE line to call it:
+issues = append(issues, checkHandlerPlacement(root)...)
+```
+The `Severity` field is optional — omit it for errors (they default to blocking). Use `Severity: "warning"` for non-blocking hints.
+
 **What to do:**
-1. Read the current doctor command to understand its check structure.
-2. Add each rule as a named check function: `checkHandlerPlacement()`, `checkRoutePlacement()`, etc.
-3. Each check walks the relevant directory tree using `filepath.Walk`.
-4. Uses `go/ast` or simple regex for handler signature detection (regex is acceptable here).
-5. Errors are appended to the issues slice and included in `--json` output.
+1. Read `tools/cli/ship/internal/policies/doctor.go` — search for "DX0" to find the highest existing code number, then use the next available numbers for your new checks.
+2. Check whether each of the 5 rules below is already implemented (grep for "handler", "route registration", "raw SQL", "migration", "config struct" in the file). Add only what is missing.
+3. Add each missing rule as a standalone function `checkXxx(root string) []DoctorIssue` following the exact pattern above.
+4. Each check uses `filepath.Walk` to scan directories, and `regexp.MustCompile` or `strings.Contains` to detect violations.
+5. Add one `issues = append(issues, checkXxx(root)...)` call inside `RunDoctorChecks` for each new check.
 
 **Done when:** `ship doctor` reports violations for each rule when a file is placed incorrectly.
 `ship doctor --json` includes placement violations in the issues array.
@@ -77,7 +126,7 @@ errors. Read M03 A02 for the `--json` output format: `{"type", "file", "detail",
 
 **Status:** `[ ] todo`
 **Depends on:** L01 (uses same check infrastructure)
-**Files:** `tools/cli/ship/internal/commands/doctor.go`
+**Files:** `tools/cli/ship/internal/policies/doctor.go`
 
 **Context:** Files over 300 lines are a signal of violation of single-responsibility. LLMs have
 worse comprehension of large files and are more likely to make errors editing them. Ship doctor
@@ -91,11 +140,13 @@ should warn (not error) on files above threshold, and error on files above a har
 - Exclude: `vendor/`, `_test.go` files (tests can be longer), generated files
 
 **What to do:**
-1. Add `checkFileSizes()` to the doctor command.
-2. Walk `app/`, `framework/`, `tools/`, `config/` directories.
-3. Count non-blank lines (or use `wc -l` equivalent via Go).
-4. Apply exclusion rules (generated suffixes, test files, vendor).
-5. Append warnings/errors to issues slice.
+1. Read `tools/cli/ship/internal/policies/doctor.go` — check if `checkFileSizes` already exists (grep for "300" or "600" line thresholds). Add only if missing.
+2. Add `checkFileSizes(root string) []DoctorIssue` following the exact pattern from L01: standalone function, returns `[]DoctorIssue`, append result in `RunDoctorChecks`.
+3. Walk `app/`, `framework/`, `tools/`, `config/` directories using `filepath.Walk`.
+4. Count lines by reading file content and counting `\n`. Skip blank lines with `strings.TrimSpace(line) == ""`.
+5. Apply exclusion rules: skip files ending in `.templ.go`, `_sql.go`, `bob_`, `_test.go`, and skip `vendor/` paths.
+6. Use `Severity: "warning"` for >300 lines, omit Severity (defaults to error) for >600 lines.
+7. Add `issues = append(issues, checkFileSizes(root)...)` inside `RunDoctorChecks`.
 
 **Done when:** `ship doctor` warns on files exceeding thresholds. Output includes the file path
 and line count. Excluded files are not flagged. `--json` output includes these as issues.
@@ -106,22 +157,23 @@ and line count. Excluded files are not flagged. `--json` output includes these a
 
 **Status:** `[ ] todo`
 **Depends on:** L01 (uses same check infrastructure)
-**Files:** `tools/cli/ship/internal/commands/doctor.go`, `app/router.go`, `app/foundation/container.go`
+**Files:** `tools/cli/ship/internal/policies/doctor.go`, `app/router.go`, `app/foundation/container.go`
 
 **Context:** `ship module:add` (M03 C03) inserts code at marker comments. If a developer removes
 or renames a marker, module installation silently fails. Doctor must verify markers are present
 and paired.
 
-**Markers to check:**
-- `app/router.go`: `// ship:routes:public:start` / `:end`, `// ship:routes:auth:start` / `:end`,
-  `// ship:routes:admin:start` / `:end`
-- `app/foundation/container.go`: `// ship:container:start` / `:end`
+**Markers to check (exact strings, verified in source):**
+- `app/router.go`: `// ship:routes:public:start` / `// ship:routes:public:end` (line ~147), `// ship:routes:auth:start` / `// ship:routes:auth:end` (line ~238), `// ship:routes:external:start` / `// ship:routes:external:end` (line ~248)
+- `app/foundation/container.go`: `// ship:container:start` / `// ship:container:end` (line ~95)
 
 **What to do:**
-1. Add `checkMarkerIntegrity()` to the doctor command.
-2. For each expected marker pair, read the file and verify both `:start` and `:end` exist.
-3. Verify that `:start` appears before `:end` (no inversion).
-4. Error if any expected marker is missing. Warning if marker exists but has no matching pair.
+1. Read `tools/cli/ship/internal/policies/doctor.go` — search for "ship:routes" or "ship:container". If marker integrity checks already exist, verify they cover all pairs listed above and add only what's missing.
+2. Add `checkMarkerIntegrity(root string) []DoctorIssue` following the exact pattern from L01: standalone function, returns `[]DoctorIssue`.
+3. For each marker pair: `content, err := os.ReadFile(filepath.Join(root, "app/router.go"))`, then check `bytes.Contains(content, []byte("// ship:routes:auth:start"))` and `bytes.Contains(content, []byte("// ship:routes:auth:end"))`.
+4. Also verify `:start` index < `:end` index using `bytes.Index` to detect inversion.
+5. Error (no Severity field) if marker is missing. `Severity: "warning"` if unpaired.
+6. Add `issues = append(issues, checkMarkerIntegrity(root)...)` inside `RunDoctorChecks`.
 
 **Done when:** `ship doctor` errors if any required marker is missing or unpaired. Detects inversion.
 
@@ -131,7 +183,9 @@ and paired.
 
 **Status:** `[ ] todo`
 **Depends on:** L01, L02, L03 (doctor must be complete), M03 A02 (doctor --json)
-**Files:** `tools/cli/ship/internal/cli/cli.go`, `tools/cli/ship/internal/commands/verify.go` (new)
+**Files:** `tools/cli/ship/internal/cli/cli.go`, `tools/cli/ship/internal/commands/verify.go`
+
+> **NOTE:** `tools/cli/ship/internal/commands/verify.go` **already exists**. Read it first — it may be a stub or partially implemented. Check whether the pipeline steps (templ generate → go build → ship doctor → nilaway → go test) are all wired. If any are missing, add them following the existing pattern in that file. Do NOT recreate the file from scratch.
 
 **Context:** Agents need a single command that runs all correctness checks in sequence and fails
 fast on the first error. Without this, agents run inconsistent subsets of checks. `ship verify`
@@ -162,7 +216,9 @@ is the canonical "am I done?" command — run it before marking any task complet
 
 **Status:** `[ ] todo`
 **Depends on:** nothing (standalone command)
-**Files:** `tools/cli/ship/internal/commands/describe.go` (new), `tools/cli/ship/internal/cli/cli.go`
+**Files:** `tools/cli/ship/internal/commands/describe.go`, `tools/cli/ship/internal/cli/cli.go`
+
+> **NOTE:** `tools/cli/ship/internal/commands/describe.go` **already exists**. Read it first — it may be a stub or partially implemented. Check which sections of the JSON output (routes, modules, controllers, viewmodels, components, islands, db_tables, migrations) are populated vs missing. Fill in only what's missing. The CLI dispatch in `cli.go → c.runDescribe()` is already wired.
 
 **Context:** LLMs burn context reading individual files to understand codebase structure.
 `ship describe` produces a compact JSON map of everything an agent needs to work efficiently:
@@ -223,7 +279,11 @@ routes, modules, viewmodels, components. Agents load this once at task start.
 
 **Status:** `[ ] todo`
 **Depends on:** L04 (ship verify), M03 A02 (ship doctor --json)
-**Files:** `tools/mcp/ship/main.go` (or equivalent MCP server entrypoint)
+**Files:** `tools/mcp/ship/internal/server/tools.go`
+
+> **VERIFY FIRST — may already be implemented.** Open `tools/mcp/ship/internal/server/tools.go` and search for `callShipDoctor`. If a function with that name exists and is registered as a tool named `ship_doctor`, this task is **done** — mark it `[x]`. Only implement if the function is missing.
+
+> **MCP tool registration pattern:** The MCP server entrypoint is `tools/mcp/ship/cmd/ship-mcp/main.go` which calls `server.Run(ctx, stdin, stdout, stderr, docsRoot)`. All tool definitions and handlers are in `tools/mcp/ship/internal/server/tools.go`. Read that file first — it shows the exact pattern for registering a new tool (tool schema, input struct, handler function). The server logic is in `tools/mcp/ship/internal/server/server.go`.
 
 **Context:** The MCP server at `tools/mcp/ship/` currently has 3 tools: `ship_help`, `docs_search`,
 `docs_get`. Adding `ship_doctor` lets agents self-validate after making changes, closing the
@@ -235,9 +295,9 @@ act → verify → fix loop without human intervention.
 - Output: `{"ok": bool, "issues": [{"type", "file", "detail", "severity"}]}`
 - Implementation: shell out to `ship doctor --json`, parse and return the result
 
-**What to do:**
-1. Read `tools/mcp/ship/` fully to understand how existing tools are registered.
-2. Register `ship_doctor` tool with the schema above.
+**What to do (only if not already present):**
+1. Read `tools/mcp/ship/internal/server/tools.go` fully to understand how existing tools are registered.
+2. Following the same pattern, register `ship_doctor` in that file.
 3. Execute `ship doctor --json` as a subprocess, capture stdout.
 4. Parse JSON output, return as MCP tool result.
 5. If `ship doctor` binary is not found, return `{"ok": false, "issues": [{"type": "config", "detail": "ship binary not found in PATH"}]}`.
@@ -251,7 +311,9 @@ correctly when no issues exist (`{"ok": true, "issues": []}`).
 
 **Status:** `[ ] todo`
 **Depends on:** L05 (ship describe --json populates route data)
-**Files:** `tools/mcp/ship/main.go`
+**Files:** `tools/mcp/ship/internal/server/tools.go`
+
+> **VERIFY FIRST — may already be implemented.** Open `tools/mcp/ship/internal/server/tools.go` and search for `callShipRoutes`. If a function with that name exists and is registered as a tool named `ship_routes`, this task is **done** — mark it `[x]`. Only implement if the function is missing.
 
 **Context:** Agents creating new routes need to know what routes already exist to avoid conflicts.
 `ship_routes` returns the full route inventory from `ship describe --json`.
@@ -261,7 +323,7 @@ correctly when no issues exist (`{"ok": true, "issues": []}`).
 - Input: `{"filter": "public|auth|admin"}` (optional)
 - Output: `{"routes": [{...}]}` (same schema as `ship describe` routes array)
 
-**What to do:**
+**What to do (only if not already present):**
 1. Register `ship_routes` tool.
 2. Shell out to `ship describe --json`, parse the `routes` field.
 3. If `filter` is provided, return only routes matching the auth level.
@@ -275,7 +337,9 @@ correctly when no issues exist (`{"ok": true, "issues": []}`).
 
 **Status:** `[ ] todo`
 **Depends on:** L05 (ship describe --json)
-**Files:** `tools/mcp/ship/main.go`
+**Files:** `tools/mcp/ship/internal/server/tools.go`
+
+> **VERIFY FIRST — may already be implemented.** Open `tools/mcp/ship/internal/server/tools.go` and search for `callShipModules`. If a function with that name exists and is registered as a tool named `ship_modules`, this task is **done** — mark it `[x]`. Only implement if the function is missing.
 
 **Context:** Agents need to know which modules are installed before writing code that depends
 on them. Prevents agents from importing missing modules.
@@ -285,7 +349,7 @@ on them. Prevents agents from importing missing modules.
 - Input: `{}` (no parameters)
 - Output: `{"modules": [{...}]}` (same schema as `ship describe` modules array)
 
-**What to do:**
+**What to do (only if not already present):**
 1. Register `ship_modules` tool.
 2. Shell out to `ship describe --json`, parse the `modules` field.
 3. Return modules array.
@@ -298,7 +362,9 @@ on them. Prevents agents from importing missing modules.
 
 **Status:** `[ ] todo`
 **Depends on:** M03 C01 (module system interfaces), scaffolding commands in ship CLI
-**Files:** `tools/mcp/ship/main.go`
+**Files:** `tools/mcp/ship/internal/server/tools.go`
+
+> **VERIFY FIRST — may already be implemented.** Open `tools/mcp/ship/internal/server/tools.go` and search for `callShipScaffold`. If a function with that name exists and is registered as a tool named `ship_scaffold`, this task is **done** — mark it `[x]`. Only implement if the function is missing.
 
 **Context:** The highest-friction LLM task is creating new resources — controller + viewmodel +
 templ file + route + test. `ship_scaffold` lets agents scaffold resources without shell access.
@@ -309,7 +375,7 @@ templ file + route + test. `ship_scaffold` lets agents scaffold resources withou
 - Output: `{"ok": bool, "files_created": ["path/to/file.go", ...], "errors": [string]}`
 - Implementation: shell out to `ship make:scaffold Post Title:string Body:string`, parse output
 
-**What to do:**
+**What to do (only if not already present):**
 1. Register `ship_scaffold` tool.
 2. Build the CLI invocation from input parameters.
 3. Execute and parse the output (ship make:scaffold should output JSON when --json flag is set).
@@ -324,7 +390,9 @@ errors (duplicate resource name, invalid field types) via `errors` array.
 
 **Status:** `[ ] todo`
 **Depends on:** L04 (ship verify command)
-**Files:** `tools/mcp/ship/main.go`
+**Files:** `tools/mcp/ship/internal/server/tools.go`
+
+> **VERIFY FIRST — may already be implemented.** Open `tools/mcp/ship/internal/server/tools.go` and search for `callShipVerify`. If a function with that name exists and is registered as a tool named `ship_verify`, this task is **done** — mark it `[x]`. Only implement if the function is missing.
 
 **Context:** Wraps `ship verify --json` as an MCP tool. Agents run this after implementing a
 task to confirm no regressions before marking work complete.
@@ -334,7 +402,7 @@ task to confirm no regressions before marking work complete.
 - Input: `{"skip_tests": bool}`
 - Output: `{"ok": bool, "steps": [{"name": "string", "ok": bool, "output": "string"}]}`
 
-**What to do:**
+**What to do (only if not already present):**
 1. Register `ship_verify` tool.
 2. Build invocation: `ship verify --json` or `ship verify --json --skip-tests`.
 3. Parse and return JSON output.
@@ -503,7 +571,7 @@ types and viewmodels are represented. No handler logic is changed.
 
 **Status:** `[ ] todo`
 **Depends on:** O01, L01 (doctor infrastructure)
-**Files:** `tools/cli/ship/internal/commands/doctor.go`
+**Files:** `tools/cli/ship/internal/policies/doctor.go`
 
 **Context:** After O01, contracts exist but handlers may not use them. This check catches handlers
 that parse form values directly without a contract type.
@@ -608,6 +676,8 @@ tests remain, so agents know there is unfinished implementation.
 **Depends on:** nothing
 **Files:** `.githooks/commit-msg` (new), `Makefile` (hooks:install target)
 
+> **Makefile target:** The Makefile has a `hooks` / `hooks-install` target already. Check its current content before adding a new one — it may already configure `git config core.hooksPath`. The Makefile is at the repo root (`/Users/leoaudibert/Workspace/2026/pagoda-based/goship/Makefile`).
+
 **Context:** Conventional commits (`feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`)
 give agents and humans a consistent vocabulary for change classification. Without enforcement,
 commit messages are unstructured and harder to parse in agent-generated changelogs.
@@ -646,7 +716,9 @@ Description: imperative present tense, lowercase, no period
 
 **Status:** `[ ] todo`
 **Depends on:** L05 (ship describe), L04 (ship verify)
-**Files:** `tools/cli/ship/internal/commands/agent_start.go` (new), `tools/cli/ship/internal/cli/cli.go`
+**Files:** `tools/cli/ship/internal/commands/agent_start.go`, `tools/cli/ship/internal/cli/cli.go`
+
+> **NOTE:** `tools/cli/ship/internal/commands/agent_start.go` **already exists**. Read it first — it may be a stub or partially implemented. Check which of the described steps (git worktree creation, TASK.md generation, ship describe output, CLAUDE.md injection) are done vs missing. The CLI dispatch in `cli.go → c.runAgent()` is already wired. Do NOT recreate the file.
 
 **Context:** Agents working on tasks benefit from isolation — a separate git worktree where their
 changes don't interfere with in-progress human work, and a context document scoped to the task.
@@ -683,7 +755,9 @@ TASK.md. The worktree is functional (can run `go build` from it). `.worktrees/` 
 
 **Status:** `[ ] todo`
 **Depends on:** Q02 (agent:start)
-**Files:** `tools/cli/ship/internal/commands/agent_finish.go` (new), `tools/cli/ship/internal/cli/cli.go`
+**Files:** `tools/cli/ship/internal/commands/agent_finish.go`, `tools/cli/ship/internal/cli/cli.go`
+
+> **NOTE:** `tools/cli/ship/internal/commands/agent_finish.go` **already exists**. Read it first — it may be a stub or partially implemented. Check which of the steps (ship verify, git add, commit, push, gh pr create, worktree remove) are done vs missing. Do NOT recreate the file.
 
 **Context:** After an agent completes work in a worktree, it needs to: verify correctness,
 create a conventional commit, and open a PR. `ship agent:finish` automates this sequence.
@@ -741,10 +815,10 @@ templ Navbar(user *User) {
    - Be specific: "login form with email/password fields and forgot password link"
      not "renders the login page".
 3. Do not change any templ logic — comments only.
-4. Run `templ generate` after to verify no syntax errors.
+4. Run `make templ-gen` after to verify no syntax errors (this is the correct command — NOT `templ generate` directly).
 
 **Done when:** Every exported templ function in `app/views/` has a `// Renders:` comment.
-`templ generate` passes. `ship verify` passes.
+`make templ-gen` passes. `ship verify` passes.
 
 ---
 
@@ -752,7 +826,7 @@ templ Navbar(user *User) {
 
 **Status:** `[ ] todo`
 **Depends on:** R01, L01 (doctor infrastructure)
-**Files:** `tools/cli/ship/internal/commands/doctor.go`
+**Files:** `tools/cli/ship/internal/policies/doctor.go`
 
 **Context:** After R01 establishes the pattern, doctor should enforce it so future-added components
 don't silently skip the convention.
@@ -776,7 +850,7 @@ Correctly handles functions with existing comments (no false positives).
 
 **Status:** `[ ] todo`
 **Depends on:** L01 (doctor infrastructure)
-**Files:** `tools/cli/ship/internal/commands/doctor.go`
+**Files:** `tools/cli/ship/internal/policies/doctor.go`
 
 **Context:** Per `docs/ui/convention.md`, every exported templ component's root element must have
 a `data-component="<kebab-name>"` attribute. Doctor should enforce this.

@@ -15,9 +15,9 @@ import (
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/app"
 	"github.com/leomorpho/goship/app/foundation"
-	profilesvc "github.com/leomorpho/goship/app/profile"
 	appsubscriptions "github.com/leomorpho/goship/app/subscriptions"
 	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
+	profilesvc "github.com/leomorpho/goship/modules/profile"
 )
 
 func timeoutMiddleware(next http.Handler, writeTimeout time.Duration) http.Handler {

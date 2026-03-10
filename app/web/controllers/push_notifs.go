@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	profilesvc "github.com/leomorpho/goship/app/profile"
+	profilesvc "github.com/leomorpho/goship/modules/profile"
 	routeNames "github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/framework/dberrors"

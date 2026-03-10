@@ -15,10 +15,10 @@ import (
 	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/jackc/pgx/stdlib"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
-	profilesvc "github.com/leomorpho/goship/app/profile"
 	"github.com/leomorpho/goship/framework/domain"
 	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
 	"github.com/leomorpho/goship/framework/tests"
+	profilesvc "github.com/leomorpho/goship/modules/profile"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

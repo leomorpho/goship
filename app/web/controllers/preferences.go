@@ -14,7 +14,7 @@ import (
 
 	"github.com/leomorpho/goship-modules/notifications"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
-	profilesvc "github.com/leomorpho/goship/app/profile"
+	profilesvc "github.com/leomorpho/goship/modules/profile"
 	"github.com/leomorpho/goship/app/views"
 	"github.com/leomorpho/goship/app/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/views/web/pages/gen"

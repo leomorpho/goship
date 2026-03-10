@@ -10,7 +10,6 @@ import (
 	"github.com/labstack/echo/v4"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/app/foundation"
-	profilesvc "github.com/leomorpho/goship/app/profile"
 	"github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/framework/context"
 	"github.com/leomorpho/goship/framework/dberrors"
@@ -18,9 +17,13 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+type profileThumbnailReader interface {
+	GetProfilePhotoThumbnailURL(userID int) string
+}
+
 // LoadAuthenticatedUser loads the authenticated user, if one, and stores in context
 func LoadAuthenticatedUser(
-	authClient *foundation.AuthClient, profileService *profilesvc.ProfileService, subscriptionsService *paidsubscriptions.Service,
+	authClient *foundation.AuthClient, profileService profileThumbnailReader, subscriptionsService *paidsubscriptions.Service,
 ) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {

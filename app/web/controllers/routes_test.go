@@ -16,7 +16,7 @@ import (
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/app"
 	"github.com/leomorpho/goship/app/foundation"
-	profilesvc "github.com/leomorpho/goship/app/profile"
+	profilesvc "github.com/leomorpho/goship/modules/profile"
 	"github.com/leomorpho/goship/config"
 	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
 

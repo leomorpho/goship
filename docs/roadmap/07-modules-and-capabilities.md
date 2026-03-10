@@ -33,6 +33,30 @@ Mark `[x]` before starting any dependent task.
 
 ---
 
+## Key File Map (read before touching any task)
+
+| Concern | File / Fact |
+|---------|-------------|
+| Module interface | `framework/core/interfaces.go` → `type Module interface { ID() string; Migrations() fs.FS }` |
+| RoutableModule interface | `framework/core/interfaces.go` → `type RoutableModule interface { Module; RegisterRoutes(r Router) error }` |
+| Core Router type | `framework/core/interfaces.go` → `type Router interface { Group, GET, POST, PUT, DELETE }` |
+| Canonical module example | `modules/auth/module.go` — read this as the reference implementation |
+| Auth module routes | `modules/auth/routes.go` — full route registration example |
+| Modules directory | `modules/` — list it before creating new modules to avoid duplicating existing ones |
+| Container wiring | `app/foundation/container.go` → `NewContainer()` with `// ship:container:start` / `// ship:container:end` marker at line ~95 |
+| Router wiring | `app/router.go` → `// ship:routes:auth:start/end`, `// ship:routes:public:start/end` markers |
+| Core interfaces (Mailer) | `framework/core/interfaces.go` → `core.Mailer`, `core.MailMessage`, `core.MailAddress` already defined |
+| Existing mailer impl | `framework/repos/mailer/` — SMTP + Resend drivers already exist |
+| Config struct | `config/config.go` → add new config fields as sub-structs (e.g., `OAuth OAuthConfig`) |
+| App controllers | `app/web/controllers/` — for any app-layer route handlers |
+| App views | `app/views/` — for app-layer templ components |
+| Migrations dir | `db/migrate/migrations/` (not `db/migrations/`) — this is the actual path used by goose |
+| Templ generate | `make templ-gen` |
+| Test commands | `make test` (unit), `make test-integration` (Docker), `make e2e` (Playwright) |
+| Ship verify | `ship verify` or `make verify` — run after every change |
+
+---
+
 ## Group W — Auth Capabilities
 
 ### W01 — OAuth / Social Login module

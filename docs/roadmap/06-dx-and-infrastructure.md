@@ -19,14 +19,40 @@ Mark `[x]` before starting any dependent task.
 
 ---
 
+## Key File Map (read before touching any task)
+
+| Concern | File / Fact |
+|---------|-------------|
+| Ship CLI command pattern | `func RunXxx(args []string, d XxxDeps) int` — see `tools/cli/ship/internal/commands/infra.go` as the canonical simple example |
+| Ship CLI dispatch | `tools/cli/ship/internal/cli/cli.go` → `switch args[0]` and `runNamespaced` |
+| Commands directory | `tools/cli/ship/internal/commands/` — contains 26 files. Check here before creating new files. |
+| Already implemented commands | `dev.go`, `describe.go`, `verify.go`, `agent_start.go`, `agent_finish.go` all exist — **read before recreating** |
+| Container | `app/foundation/container.go` — `NewContainer()` wires all services; marker `// ship:container:start` / `// ship:container:end` at line ~95 |
+| Container fields | `Container.Database *sql.DB`, `Container.Cache *CacheClient`, `Container.Mail *mailer.MailClient`, `Container.CoreJobs core.Jobs`, `Container.CorePubSub core.PubSub` |
+| Core interfaces | `framework/core/interfaces.go` — `core.Mailer` (and `core.MailMessage`) already defined here |
+| Config struct | `config/config.go` → `type Config struct { HTTP, App, Runtime, Adapters, Database, Cache, Mail, … }` — add new fields here |
+| App router | `app/router.go` — add middleware to the global stack via `appweb.ApplyMainMiddleware` |
+| Framework middleware | `app/web/middleware/` — existing middleware lives here |
+| App controllers | `app/web/controllers/` |
+| App views | `app/views/` |
+| Zerolog | Already wired: `container.go` uses `zerolog` + `lecho`. Container has `c.Logger *lecho.Logger`. Any T02 slog work must account for this existing setup. |
+| Templ generate | `make templ-gen` |
+| Test commands | `make test` (unit, no Docker), `make test-integration` (Docker), `make e2e` (Playwright) |
+| Procfile.dev | Check if it already exists at repo root before creating |
+| GitHub Actions | Check if `.github/workflows/` already exists before creating |
+
+---
+
 ## Group S — Developer Workflow
 
 ### S01 — Add `ship dev` unified development command
 
 **Status:** `[ ] todo`
 **Depends on:** nothing
-**Files:** `Procfile.dev` (new), `tools/cli/ship/internal/commands/dev.go` (new),
+**Files:** `Procfile.dev`, `tools/cli/ship/internal/commands/dev.go`,
 `tools/cli/ship/internal/cli/cli.go`, `Makefile`
+
+> **NOTE:** `tools/cli/ship/internal/commands/dev.go` **already exists** and `ship dev` is already dispatched in `cli.go → case "dev"`. Also check if `Procfile.dev` already exists at repo root. Read both files first — complete only what's missing. The Makefile already has a `dev` target (`make dev`) — check if it calls `ship dev` or does something else.
 
 **Context:** Running GoShip in development currently requires 4–5 separate terminal windows:
 `templ generate --watch`, `air` (Go live reload), `pnpm --prefix frontend run dev` (Vite HMR),
@@ -203,10 +229,7 @@ All pragma settings are applied on connection open. Test passes.
 **Files:** `framework/logging/` (new package), `framework/middleware/logging.go` (update),
 `app/foundation/container.go` (wire logger), `config/config.go` (log level config)
 
-**Context:** GoShip currently uses whatever logging each component calls independently. `log/slog`
-is in Go's standard library since 1.21 — no external dependency. Structured logging is essential
-for production debugging: log lines are JSON objects that can be queried, filtered, and correlated
-by request ID.
+**Context:** GoShip currently uses **zerolog** via `lecho` (not bare `log`). `app/foundation/container.go` initializes `c.Logger *lecho.Logger` using `zerolog.New(os.Stdout)` and stores it on `c.Web.Logger`. The router also creates a `slog.NewJSONHandler` logger directly in `BuildRouter`. Before implementing this task, read `app/foundation/container.go` and `app/router.go` to see exactly what's already wired. The task is to unify this under a single `slog`-based approach — but the existing zerolog setup must be accounted for, not blindly overwritten. Consider whether the goal is to replace zerolog with slog or wrap it. The Container already has a `Logger` field — update it rather than adding a duplicate.
 
 **Logger setup:**
 ```go
@@ -278,6 +301,8 @@ verbose output. `go build ./...` passes.
 **Files:** `framework/middleware/security_headers.go` (new), `app/router.go` (add to middleware stack),
 `config/config.go` (CSP config)
 
+> **Router middleware stack:** Security headers must be added early in the pipeline. In `app/router.go`, the main middleware is applied in `appweb.ApplyMainMiddleware(c, g, logger, deps, webFeatures)`. Read `app/web/` (specifically `wiring.go` which is where `ApplyMainMiddleware` likely lives) to understand where to inject the new middleware — before route handlers, after recover/logger. Add the new config fields to `config/config.go` inside a new `Security` sub-struct.
+
 **Context:** Without security headers, GoShip apps score C or below on securityheaders.com.
 These headers prevent XSS, clickjacking, MIME sniffing, and other attacks. They should be
 default-on — developers shouldn't have to add them. The only configurable part is CSP, since
@@ -336,7 +361,9 @@ headers. securityheaders.com scan on staging returns A grade.
 
 **Status:** `[ ] todo`
 **Depends on:** nothing (parallel)
-**Files:** `app/web/controllers/health.go` (update), `framework/health/` (new package)
+**Files:** `app/web/controllers/healthcheck.go` (update — note the actual filename is `healthcheck.go`, not `health.go`), `framework/health/` (new package)
+
+> **Existing health controller:** The file is `app/web/controllers/healthcheck.go`. Read it first to see its current implementation before adding the `/health/ready` endpoint and JSON response.
 
 **Context:** The current `/health` endpoint returns a simple 200 OK. Kubernetes, Render, Fly.io,
 and other platforms distinguish between liveness (is the process alive?) and readiness (are
@@ -401,36 +428,27 @@ DB is unreachable. Returns 200 with correct latencies when all systems are healt
 
 **Status:** `[ ] todo`
 **Depends on:** nothing (parallel)
-**Files:** `framework/core/interfaces.go` (add Mailer interface), `modules/mailer/` (new),
+**Files:** `framework/core/interfaces.go` (update if needed), `modules/mailer/` (new or update),
 `modules/mailer/drivers/smtp/`, `modules/mailer/drivers/resend/`, `config/config.go`
 
-**Context:** GoShip currently has no email sending abstraction. Email is universal — every app
-needs it for auth flows (password reset, verification), notifications, and transactional messages.
-The mailer interface must be swappable: SMTP for self-hosted, Resend/SendGrid for production.
-
-**Core interface:**
+**Context:** The `core.Mailer` interface and `core.MailMessage` / `core.MailAddress` types **already exist** in `framework/core/interfaces.go`. The existing interface is:
 ```go
-// framework/core/interfaces.go
 type Mailer interface {
-    Send(ctx context.Context, msg Email) error
-    SendBulk(ctx context.Context, msgs []Email) error
+    Send(ctx context.Context, msg MailMessage) error
 }
-
-type Email struct {
-    To      []Address
-    CC      []Address
-    From    Address
-    Subject string
-    HTML    string  // rendered by templ
-    Text    string  // plain text fallback
-    ReplyTo *Address
+type MailMessage struct {
+    From, To, CC, BCC []MailAddress; ReplyTo *MailAddress
+    Subject, TextBody, HTMLBody string
+    Headers map[string]string; Attachments []MailAttachment
 }
-
-type Address struct {
-    Name  string
-    Email string
-}
+type MailAddress struct { Email, Name string }
 ```
+The concrete implementation currently lives in `framework/repos/mailer/` (not `modules/mailer/`). `app/foundation/container.go` initializes `c.Mail *mailer.MailClient` in `initMail()`, selecting SMTP (dev) or Resend (prod) based on `config.App.Environment`. Read both `framework/repos/mailer/` and `container.go → initMail()` before implementing. The task is to add the missing drivers (Log driver for dev/test) and move toward config-driven selection (`MAIL_DRIVER` env var) rather than hard-coded env check.
+
+**Existing concrete drivers (in `framework/repos/mailer/`):**
+- SMTP driver: `mailer.NewSMTPMailClient("localhost", port)`
+- Resend driver: `mailer.NewResendMailClient(apiKey)`
+- **Missing:** Log driver (prints to stdout, never sends — needed for dev/test)
 
 **Drivers to implement:**
 
@@ -481,8 +499,8 @@ type MailConfig struct {
 2. Create `modules/mailer/` with `module.go` (implements `core.Module`).
 3. Create SMTP, Resend, and Log drivers.
 4. Wire driver selection in module based on `config.Mail.Driver`.
-5. Register mailer in `app/foundation/container.go` at `// ship:container:start` marker.
-6. Add `MailConfig` to `config/config.go`.
+5. Wire the Log driver in `app/foundation/container.go → initMail()` as the default for `config.App.Environment != "production"`. The container marker `// ship:container:start` / `// ship:container:end` is for module wiring — `initMail()` is called directly in `NewContainer()`, so update it there, not at the marker.
+6. Add `MAIL_DRIVER` to `config/config.go → MailConfig` struct.
 7. Update `.env.example` with mail variables.
 
 **Done when:** `container.Mailer.Send(ctx, email)` sends an email via the configured driver.
@@ -652,7 +670,7 @@ cron goroutine fast and ensures all work goes through the job queue with its ret
 1. Add `github.com/robfig/cron/v3` to `go.mod`.
 2. Create `app/schedules/schedules.go` with a `Register` function and ship:schedules markers.
 3. Update `app/foundation/container.go`: add `Scheduler *cron.Cron` field, initialize in
-   `NewContainer` with `cron.New(cron.WithSeconds())`, call `schedules.Register(c.Scheduler, c)`.
+   `NewContainer` with `cron.New(cron.WithSeconds())`, call `schedules.Register(c.Scheduler, c)`. Place this initialization **before** the `// ship:container:start` marker so module wiring happens after the scheduler is ready.
 4. Update `cmd/worker/main.go`: call `container.Scheduler.Start()` after job workers start,
    and `container.Scheduler.Stop()` in the shutdown hook.
 5. Create `ship make:schedule` CLI command: generates a named schedule entry inside the

@@ -8,12 +8,12 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/leomorpho/goship-modules/notifications"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
-	profilesvc "github.com/leomorpho/goship/app/profile"
 	"github.com/leomorpho/goship/app/views/emails/gen"
 	"github.com/leomorpho/goship/app/views/web/layouts/gen"
 	routeNames "github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/app/web/viewmodels"
+	profilesvc "github.com/leomorpho/goship/modules/profile"
 	"github.com/mileusna/useragent"
 )
 

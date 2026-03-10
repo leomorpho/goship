@@ -14,6 +14,29 @@ Mark `[x]` before starting any task that depends on it.
 
 ---
 
+## Key File Map (read before touching any task)
+
+| Concern | File / Fact |
+|---------|-------------|
+| Doctor logic (checks) | `tools/cli/ship/internal/policies/doctor.go` → `RunDoctorChecks(root string) []DoctorIssue` (1,897 lines) |
+| DoctorIssue struct | `{ Code, Message, Fix, File, Severity string }` |
+| Ship CLI dispatch | `tools/cli/ship/internal/cli/cli.go` → `func (c CLI) Run(args []string) int` |
+| Ship command pattern | `func RunXxx(args []string, d XxxDeps) int` — see `tools/cli/ship/internal/commands/infra.go` as template |
+| Commands directory | `tools/cli/ship/internal/commands/` (26 files) — check before creating |
+| MCP tools | `tools/mcp/ship/internal/server/tools.go` |
+| Container | `app/foundation/container.go` → `NewContainer()`, marker `// ship:container:start/end` at line ~95 |
+| Route markers | `app/router.go`: `// ship:routes:public:start/end` (~line 147), `// ship:routes:auth:start/end` (~line 238), `// ship:routes:external:start/end` (~line 248) |
+| Core interfaces | `framework/core/interfaces.go` — `Store`, `Cache`, `Jobs`, `PubSub`, `Mailer`, `BlobStorage`, `Module`, `RoutableModule` |
+| Module example | `modules/auth/module.go` — canonical implementation |
+| Config struct | `config/config.go` → `type Config struct { … }` loaded via Viper + YAML |
+| Migrations dir | `db/migrate/migrations/` — actual path used by goose (NOT `db/migrations/`) |
+| SQL queries dir | `db/queries/` |
+| Templ generate | `make templ-gen` |
+| Test commands | `make test` (unit, no Docker), `make test-integration` (Docker), `make e2e` (Playwright) |
+| Already implemented | `commands/dev.go`, `commands/describe.go`, `commands/verify.go`, `commands/agent_start.go`, `commands/agent_finish.go` — **read before recreating** |
+
+---
+
 ## Group A — Critical Bug Fixes
 
 > Do these first. They are live correctness issues, not future work.
@@ -291,7 +314,7 @@ Where `Router` is a minimal interface over Echo group registration (define it he
 
 ### D02 — Extract profile into `modules/profile`
 
-**Status:** `[ ] todo`
+**Status:** `[x] done`
 **Depends on:** C01
 **Files:** `app/profile/`, `app/web/controllers/profile.go`, `profile_photo.go`, `upload_photo.go`, new `modules/profile/`
 
@@ -1193,7 +1216,7 @@ Group C — Module System
 
 Group D — Module Extraction (parallel after C01)
 [x] D01  modules/auth
-[ ] D02  modules/profile
+[x] D02  modules/profile
 [ ] D03  modules/paidsubscriptions routes
 [ ] D04  modules/notifications routes
 [ ] D05  modules/pwa
