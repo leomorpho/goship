@@ -3702,7 +3702,7 @@ Mark `[x]` before starting any task that depends on it.
 
 ### B05 — Remove old esbuild setup
 
-**Status:** `[ ] todo`
+**Status:** `[x] done`
 **Depends on:** B04
 **Files:** `frontend/build.mjs`, `frontend/javascript/svelte/main.js`, `Makefile`, `package.json`
 

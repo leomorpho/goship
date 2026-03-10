@@ -130,6 +130,8 @@ func (c CLI) runNamespaced(args []string) (int, bool) {
 		return c.runMake(rest), true
 	case "templ":
 		return c.runTempl(rest), true
+	case "module":
+		return c.runModule(rest), true
 	default:
 		fmt.Fprintf(c.Err, "unknown command namespace: %s\n\n", ns)
 		cmd.PrintRootHelp(c.Err)
@@ -247,6 +249,14 @@ func (c CLI) runDoctor(args []string) int {
 
 func (c CLI) runAgent(args []string) int {
 	return cmd.RunAgent(args, cmd.AgentDeps{Out: c.Out, Err: c.Err, FindGoModule: findGoModule})
+}
+
+func (c CLI) runModule(args []string) int {
+	return cmd.RunModule(args, cmd.ModuleDeps{
+		Out:          c.Out,
+		Err:          c.Err,
+		FindGoModule: findGoModule,
+	})
 }
 
 func (c CLI) runDBMake(args []string) int {

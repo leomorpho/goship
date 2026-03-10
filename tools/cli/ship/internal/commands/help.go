@@ -22,6 +22,7 @@ func PrintRootHelp(w io.Writer) {
 	fmt.Fprintln(w, "  ship infra:<up|down>                  (or ship infra for help)")
 	fmt.Fprintln(w, "  ship templ <generate>")
 	fmt.Fprintln(w, "  ship make:<scaffold|controller|resource|model|module>  (or ship make for help)")
+	fmt.Fprintln(w, "  ship module:add <name> [--dry-run]")
 	fmt.Fprintln(w)
 	fmt.Fprintln(w, "Examples:")
 	fmt.Fprintln(w, "  ship new demo")
