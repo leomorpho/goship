@@ -87,6 +87,6 @@ Last updated: 2026-03-04
 - `config/environments/*.yaml`
 - `config/processes.yaml`
 - `Makefile`
-- `frontend/build.mjs`
+- `frontend/vite.config.ts`
 - `frontend/package.json`
 - `tests/e2e/tests/goship.spec.ts`

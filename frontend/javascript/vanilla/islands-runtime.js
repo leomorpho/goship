@@ -7,6 +7,7 @@ const manifestURL =
   currentScript?.dataset.manifestUrl || "/files/islands-manifest.json";
 
 let manifestPromise;
+const loadedStyleURLs = new Set();
 
 async function getManifest() {
   if (!manifestPromise) {
@@ -32,7 +33,9 @@ async function mountIsland(el, manifest) {
     return;
   }
 
-  const moduleURL = manifest[islandName];
+  const islandEntry = manifest[islandName];
+  const moduleURL =
+    typeof islandEntry === "string" ? islandEntry : islandEntry?.script;
   if (!moduleURL) {
     console.warn(`Island "${islandName}" not found in manifest.`);
     return;
@@ -41,6 +44,23 @@ async function mountIsland(el, manifest) {
   el.setAttribute("data-island-mounted", "true");
 
   try {
+    const styleURLs =
+      typeof islandEntry === "string" ? [] : islandEntry?.styles || [];
+    for (const styleURL of styleURLs) {
+      if (loadedStyleURLs.has(styleURL)) {
+        continue;
+      }
+      loadedStyleURLs.add(styleURL);
+
+      if (!document.querySelector(`link[data-island-style="${styleURL}"]`)) {
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = styleURL;
+        link.dataset.islandStyle = styleURL;
+        document.head.appendChild(link);
+      }
+    }
+
     const mod = await import(moduleURL);
     const props = JSON.parse(el.dataset.props || "{}");
 

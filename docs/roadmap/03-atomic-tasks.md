@@ -104,7 +104,7 @@ Mark `[x]` before starting any task that depends on it.
 
 ### B03 — Migrate ThemeToggle to island pattern (parallel)
 
-**Status:** `[ ] todo`
+**Status:** `[x] done`
 **Depends on:** B01, B02
 **Files:** `frontend/islands/ThemeToggle.svelte` (new), `app/views/web/components/theme_toggle.templ`
 
@@ -123,7 +123,7 @@ Mark `[x]` before starting any task that depends on it.
 
 ### B04 — Migrate remaining Svelte components to islands
 
-**Status:** `[ ] todo`
+**Status:** `[x] done`
 **Depends on:** B03 (use as proven pattern)
 **Files:** All Svelte files in `frontend/javascript/svelte/`, corresponding templ files
 
@@ -1182,7 +1182,7 @@ Group B — JS Islands
 [x] B02  Islands runtime
 [x] B03  ThemeToggle migrated
 [x] B04  All components migrated
-[ ] B05  Old esbuild removed
+[x] B05  Old esbuild removed
 
 Group C — Module System
 [ ] C01  Module interface

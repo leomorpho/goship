@@ -105,9 +105,9 @@ HTMX behavior is integrated in the page object (`Page.HTMX`) and controller rend
 
 ## Frontend Asset Architecture
 
-- `frontend/build.mjs` bundles Svelte entrypoints under `frontend/javascript/svelte/*.js`
-- Also bundles vanilla JS from `frontend/javascript/vanilla/main.js`
-- Outputs static bundles and meta files in `app/static/`
+- `frontend/vite.config.ts` builds the vanilla bundle plus per-island JS chunks from `frontend/islands/`
+- The islands runtime loads component JS and CSS on demand via `app/static/islands-manifest.json`
+- Frontend build output is written to `app/static/`
 - Tailwind build pipeline outputs `app/static/styles_bundle.css`
 
 ## Deployment/Operations Shape

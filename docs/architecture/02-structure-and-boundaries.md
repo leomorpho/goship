@@ -13,7 +13,7 @@ This document defines where code belongs as GoShip evolves into a Rails-like fra
 - `modules/`: installable framework modules (workspace-local during development)
 - `tools/`: internal tooling modules and scripts (`ship`, `ship-mcp`, helper scripts)
 - `infra/`: deployment and infrastructure assets (Kamal, container assets, wrappers)
-- `frontend/`: frontend toolchain and source (`package.json`, `build.mjs`, JS/Svelte)
+- `frontend/`: frontend toolchain and source (`package.json`, `vite.config.ts`, JS/Svelte)
 - `tests/`: e2e and cross-package test assets
 - `config/`: runtime configuration
 - `db/`: monolith-owned schema and migration history

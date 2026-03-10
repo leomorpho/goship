@@ -4,9 +4,9 @@
   "description": "A collection of tools to make web apps rapidly",
   "type": "module",
   "scripts": {
-    "build": "node build.mjs",
+    "build": "vite build",
     "build:vite": "vite build",
-    "watch": "watchexec --project-origin . -w javascript node build.mjs"
+    "watch": "vite build --watch"
   },
   "repository": {
     "type": "git",
@@ -24,8 +24,6 @@
     "@sveltejs/vite-plugin-svelte": "^3.1.2",
     "@types/node": "^20.12.7",
     "daisyui": "^4.6.2",
-    "esbuild": "^0.20.0",
-    "esbuild-svelte": "^0.8.0",
     "flowbite": "^2.3.0",
     "flowbite-svelte": "^0.44.24",
     "svelte": "^4.2.10",

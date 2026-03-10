@@ -39,8 +39,7 @@ templ Metatags(page *controller.Page) {
 
 // Renders: c-s-s component.
 templ CSS() {
-	<link data-component="c-s-s" rel="stylesheet" href={ helpers.File("svelte_bundle.css") }/>
-	<link rel="stylesheet" href={ helpers.File("styles_bundle.css") }/>
+	<link data-component="c-s-s" rel="stylesheet" href={ helpers.File("styles_bundle.css") }/>
 	<link rel="manifest" crossorigin="use-credentials" href={ helpers.File("manifest.json") }/>
 	// Defer loading swiper styles (see https://www.giftofspeed.com/defer-loading-css/)
 	// NOTE: removing `rel="preload"` for swiperjs below will break it (done it once before)
@@ -83,7 +82,6 @@ templ JS() {
 		})()
 	</script>
 	// END PWA splash screen
-	<script src={ helpers.File("main.js") }></script>
 	<script src={ helpers.File("vanilla_bundle.js") }></script>
 	<script src={ helpers.File("islands-runtime.js") } data-manifest-url={ helpers.File("islands-manifest.json") }></script>
 	// https://cdn.jsdelivr.net/npm/sweetalert2@11 is somehow not working (buttons not showing), so reverting to 2@10

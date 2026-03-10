@@ -1,6 +1,20 @@
 {
-  "PhoneNumberPicker": "/files/islands/PhoneNumberPicker-CdxQitTc.js",
-  "PhotoUploader": "/files/islands/PhotoUploader-DhZp_e5E.js",
-  "NotificationPermissions": "/files/islands/NotificationPermissions-CvhOALsm.js",
-  "ThemeToggle": "/files/islands/ThemeToggle-IHki7fMi.js"
+  "NotificationPermissions": {
+    "script": "/files/islands/NotificationPermissions-CtKMHUmz.js",
+    "styles": []
+  },
+  "PhoneNumberPicker": {
+    "script": "/files/islands/PhoneNumberPicker-CdxQitTc.js",
+    "styles": []
+  },
+  "PhotoUploader": {
+    "script": "/files/islands/PhotoUploader-DhZp_e5E.js",
+    "styles": [
+      "/files/islands/assets/PhotoUploader-BSBNDcQ5.css"
+    ]
+  },
+  "ThemeToggle": {
+    "script": "/files/islands/ThemeToggle-IHki7fMi.js",
+    "styles": []
+  }
 }

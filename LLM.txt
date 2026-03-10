@@ -453,7 +453,7 @@ Last updated: 2026-03-04
 - `config/environments/*.yaml`
 - `config/processes.yaml`
 - `Makefile`
-- `frontend/build.mjs`
+- `frontend/vite.config.ts`
 - `frontend/package.json`
 - `tests/e2e/tests/goship.spec.ts`
 
@@ -567,9 +567,9 @@ HTMX behavior is integrated in the page object (`Page.HTMX`) and controller rend
 
 ## Frontend Asset Architecture
 
-- `frontend/build.mjs` bundles Svelte entrypoints under `frontend/javascript/svelte/*.js`
-- Also bundles vanilla JS from `frontend/javascript/vanilla/main.js`
-- Outputs static bundles and meta files in `app/static/`
+- `frontend/vite.config.ts` builds the vanilla bundle plus per-island JS chunks from `frontend/islands/`
+- The islands runtime loads component JS and CSS on demand via `app/static/islands-manifest.json`
+- Frontend build output is written to `app/static/`
 - Tailwind build pipeline outputs `app/static/styles_bundle.css`
 
 ## Deployment/Operations Shape
@@ -596,7 +596,7 @@ This document defines where code belongs as GoShip evolves into a Rails-like fra
 - `modules/`: installable framework modules (workspace-local during development)
 - `tools/`: internal tooling modules and scripts (`ship`, `ship-mcp`, helper scripts)
 - `infra/`: deployment and infrastructure assets (Kamal, container assets, wrappers)
-- `frontend/`: frontend toolchain and source (`package.json`, `build.mjs`, JS/Svelte)
+- `frontend/`: frontend toolchain and source (`package.json`, `vite.config.ts`, JS/Svelte)
 - `tests/`: e2e and cross-package test assets
 - `config/`: runtime configuration
 - `db/`: monolith-owned schema and migration history
@@ -806,12 +806,12 @@ Worker bootstrap and registration in `cmd/worker/main.go`.
 
 - Server-rendered pages via Templ (`app/views/` + `app/web/ui`)
 - HTMX-enhanced interactions
-- Optional Svelte components bundled into `app/static/svelte_bundle.js`
+- Optional client islands built as per-component JS chunks under `app/static/islands/`
 - Optional vanilla JS bundle into `app/static/vanilla_bundle.js`
 
 Build pipeline:
 
-- JS via `frontend/build.mjs` + esbuild
+- JS via `frontend/vite.config.ts` + Vite
 - CSS via Tailwind CLI in Makefile
 
 ## Environments and Configuration
@@ -1501,8 +1501,8 @@ Notes:
 
 JS build:
 
-- `npm --prefix frontend run build` (via `frontend/build.mjs`)
-- Bundles Svelte entrypoints and vanilla JS
+- `npm --prefix frontend run build` (via Vite)
+- Builds `vanilla_bundle.js`, `islands-runtime.js`, and per-island chunks
 
 CSS build:
 
@@ -3664,7 +3664,7 @@ Mark `[x]` before starting any task that depends on it.
 
 ### B03 — Migrate ThemeToggle to island pattern (parallel)
 
-**Status:** `[ ] todo`
+**Status:** `[x] done`
 **Depends on:** B01, B02
 **Files:** `frontend/islands/ThemeToggle.svelte` (new), `app/views/web/components/theme_toggle.templ`
 
@@ -3683,7 +3683,7 @@ Mark `[x]` before starting any task that depends on it.
 
 ### B04 — Migrate remaining Svelte components to islands
 
-**Status:** `[ ] todo`
+**Status:** `[x] done`
 **Depends on:** B03 (use as proven pattern)
 **Files:** All Svelte files in `frontend/javascript/svelte/`, corresponding templ files
 
@@ -4742,7 +4742,7 @@ Group B — JS Islands
 [x] B02  Islands runtime
 [x] B03  ThemeToggle migrated
 [x] B04  All components migrated
-[ ] B05  Old esbuild removed
+[x] B05  Old esbuild removed
 
 Group C — Module System
 [ ] C01  Module interface

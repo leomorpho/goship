@@ -183,7 +183,7 @@ build-js: ## Build JS/Svelte assets
 
 .PHONY: js-build-vite
 js-build-vite: ## Build JS assets with Vite islands output
-	$(NPM) run build:vite
+	$(NPM) run build
 
 .PHONY: deps-js
 deps-js: ## Install JS dependencies

@@ -105,12 +105,12 @@ Worker bootstrap and registration in `cmd/worker/main.go`.
 
 - Server-rendered pages via Templ (`app/views/` + `app/web/ui`)
 - HTMX-enhanced interactions
-- Optional Svelte components bundled into `app/static/svelte_bundle.js`
+- Optional client islands built as per-component JS chunks under `app/static/islands/`
 - Optional vanilla JS bundle into `app/static/vanilla_bundle.js`
 
 Build pipeline:
 
-- JS via `frontend/build.mjs` + esbuild
+- JS via `frontend/vite.config.ts` + Vite
 - CSS via Tailwind CLI in Makefile
 
 ## Environments and Configuration

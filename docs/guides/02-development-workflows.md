@@ -35,8 +35,8 @@ Notes:
 
 JS build:
 
-- `npm --prefix frontend run build` (via `frontend/build.mjs`)
-- Bundles Svelte entrypoints and vanilla JS
+- `npm --prefix frontend run build` (via Vite)
+- Builds `vanilla_bundle.js`, `islands-runtime.js`, and per-island chunks
 
 CSS build:
 

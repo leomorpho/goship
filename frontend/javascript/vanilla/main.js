@@ -1,3 +1,4 @@
+import { toast } from "wc-toast";
 import { createCalHeatmap } from "./cal_heatmap";
 import { loadScriptsAndStyles } from "./load_scripts_and_styles";
 
@@ -76,3 +77,11 @@ function refreshPageIfStale() {
 
 window.createCalHeatmap = createCalHeatmap;
 window.loadScriptsAndStyles = loadScriptsAndStyles;
+
+window.successToast = function successToast(text, timeToShow = 1000) {
+  toast.success(text, { duration: timeToShow });
+};
+
+window.errorToast = function errorToast(text, timeToShow = 1000) {
+  toast.error(text, { duration: timeToShow });
+};

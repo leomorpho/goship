@@ -156,7 +156,7 @@ func CSS() templ.Component {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var8 templ.SafeURL
-		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinURLErrs(helpers.File("svelte_bundle.css"))
+		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinURLErrs(helpers.File("styles_bundle.css"))
 		if templ_7745c5c3_Err != nil {
 			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/core.templ`, Line: 42, Col: 87}
 		}
@@ -164,33 +164,20 @@ func CSS() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\"><link rel=\"stylesheet\" href=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\"><link rel=\"manifest\" crossorigin=\"use-credentials\" href=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var9 templ.SafeURL
-		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinURLErrs(helpers.File("styles_bundle.css"))
+		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinURLErrs(helpers.File("manifest.json"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/core.templ`, Line: 43, Col: 64}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/core.templ`, Line: 43, Col: 88}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\"><link rel=\"manifest\" crossorigin=\"use-credentials\" href=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var10 templ.SafeURL
-		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinURLErrs(helpers.File("manifest.json"))
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/core.templ`, Line: 44, Col: 88}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\"><link rel=\"preload\" href=\"https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css\" as=\"style\" onload=\"this.onload=null;this.rel='stylesheet'\"><noscript><link rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css\"></noscript><link rel=\"preload\" href=\"https://unpkg.com/tippy.js@6/dist/tippy.css\" as=\"style\" onload=\"this.onload=null;this.rel='stylesheet'\"><noscript><link rel=\"stylesheet\" href=\"https://unpkg.com/tippy.js@6/dist/tippy.css\"></noscript><link rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css\"><style>\n\tbody {\n\t\tbackground-color: transparent;\n\t}\n\n\t:root {\n\t\t--safe-area-top: env(safe-area-inset-top);\n\t\t--safe-area-left: env(safe-area-inset-left);\n\t}\n\n\t#navbar {\n\t\tpadding-top: env(safe-area-inset-top);\n\t\t// padding-left: env(safe-area-inset-left);\n\t\tpadding-right: 0; /* Adjust as needed */\n\t\tpadding-bottom: 0; /* Adjust as needed */\n\t}\n\t</style>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\"><link rel=\"preload\" href=\"https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css\" as=\"style\" onload=\"this.onload=null;this.rel='stylesheet'\"><noscript><link rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css\"></noscript><link rel=\"preload\" href=\"https://unpkg.com/tippy.js@6/dist/tippy.css\" as=\"style\" onload=\"this.onload=null;this.rel='stylesheet'\"><noscript><link rel=\"stylesheet\" href=\"https://unpkg.com/tippy.js@6/dist/tippy.css\"></noscript><link rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css\"><style>\n\tbody {\n\t\tbackground-color: transparent;\n\t}\n\n\t:root {\n\t\t--safe-area-top: env(safe-area-inset-top);\n\t\t--safe-area-left: env(safe-area-inset-left);\n\t}\n\n\t#navbar {\n\t\tpadding-top: env(safe-area-inset-top);\n\t\t// padding-left: env(safe-area-inset-left);\n\t\tpadding-right: 0; /* Adjust as needed */\n\t\tpadding-bottom: 0; /* Adjust as needed */\n\t}\n\t</style>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -215,90 +202,77 @@ func JS() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var11 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var11 == nil {
-			templ_7745c5c3_Var11 = templ.NopComponent
+		templ_7745c5c3_Var10 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var10 == nil {
+			templ_7745c5c3_Var10 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "<script data-component=\"j-s\" src=\"https://cdn.jsdelivr.net/npm/ios-pwa-splash@1.0.0/cdn.min.js\"></script><script id=\"dynamic-splash-screen\" icon-url-data=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "<script data-component=\"j-s\" src=\"https://cdn.jsdelivr.net/npm/ios-pwa-splash@1.0.0/cdn.min.js\"></script><script id=\"dynamic-splash-screen\" icon-url-data=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var11 string
+		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(templ.JSONString(helpers.File("icon.png")))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/core.templ`, Line: 76, Col: 94}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "\">\n\t\t(function(){\n\t\t\tconst dynamicSplashScreen = document.getElementById(\"dynamic-splash-screen\");\n\t\t\tconst iconURL = JSON.parse(dynamicSplashScreen.getAttribute(\"icon-url-data\"));\n\t\t\tconsole.log(`setting up iosPWASpash with icon url ${iconURL}`)\n\t\t\tiosPWASplash(iconURL, \"#000000\");\n\t\t})()\n\t</script><script src=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var12 string
-		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(templ.JSONString(helpers.File("icon.png")))
+		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(helpers.File("vanilla_bundle.js"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/core.templ`, Line: 77, Col: 94}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/core.templ`, Line: 85, Col: 48}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\">\n\t\t(function(){\n\t\t\tconst dynamicSplashScreen = document.getElementById(\"dynamic-splash-screen\");\n\t\t\tconst iconURL = JSON.parse(dynamicSplashScreen.getAttribute(\"icon-url-data\"));\n\t\t\tconsole.log(`setting up iosPWASpash with icon url ${iconURL}`)\n\t\t\tiosPWASplash(iconURL, \"#000000\");\n\t\t})()\n\t</script><script src=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\"></script><script src=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var13 string
-		templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(helpers.File("main.js"))
+		templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(helpers.File("islands-runtime.js"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/core.templ`, Line: 86, Col: 38}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/core.templ`, Line: 86, Col: 49}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\"></script><script src=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "\" data-manifest-url=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var14 string
-		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(helpers.File("vanilla_bundle.js"))
+		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(helpers.File("islands-manifest.json"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/core.templ`, Line: 87, Col: 48}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/core.templ`, Line: 86, Col: 109}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\"></script><script src=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\"></script><script src=\"https://cdn.jsdelivr.net/npm/sweetalert2@10\"></script><script src=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var15 string
-		templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(helpers.File("islands-runtime.js"))
+		templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(helpers.ServiceWorkerFile("service-worker.js"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/core.templ`, Line: 88, Col: 49}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/core.templ`, Line: 89, Col: 61}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "\" data-manifest-url=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var16 string
-		templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(helpers.File("islands-manifest.json"))
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/core.templ`, Line: 88, Col: 109}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "\"></script><script src=\"https://cdn.jsdelivr.net/npm/sweetalert2@10\"></script><script src=\"")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var17 string
-		templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(helpers.ServiceWorkerFile("service-worker.js"))
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/core.templ`, Line: 91, Col: 61}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "\"></script><script src=\"https://unpkg.com/htmx.org@1.9.10\" integrity=\"sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC\" crossorigin=\"anonymous\"></script><script src=\"https://unpkg.com/htmx.org@1.9.12/dist/ext/sse.js\"></script><script defer async src=\"https://cdn.jsdelivr.net/npm/@alpinejs/mask@3.x.x/dist/cdn.min.js\"></script><script defer async src=\"https://cdn.jsdelivr.net/npm/@ryangjchandler/alpine-clipboard@2.x.x/dist/alpine-clipboard.js\" defer></script><script defer src=\"https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js\"></script><script defer async src=\"https://cdn.jsdelivr.net/npm/@marcreichel/alpine-timeago@latest/dist/alpine-timeago.min.js\" defer></script><script defer async src=\"https://cdn.jsdelivr.net/npm/@ryangjchandler/alpine-tooltip@1.x.x/dist/cdn.min.js\" defer></script><script defer async src=\"https://cdn.jsdelivr.net/npm/@alpinejs/morph@3.x.x/dist/cdn.min.js\"></script><script defer async src=\"https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js\"></script><script defer async src=\"https://unpkg.com/hyperscript.org@0.9.12\"></script><script defer async src=\"https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js\"></script><script defer async src=\"https://js.stripe.com/v3/\"></script><script defer async src=\"https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/datepicker.min.js\"></script><script defer async src=\"https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js\"></script><script defer async src=\"https://d3js.org/d3.v7.min.js\"></script><script defer async src=\"https://unpkg.com/cal-heatmap/dist/cal-heatmap.min.js\"></script><script defer async src=\"https://unpkg.com/cal-heatmap/dist/plugins/Legend.min.js\"></script><script defer async src=\"https://unpkg.com/cal-heatmap/dist/plugins/Tooltip.min.js\"></script><script defer async src=\"https://unpkg.com/cal-heatmap/dist/plugins/CalendarLabel.min.js\"></script><script defer async src=\"https://unpkg.com/@popperjs/core@2\"></script><script src=\"https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js\"></script>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "\"></script><script src=\"https://unpkg.com/htmx.org@1.9.10\" integrity=\"sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC\" crossorigin=\"anonymous\"></script><script src=\"https://unpkg.com/htmx.org@1.9.12/dist/ext/sse.js\"></script><script defer async src=\"https://cdn.jsdelivr.net/npm/@alpinejs/mask@3.x.x/dist/cdn.min.js\"></script><script defer async src=\"https://cdn.jsdelivr.net/npm/@ryangjchandler/alpine-clipboard@2.x.x/dist/alpine-clipboard.js\" defer></script><script defer src=\"https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js\"></script><script defer async src=\"https://cdn.jsdelivr.net/npm/@marcreichel/alpine-timeago@latest/dist/alpine-timeago.min.js\" defer></script><script defer async src=\"https://cdn.jsdelivr.net/npm/@ryangjchandler/alpine-tooltip@1.x.x/dist/cdn.min.js\" defer></script><script defer async src=\"https://cdn.jsdelivr.net/npm/@alpinejs/morph@3.x.x/dist/cdn.min.js\"></script><script defer async src=\"https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js\"></script><script defer async src=\"https://unpkg.com/hyperscript.org@0.9.12\"></script><script defer async src=\"https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js\"></script><script defer async src=\"https://js.stripe.com/v3/\"></script><script defer async src=\"https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/datepicker.min.js\"></script><script defer async src=\"https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js\"></script><script defer async src=\"https://d3js.org/d3.v7.min.js\"></script><script defer async src=\"https://unpkg.com/cal-heatmap/dist/cal-heatmap.min.js\"></script><script defer async src=\"https://unpkg.com/cal-heatmap/dist/plugins/Legend.min.js\"></script><script defer async src=\"https://unpkg.com/cal-heatmap/dist/plugins/Tooltip.min.js\"></script><script defer async src=\"https://unpkg.com/cal-heatmap/dist/plugins/CalendarLabel.min.js\"></script><script defer async src=\"https://unpkg.com/@popperjs/core@2\"></script><script src=\"https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js\"></script>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -390,9 +364,9 @@ func JSFooter(page *controller.Page) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var18 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var18 == nil {
-			templ_7745c5c3_Var18 = templ.NopComponent
+		templ_7745c5c3_Var16 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var16 == nil {
+			templ_7745c5c3_Var16 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		if len(page.CSRF) > 0 {
@@ -471,12 +445,12 @@ func beforeBodyEnd() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var19 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var19 == nil {
-			templ_7745c5c3_Var19 = templ.NopComponent
+		templ_7745c5c3_Var17 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var17 == nil {
+			templ_7745c5c3_Var17 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "<script data-component=\"j-s-footer\" src=\"https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js\"></script>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<script data-component=\"j-s-footer\" src=\"https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js\"></script>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -501,38 +475,38 @@ func TextFooter(page *controller.Page) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var20 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var20 == nil {
-			templ_7745c5c3_Var20 = templ.NopComponent
+		templ_7745c5c3_Var18 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var18 == nil {
+			templ_7745c5c3_Var18 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<div data-component=\"text-footer\" class=\"mx-1 sm:mx-2 py-3\"><footer class=\"bg-slate-100 dark:bg-gray-800 rounded-lg shadow m-4\"><div class=\"w-full mx-auto max-w-screen-xl p-4 md:flex md:items-center md:justify-between\"><span class=\"text-sm text-gray-500 sm:text-center dark:text-gray-400\">© <span id=\"currentYear\"></span> <a href=\"https://cherie.chatbond.app\" class=\"hover:underline\">Chatbond Inc</a>. All Rights Reserved.</span><ul hx-target=\"#main-content\" hx-select=\"#main-content\" hx-indicator=\"next #page-loading\" hx-swap=\"outerHTML show:window:top\" hx-push-url=\"true\" class=\"flex flex-wrap items-center mt-3 text-sm font-medium text-gray-500 dark:text-gray-400 sm:mt-0\"><li><a hx-get=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "<div data-component=\"text-footer\" class=\"mx-1 sm:mx-2 py-3\"><footer class=\"bg-slate-100 dark:bg-gray-800 rounded-lg shadow m-4\"><div class=\"w-full mx-auto max-w-screen-xl p-4 md:flex md:items-center md:justify-between\"><span class=\"text-sm text-gray-500 sm:text-center dark:text-gray-400\">© <span id=\"currentYear\"></span> <a href=\"https://cherie.chatbond.app\" class=\"hover:underline\">Chatbond Inc</a>. All Rights Reserved.</span><ul hx-target=\"#main-content\" hx-select=\"#main-content\" hx-indicator=\"next #page-loading\" hx-swap=\"outerHTML show:window:top\" hx-push-url=\"true\" class=\"flex flex-wrap items-center mt-3 text-sm font-medium text-gray-500 dark:text-gray-400 sm:mt-0\"><li><a hx-get=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var21 string
-		templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameAboutUs))
+		var templ_7745c5c3_Var19 string
+		templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameAboutUs))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/core.templ`, Line: 223, Col: 55}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/core.templ`, Line: 221, Col: 55}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "\" class=\"hover:underline me-4 md:me-6 cursor-pointer\">Contact Us</a></li><li><a hx-get=\"")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var22 string
-		templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNamePrivacyPolicy))
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/core.templ`, Line: 231, Col: 61}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 21, "\" class=\"hover:underline me-4 md:me-6 cursor-pointer\">Contact Us</a></li><li><a hx-get=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "\" class=\"hover:underline me-4 md:me-6 cursor-pointer\">Privacy Policy</a></li></ul></div></footer></div><script>\n\t\tdocument.getElementById('currentYear').textContent = new Date().getFullYear();\n\t</script>")
+		var templ_7745c5c3_Var20 string
+		templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNamePrivacyPolicy))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/components/core.templ`, Line: 229, Col: 61}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "\" class=\"hover:underline me-4 md:me-6 cursor-pointer\">Privacy Policy</a></li></ul></div></footer></div><script>\n\t\tdocument.getElementById('currentYear').textContent = new Date().getFullYear();\n\t</script>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

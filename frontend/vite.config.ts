@@ -55,7 +55,7 @@ function islandsManifestPlugin() {
   return {
     name: "goship-islands-manifest",
     generateBundle(_: unknown, bundle: Record<string, any>) {
-      const manifest: Record<string, string> = {};
+      const manifest: Record<string, { script: string; styles: string[] }> = {};
 
       for (const [fileName, artifact] of Object.entries(bundle)) {
         if (artifact.type !== "chunk" || !artifact.isEntry) {
@@ -70,7 +70,15 @@ function islandsManifestPlugin() {
           continue;
         }
 
-        manifest[islandName] = `${staticURLPrefix}/${fileName}`;
+        const styles =
+          artifact.viteMetadata?.importedCss instanceof Set
+            ? Array.from(artifact.viteMetadata.importedCss, (cssFile: string) => `${staticURLPrefix}/${cssFile}`)
+            : [];
+
+        manifest[islandName] = {
+          script: `${staticURLPrefix}/${fileName}`,
+          styles,
+        };
       }
 
       this.emitFile({
