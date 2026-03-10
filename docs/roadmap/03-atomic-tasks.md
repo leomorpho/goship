@@ -161,7 +161,7 @@ Mark `[x]` before starting any task that depends on it.
 
 ### C01 — Define Module interface in framework (parallel)
 
-**Status:** `[ ] todo`
+**Status:** `[x] done`
 **Depends on:** nothing
 **Files:** `framework/core/interfaces.go` or new `framework/core/module.go`
 

@@ -4,8 +4,11 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"io/fs"
 	"strings"
 	"time"
+
+	"github.com/labstack/echo/v4"
 )
 
 // TxFunc is executed inside a store transaction boundary.
@@ -197,4 +200,25 @@ type MailMessage struct {
 // Mailer is the app-facing mail delivery boundary.
 type Mailer interface {
 	Send(ctx context.Context, msg MailMessage) error
+}
+
+// Module is the installable framework module contract.
+type Module interface {
+	ID() string
+	Migrations() fs.FS
+}
+
+// Router is the minimal Echo routing surface exposed to modules.
+type Router interface {
+	Group(prefix string, middleware ...echo.MiddlewareFunc) *echo.Group
+	GET(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
+	POST(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
+	PUT(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
+	DELETE(path string, h echo.HandlerFunc, m ...echo.MiddlewareFunc) *echo.Route
+}
+
+// RoutableModule registers HTTP routes in addition to base module metadata.
+type RoutableModule interface {
+	Module
+	RegisterRoutes(r Router) error
 }
