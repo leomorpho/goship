@@ -2,15 +2,16 @@ package pages
 
 import (
 	"github.com/leomorpho/goship/app/controller"
+	"github.com/leomorpho/goship/app/views/web/components/gen"
 	"github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/app/web/viewmodels"
-	"github.com/leomorpho/goship/app/views/web/components/gen"
 )
 
-// Renders: register component.
+// Route(s): /user/register
+// Renders: registration form with profile, email, password, and birthdate fields plus auth helper links and cancel action
 templ Register(page *controller.Page) {
 	if form, ok := page.Form.(*viewmodels.RegisterForm); ok {
-		if data, ok := page.Data.(viewmodels.RegisterData);ok {
+		if data, ok := page.Data.(viewmodels.RegisterData); ok {
 			<form data-component="register"
 				method="post"
 				action={ templ.URL(page.ToURL(routenames.RouteNameRegisterSubmit)) }
@@ -19,7 +20,6 @@ templ Register(page *controller.Page) {
 				<div class="flex flex-col space-y-2 m-5">
 					@components.FormFieldErrors(form.Submission.GetFieldErrors("RelationshipStatus"))
 				</div>
-				<!-- Name/Username -->
 				<div class="flex flex-col space-y-2 m-5">
 					<label
 						for="name"
@@ -37,7 +37,6 @@ templ Register(page *controller.Page) {
 						@components.FormFieldErrors(form.Submission.GetFieldErrors("Name"))
 					</div>
 				</div>
-				<!-- Email -->
 				<div class="flex flex-col space-y-2 m-5">
 					<label
 						for="email"
@@ -55,7 +54,6 @@ templ Register(page *controller.Page) {
 						@components.FormFieldErrors(form.Submission.GetFieldErrors("Email"))
 					</div>
 				</div>
-				<!-- Password -->
 				<div x-data="{ showPassword: false }" class="flex flex-col space-y-2 m-5">
 					<label for="password" class="label">Password</label>
 					<div class="relative">
@@ -80,10 +78,8 @@ templ Register(page *controller.Page) {
 							</button>
 						</div>
 					</div>
-					<!-- Render any form field errors here -->
 					@components.FormFieldErrors(form.Submission.GetFieldErrors("Password"))
 				</div>
-				<!-- Birthdate -->
 				<div class="flex flex-col space-y-2 m-5">
 					<label
 						for="birthdate"
@@ -129,4 +125,3 @@ templ Register(page *controller.Page) {
 		}
 	}
 }
-

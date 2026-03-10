@@ -273,7 +273,7 @@ Where `Router` is a minimal interface over Echo group registration (define it he
 
 ### D01 — Extract auth controllers into `modules/auth`
 
-**Status:** `[ ] todo`
+**Status:** `[x] done`
 **Depends on:** C01
 **Files:** `app/web/controllers/login.go`, `register.go`, `logout.go`, `forgot_password.go`, new `modules/auth/`
 
@@ -1192,7 +1192,7 @@ Group C — Module System
 [ ] C05  MCP tools
 
 Group D — Module Extraction (parallel after C01)
-[ ] D01  modules/auth
+[x] D01  modules/auth
 [ ] D02  modules/profile
 [ ] D03  modules/paidsubscriptions routes
 [ ] D04  modules/notifications routes

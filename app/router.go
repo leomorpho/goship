@@ -16,6 +16,7 @@ import (
 	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/config"
 	"github.com/leomorpho/goship/framework/runtimeplan"
+	authmodule "github.com/leomorpho/goship/modules/auth"
 	"github.com/rs/zerolog/log"
 )
 
@@ -133,28 +134,6 @@ func registerPublicRoutes(c *foundation.Container, g *echo.Group, ctr ui.Control
 	privacyPolicy := controllers.NewPrivacyPolicyRoute(ctr)
 	g.GET("/privacy-policy", privacyPolicy.Get).Name = routeNames.RouteNamePrivacyPolicy
 
-	userGroup := g.Group("/user", middleware.RequireNoAuthentication())
-
-	login := controllers.NewLoginRoute(ctr)
-	userGroup.GET("/login", login.Get).Name = routeNames.RouteNameLogin
-	userGroup.POST("/login", login.Post).Name = routeNames.RouteNameLoginSubmit
-
-	register := controllers.NewRegisterRoute(ctr, *deps.ProfileService, deps.SubscriptionsRepo, deps.NotificationPermissionService)
-	userGroup.GET("/register", register.Get).Name = routeNames.RouteNameRegister
-	userGroup.POST("/register", register.Post).Name = routeNames.RouteNameRegisterSubmit
-
-	forgot := controllers.NewForgotPasswordRoute(ctr)
-	userGroup.GET("/password", forgot.Get).Name = routeNames.RouteNameForgotPassword
-	userGroup.POST("/password", forgot.Post).Name = routeNames.RouteNameForgotPasswordSubmit
-
-	resetGroup := userGroup.Group("/password/reset",
-		middleware.LoadUser(c.Auth),
-		middleware.LoadValidPasswordToken(c.Auth),
-	)
-	reset := controllers.NewResetPasswordRoute(ctr)
-	resetGroup.GET("/token/:user/:password_token/:token", reset.Get).Name = routeNames.RouteNameResetPassword
-	resetGroup.POST("/token/:user/:password_token/:token", reset.Post).Name = routeNames.RouteNameResetPasswordSubmit
-
 	if ctr.Container.Config.App.Environment != config.EnvProduction {
 		errHandler := controllers.NewErrorHandler(ctr)
 		g.GET("/error/400", errHandler.GetHttp400BadRequest)
@@ -180,6 +159,16 @@ func registerDocsRoutes(g *echo.Group, ctr ui.Controller) error {
 }
 
 func registerAuthRoutes(c *foundation.Container, g *echo.Group, ctr ui.Controller, deps *appweb.RouteDeps) error {
+	authModule := authmodule.New(authmodule.Deps{
+		Controller:                    ctr,
+		ProfileService:                *deps.ProfileService,
+		SubscriptionsService:          deps.SubscriptionsRepo,
+		NotificationPermissionService: deps.NotificationPermissionService,
+	})
+	if err := authModule.RegisterRoutes(g); err != nil {
+		return err
+	}
+
 	onboardingGroup := g.Group("/welcome", middleware.RequireAuthentication())
 	preferences := controllers.NewPreferencesRoute(
 		ctr,
@@ -220,14 +209,7 @@ func registerAuthRoutes(c *foundation.Container, g *echo.Group, ctr ui.Controlle
 	onboardingGroup.DELETE("/subscription/:platform", outgoingNotifications.DeleteSubscription).Name = routeNames.RouteNameDeleteSubscription
 	onboardingGroup.GET("/email-subscription/unsubscribe/:permission/:token", outgoingNotifications.DeleteEmailSubscription).Name = routeNames.RouteNameDeleteEmailSubscriptionWithToken
 
-	allGroup := g.Group("/auth", middleware.RequireAuthentication())
-	logout := controllers.NewLogoutRoute(ctr)
-	allGroup.GET("/logout", logout.Get, middleware.RequireAuthentication()).Name = routeNames.RouteNameLogout
-
 	onboardedGroup := g.Group("/auth", middleware.RequireAuthentication(), middleware.RedirectToOnboardingIfNotComplete())
-
-	verifyEmail := controllers.NewVerifyEmailRoute(ctr)
-	g.GET("/email/verify/:token", verifyEmail.Get).Name = routeNames.RouteNameVerifyEmail
 
 	homeFeed := controllers.NewHomeFeedRoute(ctr, *deps.ProfileService, &c.Config.App.PageSize)
 	onboardedGroup.GET("/homeFeed", homeFeed.Get, middleware.SetLastSeenOnline(c.Auth)).Name = routeNames.RouteNameHomeFeed

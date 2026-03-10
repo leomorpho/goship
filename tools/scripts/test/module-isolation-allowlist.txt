@@ -14,3 +14,10 @@ modules/notifications/push_notifications_fcm_store_ent.go
 modules/notifications/push_notifications_pwa.go
 modules/notifications/push_notifications_pwa_store_ent.go
 modules/notifications/sms_store_ent.go
+modules/auth/module.go
+modules/auth/routes.go
+modules/auth/service.go
+modules/auth/views/web/pages/gen/forgot_password_templ.go
+modules/auth/views/web/pages/gen/login_templ.go
+modules/auth/views/web/pages/gen/register_templ.go
+modules/auth/views/web/pages/gen/reset_password_templ.go
