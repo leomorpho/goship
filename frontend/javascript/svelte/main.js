@@ -1,6 +1,5 @@
 import { toast } from "wc-toast";
 import MultiSelectComponent from "./components/MultiSelectComponent.svelte";
-import PwaInstallButton from "./components/PwaInstallButton.svelte";
 import SingleSelect from "./components/SingleSelect.svelte";
 
 // Define a registry object that maps names to Svelte component classes
@@ -8,7 +7,6 @@ const SvelteComponentRegistry = {
   MultiSelectComponent,
   // Mostly from https://github.com/flo-bit/svelte-swiper-cards
   SingleSelect,
-  PwaInstallButton,
 };
 
 // Assuming `window.svelteInstances` is a map to track component instances

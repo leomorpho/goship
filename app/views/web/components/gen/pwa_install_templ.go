@@ -156,18 +156,6 @@ func PWAMobileInstallButton(page *controller.Page) templ.Component {
 	})
 }
 
-func InitPwaInstallButton(elemID, position string) templ.ComponentScript {
-	return templ.ComponentScript{
-		Name: `__templ_InitPwaInstallButton_b14a`,
-		Function: `function __templ_InitPwaInstallButton_b14a(elemID, position){renderSvelteComponent('PwaInstallButton', elemID, {
-		"position": position,
-	});
-}`,
-		Call:       templ.SafeScript(`__templ_InitPwaInstallButton_b14a`, elemID, position),
-		CallInline: templ.SafeScriptInline(`__templ_InitPwaInstallButton_b14a`, elemID, position),
-	}
-}
-
 func HideIfStandalone(elementId string) templ.ComponentScript {
 	return templ.ComponentScript{
 		Name: `__templ_HideIfStandalone_9d28`,

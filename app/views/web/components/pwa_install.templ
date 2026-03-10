@@ -50,12 +50,6 @@ templ PWAMobileInstallButton(page *controller.Page) {
 	@HideIfStandalone("mobile-install-button-container")
 }
 
-script InitPwaInstallButton(elemID, position string) {
-	renderSvelteComponent('PwaInstallButton', elemID, {
-		"position": position,
-	});
-}
-
 script HideIfStandalone(elementId string) {
 	function isPwaStandalone() {
       return (window.matchMedia('(display-mode: standalone)').matches) || (window.navigator.standalone) || (document.referrer.includes('android-app://'));
@@ -75,4 +69,3 @@ script ShowIfStandalone(elementId string) {
 		document.getElementById(elementId).style.display = 'block';
 	}
 }
-
