@@ -191,7 +191,7 @@ Where `Router` is a minimal interface over Echo group registration (define it he
 
 ### C02 — Standardize marker comments in router and container (parallel)
 
-**Status:** `[ ] todo`
+**Status:** `[x] done`
 **Depends on:** nothing
 **Files:** `app/router.go`, `app/foundation/container.go`
 

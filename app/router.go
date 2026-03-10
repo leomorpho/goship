@@ -264,6 +264,10 @@ func registerAuthRoutes(c *foundation.Container, g *echo.Group, ctr ui.Controlle
 func registerExternalRoutes(c *foundation.Container, e *echo.Group, ctr ui.Controller, deps *appweb.RouteDeps) error {
 	payments := controllers.NewPaymentsRoute(ctr, deps.SubscriptionsRepo)
 	e.POST(deps.StripeWebhookPath, payments.HandleWebhook).Name = routeNames.RouteNamePaymentProcessorWebhook
+
+	// ship:routes:external:start
+	// ship:routes:external:end
+
 	return nil
 }
 
