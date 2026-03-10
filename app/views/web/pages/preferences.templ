@@ -98,8 +98,27 @@ templ NotificationPermissions(page *controller.Page, data viewmodels.Notificatio
 	<div class="text-base my-3">
 		We will only notify you about the essential, no spamming. This can be turned on or off at any time.
 	</div>
-	<div id="notification-permissions-toggles" class="mt-2"></div>
-	@initPermissions("notification-permissions-toggles", data)
+	<div
+		id="notification-permissions-toggles"
+		class="mt-2"
+		data-island="NotificationPermissions"
+		data-props={ templ.JSONString(map[string]any{
+			"permissionDailyNotif": data.PermissionDailyNotif,
+			"permissionPartnerActivity": data.PermissionPartnerActivity,
+			"vapidPublicKey": data.VapidPublicKey,
+			"addPushSubscriptionEndpoint": data.AddPushSubscriptionEndpoint,
+			"deletePushSubscriptionEndpoint": data.DeletePushSubscriptionEndpoint,
+			"addFCMPushSubscriptionEndpoint": data.AddFCMPushSubscriptionEndpoint,
+			"deleteFCMPushSubscriptionEndpoint": data.DeleteFCMPushSubscriptionEndpoint,
+			"addEmailSubscriptionEndpoint": data.AddEmailSubscriptionEndpoint,
+			"deleteEmailSubscriptionEndpoint": data.DeleteEmailSubscriptionEndpoint,
+			"addSmsSubscriptionEndpoint": data.AddSmsSubscriptionEndpoint,
+			"deleteSmsSubscriptionEndpoint": data.DeleteSmsSubscriptionEndpoint,
+			"subscribedEndpoints": data.SubscribedEndpoints,
+			"notificationTypeQueryParamKey": data.NotificationTypeQueryParamKey,
+			"phoneSubscriptionEnabled": data.PhoneSubscriptionEnabled,
+		}) }
+	></div>
 	<div
 		class="collapsible mt-2 bg-slate-300 dark:bg-slate-800 text-slate-800 dark:text-white rounded-xl"
 		x-data="{ expanded: false }"
@@ -130,33 +149,6 @@ templ NotificationPermissions(page *controller.Page, data viewmodels.Notificatio
 			</div>
 		</div>
 	</div>
-}
-
-script initPermissions(componentID string, d viewmodels.NotificationPermissionsData) {
-	console.log(d)
-	renderSvelteComponent("NotificationPermissions", componentID, {
-		"permissionDailyNotif": d.PermissionDailyNotif,
-		"permissionPartnerActivity": d.PermissionPartnerActivity,
-		"vapidPublicKey": d.VapidPublicKey,
-		
-		"addPushSubscriptionEndpoint": d.AddPushSubscriptionEndpoint,
-		"deletePushSubscriptionEndpoint": d.DeletePushSubscriptionEndpoint,
-
-		"addFCMPushSubscriptionEndpoint": d.AddFCMPushSubscriptionEndpoint,
-		"deleteFCMPushSubscriptionEndpoint": d.DeleteFCMPushSubscriptionEndpoint,
-
-		"addEmailSubscriptionEndpoint": d.AddEmailSubscriptionEndpoint,
-		"deleteEmailSubscriptionEndpoint": d.DeleteEmailSubscriptionEndpoint,
-		
-		"addSmsSubscriptionEndpoint": d.AddSmsSubscriptionEndpoint,
-		"deleteSmsSubscriptionEndpoint": d.DeleteSmsSubscriptionEndpoint,
-		
-		"subscribedEndpoints": d.SubscribedEndpoints,
-		"notificationTypeQueryParamKey" : d.NotificationTypeQueryParamKey,
-		"phoneSubscriptionEnabled": d.PhoneSubscriptionEnabled,
-		// "createPermissionEndpoint": d.CreatePermissionEndpoint,
-		// "deletePermissionEndpoint": d.DeletePermissionEndpoint,
-	});
 }
 
 templ subscription(page *controller.Page, fullyOnboarded bool, planKey string, isPaidPlan bool, expiryTimestap *time.Time, isTrial bool) {

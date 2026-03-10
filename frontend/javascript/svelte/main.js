@@ -1,6 +1,5 @@
 import { toast } from "wc-toast";
 import MultiSelectComponent from "./components/MultiSelectComponent.svelte";
-import NotificationPermissions from "./components/NotificationPermissions.svelte";
 import PhotoUploader from "./components/PhotoUploader.svelte";
 import PwaInstallButton from "./components/PwaInstallButton.svelte";
 import SingleSelect from "./components/SingleSelect.svelte";
@@ -14,7 +13,6 @@ const SvelteComponentRegistry = {
   SingleSelect,
   PwaInstallButton,
   PwaSubscribePush,
-  NotificationPermissions,
 };
 
 // Assuming `window.svelteInstances` is a map to track component instances

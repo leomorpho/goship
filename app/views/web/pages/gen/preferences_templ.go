@@ -264,24 +264,44 @@ func NotificationPermissions(page *controller.Page, data viewmodels.Notification
 			templ_7745c5c3_Var9 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<h1 data-component=\"notification-permissions\" class=\"text-3xl md:text-4xl font-semibold mb-4 pt-10 md:pt-14 lg:pt-16 mb-4\">🔔 Notifications </h1><div class=\"text-base my-3\">We will only notify you about the essential, no spamming. This can be turned on or off at any time.</div><div id=\"notification-permissions-toggles\" class=\"mt-2\"></div>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = initPermissions("notification-permissions-toggles", data).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "<div class=\"collapsible mt-2 bg-slate-300 dark:bg-slate-800 text-slate-800 dark:text-white rounded-xl\" x-data=\"{ expanded: false }\"><button @click=\"expanded = ! expanded\" class=\"w-full p-2 text-xs md:text-sm flex items-center justify-center\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 16, "<h1 data-component=\"notification-permissions\" class=\"text-3xl md:text-4xl font-semibold mb-4 pt-10 md:pt-14 lg:pt-16 mb-4\">🔔 Notifications </h1><div class=\"text-base my-3\">We will only notify you about the essential, no spamming. This can be turned on or off at any time.</div><div id=\"notification-permissions-toggles\" class=\"mt-2\" data-island=\"NotificationPermissions\" data-props=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var10 string
-		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs("What we'll notify you about")
+		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(templ.JSONString(map[string]any{
+			"permissionDailyNotif":              data.PermissionDailyNotif,
+			"permissionPartnerActivity":         data.PermissionPartnerActivity,
+			"vapidPublicKey":                    data.VapidPublicKey,
+			"addPushSubscriptionEndpoint":       data.AddPushSubscriptionEndpoint,
+			"deletePushSubscriptionEndpoint":    data.DeletePushSubscriptionEndpoint,
+			"addFCMPushSubscriptionEndpoint":    data.AddFCMPushSubscriptionEndpoint,
+			"deleteFCMPushSubscriptionEndpoint": data.DeleteFCMPushSubscriptionEndpoint,
+			"addEmailSubscriptionEndpoint":      data.AddEmailSubscriptionEndpoint,
+			"deleteEmailSubscriptionEndpoint":   data.DeleteEmailSubscriptionEndpoint,
+			"addSmsSubscriptionEndpoint":        data.AddSmsSubscriptionEndpoint,
+			"deleteSmsSubscriptionEndpoint":     data.DeleteSmsSubscriptionEndpoint,
+			"subscribedEndpoints":               data.SubscribedEndpoints,
+			"notificationTypeQueryParamKey":     data.NotificationTypeQueryParamKey,
+			"phoneSubscriptionEnabled":          data.PhoneSubscriptionEnabled,
+		}))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 110, Col: 34}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 120, Col: 4}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "\"></div><div class=\"collapsible mt-2 bg-slate-300 dark:bg-slate-800 text-slate-800 dark:text-white rounded-xl\" x-data=\"{ expanded: false }\"><button @click=\"expanded = ! expanded\" class=\"w-full p-2 text-xs md:text-sm flex items-center justify-center\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var11 string
+		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs("What we'll notify you about")
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 129, Col: 34}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -291,39 +311,6 @@ func NotificationPermissions(page *controller.Page, data viewmodels.Notification
 		}
 		return nil
 	})
-}
-
-func initPermissions(componentID string, d viewmodels.NotificationPermissionsData) templ.ComponentScript {
-	return templ.ComponentScript{
-		Name: `__templ_initPermissions_0618`,
-		Function: `function __templ_initPermissions_0618(componentID, d){console.log(d)
-	renderSvelteComponent("NotificationPermissions", componentID, {
-		"permissionDailyNotif": d.PermissionDailyNotif,
-		"permissionPartnerActivity": d.PermissionPartnerActivity,
-		"vapidPublicKey": d.VapidPublicKey,
-		
-		"addPushSubscriptionEndpoint": d.AddPushSubscriptionEndpoint,
-		"deletePushSubscriptionEndpoint": d.DeletePushSubscriptionEndpoint,
-
-		"addFCMPushSubscriptionEndpoint": d.AddFCMPushSubscriptionEndpoint,
-		"deleteFCMPushSubscriptionEndpoint": d.DeleteFCMPushSubscriptionEndpoint,
-
-		"addEmailSubscriptionEndpoint": d.AddEmailSubscriptionEndpoint,
-		"deleteEmailSubscriptionEndpoint": d.DeleteEmailSubscriptionEndpoint,
-		
-		"addSmsSubscriptionEndpoint": d.AddSmsSubscriptionEndpoint,
-		"deleteSmsSubscriptionEndpoint": d.DeleteSmsSubscriptionEndpoint,
-		
-		"subscribedEndpoints": d.SubscribedEndpoints,
-		"notificationTypeQueryParamKey" : d.NotificationTypeQueryParamKey,
-		"phoneSubscriptionEnabled": d.PhoneSubscriptionEnabled,
-		// "createPermissionEndpoint": d.CreatePermissionEndpoint,
-		// "deletePermissionEndpoint": d.DeletePermissionEndpoint,
-	});
-}`,
-		Call:       templ.SafeScript(`__templ_initPermissions_0618`, componentID, d),
-		CallInline: templ.SafeScriptInline(`__templ_initPermissions_0618`, componentID, d),
-	}
 }
 
 func subscription(page *controller.Page, fullyOnboarded bool, planKey string, isPaidPlan bool, expiryTimestap *time.Time, isTrial bool) templ.Component {
@@ -342,9 +329,9 @@ func subscription(page *controller.Page, fullyOnboarded bool, planKey string, is
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var11 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var11 == nil {
-			templ_7745c5c3_Var11 = templ.NopComponent
+		templ_7745c5c3_Var12 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var12 == nil {
+			templ_7745c5c3_Var12 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<h1 class=\"text-3xl md:text-4xl font-semibold mb-4 pt-10 md:pt-14 lg:pt-16 mb-4\">💳 Subscription</h1><div class=\"text-base my-3\">You are currently on the  <span class=\"font-bold bg-gradient-to-r dark:from-green-300 dark:to-yellow-300 from-fuchsia-500 to-cyan-500 inline-block text-transparent bg-clip-text\">")
@@ -357,12 +344,12 @@ func subscription(page *controller.Page, fullyOnboarded bool, planKey string, is
 				return templ_7745c5c3_Err
 			}
 		}
-		var templ_7745c5c3_Var12 string
-		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(planKey)
+		var templ_7745c5c3_Var13 string
+		templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(planKey)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 175, Col: 12}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 167, Col: 12}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -375,12 +362,12 @@ func subscription(page *controller.Page, fullyOnboarded bool, planKey string, is
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var13 string
-			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs("Expiring on ")
+			var templ_7745c5c3_Var14 string
+			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs("Expiring on ")
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 185, Col: 20}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 177, Col: 20}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -474,9 +461,9 @@ func pricing() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var14 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var14 == nil {
-			templ_7745c5c3_Var14 = templ.NopComponent
+		templ_7745c5c3_Var15 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var15 == nil {
+			templ_7745c5c3_Var15 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "<section class=\"bg-white dark:bg-gray-900\"><div class=\"py-8 px-4 mx-auto max-w-screen-xl lg:py-16 lg:px-6\"><div class=\"space-y-8 lg:grid lg:grid-cols-3 sm:gap-6 xl:gap-10 lg:space-y-0\"><!-- Pricing Card --><div class=\"flex flex-col p-6 mx-auto max-w-lg text-center text-gray-900 bg-white rounded-lg border border-gray-100 shadow dark:border-gray-600 xl:p-8 dark:bg-gray-800 dark:text-white\"><h3 class=\"mb-4 text-2xl font-semibold\">Starter</h3><p class=\"font-light text-gray-500 sm:text-lg dark:text-gray-400\">Best option for personal use & for your next project.</p><div class=\"flex justify-center items-baseline my-8\"><span class=\"mr-2 text-5xl font-extrabold\">$29</span> <span class=\"text-gray-500 dark:text-gray-400\">/month</span></div><!-- List --><ul role=\"list\" class=\"mb-8 space-y-4 text-left\"><li class=\"flex items-center space-x-3\"><!-- Icon --><svg class=\"flex-shrink-0 w-5 h-5 text-green-500 dark:text-green-400\" fill=\"currentColor\" viewBox=\"0 0 20 20\" xmlns=\"http://www.w3.org/2000/svg\"><path fill-rule=\"evenodd\" d=\"M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z\" clip-rule=\"evenodd\"></path></svg> <span>Individual configuration</span></li><li class=\"flex items-center space-x-3\"><!-- Icon --><svg class=\"flex-shrink-0 w-5 h-5 text-green-500 dark:text-green-400\" fill=\"currentColor\" viewBox=\"0 0 20 20\" xmlns=\"http://www.w3.org/2000/svg\"><path fill-rule=\"evenodd\" d=\"M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z\" clip-rule=\"evenodd\"></path></svg> <span>No setup, or hidden fees</span></li><li class=\"flex items-center space-x-3\"><!-- Icon --><svg class=\"flex-shrink-0 w-5 h-5 text-green-500 dark:text-green-400\" fill=\"currentColor\" viewBox=\"0 0 20 20\" xmlns=\"http://www.w3.org/2000/svg\"><path fill-rule=\"evenodd\" d=\"M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z\" clip-rule=\"evenodd\"></path></svg> <span>Team size: <span class=\"font-semibold\">1 developer</span></span></li><li class=\"flex items-center space-x-3\"><!-- Icon --><svg class=\"flex-shrink-0 w-5 h-5 text-green-500 dark:text-green-400\" fill=\"currentColor\" viewBox=\"0 0 20 20\" xmlns=\"http://www.w3.org/2000/svg\"><path fill-rule=\"evenodd\" d=\"M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z\" clip-rule=\"evenodd\"></path></svg> <span>Premium support: <span class=\"font-semibold\">6 months</span></span></li><li class=\"flex items-center space-x-3\"><!-- Icon --><svg class=\"flex-shrink-0 w-5 h-5 text-green-500 dark:text-green-400\" fill=\"currentColor\" viewBox=\"0 0 20 20\" xmlns=\"http://www.w3.org/2000/svg\"><path fill-rule=\"evenodd\" d=\"M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z\" clip-rule=\"evenodd\"></path></svg> <span>Free updates: <span class=\"font-semibold\">6 months</span></span></li></ul><a href=\"#\" class=\"text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:ring-primary-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:text-white dark:focus:ring-primary-900\">Get started</a></div><!-- Pricing Card --><div class=\"flex flex-col p-6 mx-auto max-w-lg text-center text-gray-900 bg-white rounded-lg border border-gray-100 shadow dark:border-gray-600 xl:p-8 dark:bg-gray-800 dark:text-white\"><h3 class=\"mb-4 text-2xl font-semibold\">Company</h3><p class=\"font-light text-gray-500 sm:text-lg dark:text-gray-400\">Relevant for multiple users, extended & premium support.</p><div class=\"flex justify-center items-baseline my-8\"><span class=\"mr-2 text-5xl font-extrabold\">$99</span> <span class=\"text-gray-500 dark:text-gray-400\">/month</span></div><!-- List --><ul role=\"list\" class=\"mb-8 space-y-4 text-left\"><li class=\"flex items-center space-x-3\"><!-- Icon --><svg class=\"flex-shrink-0 w-5 h-5 text-green-500 dark:text-green-400\" fill=\"currentColor\" viewBox=\"0 0 20 20\" xmlns=\"http://www.w3.org/2000/svg\"><path fill-rule=\"evenodd\" d=\"M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z\" clip-rule=\"evenodd\"></path></svg> <span>Individual configuration</span></li><li class=\"flex items-center space-x-3\"><!-- Icon --><svg class=\"flex-shrink-0 w-5 h-5 text-green-500 dark:text-green-400\" fill=\"currentColor\" viewBox=\"0 0 20 20\" xmlns=\"http://www.w3.org/2000/svg\"><path fill-rule=\"evenodd\" d=\"M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z\" clip-rule=\"evenodd\"></path></svg> <span>No setup, or hidden fees</span></li><li class=\"flex items-center space-x-3\"><!-- Icon --><svg class=\"flex-shrink-0 w-5 h-5 text-green-500 dark:text-green-400\" fill=\"currentColor\" viewBox=\"0 0 20 20\" xmlns=\"http://www.w3.org/2000/svg\"><path fill-rule=\"evenodd\" d=\"M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z\" clip-rule=\"evenodd\"></path></svg> <span>Team size: <span class=\"font-semibold\">10 developers</span></span></li><li class=\"flex items-center space-x-3\"><!-- Icon --><svg class=\"flex-shrink-0 w-5 h-5 text-green-500 dark:text-green-400\" fill=\"currentColor\" viewBox=\"0 0 20 20\" xmlns=\"http://www.w3.org/2000/svg\"><path fill-rule=\"evenodd\" d=\"M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z\" clip-rule=\"evenodd\"></path></svg> <span>Premium support: <span class=\"font-semibold\">24 months</span></span></li><li class=\"flex items-center space-x-3\"><!-- Icon --><svg class=\"flex-shrink-0 w-5 h-5 text-green-500 dark:text-green-400\" fill=\"currentColor\" viewBox=\"0 0 20 20\" xmlns=\"http://www.w3.org/2000/svg\"><path fill-rule=\"evenodd\" d=\"M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z\" clip-rule=\"evenodd\"></path></svg> <span>Free updates: <span class=\"font-semibold\">24 months</span></span></li></ul><a href=\"#\" class=\"text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:ring-primary-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:text-white dark:focus:ring-primary-900\">Get started</a></div><!-- Pricing Card --><div class=\"flex flex-col p-6 mx-auto max-w-lg text-center text-gray-900 bg-white rounded-lg border border-gray-100 shadow dark:border-gray-600 xl:p-8 dark:bg-gray-800 dark:text-white\"><h3 class=\"mb-4 text-2xl font-semibold\">Enterprise</h3><p class=\"font-light text-gray-500 sm:text-lg dark:text-gray-400\">Best for large scale uses and extended redistribution rights.</p><div class=\"flex justify-center items-baseline my-8\"><span class=\"mr-2 text-5xl font-extrabold\">$499</span> <span class=\"text-gray-500 dark:text-gray-400\">/month</span></div><!-- List --><ul role=\"list\" class=\"mb-8 space-y-4 text-left\"><li class=\"flex items-center space-x-3\"><!-- Icon --><svg class=\"flex-shrink-0 w-5 h-5 text-green-500 dark:text-green-400\" fill=\"currentColor\" viewBox=\"0 0 20 20\" xmlns=\"http://www.w3.org/2000/svg\"><path fill-rule=\"evenodd\" d=\"M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z\" clip-rule=\"evenodd\"></path></svg> <span>Individual configuration</span></li><li class=\"flex items-center space-x-3\"><!-- Icon --><svg class=\"flex-shrink-0 w-5 h-5 text-green-500 dark:text-green-400\" fill=\"currentColor\" viewBox=\"0 0 20 20\" xmlns=\"http://www.w3.org/2000/svg\"><path fill-rule=\"evenodd\" d=\"M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z\" clip-rule=\"evenodd\"></path></svg> <span>No setup, or hidden fees</span></li><li class=\"flex items-center space-x-3\"><!-- Icon --><svg class=\"flex-shrink-0 w-5 h-5 text-green-500 dark:text-green-400\" fill=\"currentColor\" viewBox=\"0 0 20 20\" xmlns=\"http://www.w3.org/2000/svg\"><path fill-rule=\"evenodd\" d=\"M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z\" clip-rule=\"evenodd\"></path></svg> <span>Team size: <span class=\"font-semibold\">100+ developers</span></span></li><li class=\"flex items-center space-x-3\"><!-- Icon --><svg class=\"flex-shrink-0 w-5 h-5 text-green-500 dark:text-green-400\" fill=\"currentColor\" viewBox=\"0 0 20 20\" xmlns=\"http://www.w3.org/2000/svg\"><path fill-rule=\"evenodd\" d=\"M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z\" clip-rule=\"evenodd\"></path></svg> <span>Premium support: <span class=\"font-semibold\">36 months</span></span></li><li class=\"flex items-center space-x-3\"><!-- Icon --><svg class=\"flex-shrink-0 w-5 h-5 text-green-500 dark:text-green-400\" fill=\"currentColor\" viewBox=\"0 0 20 20\" xmlns=\"http://www.w3.org/2000/svg\"><path fill-rule=\"evenodd\" d=\"M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z\" clip-rule=\"evenodd\"></path></svg> <span>Free updates: <span class=\"font-semibold\">36 months</span></span></li></ul><a href=\"#\" class=\"text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:ring-primary-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:text-white dark:focus:ring-primary-900\">Get started</a></div></div></div></section>")
@@ -522,21 +509,21 @@ func deleteAccountAndData(page *controller.Page) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var15 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var15 == nil {
-			templ_7745c5c3_Var15 = templ.NopComponent
+		templ_7745c5c3_Var16 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var16 == nil {
+			templ_7745c5c3_Var16 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "<h1 class=\"text-3xl md:text-4xl font-semibold mb-4 pt-10 md:pt-14 lg:pt-16 mb-4\">🦈 Dangerous Section </h1><div class=\"flex flex-col space-y-4\"><button hx-get=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var16 string
-		templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameDeleteAccountPage))
+		var templ_7745c5c3_Var17 string
+		templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameDeleteAccountPage))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 377, Col: 61}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 369, Col: 61}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -565,9 +552,9 @@ func AboutMe(page *controller.Page) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var17 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var17 == nil {
-			templ_7745c5c3_Var17 = templ.NopComponent
+		templ_7745c5c3_Var18 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var18 == nil {
+			templ_7745c5c3_Var18 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "<div data-component=\"about-me\" id=\"aboutMe\"><h1 class=\"text-3xl md:text-4xl font-semibold mb-4 pt-10 md:pt-14 lg:pt-16\">🙋 About Me</h1><div id=\"bioTextInput\">")
@@ -579,12 +566,12 @@ func AboutMe(page *controller.Page) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var18 string
-			templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameUpdateBio) + "?csrf=" + page.CSRF)
+			var templ_7745c5c3_Var19 string
+			templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameUpdateBio) + "?csrf=" + page.CSRF)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 409, Col: 80}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 401, Col: 80}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -592,12 +579,12 @@ func AboutMe(page *controller.Page) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var19 string
-			templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(form.Bio)
+			var templ_7745c5c3_Var20 string
+			templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(form.Bio)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 411, Col: 16}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 403, Col: 16}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -643,9 +630,9 @@ func birthdate(page *controller.Page) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var20 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var20 == nil {
-			templ_7745c5c3_Var20 = templ.NopComponent
+		templ_7745c5c3_Var21 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var21 == nil {
+			templ_7745c5c3_Var21 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		if data, ok := page.Data.(*viewmodels.PreferencesData); ok {
@@ -653,12 +640,12 @@ func birthdate(page *controller.Page) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var21 string
-			templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(data.SelfBirthdate)
+			var templ_7745c5c3_Var22 string
+			templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(data.SelfBirthdate)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 445, Col: 30}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 437, Col: 30}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -666,12 +653,12 @@ func birthdate(page *controller.Page) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var22 string
-			templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(data.SelfBirthdate)
+			var templ_7745c5c3_Var23 string
+			templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(data.SelfBirthdate)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 449, Col: 66}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 441, Col: 66}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -700,21 +687,21 @@ func saveAndReloadPrefsPage(page *controller.Page) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var23 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var23 == nil {
-			templ_7745c5c3_Var23 = templ.NopComponent
+		templ_7745c5c3_Var24 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var24 == nil {
+			templ_7745c5c3_Var24 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "<div class=\"flex justify-center\"><button type=\"button\" class=\"w-fit text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 font-medium rounded-full text-sm px-8 py-2.5 text-center me-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800\" hx-target=\"#main-content\" hx-select=\"#main-content\" hx-swap=\"outerHTML\" hx-indicator=\"next #page-loading\" hx-push-url=\"false\" hx-get=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var24 string
-		templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNamePreferences))
+		var templ_7745c5c3_Var25 string
+		templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNamePreferences))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 463, Col: 55}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 455, Col: 55}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -742,17 +729,17 @@ func phoneNumberField(phoneNumberInE164Format, countryCode string) templ.Compone
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var25 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var25 == nil {
-			templ_7745c5c3_Var25 = templ.NopComponent
+		templ_7745c5c3_Var26 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var26 == nil {
+			templ_7745c5c3_Var26 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "<div id=\"phone-number-placeholder\" class=\"w-full\" data-island=\"PhoneNumberPicker\" data-props=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var26 string
-		templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs(templ.JSONString(map[string]any{
+		var templ_7745c5c3_Var27 string
+		templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(templ.JSONString(map[string]any{
 			"componentID":              "phone-number-placeholder",
 			"value":                    phoneNumberInE164Format,
 			"country":                  countryCode,
@@ -763,9 +750,9 @@ func phoneNumberField(phoneNumberInE164Format, countryCode string) templ.Compone
 			"readonly":                 false,
 		}))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 482, Col: 4}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 474, Col: 4}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -793,21 +780,21 @@ func finishOnboarding(page *controller.Page) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var27 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var27 == nil {
-			templ_7745c5c3_Var27 = templ.NopComponent
+		templ_7745c5c3_Var28 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var28 == nil {
+			templ_7745c5c3_Var28 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "<div class=\"h-4\"></div><!-- This creates an empty div with a height of 2rem (32px) --><div class=\"flex justify-center mt-4 m-10\"><!-- We need to load the full page because menu options will change once the profile is fully onboarded--><a href=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var28 templ.SafeURL
-		templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(page.ToURL(routenames.RouteNameFinishOnboarding)))
+		var templ_7745c5c3_Var29 templ.SafeURL
+		templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(page.ToURL(routenames.RouteNameFinishOnboarding)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 490, Col: 71}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 482, Col: 71}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -835,21 +822,21 @@ func savePrefs(page *controller.Page) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var29 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var29 == nil {
-			templ_7745c5c3_Var29 = templ.NopComponent
+		templ_7745c5c3_Var30 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var30 == nil {
+			templ_7745c5c3_Var30 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 48, "<div class=\"h-4\"></div><!-- This creates an empty div with a height of 2rem (32px) --><div class=\"flex justify-center mt-4 m-10\"><button hx-get=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var30 string
-		templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameProfile))
+		var templ_7745c5c3_Var31 string
+		templ_7745c5c3_Var31, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameProfile))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 518, Col: 51}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 510, Col: 51}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var30))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var31))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -877,21 +864,21 @@ func phoneNumber(page *controller.Page, phone string) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var31 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var31 == nil {
-			templ_7745c5c3_Var31 = templ.NopComponent
+		templ_7745c5c3_Var32 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var32 == nil {
+			templ_7745c5c3_Var32 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "<h1 class=\"text-3xl md:text-4xl font-semibold mb-4 pt-10 md:pt-14 lg:pt-16\">📱 Phone Number</h1><div class=\"flex flex-col space-y-4\"><div class=\"flex flex-col space-y-2 m-5\"><div class=\"control\"><input type=\"text\" class=\"bg-gray-50 border border-gray-300 text-gray-900 text-sm md:text-base rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full md:ps-5 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var32 string
-		templ_7745c5c3_Var32, templ_7745c5c3_Err = templ.JoinStringErrs(phone)
+		var templ_7745c5c3_Var33 string
+		templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs(phone)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 542, Col: 18}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 534, Col: 18}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var32))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -899,12 +886,12 @@ func phoneNumber(page *controller.Page, phone string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var33 string
-		templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameGetPhone))
+		var templ_7745c5c3_Var34 string
+		templ_7745c5c3_Var34, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameGetPhone))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 556, Col: 53}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 548, Col: 53}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var34))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
