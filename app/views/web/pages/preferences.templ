@@ -3,7 +3,6 @@ package pages
 import (
 	"fmt"
 	"github.com/leomorpho/goship/app/controller"
-	"github.com/leomorpho/goship/framework/domain"
 	"github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/app/web/viewmodels"
 	"github.com/leomorpho/goship/app/views/web/components/gen"
@@ -343,19 +342,6 @@ templ pricing() {
 			</div>
 		</div>
 	</section>
-}
-
-script initNotificationPermissions(componentID, vapidPublicKey, addSubscriptionEndpoint, deleteSubscriptionEndpoint, createPermissionEndpoint, deletePermissionEndpoint, csrf string, subscribedEndpoints []string, permissions []domain.NotificationPermission) {
-	renderSvelteComponent('PwaSubscribePush', componentID, {
-		"vapidPublicKey": vapidPublicKey,
-		"addSubscriptionEndpoint": addSubscriptionEndpoint,
-		"deleteSubscriptionEndpoint": deleteSubscriptionEndpoint,
-		"subscribedEndpoints": subscribedEndpoints,
-		"createPermissionEndpoint": createPermissionEndpoint,
-		"deletePermissionEndpoint": deletePermissionEndpoint,
-		"pushPermissions": permissions,
-		"csrfToken": csrf,
-	});
 }
 
 templ deleteAccountAndData(page *controller.Page) {
