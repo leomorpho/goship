@@ -4738,10 +4738,10 @@ Group A — Critical Fixes
 [ ] A02  ship doctor --json
 
 Group B — JS Islands
-[ ] B01  Vite config
-[ ] B02  Islands runtime
-[ ] B03  ThemeToggle migrated
-[ ] B04  All components migrated
+[x] B01  Vite config
+[x] B02  Islands runtime
+[x] B03  ThemeToggle migrated
+[x] B04  All components migrated
 [ ] B05  Old esbuild removed
 
 Group C — Module System

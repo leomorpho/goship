@@ -59,25 +59,6 @@ func PermissionsButtons(platforms map[domain.NotificationPlatform]bool, notifsPe
 	})
 }
 
-func initNotificationPermissions(componentID string, platforms map[domain.NotificationPlatform]bool, notifsPermissions viewmodels.NotificationPermissionsData) templ.ComponentScript {
-	return templ.ComponentScript{
-		Name: `__templ_initNotificationPermissions_820f`,
-		Function: `function __templ_initNotificationPermissions_820f(componentID, platforms, notifsPermissions){console.log("yay????")
-    renderSvelteComponent("NotificationPermissions", componentID, {
-		"vapidPublicKey": notifsPermissions.VapidPublicKey,
-		"addSubscriptionEndpoint": notifsPermissions.AddSubscriptionEndpoint,
-		"deleteSubscriptionEndpoint": notifsPermissions.DeleteSubscriptionEndpoint,
-		"subscribedEndpoints": notifsPermissions.SubscribedEndpoints,
-		// "createPermissionEndpoint": d.createPermissionEndpoint,
-		// "deletePermissionEndpoint": d.deletePermissionEndpoint,
-		"pushPermissions": d.permissions,
-	});
-}`,
-		Call:       templ.SafeScript(`__templ_initNotificationPermissions_820f`, componentID, platforms, notifsPermissions),
-		CallInline: templ.SafeScriptInline(`__templ_initNotificationPermissions_820f`, componentID, platforms, notifsPermissions),
-	}
-}
-
 // Renders: platform-permission-button component.
 func PlatformPermissionButton(platformName domain.NotificationPlatform, permissionGranted bool) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
