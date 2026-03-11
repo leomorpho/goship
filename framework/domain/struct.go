@@ -2,6 +2,8 @@ package domain
 
 import (
 	"time"
+
+	"github.com/leomorpho/goship/framework/nullable"
 )
 
 type Question struct {
@@ -184,4 +186,66 @@ type NotificationPermission struct {
 type NotificationPermissionPlatform struct {
 	Platform string `json:"platform"`
 	Granted  bool   `json:"granted"`
+}
+
+func (q *Question) HasVotedAt() bool {
+	return q != nil && q.VotedAt != nil
+}
+
+func (q *Question) VotedAtOrZero() time.Time {
+	if q == nil || q.VotedAt == nil {
+		return time.Time{}
+	}
+	return *q.VotedAt
+}
+
+func (a *Author) HasProfileImage() bool {
+	return a != nil && a.ProfileImage != nil
+}
+
+func (a *Author) ProfileImageThumbnailURL() string {
+	if a == nil || a.ProfileImage == nil {
+		return ""
+	}
+	return a.ProfileImage.ThumbnailURL
+}
+
+func (a *Answer) HasSeenAt() bool {
+	return a != nil && a.SeenAt != nil
+}
+
+func (a *Answer) SeenAtOrZero() time.Time {
+	if a == nil || a.SeenAt == nil {
+		return time.Time{}
+	}
+	return *a.SeenAt
+}
+
+func (m *PrivateMessage) HasSeenAt() bool {
+	return m != nil && m.SeenAt != nil
+}
+
+func (m *PrivateMessage) SeenAtOrZero() time.Time {
+	if m == nil || m.SeenAt == nil {
+		return time.Time{}
+	}
+	return *m.SeenAt
+}
+
+func (p *Profile) HasProfileImage() bool {
+	return p != nil && p.ProfileImage != nil
+}
+
+func (p *Profile) ProfileImageThumbnailURL() string {
+	if p == nil || p.ProfileImage == nil {
+		return ""
+	}
+	return p.ProfileImage.ThumbnailURL
+}
+
+func (p *Profile) ContactPhoneNumber() string {
+	if p == nil {
+		return ""
+	}
+	return nullable.StringOr(p.PhoneNumberInternational, p.PhoneNumberE164)
 }

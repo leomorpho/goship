@@ -141,8 +141,8 @@ templ ProfileHeader(page *controller.Page, profile *domain.Profile, isSelf, isPo
 								hx-push-url="true"
 							}
 						>
-							if profile.ProfileImage != nil && profile.ProfileImage.ThumbnailURL != "" {
-								<img src={ profile.ProfileImage.ThumbnailURL } class="object-cover w-full h-full"/>
+							if profile.ProfileImageThumbnailURL() != "" {
+								<img src={ profile.ProfileImageThumbnailURL() } class="object-cover w-full h-full"/>
 							} else {
 								<img src="https://www.gravatar.com/avatar/?d=mp&s=200" class="object-cover w-full h-full"/>
 							}
@@ -242,11 +242,7 @@ templ ProfileHeader(page *controller.Page, profile *domain.Profile, isSelf, isPo
 templ showContactInfo(profile domain.Profile) {
 	<div class="bg-secondary text-secondary-content rounded-lg m-2 p-2">
 		<span class="mr-1">{ profile.CountryCode }</span>
-		if profile.PhoneNumberInternational !=nil {
-			{ *profile.PhoneNumberInternational }
-		} else {
-			{ profile.PhoneNumberE164 }
-		}
+		{ profile.ContactPhoneNumber() }
 	</div>
 }
 
