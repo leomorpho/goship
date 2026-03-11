@@ -12,6 +12,19 @@ import (
 	dbqueries "github.com/leomorpho/goship/db/queries"
 )
 
+func normalizeSQLiteDriver(driver string) string {
+	switch strings.ToLower(strings.TrimSpace(driver)) {
+	case "sqlite", "sqlite3":
+		return "sqlite"
+	default:
+		return strings.ToLower(strings.TrimSpace(driver))
+	}
+}
+
+func isSQLiteDriver(driver string) bool {
+	return normalizeSQLiteDriver(driver) == "sqlite"
+}
+
 func resolveMigrationsDir() (string, error) {
 	relative := filepath.Join("db", "migrate", "migrations")
 	if _, err := os.Stat(relative); err == nil {
@@ -36,7 +49,7 @@ func applySQLMigrations(db *sql.DB, migrationsDir string, driver string) error {
 	}
 
 	queryName := "create_schema_migrations_table_postgres"
-	if driver == "sqlite3" {
+	if isSQLiteDriver(driver) {
 		queryName = "create_schema_migrations_table_sqlite"
 	}
 	trackingDDL, err := dbqueries.Get(queryName)
@@ -93,7 +106,7 @@ func migrationVersion(entry os.DirEntry) string {
 func hasAppliedMigration(db *sql.DB, driver string, version string) (bool, error) {
 	var marker int
 	queryName := "select_schema_migration_version_postgres"
-	if driver == "sqlite3" {
+	if isSQLiteDriver(driver) {
 		queryName = "select_schema_migration_version_sqlite"
 	}
 	query, err := dbqueries.Get(queryName)
@@ -121,7 +134,7 @@ func applySingleMigration(db *sql.DB, driver string, version string, sqlText str
 		return fmt.Errorf("execute SQL: %w", err)
 	}
 	queryName := "insert_schema_migration_version_postgres"
-	if driver == "sqlite3" {
+	if isSQLiteDriver(driver) {
 		queryName = "insert_schema_migration_version_sqlite"
 	}
 	insert, err := dbqueries.Get(queryName)

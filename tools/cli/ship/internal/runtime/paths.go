@@ -92,7 +92,14 @@ func ResolveDBURL() (string, error) {
 		return "", err
 	}
 	if strings.EqualFold(string(cfg.Database.DbMode), "embedded") {
-		return "", errors.New("database mode is embedded; set DATABASE_URL or switch runtime profile to server-db for database migrations")
+		dsn := strings.TrimSpace(cfg.Database.EmbeddedConnection)
+		if dsn == "" {
+			dsn = strings.TrimSpace(cfg.Database.Path)
+		}
+		if dsn == "" {
+			return "", errors.New("database mode is embedded but sqlite DSN/path is empty")
+		}
+		return "sqlite://" + dsn, nil
 	}
 
 	env := strings.TrimSpace(os.Getenv("APP_ENV"))

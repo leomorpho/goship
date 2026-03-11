@@ -10,10 +10,10 @@ import (
 	"github.com/getsentry/sentry-go"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/labstack/echo/v4"
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/rs/zerolog"
 	"github.com/stripe/stripe-go/v78"
 	"github.com/ziflex/lecho/v3"
+	_ "modernc.org/sqlite"
 
 	"github.com/leomorpho/goship-modules/notifications"
 	"github.com/leomorpho/goship/config"
@@ -330,7 +330,7 @@ func (c *Container) initDatabase() {
 func openEmbeddedDB(driver, connection string) (*sql.DB, error) {
 	// Helper to automatically create the directories that the specified sqlite file
 	// should reside in, if one
-	if driver == "sqlite3" {
+	if isSQLiteDriver(driver) {
 		d := strings.Split(connection, "/")
 
 		if len(d) > 1 {
@@ -353,12 +353,9 @@ func (c *Container) initSchema() {
 	}
 	driver := "postgres"
 	if c.Config.Database.DbMode == config.DBModeEmbedded {
-		driver = strings.ToLower(c.Config.Database.EmbeddedDriver)
-		if driver == "sqlite" {
-			driver = "sqlite3"
-		}
+		driver = normalizeSQLiteDriver(c.Config.Database.EmbeddedDriver)
 	}
-	if driver == "sqlite3" {
+	if isSQLiteDriver(driver) {
 		if err := ensureEmbeddedSQLiteSchema(c.Database); err != nil {
 			panic(fmt.Sprintf("failed to initialize embedded sqlite schema: %v", err))
 		}

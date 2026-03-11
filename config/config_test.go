@@ -79,6 +79,32 @@ func TestGetConfig_LoadsDotEnv(t *testing.T) {
 	assert.Equal(t, uint16(5433), cfg.Database.Port)
 }
 
+func TestGetConfig_DBDriverOverridesLegacyEmbeddedSettings(t *testing.T) {
+	useIsolatedWorkingDir(t)
+	t.Setenv("PAGODA_DB_DRIVER", "sqlite")
+	t.Setenv("PAGODA_DB_PATH", "dbs/app.db")
+	t.Setenv("PAGODA_DATABASE_DBMODE", string(DBModeStandalone))
+	t.Setenv("PAGODA_DATABASE_EMBEDDEDDRIVER", "sqlite3")
+
+	cfg, err := GetConfig()
+	require.NoError(t, err)
+	assert.Equal(t, DBDriverSQLite, cfg.Database.Driver)
+	assert.Equal(t, DBModeEmbedded, cfg.Database.DbMode)
+	assert.Equal(t, "sqlite", cfg.Database.EmbeddedDriver)
+	assert.Equal(t, "dbs/app.db?_journal=WAL&_timeout=5000&_fk=true", cfg.Database.EmbeddedConnection)
+}
+
+func TestGetConfig_StandaloneModeDefaultsToPostgresDriver(t *testing.T) {
+	useIsolatedWorkingDir(t)
+	t.Setenv("PAGODA_DB_DRIVER", "")
+	t.Setenv("PAGODA_DATABASE_DBMODE", string(DBModeStandalone))
+
+	cfg, err := GetConfig()
+	require.NoError(t, err)
+	assert.Equal(t, DBDriverPostgres, cfg.Database.Driver)
+	assert.Equal(t, DBModeStandalone, cfg.Database.DbMode)
+}
+
 func useIsolatedWorkingDir(t *testing.T) {
 	t.Helper()
 

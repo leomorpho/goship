@@ -25,6 +25,7 @@ type app string
 type environment string
 type dbmode string
 type runtimeprofile string
+type dbdriver string
 
 const (
 	// EnvLocal represents the local environment
@@ -59,6 +60,12 @@ const (
 
 	// RuntimeProfileDistributed is the profile targeting distributed processes.
 	RuntimeProfileDistributed runtimeprofile = "distributed"
+
+	// DBDriverPostgres uses an external Postgres server.
+	DBDriverPostgres dbdriver = "postgres"
+
+	// DBDriverSQLite uses an embedded SQLite database.
+	DBDriverSQLite dbdriver = "sqlite"
 )
 
 // SwitchEnvironment sets the environment variable used to dictate which environment the application is
@@ -186,19 +193,21 @@ type (
 
 	// DatabaseConfig stores the database configuration
 	DatabaseConfig struct {
-		DbMode                 dbmode `env:"PAGODA_DATABASE_DBMODE"`
-		EmbeddedDriver         string `env:"PAGODA_DATABASE_EMBEDDEDDRIVER"`
-		EmbeddedConnection     string `env:"PAGODA_DATABASE_EMBEDDEDCONNECTION"`
-		EmbeddedTestConnection string `env:"PAGODA_DATABASE_EMBEDDEDTESTCONNECTION"`
-		Hostname               string `env:"PAGODA_DATABASE_HOSTNAME"`
-		Port                   uint16 `env:"PAGODA_DATABASE_PORT"`
-		User                   string `env:"PAGODA_DATABASE_USER"`
-		Password               string `env:"PAGODA_DATABASE_PASSWORD"`
-		DatabaseNameLocal      string `env:"PAGODA_DATABASE_DATABASENAMELOCAL"`
-		DatabaseNameProd       string `env:"PAGODA_DATABASE_DATABASENAMEPROD"`
-		TestDatabase           string `env:"PAGODA_DATABASE_TESTDATABASE"`
-		SslCertPath            string `env:"PAGODA_DATABASE_SSLCERTPATH"`
-		SslMode                string `env:"PAGODA_DATABASE_SSLMODE"`
+		Driver                 dbdriver `env:"PAGODA_DATABASE_DRIVER,PAGODA_DB_DRIVER"`
+		Path                   string   `env:"PAGODA_DATABASE_PATH,PAGODA_DB_PATH"`
+		DbMode                 dbmode   `env:"PAGODA_DATABASE_DBMODE"`
+		EmbeddedDriver         string   `env:"PAGODA_DATABASE_EMBEDDEDDRIVER"`
+		EmbeddedConnection     string   `env:"PAGODA_DATABASE_EMBEDDEDCONNECTION"`
+		EmbeddedTestConnection string   `env:"PAGODA_DATABASE_EMBEDDEDTESTCONNECTION"`
+		Hostname               string   `env:"PAGODA_DATABASE_HOSTNAME"`
+		Port                   uint16   `env:"PAGODA_DATABASE_PORT"`
+		User                   string   `env:"PAGODA_DATABASE_USER"`
+		Password               string   `env:"PAGODA_DATABASE_PASSWORD"`
+		DatabaseNameLocal      string   `env:"PAGODA_DATABASE_DATABASENAMELOCAL"`
+		DatabaseNameProd       string   `env:"PAGODA_DATABASE_DATABASENAMEPROD"`
+		TestDatabase           string   `env:"PAGODA_DATABASE_TESTDATABASE"`
+		SslCertPath            string   `env:"PAGODA_DATABASE_SSLCERTPATH"`
+		SslMode                string   `env:"PAGODA_DATABASE_SSLMODE"`
 	}
 
 	// MailConfig stores the mail configuration
@@ -248,6 +257,7 @@ func GetConfig() (Config, error) {
 
 	c.App.Environment = resolveEnvironment(c.App.Environment)
 	applyLegacyEnvAliases(&c)
+	applyDatabaseDriverConfig(&c)
 	applyRuntimeDefaults(&c)
 	applyProcessesProfile(&c)
 
@@ -338,8 +348,10 @@ func defaultConfig() Config {
 			},
 		},
 		Database: DatabaseConfig{
+			Driver:                 "",
+			Path:                   "dbs/main.db",
 			DbMode:                 DBModeEmbedded,
-			EmbeddedDriver:         "sqlite3",
+			EmbeddedDriver:         "sqlite",
 			EmbeddedConnection:     "dbs/main.db?_journal=WAL&_timeout=5000&_fk=true",
 			EmbeddedTestConnection: ":memory:?_journal=WAL&_timeout=5000&_fk=true",
 			Hostname:               "localhost",
@@ -404,6 +416,79 @@ func applyLegacyEnvAliases(c *Config) {
 			c.Database.DatabaseNameProd = value
 		}
 	}
+}
+
+func applyDatabaseDriverConfig(c *Config) {
+	if c == nil {
+		return
+	}
+
+	driver := normalizeDBDriver(string(c.Database.Driver))
+	switch {
+	case driver != "":
+		c.Database.Driver = dbdriver(driver)
+	case c.Database.DbMode == DBModeEmbedded:
+		c.Database.Driver = DBDriverSQLite
+	default:
+		c.Database.Driver = DBDriverPostgres
+	}
+
+	if strings.TrimSpace(c.Database.Path) == "" {
+		c.Database.Path = sqlitePathFromConnection(c.Database.EmbeddedConnection)
+	}
+	if strings.TrimSpace(c.Database.Path) == "" {
+		c.Database.Path = "dbs/main.db"
+	}
+
+	switch c.Database.Driver {
+	case DBDriverSQLite:
+		c.Database.DbMode = DBModeEmbedded
+		c.Database.EmbeddedDriver = string(DBDriverSQLite)
+		c.Database.EmbeddedConnection = sqliteConnectionString(c.Database.Path)
+		if strings.TrimSpace(c.Database.EmbeddedTestConnection) == "" {
+			c.Database.EmbeddedTestConnection = ":memory:?_journal=WAL&_timeout=5000&_fk=true"
+		}
+	case DBDriverPostgres:
+		c.Database.DbMode = DBModeStandalone
+		if strings.TrimSpace(c.Database.EmbeddedDriver) == "" {
+			c.Database.EmbeddedDriver = string(DBDriverSQLite)
+		}
+	default:
+		c.Database.Driver = DBDriverSQLite
+		c.Database.DbMode = DBModeEmbedded
+		c.Database.EmbeddedDriver = string(DBDriverSQLite)
+		c.Database.EmbeddedConnection = sqliteConnectionString(c.Database.Path)
+	}
+}
+
+func normalizeDBDriver(raw string) string {
+	switch strings.ToLower(strings.TrimSpace(raw)) {
+	case "postgres", "postgresql", "pgx":
+		return string(DBDriverPostgres)
+	case "sqlite", "sqlite3":
+		return string(DBDriverSQLite)
+	default:
+		return ""
+	}
+}
+
+func sqlitePathFromConnection(conn string) string {
+	v := strings.TrimSpace(conn)
+	if v == "" {
+		return ""
+	}
+	if idx := strings.Index(v, "?"); idx >= 0 {
+		v = v[:idx]
+	}
+	return strings.TrimSpace(v)
+}
+
+func sqliteConnectionString(path string) string {
+	p := strings.TrimSpace(path)
+	if p == "" {
+		p = "dbs/main.db"
+	}
+	return p + "?_journal=WAL&_timeout=5000&_fk=true"
 }
 
 func applyRuntimeDefaults(c *Config) {

@@ -83,7 +83,7 @@ func NewRouteDeps(
 
 func activeDatabaseDialect(cfg *config.Config) string {
 	if cfg.Database.DbMode == config.DBModeEmbedded {
-		return cfg.Database.EmbeddedDriver
+		return string(cfg.Database.Driver)
 	}
 	return "postgres"
 }

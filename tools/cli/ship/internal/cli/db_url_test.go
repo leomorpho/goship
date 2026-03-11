@@ -92,7 +92,7 @@ func TestResolveDBURL_FromConfig(t *testing.T) {
 	}
 }
 
-func TestResolveDBURL_EmbeddedModeError(t *testing.T) {
+func TestResolveDBURL_EmbeddedModeUsesSQLiteURL(t *testing.T) {
 	root := t.TempDir()
 	prevWD, err := os.Getwd()
 	if err != nil {
@@ -117,12 +117,12 @@ func TestResolveDBURL_EmbeddedModeError(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = resolveRuntimeDBURL()
-	if err == nil {
-		t.Fatal("expected error for embedded mode, got nil")
+	got, err := resolveRuntimeDBURL()
+	if err != nil {
+		t.Fatalf("resolveRuntimeDBURL error = %v", err)
 	}
-	if !strings.Contains(err.Error(), "embedded") {
-		t.Fatalf("error = %q, want embedded message", err.Error())
+	if got != "sqlite://dbs/main.db?_journal=WAL&_timeout=5000&_fk=true" {
+		t.Fatalf("db url = %q, want sqlite URL", got)
 	}
 }
 
