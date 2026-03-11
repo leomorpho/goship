@@ -27,7 +27,11 @@ func _() { _ = user.FindUserByID }
 	t.Run("module isolation direct root import violation", func(t *testing.T) {
 		root := t.TempDir()
 		writeDoctorFixture(t, root)
-		path := filepath.Join(root, "modules", "local", "bad.go")
+		moduleDir := filepath.Join(root, "modules", "local")
+		if err := os.WriteFile(filepath.Join(moduleDir, "go.mod"), []byte("module example.com/local\n\ngo 1.23.0\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		path := filepath.Join(moduleDir, "bad.go")
 		content := `package local
 
 import "github.com/leomorpho/goship/framework/core"

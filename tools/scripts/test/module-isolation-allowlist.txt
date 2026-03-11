@@ -13,6 +13,7 @@ modules/notifications/push_notifications_fcm.go
 modules/notifications/push_notifications_fcm_store_ent.go
 modules/notifications/push_notifications_pwa.go
 modules/notifications/push_notifications_pwa_store_ent.go
+modules/notifications/routes/routes.go
 modules/notifications/sms_store_ent.go
 modules/auth/module.go
 modules/auth/routes.go
@@ -32,3 +33,4 @@ modules/profile/register_flow.go
 modules/profile/routes.go
 modules/profile/storage_image_mapper.go
 modules/profile/views/web/pages/gen/profile_templ.go
+modules/paidsubscriptions/routes/routes.go

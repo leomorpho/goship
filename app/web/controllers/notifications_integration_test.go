@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v4"
+	modnotifications "github.com/leomorpho/goship-modules/notifications/routes"
 	"github.com/leomorpho/goship/app/web/ui"
 	customctx "github.com/leomorpho/goship/framework/context"
 )
@@ -22,7 +23,7 @@ func (integrationNotificationCountReader) GetCountOfUnseenNotifications(context.
 func TestNormalNotificationsCountRoute_APIReadPath(t *testing.T) {
 	e := echo.New()
 
-	route := NewNormalNotificationsCountRoute(ui.Controller{}, integrationNotificationCountReader{})
+	route := modnotifications.NewNormalNotificationsCountRoute(ui.Controller{}, integrationNotificationCountReader{})
 	e.GET("/auth/notifications/normalNotificationsCount", route.Get, func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			c.Set(customctx.AuthenticatedProfileIDKey, 77)

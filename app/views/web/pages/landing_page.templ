@@ -7,13 +7,14 @@ import (
 	"github.com/leomorpho/goship/app/web/viewmodels"
 	"github.com/leomorpho/goship/app/views/web/components/gen"
 	"github.com/leomorpho/goship/app/web/routenames"
+	pwacomponents "github.com/leomorpho/goship/modules/pwa/views/web/components/gen"
 )
 
 // Renders: landing-page component.
 templ LandingPage(page *controller.Page) {
 	<div data-component="landing-page" class="top-0 z-50 flex flex-row justify-center items-center flex-wrap ">
 		if !page.IsIosDevice {
-			@components.PWAMobileInstallButton(page)
+			@pwacomponents.PWAMobileInstallButton(page)
 		}
 		@nativeMobileLoginButton(page)
 		// TODO: only show this once documentation is ready
@@ -519,4 +520,3 @@ script landingPageJS() {
         }
     }
 }
-

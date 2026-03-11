@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/app/web/controllers"
+	modnotifications "github.com/leomorpho/goship-modules/notifications/routes"
 	"github.com/leomorpho/goship/app/web/ui"
 	customctx "github.com/leomorpho/goship/framework/context"
 )
@@ -29,7 +29,7 @@ func (f fakeNotificationCountReader) GetCountOfUnseenNotifications(context.Conte
 
 func TestNotificationsCountAPIReadPath(t *testing.T) {
 	e := echo.New()
-	route := controllers.NewNormalNotificationsCountRoute(ui.Controller{}, fakeNotificationCountReader{count: 3})
+	route := modnotifications.NewNormalNotificationsCountRoute(ui.Controller{}, fakeNotificationCountReader{count: 3})
 	e.GET("/auth/notifications/normalNotificationsCount", route.Get, func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			c.Set(customctx.AuthenticatedProfileIDKey, 77)
@@ -51,7 +51,7 @@ func TestNotificationsCountAPIReadPath(t *testing.T) {
 
 func TestNotificationsCountAPIReadPath_MissingProfileID(t *testing.T) {
 	e := echo.New()
-	route := controllers.NewNormalNotificationsCountRoute(ui.Controller{}, fakeNotificationCountReader{count: 3})
+	route := modnotifications.NewNormalNotificationsCountRoute(ui.Controller{}, fakeNotificationCountReader{count: 3})
 	e.GET("/auth/notifications/normalNotificationsCount", route.Get)
 
 	req := httptest.NewRequest(http.MethodGet, "/auth/notifications/normalNotificationsCount", nil)
@@ -65,7 +65,7 @@ func TestNotificationsCountAPIReadPath_MissingProfileID(t *testing.T) {
 
 func TestNotificationsCountAPIReadPath_StoreError(t *testing.T) {
 	e := echo.New()
-	route := controllers.NewNormalNotificationsCountRoute(ui.Controller{}, fakeNotificationCountReader{err: errors.New("store failed")})
+	route := modnotifications.NewNormalNotificationsCountRoute(ui.Controller{}, fakeNotificationCountReader{err: errors.New("store failed")})
 	e.GET("/auth/notifications/normalNotificationsCount", route.Get, func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			c.Set(customctx.AuthenticatedProfileIDKey, 77)

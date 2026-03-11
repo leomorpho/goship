@@ -26,7 +26,6 @@ import (
 
 const (
 	defaultStripeWebhookPath = "/Q2HBfAY7iid59J1SUN8h1Y3WxJcPWA/payments/webhooks"
-	pathServiceWorker        = "/service-worker.js"
 	pathAndroidAssetLinks    = "/.well-known/assetlinks.json"
 )
 
@@ -35,6 +34,7 @@ type RouteDeps struct {
 	StorageRepo                   *storagerepo.StorageClient
 	ProfileService                *profilesvc.ProfileService
 	SubscriptionsRepo             *paidsubscriptions.Service
+	NotifierService               *notifications.NotifierService
 	NotificationPermissionService *notifications.NotificationPermissionService
 	PwaPushService                *notifications.PwaPushService
 	FcmPushService                *notifications.FcmPushService
@@ -66,6 +66,7 @@ func NewRouteDeps(
 		profilesvc.NewBobNotificationCountStore(c.Database, c.Config.Adapters.DB),
 	)
 	if notificationServices != nil {
+		deps.NotifierService = notificationServices.Notifier
 		deps.NotificationPermissionService = notificationServices.Permission
 		deps.PwaPushService = notificationServices.PwaPush
 		deps.FcmPushService = notificationServices.FcmPush
@@ -91,14 +92,6 @@ func RegisterStaticRoutes(c *foundation.Container) {
 	// Static files with proper cache control.
 	c.Web.Group("", middleware.CacheControl(c.Config.Cache.Expiration.StaticFile), echomw.Gzip()).
 		Static(config.StaticPrefix, config.StaticDir)
-
-	// Custom handler for serving the service worker script with specific headers.
-	c.Web.GET(pathServiceWorker, func(ctx echo.Context) error {
-		ctx.Response().Header().Set(echo.HeaderContentType, "application/javascript")
-		ctx.Response().Header().Set("Service-Worker-Allowed", "/")
-		ctx.Response().Header().Set("Cache-Control", fmt.Sprintf("public, max-age=%d", c.Config.Cache.Expiration.StaticFile))
-		return ctx.File("./app/static/service-worker.js")
-	})
 
 	// Custom handler for serving Android asset links.
 	c.Web.GET(pathAndroidAssetLinks, func(ctx echo.Context) error {

@@ -8,6 +8,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/leomorpho/goship-modules/notifications"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
+	notificationroutes "github.com/leomorpho/goship-modules/notifications/routes"
+	paidsubscriptionroutes "github.com/leomorpho/goship-modules/paidsubscriptions/routes"
 	"github.com/leomorpho/goship/app/foundation"
 	appweb "github.com/leomorpho/goship/app/web"
 	"github.com/leomorpho/goship/app/web/controllers"
@@ -17,6 +19,7 @@ import (
 	"github.com/leomorpho/goship/config"
 	"github.com/leomorpho/goship/framework/runtimeplan"
 	authmodule "github.com/leomorpho/goship/modules/auth"
+	pwamodule "github.com/leomorpho/goship/modules/pwa"
 	profilemodule "github.com/leomorpho/goship/modules/profile"
 	"github.com/rs/zerolog/log"
 )
@@ -126,8 +129,13 @@ func registerPublicRoutes(c *foundation.Container, g *echo.Group, ctr ui.Control
 	verifyEmailSubscription := controllers.NewVerifyEmailSubscriptionRoute(ctr, *deps.EmailSubscriptions)
 	g.GET("/email/subscription/:token", verifyEmailSubscription.Get).Name = routeNames.RouteNameVerifyEmailSubscription
 
-	installApp := controllers.NewInstallAppRoute(ctr)
-	g.GET("/install-app", installApp.GetInstallPage).Name = routeNames.RouteNameInstallApp
+	pwaModule := pwamodule.NewModule(pwamodule.NewRouteService(ctr))
+	if err := pwaModule.RegisterStaticRoutes(c.Web, c.Config.Cache.Expiration.StaticFile); err != nil {
+		return err
+	}
+	if err := pwaModule.RegisterRoutes(g); err != nil {
+		return err
+	}
 
 	about := controllers.NewAboutUsRoute(ctr)
 	g.GET("/about", about.Get).Name = routeNames.RouteNameAboutUs
@@ -198,18 +206,6 @@ func registerAuthRoutes(c *foundation.Container, g *echo.Group, ctr ui.Controlle
 	onboardingGroup.GET("/profileBio", profilePrefs.GetBio).Name = routeNames.RouteNameGetBio
 	onboardingGroup.POST("/profileBio/update", profilePrefs.UpdateBio).Name = routeNames.RouteNameUpdateBio
 
-	outgoingNotifications := controllers.NewPushNotifsRoute(
-		ctr,
-		deps.ProfileService,
-		deps.PwaPushService,
-		deps.FcmPushService,
-		deps.NotificationPermissionService,
-	)
-	onboardingGroup.GET("/subscription/push", outgoingNotifications.GetPushSubscriptions).Name = routeNames.RouteNameGetPushSubscriptions
-	onboardingGroup.POST("/subscription/:platform", outgoingNotifications.RegisterSubscription).Name = routeNames.RouteNameRegisterSubscription
-	onboardingGroup.DELETE("/subscription/:platform", outgoingNotifications.DeleteSubscription).Name = routeNames.RouteNameDeleteSubscription
-	onboardingGroup.GET("/email-subscription/unsubscribe/:permission/:token", outgoingNotifications.DeleteEmailSubscription).Name = routeNames.RouteNameDeleteEmailSubscriptionWithToken
-
 	onboardedGroup := g.Group("/auth", middleware.RequireAuthentication(), middleware.RedirectToOnboardingIfNotComplete())
 
 	homeFeed := controllers.NewHomeFeedRoute(ctr, *deps.ProfileService, &c.Config.App.PageSize)
@@ -225,15 +221,25 @@ func registerAuthRoutes(c *foundation.Container, g *echo.Group, ctr ui.Controlle
 		return err
 	}
 
-	normalNotificationsCount := controllers.NewNormalNotificationsCountRoute(ctr, deps.ProfileService)
-	onboardedGroup.GET("/notifications/normalNotificationsCount", normalNotificationsCount.Get).Name = routeNames.RouteNameNormalNotificationsCount
+	notificationsModule := notificationroutes.NewRouteModule(notificationroutes.RouteModuleDeps{
+		Controller:                    ctr,
+		ProfileService:                deps.ProfileService,
+		NotifierService:               deps.NotifierService,
+		PwaPushService:                deps.PwaPushService,
+		FcmPushService:                deps.FcmPushService,
+		NotificationPermissionService: deps.NotificationPermissionService,
+	})
+	if err := notificationsModule.RegisterOnboardingRoutes(onboardingGroup); err != nil {
+		return err
+	}
+	if err := notificationsModule.RegisterRoutes(onboardedGroup); err != nil {
+		return err
+	}
 
-	payments := controllers.NewPaymentsRoute(ctr, deps.SubscriptionsRepo)
-	onboardedGroup.GET("/payments/get-public-key", payments.GetPaymentProcessorPublickey).Name = routeNames.RouteNamePaymentProcessorGetPublicKey
-	onboardedGroup.POST("/payments/create-checkout-session", payments.CreateCheckoutSession).Name = routeNames.RouteNameCreateCheckoutSession
-	onboardedGroup.POST("/payments/create-portal-session", payments.CreatePortalSession).Name = routeNames.RouteNameCreatePortalSession
-	onboardedGroup.GET("/payments/pricing", payments.PricingPage).Name = routeNames.RouteNamePricingPage
-	onboardedGroup.GET("/payments/success", payments.SuccessfullySubscribed).Name = routeNames.RouteNamePaymentProcessorSuccess
+	paymentsModule := paidsubscriptionroutes.NewRouteModule(ctr, deps.SubscriptionsRepo)
+	if err := paymentsModule.RegisterRoutes(onboardedGroup); err != nil {
+		return err
+	}
 
 	// ship:routes:auth:start
 	// ship:routes:auth:end
@@ -242,8 +248,10 @@ func registerAuthRoutes(c *foundation.Container, g *echo.Group, ctr ui.Controlle
 }
 
 func registerExternalRoutes(c *foundation.Container, e *echo.Group, ctr ui.Controller, deps *appweb.RouteDeps) error {
-	payments := controllers.NewPaymentsRoute(ctr, deps.SubscriptionsRepo)
-	e.POST(deps.StripeWebhookPath, payments.HandleWebhook).Name = routeNames.RouteNamePaymentProcessorWebhook
+	paymentsModule := paidsubscriptionroutes.NewRouteModule(ctr, deps.SubscriptionsRepo)
+	if err := paymentsModule.RegisterExternalRoutes(e, deps.StripeWebhookPath); err != nil {
+		return err
+	}
 
 	// ship:routes:external:start
 	// ship:routes:external:end

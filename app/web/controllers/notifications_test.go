@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v4"
+	modnotifications "github.com/leomorpho/goship-modules/notifications/routes"
 	"github.com/leomorpho/goship/app/web/ui"
 	customctx "github.com/leomorpho/goship/framework/context"
 )
@@ -56,7 +57,7 @@ func TestNormalNotificationsCount_Get(t *testing.T) {
 	ctx := e.NewContext(req, rec)
 	ctx.Set(customctx.AuthenticatedProfileIDKey, 123)
 
-	route := NewNormalNotificationsCountRoute(ui.Controller{}, fakeNotificationCountReader{count: 5})
+	route := modnotifications.NewNormalNotificationsCountRoute(ui.Controller{}, fakeNotificationCountReader{count: 5})
 	if err := route.Get(ctx); err != nil {
 		t.Fatalf("route get returned error: %v", err)
 	}
@@ -75,7 +76,7 @@ func TestNormalNotificationsCount_Get_HidesZero(t *testing.T) {
 	ctx := e.NewContext(req, rec)
 	ctx.Set(customctx.AuthenticatedProfileIDKey, 123)
 
-	route := NewNormalNotificationsCountRoute(ui.Controller{}, fakeNotificationCountReader{count: 0})
+	route := modnotifications.NewNormalNotificationsCountRoute(ui.Controller{}, fakeNotificationCountReader{count: 0})
 	if err := route.Get(ctx); err != nil {
 		t.Fatalf("route get returned error: %v", err)
 	}
@@ -92,7 +93,7 @@ func TestNormalNotificationsCount_Get_PropagatesReaderError(t *testing.T) {
 	ctx.Set(customctx.AuthenticatedProfileIDKey, 123)
 
 	wantErr := errors.New("count failed")
-	route := NewNormalNotificationsCountRoute(ui.Controller{}, fakeNotificationCountReader{err: wantErr})
+	route := modnotifications.NewNormalNotificationsCountRoute(ui.Controller{}, fakeNotificationCountReader{err: wantErr})
 	err := route.Get(ctx)
 	if !errors.Is(err, wantErr) {
 		t.Fatalf("error = %v, want %v", err, wantErr)
@@ -105,7 +106,7 @@ func TestNormalNotificationsCount_Get_RequiresProfileID(t *testing.T) {
 	rec := httptest.NewRecorder()
 	ctx := e.NewContext(req, rec)
 
-	route := NewNormalNotificationsCountRoute(ui.Controller{}, fakeNotificationCountReader{count: 1})
+	route := modnotifications.NewNormalNotificationsCountRoute(ui.Controller{}, fakeNotificationCountReader{count: 1})
 	if err := route.Get(ctx); err == nil {
 		t.Fatal("expected error when profile id is missing")
 	}

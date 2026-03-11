@@ -3,6 +3,7 @@ package components
 import (
 	"github.com/leomorpho/goship/app/controller"
 	"github.com/leomorpho/goship/app/web/routenames"
+	pwacomponents "github.com/leomorpho/goship/modules/pwa/views/web/components/gen"
 )
 
 // Renders: navbar component.
@@ -29,7 +30,7 @@ templ Navbar(page *controller.Page) {
 			// TODO
 			<div class="hidden md:flex items-center space-x-4">
 				if !page.IsIosDevice {
-					@NavbarPWAMobileInstallButton(page)
+					@pwacomponents.NavbarPWAMobileInstallButton(page)
 				}
 				// TODO: only show this once documentation is ready
 				// @DocsButton(page)
@@ -286,4 +287,3 @@ templ BlogButton() {
 		</div>
 	</a>
 }
-

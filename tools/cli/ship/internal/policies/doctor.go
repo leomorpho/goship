@@ -1119,38 +1119,55 @@ func checkModuleSourceIsolation(root string) []DoctorIssue {
 		return issues
 	}
 	allowlist := loadModuleIsolationAllowlist(filepath.Join(root, "tools", "scripts", "test", "module-isolation-allowlist.txt"))
-	_ = filepath.WalkDir(modulesRoot, func(path string, d os.DirEntry, err error) error {
-		if err != nil {
+	entries, err := os.ReadDir(modulesRoot)
+	if err != nil {
+		return append(issues, DoctorIssue{
+			Code:    "DX020",
+			Message: "failed to read modules directory for isolation check",
+			Fix:     err.Error(),
+		})
+	}
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+		moduleDir := filepath.Join(modulesRoot, entry.Name())
+		if !hasFile(filepath.Join(moduleDir, "go.mod")) {
+			continue
+		}
+		_ = filepath.WalkDir(moduleDir, func(path string, d os.DirEntry, err error) error {
+			if err != nil {
+				return nil
+			}
+			if d.IsDir() {
+				return nil
+			}
+			if !strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "_test.go") {
+				return nil
+			}
+			rel := filepath.ToSlash(mustRel(root, path))
+			if _, ok := allowlist[rel]; ok {
+				return nil
+			}
+			b, readErr := os.ReadFile(path)
+			if readErr != nil {
+				issues = append(issues, DoctorIssue{
+					Code:    "DX020",
+					Message: fmt.Sprintf("failed reading file for module isolation check: %s", rel),
+					Fix:     readErr.Error(),
+				})
+				return nil
+			}
+			if strings.Contains(string(b), "\"github.com/leomorpho/goship/") {
+				issues = append(issues, DoctorIssue{
+					Code:    "DX020",
+					Message: fmt.Sprintf("module isolation violated: forbidden root import in %s", rel),
+					Fix:     "remove direct github.com/leomorpho/goship/* imports from module runtime code or add a deliberate allowlist entry",
+				})
+			}
 			return nil
-		}
-		if d.IsDir() {
-			return nil
-		}
-		if !strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "_test.go") {
-			return nil
-		}
-		rel := filepath.ToSlash(mustRel(root, path))
-		if _, ok := allowlist[rel]; ok {
-			return nil
-		}
-		b, readErr := os.ReadFile(path)
-		if readErr != nil {
-			issues = append(issues, DoctorIssue{
-				Code:    "DX020",
-				Message: fmt.Sprintf("failed reading file for module isolation check: %s", rel),
-				Fix:     readErr.Error(),
-			})
-			return nil
-		}
-		if strings.Contains(string(b), "\"github.com/leomorpho/goship/") {
-			issues = append(issues, DoctorIssue{
-				Code:    "DX020",
-				Message: fmt.Sprintf("module isolation violated: forbidden root import in %s", rel),
-				Fix:     "remove direct github.com/leomorpho/goship/* imports from module runtime code or add a deliberate allowlist entry",
-			})
-		}
-		return nil
-	})
+		})
+	}
 	return issues
 }
 
@@ -1473,6 +1490,7 @@ func checkTopLevelDirs(root string) []DoctorIssue {
 		"infra":      {},
 		"javascript": {},
 		"modules":    {},
+		"starter":    {},
 		"tests":      {},
 		"tmp":        {},
 		"tools":      {},
