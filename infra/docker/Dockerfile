@@ -56,9 +56,6 @@ EXPOSE 8080
 COPY infra/docker/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-COPY config/application.yaml ./config/application.yaml
-COPY config/processes.yaml ./config/processes.yaml
-COPY config/environments/ ./config/environments/
 COPY app/static/ /app/static/
 
 # Below is only used if you need to use PWABuilder to make a native Android app

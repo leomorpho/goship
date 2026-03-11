@@ -1,4 +1,0 @@
-app:
-  environment: "prod"
-runtime:
-  profile: "distributed"

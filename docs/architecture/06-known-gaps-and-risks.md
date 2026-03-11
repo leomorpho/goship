@@ -43,7 +43,7 @@ Impact:
 
 ## 5) Dev Runtime Drift Between Config and Docker Compose (Medium)
 
-- Default base config currently keeps embedded SQLite defaults in `config/application.yaml`.
+- Default base config now lives in `config/config.go` and can be overridden by `.env`.
 - Docker Compose currently starts Redis and Mailpit only; DB service is commented out.
 - Make targets include Postgres-dependent commands.
 

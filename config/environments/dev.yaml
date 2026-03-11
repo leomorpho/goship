@@ -1,4 +1,0 @@
-app:
-  environment: "dev"
-runtime:
-  profile: "server-db"

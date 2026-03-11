@@ -372,7 +372,7 @@ func localDBHosts() []string {
 }
 
 func isProductionEnv() bool {
-	env := strings.ToLower(strings.TrimSpace(os.Getenv("APP_ENV")))
+	env := strings.ToLower(strings.TrimSpace(rt.ResolveAppEnvironment()))
 	return env == "production" || env == "prod"
 }
 

@@ -63,27 +63,20 @@ func TestResolveDBURL_FromConfig(t *testing.T) {
 	t.Setenv("PAGODA_DATABASE_URL", "")
 	t.Setenv("APP_ENV", "local")
 
-	if err := os.MkdirAll(filepath.Join(root, "config", "environments"), 0o755); err != nil {
-		t.Fatal(err)
-	}
-	application := `
-app:
-  environment: "local"
-database:
-  dbMode: "standalone"
-  hostname: "db.local"
-  port: 5432
-  user: "app"
-  password: "secret"
-  databaseNameLocal: "goship_db"
-  databaseNameProd: "goship_prod"
-  testDatabase: "goship_test"
-  sslMode: "disable"
-`
-	if err := os.WriteFile(filepath.Join(root, "config", "application.yaml"), []byte(application), 0o644); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(filepath.Join(root, "config", "environments", "local.yaml"), []byte("app:\n  environment: local\n"), 0o644); err != nil {
+	dotEnv := strings.Join([]string{
+		"PAGODA_APP_ENVIRONMENT=local",
+		"PAGODA_DATABASE_DBMODE=standalone",
+		"PAGODA_DATABASE_HOSTNAME=db.local",
+		"PAGODA_DATABASE_PORT=5432",
+		"PAGODA_DATABASE_USER=app",
+		"PAGODA_DATABASE_PASSWORD=secret",
+		"PAGODA_DATABASE_DATABASENAMELOCAL=goship_db",
+		"PAGODA_DATABASE_DATABASENAMEPROD=goship_prod",
+		"PAGODA_DATABASE_TESTDATABASE=goship_test",
+		"PAGODA_DATABASE_SSLMODE=disable",
+		"",
+	}, "\n")
+	if err := os.WriteFile(filepath.Join(root, ".env"), []byte(dotEnv), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -114,17 +107,13 @@ func TestResolveDBURL_EmbeddedModeError(t *testing.T) {
 	t.Setenv("PAGODA_DATABASE_URL", "")
 	t.Setenv("APP_ENV", "local")
 
-	if err := os.MkdirAll(filepath.Join(root, "config", "environments"), 0o755); err != nil {
-		t.Fatal(err)
-	}
-	application := `
-app:
-  environment: "local"
-database:
-  dbMode: "embedded"
-  embeddedConnection: "dbs/main.db"
-`
-	if err := os.WriteFile(filepath.Join(root, "config", "application.yaml"), []byte(application), 0o644); err != nil {
+	dotEnv := strings.Join([]string{
+		"PAGODA_APP_ENVIRONMENT=local",
+		"PAGODA_DATABASE_DBMODE=embedded",
+		"PAGODA_DATABASE_EMBEDDEDCONNECTION=dbs/main.db",
+		"",
+	}, "\n")
+	if err := os.WriteFile(filepath.Join(root, ".env"), []byte(dotEnv), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -151,24 +140,20 @@ func TestResolveDBURL_UsesProductionDatabaseName(t *testing.T) {
 	t.Setenv("PAGODA_DATABASE_URL", "")
 	t.Setenv("APP_ENV", "production")
 
-	if err := os.MkdirAll(filepath.Join(root, "config", "environments"), 0o755); err != nil {
-		t.Fatal(err)
-	}
-	application := `
-app:
-  environment: "local"
-database:
-  dbMode: "standalone"
-  hostname: "db.local"
-  port: 5432
-  user: "app"
-  password: "secret"
-  databaseNameLocal: "goship_db"
-  databaseNameProd: "goship_prod"
-  testDatabase: "goship_test"
-  sslMode: "disable"
-`
-	if err := os.WriteFile(filepath.Join(root, "config", "application.yaml"), []byte(application), 0o644); err != nil {
+	dotEnv := strings.Join([]string{
+		"PAGODA_APP_ENVIRONMENT=local",
+		"PAGODA_DATABASE_DBMODE=standalone",
+		"PAGODA_DATABASE_HOSTNAME=db.local",
+		"PAGODA_DATABASE_PORT=5432",
+		"PAGODA_DATABASE_USER=app",
+		"PAGODA_DATABASE_PASSWORD=secret",
+		"PAGODA_DATABASE_DATABASENAMELOCAL=goship_db",
+		"PAGODA_DATABASE_DATABASENAMEPROD=goship_prod",
+		"PAGODA_DATABASE_TESTDATABASE=goship_test",
+		"PAGODA_DATABASE_SSLMODE=disable",
+		"",
+	}, "\n")
+	if err := os.WriteFile(filepath.Join(root, ".env"), []byte(dotEnv), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -195,24 +180,20 @@ func TestResolveDBURL_UsesTestDatabaseName(t *testing.T) {
 	t.Setenv("PAGODA_DATABASE_URL", "")
 	t.Setenv("APP_ENV", "test")
 
-	if err := os.MkdirAll(filepath.Join(root, "config", "environments"), 0o755); err != nil {
-		t.Fatal(err)
-	}
-	application := `
-app:
-  environment: "local"
-database:
-  dbMode: "standalone"
-  hostname: "db.local"
-  port: 5432
-  user: "app"
-  password: "secret"
-  databaseNameLocal: "goship_db"
-  databaseNameProd: "goship_prod"
-  testDatabase: "goship_test"
-  sslMode: "disable"
-`
-	if err := os.WriteFile(filepath.Join(root, "config", "application.yaml"), []byte(application), 0o644); err != nil {
+	dotEnv := strings.Join([]string{
+		"PAGODA_APP_ENVIRONMENT=local",
+		"PAGODA_DATABASE_DBMODE=standalone",
+		"PAGODA_DATABASE_HOSTNAME=db.local",
+		"PAGODA_DATABASE_PORT=5432",
+		"PAGODA_DATABASE_USER=app",
+		"PAGODA_DATABASE_PASSWORD=secret",
+		"PAGODA_DATABASE_DATABASENAMELOCAL=goship_db",
+		"PAGODA_DATABASE_DATABASENAMEPROD=goship_prod",
+		"PAGODA_DATABASE_TESTDATABASE=goship_test",
+		"PAGODA_DATABASE_SSLMODE=disable",
+		"",
+	}, "\n")
+	if err := os.WriteFile(filepath.Join(root, ".env"), []byte(dotEnv), 0o644); err != nil {
 		t.Fatal(err)
 	}
 

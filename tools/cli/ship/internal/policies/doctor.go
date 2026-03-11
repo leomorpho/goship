@@ -15,6 +15,7 @@ import (
 	"strings"
 	"unicode"
 
+	appconfig "github.com/leomorpho/goship/config"
 	rt "github.com/leomorpho/goship/tools/cli/ship/internal/runtime"
 )
 
@@ -266,6 +267,7 @@ func RunDoctorChecks(root string) []DoctorIssue {
 	}
 
 	issues = append(issues, checkMarkerIntegrity(root)...)
+	issues = append(issues, checkRequiredConfigEnv(root)...)
 	issues = append(issues, checkPackageNaming(root, filepath.Join("app", "web", "ui"), "ui")...)
 	issues = append(issues, checkPackageNaming(root, filepath.Join("app", "web", "viewmodels"), "viewmodels")...)
 	issues = append(issues, checkTopLevelDirs(root)...)
@@ -295,9 +297,33 @@ func checkCanonicalFilePlacement(root string) []DoctorIssue {
 	return issues
 }
 
+func checkRequiredConfigEnv(root string) []DoctorIssue {
+	missing, err := appconfig.MissingRequiredEnv(root)
+	if err != nil {
+		return []DoctorIssue{{
+			Code:    "DX022",
+			Message: "failed to validate required config environment variables",
+			Fix:     err.Error(),
+		}}
+	}
+	if len(missing) == 0 {
+		return nil
+	}
+
+	issues := make([]DoctorIssue, 0, len(missing))
+	for _, item := range missing {
+		issues = append(issues, DoctorIssue{
+			Code:    "DX022",
+			Message: fmt.Sprintf("missing required config environment variable: %s", item.Name),
+			Fix:     "set it in the shell or add it to .env",
+		})
+	}
+	return issues
+}
+
 func checkHandlerPlacement(root string) []DoctorIssue {
 	issues := make([]DoctorIssue, 0)
-	handlerName := regexp.MustCompile(`^(Get|Post|Put|Delete|Patch|Handle|Create|Update|Submit|Save|Register|Mark|Index|Show|Destroy|List|Edit)`) 
+	handlerName := regexp.MustCompile(`^(Get|Post|Put|Delete|Patch|Handle|Create|Update|Submit|Save|Register|Mark|Index|Show|Destroy|List|Edit)`)
 	controllersDir := filepath.ToSlash(filepath.Join("app", "web", "controllers")) + "/"
 	webDir := filepath.Join(root, "app", "web")
 	if !isDir(webDir) {

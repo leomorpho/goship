@@ -1,4 +1,0 @@
-app:
-  environment: "local"
-runtime:
-  profile: "server-db"

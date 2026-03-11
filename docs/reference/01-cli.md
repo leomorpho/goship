@@ -39,6 +39,7 @@ Project lifecycle:
 
 - `ship new <app> [--module <module-path>] [--dry-run] [--force]`
 - `ship doctor [--json]`
+- `ship config:validate [--json]`
 - `ship routes [--json]`
 - `ship agent:setup`
 - `ship agent:check`
@@ -122,7 +123,7 @@ These commands are implemented as wrappers over existing workflows:
 DB URL resolution precedence for db commands:
 
 1. `DATABASE_URL`
-2. `config/application.yaml` + `config/environments/<APP_ENV|app.environment>.yaml`
+2. `.env` / shell `PAGODA_DATABASE_*` variables via `config.GetConfig()`
 
 If `PAGODA_DATABASE_URL` is set, CLI fails with an explicit error and asks to use `DATABASE_URL`.
 If config resolves to embedded DB mode, DB commands fail with an explicit error.
@@ -144,6 +145,8 @@ Safety matrix:
 - `ship agent:check` -> fail if generated artifacts drift from canonical allowlist (for pre-commit/CI parity)
 - `ship agent:status` -> show best-effort local Codex/Claude/Gemini install status vs repo policy
 - `ship doctor --json` -> machine-readable doctor result on stdout; exit code 0 when there are no errors, 1 when any error is reported
+- `ship config:validate` -> prints the known `PAGODA_*` config variables with type/default metadata and fails when any required variable is missing
+- `ship config:validate --json` -> prints the same contract as JSON for agent tooling
 - `ship routes` -> prints a route inventory table from `app/router.go` AST parsing (`METHOD PATH AUTH HANDLER`)
 - `ship routes --json` -> prints the same route inventory as a JSON array
 - `ship make:resource <name>` -> scaffold handler (+ optional templ page), ensure route-name constant, and print route snippet for manual insertion in `app/router.go`
@@ -173,6 +176,7 @@ Doctor checks (current):
 - validates `.gitignore` includes root binary artifact ignore entries
 - enforces a line budget for non-generated human-authored `.go` files (target <= 500 lines)
 - validates CLI reference docs include core command tokens (`ship new`, `ship doctor`, `ship make:*`, `ship db:migrate`, `ship test --integration`)
+- validates required config env vars declared in `config.Config`
 - validates agent allowlist artifacts are in sync with `tools/agent-policy/allowed-commands.yaml`
 - validates enabled modules in `config/modules.yaml` include `db/migrate/migrations` and `db/bobgen.yaml`
 - validates cross-boundary import rules (controller `QueryProfile()` ban, jobs SQL coupling ban, notifications pubsub framework-core coupling ban, module source isolation ban for direct `github.com/leomorpho/goship/*` imports except explicit allowlist paths)

@@ -117,8 +117,8 @@ Build pipeline:
 
 Config loading:
 
-- `config/config.go` + layered YAML config (`application`, `environments/*`, `processes`)
-- Production can override via env vars (Viper env binding)
+- `config/config.go` with struct-tagged env loading via `cleanenv`
+- Local `.env` and shell env vars are the application config source of truth
 
 Storage modes:
 

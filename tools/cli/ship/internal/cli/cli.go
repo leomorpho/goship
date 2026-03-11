@@ -73,6 +73,8 @@ func (c CLI) Run(args []string) int {
 		return c.runCheck(args[1:])
 	case "doctor":
 		return c.runDoctor(args[1:])
+	case "config":
+		return c.runConfig(args[1:])
 	case "routes":
 		return c.runRoutes(args[1:])
 	case "describe":
@@ -134,6 +136,8 @@ func (c CLI) runNamespaced(args []string) (int, bool) {
 		return c.runTempl(rest), true
 	case "module":
 		return c.runModule(rest), true
+	case "config":
+		return c.runConfig(rest), true
 	default:
 		fmt.Fprintf(c.Err, "unknown command namespace: %s\n\n", ns)
 		cmd.PrintRootHelp(c.Err)
@@ -255,6 +259,10 @@ func (c CLI) runUpgrade(args []string) int {
 
 func (c CLI) runDoctor(args []string) int {
 	return policies.RunDoctor(args, policies.DoctorDeps{Out: c.Out, Err: c.Err, FindGoModule: findGoModule})
+}
+
+func (c CLI) runConfig(args []string) int {
+	return cmd.RunConfig(args, cmd.ConfigDeps{Out: c.Out, Err: c.Err, FindGoModule: findGoModule})
 }
 
 func (c CLI) runAgent(args []string) int {

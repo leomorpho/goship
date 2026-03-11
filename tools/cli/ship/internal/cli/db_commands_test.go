@@ -105,6 +105,7 @@ func TestRunDBReset_DBURLResolutionError(t *testing.T) {
 }
 
 func TestRunDBReset_NonLocalRequiresForce(t *testing.T) {
+	useLocalAppEnv(t)
 	errOut := &bytes.Buffer{}
 	runner := &fakeRunner{}
 	cli := CLI{
@@ -129,6 +130,7 @@ func TestRunDBReset_NonLocalRequiresForce(t *testing.T) {
 }
 
 func TestRunDBReset_NonLocalWithForce(t *testing.T) {
+	useLocalAppEnv(t)
 	errOut := &bytes.Buffer{}
 	runner := &fakeRunner{}
 	cli := CLI{
@@ -156,6 +158,7 @@ func TestRunDBReset_NonLocalWithForce(t *testing.T) {
 }
 
 func TestRunDBReset_WithSeed(t *testing.T) {
+	useLocalAppEnv(t)
 	runner := &fakeRunner{}
 	cli := CLI{
 		Out:    &bytes.Buffer{},
@@ -179,6 +182,7 @@ func TestRunDBReset_WithSeed(t *testing.T) {
 }
 
 func TestRunDBReset_DryRun(t *testing.T) {
+	useLocalAppEnv(t)
 	runner := &fakeRunner{}
 	out := &bytes.Buffer{}
 	cli := CLI{
@@ -225,6 +229,7 @@ func TestRunDBReset_ProductionRequiresForceAndYes(t *testing.T) {
 }
 
 func TestRunDBDrop_DryRun(t *testing.T) {
+	useLocalAppEnv(t)
 	out := &bytes.Buffer{}
 	cli := CLI{
 		Out:    out,
@@ -244,6 +249,7 @@ func TestRunDBDrop_DryRun(t *testing.T) {
 }
 
 func TestRunDBCreate_DryRun(t *testing.T) {
+	useLocalAppEnv(t)
 	out := &bytes.Buffer{}
 	runner := &fakeRunner{}
 	cli := CLI{
@@ -267,6 +273,7 @@ func TestRunDBCreate_DryRun(t *testing.T) {
 }
 
 func TestRunDBGenerate_DryRun(t *testing.T) {
+	useLocalAppEnv(t)
 	out := &bytes.Buffer{}
 	runner := &fakeRunner{}
 	cli := CLI{
@@ -315,4 +322,9 @@ func TestIsLocalDBURL_UsesConfiguredHosts(t *testing.T) {
 	if !isLocalDBURL("postgres://user:pass@db.example.com:5432/app") {
 		t.Fatal("expected configured host to be treated as local")
 	}
+}
+
+func useLocalAppEnv(t *testing.T) {
+	t.Helper()
+	t.Setenv("APP_ENV", "local")
 }

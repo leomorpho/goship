@@ -237,6 +237,11 @@ type (
 // GetConfig loads and returns configuration.
 func GetConfig() (Config, error) {
 	c := defaultConfig()
+	if path, ok := findDotEnvFromWD(); ok {
+		if err := cleanenv.ReadConfig(path, &c); err != nil {
+			return c, fmt.Errorf("read .env: %w", err)
+		}
+	}
 	if err := cleanenv.ReadEnv(&c); err != nil {
 		return c, err
 	}

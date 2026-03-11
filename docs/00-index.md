@@ -83,9 +83,8 @@ Last updated: 2026-03-04
 - `framework/repos/**/*.go`
 - `db/queries/*.sql`
 - `config/config.go`
-- `config/application.yaml`
-- `config/environments/*.yaml`
-- `config/processes.yaml`
+- `.env.example`
+- `config/modules.yaml`
 - `Makefile`
 - `frontend/vite.config.ts`
 - `frontend/package.json`

@@ -138,6 +138,18 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			wantOut:  "ship routes commands:",
 		},
 		{
+			name:     "config help",
+			args:     []string{"config", "help"},
+			wantCode: 0,
+			wantOut:  "ship config commands:",
+		},
+		{
+			name:     "config validate json",
+			args:     []string{"config:validate", "--json"},
+			wantCode: 0,
+			wantOut:  "\"variables\":",
+		},
+		{
 			name:     "agent help",
 			args:     []string{"agent", "--help"},
 			wantCode: 0,
@@ -420,6 +432,8 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Setenv("APP_ENV", "local")
+
 			if len(tt.args) > 0 && (tt.args[0] == "dev" || tt.args[0] == "shipdev" || tt.args[0] == "test" || tt.args[0] == "check" || tt.args[0] == "make:model" || tt.args[0] == "make:resource") {
 				prevWD, err := os.Getwd()
 				if err != nil {

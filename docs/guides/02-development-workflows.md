@@ -10,6 +10,8 @@ Primary commands:
 - `make dev-full`: infra + web + worker + JS/CSS watchers
 - `go run ./tools/cli/ship/cmd/ship dev`: CLI equivalent of `make dev`
 
+Before running locally, copy `.env.example` to `.env` and fill in the values your environment needs.
+
 Legacy aliases still exist (`make init`, `make watch`) but they are no longer the preferred path.
 
 `dev-full` process group runs:
