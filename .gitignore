@@ -209,3 +209,6 @@ bubblewrap
 # docket
 .docket/index.db
 .docket/tickets/*/sessions/
+
+# private nested repos / planning workspaces
+/tools/private/
