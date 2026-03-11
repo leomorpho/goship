@@ -3,6 +3,7 @@
 package controllers_test
 
 import (
+	"database/sql"
 	"net/http"
 	"net/http/cookiejar"
 	"net/http/httptest"
@@ -10,15 +11,16 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/leomorpho/goship-modules/notifications"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/app"
 	"github.com/leomorpho/goship/app/foundation"
-	profilesvc "github.com/leomorpho/goship/modules/profile"
 	"github.com/leomorpho/goship/config"
 	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
+	profilesvc "github.com/leomorpho/goship/modules/profile"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/stretchr/testify/assert"
@@ -46,6 +48,9 @@ func TestMain(m *testing.M) {
 
 	// Start a new container
 	c = foundation.NewContainer()
+	if err := ensureNotificationsSchemaCompat(c.Database); err != nil {
+		panic(err)
+	}
 	paidSubscriptions := paidsubscriptions.New(paidsubscriptions.NewSQLStore(
 		c.Database,
 		c.Config.Adapters.DB,
@@ -102,6 +107,80 @@ func TestMain(m *testing.M) {
 	srv.Close()
 
 	os.Exit(exitVal)
+}
+
+func ensureNotificationsSchemaCompat(db *sql.DB) error {
+	if db == nil {
+		return nil
+	}
+
+	columns, err := tableColumns(db, "notifications")
+	if err != nil {
+		return err
+	}
+	if len(columns) == 0 {
+		return nil
+	}
+
+	hasProfileID := columns["profile_id"]
+	hasLegacyProfileID := columns["profile_notifications"]
+
+	if !hasProfileID {
+		if _, err := db.Exec(`ALTER TABLE notifications ADD COLUMN profile_id INTEGER`); err != nil {
+			return err
+		}
+		hasProfileID = true
+	}
+	if !hasLegacyProfileID {
+		if _, err := db.Exec(`ALTER TABLE notifications ADD COLUMN profile_notifications INTEGER`); err != nil {
+			return err
+		}
+		hasLegacyProfileID = true
+	}
+
+	if hasProfileID && hasLegacyProfileID {
+		if _, err := db.Exec(`
+			UPDATE notifications
+			SET profile_id = COALESCE(profile_id, profile_notifications),
+			    profile_notifications = COALESCE(profile_notifications, profile_id)
+		`); err != nil {
+			return err
+		}
+	}
+
+	_, err = db.Exec(`
+		CREATE INDEX IF NOT EXISTS notifications_profile_id_created_at_idx
+		ON notifications (profile_id, created_at DESC)
+	`)
+	return err
+}
+
+func tableColumns(db *sql.DB, table string) (map[string]bool, error) {
+	rows, err := db.Query(`PRAGMA table_info(` + table + `)`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	columns := make(map[string]bool)
+	for rows.Next() {
+		var (
+			cid        int
+			name       string
+			typeName   string
+			notNull    int
+			defaultV   sql.NullString
+			primaryKey int
+		)
+		if err := rows.Scan(&cid, &name, &typeName, &notNull, &defaultV, &primaryKey); err != nil {
+			return nil, err
+		}
+		columns[strings.ToLower(strings.TrimSpace(name))] = true
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return columns, nil
 }
 
 type httpRequest struct {
