@@ -5,12 +5,22 @@
 
 Primary commands:
 
-- `make dev`: infra + web process (recommended default)
+- `make run`: single-binary web process with SQLite + Otter + Backlite
+- `make dev`: infra + web process
 - `make dev-worker`: infra + worker process
 - `make dev-full`: infra + web + worker + JS/CSS watchers
 - `go run ./tools/cli/ship/cmd/ship dev`: CLI equivalent of `make dev`
 
 Before running locally, copy `.env.example` to `.env` and fill in the values your environment needs.
+
+Recommended modes:
+
+- Single-binary mode:
+  `cp .env.example .env && make run`
+  Uses embedded SQLite, in-memory Otter cache, and Backlite jobs. No Docker required.
+- Standard mode:
+  `make dev`
+  Uses the existing infra-oriented workflow and is still the right path when you want Redis-backed runtime behavior or multi-process parity.
 
 Legacy aliases still exist (`make init`, `make watch`) but they are no longer the preferred path.
 
@@ -32,6 +42,7 @@ Notes:
 
 - Postgres service is currently not started by default.
 - Runtime can operate with embedded DB mode; external DB remains supported by config.
+- `make run` does not start Docker Compose or any accessory services.
 
 ## Assets
 
@@ -91,6 +102,12 @@ Run worker manually:
 
 - `make worker`
 - Worker process currently targets Asynq backend only; ensure `adapters.jobs` is set to `asynq`.
+
+Single-binary mode:
+
+- `make run` starts the web process only.
+- Backlite jobs run in-process with the web server.
+- No separate worker is required.
 
 Asynq UI:
 

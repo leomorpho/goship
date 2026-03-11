@@ -67,6 +67,10 @@ templ-gen: ## Generate templ code next to .templ files via ship CLI
 dev: ## Start local development (infra + web server only)
 	bash tools/scripts/dev.sh "$(DCO_BIN)"
 
+.PHONY: run
+run: ## Start the app in single-binary mode (no Docker)
+	go run ./cmd/web
+
 .PHONY: dev-worker
 dev-worker: ## Start local development worker only (infra + worker process)
 	bash tools/scripts/up.sh "$(DCO_BIN)"

@@ -13,12 +13,16 @@ Requirements:
 
 - Go
 - Make
-- Docker
+- Docker for the standard Postgres/Redis workflow only
 
 Quick start:
 
 ```bash
-# web-only local dev (recommended default)
+# single-binary local dev (no Docker)
+cp .env.example .env
+make run
+
+# standard infra-backed local dev
 make dev
 
 # or via CLI
@@ -27,6 +31,7 @@ go run ./tools/cli/ship/cmd/ship dev
 
 Common commands:
 
+- `make run`: single-binary SQLite + Otter + Backlite startup
 - `make dev`: infra + web server
 - `make dev-worker`: infra + worker
 - `make dev-full`: infra + all watchers
@@ -55,6 +60,13 @@ Use docs as the source of truth for architecture, workflows, and plans:
 - [`docs/guides/04-deployment-kamal.md`](docs/guides/04-deployment-kamal.md)
 - [`docs/reference/01-cli.md`](docs/reference/01-cli.md)
 - [`docs/roadmap/01-framework-plan.md`](docs/roadmap/01-framework-plan.md)
+
+## Development Modes
+
+- Single-binary mode: `make run`
+  Uses SQLite, Otter, and Backlite. No Docker required.
+- Standard mode: `make dev`
+  Uses the broader infra-oriented workflow and remains useful when you want Redis-backed services or multi-process deployment parity.
 
 ## Repository Shape
 
@@ -117,9 +129,7 @@ python3 tools/scripts/regen_logo_images.py
 
 ## Run Tasks
 
-Currently, tasks are run using [asynq](https://github.com/hibiken/asynq). This unfortunately requires [redis](https://redis.io/) to be running. This can make deployment a bit trickier as it means you will need at least 3 VPS with Kamal (except if I'm missing something), as you will need one for the web app, one for the worker, and one for the cache/queue. This is far from ideal for small projects, and [pagoda](https://github.com/leomorpho/goship)'s author decided to use [backlite](https://github.com/mikestefanello/backlite), a tool he created to use SQLite as the task queue. I have not gone around to pulling these changes in yet, and I am hesitant at this point as I have multiple projects running in prod, and only 1 VPS running a cache that is serving all my projects...which means that I don't have a huge incentive to add this in. 
-
-If you'd like to change asynq to backlite, you can refer [to this pagoda PR](https://github.com/leomorpho/goship/pull/72/files) to bring the changes in your goship instance.
+Single-binary mode now uses [backlite](https://github.com/mikestefanello/backlite), so local jobs can run in-process with SQLite and no Redis. The standalone worker process remains Redis/Asynq-oriented for distributed deployments.
 
 ## Drop in any JS App
 

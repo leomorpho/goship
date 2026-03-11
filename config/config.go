@@ -331,7 +331,7 @@ func defaultConfig() Config {
 		Runtime:   RuntimeConfig{},
 		Processes: ProcessesConfig{},
 		Adapters: AdaptersConfig{
-			DB:     "postgres",
+			DB:     "sqlite",
 			Cache:  "otter",
 			Jobs:   "backlite",
 			PubSub: "inproc",

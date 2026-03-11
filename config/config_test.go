@@ -22,9 +22,10 @@ func TestGetConfig(t *testing.T) {
 	assert.Equal(t, EnvLocal, cfg.App.Environment)
 	assert.Equal(t, RuntimeProfileServerDB, cfg.Runtime.Profile)
 	assert.True(t, cfg.Processes.Web)
-	assert.Equal(t, "postgres", cfg.Adapters.DB)
+	assert.Equal(t, "sqlite", cfg.Adapters.DB)
 	assert.Equal(t, "otter", cfg.Adapters.Cache)
 	assert.Equal(t, "backlite", cfg.Adapters.Jobs)
+	assert.Equal(t, DBDriverSQLite, cfg.Database.Driver)
 }
 
 func TestGetConfig_EnvironmentOverrides(t *testing.T) {
