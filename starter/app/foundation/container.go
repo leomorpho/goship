@@ -6,10 +6,13 @@ type Container struct {
 }
 
 func NewContainer() *Container {
-	return &Container{
+	c := &Container{
 		AppName:        "GoShip Starter",
 		EnabledModules: []string{"auth", "profile"},
 	}
+	// ship:container:start
+	// ship:container:end
+	return c
 }
 
 func (c *Container) SupportsModule(name string) bool {

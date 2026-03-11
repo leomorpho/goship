@@ -2,14 +2,12 @@ package config
 
 import (
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 	"time"
 
-	"github.com/spf13/viper"
+	"github.com/ilyakaznacheev/cleanenv"
 )
 
 const (
@@ -89,188 +87,164 @@ type (
 	}
 
 	RuntimeConfig struct {
-		Profile runtimeprofile
+		Profile runtimeprofile `env:"PAGODA_RUNTIME_PROFILE"`
 	}
 
 	ProcessesConfig struct {
-		Web       bool
-		Worker    bool
-		Scheduler bool
-		CoLocated bool
+		Web       bool `env:"PAGODA_PROCESSES_WEB"`
+		Worker    bool `env:"PAGODA_PROCESSES_WORKER"`
+		Scheduler bool `env:"PAGODA_PROCESSES_SCHEDULER"`
+		CoLocated bool `env:"PAGODA_PROCESSES_COLOCATED"`
 	}
 
 	AdaptersConfig struct {
-		DB     string
-		Cache  string
-		Jobs   string
-		PubSub string
+		DB     string `env:"PAGODA_ADAPTERS_DB"`
+		Cache  string `env:"PAGODA_ADAPTERS_CACHE"`
+		Jobs   string `env:"PAGODA_ADAPTERS_JOBS"`
+		PubSub string `env:"PAGODA_ADAPTERS_PUBSUB"`
 	}
 
 	// HTTPConfig stores HTTP configuration
 	HTTPConfig struct {
-		Hostname     string
-		Port         uint16
-		Domain       string
-		ReadTimeout  time.Duration
-		WriteTimeout time.Duration
-		IdleTimeout  time.Duration
-		SseKeepAlive time.Duration
-		TLS          struct {
-			Enabled     bool
-			Certificate string
-			Key         string
-		}
+		Hostname     string        `env:"PAGODA_HTTP_HOSTNAME"`
+		Port         uint16        `env:"PAGODA_HTTP_PORT"`
+		Domain       string        `env:"PAGODA_HTTP_DOMAIN"`
+		ReadTimeout  time.Duration `env:"PAGODA_HTTP_READTIMEOUT"`
+		WriteTimeout time.Duration `env:"PAGODA_HTTP_WRITETIMEOUT"`
+		IdleTimeout  time.Duration `env:"PAGODA_HTTP_IDLETIMEOUT"`
+		SseKeepAlive time.Duration `env:"PAGODA_HTTP_SSEKEEPALIVE"`
+		TLS          TLSConfig
+	}
+
+	TLSConfig struct {
+		Enabled     bool   `env:"PAGODA_HTTP_TLS_ENABLED"`
+		Certificate string `env:"PAGODA_HTTP_TLS_CERTIFICATE"`
+		Key         string `env:"PAGODA_HTTP_TLS_KEY"`
 	}
 
 	// AppConfig stores application configuration
 	AppConfig struct {
-		Name          app
-		SupportEmail  string
-		Environment   environment
-		EncryptionKey string
-		Timeout       time.Duration
-		PasswordToken struct {
-			Expiration time.Duration
-			Length     int
-		}
-		EmailVerificationTokenExpiration time.Duration
+		Name                             app           `env:"PAGODA_APP_NAME"`
+		SupportEmail                     string        `env:"PAGODA_APP_SUPPORTEMAIL"`
+		Environment                      environment   `env:"PAGODA_APP_ENVIRONMENT"`
+		EncryptionKey                    string        `env:"PAGODA_APP_ENCRYPTIONKEY"`
+		Timeout                          time.Duration `env:"PAGODA_APP_TIMEOUT"`
+		PasswordToken                    PasswordTokenConfig
+		EmailVerificationTokenExpiration time.Duration `env:"PAGODA_APP_EMAILVERIFICATIONTOKENEXPIRATION"`
 		OperationalConstants             OperationalConstants
-		PageSize                         int
-		VapidPublicKey                   string
-		VapidPrivateKey                  string
-		SentryDsn                        string
-		TestSentryUrl                    string
-		PublicStripeKey                  string
-		PrivateStripeKey                 string
-		StripeWebhookSecret              string
-		StripeWebhookPath                string
-		AppEncryptionKey                 string
-		FirebaseBase64AccessKeys         string
+		PageSize                         int    `env:"PAGODA_APP_PAGESIZE"`
+		VapidPublicKey                   string `env:"PAGODA_APP_VAPIDPUBLICKEY"`
+		VapidPrivateKey                  string `env:"PAGODA_APP_VAPIDPRIVATEKEY"`
+		SentryDsn                        string `env:"PAGODA_APP_SENTRYDSN"`
+		TestSentryUrl                    string `env:"PAGODA_APP_TESTSENTRYURL"`
+		PublicStripeKey                  string `env:"PAGODA_APP_PUBLICSTRIPEKEY"`
+		PrivateStripeKey                 string `env:"PAGODA_APP_PRIVATESTRIPEKEY"`
+		StripeWebhookSecret              string `env:"PAGODA_APP_STRIPEWEBHOOKSECRET"`
+		StripeWebhookPath                string `env:"PAGODA_APP_STRIPEWEBHOOKPATH"`
+		AppEncryptionKey                 string `env:"PAGODA_APP_APPENCRYPTIONKEY"`
+		FirebaseBase64AccessKeys         string `env:"PAGODA_APP_FIREBASEBASE64ACCESSKEYS"`
 		FirebaseJSONAccessKeys           []byte
 	}
 
+	PasswordTokenConfig struct {
+		Expiration time.Duration `env:"PAGODA_APP_PASSWORDTOKEN_EXPIRATION,PAGODA_APP_PASSWORDTOKENEXPIRATION"`
+		Length     int           `env:"PAGODA_APP_PASSWORDTOKEN_LENGTH,PAGODA_APP_PASSWORDTOKENLENGTH"`
+	}
+
 	OperationalConstants struct {
-		NewsletterSignupEnabled                           bool
-		UserSignupEnabled                                 bool
-		UserSignupEnabledOnLandingPage                    bool
-		QuestionInteractionValidLifetimeInDays            int
-		NumMinSharedAnswersForPrivateMessages             int
-		NotifEmojiDebounceTime                            time.Duration
-		NotifyNewAnswerFromUnansweredQuestionDebounceTime time.Duration
-		MinAnswerLen                                      int
-		PaymentsEnabled                                   bool
-		ProTrialTimespanInDays                            int
-		ProductProCode                                    string
-		ProductProPrice                                   float32
-		PaymentFailedGracePeriodInDays                    int
-		DeleteStaleNotificationAfterDays                  int
-		MaxLikedQuestionHistoryFreePlan                   int
+		NewsletterSignupEnabled                           bool          `env:"PAGODA_APP_OPERATIONALCONSTANTS_NEWSLETTERSIGNUPENABLED,PAGODA_APP_OPERATIONALCONSTANTS_NEWSLETTER_SIGNUP_ENABLED"`
+		UserSignupEnabled                                 bool          `env:"PAGODA_APP_OPERATIONALCONSTANTS_USERSIGNUPENABLED,PAGODA_APP_OPERATIONALCONSTANTS_USERSIGNUPENABLED"`
+		UserSignupEnabledOnLandingPage                    bool          `env:"PAGODA_APP_OPERATIONALCONSTANTS_USERSIGNUPENABLEDONLANDINGPAGE"`
+		QuestionInteractionValidLifetimeInDays            int           `env:"PAGODA_APP_OPERATIONALCONSTANTS_QUESTIONINTERACTIONVALIDLIFETIMEINDAYS"`
+		NumMinSharedAnswersForPrivateMessages             int           `env:"PAGODA_APP_OPERATIONALCONSTANTS_NUMMINSHAREDANSWERSFORPRIVATEMESSAGES"`
+		NotifEmojiDebounceTime                            time.Duration `env:"PAGODA_APP_OPERATIONALCONSTANTS_NOTIFEMOJIDEBOUNCETIME"`
+		NotifyNewAnswerFromUnansweredQuestionDebounceTime time.Duration `env:"PAGODA_APP_OPERATIONALCONSTANTS_NOTIFYNEWANSWERFROMUNANSWEREDQUESTIONDEBOUNCETIME"`
+		MinAnswerLen                                      int           `env:"PAGODA_APP_OPERATIONALCONSTANTS_MINANSWERLEN"`
+		PaymentsEnabled                                   bool          `env:"PAGODA_APP_OPERATIONALCONSTANTS_PAYMENTSENABLED"`
+		ProTrialTimespanInDays                            int           `env:"PAGODA_APP_OPERATIONALCONSTANTS_PROTRIALTIMESPANINDAYS"`
+		ProductProCode                                    string        `env:"PAGODA_APP_OPERATIONALCONSTANTS_PRODUCTPROCODE"`
+		ProductProPrice                                   float32       `env:"PAGODA_APP_OPERATIONALCONSTANTS_PRODUCTPROPRICE"`
+		PaymentFailedGracePeriodInDays                    int           `env:"PAGODA_APP_OPERATIONALCONSTANTS_PAYMENTFAILEDGRACEPERIODINDAYS"`
+		DeleteStaleNotificationAfterDays                  int           `env:"PAGODA_APP_OPERATIONALCONSTANTS_DELETESTALENOTIFICATIONAFTERDAYS"`
+		MaxLikedQuestionHistoryFreePlan                   int           `env:"PAGODA_APP_OPERATIONALCONSTANTS_MAXLIKEDQUESTIONHISTORYFREEPLAN"`
 	}
 
 	// CacheConfig stores the cache configuration
 	CacheConfig struct {
-		Hostname     string
-		Port         uint16
-		Password     string
-		Database     int
-		TestDatabase int
-		Expiration   struct {
-			StaticFile time.Duration
-			Page       time.Duration
-		}
+		Hostname     string                `env:"PAGODA_CACHE_HOSTNAME"`
+		Port         uint16                `env:"PAGODA_CACHE_PORT"`
+		Password     string                `env:"PAGODA_CACHE_PASSWORD"`
+		Database     int                   `env:"PAGODA_CACHE_DATABASE"`
+		TestDatabase int                   `env:"PAGODA_CACHE_TESTDATABASE"`
+		Expiration   CacheExpirationConfig `env:"-"`
+	}
+
+	CacheExpirationConfig struct {
+		StaticFile time.Duration `env:"PAGODA_CACHE_EXPIRATIONSTATICFILE,PAGODA_CACHE_EXPIRATION_STATICFILE"`
+		Page       time.Duration `env:"PAGODA_CACHE_EXPIRATIONPAGE,PAGODA_CACHE_EXPIRATION_PAGE"`
 	}
 
 	// DatabaseConfig stores the database configuration
 	DatabaseConfig struct {
-		DbMode                 dbmode
-		EmbeddedDriver         string
-		EmbeddedConnection     string
-		EmbeddedTestConnection string
-		// TODO: eventually separate in-memory (SQLite) and standalone DB configs
-		Hostname          string
-		Port              uint16
-		User              string
-		Password          string
-		DatabaseNameLocal string
-		DatabaseNameProd  string
-		TestDatabase      string
-		SslCertPath       string
-		SslMode           string
+		DbMode                 dbmode `env:"PAGODA_DATABASE_DBMODE"`
+		EmbeddedDriver         string `env:"PAGODA_DATABASE_EMBEDDEDDRIVER"`
+		EmbeddedConnection     string `env:"PAGODA_DATABASE_EMBEDDEDCONNECTION"`
+		EmbeddedTestConnection string `env:"PAGODA_DATABASE_EMBEDDEDTESTCONNECTION"`
+		Hostname               string `env:"PAGODA_DATABASE_HOSTNAME"`
+		Port                   uint16 `env:"PAGODA_DATABASE_PORT"`
+		User                   string `env:"PAGODA_DATABASE_USER"`
+		Password               string `env:"PAGODA_DATABASE_PASSWORD"`
+		DatabaseNameLocal      string `env:"PAGODA_DATABASE_DATABASENAMELOCAL"`
+		DatabaseNameProd       string `env:"PAGODA_DATABASE_DATABASENAMEPROD"`
+		TestDatabase           string `env:"PAGODA_DATABASE_TESTDATABASE"`
+		SslCertPath            string `env:"PAGODA_DATABASE_SSLCERTPATH"`
+		SslMode                string `env:"PAGODA_DATABASE_SSLMODE"`
 	}
 
 	// MailConfig stores the mail configuration
 	MailConfig struct {
-		Hostname     string
-		HttpPort     uint16
-		SmtpPort     uint16
-		User         string
-		Password     string
-		FromAddress  string
-		ResendAPIKey string
+		Hostname     string `env:"PAGODA_MAIL_HOSTNAME"`
+		HttpPort     uint16 `env:"PAGODA_MAIL_HTTPPORT"`
+		SmtpPort     uint16 `env:"PAGODA_MAIL_SMTPPORT"`
+		User         string `env:"PAGODA_MAIL_USER"`
+		Password     string `env:"PAGODA_MAIL_PASSWORD"`
+		FromAddress  string `env:"PAGODA_MAIL_FROMADDRESS"`
+		ResendAPIKey string `env:"PAGODA_MAIL_RESENDAPIKEY"`
 	}
 
 	PhoneConfig struct {
-		SenderID                        string
-		Region                          string
-		ValidationCodeExpirationMinutes int
+		SenderID                        string `env:"PAGODA_PHONE_SENDERID"`
+		Region                          string `env:"PAGODA_PHONE_REGION"`
+		ValidationCodeExpirationMinutes int    `env:"PAGODA_PHONE_VALIDATIONCODEEXPIRATIONMINUTES"`
 	}
 
 	RecommenderConfig struct {
-		NumProfilesToMatchAtOnce int
+		NumProfilesToMatchAtOnce int `env:"PAGODA_RECOMMENDER_NUMPROFILESTOMATCHATONCE"`
 	}
 
 	StorageConfig struct {
-		AppBucketName             string
-		StaticFilesBucketName     string
-		S3Endpoint                string
-		S3AccessKey               string
-		S3SecretKey               string
-		S3UseSSL                  bool
-		ProfilePhotoMaxFileSizeMB int64
-		PhotosMaxFileSizeMB       int64
+		AppBucketName             string `env:"PAGODA_STORAGE_APPBUCKETNAME"`
+		StaticFilesBucketName     string `env:"PAGODA_STORAGE_STATICFILESBUCKETNAME"`
+		S3Endpoint                string `env:"PAGODA_STORAGE_S3ENDPOINT"`
+		S3AccessKey               string `env:"PAGODA_STORAGE_S3ACCESSKEY"`
+		S3SecretKey               string `env:"PAGODA_STORAGE_S3SECRETKEY"`
+		S3UseSSL                  bool   `env:"PAGODA_STORAGE_S3USESSL"`
+		ProfilePhotoMaxFileSizeMB int64  `env:"PAGODA_STORAGE_PROFILEPHOTOMAXFILESIZEMB"`
+		PhotosMaxFileSizeMB       int64  `env:"PAGODA_STORAGE_PHOTOSMAXFILESIZEMB"`
 	}
 )
 
-// GetConfig loads and returns configuration
+// GetConfig loads and returns configuration.
 func GetConfig() (Config, error) {
-	var c Config
-	roots := configSearchRoots()
-	v := viper.New()
-	v.SetConfigType("yaml")
-
-	// Base config is required.
-	if err := mergeNamedConfig(v, roots, "application.yaml", true); err != nil {
+	c := defaultConfig()
+	if err := cleanenv.ReadEnv(&c); err != nil {
 		return c, err
 	}
 
-	// Unmarshal once to detect default environment before environment-specific overrides.
-	if err := v.Unmarshal(&c); err != nil {
-		return c, err
-	}
-	env := resolveEnvironment(c.App.Environment)
-
-	// Layer per-environment overrides.
-	if err := mergeNamedConfig(v, roots, filepath.Join("environments", string(env)+".yaml"), true); err != nil {
-		return c, err
-	}
-
-	// Production supports env var overrides with PAGODA_ prefix.
-	if env == EnvProduction {
-		// Load env variables for production
-		v.SetEnvPrefix("pagoda")
-		v.AutomaticEnv()
-		v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
-	}
-
-	if err := v.Unmarshal(&c); err != nil {
-		return c, err
-	}
-	c.App.Environment = env
+	c.App.Environment = resolveEnvironment(c.App.Environment)
+	applyLegacyEnvAliases(&c)
 	applyRuntimeDefaults(&c)
-
-	if err := applyProcessesProfile(&c, roots); err != nil {
-		return c, err
-	}
+	applyProcessesProfile(&c)
 
 	if c.App.FirebaseBase64AccessKeys != "" {
 		jsonCreds, err := base64.StdEncoding.DecodeString(c.App.FirebaseBase64AccessKeys)
@@ -283,13 +257,123 @@ func GetConfig() (Config, error) {
 	return c, nil
 }
 
-func configSearchRoots() []string {
-	return []string{
-		".",
-		"config",
-		"../config",
-		"../../config",
-		"../../../config",
+func defaultConfig() Config {
+	return Config{
+		HTTP: HTTPConfig{
+			Hostname:     "localhost",
+			Port:         8000,
+			Domain:       "http://localhost:8000",
+			ReadTimeout:  5 * time.Second,
+			WriteTimeout: 10 * time.Second,
+			IdleTimeout:  2 * time.Minute,
+			SseKeepAlive: 20 * time.Second,
+			TLS: TLSConfig{
+				Enabled:     false,
+				Certificate: "",
+				Key:         "",
+			},
+		},
+		App: AppConfig{
+			Name:                             "GoShip",
+			SupportEmail:                     "info@goship.run",
+			Environment:                      EnvLocal,
+			EncryptionKey:                    "?E(G+KbPeShVmYq3t6w9z$C&F)J@McQf",
+			Timeout:                          20 * time.Second,
+			EmailVerificationTokenExpiration: 12 * time.Hour,
+			PageSize:                         3,
+			VapidPublicKey:                   "",
+			VapidPrivateKey:                  "",
+			SentryDsn:                        "my-sentry-dsn-in-config",
+			TestSentryUrl:                    "jmGg9OAe2dhR8SpUpgvXXgnB81AD1KUjqyVmCGQIMHoWCIHzQ5",
+			PublicStripeKey:                  "pk_...",
+			PrivateStripeKey:                 "sk_...",
+			StripeWebhookSecret:              "whsec_...",
+			StripeWebhookPath:                "/Q2HBfAY7iid59J1SUN8h1Y3WxJcPWA/payments/webhooks",
+			AppEncryptionKey:                 "=",
+			FirebaseBase64AccessKeys:         "",
+			PasswordToken: PasswordTokenConfig{
+				Expiration: 60 * time.Minute,
+				Length:     64,
+			},
+			OperationalConstants: OperationalConstants{
+				NewsletterSignupEnabled:                           true,
+				UserSignupEnabled:                                 true,
+				UserSignupEnabledOnLandingPage:                    true,
+				QuestionInteractionValidLifetimeInDays:            7,
+				NumMinSharedAnswersForPrivateMessages:             3,
+				NotifEmojiDebounceTime:                            10 * time.Minute,
+				NotifyNewAnswerFromUnansweredQuestionDebounceTime: 12 * time.Hour,
+				MinAnswerLen:                                      3,
+				PaymentsEnabled:                                   false,
+				ProTrialTimespanInDays:                            15,
+				ProductProCode:                                    "price_...",
+				ProductProPrice:                                   1.49,
+				PaymentFailedGracePeriodInDays:                    3,
+				DeleteStaleNotificationAfterDays:                  15,
+				MaxLikedQuestionHistoryFreePlan:                   3,
+			},
+		},
+		Runtime:   RuntimeConfig{},
+		Processes: ProcessesConfig{},
+		Adapters: AdaptersConfig{
+			DB:     "postgres",
+			Cache:  "memory",
+			Jobs:   "inproc",
+			PubSub: "inproc",
+		},
+		Cache: CacheConfig{
+			Hostname:     "localhost",
+			Port:         6379,
+			Password:     "",
+			Database:     0,
+			TestDatabase: 1,
+			Expiration: CacheExpirationConfig{
+				StaticFile: 0,
+				Page:       0,
+			},
+		},
+		Database: DatabaseConfig{
+			DbMode:                 DBModeEmbedded,
+			EmbeddedDriver:         "sqlite3",
+			EmbeddedConnection:     "dbs/main.db?_journal=WAL&_timeout=5000&_fk=true",
+			EmbeddedTestConnection: ":memory:?_journal=WAL&_timeout=5000&_fk=true",
+			Hostname:               "localhost",
+			Port:                   5432,
+			User:                   "admin",
+			Password:               "admin",
+			DatabaseNameLocal:      "goship_db",
+			DatabaseNameProd:       "",
+			TestDatabase:           "goship_testdb",
+			SslCertPath:            "prod-ca-2021.cer",
+			SslMode:                "require",
+		},
+		Mail: MailConfig{
+			Hostname:     "localhost",
+			HttpPort:     8025,
+			SmtpPort:     1025,
+			User:         "admin",
+			Password:     "admin",
+			FromAddress:  "info@goship.app",
+			ResendAPIKey: "",
+		},
+		Phone: PhoneConfig{
+			SenderID:                        "",
+			Region:                          "",
+			ValidationCodeExpirationMinutes: 15,
+		},
+		Recommender: RecommenderConfig{
+			NumProfilesToMatchAtOnce: 100,
+		},
+		Storage: StorageConfig{
+			AppBucketName:             "goship-dev",
+			StaticFilesBucketName:     "goship-static",
+			S3Endpoint:                "s3.us-west-002.backblazeb2.com",
+			S3AccessKey:               "0072...",
+			S3SecretKey:               "K001...",
+			S3UseSSL:                  true,
+			ProfilePhotoMaxFileSizeMB: 2,
+			PhotosMaxFileSizeMB:       5,
+		},
 	}
 }
 
@@ -303,66 +387,78 @@ func resolveEnvironment(configured environment) environment {
 	return EnvLocal
 }
 
+func applyLegacyEnvAliases(c *Config) {
+	if c == nil {
+		return
+	}
+	if value := strings.TrimSpace(os.Getenv("PAGODA_DATABASE_DATABASE")); value != "" {
+		if !envIsSet("PAGODA_DATABASE_DATABASENAMELOCAL") {
+			c.Database.DatabaseNameLocal = value
+		}
+		if !envIsSet("PAGODA_DATABASE_DATABASENAMEPROD") {
+			c.Database.DatabaseNameProd = value
+		}
+	}
+}
+
 func applyRuntimeDefaults(c *Config) {
-	if c.Runtime.Profile == "" {
+	if c == nil || c.Runtime.Profile != "" {
+		return
+	}
+
+	switch c.App.Environment {
+	case EnvProduction:
+		c.Runtime.Profile = RuntimeProfileDistributed
+	default:
 		c.Runtime.Profile = RuntimeProfileServerDB
 	}
 }
 
-func mergeNamedConfig(dst *viper.Viper, roots []string, relPath string, required bool) error {
-	for _, root := range roots {
-		absPath := filepath.Clean(filepath.Join(root, relPath))
-		info, err := os.Stat(absPath)
-		if err != nil {
-			if errors.Is(err, os.ErrNotExist) {
-				continue
-			}
-			return fmt.Errorf("stat config file %q: %w", absPath, err)
-		}
-		if info.IsDir() {
-			continue
-		}
-
-		src := viper.New()
-		src.SetConfigFile(absPath)
-		src.SetConfigType("yaml")
-		if err := src.ReadInConfig(); err != nil {
-			return fmt.Errorf("read config file %q: %w", absPath, err)
-		}
-		if err := dst.MergeConfigMap(src.AllSettings()); err != nil {
-			return fmt.Errorf("merge config file %q: %w", absPath, err)
-		}
-		return nil
+func applyProcessesProfile(c *Config) {
+	if c == nil || anyEnvIsSet(
+		"PAGODA_PROCESSES_WEB",
+		"PAGODA_PROCESSES_WORKER",
+		"PAGODA_PROCESSES_SCHEDULER",
+		"PAGODA_PROCESSES_COLOCATED",
+	) {
+		return
 	}
 
-	if required {
-		return fmt.Errorf("required config file %q not found in search paths", relPath)
+	switch c.Runtime.Profile {
+	case RuntimeProfileSingleNode:
+		c.Processes = ProcessesConfig{
+			Web:       true,
+			Worker:    true,
+			Scheduler: true,
+			CoLocated: true,
+		}
+	case RuntimeProfileDistributed:
+		c.Processes = ProcessesConfig{
+			Web:       true,
+			Worker:    false,
+			Scheduler: false,
+			CoLocated: false,
+		}
+	default:
+		c.Processes = ProcessesConfig{
+			Web:       true,
+			Worker:    false,
+			Scheduler: false,
+			CoLocated: false,
+		}
 	}
-	return nil
 }
 
-type processProfilesFile struct {
-	Profiles map[runtimeprofile]ProcessesConfig `mapstructure:"profiles"`
+func anyEnvIsSet(names ...string) bool {
+	for _, name := range names {
+		if envIsSet(name) {
+			return true
+		}
+	}
+	return false
 }
 
-func applyProcessesProfile(c *Config, roots []string) error {
-	pv := viper.New()
-	pv.SetConfigType("yaml")
-	if err := mergeNamedConfig(pv, roots, "processes.yaml", true); err != nil {
-		return err
-	}
-
-	var profiles processProfilesFile
-	if err := pv.Unmarshal(&profiles); err != nil {
-		return fmt.Errorf("unmarshal processes profiles: %w", err)
-	}
-	if len(profiles.Profiles) == 0 {
-		return fmt.Errorf("processes.yaml missing profiles")
-	}
-
-	if p, ok := profiles.Profiles[c.Runtime.Profile]; ok {
-		c.Processes = p
-		return nil
-	}
-	return fmt.Errorf("runtime profile %q not found in processes.yaml", c.Runtime.Profile)
+func envIsSet(name string) bool {
+	value, ok := os.LookupEnv(name)
+	return ok && strings.TrimSpace(value) != ""
 }

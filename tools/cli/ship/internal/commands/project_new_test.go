@@ -93,6 +93,9 @@ func TestScaffoldNewProject(t *testing.T) {
 	if !strings.Contains(router, "ship:routes:public:start") || !strings.Contains(router, "ship:routes:auth:start") {
 		t.Fatalf("router markers missing:\n%s", router)
 	}
+	if !strings.Contains(router, "RouteNameHomeFeed") {
+		t.Fatalf("expected starter router content copied into scaffold:\n%s", router)
+	}
 
 	containerBytes, err := os.ReadFile(filepath.Join(opts.AppPath, "app", "foundation", "container.go"))
 	if err != nil {
@@ -101,6 +104,9 @@ func TestScaffoldNewProject(t *testing.T) {
 	container := string(containerBytes)
 	if !strings.Contains(container, "ship:container:start") || !strings.Contains(container, "ship:container:end") {
 		t.Fatalf("container markers missing:\n%s", container)
+	}
+	if !strings.Contains(container, "EnabledModules") {
+		t.Fatalf("expected starter container content copied into scaffold:\n%s", container)
 	}
 }
 

@@ -3,11 +3,15 @@ package commands
 import (
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
+	"unicode"
 
+	startertemplate "github.com/leomorpho/goship/starter"
 	policies "github.com/leomorpho/goship/tools/cli/ship/internal/policies"
 )
 
@@ -62,6 +66,7 @@ func RunNew(args []string, d NewDeps) int {
 	if opts.DryRun {
 		fmt.Fprintln(d.Out, "Dry-run mode: no files were written.")
 	}
+	fmt.Fprintf(d.Out, "Next: cd %s && ship module:add <module> && make run\n", opts.AppPath)
 	return 0
 }
 
@@ -122,33 +127,13 @@ func ScaffoldNewProject(opts NewProjectOptions, d NewDeps) error {
 		return fmt.Errorf("path already exists: %s (use --force to overwrite files)", opts.AppPath)
 	}
 
-	files := map[string]string{
-		filepath.Join(opts.AppPath, "go.mod"):                                        renderGoMod(opts),
-		filepath.Join(opts.AppPath, "Procfile"):                                      renderProcfile(),
-		filepath.Join(opts.AppPath, "Procfile.dev"):                                  renderProcfileDev(),
-		filepath.Join(opts.AppPath, "Procfile.worker"):                               renderProcfileWorker(),
-		filepath.Join(opts.AppPath, "config", "modules.yaml"):                        renderModulesManifestSkeleton(),
-		filepath.Join(opts.AppPath, "app", "router.go"):                              renderRouterSkeleton(opts.Module),
-		filepath.Join(opts.AppPath, "app", "web", "routenames", "routenames.go"):     renderRouteNamesSkeleton(),
-		filepath.Join(opts.AppPath, "db", "bobgen.yaml"):                             renderBobgenConfigSkeleton(),
-		filepath.Join(opts.AppPath, "db", "queries", "user.sql"):                     renderUserQuerySkeleton(),
-		filepath.Join(opts.AppPath, "db", "gen", ".gitkeep"):                         "",
-		filepath.Join(opts.AppPath, "db", "migrate", "migrations", ".gitkeep"):       "",
-		filepath.Join(opts.AppPath, "app", "views", "templates.go"):                  renderTemplatesSkeleton(),
-		filepath.Join(opts.AppPath, "app", "web", "controllers", "controllers.go"):   renderControllersSkeleton(),
-		filepath.Join(opts.AppPath, "app", "web", "middleware", "middleware.go"):     renderMiddlewareSkeleton(),
-		filepath.Join(opts.AppPath, "app", "web", "ui", "ui.go"):                     renderUISkeleton(),
-		filepath.Join(opts.AppPath, "app", "web", "viewmodels", "viewmodels.go"):     renderViewModelsSkeleton(),
-		filepath.Join(opts.AppPath, "app", "jobs", "jobs.go"):                        renderJobsSkeleton(),
-		filepath.Join(opts.AppPath, "app", "foundation", "container.go"):             renderContainerSkeleton(),
-		filepath.Join(opts.AppPath, "app", "profiles", "repo.go"):                    renderProfilesDomainSkeleton(),
-		filepath.Join(opts.AppPath, "app", "notifications", "notifier.go"):           renderNotificationsDomainSkeleton(),
-		filepath.Join(opts.AppPath, "app", "subscriptions", "repo.go"):               renderSubscriptionsDomainSkeleton(),
-		filepath.Join(opts.AppPath, "app", "emailsubscriptions", "repo.go"):          renderEmailSubscriptionsDomainSkeleton(),
-		filepath.Join(opts.AppPath, "docs", "00-index.md"):                           renderDocsIndexSkeleton(),
-		filepath.Join(opts.AppPath, "docs", "architecture", "01-architecture.md"):    renderArchitectureSkeleton(),
-		filepath.Join(opts.AppPath, "docs", "architecture", "08-cognitive-model.md"): renderCognitiveModelSkeleton(),
-		filepath.Join(opts.AppPath, "cmd", "web", "main.go"):                         renderWebMain(),
+	files := baseScaffoldFiles(opts)
+	starterFiles, err := renderStarterTemplateFiles(opts)
+	if err != nil {
+		return err
+	}
+	for path, content := range starterFiles {
+		files[path] = content
 	}
 	policyYAML := renderScaffoldAgentPolicyYAML()
 	files[filepath.Join(opts.AppPath, d.AgentPolicyFilePath)] = policyYAML
@@ -164,12 +149,99 @@ func ScaffoldNewProject(opts NewProjectOptions, d NewDeps) error {
 		files[filepath.Join(opts.AppPath, rel)] = string(content)
 	}
 
-	for path, content := range files {
+	paths := make([]string, 0, len(files))
+	for path := range files {
+		paths = append(paths, path)
+	}
+	sort.Strings(paths)
+	for _, path := range paths {
+		content := files[path]
 		if err := writeScaffoldFile(path, content, opts.DryRun, opts.Force); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func baseScaffoldFiles(opts NewProjectOptions) map[string]string {
+	return map[string]string{
+		filepath.Join(opts.AppPath, "go.mod"):                                        renderGoMod(opts),
+		filepath.Join(opts.AppPath, "Makefile"):                                      renderStarterMakefile(),
+		filepath.Join(opts.AppPath, "Procfile"):                                      renderProcfile(),
+		filepath.Join(opts.AppPath, "Procfile.dev"):                                  renderProcfileDev(),
+		filepath.Join(opts.AppPath, "Procfile.worker"):                               renderProcfileWorker(),
+		filepath.Join(opts.AppPath, "config", "modules.yaml"):                        renderModulesManifestSkeleton(),
+		filepath.Join(opts.AppPath, "db", "bobgen.yaml"):                             renderBobgenConfigSkeleton(),
+		filepath.Join(opts.AppPath, "db", "queries", "user.sql"):                     renderUserQuerySkeleton(),
+		filepath.Join(opts.AppPath, "db", "gen", ".gitkeep"):                         "",
+		filepath.Join(opts.AppPath, "db", "migrate", "migrations", ".gitkeep"):       "",
+		filepath.Join(opts.AppPath, "app", "web", "controllers", "controllers.go"):   renderControllersSkeleton(),
+		filepath.Join(opts.AppPath, "app", "web", "middleware", "middleware.go"):     renderMiddlewareSkeleton(),
+		filepath.Join(opts.AppPath, "app", "web", "ui", "ui.go"):                     renderUISkeleton(),
+		filepath.Join(opts.AppPath, "app", "web", "viewmodels", "viewmodels.go"):     renderViewModelsSkeleton(),
+		filepath.Join(opts.AppPath, "app", "jobs", "jobs.go"):                        renderJobsSkeleton(),
+		filepath.Join(opts.AppPath, "app", "profiles", "repo.go"):                    renderProfilesDomainSkeleton(),
+		filepath.Join(opts.AppPath, "app", "notifications", "notifier.go"):           renderNotificationsDomainSkeleton(),
+		filepath.Join(opts.AppPath, "app", "subscriptions", "repo.go"):               renderSubscriptionsDomainSkeleton(),
+		filepath.Join(opts.AppPath, "app", "emailsubscriptions", "repo.go"):          renderEmailSubscriptionsDomainSkeleton(),
+		filepath.Join(opts.AppPath, "docs", "00-index.md"):                           renderDocsIndexSkeleton(),
+		filepath.Join(opts.AppPath, "docs", "architecture", "01-architecture.md"):    renderArchitectureSkeleton(),
+		filepath.Join(opts.AppPath, "docs", "architecture", "08-cognitive-model.md"): renderCognitiveModelSkeleton(),
+	}
+}
+
+func renderStarterTemplateFiles(opts NewProjectOptions) (map[string]string, error) {
+	files := make(map[string]string)
+	err := fs.WalkDir(startertemplate.Files, ".", func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			return nil
+		}
+		if path == "config/modules.yaml" {
+			return nil
+		}
+
+		b, readErr := fs.ReadFile(startertemplate.Files, path)
+		if readErr != nil {
+			return readErr
+		}
+		files[filepath.Join(opts.AppPath, path)] = rewriteStarterTemplate(string(b), opts)
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return files, nil
+}
+
+func rewriteStarterTemplate(content string, opts NewProjectOptions) string {
+	replaced := strings.ReplaceAll(content, "github.com/leomorpho/goship/starter", opts.Module)
+	replaced = strings.ReplaceAll(replaced, "GoShip Starter", starterDisplayName(opts.Name))
+	return replaced
+}
+
+func starterDisplayName(name string) string {
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return "GoShip Starter"
+	}
+	parts := strings.FieldsFunc(name, func(r rune) bool {
+		return r == '-' || r == '_' || unicode.IsSpace(r)
+	})
+	if len(parts) == 0 {
+		return "GoShip Starter"
+	}
+	for i, part := range parts {
+		if part == "" {
+			continue
+		}
+		runes := []rune(strings.ToLower(part))
+		runes[0] = unicode.ToUpper(runes[0])
+		parts[i] = string(runes)
+	}
+	return strings.Join(parts, " ")
 }
 
 func writeScaffoldFile(path, content string, dryRun bool, force bool) error {
@@ -189,6 +261,8 @@ func renderGoMod(opts NewProjectOptions) string {
 	return fmt.Sprintf(`module %s
 
 go 1.25
+
+require github.com/a-h/templ v0.3.1001
 `, opts.Module)
 }
 
@@ -196,6 +270,13 @@ func renderModulesManifestSkeleton() string {
 	return `# Workspace-level module enablement.
 # Modules apply to the monolith as a whole (not per mini-app).
 modules: []
+`
+}
+
+func renderStarterMakefile() string {
+	return `.PHONY: run
+run:
+	go run ./cmd/web
 `
 }
 
@@ -239,46 +320,6 @@ commands:
 `
 }
 
-func renderRouterSkeleton(module string) string {
-	return fmt.Sprintf(`package goship
-
-import (
-	routeNames "%s/app/web/routenames"
-	"%s/app/web/controllers"
-)
-
-func registerPublicRoutes() {
-	_ = routeNames.RouteNameLandingPage
-	_ = controllers.NewLandingPageRoute
-	// ship:routes:public:start
-	// ship:routes:public:end
-}
-
-func registerAuthRoutes() {
-	// ship:routes:auth:start
-	// ship:routes:auth:end
-}
-`, module, module)
-}
-
-func renderRouteNamesSkeleton() string {
-	return `package routenames
-
-const (
-	RouteNameLandingPage = "landing_page"
-)
-`
-}
-
-func renderTemplatesSkeleton() string {
-	return `package views
-
-type (
-	Page string
-)
-`
-}
-
 func renderControllersSkeleton() string {
 	return `package controllers
 
@@ -307,20 +348,6 @@ func renderViewModelsSkeleton() string {
 
 func renderJobsSkeleton() string {
 	return `package jobs
-`
-}
-
-func renderContainerSkeleton() string {
-	return `package foundation
-
-type Container struct{}
-
-func NewContainer() *Container {
-	c := &Container{}
-	// ship:container:start
-	// ship:container:end
-	return c
-}
 `
 }
 
@@ -370,26 +397,6 @@ func renderCognitiveModelSkeleton() string {
 	return `# Cognitive Model
 
 Generated by ship.
-`
-}
-
-func renderWebMain() string {
-	return `package main
-
-import (
-	"log"
-	"net/http"
-)
-
-func main() {
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", func(w http.ResponseWriter, _ *http.Request) {
-		_, _ = w.Write([]byte("GoShip app"))
-	})
-	if err := http.ListenAndServe(":8000", mux); err != nil {
-		log.Fatal(err)
-	}
-}
 `
 }
 

@@ -33,6 +33,9 @@ func TestNewProjectIntegration_SupportsMakeModelQueryScaffold(t *testing.T) {
 	}); code != 0 {
 		t.Fatalf("ship new failed: code=%d stderr=%s", code, errOut.String())
 	}
+	if !strings.Contains(out.String(), "Next: cd demo && ship module:add <module> && make run") {
+		t.Fatalf("stdout = %q, want post-install hint", out.String())
+	}
 
 	projectRoot := filepath.Join(root, "demo")
 	entMigrationsKeep := filepath.Join(projectRoot, "db", "migrate", "migrations", ".gitkeep")
@@ -42,6 +45,13 @@ func TestNewProjectIntegration_SupportsMakeModelQueryScaffold(t *testing.T) {
 	bobgenConfig := filepath.Join(projectRoot, "db", "bobgen.yaml")
 	if _, err := os.Stat(bobgenConfig); err != nil {
 		t.Fatalf("expected bobgen config scaffold at %s: %v", bobgenConfig, err)
+	}
+	routerBytes, err := os.ReadFile(filepath.Join(projectRoot, "app", "router.go"))
+	if err != nil {
+		t.Fatalf("read generated router: %v", err)
+	}
+	if !strings.Contains(string(routerBytes), "RouteNameHomeFeed") {
+		t.Fatalf("expected generated router copied from starter:\n%s", string(routerBytes))
 	}
 
 	if err := os.Chdir(projectRoot); err != nil {

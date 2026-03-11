@@ -24,9 +24,15 @@ func BuildRouter(c *foundation.Container) []Route {
 
 	return []Route{
 		{Name: routenames.RouteNameLandingPage, Path: "/", Page: templates.PageLanding},
+		// ship:routes:public:start
+		// ship:routes:public:end
 		{Name: routenames.RouteNameLogin, Path: "/auth/login", Page: templates.PageLanding},
 		{Name: routenames.RouteNameRegister, Path: "/auth/register", Page: templates.PageLanding},
+		// ship:routes:auth:start
+		// ship:routes:auth:end
 		{Name: routenames.RouteNameHomeFeed, Path: "/auth/homeFeed", Page: templates.PageHomeFeed},
 		{Name: routenames.RouteNameProfile, Path: "/auth/profile", Page: templates.PageProfile},
+		// ship:routes:external:start
+		// ship:routes:external:end
 	}
 }
