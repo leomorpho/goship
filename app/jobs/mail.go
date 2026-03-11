@@ -51,12 +51,12 @@ func (esc *EmailSubscriptionConfirmationProcessor) ProcessTask(ctx context.Conte
 
 	page := ui.NewPage(echo.New().AcquireContext())
 	page.Layout = layouts.Main
-	page.Data = viewmodels.EmailDefaultData{
-		AppName:          string(esc.config.App.Name),
-		ConfirmationLink: fullUrl,
-		SupportEmail:     esc.config.Mail.FromAddress,
-		Domain:           esc.config.HTTP.Domain,
-	}
+	data := viewmodels.NewEmailDefaultData()
+	data.AppName = string(esc.config.App.Name)
+	data.ConfirmationLink = fullUrl
+	data.SupportEmail = esc.config.Mail.FromAddress
+	data.Domain = esc.config.HTTP.Domain
+	page.Data = data
 
 	err := esc.mailer.
 		Compose().

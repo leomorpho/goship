@@ -54,7 +54,7 @@ func (s *Service) getLogin(ctx echo.Context) error {
 	page.Layout = layouts.Auth
 	page.Name = templates.PageLogin
 	page.Title = "Log in"
-	page.Form = &viewmodels.LoginForm{}
+	page.Form = viewmodels.NewLoginForm()
 	page.Component = pages.Login(&page)
 	page.HTMX.Request.Boosted = true
 
@@ -126,14 +126,14 @@ func (s *Service) getRegister(ctx echo.Context) error {
 	page.Name = templates.PageRegister
 	page.Component = pages.Register(&page)
 	page.Title = "Register"
-	page.Form = &viewmodels.RegisterForm{}
+	page.Form = viewmodels.NewRegisterForm()
 
 	yearsAgo := time.Now().AddDate(-18, 0, 0)
-	page.Data = viewmodels.RegisterData{
-		UserSignupEnabled:  s.ctr.Container.Config.App.OperationalConstants.UserSignupEnabled,
-		RelationshipStatus: mode,
-		MinDate:            yearsAgo.Format("2006-01-02"),
-	}
+	data := viewmodels.NewRegisterData()
+	data.UserSignupEnabled = s.ctr.Container.Config.App.OperationalConstants.UserSignupEnabled
+	data.RelationshipStatus = mode
+	data.MinDate = yearsAgo.Format("2006-01-02")
+	page.Data = data
 	if form := ctx.Get(context.FormKey); form != nil {
 		page.Form = form.(*viewmodels.RegisterForm)
 	}
@@ -224,7 +224,7 @@ func (s *Service) getForgotPassword(ctx echo.Context) error {
 	page.Layout = layouts.Auth
 	page.Name = templates.PageForgotPassword
 	page.Title = "Forgot password"
-	page.Form = &viewmodels.ForgotPasswordForm{}
+	page.Form = viewmodels.NewForgotPasswordForm()
 	page.Component = pages.ForgotPassword(&page)
 	page.HTMX.Request.Boosted = true
 
@@ -282,7 +282,7 @@ func (s *Service) getResetPassword(ctx echo.Context) error {
 	page.Layout = layouts.Auth
 	page.Name = templates.PageResetPassword
 	page.Title = "Reset password"
-	page.Form = &viewmodels.ResetPasswordForm{}
+	page.Form = viewmodels.NewResetPasswordForm()
 	page.Component = pages.ResetPassword(&page)
 
 	if form := ctx.Get(context.FormKey); form != nil {

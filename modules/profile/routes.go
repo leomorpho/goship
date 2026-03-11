@@ -99,13 +99,13 @@ func (s *routeService) getProfile(ctx echo.Context) error {
 	page := ui.NewPage(ctx)
 	page.Layout = layouts.Main
 	page.Name = templates.PageProfile
-	page.Data = viewmodels.ProfilePageData{
-		Profile:             *profileData,
-		IsSelf:              isSelf,
-		UploadGalleryPicUrl: fullSecureURLForRoute(ctx, s.ctr.Container.Config.HTTP.Domain, routeNames.RouteNameUploadPhotoSubmit, page.CSRF),
-		UploadProfilePicUrl: fullSecureURLForRoute(ctx, s.ctr.Container.Config.HTTP.Domain, routeNames.RouteNameCurrentProfilePhotoSubmit, page.CSRF),
-		GalleryPicsMaxCount: 3,
-	}
+	data := viewmodels.NewProfilePageData()
+	data.Profile = *profileData
+	data.IsSelf = isSelf
+	data.UploadGalleryPicUrl = fullSecureURLForRoute(ctx, s.ctr.Container.Config.HTTP.Domain, routeNames.RouteNameUploadPhotoSubmit, page.CSRF)
+	data.UploadProfilePicUrl = fullSecureURLForRoute(ctx, s.ctr.Container.Config.HTTP.Domain, routeNames.RouteNameCurrentProfilePhotoSubmit, page.CSRF)
+	data.GalleryPicsMaxCount = 3
+	page.Data = data
 	page.Component = pages.ProfilePage(&page)
 	page.HTMX.Request.Boosted = true
 	if isSelf {

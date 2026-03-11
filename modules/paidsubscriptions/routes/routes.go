@@ -63,9 +63,8 @@ func (m *RouteModule) RegisterExternalRoutes(r core.Router, stripeWebhookPath st
 }
 
 func (m *RouteModule) GetPaymentProcessorPublickey(ctx echo.Context) error {
-	key := viewmodels.PaymentProcessorPublicKey{
-		Key: m.controller.Container.Config.App.PublicStripeKey,
-	}
+	key := viewmodels.NewPaymentProcessorPublicKey()
+	key.Key = m.controller.Container.Config.App.PublicStripeKey
 	return ctx.JSON(http.StatusOK, key)
 }
 
@@ -288,18 +287,15 @@ func (m *RouteModule) PricingPage(ctx echo.Context) error {
 	}
 	activePlanKey := activePlanKey(activePlan)
 
-	data := viewmodels.PricingPageData{
-		ProductProCode:        m.controller.Container.Config.App.OperationalConstants.ProductProCode,
-		ProductProPrice:       fmt.Sprintf("%.2f", m.controller.Container.Config.App.OperationalConstants.ProductProPrice),
-		ActivePlanKey:         activePlanKey,
-		ActivePlanIsPaid:      isPaidPlanKey(activePlanKey),
-		HasSubscriptionExpiry: subscriptionExpiredOn != nil,
-		IsTrial:               isTrial,
-		ProductDescriptions: []viewmodels.ProductDescription{{
-			Name:     "",
-			Subtitle: "",
-		}},
-	}
+	data := viewmodels.NewPricingPageData()
+	data.ProductProCode = m.controller.Container.Config.App.OperationalConstants.ProductProCode
+	data.ProductProPrice = fmt.Sprintf("%.2f", m.controller.Container.Config.App.OperationalConstants.ProductProPrice)
+	data.ActivePlanKey = activePlanKey
+	data.ActivePlanIsPaid = isPaidPlanKey(activePlanKey)
+	data.HasSubscriptionExpiry = subscriptionExpiredOn != nil
+	data.IsTrial = isTrial
+	productDescription := viewmodels.NewProductDescription()
+	data.ProductDescriptions = []viewmodels.ProductDescription{productDescription}
 	if subscriptionExpiredOn != nil {
 		data.SubscriptionExpiresOn = subscriptionExpiredOn.Format(time.RFC3339Nano)
 	}

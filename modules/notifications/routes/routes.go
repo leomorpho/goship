@@ -199,10 +199,10 @@ func (r *NormalNotificationsRoute) Get(ctx echo.Context) error {
 		nextPageURL = ctx.Echo().Reverse("normalNotifications") + "?timestamp=" + oldestTimestamp.Format(time.RFC3339Nano)
 	}
 
-	page.Data = viewmodels.NormalNotificationsPageData{
-		Notifications: viewmodels.NotificationItemsFromDomain(notifications),
-		NextPageURL:   nextPageURL,
-	}
+	data := viewmodels.NewNormalNotificationsPageData()
+	data.Notifications = viewmodels.NotificationItemsFromDomain(notifications)
+	data.NextPageURL = nextPageURL
+	page.Data = data
 
 	return r.controller.RenderPage(ctx, page)
 }
@@ -346,7 +346,8 @@ func (r *OutgoingNotificationsRoute) GetPushSubscriptions(ctx echo.Context) erro
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not fetch subscription endpoints")
 	}
 
-	subscriptions := viewmodels.PushNotificationSubscriptions{URLs: subscribedEndpoints}
+	subscriptions := viewmodels.NewPushNotificationSubscriptions()
+	subscriptions.URLs = subscribedEndpoints
 	return ctx.JSON(http.StatusOK, subscriptions)
 }
 
@@ -605,20 +606,19 @@ func (r *OutgoingNotificationsRoute) createNotificationsPage(
 		ctx.Echo().Reverse(routeNames.RouteNameDeleteSubscription, domain.NotificationPlatformSMS.Value),
 	) + "?csrf=" + page.CSRF
 
-	notificationPermissions := viewmodels.NotificationPermissionsData{
-		VapidPublicKey:                  r.controller.Container.Config.App.VapidPublicKey,
-		PermissionDailyNotif:            permissions[domain.NotificationPermissionDailyReminder],
-		PermissionPartnerActivity:       permissions[domain.NotificationPermissionNewFriendActivity],
-		SubscribedEndpoints:             subscribedEndpoints,
-		PhoneSubscriptionEnabled:        phoneNumberE164 != "" && phoneVerified,
-		NotificationTypeQueryParamKey:   domain.PermissionNotificationType,
-		AddPushSubscriptionEndpoint:     addPushSubscriptionEndpoint,
-		DeletePushSubscriptionEndpoint:  deletePushSubscriptionEndpoint,
-		AddEmailSubscriptionEndpoint:    addEmailSubscriptionEndpoint,
-		DeleteEmailSubscriptionEndpoint: deleteEmailSubscriptionEndpoint,
-		AddSmsSubscriptionEndpoint:      addSMSSubscriptionEndpoint,
-		DeleteSmsSubscriptionEndpoint:   deleteSMSSubscriptionEndpoint,
-	}
+	notificationPermissions := viewmodels.NewNotificationPermissionsData()
+	notificationPermissions.VapidPublicKey = r.controller.Container.Config.App.VapidPublicKey
+	notificationPermissions.PermissionDailyNotif = permissions[domain.NotificationPermissionDailyReminder]
+	notificationPermissions.PermissionPartnerActivity = permissions[domain.NotificationPermissionNewFriendActivity]
+	notificationPermissions.SubscribedEndpoints = subscribedEndpoints
+	notificationPermissions.PhoneSubscriptionEnabled = phoneNumberE164 != "" && phoneVerified
+	notificationPermissions.NotificationTypeQueryParamKey = domain.PermissionNotificationType
+	notificationPermissions.AddPushSubscriptionEndpoint = addPushSubscriptionEndpoint
+	notificationPermissions.DeletePushSubscriptionEndpoint = deletePushSubscriptionEndpoint
+	notificationPermissions.AddEmailSubscriptionEndpoint = addEmailSubscriptionEndpoint
+	notificationPermissions.DeleteEmailSubscriptionEndpoint = deleteEmailSubscriptionEndpoint
+	notificationPermissions.AddSmsSubscriptionEndpoint = addSMSSubscriptionEndpoint
+	notificationPermissions.DeleteSmsSubscriptionEndpoint = deleteSMSSubscriptionEndpoint
 
 	page.Layout = layouts.Main
 	page.Component = pages.NotificationPermissions(&page, notificationPermissions)

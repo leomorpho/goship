@@ -44,10 +44,10 @@ func (c *home) fetchPosts(pager *ui.Pager) []viewmodels.Post {
 	posts := make([]viewmodels.Post, 20)
 
 	for k := range posts {
-		posts[k] = viewmodels.Post{
-			Title: fmt.Sprintf("Post example #%d", k+1),
-			Body:  fmt.Sprintf("Lorem ipsum example #%d ddolor sit amet, consectetur adipiscing elit. Nam elementum vulputate tristique.", k+1),
-		}
+		post := viewmodels.NewPost()
+		post.Title = fmt.Sprintf("Post example #%d", k+1)
+		post.Body = fmt.Sprintf("Lorem ipsum example #%d ddolor sit amet, consectetur adipiscing elit. Nam elementum vulputate tristique.", k+1)
+		posts[k] = post
 	}
 
 	return posts[pager.GetOffset() : pager.GetOffset()+pager.ItemsPerPage]

@@ -28,9 +28,9 @@ func (c *privacyPolicy) Get(ctx echo.Context) error {
 	page.Layout = layouts.Main
 	page.Name = templates.PagePrivacyPolicy
 	page.Component = pages.PrivacyPolicy(&page)
-	page.Data = viewmodels.AboutData{
-		SupportEmail: c.ctr.Container.Config.App.SupportEmail,
-	}
+	data := viewmodels.NewAboutData()
+	data.SupportEmail = c.ctr.Container.Config.App.SupportEmail
+	page.Data = data
 
 	page.HTMX.Request.Boosted = true
 

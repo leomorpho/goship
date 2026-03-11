@@ -56,9 +56,9 @@ func (p *profilePrefsRoute) GetBio(ctx echo.Context) error {
 	page.Component = pages.AboutMe(&page)
 	page.Name = templates.PagePreferences
 
-	page.Form = &viewmodels.ProfileBioFormData{
-		Bio: prof.Bio,
-	}
+	form := viewmodels.NewProfileBioFormData()
+	form.Bio = prof.Bio
+	page.Form = form
 
 	if form := ctx.Get(context.FormKey); form != nil {
 		page.Form = form.(*viewmodels.ProfileBioFormData)
@@ -184,26 +184,21 @@ func (g *preferences) Get(ctx echo.Context) error {
 		return err
 	}
 
-	notificationPermissions := viewmodels.NotificationPermissionsData{
-		VapidPublicKey:                g.ctr.Container.Config.App.VapidPublicKey,
-		PermissionDailyNotif:          permissions[domain.NotificationPermissionDailyReminder],
-		PermissionPartnerActivity:     permissions[domain.NotificationPermissionNewFriendActivity],
-		SubscribedEndpoints:           subscribedEndpoints,
-		PhoneSubscriptionEnabled:      profile.PhoneNumberE164 != "" && profile.PhoneVerified,
-		NotificationTypeQueryParamKey: domain.PermissionNotificationType,
-
-		AddPushSubscriptionEndpoint:    addPushSubscriptionEndpoint,
-		DeletePushSubscriptionEndpoint: deletePushSubscriptionEndpoint,
-
-		AddFCMPushSubscriptionEndpoint:    addFCMPushSubscriptionEndpoint,
-		DeleteFCMPushSubscriptionEndpoint: deleteFCMPushSubscriptionEndpoint,
-
-		AddEmailSubscriptionEndpoint:    addEmailSubscriptionEndpoint,
-		DeleteEmailSubscriptionEndpoint: deleteEmailSubscriptionEndpoint,
-
-		AddSmsSubscriptionEndpoint:    addSmsSubscriptionEndpoint,
-		DeleteSmsSubscriptionEndpoint: deleteSmsSubscriptionEndpoint,
-	}
+	notificationPermissions := viewmodels.NewNotificationPermissionsData()
+	notificationPermissions.VapidPublicKey = g.ctr.Container.Config.App.VapidPublicKey
+	notificationPermissions.PermissionDailyNotif = permissions[domain.NotificationPermissionDailyReminder]
+	notificationPermissions.PermissionPartnerActivity = permissions[domain.NotificationPermissionNewFriendActivity]
+	notificationPermissions.SubscribedEndpoints = subscribedEndpoints
+	notificationPermissions.PhoneSubscriptionEnabled = profile.PhoneNumberE164 != "" && profile.PhoneVerified
+	notificationPermissions.NotificationTypeQueryParamKey = domain.PermissionNotificationType
+	notificationPermissions.AddPushSubscriptionEndpoint = addPushSubscriptionEndpoint
+	notificationPermissions.DeletePushSubscriptionEndpoint = deletePushSubscriptionEndpoint
+	notificationPermissions.AddFCMPushSubscriptionEndpoint = addFCMPushSubscriptionEndpoint
+	notificationPermissions.DeleteFCMPushSubscriptionEndpoint = deleteFCMPushSubscriptionEndpoint
+	notificationPermissions.AddEmailSubscriptionEndpoint = addEmailSubscriptionEndpoint
+	notificationPermissions.DeleteEmailSubscriptionEndpoint = deleteEmailSubscriptionEndpoint
+	notificationPermissions.AddSmsSubscriptionEndpoint = addSmsSubscriptionEndpoint
+	notificationPermissions.DeleteSmsSubscriptionEndpoint = deleteSmsSubscriptionEndpoint
 
 	data.NotificationPermissionsData = notificationPermissions
 
@@ -221,11 +216,11 @@ func (g *preferences) Get(ctx echo.Context) error {
 func (g *preferences) getCurrPreferencesData(ctx echo.Context) (viewmodels.PreferencesData, error) {
 	profileID, err := authenticatedProfileID(ctx)
 	if err != nil {
-		return viewmodels.PreferencesData{}, err
+		return viewmodels.NewPreferencesData(), err
 	}
 	profile, err := g.profileService.GetProfileSettingsByID(ctx.Request().Context(), profileID)
 	if err != nil {
-		return viewmodels.PreferencesData{}, err
+		return viewmodels.NewPreferencesData(), err
 	}
 
 	// Make sure to check if birthdate is non-nil
@@ -236,25 +231,22 @@ func (g *preferences) getCurrPreferencesData(ctx echo.Context) (viewmodels.Prefe
 	)
 
 	if err != nil {
-		return viewmodels.PreferencesData{}, err
+		return viewmodels.NewPreferencesData(), err
 	}
 	activePlanKey := activePlanKey(activePlan)
 
-	data := viewmodels.PreferencesData{
-		Bio:                     profile.Bio,
-		PhoneNumberInE164Format: profile.PhoneNumberE164,
-		CountryCode:             profile.CountryCode,
-		SelfBirthdate:           birthdateStr,
-		IsProfileFullyOnboarded: profile.FullyOnboarded,
-		DefaultBio:              domain.DefaultBio,
-		DefaultBirthdate:        domain.DefaultBirthdate.Format("2006-01-02"),
-
-		// if IsPaymentsEnabled is true, none of the subscription stuff matters and the entire app will be free
-		IsPaymentsEnabled:            g.ctr.Container.Config.App.OperationalConstants.PaymentsEnabled,
-		ActiveSubscriptionPlanKey:    activePlanKey,
-		ActiveSubscriptionPlanIsPaid: isPaidPlanKey(activePlanKey),
-		IsTrial:                      isTrial,
-	}
+	data := viewmodels.NewPreferencesData()
+	data.Bio = profile.Bio
+	data.PhoneNumberInE164Format = profile.PhoneNumberE164
+	data.CountryCode = profile.CountryCode
+	data.SelfBirthdate = birthdateStr
+	data.IsProfileFullyOnboarded = profile.FullyOnboarded
+	data.DefaultBio = domain.DefaultBio
+	data.DefaultBirthdate = domain.DefaultBirthdate.Format("2006-01-02")
+	data.IsPaymentsEnabled = g.ctr.Container.Config.App.OperationalConstants.PaymentsEnabled
+	data.ActiveSubscriptionPlanKey = activePlanKey
+	data.ActiveSubscriptionPlanIsPaid = isPaidPlanKey(activePlanKey)
+	data.IsTrial = isTrial
 
 	if subscriptionExpiredOn != nil {
 		data.HasMonthlySubscriptionExpiry = true
@@ -279,11 +271,11 @@ func (p *preferences) GetPhoneComponent(ctx echo.Context) error {
 	page.Name = templates.PagePhoneNumber
 	page.HTMX.Request.Boosted = true
 
-	page.Data = &viewmodels.PhoneNumber{
-		CountryCode:     profile.CountryCode,
-		PhoneNumberE164: profile.PhoneNumberE164,
-		PhoneVerified:   profile.PhoneVerified,
-	}
+	data := viewmodels.NewPhoneNumber()
+	data.CountryCode = profile.CountryCode
+	data.PhoneNumberE164 = profile.PhoneNumberE164
+	data.PhoneVerified = profile.PhoneVerified
+	page.Data = data
 
 	return p.ctr.RenderPage(ctx, page)
 }
@@ -301,11 +293,11 @@ func (p *preferences) GetPhoneVerificationComponent(ctx echo.Context) error {
 	page := ui.NewPage(ctx)
 	page.Layout = layouts.Main
 	page.Name = templates.PagePhoneNumber
-	page.Form = &viewmodels.PhoneNumberVerification{}
+	page.Form = viewmodels.NewPhoneNumberVerification()
 	page.Component = pages.PhoneVerificationField(&page)
-	page.Data = &viewmodels.SmsVerificationCodeInfo{
-		ExpirationInMinutes: p.ctr.Container.Config.Phone.ValidationCodeExpirationMinutes,
-	}
+	data := viewmodels.NewSmsVerificationCodeInfo()
+	data.ExpirationInMinutes = p.ctr.Container.Config.Phone.ValidationCodeExpirationMinutes
+	page.Data = data
 
 	if form := ctx.Get(context.FormKey); form != nil {
 		page.Form = form.(*viewmodels.PhoneNumberVerification)
@@ -365,7 +357,7 @@ func (p *preferences) SubmitPhoneVerificationCode(ctx echo.Context) error {
 	page := ui.NewPage(ctx)
 	page.Layout = layouts.Main
 	page.Name = templates.PagePhoneNumber
-	page.Form = &viewmodels.PhoneNumberVerification{}
+	page.Form = viewmodels.NewPhoneNumberVerification()
 	page.Component = pages.PhoneVerificationField(&page)
 
 	uxflashmessages.Success(ctx, "Success! Your phone number was confirmed.")
@@ -424,9 +416,9 @@ func (p *preferences) GetDisplayName(ctx echo.Context) error {
 	page.Layout = layouts.Main
 	page.Component = pages.DisplayName(&page)
 	page.Name = templates.PageDisplayName
-	page.Form = &viewmodels.DisplayNameForm{
-		DisplayName: displayName,
-	}
+	form := viewmodels.NewDisplayNameForm()
+	form.DisplayName = displayName
+	page.Form = form
 
 	if form := ctx.Get(context.FormKey); form != nil {
 		page.Form = form.(*viewmodels.DisplayNameForm)

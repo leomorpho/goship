@@ -26,7 +26,7 @@ func (c *contact) Get(ctx echo.Context) error {
 	page.Layout = layouts.Main
 	page.Name = templates.PageContact
 	page.Title = "Contact us"
-	page.Form = &viewmodels.ContactForm{}
+	page.Form = viewmodels.NewContactForm()
 	page.Component = pages.Contact(&page)
 	page.HTMX.Request.Boosted = true
 

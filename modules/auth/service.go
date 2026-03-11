@@ -57,12 +57,12 @@ func (s *Service) sendVerificationEmail(ctx echo.Context, userEmail string) {
 
 	page := ui.NewPage(ctx)
 	page.Layout = layouts.Main
-	page.Data = viewmodels.EmailDefaultData{
-		AppName:          string(s.ctr.Container.Config.App.Name),
-		ConfirmationLink: fullURL,
-		SupportEmail:     s.ctr.Container.Config.Mail.FromAddress,
-		Domain:           s.ctr.Container.Config.HTTP.Domain,
-	}
+	data := viewmodels.NewEmailDefaultData()
+	data.AppName = string(s.ctr.Container.Config.App.Name)
+	data.ConfirmationLink = fullURL
+	data.SupportEmail = s.ctr.Container.Config.Mail.FromAddress
+	data.Domain = s.ctr.Container.Config.HTTP.Domain
+	page.Data = data
 
 	err = s.ctr.Container.Mail.
 		Compose().
@@ -82,15 +82,15 @@ func (s *Service) sendPasswordResetEmail(ctx echo.Context, profileName, email, u
 
 	page := ui.NewPage(ctx)
 	page.Layout = layouts.Main
-	page.Data = viewmodels.EmailPasswordResetData{
-		AppName:           string(s.ctr.Container.Config.App.Name),
-		ProfileName:       profileName,
-		PasswordResetLink: fullURL,
-		SupportEmail:      s.ctr.Container.Config.Mail.FromAddress,
-		OperatingSystem:   ua.OS,
-		BrowserName:       ua.Name,
-		Domain:            s.ctr.Container.Config.HTTP.Domain,
-	}
+	data := viewmodels.NewEmailPasswordResetData()
+	data.AppName = string(s.ctr.Container.Config.App.Name)
+	data.ProfileName = profileName
+	data.PasswordResetLink = fullURL
+	data.SupportEmail = s.ctr.Container.Config.Mail.FromAddress
+	data.OperatingSystem = ua.OS
+	data.BrowserName = ua.Name
+	data.Domain = s.ctr.Container.Config.HTTP.Domain
+	page.Data = data
 
 	err := s.ctr.Container.Mail.
 		Compose().

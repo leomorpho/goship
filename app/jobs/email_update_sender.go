@@ -190,20 +190,20 @@ func (e *UpdateEmailSender) SendUpdateEmail(
 
 	page := ui.NewPage(echoCtx)
 	page.Layout = layouts.Main
-	page.Data = viewmodels.EmailUpdate{
-		SelfName:                                 selfName,
-		AppName:                                  string(e.container.Config.App.Name),
-		SupportEmail:                             e.container.Config.Mail.FromAddress,
-		Domain:                                   e.container.Config.HTTP.Domain,
-		PartnerName:                              partnerName,
-		NumNewNotifications:                      numPartnerNotifications,
-		QuestionsAnsweredByFriendButNotSelfTitle: questionsAnsweredByFriendButNotSelfTitle,
-		NumQuestionsAnsweredByFriendButNotSelf:   len(questionsAnswered),
-		QuestionsAnsweredByFriendButNotSelf:      questionsAnswered,
-		QuestionsNotAnsweredInSocialCircle:       questionsNotAnswered,
-		UnsubscribeDailyUpdatesLink:              unsubscribeDailyUpdatesLink,
-		UnsubscribePartnerActivityLink:           unsubscribePartnerActivityLink,
-	}
+	data := viewmodels.NewEmailUpdate()
+	data.SelfName = selfName
+	data.AppName = string(e.container.Config.App.Name)
+	data.SupportEmail = e.container.Config.Mail.FromAddress
+	data.Domain = e.container.Config.HTTP.Domain
+	data.PartnerName = partnerName
+	data.NumNewNotifications = numPartnerNotifications
+	data.QuestionsAnsweredByFriendButNotSelfTitle = questionsAnsweredByFriendButNotSelfTitle
+	data.NumQuestionsAnsweredByFriendButNotSelf = len(questionsAnswered)
+	data.QuestionsAnsweredByFriendButNotSelf = questionsAnswered
+	data.QuestionsNotAnsweredInSocialCircle = questionsNotAnswered
+	data.UnsubscribeDailyUpdatesLink = unsubscribeDailyUpdatesLink
+	data.UnsubscribePartnerActivityLink = unsubscribePartnerActivityLink
+	page.Data = data
 
 	err := e.container.Mail.
 		Compose().

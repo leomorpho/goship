@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
-	profilesvc "github.com/leomorpho/goship/modules/profile"
 	"github.com/leomorpho/goship/app/views"
 	"github.com/leomorpho/goship/app/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/views/web/pages/gen"
@@ -14,6 +13,7 @@ import (
 	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/app/web/viewmodels"
 	"github.com/leomorpho/goship/framework/domain"
+	profilesvc "github.com/leomorpho/goship/modules/profile"
 	"github.com/rs/zerolog/log"
 )
 
@@ -84,11 +84,10 @@ func (c *homeFeed) Get(ctx echo.Context) error {
 	// NOTE: we're obviosuly not querying any home feed items with the timestamp, but feel free to create the appropriate repo method for it.
 	nextPageURL := ctx.Echo().Reverse(routenames.RouteNameHomeFeed) + "?timestamp=" + oldestAnswerTimestamp.Format(time.RFC3339Nano)
 
-	data := viewmodels.HomeFeedData{
-		NextPageURL:           nextPageURL,
-		SupportEmail:          c.ctr.Container.Config.App.SupportEmail,
-		JustFinishedOnboarded: justFinishedOnboarded,
-	}
+	data := viewmodels.NewHomeFeedData()
+	data.NextPageURL = nextPageURL
+	data.SupportEmail = c.ctr.Container.Config.App.SupportEmail
+	data.JustFinishedOnboarded = justFinishedOnboarded
 
 	page.Data = data
 	page.HTMX.Request.Boosted = true
@@ -113,12 +112,11 @@ func (c *homeFeed) GetHomeButtons(ctx echo.Context) error {
 
 	waitingOnYou := 2
 
-	data := viewmodels.HomeFeedButtonsData{
-		NumDrafts:           numDrafts,
-		NumLikedQuestions:   numLiked,
-		NumWaitingOnPartner: numWaitingOnPartner,
-		NumWaitingOnYou:     waitingOnYou,
-	}
+	data := viewmodels.NewHomeFeedButtonsData()
+	data.NumDrafts = numDrafts
+	data.NumLikedQuestions = numLiked
+	data.NumWaitingOnPartner = numWaitingOnPartner
+	data.NumWaitingOnYou = waitingOnYou
 
 	page.Data = data
 

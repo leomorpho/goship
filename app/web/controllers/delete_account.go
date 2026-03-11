@@ -7,11 +7,11 @@ import (
 	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
 
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
-	profilesvc "github.com/leomorpho/goship/modules/profile"
 	"github.com/leomorpho/goship/app/views"
 	"github.com/leomorpho/goship/app/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/views/web/pages/gen"
 	"github.com/leomorpho/goship/app/web/viewmodels"
+	profilesvc "github.com/leomorpho/goship/modules/profile"
 )
 
 type (
@@ -56,10 +56,10 @@ func (c *deleteAccount) DeleteAccountPage(ctx echo.Context) error {
 	page.Layout = layouts.Main
 	page.Name = templates.PageDeleteAccount
 	page.Component = pages.DeleteAccountPage(&page)
-	page.Data = &viewmodels.DeleteAccountData{
-		IsPaymentsEnabled:          c.ctr.Container.Config.App.OperationalConstants.PaymentsEnabled,
-		HasUncancelledSubscription: uncancelledSubscription,
-	}
+	data := viewmodels.NewDeleteAccountData()
+	data.IsPaymentsEnabled = c.ctr.Container.Config.App.OperationalConstants.PaymentsEnabled
+	data.HasUncancelledSubscription = uncancelledSubscription
+	page.Data = data
 	page.HTMX.Request.Boosted = true
 
 	return c.ctr.RenderPage(ctx, page)

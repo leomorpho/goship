@@ -40,13 +40,11 @@ func (c *emailSubscribe) Get(ctx echo.Context) error {
 	page.Name = templates.PageEmailSubscribe
 	page.Layout = layouts.Main
 	page.Component = pages.EmailSubscribe(&page)
-	page.Form = viewmodels.EmailSubscriptionForm{}
-	page.Data = viewmodels.EmailSubscriptionData{
-		Description: "Sign up to get our app release announcement.",
-		Placeholder: "Enter email",
-		Latitude:    0,
-		Longitude:   0,
-	}
+	page.Form = viewmodels.NewEmailSubscriptionForm()
+	data := viewmodels.NewEmailSubscriptionData()
+	data.Description = "Sign up to get our app release announcement."
+	data.Placeholder = "Enter email"
+	page.Data = data
 	if form := ctx.Get(context.FormKey); form != nil {
 		page.Form = form.(*viewmodels.EmailSubscriptionForm)
 	}
@@ -121,12 +119,12 @@ func (c *emailSubscribe) sendSubscriptionVerificationEmail(ctx echo.Context, ema
 
 	page := ui.NewPage(ctx)
 	page.Layout = layouts.Main
-	page.Data = viewmodels.EmailDefaultData{
-		AppName:          string(c.ctr.Container.Config.App.Name),
-		ConfirmationLink: fullUrl,
-		SupportEmail:     c.ctr.Container.Config.Mail.FromAddress,
-		Domain:           c.ctr.Container.Config.HTTP.Domain,
-	}
+	data := viewmodels.NewEmailDefaultData()
+	data.AppName = string(c.ctr.Container.Config.App.Name)
+	data.ConfirmationLink = fullUrl
+	data.SupportEmail = c.ctr.Container.Config.Mail.FromAddress
+	data.Domain = c.ctr.Container.Config.HTTP.Domain
+	page.Data = data
 
 	err := c.ctr.Container.Mail.
 		Compose().

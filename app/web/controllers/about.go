@@ -28,9 +28,9 @@ func (c *about) Get(ctx echo.Context) error {
 	page.Layout = layouts.Main
 	page.Name = templates.PageAbout
 	page.Component = pages.About(&page)
-	page.Data = viewmodels.AboutData{
-		SupportEmail: c.ctr.Container.Config.App.SupportEmail,
-	}
+	data := viewmodels.NewAboutData()
+	data.SupportEmail = c.ctr.Container.Config.App.SupportEmail
+	page.Data = data
 	page.HTMX.Request.Boosted = true
 
 	return c.ctr.RenderPage(ctx, page)
