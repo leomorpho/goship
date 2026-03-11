@@ -1,0 +1,21 @@
+{
+  "counter": 109,
+  "backend": "local",
+  "states": [
+    "backlog",
+    "todo",
+    "in-progress",
+    "in-review",
+    "done",
+    "archived"
+  ],
+  "labels": [
+    "bug",
+    "feature",
+    "refactor",
+    "chore",
+    "llm-only",
+    "human-only"
+  ],
+  "commit_sessions": false
+}

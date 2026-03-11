@@ -1456,6 +1456,7 @@ func checkTopLevelDirs(root string) []DoctorIssue {
 
 	allowed := map[string]struct{}{
 		".cache":     {},
+		".docket":    {},
 		".git":       {},
 		".github":    {},
 		".githooks":  {},
