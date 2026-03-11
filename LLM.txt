@@ -1433,6 +1433,12 @@ When code behavior changes, update at least:
 - Integration tests must use `//go:build integration`.
 - Keep default tests (`ship test`) stateless and fast by tagging infra-dependent tests.
 
+## Nil Safety
+
+- `nilaway` is part of CI and should be treated as part of the default correctness bar.
+- `ship doctor` surfaces `nilaway` findings as warnings so agents can see nil-flow risks before merge.
+- When touching pointer-heavy code, prefer explicit nil guards or value-based types over relying on downstream callers.
+
 ## UI Agent Convention
 
 Before any UI work, read `docs/ui/style-guide.md` for design system context.

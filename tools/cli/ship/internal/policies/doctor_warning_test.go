@@ -31,7 +31,7 @@ func TestDoctorCommand_WarningsOnly(t *testing.T) {
 	t.Run("human output keeps exit zero and prints warning", func(t *testing.T) {
 		out := &bytes.Buffer{}
 		errOut := &bytes.Buffer{}
-		if code := RunDoctor([]string{}, DoctorDeps{Out: out, Err: errOut, FindGoModule: findGoModuleTest}); code != 0 {
+		if code := RunDoctor([]string{}, doctorDepsForTest(out, errOut)); code != 0 {
 			t.Fatalf("doctor exit code = %d, want 0", code)
 		}
 		if errOut.Len() != 0 {
@@ -45,7 +45,7 @@ func TestDoctorCommand_WarningsOnly(t *testing.T) {
 	t.Run("json output includes warning issue and ok=true", func(t *testing.T) {
 		out := &bytes.Buffer{}
 		errOut := &bytes.Buffer{}
-		if code := RunDoctor([]string{"--json"}, DoctorDeps{Out: out, Err: errOut, FindGoModule: findGoModuleTest}); code != 0 {
+		if code := RunDoctor([]string{"--json"}, doctorDepsForTest(out, errOut)); code != 0 {
 			t.Fatalf("doctor exit code = %d, want 0", code)
 		}
 		if errOut.Len() != 0 {
@@ -66,4 +66,64 @@ func TestDoctorCommand_WarningsOnly(t *testing.T) {
 			t.Fatalf("severity = %q, want warning", payload.Issues[0].Severity)
 		}
 	})
+}
+
+func TestDoctorCommand_NilawayWarningsAreNonBlocking(t *testing.T) {
+	root := t.TempDir()
+	writeDoctorFixture(t, root)
+	if err := os.WriteFile(filepath.Join(root, "go.mod"), []byte("module example.com/doctor\n\ngo 1.25\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	prevWD, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(prevWD) })
+	if err := os.Chdir(root); err != nil {
+		t.Fatal(err)
+	}
+
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	code := RunDoctor([]string{"--json"}, DoctorDeps{
+		Out:          out,
+		Err:          errOut,
+		FindGoModule: findGoModuleTest,
+		LookPath: func(string) (string, error) {
+			return "/usr/bin/nilaway", nil
+		},
+		RunCmd: func(dir string, name string, args ...string) (int, string, error) {
+			return 1, filepath.Join(dir, "app", "router.go") + ":10:5: possible nil panic", nil
+		},
+	})
+	if code != 0 {
+		t.Fatalf("doctor exit code = %d, want 0", code)
+	}
+	if errOut.Len() != 0 {
+		t.Fatalf("stderr = %q, want empty stderr", errOut.String())
+	}
+
+	var payload doctorJSONResult
+	if err := json.Unmarshal(out.Bytes(), &payload); err != nil {
+		t.Fatalf("failed to decode json: %v", err)
+	}
+	if !payload.OK {
+		t.Fatalf("payload.OK = false, want true")
+	}
+	found := false
+	for _, issue := range payload.Issues {
+		if issue.Type == "DX025" {
+			found = true
+			if issue.Severity != "warning" {
+				t.Fatalf("severity = %q, want warning", issue.Severity)
+			}
+			if issue.File != "app/router.go" {
+				t.Fatalf("file = %q, want app/router.go", issue.File)
+			}
+		}
+	}
+	if !found {
+		t.Fatalf("issues = %+v, want DX025 nilaway warning", payload.Issues)
+	}
 }

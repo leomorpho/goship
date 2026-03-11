@@ -28,6 +28,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
 
+      - name: Nilaway
+        run: go run go.uber.org/nilaway/cmd/nilaway@latest ./...
+
       - name: Stateless quality gate
         run: bash tools/scripts/precommit-tests.sh
 

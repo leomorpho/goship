@@ -3,6 +3,7 @@ package policies
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"go/ast"
@@ -10,6 +11,7 @@ import (
 	"go/token"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -31,6 +33,8 @@ type DoctorDeps struct {
 	Out          io.Writer
 	Err          io.Writer
 	FindGoModule func(start string) (string, string, error)
+	LookPath     func(file string) (string, error)
+	RunCmd       func(dir string, name string, args ...string) (int, string, error)
 }
 
 func RunDoctor(args []string, d DoctorDeps) int {
@@ -86,6 +90,7 @@ func RunDoctor(args []string, d DoctorDeps) int {
 	}
 
 	issues := RunDoctorChecks(root)
+	issues = append(issues, runNilawayChecks(root, d)...)
 	if *jsonOutput {
 		return writeDoctorJSON(d.Out, !hasDoctorErrors(issues), issues)
 	}
@@ -319,6 +324,88 @@ func checkRequiredConfigEnv(root string) []DoctorIssue {
 		})
 	}
 	return issues
+}
+
+func runNilawayChecks(root string, d DoctorDeps) []DoctorIssue {
+	lookPath := d.LookPath
+	if lookPath == nil {
+		lookPath = exec.LookPath
+	}
+	if _, err := lookPath("nilaway"); err != nil {
+		return nil
+	}
+
+	runCmd := d.RunCmd
+	if runCmd == nil {
+		runCmd = defaultDoctorRunCmd
+	}
+
+	code, output, err := runCmd(root, "nilaway", "./...")
+	if code == 0 && err == nil {
+		return nil
+	}
+
+	text := strings.TrimSpace(output)
+	if err != nil && text == "" {
+		text = err.Error()
+	}
+	if text == "" {
+		text = "nilaway reported issues"
+	}
+
+	lines := strings.Split(text, "\n")
+	issues := make([]DoctorIssue, 0, len(lines))
+	for _, raw := range lines {
+		line := strings.TrimSpace(raw)
+		if line == "" {
+			continue
+		}
+		issue := DoctorIssue{
+			Code:     "DX025",
+			Message:  "nilaway: " + line,
+			Fix:      "run nilaway ./... and remove the nil flow or add a justified suppression",
+			Severity: "warning",
+		}
+
+		if file := parseNilawayFile(root, line); file != "" {
+			issue.File = file
+		}
+		issues = append(issues, issue)
+	}
+	if len(issues) == 0 {
+		return []DoctorIssue{{
+			Code:     "DX025",
+			Message:  "nilaway reported issues",
+			Fix:      "run nilaway ./... and inspect the analyzer output",
+			Severity: "warning",
+		}}
+	}
+	return issues
+}
+
+func parseNilawayFile(root, line string) string {
+	parts := strings.Split(line, ":")
+	if len(parts) == 0 {
+		return ""
+	}
+
+	candidate := strings.TrimSpace(parts[0])
+	if candidate == "" {
+		return ""
+	}
+
+	if rel, err := filepath.Rel(root, candidate); err == nil && !strings.HasPrefix(rel, "..") {
+		return filepath.ToSlash(rel)
+	}
+
+	normalized := filepath.Clean(candidate)
+	if filepath.IsAbs(normalized) {
+		return ""
+	}
+	if hasFile(filepath.Join(root, normalized)) {
+		return filepath.ToSlash(normalized)
+	}
+	return ""
 }
 
 func checkHandlerPlacement(root string) []DoctorIssue {
@@ -1844,6 +1931,20 @@ func checkAgentPolicyArtifacts(root string) []DoctorIssue {
 		})
 	}
 	return issues
+}
+
+func defaultDoctorRunCmd(dir string, name string, args ...string) (int, string, error) {
+	cmd := exec.Command(name, args...)
+	cmd.Dir = dir
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		var exitErr *exec.ExitError
+		if errors.As(err, &exitErr) {
+			return exitErr.ExitCode(), string(out), nil
+		}
+		return 1, string(out), err
+	}
+	return 0, string(out), nil
 }
 
 func printDoctorHelp(w io.Writer) {

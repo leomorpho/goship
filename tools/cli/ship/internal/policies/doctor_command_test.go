@@ -3,15 +3,27 @@ package policies
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 )
 
+func doctorDepsForTest(out, errOut *bytes.Buffer) DoctorDeps {
+	return DoctorDeps{
+		Out:          out,
+		Err:          errOut,
+		FindGoModule: findGoModuleTest,
+		LookPath: func(string) (string, error) {
+			return "", errors.New("not found")
+		},
+	}
+}
+
 func TestRunDoctor(t *testing.T) {
 	t.Run("help", func(t *testing.T) {
-		if code := RunDoctor([]string{"--help"}, DoctorDeps{Out: &bytes.Buffer{}, Err: &bytes.Buffer{}, FindGoModule: findGoModuleTest}); code != 0 {
+		if code := RunDoctor([]string{"--help"}, doctorDepsForTest(&bytes.Buffer{}, &bytes.Buffer{})); code != 0 {
 			t.Fatalf("exit code = %d, want 0", code)
 		}
 	})
@@ -19,7 +31,7 @@ func TestRunDoctor(t *testing.T) {
 	t.Run("unexpected args", func(t *testing.T) {
 		out := &bytes.Buffer{}
 		errOut := &bytes.Buffer{}
-		code := RunDoctor([]string{"extra"}, DoctorDeps{Out: out, Err: errOut, FindGoModule: findGoModuleTest})
+		code := RunDoctor([]string{"extra"}, doctorDepsForTest(out, errOut))
 		if code != 1 {
 			t.Fatalf("exit code = %d, want 1", code)
 		}
@@ -31,7 +43,7 @@ func TestRunDoctor(t *testing.T) {
 	t.Run("json output with unexpected args", func(t *testing.T) {
 		out := &bytes.Buffer{}
 		errOut := &bytes.Buffer{}
-		code := RunDoctor([]string{"--json", "extra"}, DoctorDeps{Out: out, Err: errOut, FindGoModule: findGoModuleTest})
+		code := RunDoctor([]string{"--json", "extra"}, doctorDepsForTest(out, errOut))
 		if code != 1 {
 			t.Fatalf("exit code = %d, want 1", code)
 		}
@@ -76,7 +88,7 @@ func TestDoctorCommand_IntegrationFixture(t *testing.T) {
 
 	out := &bytes.Buffer{}
 	errOut := &bytes.Buffer{}
-	if code := RunDoctor([]string{}, DoctorDeps{Out: out, Err: errOut, FindGoModule: findGoModuleTest}); code != 0 {
+	if code := RunDoctor([]string{}, doctorDepsForTest(out, errOut)); code != 0 {
 		t.Fatalf("doctor exit code = %d, stderr=%s", code, errOut.String())
 	}
 	if !strings.Contains(out.String(), "ship doctor: OK") {
@@ -103,7 +115,7 @@ func TestDoctorCommand_JSONOutput(t *testing.T) {
 
 		out := &bytes.Buffer{}
 		errOut := &bytes.Buffer{}
-		if code := RunDoctor([]string{"--json"}, DoctorDeps{Out: out, Err: errOut, FindGoModule: findGoModuleTest}); code != 0 {
+		if code := RunDoctor([]string{"--json"}, doctorDepsForTest(out, errOut)); code != 0 {
 			t.Fatalf("doctor exit code = %d, stderr=%s", code, errOut.String())
 		}
 		if errOut.Len() != 0 {
@@ -143,7 +155,7 @@ func TestDoctorCommand_JSONOutput(t *testing.T) {
 
 		out := &bytes.Buffer{}
 		errOut := &bytes.Buffer{}
-		if code := RunDoctor([]string{"--json"}, DoctorDeps{Out: out, Err: errOut, FindGoModule: findGoModuleTest}); code != 1 {
+		if code := RunDoctor([]string{"--json"}, doctorDepsForTest(out, errOut)); code != 1 {
 			t.Fatalf("doctor exit code = %d, want 1", code)
 		}
 		if errOut.Len() != 0 {

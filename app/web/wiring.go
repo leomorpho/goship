@@ -109,7 +109,6 @@ func ApplyTLSRedirect(groups ...*echo.Group) {
 func commonMiddleware(c *foundation.Container, deps *RouteDeps, sessionStore *sessions.CookieStore) []echo.MiddlewareFunc {
 	return []echo.MiddlewareFunc{
 		echomw.RemoveTrailingSlashWithConfig(echomw.TrailingSlashConfig{RedirectCode: http.StatusMovedPermanently}),
-		echomw.Recover(),
 		echomw.Secure(),
 		echomw.RequestID(),
 		middleware.LogRequestID(),
@@ -128,6 +127,7 @@ func ApplyMainMiddleware(c *foundation.Container, g *echo.Group, logger *slog.Lo
 	base := commonMiddleware(c, deps, sessionStore)
 
 	mw := []echo.MiddlewareFunc{
+		middleware.RecoverPanics(c.Logger),
 		echomw.Gzip(),
 		slogecho.New(logger),
 		echomw.TimeoutWithConfig(echomw.TimeoutConfig{Skipper: sseSkipper, Timeout: c.Config.App.Timeout}),
@@ -146,7 +146,7 @@ func ApplyMainMiddleware(c *foundation.Container, g *echo.Group, logger *slog.Lo
 func ApplyRealtimeMiddleware(c *foundation.Container, s *echo.Group, deps *RouteDeps) {
 	sessionStore := sessions.NewCookieStore([]byte(c.Config.App.EncryptionKey))
 	base := commonMiddleware(c, deps, sessionStore)
-	mw := []echo.MiddlewareFunc{echomw.Logger()}
+	mw := []echo.MiddlewareFunc{middleware.RecoverPanics(c.Logger), echomw.Logger()}
 	mw = append(mw, base...)
 	s.Use(mw...)
 }
@@ -155,6 +155,7 @@ func ApplyExternalMiddleware(c *foundation.Container, e *echo.Group, deps *Route
 	sessionStore := sessions.NewCookieStore([]byte(c.Config.App.EncryptionKey))
 	base := commonMiddleware(c, deps, sessionStore)
 	mw := []echo.MiddlewareFunc{
+		middleware.RecoverPanics(c.Logger),
 		echomw.Gzip(),
 		echomw.TimeoutWithConfig(echomw.TimeoutConfig{Skipper: sseSkipper, Timeout: c.Config.App.Timeout}),
 	}
