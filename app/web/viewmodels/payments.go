@@ -1,10 +1,6 @@
 package viewmodels
 
-import (
-	"time"
-
-	"github.com/leomorpho/goship/app/web/ui"
-)
+import "github.com/leomorpho/goship/app/web/ui"
 
 type (
 	PaymentProcessorPublicKey struct {
@@ -29,7 +25,8 @@ type (
 		ActivePlanKey         string
 		ActivePlanIsPaid      bool
 		IsTrial               bool
-		SubscriptionExpiresOn *time.Time
+		HasSubscriptionExpiry bool
+		SubscriptionExpiresOn string
 		ProductDescriptions   []ProductDescription
 	}
 )

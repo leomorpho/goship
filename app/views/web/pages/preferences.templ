@@ -1,17 +1,15 @@
 package pages
 
 import (
-	"fmt"
 	"github.com/leomorpho/goship/app/controller"
 	"github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/app/web/viewmodels"
 	"github.com/leomorpho/goship/app/views/web/components/gen"
-	"time"
 )
 
 // Renders: settings component.
 templ Settings(page *controller.Page) {
-	if data, ok := page.Data.(*viewmodels.PreferencesData); ok {
+	if data, ok := page.Data.(viewmodels.PreferencesData); ok {
 		<div data-component="settings" class="sm:mt-0 mb-10 mx-2 sm:mx-4 md:mx-6 lg:mx-14 xl:mx-24 space-y-4" id="preferences">
 			if !data.IsProfileFullyOnboarded {
 				@firstWelcome()
@@ -26,7 +24,7 @@ templ Settings(page *controller.Page) {
 			</div>
 			@NotificationPermissions(page, data.NotificationPermissionsData)
 			if data.IsPaymentsEnabled {
-				@subscription(page, data.IsProfileFullyOnboarded, data.ActiveSubscriptionPlanKey, data.ActiveSubscriptionPlanIsPaid, data.MonthlySybscriptionExpiration, data.IsTrial)
+				@subscription(page, data.IsProfileFullyOnboarded, data.ActiveSubscriptionPlanKey, data.ActiveSubscriptionPlanIsPaid, data.MonthlySybscriptionExpiration, data.HasMonthlySubscriptionExpiry, data.IsTrial)
 			}
 			// TODO: not allowing this new phone flow for now
 			if data.IsProfileFullyOnboarded {
@@ -150,7 +148,7 @@ templ NotificationPermissions(page *controller.Page, data viewmodels.Notificatio
 	</div>
 }
 
-templ subscription(page *controller.Page, fullyOnboarded bool, planKey string, isPaidPlan bool, expiryTimestap *time.Time, isTrial bool) {
+templ subscription(page *controller.Page, fullyOnboarded bool, planKey string, isPaidPlan bool, expiryTimestamp string, hasExpiryTimestamp bool, isTrial bool) {
 	<h1 class="text-3xl md:text-4xl font-semibold mb-4 pt-10 md:pt-14 lg:pt-16 mb-4">
 		💳 Subscription
 	</h1>
@@ -166,7 +164,7 @@ templ subscription(page *controller.Page, fullyOnboarded bool, planKey string, i
 			{ planKey }
 		</span> plan.
 	</div>
-	if expiryTimestap != nil {
+	if hasExpiryTimestamp {
 		<div class="flex items-center p-4 mb-4 text-sm text-blue-800 rounded-lg bg-blue-50 dark:bg-gray-800 dark:text-blue-400" role="alert">
 			<svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
 				<path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"></path>
@@ -175,7 +173,7 @@ templ subscription(page *controller.Page, fullyOnboarded bool, planKey string, i
 			<div class="flex flex-row">
 				{ "Expiring on " }
 				<span class="ml-1" id="subscription-expiry-date"></span>
-				@setSubscriptionExpiryDate("subscription-expiry-date", fmt.Sprintf("%s", *expiryTimestap))
+				@setSubscriptionExpiryDate("subscription-expiry-date", expiryTimestamp)
 			</div>
 		</div>
 	}
@@ -409,7 +407,7 @@ templ AboutMe(page *controller.Page) {
 }
 
 templ birthdate(page *controller.Page) {
-	if data, ok := page.Data.(*viewmodels.PreferencesData); ok {
+	if data, ok := page.Data.(viewmodels.PreferencesData); ok {
 		<div class="flex items-center">
 			<label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white w-1/3 md:w-1/2">My birthday</label>
 			<input

@@ -14,11 +14,11 @@ import (
 
 	"github.com/leomorpho/goship-modules/notifications"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
-	profilesvc "github.com/leomorpho/goship/modules/profile"
 	"github.com/leomorpho/goship/app/views"
 	"github.com/leomorpho/goship/app/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/views/web/pages/gen"
 	"github.com/leomorpho/goship/app/web/viewmodels"
+	profilesvc "github.com/leomorpho/goship/modules/profile"
 	"github.com/rs/zerolog/log"
 )
 
@@ -128,7 +128,7 @@ func (g *preferences) Get(ctx echo.Context) error {
 	page.Component = pages.Settings(&page)
 	page.Name = templates.PagePreferences
 
-	var data *viewmodels.PreferencesData
+	var data viewmodels.PreferencesData
 	var err error
 
 	profileID, err := authenticatedProfileID(ctx)
@@ -218,14 +218,14 @@ func (g *preferences) Get(ctx echo.Context) error {
 	return g.ctr.RenderPage(ctx, page)
 }
 
-func (g *preferences) getCurrPreferencesData(ctx echo.Context) (*viewmodels.PreferencesData, error) {
+func (g *preferences) getCurrPreferencesData(ctx echo.Context) (viewmodels.PreferencesData, error) {
 	profileID, err := authenticatedProfileID(ctx)
 	if err != nil {
-		return nil, err
+		return viewmodels.PreferencesData{}, err
 	}
 	profile, err := g.profileService.GetProfileSettingsByID(ctx.Request().Context(), profileID)
 	if err != nil {
-		return nil, err
+		return viewmodels.PreferencesData{}, err
 	}
 
 	// Make sure to check if birthdate is non-nil
@@ -236,11 +236,11 @@ func (g *preferences) getCurrPreferencesData(ctx echo.Context) (*viewmodels.Pref
 	)
 
 	if err != nil {
-		return nil, err
+		return viewmodels.PreferencesData{}, err
 	}
 	activePlanKey := activePlanKey(activePlan)
 
-	data := &viewmodels.PreferencesData{
+	data := viewmodels.PreferencesData{
 		Bio:                     profile.Bio,
 		PhoneNumberInE164Format: profile.PhoneNumberE164,
 		CountryCode:             profile.CountryCode,
@@ -257,7 +257,8 @@ func (g *preferences) getCurrPreferencesData(ctx echo.Context) (*viewmodels.Pref
 	}
 
 	if subscriptionExpiredOn != nil {
-		data.MonthlySybscriptionExpiration = subscriptionExpiredOn
+		data.HasMonthlySubscriptionExpiry = true
+		data.MonthlySybscriptionExpiration = subscriptionExpiredOn.Format("2006-01-02T15:04:05.999999999Z07:00")
 	}
 	return data, nil
 }

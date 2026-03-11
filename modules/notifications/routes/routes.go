@@ -10,13 +10,13 @@ import (
 
 	"github.com/labstack/echo/v4"
 	notifications "github.com/leomorpho/goship-modules/notifications"
-	profilesvc "github.com/leomorpho/goship/modules/profile"
 	routeNames "github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/framework/core"
 	"github.com/leomorpho/goship/framework/dberrors"
 	"github.com/leomorpho/goship/framework/domain"
 	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
+	profilesvc "github.com/leomorpho/goship/modules/profile"
 
 	"github.com/leomorpho/goship/app/views"
 	"github.com/leomorpho/goship/app/views/web/layouts/gen"
@@ -200,7 +200,7 @@ func (r *NormalNotificationsRoute) Get(ctx echo.Context) error {
 	}
 
 	page.Data = viewmodels.NormalNotificationsPageData{
-		Notifications: notifications,
+		Notifications: viewmodels.NotificationItemsFromDomain(notifications),
 		NextPageURL:   nextPageURL,
 	}
 
@@ -606,12 +606,12 @@ func (r *OutgoingNotificationsRoute) createNotificationsPage(
 	) + "?csrf=" + page.CSRF
 
 	notificationPermissions := viewmodels.NotificationPermissionsData{
-		VapidPublicKey:                r.controller.Container.Config.App.VapidPublicKey,
-		PermissionDailyNotif:          permissions[domain.NotificationPermissionDailyReminder],
-		PermissionPartnerActivity:     permissions[domain.NotificationPermissionNewFriendActivity],
-		SubscribedEndpoints:           subscribedEndpoints,
-		PhoneSubscriptionEnabled:      phoneNumberE164 != "" && phoneVerified,
-		NotificationTypeQueryParamKey: domain.PermissionNotificationType,
+		VapidPublicKey:                  r.controller.Container.Config.App.VapidPublicKey,
+		PermissionDailyNotif:            permissions[domain.NotificationPermissionDailyReminder],
+		PermissionPartnerActivity:       permissions[domain.NotificationPermissionNewFriendActivity],
+		SubscribedEndpoints:             subscribedEndpoints,
+		PhoneSubscriptionEnabled:        phoneNumberE164 != "" && phoneVerified,
+		NotificationTypeQueryParamKey:   domain.PermissionNotificationType,
 		AddPushSubscriptionEndpoint:     addPushSubscriptionEndpoint,
 		DeletePushSubscriptionEndpoint:  deletePushSubscriptionEndpoint,
 		AddEmailSubscriptionEndpoint:    addEmailSubscriptionEndpoint,

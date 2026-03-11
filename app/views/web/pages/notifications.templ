@@ -3,7 +3,6 @@ package pages
 import (
 	"fmt"
 	"github.com/leomorpho/goship/app/controller"
-	"github.com/leomorpho/goship/framework/domain"
 	"github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/app/web/viewmodels"
 	"github.com/leomorpho/goship/app/views/web/components/gen"
@@ -41,9 +40,7 @@ templ NotificationsPage(page *controller.Page) {
 		<div class="notifications-container">
 			if len(data.Notifications) > 0 {
 				for _, notification := range data.Notifications {
-					if notification != nil {
-						@Notification(page, *notification)
-					}
+					@Notification(page, notification)
 				}
 				<div
 					id="message-item"
@@ -70,7 +67,7 @@ templ NotificationsPage(page *controller.Page) {
 }
 
 // Renders: notification component.
-templ Notification(page *controller.Page, notification domain.Notification) {
+templ Notification(page *controller.Page, notification viewmodels.NotificationItem) {
 	<div data-component="notification"
 		id={ fmt.Sprintf("notification-card-%v", notification.ID) }
 		class={ "notification-card p-4 rounded-lg shadow mb-4 relative flex items-center justify-between cursor-pointer",
@@ -179,4 +176,3 @@ templ AcceptCommittedRequest(link string) {
 		{ "Accept" }
 	</button>
 }
-

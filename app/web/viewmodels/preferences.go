@@ -1,8 +1,6 @@
 package viewmodels
 
 import (
-	"time"
-
 	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/framework/domain"
 )
@@ -24,7 +22,8 @@ type (
 		ActiveSubscriptionPlanKey     string
 		ActiveSubscriptionPlanIsPaid  bool
 		IsTrial                       bool
-		MonthlySybscriptionExpiration *time.Time
+		HasMonthlySubscriptionExpiry  bool
+		MonthlySybscriptionExpiration string
 
 		NotificationPermissionsData NotificationPermissionsData
 	}

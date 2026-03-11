@@ -9,12 +9,10 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	"fmt"
 	"github.com/leomorpho/goship/app/controller"
 	"github.com/leomorpho/goship/app/views/web/components/gen"
 	"github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/app/web/viewmodels"
-	"time"
 )
 
 // Renders: settings component.
@@ -39,7 +37,7 @@ func Settings(page *controller.Page) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		if data, ok := page.Data.(*viewmodels.PreferencesData); ok {
+		if data, ok := page.Data.(viewmodels.PreferencesData); ok {
 			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div data-component=\"settings\" class=\"sm:mt-0 mb-10 mx-2 sm:mx-4 md:mx-6 lg:mx-14 xl:mx-24 space-y-4\" id=\"preferences\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -57,7 +55,7 @@ func Settings(page *controller.Page) templ.Component {
 			var templ_7745c5c3_Var2 string
 			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameGetDisplayName))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 20, Col: 59}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 18, Col: 59}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 			if templ_7745c5c3_Err != nil {
@@ -80,7 +78,7 @@ func Settings(page *controller.Page) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			if data.IsPaymentsEnabled {
-				templ_7745c5c3_Err = subscription(page, data.IsProfileFullyOnboarded, data.ActiveSubscriptionPlanKey, data.ActiveSubscriptionPlanIsPaid, data.MonthlySybscriptionExpiration, data.IsTrial).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = subscription(page, data.IsProfileFullyOnboarded, data.ActiveSubscriptionPlanKey, data.ActiveSubscriptionPlanIsPaid, data.MonthlySybscriptionExpiration, data.HasMonthlySubscriptionExpiry, data.IsTrial).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -183,7 +181,7 @@ func DisplayName(page *controller.Page) templ.Component {
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameUpdateDisplayName) + "?csrf=" + page.CSRF)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 68, Col: 87}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 66, Col: 87}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
@@ -209,7 +207,7 @@ func DisplayName(page *controller.Page) templ.Component {
 			var templ_7745c5c3_Var8 string
 			templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(form.DisplayName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 75, Col: 29}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 73, Col: 29}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 			if templ_7745c5c3_Err != nil {
@@ -285,7 +283,7 @@ func NotificationPermissions(page *controller.Page, data viewmodels.Notification
 			"phoneSubscriptionEnabled":          data.PhoneSubscriptionEnabled,
 		}))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 119, Col: 4}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 117, Col: 4}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 		if templ_7745c5c3_Err != nil {
@@ -298,7 +296,7 @@ func NotificationPermissions(page *controller.Page, data viewmodels.Notification
 		var templ_7745c5c3_Var11 string
 		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs("What we'll notify you about")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 128, Col: 34}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 126, Col: 34}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 		if templ_7745c5c3_Err != nil {
@@ -312,7 +310,7 @@ func NotificationPermissions(page *controller.Page, data viewmodels.Notification
 	})
 }
 
-func subscription(page *controller.Page, fullyOnboarded bool, planKey string, isPaidPlan bool, expiryTimestap *time.Time, isTrial bool) templ.Component {
+func subscription(page *controller.Page, fullyOnboarded bool, planKey string, isPaidPlan bool, expiryTimestamp string, hasExpiryTimestamp bool, isTrial bool) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -346,7 +344,7 @@ func subscription(page *controller.Page, fullyOnboarded bool, planKey string, is
 		var templ_7745c5c3_Var13 string
 		templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(planKey)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 166, Col: 12}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 164, Col: 12}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 		if templ_7745c5c3_Err != nil {
@@ -356,7 +354,7 @@ func subscription(page *controller.Page, fullyOnboarded bool, planKey string, is
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if expiryTimestap != nil {
+		if hasExpiryTimestamp {
 			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 22, "<div class=\"flex items-center p-4 mb-4 text-sm text-blue-800 rounded-lg bg-blue-50 dark:bg-gray-800 dark:text-blue-400\" role=\"alert\"><svg class=\"flex-shrink-0 inline w-4 h-4 me-3\" aria-hidden=\"true\" xmlns=\"http://www.w3.org/2000/svg\" fill=\"currentColor\" viewBox=\"0 0 20 20\"><path d=\"M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z\"></path></svg> <span class=\"sr-only\">Info</span><div class=\"flex flex-row\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -364,7 +362,7 @@ func subscription(page *controller.Page, fullyOnboarded bool, planKey string, is
 			var templ_7745c5c3_Var14 string
 			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs("Expiring on ")
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 176, Col: 20}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 174, Col: 20}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 			if templ_7745c5c3_Err != nil {
@@ -374,7 +372,7 @@ func subscription(page *controller.Page, fullyOnboarded bool, planKey string, is
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = setSubscriptionExpiryDate("subscription-expiry-date", fmt.Sprintf("%s", *expiryTimestap)).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = setSubscriptionExpiryDate("subscription-expiry-date", expiryTimestamp).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -501,7 +499,7 @@ func deleteAccountAndData(page *controller.Page) templ.Component {
 		var templ_7745c5c3_Var17 string
 		templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameDeleteAccountPage))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 355, Col: 61}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 353, Col: 61}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 		if templ_7745c5c3_Err != nil {
@@ -549,7 +547,7 @@ func AboutMe(page *controller.Page) templ.Component {
 			var templ_7745c5c3_Var19 string
 			templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameUpdateBio) + "?csrf=" + page.CSRF)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 387, Col: 80}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 385, Col: 80}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 			if templ_7745c5c3_Err != nil {
@@ -562,7 +560,7 @@ func AboutMe(page *controller.Page) templ.Component {
 			var templ_7745c5c3_Var20 string
 			templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(form.Bio)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 389, Col: 16}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 387, Col: 16}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 			if templ_7745c5c3_Err != nil {
@@ -615,7 +613,7 @@ func birthdate(page *controller.Page) templ.Component {
 			templ_7745c5c3_Var21 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		if data, ok := page.Data.(*viewmodels.PreferencesData); ok {
+		if data, ok := page.Data.(viewmodels.PreferencesData); ok {
 			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "<div class=\"flex items-center\"><label class=\"block mb-2 text-sm font-medium text-gray-900 dark:text-white w-1/3 md:w-1/2\">My birthday</label> <input type=\"date\" id=\"birthdate\" name=\"birthdate\" class=\"bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 w-full cursor-not-allowed\" placeholder=\"Select Date..\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -623,7 +621,7 @@ func birthdate(page *controller.Page) templ.Component {
 			var templ_7745c5c3_Var22 string
 			templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(data.SelfBirthdate)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 423, Col: 30}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 421, Col: 30}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 			if templ_7745c5c3_Err != nil {
@@ -636,7 +634,7 @@ func birthdate(page *controller.Page) templ.Component {
 			var templ_7745c5c3_Var23 string
 			templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(data.SelfBirthdate)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 427, Col: 66}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 425, Col: 66}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 			if templ_7745c5c3_Err != nil {
@@ -679,7 +677,7 @@ func saveAndReloadPrefsPage(page *controller.Page) templ.Component {
 		var templ_7745c5c3_Var25 string
 		templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNamePreferences))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 441, Col: 55}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 439, Col: 55}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
 		if templ_7745c5c3_Err != nil {
@@ -730,7 +728,7 @@ func phoneNumberField(phoneNumberInE164Format, countryCode string) templ.Compone
 			"readonly":                 false,
 		}))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 460, Col: 4}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 458, Col: 4}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 		if templ_7745c5c3_Err != nil {
@@ -772,7 +770,7 @@ func finishOnboarding(page *controller.Page) templ.Component {
 		var templ_7745c5c3_Var29 templ.SafeURL
 		templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(page.ToURL(routenames.RouteNameFinishOnboarding)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 468, Col: 71}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 466, Col: 71}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
 		if templ_7745c5c3_Err != nil {
@@ -814,7 +812,7 @@ func savePrefs(page *controller.Page) templ.Component {
 		var templ_7745c5c3_Var31 string
 		templ_7745c5c3_Var31, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameProfile))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 496, Col: 51}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 494, Col: 51}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var31))
 		if templ_7745c5c3_Err != nil {
@@ -856,7 +854,7 @@ func phoneNumber(page *controller.Page, phone string) templ.Component {
 		var templ_7745c5c3_Var33 string
 		templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs(phone)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 520, Col: 18}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 518, Col: 18}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
 		if templ_7745c5c3_Err != nil {
@@ -869,7 +867,7 @@ func phoneNumber(page *controller.Page, phone string) templ.Component {
 		var templ_7745c5c3_Var34 string
 		templ_7745c5c3_Var34, templ_7745c5c3_Err = templ.JoinStringErrs(page.ToURL(routenames.RouteNameGetPhone))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 534, Col: 53}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/preferences.templ`, Line: 532, Col: 53}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var34))
 		if templ_7745c5c3_Err != nil {

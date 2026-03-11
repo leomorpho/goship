@@ -288,18 +288,22 @@ func (m *RouteModule) PricingPage(ctx echo.Context) error {
 	}
 	activePlanKey := activePlanKey(activePlan)
 
-	page.Data = viewmodels.PricingPageData{
+	data := viewmodels.PricingPageData{
 		ProductProCode:        m.controller.Container.Config.App.OperationalConstants.ProductProCode,
 		ProductProPrice:       fmt.Sprintf("%.2f", m.controller.Container.Config.App.OperationalConstants.ProductProPrice),
 		ActivePlanKey:         activePlanKey,
 		ActivePlanIsPaid:      isPaidPlanKey(activePlanKey),
-		SubscriptionExpiresOn: subscriptionExpiredOn,
+		HasSubscriptionExpiry: subscriptionExpiredOn != nil,
 		IsTrial:               isTrial,
 		ProductDescriptions: []viewmodels.ProductDescription{{
 			Name:     "",
 			Subtitle: "",
 		}},
 	}
+	if subscriptionExpiredOn != nil {
+		data.SubscriptionExpiresOn = subscriptionExpiredOn.Format(time.RFC3339Nano)
+	}
+	page.Data = data
 	page.HTMX.Request.Boosted = true
 
 	return m.controller.RenderPage(ctx, page)
