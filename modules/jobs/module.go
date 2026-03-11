@@ -3,6 +3,7 @@ package jobs
 import (
 	"fmt"
 
+	backlitedriver "github.com/leomorpho/goship-modules/jobs/drivers/backlite"
 	redisdriver "github.com/leomorpho/goship-modules/jobs/drivers/redis"
 	sqldriver "github.com/leomorpho/goship-modules/jobs/drivers/sql"
 )
@@ -20,6 +21,16 @@ func New(cfg Config) (*Module, error) {
 
 	mod := &Module{backend: cfg.Backend}
 	switch cfg.Backend {
+	case BackendBacklite:
+		client, err := backlitedriver.New(backlitedriver.Config{
+			SQLDB: cfg.SQLDB,
+		})
+		if err != nil {
+			return nil, err
+		}
+		mod.jobs = newBackliteCoreJobs(client)
+		mod.inspector = newNoopJobsInspector()
+		return mod, nil
 	case BackendRedis:
 		client := redisdriver.New(redisdriver.Config{
 			Addr:     cfg.Redis.Addr,

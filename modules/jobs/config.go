@@ -10,8 +10,9 @@ import (
 type Backend string
 
 const (
-	BackendSQL   Backend = "sql"
-	BackendRedis Backend = "redis"
+	BackendSQL      Backend = "sql"
+	BackendRedis    Backend = "redis"
+	BackendBacklite Backend = "backlite"
 )
 
 type RedisConfig struct {
@@ -34,6 +35,14 @@ func (c Config) Validate() error {
 		}
 		if c.hasRedisSettings() {
 			return errors.New("jobs backend sql forbids redis settings")
+		}
+		return nil
+	case BackendBacklite:
+		if c.SQLDB == nil {
+			return errors.New("jobs backend backlite requires SQL DB")
+		}
+		if c.hasRedisSettings() {
+			return errors.New("jobs backend backlite forbids redis settings")
 		}
 		return nil
 	case BackendRedis:

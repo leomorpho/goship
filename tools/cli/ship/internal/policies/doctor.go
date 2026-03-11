@@ -532,10 +532,19 @@ func checkRawSQLPlacement(root string) []DoctorIssue {
 			continue
 		}
 		_ = filepath.WalkDir(scanRoot, func(path string, d os.DirEntry, err error) error {
-			if err != nil || d.IsDir() || !strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "_test.go") {
+			if err != nil {
 				return nil
 			}
 			rel := filepath.ToSlash(mustRel(root, path))
+			if d.IsDir() {
+				if rel == ".cache" || filepath.Base(rel) == ".cache" || strings.Contains(rel, "/.cache/") {
+					return filepath.SkipDir
+				}
+				return nil
+			}
+			if !strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "_test.go") {
+				return nil
+			}
 			if doctorAllowsInlineSQL(rel) {
 				return nil
 			}

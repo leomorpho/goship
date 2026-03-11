@@ -41,9 +41,10 @@ func NewDefaultRegistry() Registry {
 				"redis":  {},
 			},
 			"jobs": {
-				"inproc":  {},
-				"dbqueue": {},
-				"asynq":   {},
+				"inproc":   {},
+				"dbqueue":  {},
+				"asynq":    {},
+				"backlite": {},
 			},
 			"pubsub": {
 				"inproc": {},
@@ -70,6 +71,11 @@ func NewDefaultRegistry() Registry {
 				Priority:   true,
 				DeadLetter: true,
 				Dashboard:  true,
+			},
+			"backlite": {
+				Delayed:    true,
+				Retries:    true,
+				DeadLetter: true,
 			},
 		},
 	}

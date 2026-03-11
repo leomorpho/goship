@@ -75,13 +75,12 @@ func TestRegistryValidateRequirements(t *testing.T) {
 	sel := Selection{
 		DB:     "postgres",
 		Cache:  "memory",
-		Jobs:   "dbqueue",
+		Jobs:   "backlite",
 		PubSub: "inproc",
 	}
 
 	err := reg.ValidateRequirements(sel, Requirements{
 		Jobs: core.JobCapabilities{
-			Cron:       true,
 			Retries:    true,
 			Delayed:    true,
 			DeadLetter: true,

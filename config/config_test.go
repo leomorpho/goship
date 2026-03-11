@@ -23,7 +23,7 @@ func TestGetConfig(t *testing.T) {
 	assert.Equal(t, RuntimeProfileServerDB, cfg.Runtime.Profile)
 	assert.True(t, cfg.Processes.Web)
 	assert.Equal(t, "postgres", cfg.Adapters.DB)
-	assert.Equal(t, "inproc", cfg.Adapters.Jobs)
+	assert.Equal(t, "backlite", cfg.Adapters.Jobs)
 }
 
 func TestGetConfig_EnvironmentOverrides(t *testing.T) {
@@ -92,6 +92,16 @@ func TestGetConfig_DBDriverOverridesLegacyEmbeddedSettings(t *testing.T) {
 	assert.Equal(t, DBModeEmbedded, cfg.Database.DbMode)
 	assert.Equal(t, "sqlite", cfg.Database.EmbeddedDriver)
 	assert.Equal(t, "dbs/app.db?_journal=WAL&_timeout=5000&_fk=true", cfg.Database.EmbeddedConnection)
+}
+
+func TestGetConfig_JobsDriverAliasOverridesDefault(t *testing.T) {
+	useIsolatedWorkingDir(t)
+	t.Setenv("PAGODA_JOBS_DRIVER", "asynq")
+	t.Setenv("PAGODA_ADAPTERS_JOBS", "")
+
+	cfg, err := GetConfig()
+	require.NoError(t, err)
+	assert.Equal(t, "asynq", cfg.Adapters.Jobs)
 }
 
 func TestGetConfig_StandaloneModeDefaultsToPostgresDriver(t *testing.T) {

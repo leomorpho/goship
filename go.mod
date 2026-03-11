@@ -4,7 +4,7 @@ go 1.24.0
 
 require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
-	github.com/PuerkitoBio/goquery v1.8.1
+	github.com/PuerkitoBio/goquery v1.10.2
 	github.com/a-h/templ v0.3.1001
 	github.com/deckarep/golang-set/v2 v2.6.0
 	github.com/disintegration/imaging v1.6.2
@@ -27,7 +27,7 @@ require (
 	github.com/leomorpho/goship-modules/jobs v0.0.0
 	github.com/leomorpho/goship-modules/notifications v0.0.0
 	github.com/leomorpho/goship-modules/paidsubscriptions v0.0.0
-	github.com/mattn/go-sqlite3 v1.14.24
+	github.com/mattn/go-sqlite3 v1.14.28
 	github.com/mileusna/useragent v1.3.4
 	github.com/minio/minio-go/v7 v7.0.67
 	github.com/nats-io/nats.go v1.33.1
@@ -43,6 +43,7 @@ require (
 	github.com/ziflex/lecho/v3 v3.5.0
 	golang.org/x/crypto v0.43.0
 	golang.org/x/exp v0.0.0-20251023183803-a4bb9ffd2546
+	modernc.org/sqlite v1.46.1
 )
 
 replace github.com/leomorpho/goship-modules/emailsubscriptions => ./modules/emailsubscriptions
@@ -74,7 +75,7 @@ require (
 	github.com/Microsoft/hcsshim v0.11.4 // indirect
 	github.com/SherClockHolmes/webpush-go v1.3.0 // indirect
 	github.com/XiaoMi/pegasus-go-client v0.0.0-20210427083443-f3b6b08bc4c2 // indirect
-	github.com/andybalholm/cascadia v1.3.1 // indirect
+	github.com/andybalholm/cascadia v1.3.3 // indirect
 	github.com/aws/aws-sdk-go-v2 v1.18.1 // indirect
 	github.com/aws/aws-sdk-go-v2/config v1.18.27 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.13.26 // indirect
@@ -140,6 +141,7 @@ require (
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
+	github.com/mikestefanello/backlite v0.6.0 // indirect
 	github.com/minio/md5-simd v1.1.2 // indirect
 	github.com/minio/sha256-simd v1.0.1 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
@@ -211,6 +213,5 @@ require (
 	modernc.org/libc v1.67.6 // indirect
 	modernc.org/mathutil v1.7.1 // indirect
 	modernc.org/memory v1.11.0 // indirect
-	modernc.org/sqlite v1.46.1 // indirect
 	olympos.io/encoding/edn v0.0.0-20201019073823-d3554ca0b0a3 // indirect
 )

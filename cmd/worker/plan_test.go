@@ -29,6 +29,13 @@ func TestValidateWorkerConfig(t *testing.T) {
 			wantErr: `worker requires jobs adapter "asynq"`,
 		},
 		{
+			name: "backlite jobs adapter is rejected",
+			cfg: config.Config{
+				Adapters: config.AdaptersConfig{Jobs: "backlite"},
+			},
+			wantErr: `worker requires jobs adapter "asynq"`,
+		},
+		{
 			name: "empty jobs adapter is rejected",
 			cfg: config.Config{
 				Adapters: config.AdaptersConfig{Jobs: ""},

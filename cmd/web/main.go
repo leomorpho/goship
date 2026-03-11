@@ -10,11 +10,13 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/hibiken/asynq"
 	jobsmodule "github.com/leomorpho/goship-modules/jobs"
 	"github.com/leomorpho/goship-modules/notifications"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/app"
 	"github.com/leomorpho/goship/app/foundation"
+	tasks "github.com/leomorpho/goship/app/jobs"
 	appsubscriptions "github.com/leomorpho/goship/app/subscriptions"
 	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
 	profilesvc "github.com/leomorpho/goship/modules/profile"
@@ -98,6 +100,12 @@ func main() {
 		c.Web.Logger.Fatalf("failed to build router: %v", err)
 	}
 
+	jobsCtx, jobsCancel := context.WithCancel(context.Background())
+	defer jobsCancel()
+	if err := startEmbeddedJobsWorker(jobsCtx, c, paidSubscriptionsService, notificationServices); err != nil {
+		c.Web.Logger.Fatalf("failed to start embedded jobs worker: %v", err)
+	}
+
 	// Start the server
 	go func() {
 		srv := http.Server{
@@ -173,8 +181,12 @@ func main() {
 	signal.Notify(quit, os.Interrupt)
 	signal.Notify(quit, os.Kill)
 	<-quit
+	jobsCancel()
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+	if err := c.CoreJobs.Stop(ctx); err != nil {
+		c.Web.Logger.Fatal(err)
+	}
 	if err := c.Web.Shutdown(ctx); err != nil {
 		c.Web.Logger.Fatal(err)
 	}
@@ -207,9 +219,81 @@ func wireJobsModule(c *foundation.Container) error {
 			c.CoreJobsInspector = foundation.AdaptModuleJobsInspector(mod.Inspector())
 		}
 		return err
+	case "backlite":
+		mod, err := jobsmodule.New(jobsmodule.Config{
+			Backend: jobsmodule.BackendBacklite,
+			SQLDB:   c.Database,
+		})
+		if err == nil {
+			c.CoreJobs = foundation.AdaptModuleJobs(mod.Jobs())
+			c.CoreJobsInspector = foundation.AdaptModuleJobsInspector(mod.Inspector())
+		}
+		return err
 	case "inproc":
 		return nil
 	default:
 		return fmt.Errorf("unsupported jobs adapter %q", c.Config.Adapters.Jobs)
 	}
+}
+
+type asynqProcessor interface {
+	ProcessTask(context.Context, *asynq.Task) error
+}
+
+func startEmbeddedJobsWorker(
+	ctx context.Context,
+	c *foundation.Container,
+	paidSubscriptionsService *paidsubscriptions.Service,
+	notificationServices *notifications.Services,
+) error {
+	if c.Config.Adapters.Jobs != "backlite" {
+		return nil
+	}
+
+	emailSubscriptionConfirmationProcessor := tasks.NewEmailSubscriptionConfirmationProcessor(c.Mail, c.Config)
+	emailUpdateProcessor := tasks.NewEmailUpdateProcessor(c)
+	deactivateExpiredSubscriptionsProcessor := tasks.NewDeactivateExpiredSubscriptionsProcessor(paidSubscriptionsService)
+	allDailyConvoNotificationsProcessor := tasks.NewAllDailyConvoNotificationsProcessor(
+		notificationServices.PlannedNotificationsService,
+		c.CoreJobs,
+		30,
+	)
+	dailyConvoNotificationsProcessor := tasks.NewDailyConvoNotificationsProcessor(
+		notificationServices.Notifier,
+		c.Web,
+		paidSubscriptionsService,
+		notificationServices.PlannedNotificationsService,
+	)
+	deleteStaleNotificationsProcessor := tasks.NewDeleteStaleNotificationsProcessor(
+		c.Database,
+		c.Config.Adapters.DB,
+		c.Config.App.OperationalConstants.DeleteStaleNotificationAfterDays,
+	)
+
+	for _, job := range []struct {
+		name      string
+		processor asynqProcessor
+	}{
+		{name: tasks.TypeEmailSubscriptionConfirmation, processor: emailSubscriptionConfirmationProcessor},
+		{name: tasks.TypeEmailUpdates, processor: emailUpdateProcessor},
+		{name: tasks.TypeDeactivateExpiredSubscriptions, processor: deactivateExpiredSubscriptionsProcessor},
+		{name: tasks.TypeAllDailyConvoNotifications, processor: allDailyConvoNotificationsProcessor},
+		{name: tasks.TypeDailyConvoNotification, processor: dailyConvoNotificationsProcessor},
+		{name: tasks.TypeDeleteStaleNotifications, processor: deleteStaleNotificationsProcessor},
+	} {
+		if err := c.CoreJobs.Register(job.name, func(p asynqProcessor, taskName string) func(context.Context, []byte) error {
+			return func(ctx context.Context, payload []byte) error {
+				return p.ProcessTask(ctx, asynq.NewTask(taskName, payload))
+			}
+		}(job.processor, job.name)); err != nil {
+			return err
+		}
+	}
+
+	go func() {
+		if err := c.CoreJobs.StartWorker(ctx); err != nil && !errors.Is(err, context.Canceled) {
+			c.Web.Logger.Errorf("embedded jobs worker stopped: %v", err)
+		}
+	}()
+	return nil
 }

@@ -165,6 +165,8 @@ func wireJobsModule(c *foundation.Container) error {
 			c.CoreJobsInspector = foundation.AdaptModuleJobsInspector(mod.Inspector())
 		}
 		return err
+	case "backlite":
+		return fmt.Errorf("jobs adapter %q runs in cmd/web and cannot be started in cmd/worker", c.Config.Adapters.Jobs)
 	case "inproc":
 		return nil
 	default:
