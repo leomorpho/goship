@@ -2,8 +2,10 @@ package foundation
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/eko/gocache/v2/cache"
@@ -11,6 +13,7 @@ import (
 	"github.com/eko/gocache/v2/store"
 	"github.com/go-redis/redis/v8"
 	"github.com/leomorpho/goship/config"
+	cacherepo "github.com/leomorpho/goship/framework/repos/cache"
 )
 
 type (
@@ -21,6 +24,9 @@ type (
 
 		// cache stores the cache interface
 		cache *cache.Cache
+
+		// otter stores the in-memory cache backend for single-process mode.
+		otter *cacherepo.OtterStore
 	}
 
 	// cacheSet handles chaining a set operation
@@ -52,6 +58,15 @@ type (
 
 // NewCacheClient creates a new cache client
 func NewCacheClient(cfg *config.Config) (*CacheClient, error) {
+	adapter := normalizeCacheAdapter(cfg.Adapters.Cache)
+	if adapter == "otter" {
+		store, err := cacherepo.NewOtterStore(10_000)
+		if err != nil {
+			return nil, err
+		}
+		return &CacheClient{otter: store}, nil
+	}
+
 	// Determine the database based on the environment
 	db := cfg.Cache.Database
 	if cfg.App.Environment == config.EnvTest {
@@ -83,6 +98,12 @@ func NewCacheClient(cfg *config.Config) (*CacheClient, error) {
 
 // Close closes the connection to the cache
 func (c *CacheClient) Close() error {
+	if c == nil {
+		return nil
+	}
+	if c.otter != nil {
+		return c.otter.Close()
+	}
 	if c == nil || c.Client == nil {
 		return nil
 	}
@@ -153,6 +174,19 @@ func (c *cacheSet) Save(ctx context.Context) error {
 	if c.key == "" {
 		return errors.New("no cache key specified")
 	}
+	cacheKey := c.client.cacheKey(c.group, c.key)
+
+	if c.client.otter != nil {
+		payload, err := json.Marshal(c.data)
+		if err != nil {
+			return err
+		}
+		if err := c.client.otter.Set(cacheKey, payload, c.expiration); err != nil {
+			return err
+		}
+		c.client.otter.SetTags(cacheKey, c.tags)
+		return nil
+	}
 
 	opts := &store.Options{
 		Expiration: c.expiration,
@@ -161,7 +195,7 @@ func (c *cacheSet) Save(ctx context.Context) error {
 
 	return marshaler.
 		New(c.client.cache).
-		Set(ctx, c.client.cacheKey(c.group, c.key), c.data, opts)
+		Set(ctx, cacheKey, c.data, opts)
 }
 
 // Key sets the cache key
@@ -187,10 +221,25 @@ func (c *cacheGet) Fetch(ctx context.Context) (any, error) {
 	if c.key == "" {
 		return nil, errors.New("no cache key specified")
 	}
+	cacheKey := c.client.cacheKey(c.group, c.key)
+
+	if c.client.otter != nil {
+		payload, ok := c.client.otter.Get(cacheKey)
+		if !ok {
+			return nil, redis.Nil
+		}
+		if c.dataType == nil {
+			return payload, nil
+		}
+		if err := json.Unmarshal(payload, c.dataType); err != nil {
+			return nil, err
+		}
+		return c.dataType, nil
+	}
 
 	return marshaler.New(c.client.cache).Get(
 		ctx,
-		c.client.cacheKey(c.group, c.key),
+		cacheKey,
 		c.dataType,
 	)
 }
@@ -215,6 +264,18 @@ func (c *cacheFlush) Tags(tags ...string) *cacheFlush {
 
 // Execute flushes the data from the cache
 func (c *cacheFlush) Execute(ctx context.Context) error {
+	if c.client.otter != nil {
+		if len(c.tags) > 0 {
+			if err := c.client.otter.InvalidateTags(c.tags); err != nil {
+				return err
+			}
+		}
+		if c.key != "" {
+			return c.client.otter.Delete(c.client.cacheKey(c.group, c.key))
+		}
+		return nil
+	}
+
 	if len(c.tags) > 0 {
 		if err := c.client.cache.Invalidate(ctx, store.InvalidateOptions{
 			Tags: c.tags,
@@ -228,4 +289,80 @@ func (c *cacheFlush) Execute(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func (c *CacheClient) GetBytes(ctx context.Context, key string) ([]byte, bool, error) {
+	if c == nil {
+		return nil, false, errors.New("cache client is not initialized")
+	}
+	if c.otter != nil {
+		value, found := c.otter.Get(key)
+		return value, found, nil
+	}
+	if c.Client == nil {
+		return nil, false, errors.New("cache client is not initialized")
+	}
+	val, err := c.Client.Get(ctx, key).Bytes()
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return nil, false, nil
+		}
+		return nil, false, err
+	}
+	return val, true, nil
+}
+
+func (c *CacheClient) SetBytes(ctx context.Context, key string, value []byte, ttl time.Duration) error {
+	if c == nil {
+		return errors.New("cache client is not initialized")
+	}
+	if c.otter != nil {
+		return c.otter.Set(key, value, ttl)
+	}
+	if c.Client == nil {
+		return errors.New("cache client is not initialized")
+	}
+	return c.Client.Set(ctx, key, value, ttl).Err()
+}
+
+func (c *CacheClient) DeleteKey(ctx context.Context, key string) error {
+	if c == nil {
+		return errors.New("cache client is not initialized")
+	}
+	if c.otter != nil {
+		return c.otter.Delete(key)
+	}
+	if c.Client == nil {
+		return errors.New("cache client is not initialized")
+	}
+	return c.Client.Del(ctx, key).Err()
+}
+
+func (c *CacheClient) InvalidatePrefix(ctx context.Context, prefix string) error {
+	if c == nil {
+		return errors.New("cache client is not initialized")
+	}
+	if c.otter != nil {
+		return c.otter.InvalidatePrefix(prefix)
+	}
+	if c.Client == nil {
+		return errors.New("cache client is not initialized")
+	}
+	keys, err := c.Client.Keys(ctx, prefix+"*").Result()
+	if err != nil {
+		return err
+	}
+	if len(keys) == 0 {
+		return nil
+	}
+	return c.Client.Del(ctx, keys...).Err()
+}
+
+func normalizeCacheAdapter(v string) string {
+	switch normalize := strings.ToLower(strings.TrimSpace(v)); normalize {
+	case "", "memory", "otter":
+		return "otter"
+	default:
+		return normalize
+	}
 }

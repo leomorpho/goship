@@ -38,6 +38,7 @@ func NewDefaultRegistry() Registry {
 			},
 			"cache": {
 				"memory": {},
+				"otter":  {},
 				"redis":  {},
 			},
 			"jobs": {

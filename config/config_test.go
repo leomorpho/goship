@@ -23,6 +23,7 @@ func TestGetConfig(t *testing.T) {
 	assert.Equal(t, RuntimeProfileServerDB, cfg.Runtime.Profile)
 	assert.True(t, cfg.Processes.Web)
 	assert.Equal(t, "postgres", cfg.Adapters.DB)
+	assert.Equal(t, "otter", cfg.Adapters.Cache)
 	assert.Equal(t, "backlite", cfg.Adapters.Jobs)
 }
 
@@ -102,6 +103,16 @@ func TestGetConfig_JobsDriverAliasOverridesDefault(t *testing.T) {
 	cfg, err := GetConfig()
 	require.NoError(t, err)
 	assert.Equal(t, "asynq", cfg.Adapters.Jobs)
+}
+
+func TestGetConfig_CacheDriverAliasOverridesDefault(t *testing.T) {
+	useIsolatedWorkingDir(t)
+	t.Setenv("PAGODA_CACHE_DRIVER", "redis")
+	t.Setenv("PAGODA_ADAPTERS_CACHE", "")
+
+	cfg, err := GetConfig()
+	require.NoError(t, err)
+	assert.Equal(t, "redis", cfg.Adapters.Cache)
 }
 
 func TestGetConfig_StandaloneModeDefaultsToPostgresDriver(t *testing.T) {

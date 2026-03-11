@@ -106,7 +106,7 @@ type (
 
 	AdaptersConfig struct {
 		DB     string `env:"PAGODA_ADAPTERS_DB"`
-		Cache  string `env:"PAGODA_ADAPTERS_CACHE"`
+		Cache  string `env:"PAGODA_ADAPTERS_CACHE,PAGODA_CACHE_DRIVER"`
 		Jobs   string `env:"PAGODA_ADAPTERS_JOBS,PAGODA_JOBS_DRIVER"`
 		PubSub string `env:"PAGODA_ADAPTERS_PUBSUB"`
 	}
@@ -332,7 +332,7 @@ func defaultConfig() Config {
 		Processes: ProcessesConfig{},
 		Adapters: AdaptersConfig{
 			DB:     "postgres",
-			Cache:  "memory",
+			Cache:  "otter",
 			Jobs:   "backlite",
 			PubSub: "inproc",
 		},
@@ -411,6 +411,11 @@ func applyLegacyEnvAliases(c *Config) {
 	if strings.TrimSpace(c.Adapters.Jobs) == "" {
 		if value := strings.TrimSpace(os.Getenv("PAGODA_JOBS_DRIVER")); value != "" {
 			c.Adapters.Jobs = value
+		}
+	}
+	if strings.TrimSpace(c.Adapters.Cache) == "" {
+		if value := strings.TrimSpace(os.Getenv("PAGODA_CACHE_DRIVER")); value != "" {
+			c.Adapters.Cache = value
 		}
 	}
 	if value := strings.TrimSpace(os.Getenv("PAGODA_DATABASE_DATABASE")); value != "" {

@@ -109,9 +109,12 @@ func (c *Container) shouldInitCache() bool {
 		return false
 	}
 
-	// The repo-level cache client is currently Redis-backed. Memory cache support
-	// is tracked separately via the adapter seam and should not eagerly dial Redis.
-	return c.Adapters.Selection.Cache == "redis"
+	switch c.Adapters.Selection.Cache {
+	case "redis", "otter", "memory":
+		return true
+	default:
+		return false
+	}
 }
 
 func (c *Container) validateAdapterPlan() {

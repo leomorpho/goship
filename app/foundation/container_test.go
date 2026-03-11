@@ -19,7 +19,7 @@ func TestNewContainer(t *testing.T) {
 	assert.NotNil(t, c.Database)
 	assert.NotNil(t, c.Mail)
 	assert.NotNil(t, c.Auth)
-	if c.Adapters.Selection.Cache == "redis" {
+	if c.Adapters.Selection.Cache == "redis" || c.Adapters.Selection.Cache == "otter" || c.Adapters.Selection.Cache == "memory" {
 		assert.NotNil(t, c.Cache)
 	} else {
 		assert.Nil(t, c.Cache)
