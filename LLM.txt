@@ -910,6 +910,11 @@ Storage modes:
 - Embedded SQLite (default in config)
 - Standalone Postgres path exists and includes pgvector extension setup
 
+Runtime DB metadata contract:
+
+- `config.Config.RuntimeMetadata()` now provides a normalized DB metadata snapshot for status/reporting surfaces.
+- Metadata includes DB mode/driver, migration tracking table, portability profile, and SQLite-to-Postgres compatibility path (`sqlite-to-postgres-manual-v1`).
+
 ## Testing Surface
 
 - Go tests are distributed across `app/**`, `framework/**`, `modules/**`, and `tools/**`
@@ -1227,6 +1232,15 @@ Impact:
 - Until those migrations happen, keep per-package tooling (like the new `INTEGRATION_PARALLEL` runner) and reusable helper contexts so we can run the heaviest suites less frequently.
 - Priority candidate: `app/profile/profile_test.go` currently spins up Postgres+pgvector containers for every happy-path scenario. Replace most of those cases with SQLite-backed unit tests (or mocks) that exercise `ProfileService` logic via `dbgen` while keeping a single Postgres/pgvector test for schema wiring.
 
+## 9) SQLite-To-Postgres Promotion Is Contracted But Still Manual (Medium)
+
+GoShip now has a documented promotion contract and runtime DB metadata model, but the export/import/verification hooks are not implemented yet.
+
+Impact:
+
+- Promotion currently requires custom/manual tooling around the framework contract.
+- Operators can report compatibility and promotion path, but cannot run a one-command migration flow yet.
+
 ## Suggested Priority Order
 
 1. Complete cache adapter coverage so page caching works consistently across supported backends.
@@ -1505,6 +1519,46 @@ Rules:
 - the runtime should be able to report both the effective value and the source of that value
 
 The external control plane should not rely on mutating arbitrary config files in application repos as its normal operating mechanism.
+
+## SQLite-First Promotion Contract (v1)
+
+GoShip defines a first promotion contract from SQLite to Postgres that stays framework-native and control-plane-agnostic.
+
+Runtime metadata required for reporting:
+
+- `database.mode`: `embedded` or `standalone`
+- `database.driver`: normalized driver (`sqlite` or `postgres`)
+- `database.migration_tracking_table`: currently `goship_schema_migrations`
+- `database.migration_dialect`: current migration dialect (`sqlite` or `postgres`)
+- `database.migration_portability`: SQL portability profile (`sql-core-v1`)
+- `database.compatible_targets`: target drivers supported from current mode (SQLite source supports `postgres`)
+- `database.promotion_path`: current supported workflow (`sqlite-to-postgres-manual-v1` for SQLite source)
+
+First supported workflow (`sqlite-to-postgres-manual-v1`):
+
+1. Freeze writes for the source app.
+2. Record runtime metadata and migration baseline.
+3. Export data from SQLite through framework-supported export hooks.
+4. Provision Postgres target and run canonical migrations.
+5. Import exported data into Postgres through framework-supported import hooks.
+6. Run framework verification checks for row counts, migration baseline, and key integrity.
+7. Switch config to Postgres and unfreeze writes.
+
+This is intentionally manual-first and deterministic before introducing control-plane automation.
+
+SQL portability constraints (`sql-core-v1`):
+
+- Migrations must keep SQLite and Postgres compatibility as the default path.
+- Engine-specific SQL is allowed only behind explicit dialect branches.
+- Modules should avoid assumptions that rely on SQLite-only behavior (for example implicit rowid dependence).
+- Backfills and data migrations should be idempotent and restart-safe for offline export/import workflows.
+
+Minimum framework hook surface to support promotion:
+
+- Runtime metadata reporting hook.
+- Export hook with deterministic schema/version manifest output.
+- Import hook with manifest validation and idempotent apply behavior.
+- Post-import verification hook.
 
 ## Backup Boundary
 
@@ -1788,6 +1842,15 @@ Templ generation:
 - `make templ-gen`
 - or `go run ./tools/cli/ship/cmd/ship templ generate --path app`
 - Generated `*_templ.go` files are moved to `gen/` subdirectories beside each templ package.
+
+## Mail Development
+
+For rapid iteration on email templates:
+
+1. **Email Previews:** Visit `/dev/mail` in your browser (local/dev environments only). This allows you to preview all Templ-based email templates with dummy data without sending any actual emails.
+2. **Test Sending:** Use the CLI to send a real email using your current configuration:
+   `go run cmd/mail_test/main.go <your-email>`
+3. **Log Driver:** In development, the default `PAGODA_MAIL_DRIVER=log` prints all outgoing emails to the console instead of sending them. Set it to `smtp` to use the local Mailpit instance.
 
 ## Database and Migrations
 
@@ -2233,6 +2296,27 @@ Current behavior:
 - No direct job infra construction inside `app/*`.
 - Module wiring happens in `cmd/*` and writes to container core seams.
 - New admin/job UI code must read through `core.JobsInspector`, not backend-specific APIs.
+
+## Scheduled Jobs (Cron)
+
+GoShip uses a centralized cron scheduler for periodic tasks.
+
+**Convention:**
+- All schedules are registered in `app/schedules/schedules.go`.
+- The `Register` function is called during container initialization.
+- **Rule:** Schedules ONLY enqueue jobs. They never contain business logic. This ensures all work is tracked, retried, and observable via the jobs module.
+
+**Example:**
+```go
+func Register(s *cron.Cron, c *foundation.Container) {
+    // ship:schedules:start
+    s.AddFunc("0 9 * * *", func() {
+        c.CoreJobs.Enqueue(context.Background(), "daily.report", nil, core.EnqueueOptions{})
+    })
+    // ship:schedules:end
+}
+```
+
 
 ---
 FILE: docs/policies/01-engineering-standards.md
@@ -3010,6 +3094,47 @@ Boundary rules:
 2. fleet authority belongs outside GoShip;
 3. provider deployment logic must not become a required part of app runtime;
 4. managed overrides must be explicit, allowlisted, and inspectable.
+
+### SQLite-To-Postgres Promotion Contract (v1)
+
+Promotion target:
+
+- Source: SQLite (`embedded` mode)
+- Target: Postgres (`standalone` mode)
+- Workflow identifier: `sqlite-to-postgres-manual-v1`
+
+Required runtime metadata contract:
+
+- DB mode and normalized DB driver
+- migration tracking table
+- migration dialect
+- migration portability profile (`sql-core-v1`)
+- compatible target drivers
+- active promotion path (when source is SQLite)
+
+First supported promotion workflow:
+
+1. Freeze writes in the source runtime.
+2. Capture runtime metadata + migration baseline.
+3. Export SQLite data with framework-owned export hooks.
+4. Provision Postgres and apply canonical migrations.
+5. Import exported data with framework-owned import hooks.
+6. Run verification hooks (row counts, migration baseline, integrity checks).
+7. Switch runtime config to Postgres and resume writes.
+
+Portability constraints for framework/module authors:
+
+1. Default to SQL that is portable across SQLite and Postgres.
+2. Use explicit dialect branches for engine-specific SQL.
+3. Keep migration files deterministic and idempotent for replay/import workflows.
+4. Avoid SQLite-specific assumptions in reusable module contracts.
+
+Minimum framework tooling/hooks to expose:
+
+1. Runtime metadata report contract (read-only).
+2. Data export hook with typed manifest (version + dialect + checksums).
+3. Data import hook with manifest validation.
+4. Post-import verification hook callable from CLI/control-plane adapters.
 
 ## Docket Tracking
 

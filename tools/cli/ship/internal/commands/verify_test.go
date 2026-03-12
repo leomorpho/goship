@@ -28,11 +28,14 @@ func TestRunVerify(t *testing.T) {
 				}
 				return nil
 			},
-			RunStep: func(name string, args ...string) (int, string, error) {
+			RunStep: func(env []string, name string, args ...string) (int, string, error) {
 				calls = append(calls, name+" "+strings.Join(args, " "))
 				return 0, "ok", nil
 			},
 			LookPath: func(file string) (string, error) {
+				if file == "templ" {
+					return "/usr/bin/templ", nil
+				}
 				return "", errors.New("missing")
 			},
 			RunDoctor: func() (int, string, error) {
@@ -76,7 +79,7 @@ func TestRunVerify(t *testing.T) {
 				}
 				return nil
 			},
-			RunStep: func(name string, args ...string) (int, string, error) {
+			RunStep: func(env []string, name string, args ...string) (int, string, error) {
 				calls = append(calls, name+" "+strings.Join(args, " "))
 				if len(calls) == 2 {
 					return 1, "compile failed", nil
@@ -123,7 +126,7 @@ func TestRunVerify(t *testing.T) {
 				}
 				return nil
 			},
-			RunStep: func(name string, args ...string) (int, string, error) {
+			RunStep: func(env []string, name string, args ...string) (int, string, error) {
 				return 0, name + " ok", nil
 			},
 			LookPath: func(file string) (string, error) {
@@ -170,7 +173,7 @@ func TestRunVerify(t *testing.T) {
 			RelocateTempl: func(rootPath string) error {
 				return errors.New("relocate failed")
 			},
-			RunStep: func(name string, args ...string) (int, string, error) {
+			RunStep: func(env []string, name string, args ...string) (int, string, error) {
 				return 0, "ok", nil
 			},
 			LookPath: func(file string) (string, error) {

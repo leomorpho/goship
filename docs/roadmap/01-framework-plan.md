@@ -254,6 +254,47 @@ Boundary rules:
 3. provider deployment logic must not become a required part of app runtime;
 4. managed overrides must be explicit, allowlisted, and inspectable.
 
+### SQLite-To-Postgres Promotion Contract (v1)
+
+Promotion target:
+
+- Source: SQLite (`embedded` mode)
+- Target: Postgres (`standalone` mode)
+- Workflow identifier: `sqlite-to-postgres-manual-v1`
+
+Required runtime metadata contract:
+
+- DB mode and normalized DB driver
+- migration tracking table
+- migration dialect
+- migration portability profile (`sql-core-v1`)
+- compatible target drivers
+- active promotion path (when source is SQLite)
+
+First supported promotion workflow:
+
+1. Freeze writes in the source runtime.
+2. Capture runtime metadata + migration baseline.
+3. Export SQLite data with framework-owned export hooks.
+4. Provision Postgres and apply canonical migrations.
+5. Import exported data with framework-owned import hooks.
+6. Run verification hooks (row counts, migration baseline, integrity checks).
+7. Switch runtime config to Postgres and resume writes.
+
+Portability constraints for framework/module authors:
+
+1. Default to SQL that is portable across SQLite and Postgres.
+2. Use explicit dialect branches for engine-specific SQL.
+3. Keep migration files deterministic and idempotent for replay/import workflows.
+4. Avoid SQLite-specific assumptions in reusable module contracts.
+
+Minimum framework tooling/hooks to expose:
+
+1. Runtime metadata report contract (read-only).
+2. Data export hook with typed manifest (version + dialect + checksums).
+3. Data import hook with manifest validation.
+4. Post-import verification hook callable from CLI/control-plane adapters.
+
 ## Docket Tracking
 
 Framework follow-up for this boundary is tracked in:

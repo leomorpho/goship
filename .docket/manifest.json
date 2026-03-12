@@ -263,22 +263,22 @@
     },
     "TKT-053": {
       "title": "M05 L01 - Enforce canonical file placement in `ship doctor`",
-      "state": "todo",
+      "state": "done",
       "priority": 4
     },
     "TKT-054": {
       "title": "M05 L02 - Enforce file size conventions in `ship doctor`",
-      "state": "todo",
+      "state": "done",
       "priority": 4
     },
     "TKT-055": {
       "title": "M05 L03 - Enforce marker comment integrity in `ship doctor`",
-      "state": "todo",
+      "state": "done",
       "priority": 4
     },
     "TKT-056": {
       "title": "M05 L04 - Add `ship verify` as the single done-check command",
-      "state": "todo",
+      "state": "done",
       "priority": 4
     },
     "TKT-057": {
@@ -288,27 +288,27 @@
     },
     "TKT-058": {
       "title": "M05 M01 - Add `ship_doctor` MCP tool",
-      "state": "todo",
+      "state": "done",
       "priority": 4
     },
     "TKT-059": {
       "title": "M05 M02 - Add `ship_routes` MCP tool",
-      "state": "todo",
+      "state": "done",
       "priority": 4
     },
     "TKT-060": {
       "title": "M05 M03 - Add `ship_modules` MCP tool",
-      "state": "todo",
+      "state": "done",
       "priority": 4
     },
     "TKT-061": {
       "title": "M05 M04 - Add `ship_scaffold` MCP tool",
-      "state": "todo",
+      "state": "done",
       "priority": 4
     },
     "TKT-062": {
       "title": "M05 M05 - Add `ship_verify` MCP tool",
-      "state": "todo",
+      "state": "done",
       "priority": 4
     },
     "TKT-063": {
@@ -333,7 +333,7 @@
     },
     "TKT-067": {
       "title": "M05 O02 - Enforce contract usage in `ship doctor`",
-      "state": "todo",
+      "state": "done",
       "priority": 4
     },
     "TKT-068": {
@@ -343,7 +343,7 @@
     },
     "TKT-069": {
       "title": "M05 P02 - Add scaffold test to `ship verify` pre-completion check",
-      "state": "todo",
+      "state": "done",
       "priority": 4
     },
     "TKT-070": {
@@ -353,12 +353,12 @@
     },
     "TKT-071": {
       "title": "M05 Q02 - Add `ship agent:start` for isolated worktree workflow",
-      "state": "todo",
+      "state": "done",
       "priority": 4
     },
     "TKT-072": {
       "title": "M05 Q03 - Add `ship agent:finish` for worktree cleanup and PR prep",
-      "state": "todo",
+      "state": "done",
       "priority": 4
     },
     "TKT-073": {
@@ -368,12 +368,12 @@
     },
     "TKT-074": {
       "title": "M05 R02 - Add `ship doctor` check for missing `// Renders:` comments",
-      "state": "todo",
+      "state": "done",
       "priority": 4
     },
     "TKT-075": {
       "title": "M05 R03 - Add `ship doctor` check for missing `data-component` attributes",
-      "state": "todo",
+      "state": "done",
       "priority": 4
     },
     "TKT-076": {
@@ -388,7 +388,7 @@
     },
     "TKT-078": {
       "title": "M06 T01 - Multi-process SQLite safety (WAL mode + connection pool)",
-      "state": "todo",
+      "state": "done",
       "priority": 5
     },
     "TKT-079": {
@@ -398,37 +398,37 @@
     },
     "TKT-080": {
       "title": "M06 T03 - Security headers middleware",
-      "state": "todo",
+      "state": "done",
       "priority": 5
     },
     "TKT-081": {
       "title": "M06 T04 - Expand health check endpoint",
-      "state": "todo",
+      "state": "done",
       "priority": 5
     },
     "TKT-082": {
       "title": "M06 U01 - Email provider interface and adapters",
-      "state": "todo",
+      "state": "done",
       "priority": 5
     },
     "TKT-083": {
       "title": "M06 U02 - Templ-based email templates",
-      "state": "todo",
+      "state": "done",
       "priority": 5
     },
     "TKT-084": {
       "title": "M06 U03 - Email preview routes (development only)",
-      "state": "todo",
+      "state": "done",
       "priority": 5
     },
     "TKT-085": {
       "title": "M06 V01 - Cron job scheduling convention",
-      "state": "todo",
+      "state": "done",
       "priority": 5
     },
     "TKT-086": {
       "title": "M06 V02 - App-level CLI commands convention",
-      "state": "todo",
+      "state": "done",
       "priority": 5
     },
     "TKT-087": {
@@ -568,7 +568,7 @@
     },
     "TKT-114": {
       "title": "A09 - SQLite-First Promotion Path To Postgres",
-      "state": "todo",
+      "state": "done",
       "priority": 5
     },
     "TKT-115": {

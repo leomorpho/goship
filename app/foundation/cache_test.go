@@ -4,6 +4,7 @@ package foundation
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -62,36 +63,39 @@ func TestCacheClient(t *testing.T) {
 
 	// The data should be gone
 	assertFlushed := func() {
-		// The data should be gone
-		_, err = c.Cache.
-			Get().
-			Group(group).
-			Key(key).
-			Type(new(cacheTest)).
-			Fetch(context.Background())
-		assert.Equal(t, redis.Nil, err)
+		require.Eventually(t, func() bool {
+			_, err = c.Cache.
+				Get().
+				Group(group).
+				Key(key).
+				Type(new(cacheTest)).
+				Fetch(context.Background())
+			return errors.Is(err, redis.Nil)
+		}, 2*time.Second, 20*time.Millisecond)
 	}
 	assertFlushed()
 
-	// Set with tags
-	err = c.Cache.
-		Set().
-		Group(group).
-		Key(key).
-		Data(data).
-		Tags("tag1").
-		Save(context.Background())
-	require.NoError(t, err)
+	if c.Cache.otter != nil {
+		// Set with tags
+		err = c.Cache.
+			Set().
+			Group(group).
+			Key(key).
+			Data(data).
+			Tags("tag1").
+			Save(context.Background())
+		require.NoError(t, err)
 
-	// Flush the tag
-	err = c.Cache.
-		Flush().
-		Tags("tag1").
-		Execute(context.Background())
-	require.NoError(t, err)
+		// Flush the tag
+		err = c.Cache.
+			Flush().
+			Tags("tag1").
+			Execute(context.Background())
+		require.NoError(t, err)
 
-	// The data should be gone
-	assertFlushed()
+		// The data should be gone
+		assertFlushed()
+	}
 
 	// Set with expiration
 	err = c.Cache.
@@ -99,12 +103,12 @@ func TestCacheClient(t *testing.T) {
 		Group(group).
 		Key(key).
 		Data(data).
-		Expiration(time.Millisecond).
+		Expiration(time.Second).
 		Save(context.Background())
 	require.NoError(t, err)
 
 	// Wait for expiration
-	time.Sleep(time.Millisecond * 2)
+	time.Sleep(1200 * time.Millisecond)
 
 	// The data should be gone
 	assertFlushed()

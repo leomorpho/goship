@@ -4,20 +4,17 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
-	_ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 )
 
 func TestSQLJobsEnqueue(t *testing.T) {
 	t.Parallel()
 
-	client, err := sql.Open("sqlite3", "file:jobsmod?mode=memory&_fk=1")
-	if err != nil {
-		t.Fatalf("open sqlite: %v", err)
-	}
-	t.Cleanup(func() { _ = client.Close() })
+	client := openSQLJobsTestDB(t, "jobsmod")
 
 	mod, err := New(Config{Backend: BackendSQL, SQLDB: client})
 	if err != nil {
@@ -66,11 +63,8 @@ func TestSQLJobsNewRequiresSQLDB(t *testing.T) {
 func TestSQLJobsWorkerMarksDone(t *testing.T) {
 	t.Parallel()
 
-	client, err := sql.Open("sqlite3", "file:jobsmod_worker_done?mode=memory&_fk=1")
-	if err != nil {
-		t.Fatalf("open sqlite: %v", err)
-	}
-	t.Cleanup(func() { _ = client.Close() })
+	client := openSQLJobsTestDB(t, "jobsmod_worker_done")
+	var err error
 	mod, err := New(Config{Backend: BackendSQL, SQLDB: client})
 	if err != nil {
 		t.Fatalf("expected nil error, got %v", err)
@@ -94,39 +88,21 @@ func TestSQLJobsWorkerMarksDone(t *testing.T) {
 
 	select {
 	case <-processed:
-		cancel()
 	case <-time.After(3 * time.Second):
 		t.Fatal("timed out waiting for worker to process job")
 	}
-	if err := <-done; err != nil {
+	waitForJobStatus(t, client, "job.done", "done", -1)
+	cancel()
+	if err := <-done; err != nil && !errors.Is(err, context.Canceled) {
 		t.Fatalf("worker returned unexpected error: %v", err)
-	}
-
-	rows, err := client.QueryContext(context.Background(), "SELECT status FROM goship_jobs WHERE name = ?", "job.done")
-	if err != nil {
-		t.Fatalf("query failed: %v", err)
-	}
-	defer rows.Close()
-	if !rows.Next() {
-		t.Fatal("expected one row")
-	}
-	var status string
-	if err := rows.Scan(&status); err != nil {
-		t.Fatalf("scan failed: %v", err)
-	}
-	if status != "done" {
-		t.Fatalf("expected status done, got %s", status)
 	}
 }
 
 func TestSQLJobsWorkerRetriesThenFails(t *testing.T) {
 	t.Parallel()
 
-	client, err := sql.Open("sqlite3", "file:jobsmod_worker_retry?mode=memory&_fk=1")
-	if err != nil {
-		t.Fatalf("open sqlite: %v", err)
-	}
-	t.Cleanup(func() { _ = client.Close() })
+	client := openSQLJobsTestDB(t, "jobsmod_worker_retry")
+	var err error
 	mod, err := New(Config{Backend: BackendSQL, SQLDB: client})
 	if err != nil {
 		t.Fatalf("expected nil error, got %v", err)
@@ -160,31 +136,43 @@ func TestSQLJobsWorkerRetriesThenFails(t *testing.T) {
 			t.Fatal("timed out waiting for worker retry cycle")
 		}
 	}
+	waitForJobStatus(t, client, "job.retry", "failed", 2)
 	cancel()
-	if err := <-done; err != nil {
+	if err := <-done; err != nil && !errors.Is(err, context.Canceled) {
 		t.Fatalf("worker returned unexpected error: %v", err)
 	}
 	if attempts != 2 {
 		t.Fatalf("expected 2 attempts, got %d", attempts)
 	}
 
-	rows, err := client.QueryContext(context.Background(), "SELECT status, attempt FROM goship_jobs WHERE name = ?", "job.retry")
+}
+
+func openSQLJobsTestDB(t *testing.T, name string) *sql.DB {
+	t.Helper()
+	dsn := fmt.Sprintf("file:%s?mode=memory&cache=shared&_fk=1", name)
+	client, err := sql.Open("sqlite", dsn)
 	if err != nil {
-		t.Fatalf("query failed: %v", err)
+		t.Fatalf("open sqlite: %v", err)
 	}
-	defer rows.Close()
-	if !rows.Next() {
-		t.Fatal("expected one row")
+	client.SetMaxOpenConns(1)
+	client.SetMaxIdleConns(1)
+	t.Cleanup(func() { _ = client.Close() })
+	return client
+}
+
+func waitForJobStatus(t *testing.T, db *sql.DB, name, wantStatus string, wantAttempt int) {
+	t.Helper()
+
+	deadline := time.Now().Add(5 * time.Second)
+	for time.Now().Before(deadline) {
+		var status string
+		var attempt int
+		err := db.QueryRowContext(context.Background(), "SELECT status, attempt FROM goship_jobs WHERE name = ?", name).Scan(&status, &attempt)
+		if err == nil && status == wantStatus && (wantAttempt < 0 || attempt == wantAttempt) {
+			return
+		}
+		time.Sleep(25 * time.Millisecond)
 	}
-	var status string
-	var attempt int
-	if err := rows.Scan(&status, &attempt); err != nil {
-		t.Fatalf("scan failed: %v", err)
-	}
-	if status != "failed" {
-		t.Fatalf("expected status failed, got %s", status)
-	}
-	if attempt != 2 {
-		t.Fatalf("expected attempt 2, got %d", attempt)
-	}
+
+	t.Fatalf("timed out waiting for status %q (attempt=%d) for %s", wantStatus, wantAttempt, name)
 }

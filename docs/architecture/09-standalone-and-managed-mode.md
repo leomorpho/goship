@@ -89,6 +89,46 @@ Rules:
 
 The external control plane should not rely on mutating arbitrary config files in application repos as its normal operating mechanism.
 
+## SQLite-First Promotion Contract (v1)
+
+GoShip defines a first promotion contract from SQLite to Postgres that stays framework-native and control-plane-agnostic.
+
+Runtime metadata required for reporting:
+
+- `database.mode`: `embedded` or `standalone`
+- `database.driver`: normalized driver (`sqlite` or `postgres`)
+- `database.migration_tracking_table`: currently `goship_schema_migrations`
+- `database.migration_dialect`: current migration dialect (`sqlite` or `postgres`)
+- `database.migration_portability`: SQL portability profile (`sql-core-v1`)
+- `database.compatible_targets`: target drivers supported from current mode (SQLite source supports `postgres`)
+- `database.promotion_path`: current supported workflow (`sqlite-to-postgres-manual-v1` for SQLite source)
+
+First supported workflow (`sqlite-to-postgres-manual-v1`):
+
+1. Freeze writes for the source app.
+2. Record runtime metadata and migration baseline.
+3. Export data from SQLite through framework-supported export hooks.
+4. Provision Postgres target and run canonical migrations.
+5. Import exported data into Postgres through framework-supported import hooks.
+6. Run framework verification checks for row counts, migration baseline, and key integrity.
+7. Switch config to Postgres and unfreeze writes.
+
+This is intentionally manual-first and deterministic before introducing control-plane automation.
+
+SQL portability constraints (`sql-core-v1`):
+
+- Migrations must keep SQLite and Postgres compatibility as the default path.
+- Engine-specific SQL is allowed only behind explicit dialect branches.
+- Modules should avoid assumptions that rely on SQLite-only behavior (for example implicit rowid dependence).
+- Backfills and data migrations should be idempotent and restart-safe for offline export/import workflows.
+
+Minimum framework hook surface to support promotion:
+
+- Runtime metadata reporting hook.
+- Export hook with deterministic schema/version manifest output.
+- Import hook with manifest validation and idempotent apply behavior.
+- Post-import verification hook.
+
 ## Backup Boundary
 
 Backups are a good example of the split.

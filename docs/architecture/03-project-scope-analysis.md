@@ -137,6 +137,11 @@ Storage modes:
 - Embedded SQLite (default in config)
 - Standalone Postgres path exists and includes pgvector extension setup
 
+Runtime DB metadata contract:
+
+- `config.Config.RuntimeMetadata()` now provides a normalized DB metadata snapshot for status/reporting surfaces.
+- Metadata includes DB mode/driver, migration tracking table, portability profile, and SQLite-to-Postgres compatibility path (`sqlite-to-postgres-manual-v1`).
+
 ## Testing Surface
 
 - Go tests are distributed across `app/**`, `framework/**`, `modules/**`, and `tools/**`

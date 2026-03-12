@@ -75,6 +75,15 @@ Impact:
 - Until those migrations happen, keep per-package tooling (like the new `INTEGRATION_PARALLEL` runner) and reusable helper contexts so we can run the heaviest suites less frequently.
 - Priority candidate: `app/profile/profile_test.go` currently spins up Postgres+pgvector containers for every happy-path scenario. Replace most of those cases with SQLite-backed unit tests (or mocks) that exercise `ProfileService` logic via `dbgen` while keeping a single Postgres/pgvector test for schema wiring.
 
+## 9) SQLite-To-Postgres Promotion Is Contracted But Still Manual (Medium)
+
+GoShip now has a documented promotion contract and runtime DB metadata model, but the export/import/verification hooks are not implemented yet.
+
+Impact:
+
+- Promotion currently requires custom/manual tooling around the framework contract.
+- Operators can report compatibility and promotion path, but cannot run a one-command migration flow yet.
+
 ## Suggested Priority Order
 
 1. Complete cache adapter coverage so page caching works consistently across supported backends.
