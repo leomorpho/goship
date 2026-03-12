@@ -463,7 +463,7 @@
     },
     "TKT-093": {
       "title": "M07 Y01 - Domain events system",
-      "state": "todo",
+      "state": "in-progress",
       "priority": 6
     },
     "TKT-094": {
@@ -553,7 +553,7 @@
     },
     "TKT-111": {
       "title": "A09 - Backup Capability Contract And S3-Compatible Providers",
-      "state": "in-progress",
+      "state": "done",
       "priority": 6
     },
     "TKT-112": {

@@ -206,6 +206,18 @@ func TestGetConfig_ManagedRuntimeProfileAppliesWhenProcessesUnset(t *testing.T) 
 	assert.Equal(t, runtimeconfig.SourceManagedOverride, cfg.Managed.RuntimeReport.Keys["runtime.profile"].Source)
 }
 
+func TestGetConfig_BackupDefaultsUseDatabasePath(t *testing.T) {
+	useIsolatedWorkingDir(t)
+	t.Setenv("PAGODA_DB_PATH", "dbs/custom.db")
+	t.Setenv("PAGODA_BACKUP_SQLITE_PATH", "")
+
+	cfg, err := GetConfig()
+	require.NoError(t, err)
+	assert.Equal(t, "dbs/custom.db", cfg.Database.Path)
+	assert.Equal(t, "dbs/custom.db", cfg.Backup.SQLitePath)
+	assert.Equal(t, "sqlite-file", cfg.Backup.Driver)
+}
+
 func useIsolatedWorkingDir(t *testing.T) {
 	t.Helper()
 

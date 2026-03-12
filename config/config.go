@@ -105,6 +105,7 @@ type (
 		Phone       PhoneConfig
 		Recommender RecommenderConfig
 		Storage     StorageConfig
+		Backup      BackupConfig
 	}
 
 	LogConfig struct {
@@ -291,6 +292,24 @@ type (
 		ProfilePhotoMaxFileSizeMB int64         `env:"PAGODA_STORAGE_PROFILEPHOTOMAXFILESIZEMB"`
 		PhotosMaxFileSizeMB       int64         `env:"PAGODA_STORAGE_PHOTOSMAXFILESIZEMB"`
 	}
+
+	BackupConfig struct {
+		Driver        string `env:"PAGODA_BACKUP_DRIVER" env-default:"sqlite-file"`
+		SchemaVersion string `env:"PAGODA_BACKUP_SCHEMA_VERSION" env-default:"v1"`
+		SQLitePath    string `env:"PAGODA_BACKUP_SQLITE_PATH"`
+		S3            BackupS3Config
+	}
+
+	BackupS3Config struct {
+		Enabled   bool   `env:"PAGODA_BACKUP_S3_ENABLED"`
+		Endpoint  string `env:"PAGODA_BACKUP_S3_ENDPOINT"`
+		Region    string `env:"PAGODA_BACKUP_S3_REGION"`
+		Bucket    string `env:"PAGODA_BACKUP_S3_BUCKET"`
+		Prefix    string `env:"PAGODA_BACKUP_S3_PREFIX"`
+		AccessKey string `env:"PAGODA_BACKUP_S3_ACCESSKEY"`
+		SecretKey string `env:"PAGODA_BACKUP_S3_SECRETKEY"`
+		UseSSL    bool   `env:"PAGODA_BACKUP_S3_USESSL" env-default:"true"`
+	}
 )
 
 type managedKeySpec struct {
@@ -453,6 +472,7 @@ func GetConfig() (Config, error) {
 	}
 	applyLegacyEnvAliases(&c)
 	applyDatabaseDriverConfig(&c)
+	applyBackupDefaults(&c)
 	applyRuntimeDefaults(&c)
 	applyProcessesProfileIfUnset(&c, hasExplicitProcessSelection(repoPresence, envPresence, managedSet))
 	c.Managed.RuntimeReport = runtimeconfig.BuildReport(runtimeconfig.LayerInputs{
@@ -608,6 +628,21 @@ func defaultConfig() Config {
 			S3UseSSL:                  true,
 			ProfilePhotoMaxFileSizeMB: 2,
 			PhotosMaxFileSizeMB:       5,
+		},
+		Backup: BackupConfig{
+			Driver:        "sqlite-file",
+			SchemaVersion: "v1",
+			SQLitePath:    "",
+			S3: BackupS3Config{
+				Enabled:   false,
+				Endpoint:  "s3.us-west-002.backblazeb2.com",
+				Region:    "us-west-002",
+				Bucket:    "goship-backups",
+				Prefix:    "snapshots",
+				AccessKey: "0072...",
+				SecretKey: "K001...",
+				UseSSL:    true,
+			},
 		},
 	}
 }
@@ -961,6 +996,28 @@ func applyRuntimeDefaults(c *Config) {
 		c.Runtime.Profile = RuntimeProfileDistributed
 	default:
 		c.Runtime.Profile = RuntimeProfileServerDB
+	}
+}
+
+func applyBackupDefaults(c *Config) {
+	if c == nil {
+		return
+	}
+
+	c.Backup.Driver = strings.TrimSpace(c.Backup.Driver)
+	if c.Backup.Driver == "" {
+		c.Backup.Driver = "sqlite-file"
+	}
+	c.Backup.SchemaVersion = strings.TrimSpace(c.Backup.SchemaVersion)
+	if c.Backup.SchemaVersion == "" {
+		c.Backup.SchemaVersion = "v1"
+	}
+	c.Backup.SQLitePath = strings.TrimSpace(c.Backup.SQLitePath)
+	if c.Backup.SQLitePath == "" {
+		c.Backup.SQLitePath = strings.TrimSpace(c.Database.Path)
+	}
+	if c.Backup.SQLitePath == "" {
+		c.Backup.SQLitePath = "dbs/main.db"
 	}
 }
 

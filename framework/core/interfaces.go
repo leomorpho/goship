@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	backupcontract "github.com/leomorpho/goship/framework/backup"
 )
 
 // TxFunc is executed inside a store transaction boundary.
@@ -168,6 +169,16 @@ type BlobStorage interface {
 	Put(ctx context.Context, in PutObjectInput) (StoredObject, error)
 	Delete(ctx context.Context, bucket, key string) error
 	PresignGet(ctx context.Context, bucket, key string, expiry time.Duration) (string, error)
+}
+
+// BackupDriver creates framework backup manifests from runtime state.
+type BackupDriver interface {
+	Create(ctx context.Context, req backupcontract.CreateRequest) (backupcontract.Manifest, error)
+}
+
+// RestoreDriver validates and applies restore operations from backup manifests.
+type RestoreDriver interface {
+	Restore(ctx context.Context, req backupcontract.RestoreRequest) error
 }
 
 // MailAddress represents an email identity.
