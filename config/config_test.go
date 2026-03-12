@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/leomorpho/goship/framework/runtimeconfig"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -26,6 +27,8 @@ func TestGetConfig(t *testing.T) {
 	assert.Equal(t, "otter", cfg.Adapters.Cache)
 	assert.Equal(t, "backlite", cfg.Adapters.Jobs)
 	assert.Equal(t, DBDriverSQLite, cfg.Database.Driver)
+	assert.True(t, cfg.Security.Headers.Enabled)
+	assert.False(t, cfg.Security.Headers.HSTS)
 }
 
 func TestGetConfig_EnvironmentOverrides(t *testing.T) {
@@ -144,6 +147,63 @@ func TestGetConfig_StandaloneModeDefaultsToPostgresDriver(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, DBDriverPostgres, cfg.Database.Driver)
 	assert.Equal(t, DBModeStandalone, cfg.Database.DbMode)
+}
+
+func TestGetConfig_SecurityHeaderOverrides(t *testing.T) {
+	useIsolatedWorkingDir(t)
+	t.Setenv("PAGODA_SECURITY_HEADERS_ENABLED", "false")
+	t.Setenv("PAGODA_SECURITY_HEADERS_HSTS", "true")
+	t.Setenv("PAGODA_SECURITY_HEADERS_CSP", "default-src 'self'")
+
+	cfg, err := GetConfig()
+	require.NoError(t, err)
+	assert.False(t, cfg.Security.Headers.Enabled)
+	assert.True(t, cfg.Security.Headers.HSTS)
+	assert.Equal(t, "default-src 'self'", cfg.Security.Headers.CSP)
+}
+
+func TestGetConfig_ManagedOverridePrecedenceAndReporting(t *testing.T) {
+	useIsolatedWorkingDir(t)
+	require.NoError(t, os.WriteFile(".env", []byte("PAGODA_ADAPTERS_CACHE=repo-cache\n"), 0o644))
+
+	t.Setenv("PAGODA_ADAPTERS_CACHE", "env-cache")
+	t.Setenv("PAGODA_MANAGED_MODE", "true")
+	t.Setenv("PAGODA_MANAGED_AUTHORITY", "control-plane")
+	t.Setenv("PAGODA_MANAGED_OVERRIDES", `{"adapters.cache":"managed-cache"}`)
+
+	cfg, err := GetConfig()
+	require.NoError(t, err)
+	assert.Equal(t, "managed-cache", cfg.Adapters.Cache)
+	assert.Equal(t, runtimeconfig.ModeManaged, cfg.Managed.RuntimeReport.Mode)
+	assert.Equal(t, "control-plane", cfg.Managed.RuntimeReport.Authority)
+	assert.Equal(t, runtimeconfig.SourceManagedOverride, cfg.Managed.RuntimeReport.Keys["adapters.cache"].Source)
+	assert.Equal(t, "managed-cache", cfg.Managed.RuntimeReport.Keys["adapters.cache"].Value)
+}
+
+func TestGetConfig_ManagedOverridesRequireAllowlistedKeys(t *testing.T) {
+	useIsolatedWorkingDir(t)
+	t.Setenv("PAGODA_MANAGED_MODE", "true")
+	t.Setenv("PAGODA_MANAGED_OVERRIDES", `{"not.allowed":"value"}`)
+
+	_, err := GetConfig()
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "non-allowlisted")
+	assert.Contains(t, err.Error(), "not.allowed")
+}
+
+func TestGetConfig_ManagedRuntimeProfileAppliesWhenProcessesUnset(t *testing.T) {
+	useIsolatedWorkingDir(t)
+	t.Setenv("PAGODA_MANAGED_MODE", "true")
+	t.Setenv("PAGODA_MANAGED_OVERRIDES", `{"runtime.profile":"single-node"}`)
+
+	cfg, err := GetConfig()
+	require.NoError(t, err)
+	assert.Equal(t, RuntimeProfileSingleNode, cfg.Runtime.Profile)
+	assert.True(t, cfg.Processes.Web)
+	assert.True(t, cfg.Processes.Worker)
+	assert.True(t, cfg.Processes.Scheduler)
+	assert.True(t, cfg.Processes.CoLocated)
+	assert.Equal(t, runtimeconfig.SourceManagedOverride, cfg.Managed.RuntimeReport.Keys["runtime.profile"].Source)
 }
 
 func useIsolatedWorkingDir(t *testing.T) {

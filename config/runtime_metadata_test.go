@@ -17,6 +17,11 @@ func TestRuntimeMetadataSQLitePromotionContract(t *testing.T) {
 	assert.Equal(t, MigrationPortabilitySQLCoreV1, md.MigrationPortability)
 	assert.Equal(t, []string{string(DBDriverPostgres)}, md.CompatibleTargets)
 	assert.Equal(t, PromotionPathSQLiteToPostgresManualV1, md.PromotionPath)
+
+	managed := cfg.RuntimeMetadata().Managed
+	assert.Equal(t, "standalone", managed.Mode)
+	assert.Equal(t, "otter", managed.Keys["adapters.cache"].Value)
+	assert.Equal(t, "framework-default", managed.Keys["adapters.cache"].Source)
 }
 
 func TestRuntimeMetadataPostgresHasNoPromotionPath(t *testing.T) {

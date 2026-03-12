@@ -548,12 +548,12 @@
     },
     "TKT-110": {
       "title": "A09 - Managed Mode Config Authority",
-      "state": "todo",
+      "state": "done",
       "priority": 6
     },
     "TKT-111": {
       "title": "A09 - Backup Capability Contract And S3-Compatible Providers",
-      "state": "todo",
+      "state": "in-progress",
       "priority": 6
     },
     "TKT-112": {

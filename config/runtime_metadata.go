@@ -1,6 +1,10 @@
 package config
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/leomorpho/goship/framework/runtimeconfig"
+)
 
 const (
 	// DefaultSchemaMigrationsTable is the canonical migration tracking table for core SQL migrations.
@@ -14,6 +18,20 @@ const (
 // RuntimeMetadata reports normalized runtime capability metadata for status/reporting surfaces.
 type RuntimeMetadata struct {
 	Database DatabaseRuntimeMetadata `json:"database"`
+	Managed  ManagedRuntimeMetadata  `json:"managed"`
+}
+
+// ManagedRuntimeMetadata reports effective managed keys and their source layers.
+type ManagedRuntimeMetadata struct {
+	Mode      string                        `json:"mode"`
+	Authority string                        `json:"authority,omitempty"`
+	Keys      map[string]ManagedKeyMetadata `json:"keys"`
+}
+
+// ManagedKeyMetadata reports the effective value and source for one managed key.
+type ManagedKeyMetadata struct {
+	Value  string `json:"value"`
+	Source string `json:"source"`
 }
 
 // DatabaseRuntimeMetadata reports DB mode/driver and promotion compatibility details.
@@ -29,8 +47,34 @@ type DatabaseRuntimeMetadata struct {
 
 // RuntimeMetadata builds a runtime metadata snapshot using normalized configuration values.
 func (c Config) RuntimeMetadata() RuntimeMetadata {
+	report := c.Managed.RuntimeReport
+	if report.Mode == "" {
+		report = runtimeconfig.BuildReport(runtimeconfig.LayerInputs{
+			Defaults:        managedKeyValues(c),
+			EffectiveValues: managedKeyValues(c),
+			RepoSet:         map[string]bool{},
+			EnvSet:          map[string]bool{},
+			ManagedSet:      map[string]bool{},
+			ManagedEnabled:  c.Managed.Enabled,
+			Authority:       c.Managed.Authority,
+		})
+	}
+
+	keys := map[string]ManagedKeyMetadata{}
+	for key, state := range report.Keys {
+		keys[key] = ManagedKeyMetadata{
+			Value:  state.Value,
+			Source: string(state.Source),
+		}
+	}
+
 	return RuntimeMetadata{
 		Database: c.Database.RuntimeMetadata(),
+		Managed: ManagedRuntimeMetadata{
+			Mode:      string(report.Mode),
+			Authority: report.Authority,
+			Keys:      keys,
+		},
 	}
 }
 

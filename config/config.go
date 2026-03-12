@@ -1,13 +1,17 @@
 package config
 
 import (
+	"bufio"
 	"encoding/base64"
 	"fmt"
 	"os"
+	"sort"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/ilyakaznacheev/cleanenv"
+	"github.com/leomorpho/goship/framework/runtimeconfig"
 )
 
 const (
@@ -90,7 +94,9 @@ type (
 		HTTP        HTTPConfig
 		App         AppConfig
 		Log         LogConfig
+		Security    SecurityConfig
 		Runtime     RuntimeConfig
+		Managed     ManagedConfig
 		Processes   ProcessesConfig
 		Adapters    AdaptersConfig
 		Cache       CacheConfig
@@ -106,8 +112,25 @@ type (
 		Format string `env:"PAGODA_LOG_FORMAT" env-default:"text"`
 	}
 
+	SecurityConfig struct {
+		Headers SecurityHeadersConfig
+	}
+
+	SecurityHeadersConfig struct {
+		Enabled bool   `env:"PAGODA_SECURITY_HEADERS_ENABLED" env-default:"true"`
+		HSTS    bool   `env:"PAGODA_SECURITY_HEADERS_HSTS" env-default:"false"`
+		CSP     string `env:"PAGODA_SECURITY_HEADERS_CSP"`
+	}
+
 	RuntimeConfig struct {
 		Profile runtimeprofile `env:"PAGODA_RUNTIME_PROFILE"`
+	}
+
+	ManagedConfig struct {
+		Enabled       bool                 `env:"PAGODA_MANAGED_MODE"`
+		Authority     string               `env:"PAGODA_MANAGED_AUTHORITY"`
+		OverridesJSON string               `env:"PAGODA_MANAGED_OVERRIDES"`
+		RuntimeReport runtimeconfig.Report `env:"-"`
 	}
 
 	ProcessesConfig struct {
@@ -225,12 +248,24 @@ type (
 
 	// MailConfig stores the mail configuration
 	MailConfig struct {
-		Hostname     string `env:"PAGODA_MAIL_HOSTNAME"`
-		HttpPort     uint16 `env:"PAGODA_MAIL_HTTPPORT"`
-		SmtpPort     uint16 `env:"PAGODA_MAIL_SMTPPORT"`
-		User         string `env:"PAGODA_MAIL_USER"`
-		Password     string `env:"PAGODA_MAIL_PASSWORD"`
-		FromAddress  string `env:"PAGODA_MAIL_FROMADDRESS"`
+		Driver      string `env:"PAGODA_MAIL_DRIVER" env-default:"log"`
+		FromName    string `env:"PAGODA_MAIL_FROM_NAME" env-default:"GoShip App"`
+		FromAddress string `env:"PAGODA_MAIL_FROMADDRESS"`
+		Hostname    string `env:"PAGODA_MAIL_HOSTNAME"`
+		HttpPort    uint16 `env:"PAGODA_MAIL_HTTPPORT"`
+		SmtpPort    uint16 `env:"PAGODA_MAIL_SMTPPORT"`
+		User        string `env:"PAGODA_MAIL_USER"`
+		Password    string `env:"PAGODA_MAIL_PASSWORD"`
+		SMTP        struct {
+			Host string `env:"PAGODA_MAIL_SMTP_HOST"`
+			Port int    `env:"PAGODA_MAIL_SMTP_PORT" env-default:"587"`
+			User string `env:"PAGODA_MAIL_SMTP_USER"`
+			Pass string `env:"PAGODA_MAIL_SMTP_PASS"`
+			TLS  bool   `env:"PAGODA_MAIL_SMTP_TLS" env-default:"true"`
+		}
+		Resend struct {
+			APIKey string `env:"PAGODA_MAIL_RESEND_API_KEY"`
+		}
 		ResendAPIKey string `env:"PAGODA_MAIL_RESENDAPIKEY"`
 	}
 
@@ -258,11 +293,144 @@ type (
 	}
 )
 
+type managedKeySpec struct {
+	envVars []string
+	get     func(Config) string
+	set     func(*Config, string) error
+}
+
+var managedOverrideSpecs = map[string]managedKeySpec{
+	"runtime.profile": {
+		envVars: []string{"PAGODA_RUNTIME_PROFILE"},
+		get: func(cfg Config) string {
+			return string(cfg.Runtime.Profile)
+		},
+		set: func(cfg *Config, raw string) error {
+			profile := normalizeRuntimeProfile(raw)
+			if profile == "" {
+				return fmt.Errorf("unsupported runtime profile %q", raw)
+			}
+			cfg.Runtime.Profile = profile
+			return nil
+		},
+	},
+	"processes.web": {
+		envVars: []string{"PAGODA_PROCESSES_WEB"},
+		get: func(cfg Config) string {
+			return strconv.FormatBool(cfg.Processes.Web)
+		},
+		set: func(cfg *Config, raw string) error {
+			return setManagedBool(raw, &cfg.Processes.Web, "processes.web")
+		},
+	},
+	"processes.worker": {
+		envVars: []string{"PAGODA_PROCESSES_WORKER"},
+		get: func(cfg Config) string {
+			return strconv.FormatBool(cfg.Processes.Worker)
+		},
+		set: func(cfg *Config, raw string) error {
+			return setManagedBool(raw, &cfg.Processes.Worker, "processes.worker")
+		},
+	},
+	"processes.scheduler": {
+		envVars: []string{"PAGODA_PROCESSES_SCHEDULER"},
+		get: func(cfg Config) string {
+			return strconv.FormatBool(cfg.Processes.Scheduler)
+		},
+		set: func(cfg *Config, raw string) error {
+			return setManagedBool(raw, &cfg.Processes.Scheduler, "processes.scheduler")
+		},
+	},
+	"processes.colocated": {
+		envVars: []string{"PAGODA_PROCESSES_COLOCATED"},
+		get: func(cfg Config) string {
+			return strconv.FormatBool(cfg.Processes.CoLocated)
+		},
+		set: func(cfg *Config, raw string) error {
+			return setManagedBool(raw, &cfg.Processes.CoLocated, "processes.colocated")
+		},
+	},
+	"adapters.db": {
+		envVars: []string{"PAGODA_ADAPTERS_DB"},
+		get: func(cfg Config) string {
+			return strings.TrimSpace(cfg.Adapters.DB)
+		},
+		set: func(cfg *Config, raw string) error {
+			return setManagedString(raw, &cfg.Adapters.DB, "adapters.db")
+		},
+	},
+	"adapters.cache": {
+		envVars: []string{"PAGODA_ADAPTERS_CACHE", "PAGODA_CACHE_DRIVER"},
+		get: func(cfg Config) string {
+			return strings.TrimSpace(cfg.Adapters.Cache)
+		},
+		set: func(cfg *Config, raw string) error {
+			return setManagedString(raw, &cfg.Adapters.Cache, "adapters.cache")
+		},
+	},
+	"adapters.jobs": {
+		envVars: []string{"PAGODA_ADAPTERS_JOBS", "PAGODA_JOBS_DRIVER"},
+		get: func(cfg Config) string {
+			return strings.TrimSpace(cfg.Adapters.Jobs)
+		},
+		set: func(cfg *Config, raw string) error {
+			return setManagedString(raw, &cfg.Adapters.Jobs, "adapters.jobs")
+		},
+	},
+	"adapters.pubsub": {
+		envVars: []string{"PAGODA_ADAPTERS_PUBSUB"},
+		get: func(cfg Config) string {
+			return strings.TrimSpace(cfg.Adapters.PubSub)
+		},
+		set: func(cfg *Config, raw string) error {
+			return setManagedString(raw, &cfg.Adapters.PubSub, "adapters.pubsub")
+		},
+	},
+	"database.driver": {
+		envVars: []string{"PAGODA_DATABASE_DRIVER", "PAGODA_DB_DRIVER"},
+		get: func(cfg Config) string {
+			return string(cfg.Database.Driver)
+		},
+		set: func(cfg *Config, raw string) error {
+			driver := normalizeDBDriver(raw)
+			if driver == "" {
+				return fmt.Errorf("unsupported database driver %q", raw)
+			}
+			cfg.Database.Driver = dbdriver(driver)
+			return nil
+		},
+	},
+	"database.path": {
+		envVars: []string{"PAGODA_DATABASE_PATH", "PAGODA_DB_PATH"},
+		get: func(cfg Config) string {
+			return strings.TrimSpace(cfg.Database.Path)
+		},
+		set: func(cfg *Config, raw string) error {
+			return setManagedString(raw, &cfg.Database.Path, "database.path")
+		},
+	},
+	"storage.driver": {
+		envVars: []string{"PAGODA_STORAGE_DRIVER"},
+		get: func(cfg Config) string {
+			return string(cfg.Storage.Driver)
+		},
+		set: func(cfg *Config, raw string) error {
+			driver := normalizeStorageDriver(raw)
+			if driver == "" {
+				return fmt.Errorf("unsupported storage driver %q", raw)
+			}
+			cfg.Storage.Driver = driver
+			return nil
+		},
+	},
+}
+
 // GetConfig loads and returns configuration.
 func GetConfig() (Config, error) {
 	c := defaultConfig()
-	if path, ok := findDotEnvFromWD(); ok {
-		if err := cleanenv.ReadConfig(path, &c); err != nil {
+	dotEnvPath, hasDotEnv := findDotEnvFromWD()
+	if hasDotEnv {
+		if err := cleanenv.ReadConfig(dotEnvPath, &c); err != nil {
 			return c, fmt.Errorf("read .env: %w", err)
 		}
 	}
@@ -271,10 +439,31 @@ func GetConfig() (Config, error) {
 	}
 
 	c.App.Environment = resolveEnvironment(c.App.Environment)
+	repoPresence, err := managedLayerPresenceFromDotEnvPath(dotEnvPath, hasDotEnv)
+	if err != nil {
+		return c, fmt.Errorf("read .env presence: %w", err)
+	}
+	envPresence := managedLayerPresenceFromEnv()
+	managedOverrides, managedSet, err := resolveManagedOverrides(c.Managed)
+	if err != nil {
+		return c, err
+	}
+	if err := applyManagedOverrides(&c, managedOverrides); err != nil {
+		return c, err
+	}
 	applyLegacyEnvAliases(&c)
 	applyDatabaseDriverConfig(&c)
 	applyRuntimeDefaults(&c)
-	applyProcessesProfile(&c)
+	applyProcessesProfileIfUnset(&c, hasExplicitProcessSelection(repoPresence, envPresence, managedSet))
+	c.Managed.RuntimeReport = runtimeconfig.BuildReport(runtimeconfig.LayerInputs{
+		Defaults:        managedKeyValues(defaultConfig()),
+		EffectiveValues: managedKeyValues(c),
+		RepoSet:         repoPresence,
+		EnvSet:          envPresence,
+		ManagedSet:      managedSet,
+		ManagedEnabled:  c.Managed.Enabled,
+		Authority:       c.Managed.Authority,
+	})
 
 	if c.App.FirebaseBase64AccessKeys != "" {
 		jsonCreds, err := base64.StdEncoding.DecodeString(c.App.FirebaseBase64AccessKeys)
@@ -347,7 +536,15 @@ func defaultConfig() Config {
 			Level:  "info",
 			Format: "text",
 		},
+		Security: SecurityConfig{
+			Headers: SecurityHeadersConfig{
+				Enabled: true,
+				HSTS:    false,
+				CSP:     "",
+			},
+		},
 		Runtime:   RuntimeConfig{},
+		Managed:   ManagedConfig{},
 		Processes: ProcessesConfig{},
 		Adapters: AdaptersConfig{
 			DB:     "sqlite",
@@ -532,6 +729,209 @@ func normalizeDBDriver(raw string) string {
 	}
 }
 
+func normalizeRuntimeProfile(raw string) runtimeprofile {
+	switch strings.ToLower(strings.TrimSpace(raw)) {
+	case string(RuntimeProfileServerDB):
+		return RuntimeProfileServerDB
+	case string(RuntimeProfileSingleNode):
+		return RuntimeProfileSingleNode
+	case string(RuntimeProfileDistributed):
+		return RuntimeProfileDistributed
+	default:
+		return ""
+	}
+}
+
+func normalizeStorageDriver(raw string) storagedriver {
+	switch strings.ToLower(strings.TrimSpace(raw)) {
+	case string(StorageDriverLocal):
+		return StorageDriverLocal
+	case string(StorageDriverMinIO):
+		return StorageDriverMinIO
+	default:
+		return ""
+	}
+}
+
+func setManagedString(raw string, target *string, key string) error {
+	if target == nil {
+		return fmt.Errorf("%s target is nil", key)
+	}
+	value := strings.TrimSpace(raw)
+	if value == "" {
+		return fmt.Errorf("%s cannot be empty", key)
+	}
+	*target = value
+	return nil
+}
+
+func setManagedBool(raw string, target *bool, key string) error {
+	if target == nil {
+		return fmt.Errorf("%s target is nil", key)
+	}
+	value, err := strconv.ParseBool(strings.TrimSpace(raw))
+	if err != nil {
+		return fmt.Errorf("invalid boolean value %q for %s", raw, key)
+	}
+	*target = value
+	return nil
+}
+
+func managedOverrideAllowlist() map[string]struct{} {
+	allowlist := make(map[string]struct{}, len(managedOverrideSpecs))
+	for key := range managedOverrideSpecs {
+		allowlist[key] = struct{}{}
+	}
+	return allowlist
+}
+
+func managedKeyValues(cfg Config) map[string]string {
+	values := make(map[string]string, len(managedOverrideSpecs))
+	for key, spec := range managedOverrideSpecs {
+		values[key] = strings.TrimSpace(spec.get(cfg))
+	}
+	return values
+}
+
+func resolveManagedOverrides(managed ManagedConfig) (map[string]string, map[string]bool, error) {
+	managedSet := map[string]bool{}
+	if !managed.Enabled {
+		return map[string]string{}, managedSet, nil
+	}
+
+	overrides, err := runtimeconfig.ParseManagedOverrides(managed.OverridesJSON)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	rejected := runtimeconfig.RejectUnknownKeys(overrides, managedOverrideAllowlist())
+	if len(rejected) > 0 {
+		return nil, nil, fmt.Errorf("managed overrides contain non-allowlisted keys: %s", strings.Join(rejected, ", "))
+	}
+
+	for key := range overrides {
+		managedSet[key] = true
+	}
+	return overrides, managedSet, nil
+}
+
+func applyManagedOverrides(cfg *Config, overrides map[string]string) error {
+	if cfg == nil || len(overrides) == 0 {
+		return nil
+	}
+
+	keys := make([]string, 0, len(overrides))
+	for key := range overrides {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+
+	for _, key := range keys {
+		spec, ok := managedOverrideSpecs[key]
+		if !ok {
+			return fmt.Errorf("unsupported managed override key %q", key)
+		}
+		if err := spec.set(cfg, overrides[key]); err != nil {
+			return fmt.Errorf("apply managed override %q: %w", key, err)
+		}
+	}
+
+	return nil
+}
+
+func managedLayerPresenceFromDotEnvPath(path string, hasDotEnv bool) (map[string]bool, error) {
+	if !hasDotEnv || strings.TrimSpace(path) == "" {
+		return map[string]bool{}, nil
+	}
+	return managedLayerPresenceFromDotEnv(path)
+}
+
+func managedLayerPresenceFromDotEnv(path string) (map[string]bool, error) {
+	names, err := envNamesFromFile(path)
+	if err != nil {
+		return nil, err
+	}
+	return managedLayerPresenceFromNames(names), nil
+}
+
+func managedLayerPresenceFromEnv() map[string]bool {
+	names := map[string]struct{}{}
+	for _, raw := range os.Environ() {
+		name, _, ok := strings.Cut(raw, "=")
+		if !ok {
+			continue
+		}
+		name = strings.TrimSpace(name)
+		if name == "" {
+			continue
+		}
+		names[name] = struct{}{}
+	}
+	return managedLayerPresenceFromNames(names)
+}
+
+func managedLayerPresenceFromNames(names map[string]struct{}) map[string]bool {
+	presence := map[string]bool{}
+	for key, spec := range managedOverrideSpecs {
+		for _, envVar := range spec.envVars {
+			if _, ok := names[envVar]; ok {
+				presence[key] = true
+				break
+			}
+		}
+	}
+	return presence
+}
+
+func envNamesFromFile(path string) (map[string]struct{}, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	names := map[string]struct{}{}
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		if strings.HasPrefix(line, "export ") {
+			line = strings.TrimSpace(strings.TrimPrefix(line, "export "))
+		}
+		name, _, ok := strings.Cut(line, "=")
+		if !ok {
+			continue
+		}
+		name = strings.TrimSpace(name)
+		if name == "" {
+			continue
+		}
+		names[name] = struct{}{}
+	}
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+
+	return names, nil
+}
+
+func hasExplicitProcessSelection(repoPresence, envPresence, managedSet map[string]bool) bool {
+	keys := []string{
+		"processes.web",
+		"processes.worker",
+		"processes.scheduler",
+		"processes.colocated",
+	}
+	for _, key := range keys {
+		if repoPresence[key] || envPresence[key] || managedSet[key] {
+			return true
+		}
+	}
+	return false
+}
+
 func sqlitePathFromConnection(conn string) string {
 	v := strings.TrimSpace(conn)
 	if v == "" {
@@ -565,12 +965,16 @@ func applyRuntimeDefaults(c *Config) {
 }
 
 func applyProcessesProfile(c *Config) {
-	if c == nil || anyEnvIsSet(
+	applyProcessesProfileIfUnset(c, anyEnvIsSet(
 		"PAGODA_PROCESSES_WEB",
 		"PAGODA_PROCESSES_WORKER",
 		"PAGODA_PROCESSES_SCHEDULER",
 		"PAGODA_PROCESSES_COLOCATED",
-	) {
+	))
+}
+
+func applyProcessesProfileIfUnset(c *Config, explicitProcessConfig bool) {
+	if c == nil || explicitProcessConfig {
 		return
 	}
 
