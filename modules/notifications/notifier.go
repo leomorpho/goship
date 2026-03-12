@@ -4,9 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"time"
-
-	"github.com/rs/zerolog/log"
 
 	"github.com/leomorpho/goship/framework/domain"
 )
@@ -56,11 +55,10 @@ func (s *NotifierService) PublishNotification(
 	// only non-repeating data relevant to each notification. Notifications could then be built live with templates. The downside is this would
 	// increase complexity quite a bit. As long as we're fine deleting notifications after a few weeks, it should be fine to store them in DB.
 	if storeInDB {
-		log.Debug().
-			Int("profileID", notification.ProfileID).
-			Int("profileIDWhoCausedNotif", notification.ProfileIDWhoCausedNotif).
-			Str("notificationType", notification.Type.Value).
-			Msg("creating persistent notification")
+		slog.Debug("creating persistent notification",
+			"profileID", notification.ProfileID,
+			"profileIDWhoCausedNotif", notification.ProfileIDWhoCausedNotif,
+			"notificationType", notification.Type.Value)
 		_, err := s.notificationStore.CreateNotification(ctx, notification)
 		if err != nil {
 			return err
@@ -85,7 +83,7 @@ func (s *NotifierService) PublishNotification(
 	if sendPushNotif {
 		numNotifs, err := s.getNumNotifsCount(ctx, notification.ProfileID)
 		if err != nil {
-			log.Error().Err(err).Int("profileID", notification.ProfileID).Msg("failed to get number of notifications for profile")
+			slog.Error("failed to get number of notifications for profile", "error", err, "profileID", notification.ProfileID)
 			return err
 		}
 
@@ -94,22 +92,20 @@ func (s *NotifierService) PublishNotification(
 			if err != nil {
 				return err
 			}
-			log.Debug().
-				Int("profileID", notification.ProfileID).
-				Int("profileIDWhoCausedNotif", notification.ProfileIDWhoCausedNotif).
-				Str("notificationType", notification.Type.Value).
-				Msg("sent pwa push notifications")
+			slog.Debug("sent pwa push notifications",
+				"profileID", notification.ProfileID,
+				"profileIDWhoCausedNotif", notification.ProfileIDWhoCausedNotif,
+				"notificationType", notification.Type.Value)
 		}
 		if s.fcmPushService != nil {
 			err = s.fcmPushService.SendPushNotifications(ctx, notification.ProfileID, notification.Title, notification.Text, numNotifs, true)
 			if err != nil {
 				return err
 			}
-			log.Debug().
-				Int("profileID", notification.ProfileID).
-				Int("profileIDWhoCausedNotif", notification.ProfileIDWhoCausedNotif).
-				Str("notificationType", notification.Type.Value).
-				Msg("sent fcm push notifications")
+			slog.Debug("sent fcm push notifications",
+				"profileID", notification.ProfileID,
+				"profileIDWhoCausedNotif", notification.ProfileIDWhoCausedNotif,
+				"notificationType", notification.Type.Value)
 		}
 
 	}
@@ -192,9 +188,8 @@ func (s *NotifierService) resetIosFCMNotificationsBadge(ctx context.Context, pro
 		if err != nil {
 			return err
 		}
-		log.Debug().
-			Int("profileID", profileID).Int("countNotifs", numNotifs).
-			Msg("sent fcm push notifications to reset ios app badge count")
+		slog.Debug("sent fcm push notifications to reset ios app badge count",
+			"profileID", profileID, "countNotifs", numNotifs)
 	}
 	return nil
 }

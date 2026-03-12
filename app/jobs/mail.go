@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 
 	"github.com/hibiken/asynq"
 	"github.com/labstack/echo/v4"
@@ -43,7 +44,7 @@ func NewEmailSubscriptionConfirmationProcessor(
 func (esc *EmailSubscriptionConfirmationProcessor) ProcessTask(ctx context.Context, t *asynq.Task) error {
 	var p EmailSubscriptionConfirmationPayload
 	if err := json.Unmarshal(t.Payload(), &p); err != nil {
-		fmt.Printf("Error unmarshalling payload: %v\n", err)
+		slog.Error("Error unmarshalling payload", "error", err)
 		return err
 	}
 

@@ -188,8 +188,9 @@ Non-goal:
 2. Use a monorepo with multiple Go modules plus `go.work` for maintainers.
 3. Ship installable/versioned modules (auth, billing, notifications, storage, admin).
 4. Keep one blessed default stack, but support both single-node and distributed runtime modes via adapters.
-5. Near-term default is database-server-first (Postgres first), not SQLite-centric.
+5. Near-term default is single-binary-first (SQLite first), with expansion to separate worker, cache, and database services through adapters.
 6. Redis is optional capability, not a hard requirement.
+7. GoShip must remain fully standalone; any hosted control plane consumes stable runtime hooks and managed overrides but does not become a framework dependency.
 
 ## Upstream/Downstream Relationship
 
@@ -227,7 +228,7 @@ Long-term policy:
 
 Current known upstream shifts in Pagoda (to evaluate and/or port):
 
-1. Default move from Postgres+Redis to SQLite-centric operation (reference only, not the current GoShip default direction).
+1. Default move from Postgres+Redis to SQLite-centric operation (now aligned with GoShip's single-binary-first direction, subject to GoShip's own adapter boundaries).
 2. Migration from Asynq to Backlite for DB-backed task queues.
 3. In-process task runner startup in web process, with graceful task shutdown in container.
 4. Use of in-memory cache as default for simpler local development.
@@ -237,7 +238,31 @@ Non-goals for direct adoption:
 
 1. Go-based HTML component stack from Pagoda (`gomponents`) as a hard dependency.
 2. Any upstream UI architecture changes that reduce GoShip's Templ+HTMX ergonomics.
-3. Forcing GoShip into SQLite-centric defaults at this stage.
+3. Forcing hosted-control-plane assumptions into GoShip's runtime architecture.
+
+## Managed and Self-Managed Operation
+
+GoShip should support both:
+
+- self-managed operation: the app owns its own settings, backup controls, and deployment choices.
+- externally managed operation: the app keeps the same runtime capability, but settings authority may be delegated to an external control plane.
+
+Boundary rules:
+
+1. framework capability belongs in GoShip;
+2. fleet authority belongs outside GoShip;
+3. provider deployment logic must not become a required part of app runtime;
+4. managed overrides must be explicit, allowlisted, and inspectable.
+
+## Docket Tracking
+
+Framework follow-up for this boundary is tracked in:
+
+- `TKT-110` managed-mode config authority
+- `TKT-111` backup capability contract and S3-compatible providers
+- `TKT-112` managed-mode settings lock/read-only admin surfaces
+- `TKT-113` signed managed hooks for backup, restore, and runtime status
+- `TKT-114` SQLite-first promotion path to Postgres
 
 ## Documentation Quality Initiative
 
@@ -285,19 +310,19 @@ Initial guide set:
 
 ## Runtime Modes
 
-### 1) Server-DB Mode (Primary Near-Term Default)
+### 1) Single-Binary Mode (Primary Near-Term Default)
+
+- DB: SQLite
+- Cache: in-memory
+- PubSub: in-process
+- Jobs: in-process scheduler/worker or DB-backed queue
+
+### 2) Server-DB Mode (Expansion Profile)
 
 - DB: external DB server (Postgres first; MySQL later through adapter boundary)
 - Cache: in-memory by default
 - Jobs: pluggable (`inproc` for simplicity, durable backend for reliability)
 - Redis: optional, not required
-
-### 2) Single-Node Mode (Future-Friendly Profile)
-
-- DB: SQLite
-- Cache: in-memory
-- PubSub: in-process
-- Jobs: in-process scheduler/worker
 
 ### 3) Distributed Mode
 

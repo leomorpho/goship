@@ -51,6 +51,45 @@ type devProcessExit struct {
 }
 
 func RunDevAll(out io.Writer, errOut io.Writer) int {
+	// Check for overmind or goreman
+	if path, err := exec.LookPath("overmind"); err == nil {
+		fmt.Fprintf(out, "Starting dev session with overmind...\n")
+		cmd := exec.Command(path, "start", "-f", "Procfile.dev")
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		cmd.Stdin = os.Stdin
+		if err := cmd.Run(); err != nil {
+			var exitErr *exec.ExitError
+			if errors.As(err, &exitErr) {
+				return exitErr.ExitCode()
+			}
+			fmt.Fprintf(errOut, "overmind failed: %v\n", err)
+			return 1
+		}
+		return 0
+	}
+
+	if path, err := exec.LookPath("goreman"); err == nil {
+		fmt.Fprintf(out, "Starting dev session with goreman...\n")
+		cmd := exec.Command(path, "-f", "Procfile.dev", "start")
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		cmd.Stdin = os.Stdin
+		if err := cmd.Run(); err != nil {
+			var exitErr *exec.ExitError
+			if errors.As(err, &exitErr) {
+				return exitErr.ExitCode()
+			}
+			fmt.Fprintf(errOut, "goreman failed: %v\n", err)
+			return 1
+		}
+		return 0
+	}
+
+	fmt.Fprintf(errOut, "Neither 'overmind' nor 'goreman' found in PATH.\n")
+	fmt.Fprintf(errOut, "Install overmind: brew install overmind (macOS) or see https://github.com/DarthSim/overmind\n")
+	fmt.Fprintf(errOut, "Falling back to internal process manager...\n\n")
+
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 

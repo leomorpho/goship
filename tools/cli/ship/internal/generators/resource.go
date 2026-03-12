@@ -12,13 +12,14 @@ import (
 )
 
 type ResourceGenerateOptions struct {
-	Name   string
-	Path   string
-	Auth   string
-	Views  string
-	Wire   bool
-	DryRun bool
-	Domain string
+	Name      string
+	Path      string
+	Auth      string
+	Views     string
+	Wire      bool
+	DryRun    bool
+	Domain    string
+	TestFirst bool
 }
 
 type ResourceGenerateResult struct {
@@ -105,6 +106,8 @@ func ParseGenerateResourceArgs(args []string) (ResourceGenerateOptions, error) {
 		switch {
 		case arg == "--wire":
 			opts.Wire = true
+		case arg == "--test-first":
+			opts.TestFirst = true
 		case arg == "--dry-run":
 			opts.DryRun = true
 		case strings.HasPrefix(arg, "--path="):
@@ -168,10 +171,18 @@ func GenerateResourceScaffold(opts ResourceGenerateOptions) (ResourceGenerateRes
 
 	handlerDir := filepath.Join(opts.Path, "web", "controllers")
 	handlerFile := filepath.Join(handlerDir, norm.Snake+".go")
-	if err := writeFile(handlerFile, renderResourceHandler(norm, opts.Views, domain), opts.DryRun); err != nil {
+	if err := writeFile(handlerFile, renderResourceHandler(norm, opts.Views, domain, opts.TestFirst), opts.DryRun); err != nil {
 		return result, err
 	}
 	result.CreatedFiles = append(result.CreatedFiles, handlerFile)
+
+	if opts.TestFirst {
+		testFile := filepath.Join(handlerDir, norm.Snake+"_test.go")
+		if err := writeFile(testFile, renderResourceTestFile(norm), opts.DryRun); err != nil {
+			return result, err
+		}
+		result.CreatedFiles = append(result.CreatedFiles, testFile)
+	}
 
 	if opts.Views == "templ" {
 		viewDir := filepath.Join(opts.Path, "views", "web", "pages")
@@ -253,14 +264,14 @@ func tokenizeResourceName(raw string) []string {
 	return tokens
 }
 
-func renderResourceHandler(n NormalizedResourceName, views string, domain NormalizedDomainTarget) string {
+func renderResourceHandler(n NormalizedResourceName, views string, domain NormalizedDomainTarget, testFirst bool) string {
 	if views == "templ" {
-		return renderResourceTemplHandler(n, domain)
+		return renderResourceTemplHandler(n, domain, testFirst)
 	}
-	return renderResourceBasicHandler(n, domain)
+	return renderResourceBasicHandler(n, domain, testFirst)
 }
 
-func renderResourceBasicHandler(n NormalizedResourceName, domain NormalizedDomainTarget) string {
+func renderResourceBasicHandler(n NormalizedResourceName, domain NormalizedDomainTarget, testFirst bool) string {
 	domainField := ""
 	constructorArg := ""
 	constructorAssign := ""
@@ -270,6 +281,13 @@ func renderResourceBasicHandler(n NormalizedResourceName, domain NormalizedDomai
 		constructorArg = ", domainService any"
 		constructorAssign = ", domainService: domainService"
 		domainComment = "\t// TODO: delegate to domain service in app/" + domain.Snake + "\n"
+	}
+
+	body := ""
+	if testFirst {
+		body = "\tpanic(\"not implemented\")"
+	} else {
+		body = fmt.Sprintf("%s	// TODO: Replace with templ/page rendering or real handler logic.\n\treturn ctx.String(http.StatusOK, \"%s resource\")", domainComment, n.Kebab)
 	}
 
 	return fmt.Sprintf(`package controllers
@@ -290,13 +308,12 @@ func New%sRoute(ctr ui.Controller%s) *%s {
 }
 
 func (r *%s) Get(ctx echo.Context) error {
-%s	// TODO: Replace with templ/page rendering or real handler logic.
-	return ctx.String(http.StatusOK, "%s resource")
+%s
 }
-`, n.LowerCamel, domainField, n.Pascal, constructorArg, n.LowerCamel, n.LowerCamel, constructorAssign, n.LowerCamel, domainComment, n.Kebab)
+`, n.LowerCamel, domainField, n.Pascal, constructorArg, n.LowerCamel, n.LowerCamel, constructorAssign, n.LowerCamel, body)
 }
 
-func renderResourceTemplHandler(n NormalizedResourceName, domain NormalizedDomainTarget) string {
+func renderResourceTemplHandler(n NormalizedResourceName, domain NormalizedDomainTarget, testFirst bool) string {
 	domainField := ""
 	constructorArg := ""
 	constructorAssign := ""
@@ -308,15 +325,39 @@ func renderResourceTemplHandler(n NormalizedResourceName, domain NormalizedDomai
 		domainComment = "\t// TODO: delegate to domain service in app/" + domain.Snake + "\n"
 	}
 
-	return fmt.Sprintf(`package controllers
-
-import (
+	imports := ""
+	if testFirst {
+		imports = `import (
+	"github.com/labstack/echo/v4"
+	"github.com/leomorpho/goship/app/web/ui"
+)`
+	} else {
+		imports = `import (
 	"github.com/labstack/echo/v4"
 	"github.com/leomorpho/goship/app/views"
 	"github.com/leomorpho/goship/app/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/views/web/pages/gen"
 	"github.com/leomorpho/goship/app/web/ui"
-)
+)`
+	}
+
+	body := ""
+	if testFirst {
+		body = "\tpanic(\"not implemented\")"
+	} else {
+		body = fmt.Sprintf(`%s	page := ui.NewPage(ctx)
+	page.Layout = layouts.Main
+	page.Name = templates.Page("%s")
+	page.Title = "%s"
+	page.Component = pages.%sPage(&page)
+	page.HTMX.Request.Boosted = true
+
+	return r.ctr.RenderPage(ctx, page)`, domainComment, n.Kebab, n.Pascal, n.Pascal)
+	}
+
+	return fmt.Sprintf(`package controllers
+
+%s
 
 type %s struct {
 	ctr ui.Controller
@@ -327,16 +368,23 @@ func New%sRoute(ctr ui.Controller%s) *%s {
 }
 
 func (r *%s) Get(ctx echo.Context) error {
-%s	page := ui.NewPage(ctx)
-	page.Layout = layouts.Main
-	page.Name = templates.Page("%s")
-	page.Title = "%s"
-	page.Component = pages.%sPage(&page)
-	page.HTMX.Request.Boosted = true
-
-	return r.ctr.RenderPage(ctx, page)
+%s
 }
-`, n.LowerCamel, domainField, n.Pascal, constructorArg, n.LowerCamel, n.LowerCamel, constructorAssign, n.LowerCamel, domainComment, n.Kebab, n.Pascal, n.Pascal)
+`, imports, n.LowerCamel, domainField, n.Pascal, constructorArg, n.LowerCamel, n.LowerCamel, constructorAssign, n.LowerCamel, body)
+}
+
+func renderResourceTestFile(n NormalizedResourceName) string {
+	return fmt.Sprintf(`package controllers
+
+import (
+	"testing"
+)
+
+func Test%sRoute_Get(t *testing.T) {
+	// SCAFFOLD: implement %s show — should return 200 with %s details
+	t.Skip("scaffold: implement me")
+}
+`, n.Pascal, n.Pascal, n.Snake)
 }
 
 func renderResourceTempl(n NormalizedResourceName) string {
@@ -463,13 +511,12 @@ func WireRouteNameConstant(routeNamesPath, constName, constValue string, dryRun 
 	if constStart == -1 {
 		return fmt.Errorf("const block not found in %s", routeNamesPath)
 	}
-	constEnd := strings.Index(content[constStart:], "\n)")
+	constEnd := strings.LastIndex(content, "\n)")
 	if constEnd == -1 {
 		return fmt.Errorf("const block closing not found in %s", routeNamesPath)
 	}
-	constEnd += constStart
 	line := fmt.Sprintf("\t%s = %q\n", constName, constValue)
-	updated := content[:constEnd] + line + content[constEnd:]
+	updated := content[:constEnd+1] + line + content[constEnd+1:]
 	if dryRun {
 		return nil
 	}

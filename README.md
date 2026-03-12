@@ -56,17 +56,36 @@ This repository is not just a demo; it is a starter I have used repeatedly to la
 Use docs as the source of truth for architecture, workflows, and plans:
 
 - [`docs/00-index.md`](docs/00-index.md)
+- [`docs/architecture/09-standalone-and-managed-mode.md`](docs/architecture/09-standalone-and-managed-mode.md)
 - [`docs/guides/02-development-workflows.md`](docs/guides/02-development-workflows.md)
 - [`docs/guides/04-deployment-kamal.md`](docs/guides/04-deployment-kamal.md)
 - [`docs/reference/01-cli.md`](docs/reference/01-cli.md)
 - [`docs/roadmap/01-framework-plan.md`](docs/roadmap/01-framework-plan.md)
 
+## Operating Model
+
+GoShip must remain fully standalone as an open source framework.
+
+- Default mode is single-binary: SQLite + in-process jobs/cache + no required control plane.
+- Expansion happens through adapters: dedicated worker, external cache, external database, and different deployment substrates.
+- Managed-service behavior belongs outside the runtime. An external control plane may provide secrets and managed overrides, but provider-specific fleet logic must not become a required GoShip dependency.
+
+## Tracked Docket Tickets
+
+Framework follow-up for this boundary is tracked in Docket:
+
+- [`TKT-110`](.docket/tickets/TKT-110.md): managed-mode config resolution and authority boundary
+- [`TKT-111`](.docket/tickets/TKT-111.md): backup capability contract and S3-compatible providers
+- [`TKT-112`](.docket/tickets/TKT-112.md): managed-mode settings lock/read-only admin behavior
+- [`TKT-113`](.docket/tickets/TKT-113.md): signed managed hooks for backup/status/restore
+- [`TKT-114`](.docket/tickets/TKT-114.md): SQLite-first promotion path to Postgres
+
 ## Development Modes
 
 - Single-binary mode: `make run`
-  Uses SQLite, Otter, and Backlite. No Docker required.
+  Uses SQLite, Otter, and Backlite. No Docker or control plane required.
 - Standard mode: `make dev`
-  Uses the broader infra-oriented workflow and remains useful when you want Redis-backed services or multi-process deployment parity.
+  Uses the broader infra-oriented workflow and remains useful when you want separate worker, cache, or database services.
 
 ## Repository Shape
 

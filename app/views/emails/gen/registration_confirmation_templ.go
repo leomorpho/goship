@@ -551,7 +551,7 @@ var registrationConfirmationGoTemplate = template.Must(template.New("content").P
 </html>
 `))
 
-// Renders: registration-confirmation component.
+// Renders: welcome email with registration confirmation and getting started info
 func RegistrationConfirmation(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context

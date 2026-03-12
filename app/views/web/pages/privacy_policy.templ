@@ -6,7 +6,7 @@ import (
 	"github.com/leomorpho/goship/app/views/web/components/gen"
 )
 
-// Renders: privacy-policy component.
+// Renders: privacy policy page with commitment to trust, information collection details, and contact email
 templ PrivacyPolicy(page *controller.Page) {
 	@components.PrevNavBarWithTitle("", "", "🔐 Privacy")
 	if data, ok := page.Data.(viewmodels.AboutData); ok {

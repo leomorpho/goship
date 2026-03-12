@@ -8,7 +8,7 @@ import (
 	"github.com/leomorpho/goship/app/views/web/components/gen"
 )
 
-// Renders: notifications-page component.
+// Renders: list of user notifications with mark-as-read button
 templ NotificationsPage(page *controller.Page) {
 	if data, ok := page.Data.(viewmodels.NormalNotificationsPageData); ok {
 		<div data-component="notifications-page" class="flex justify-center items-center w-full">
@@ -67,6 +67,7 @@ templ NotificationsPage(page *controller.Page) {
 }
 
 // Renders: notification component.
+// Renders: notification card with title, text, timestamp, and see-more button
 templ Notification(page *controller.Page, notification viewmodels.NotificationItem) {
 	<div data-component="notification"
 		id={ fmt.Sprintf("notification-card-%v", notification.ID) }
@@ -144,6 +145,7 @@ templ Notification(page *controller.Page, notification viewmodels.NotificationIt
 }
 
 // Renders: see-more-button component.
+// Renders: blue button labeled "See more" or custom text
 templ SeeMoreButton(btnText string) {
 	<button data-component="see-more-button"
 		type="button"
@@ -160,6 +162,7 @@ templ SeeMoreButton(btnText string) {
 }
 
 // Renders: accept-committed-request component.
+// Renders: blue "Accept" button for requests
 templ AcceptCommittedRequest(link string) {
 	<button data-component="accept-committed-request"
 		hx-get={ link }

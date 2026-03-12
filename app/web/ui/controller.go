@@ -6,13 +6,14 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"regexp"
 	"strings"
 
 	"github.com/leomorpho/goship/app/foundation"
 	"github.com/leomorpho/goship/app/web/middleware"
 	"github.com/leomorpho/goship/framework/context"
-	"github.com/leomorpho/goship/framework/htmx"
+	redirector "github.com/leomorpho/goship/framework/redirect"
 
 	"github.com/labstack/echo/v4"
 )
@@ -220,16 +221,27 @@ func (c *Controller) RedirectWithDetails(ctx echo.Context, route string, queryPa
 
 // redirectHelper contains the common logic for redirection.
 func (c *Controller) redirectHelper(ctx echo.Context, route string, statusCode int, queryParams string, routeParams ...any) error {
-	url := ctx.Echo().Reverse(route, routeParams...) + queryParams
-
-	if htmx.GetRequest(ctx).Boosted {
-		htmx.Response{
-			Redirect: url,
-		}.Apply(ctx)
-		return nil
-	} else {
-		return ctx.Redirect(statusCode, url)
+	r := redirector.New(ctx).
+		Route(route).
+		Params(routeParams...).
+		Status(statusCode)
+	if q := parseQueryParams(queryParams); len(q) > 0 {
+		r.Query(q)
 	}
+	return r.Go()
+}
+
+func parseQueryParams(raw string) url.Values {
+	s := strings.TrimSpace(raw)
+	if s == "" {
+		return nil
+	}
+	s = strings.TrimPrefix(s, "?")
+	q, err := url.ParseQuery(s)
+	if err != nil {
+		return nil
+	}
+	return q
 }
 
 // Fail is a helper to fail a request by returning a 500 error and logging the error

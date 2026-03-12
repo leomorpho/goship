@@ -249,21 +249,31 @@ func collectDescribeRoutes(root string) ([]describeRoute, error) {
 }
 
 func collectDescribeModules(root string) ([]describeModule, error) {
-	path := filepath.Join(root, "config", "modules.yaml")
-	if _, err := os.Stat(path); err != nil {
+	modulesDir := filepath.Join(root, "modules")
+	entries, err := os.ReadDir(modulesDir)
+	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, nil
 		}
 		return nil, err
 	}
-	manifest, err := rt.LoadModulesManifest(path)
-	if err != nil {
-		return nil, err
+
+	enabledModules := map[string]bool{}
+	path := filepath.Join(root, "config", "modules.yaml")
+	if manifest, err := rt.LoadModulesManifest(path); err == nil {
+		for _, name := range manifest.Modules {
+			enabledModules[name] = true
+		}
 	}
-	modules := make([]describeModule, 0, len(manifest.Modules))
-	for _, name := range manifest.Modules {
+
+	var modules []describeModule
+	for _, entry := range entries {
+		if !entry.IsDir() || strings.HasPrefix(entry.Name(), ".") {
+			continue
+		}
+		name := entry.Name()
 		migrations := 0
-		migrationsDir := filepath.Join(root, "modules", name, "db", "migrate", "migrations")
+		migrationsDir := filepath.Join(modulesDir, name, "db", "migrate", "migrations")
 		if entries, err := os.ReadDir(migrationsDir); err == nil {
 			for _, entry := range entries {
 				if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".sql") {
@@ -271,15 +281,58 @@ func collectDescribeModules(root string) ([]describeModule, error) {
 				}
 			}
 		}
+
+		routes := 0
+		routesFiles := []string{
+			filepath.Join(modulesDir, name, "routes", "routes.go"),
+			filepath.Join(modulesDir, name, "routes.go"),
+		}
+		for _, rf := range routesFiles {
+			if _, err := os.Stat(rf); err == nil {
+				routes += countModuleRoutes(rf)
+			}
+		}
+
 		modules = append(modules, describeModule{
 			ID:         name,
-			Installed:  true,
-			Routes:     0,
+			Installed:  enabledModules[name],
+			Routes:     routes,
 			Migrations: migrations,
 		})
 	}
 	sort.Slice(modules, func(i, j int) bool { return modules[i].ID < modules[j].ID })
 	return modules, nil
+}
+
+func countModuleRoutes(path string) int {
+	fset := token.NewFileSet()
+	file, err := parser.ParseFile(fset, path, nil, 0)
+	if err != nil {
+		return 0
+	}
+	count := 0
+	for _, decl := range file.Decls {
+		fn, ok := decl.(*ast.FuncDecl)
+		if !ok || fn.Body == nil {
+			continue
+		}
+		ast.Inspect(fn.Body, func(n ast.Node) bool {
+			call, ok := n.(*ast.CallExpr)
+			if !ok {
+				return true
+			}
+			sel, ok := call.Fun.(*ast.SelectorExpr)
+			if !ok || sel.Sel == nil {
+				return true
+			}
+			method := sel.Sel.Name
+			if method == "GET" || method == "POST" || method == "PUT" || method == "DELETE" || method == "PATCH" {
+				count++
+			}
+			return true
+		})
+	}
+	return count
 }
 
 func collectDescribeControllers(root string) ([]describeController, error) {
@@ -431,7 +484,7 @@ func collectDescribeIslands(root string) ([]describeIsland, error) {
 		if err != nil {
 			return err
 		}
-		if d.IsDir() {
+		if d.IsDir() || filepath.Base(path) == ".gitkeep" {
 			return nil
 		}
 		out = append(out, describeIsland{

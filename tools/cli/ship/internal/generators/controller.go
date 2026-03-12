@@ -13,12 +13,13 @@ import (
 )
 
 type ControllerMakeOptions struct {
-	Name    string
-	Path    string
-	Actions []string
-	Auth    string
-	Wire    bool
-	Domain  string
+	Name      string
+	Path      string
+	Actions   []string
+	Auth      string
+	Wire      bool
+	Domain    string
+	TestFirst bool
 }
 
 type ControllerNames struct {
@@ -68,7 +69,7 @@ func RunMakeController(args []string, d ControllerDeps) int {
 		return 1
 	}
 
-	content, err := RenderControllerFile(names, opts.Actions, domain)
+	content, err := RenderControllerFile(names, opts.Actions, domain, opts.TestFirst)
 	if err != nil {
 		fmt.Fprintf(d.Err, "failed to render controller: %v\n", err)
 		return 1
@@ -83,6 +84,22 @@ func RunMakeController(args []string, d ControllerDeps) int {
 	}
 
 	fmt.Fprintf(d.Out, "Generated controller: %s\n", controllerPath)
+
+	if opts.TestFirst {
+		testPath := filepath.Join(opts.Path, "web", "controllers", strings.TrimSuffix(names.FileName, ".go")+"_test.go")
+		if !d.HasFile(testPath) {
+			testContent, err := RenderControllerTestFile(names, opts.Actions)
+			if err != nil {
+				fmt.Fprintf(d.Err, "failed to render controller test: %v\n", err)
+				return 1
+			}
+			if err := os.WriteFile(testPath, []byte(testContent), 0o644); err != nil {
+				fmt.Fprintf(d.Err, "failed to write controller test file: %v\n", err)
+				return 1
+			}
+			fmt.Fprintf(d.Out, "Generated test file: %s\n", testPath)
+		}
+	}
 	routeSnippet := RenderControllerRouteSnippet(names, opts.Actions, opts.Auth, domain.Name != "")
 	if opts.Wire {
 		routerPath := filepath.Join(opts.Path, "router.go")
@@ -132,6 +149,8 @@ func ParseMakeControllerArgs(args []string) (ControllerMakeOptions, error) {
 		switch {
 		case args[i] == "--wire":
 			opts.Wire = true
+		case args[i] == "--test-first":
+			opts.TestFirst = true
 		case strings.HasPrefix(args[i], "--path="):
 			opts.Path = strings.TrimSpace(strings.TrimPrefix(args[i], "--path="))
 		case args[i] == "--path":
@@ -225,10 +244,14 @@ func NormalizeControllerName(raw string) (ControllerNames, error) {
 	return ControllerNames{BaseSnake: baseSnake, BaseKebab: baseKebab, BaseTitle: baseTitle, VarName: varName, TypeName: baseTitle + "Controller", FileName: baseSnake + ".go"}, nil
 }
 
-func RenderControllerFile(names ControllerNames, actions []string, domain NormalizedDomainTarget) (string, error) {
+func RenderControllerFile(names ControllerNames, actions []string, domain NormalizedDomainTarget, testFirst bool) (string, error) {
 	var b strings.Builder
 	b.WriteString("package controllers\n\n")
-	b.WriteString("import (\n\t\"net/http\"\n\n\t\"github.com/labstack/echo/v4\"\n)\n\n")
+	b.WriteString("import (\n")
+	if !testFirst {
+		b.WriteString("\t\"net/http\"\n")
+	}
+	b.WriteString("\t\"github.com/labstack/echo/v4\"\n)\n\n")
 	b.WriteString("type " + names.VarName + " struct {\n")
 	if domain.Name != "" {
 		b.WriteString("\tdomainService any\n")
@@ -247,10 +270,14 @@ func RenderControllerFile(names ControllerNames, actions []string, domain Normal
 	for _, action := range actions {
 		methodName := actionMethodName(action)
 		b.WriteString("func (c *" + names.VarName + ") " + methodName + "(ctx echo.Context) error {\n")
-		if domain.Name != "" {
-			b.WriteString("\t// TODO: delegate to domain service in app/" + domain.Snake + "\n")
+		if testFirst {
+			b.WriteString("\tpanic(\"not implemented\")\n}\n\n")
+		} else {
+			if domain.Name != "" {
+				b.WriteString("\t// TODO: delegate to domain service in app/" + domain.Snake + "\n")
+			}
+			b.WriteString("\treturn ctx.String(http.StatusNotImplemented, \"TODO: " + names.BaseTitle + "." + methodName + "\")\n}\n\n")
 		}
-		b.WriteString("\treturn ctx.String(http.StatusNotImplemented, \"TODO: " + names.BaseTitle + "." + methodName + "\")\n}\n\n")
 	}
 	src, err := format.Source([]byte(b.String()))
 	if err != nil {
@@ -311,4 +338,36 @@ func actionRouteLine(names ControllerNames, action, auth string) string {
 	default:
 		return ""
 	}
+}
+
+func RenderControllerTestFile(names ControllerNames, actions []string) (string, error) {
+	var b strings.Builder
+	b.WriteString("package controllers\n\n")
+	b.WriteString("import (\n\t\"testing\"\n)\n\n")
+	for _, action := range actions {
+		methodName := actionMethodName(action)
+		b.WriteString("func Test" + names.BaseTitle + "Controller_" + methodName + "(t *testing.T) {\n")
+		comment := ""
+		switch action {
+		case "index":
+			comment = "// SCAFFOLD: implement " + names.BaseTitle + " index — should return 200 with list of " + names.BaseSnake
+		case "show":
+			comment = "// SCAFFOLD: implement " + names.BaseTitle + " show — should return 200 with " + names.BaseSnake + " details"
+		case "create":
+			comment = "// SCAFFOLD: implement " + names.BaseTitle + " create — should return 200 with create form"
+		case "update":
+			comment = "// SCAFFOLD: implement " + names.BaseTitle + " update — PUT with valid data returns 302 redirect"
+		case "destroy":
+			comment = "// SCAFFOLD: implement " + names.BaseTitle + " destroy — DELETE returns 302 redirect"
+		}
+		if comment != "" {
+			b.WriteString("\t" + comment + "\n")
+		}
+		b.WriteString("\tt.Skip(\"scaffold: implement me\")\n}\n\n")
+	}
+	src, err := format.Source([]byte(b.String()))
+	if err != nil {
+		return "", err
+	}
+	return string(src), nil
 }

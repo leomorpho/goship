@@ -3,7 +3,6 @@ package goship
 import (
 	"errors"
 	"log/slog"
-	"os"
 
 	"github.com/labstack/echo/v4"
 	"github.com/leomorpho/goship-modules/notifications"
@@ -17,11 +16,12 @@ import (
 	routeNames "github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/config"
+	"github.com/leomorpho/goship/framework/logging"
 	"github.com/leomorpho/goship/framework/runtimeplan"
+	adminmodule "github.com/leomorpho/goship/modules/admin"
 	authmodule "github.com/leomorpho/goship/modules/auth"
 	pwamodule "github.com/leomorpho/goship/modules/pwa"
 	profilemodule "github.com/leomorpho/goship/modules/profile"
-	"github.com/rs/zerolog/log"
 )
 
 type RouterModules struct {
@@ -46,9 +46,7 @@ func BuildRouter(c *foundation.Container, modules RouterModules) error {
 
 	plan, err := runtimeplan.Resolve(c.Config)
 	if err != nil {
-		log.Warn().
-			Err(err).
-			Msg("invalid runtime plan configuration, falling back to safe web defaults")
+		slog.Warn("invalid runtime plan configuration, falling back to safe web defaults", "error", err)
 		plan = runtimeplan.Plan{
 			Profile: string(c.Config.Runtime.Profile),
 			RunWeb:  true,
@@ -59,8 +57,8 @@ func BuildRouter(c *foundation.Container, modules RouterModules) error {
 	}
 	webFeatures := runtimeplan.ResolveWebFeatures(plan, c.Cache != nil, c.Notifier != nil)
 
-	// Create a slog logger, which logs to json.
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	// Create a slog logger.
+	logger := logging.NewLogger(c.Config.Log)
 
 	appweb.RegisterStaticRoutes(c)
 
@@ -74,8 +72,8 @@ func BuildRouter(c *foundation.Container, modules RouterModules) error {
 	}
 
 	appweb.ApplyMainMiddleware(c, g, logger, deps, webFeatures)
-	appweb.ApplyRealtimeMiddleware(c, s, deps)
-	appweb.ApplyExternalMiddleware(c, e, deps)
+	appweb.ApplyRealtimeMiddleware(c, s, logger, deps)
+	appweb.ApplyExternalMiddleware(c, e, logger, deps)
 
 	ctr := ui.NewController(c)
 	errorHandler := controllers.NewErrorHandler(ctr)
@@ -101,7 +99,7 @@ func BuildRouter(c *foundation.Container, modules RouterModules) error {
 			return err
 		}
 	} else {
-		log.Info().Msg("realtime SSE routes disabled (notifier/pubsub dependency unavailable)")
+		slog.Info("realtime SSE routes disabled (notifier/pubsub dependency unavailable)")
 	}
 
 	return nil
@@ -238,6 +236,13 @@ func registerAuthRoutes(c *foundation.Container, g *echo.Group, ctr ui.Controlle
 
 	paymentsModule := paidsubscriptionroutes.NewRouteModule(ctr, deps.SubscriptionsRepo)
 	if err := paymentsModule.RegisterRoutes(onboardedGroup); err != nil {
+		return err
+	}
+	adminPanelModule := adminmodule.New(adminmodule.ModuleDeps{
+		Controller: ctr,
+		DB:         c.Database,
+	})
+	if err := adminPanelModule.RegisterRoutes(onboardedGroup); err != nil {
 		return err
 	}
 

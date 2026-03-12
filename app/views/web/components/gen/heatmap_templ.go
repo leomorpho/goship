@@ -16,7 +16,7 @@ import (
 HeatmapComponent is a component that displays a heatmap of the number of interactions per day. It is used in Chérie Companion App
 but not in Goship. Left here for reference. It needs to consume the countsByDay slice of viewmodels.CountByDay.
 */
-// Renders: heatmap-component component.
+// Renders: interactive activity heatmap using cal-heatmap library
 func HeatmapComponent(countsByDay []viewmodels.CountByDay) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context

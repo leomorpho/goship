@@ -5,7 +5,7 @@ import (
 	"github.com/leomorpho/goship/app/web/viewmodels"
 )
 
-// Renders: capability-explorer component.
+// Renders: interactive grid of application capabilities with links to documentation and implementation
 templ CapabilityExplorer(defaultKey string, sections []viewmodels.CapabilitySection, showDocLinks bool) {
 	if len(sections) == 0 {
 		return

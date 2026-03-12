@@ -1,1 +1,5 @@
-web: make watch-go
+web: air -c .air.toml
+worker: go run ./cmd/worker/main.go
+vite: npm --prefix frontend run watch
+css: npx --prefix frontend tailwindcss -i app/styles/app.css -o app/static/styles_bundle.css --watch
+templ: templ generate --watch --proxy="http://localhost:8000" --open-browser=false

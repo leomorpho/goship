@@ -7,12 +7,9 @@ import (
 
 	"os"
 
-	"github.com/getsentry/sentry-go"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/labstack/echo/v4"
-	"github.com/rs/zerolog"
 	"github.com/stripe/stripe-go/v78"
-	"github.com/ziflex/lecho/v3"
 	_ "modernc.org/sqlite"
 
 	"github.com/leomorpho/goship-modules/notifications"
@@ -20,21 +17,9 @@ import (
 	dbqueries "github.com/leomorpho/goship/db/queries"
 	"github.com/leomorpho/goship/framework/core"
 	coreadapters "github.com/leomorpho/goship/framework/core/adapters"
+	"github.com/leomorpho/goship/framework/logging"
 	"github.com/leomorpho/goship/framework/repos/mailer"
 )
-
-type SentryHook struct{}
-
-func (h *SentryHook) Run(e *zerolog.Event, level zerolog.Level, msg string) {
-	if level >= zerolog.ErrorLevel {
-		// Optionally, you can add more context to the Sentry event here
-		sentry.WithScope(func(scope *sentry.Scope) {
-			scope.SetLevel(sentry.LevelError)
-			scope.SetTag("logger", "zerolog")
-			sentry.CaptureMessage(msg)
-		})
-	}
-}
 
 // Container contains all services used by the application and provides an easy way to handle dependency
 // injection including within tests
@@ -45,7 +30,7 @@ type Container struct {
 	// Web stores the web framework
 	Web *echo.Echo
 
-	Logger *lecho.Logger
+	Logger echo.Logger
 
 	// Config stores the application configuration
 	Config *config.Config
@@ -205,21 +190,10 @@ func (c *Container) initWeb() {
 		// }
 	}
 
-	// Create a zerolog logger instance
-	zerologLogger := zerolog.New(os.Stdout).With().Timestamp().Caller().Logger()
+	// Create an slog logger instance
+	slogLogger := logging.NewLogger(c.Config.Log)
 
-	// Add the SentryHook
-	// zerologLogger = zerologLogger.Hook(&SentryHook{})
-
-	// Configure logging
-	switch c.Config.App.Environment {
-	case config.EnvProduction:
-		zerolog.SetGlobalLevel(zerolog.DebugLevel)
-	default:
-		zerolog.SetGlobalLevel(zerolog.ErrorLevel)
-
-	}
-	c.Logger = lecho.From(zerologLogger)
+	c.Logger = logging.NewEchoLogger(slogLogger)
 	c.Web.Logger = c.Logger
 	c.Web.Validator = c.Validator
 }

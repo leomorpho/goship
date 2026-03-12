@@ -9,6 +9,7 @@ const (
 	AuthenticatedUserIDKey         = "auth_user_id"
 	AuthenticatedUserNameKey       = "auth_user_name"
 	AuthenticatedUserEmailKey      = "auth_user_email"
+	AuthenticatedUserIsAdminKey    = "auth_user_is_admin"
 	AuthenticatedProfileIDKey      = "auth_profile_id"
 	AuthenticatedUserProfilePicURL = "profile_pic_url"
 	ProfileFullyOnboarded          = "profile_fully_onboarded"

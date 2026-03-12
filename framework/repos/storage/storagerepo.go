@@ -8,7 +8,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
+	"log/slog"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -17,6 +19,7 @@ import (
 	storagequeries "github.com/leomorpho/goship/framework/repos/storage/queries"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
+	"github.com/spf13/afero"
 )
 
 type NoImagesInFiles struct {
@@ -65,23 +68,44 @@ type StorageClient struct {
 	db          *sql.DB
 	postgresql  bool
 	minioClient *minio.Client
+	fs          afero.Fs
 }
 
 func NewStorageClient(cfg *config.Config, db *sql.DB, dialect string) *StorageClient {
-	minioClient, err := minio.New(cfg.Storage.S3Endpoint, &minio.Options{
-		Creds:  credentials.NewStaticV4(cfg.Storage.S3AccessKey, cfg.Storage.S3SecretKey, ""),
-		Secure: cfg.Storage.S3UseSSL,
-	})
-	if err != nil {
-		log.Fatalln(err)
+	sc := &StorageClient{
+		config:     cfg,
+		db:         db,
+		postgresql: strings.EqualFold(strings.TrimSpace(dialect), "postgres") || strings.EqualFold(strings.TrimSpace(dialect), "postgresql") || strings.EqualFold(strings.TrimSpace(dialect), "pgx"),
 	}
 
-	return &StorageClient{
-		config:      cfg,
-		db:          db,
-		postgresql:  strings.EqualFold(strings.TrimSpace(dialect), "postgres") || strings.EqualFold(strings.TrimSpace(dialect), "postgresql") || strings.EqualFold(strings.TrimSpace(dialect), "pgx"),
-		minioClient: minioClient,
+	if cfg.App.Environment == config.EnvTest {
+		sc.fs = afero.NewMemMapFs()
+		return sc
 	}
+
+	switch cfg.Storage.Driver {
+	case config.StorageDriverMinIO:
+		minioClient, err := minio.New(cfg.Storage.S3Endpoint, &minio.Options{
+			Creds:  credentials.NewStaticV4(cfg.Storage.S3AccessKey, cfg.Storage.S3SecretKey, ""),
+			Secure: cfg.Storage.S3UseSSL,
+		})
+		if err != nil {
+			slog.Error("failed to initialize minio client", "error", err)
+			os.Exit(1)
+		}
+		sc.minioClient = minioClient
+	case config.StorageDriverLocal:
+		fallthrough
+	default:
+		base := afero.NewOsFs()
+		if err := base.MkdirAll(cfg.Storage.LocalStoragePath, 0o755); err != nil {
+			slog.Error("failed to create local storage path", "path", cfg.Storage.LocalStoragePath, "error", err)
+			os.Exit(1)
+		}
+		sc.fs = afero.NewBasePathFs(base, cfg.Storage.LocalStoragePath)
+	}
+
+	return sc
 }
 
 func (sc *StorageClient) getBucketName(b Bucket) (string, error) {
@@ -100,16 +124,20 @@ func (sc *StorageClient) CreateBucket(bucketName string, location string) error 
 
 	bucketName = bucketName + string(sc.config.App.Environment)
 
+	if sc.fs != nil {
+		return sc.fs.MkdirAll(bucketName, 0o755)
+	}
+
 	err := sc.minioClient.MakeBucket(ctx, bucketName, minio.MakeBucketOptions{Region: location})
 	if err != nil {
 		exists, errBucketExists := sc.minioClient.BucketExists(ctx, bucketName)
 		if errBucketExists == nil && exists {
-			log.Printf("Bucket %s already exists\n", bucketName)
+			slog.Info("Bucket already exists", "bucket", bucketName)
 		} else {
 			return err
 		}
 	} else {
-		log.Printf("Successfully created bucket %s\n", bucketName)
+		slog.Info("Successfully created bucket", "bucket", bucketName)
 	}
 
 	return nil
@@ -125,24 +153,47 @@ func (sc *StorageClient) UploadFile(bucket Bucket, objectName string, fileStream
 
 	// Calculate file size and hash
 	hash := md5.New()
-	size, err := io.Copy(hash, fileStream)
-	if err != nil {
-		return nil, err
-	}
-	fileHash := hex.EncodeToString(hash.Sum(nil))
+	var size int64
+	var fileHash string
 
-	// Seek to the beginning of the file stream if possible
-	if seeker, ok := fileStream.(io.Seeker); ok {
-		_, err = seeker.Seek(0, io.SeekStart)
+	if sc.fs != nil {
+		// For Afero, we can use a TeeReader to calculate hash while writing
+		if err := sc.fs.MkdirAll(bucketName, 0o755); err != nil {
+			return nil, err
+		}
+		fullPath := filepath.Join(bucketName, objectName)
+		file, err := sc.fs.Create(fullPath)
 		if err != nil {
 			return nil, err
 		}
-	}
+		defer file.Close()
 
-	// Upload file to S3-compatible storage
-	_, err = sc.minioClient.PutObject(ctx, bucketName, objectName, fileStream, size, minio.PutObjectOptions{})
-	if err != nil {
-		return nil, err
+		tee := io.TeeReader(fileStream, hash)
+		size, err = io.Copy(file, tee)
+		if err != nil {
+			return nil, err
+		}
+		fileHash = hex.EncodeToString(hash.Sum(nil))
+	} else {
+		size, err = io.Copy(hash, fileStream)
+		if err != nil {
+			return nil, err
+		}
+		fileHash = hex.EncodeToString(hash.Sum(nil))
+
+		// Seek to the beginning of the file stream if possible
+		if seeker, ok := fileStream.(io.Seeker); ok {
+			_, err = seeker.Seek(0, io.SeekStart)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		// Upload file to S3-compatible storage
+		_, err = sc.minioClient.PutObject(ctx, bucketName, objectName, fileStream, size, minio.PutObjectOptions{})
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	fileID, err := sc.insertFileStorageRow(ctx, bucketName, objectName, size, fileHash)
@@ -160,6 +211,12 @@ func (sc *StorageClient) GetPresignedURL(bucket Bucket, objectName string, expir
 		return "", err
 	}
 
+	if sc.fs != nil {
+		// For local storage, return a relative URL that the app serves.
+		// We use /uploads as the prefix which should be registered in the router.
+		return fmt.Sprintf("/uploads/%s/%s", bucketName, objectName), nil
+	}
+
 	presignedURL, err := sc.minioClient.PresignedGetObject(ctx, bucketName, objectName, expiry, nil)
 	if err != nil {
 		return "", err
@@ -174,9 +231,18 @@ func (sc *StorageClient) DeleteFile(bucket Bucket, objectName string) error {
 	if err != nil {
 		return err
 	}
-	err = sc.minioClient.RemoveObject(ctx, bucketName, objectName, minio.RemoveObjectOptions{ForceDelete: true})
-	if err != nil {
-		return err
+
+	if sc.fs != nil {
+		fullPath := filepath.Join(bucketName, objectName)
+		err = sc.fs.Remove(fullPath)
+		if err != nil && !os.IsNotExist(err) {
+			return err
+		}
+	} else {
+		err = sc.minioClient.RemoveObject(ctx, bucketName, objectName, minio.RemoveObjectOptions{ForceDelete: true})
+		if err != nil {
+			return err
+		}
 	}
 
 	queryName := "delete_file_storage_by_object_key_sqlite"

@@ -20,7 +20,7 @@ import (
 	"github.com/leomorpho/goship/framework/domain"
 	pages "github.com/leomorpho/goship/modules/profile/views/web/pages/gen"
 	"github.com/nyaruka/phonenumbers"
-	"github.com/rs/zerolog/log"
+	"log/slog"
 )
 
 type routeService struct {
@@ -90,7 +90,7 @@ func (s *routeService) getProfile(ctx echo.Context) error {
 
 	phoneNumber, err := phonenumbers.Parse(profileData.PhoneNumberE164, "")
 	if err != nil {
-		log.Err(err).Int("profileID", profileData.ID).Msg("failed to parse phone number to international format")
+		slog.Error("failed to parse phone number to international format", "error", err, "profileID", profileData.ID)
 	} else {
 		internationalFormat := phonenumbers.Format(phoneNumber, phonenumbers.INTERNATIONAL)
 		profileData.PhoneNumberInternational = &internationalFormat

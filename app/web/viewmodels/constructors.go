@@ -107,10 +107,6 @@ func NewNormalNotificationsPageData() NormalNotificationsPageData {
 	}
 }
 
-func NewPageData() PageData {
-	return PageData{}
-}
-
 func NewPaymentProcessorPublicKey() PaymentProcessorPublicKey {
 	return PaymentProcessorPublicKey{}
 }

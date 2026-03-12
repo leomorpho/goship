@@ -56,6 +56,7 @@ func RunMakeModule(args []string, d ModuleDeps) int {
 		filepath.Join(moduleDir, "db", "migrate", "migrations", ".gitkeep"): "",
 		filepath.Join(moduleDir, "db", "queries", ".gitkeep"):               "",
 		filepath.Join(moduleDir, "db", "gen", ".gitkeep"):                   "",
+		filepath.Join(moduleDir, "CLAUDE.md"):                               renderModuleClaudeMD(moduleName),
 	}
 
 	if opts.DryRun {
@@ -340,4 +341,41 @@ output: "%s"
 		filepath.ToSlash(filepath.Join(modulePath, "db", "queries")),
 		filepath.ToSlash(filepath.Join(modulePath, "db", "gen")),
 	)
+}
+
+func renderModuleClaudeMD(moduleName string) string {
+	return fmt.Sprintf(`# Module: %s
+
+## What This Module Does
+
+<one paragraph>
+
+## Files
+
+- `+"`module.go`"+` - module ID, config schema, interface implementation
+- `+"`service.go`"+` - business logic (exported API)
+- `+"`store.go`"+` - storage interface
+- `+"`store_sql.go`"+` - SQL implementation using Bob
+- `+"`routes.go`"+` - route registration (implement `+"`core.RoutableModule`"+`)
+- `+"`views/`"+` - templ templates
+- `+"`db/migrate/migrations/`"+` - SQL migration files
+
+## Interfaces Implemented
+
+- `+"`core.Module`"+` (`+"`module.go`"+`)
+- `+"`core.RoutableModule`"+` (`+"`routes.go`"+`) if this module has HTTP routes
+
+## Dependencies
+
+- Other modules this module imports: <list or "none">
+- Framework packages used: <list>
+
+## Conventions
+
+- All HTTP handlers are in `+"`routes.go`"+`, nowhere else.
+- All business logic is in `+"`service.go`"+`; controllers never call the store directly.
+- All DB access goes through the store interface; never put raw SQL in `+"`service.go`"+`.
+- Viewmodels are value types with no pointer fields.
+- Run `+"`ship verify`"+` after every change.
+`, moduleName)
 }

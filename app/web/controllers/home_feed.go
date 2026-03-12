@@ -14,7 +14,7 @@ import (
 	"github.com/leomorpho/goship/app/web/viewmodels"
 	"github.com/leomorpho/goship/framework/domain"
 	profilesvc "github.com/leomorpho/goship/modules/profile"
-	"github.com/rs/zerolog/log"
+	"log/slog"
 )
 
 type (
@@ -63,7 +63,7 @@ func (c *homeFeed) Get(ctx echo.Context) error {
 	if timestampParam != "" {
 		parsedTime, err := time.Parse(time.RFC3339Nano, timestampParam)
 		if err != nil {
-			log.Error().Str("convo", "invalid timestamp format")
+			slog.Error("invalid timestamp format", "error", err, "convo", "invalid timestamp format")
 			return echo.NewHTTPError(http.StatusBadRequest, "Invalid timestamp format")
 		}
 		timestamp = &parsedTime

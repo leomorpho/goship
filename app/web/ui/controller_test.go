@@ -80,6 +80,37 @@ func TestController_Redirect(t *testing.T) {
 	assert.Equal(t, http.StatusFound, ctx.Response().Status)
 }
 
+func TestController_Redirect_HTMXBoosted(t *testing.T) {
+	c.Web.GET("/path/:first/and/:second", func(c echo.Context) error {
+		return nil
+	}).Name = "redirect-test-boosted"
+
+	req := httptest.NewRequest(http.MethodGet, "/abc", nil)
+	req.Header.Set(htmx.HeaderRequest, "true")
+	req.Header.Set(htmx.HeaderBoosted, "true")
+	rec := httptest.NewRecorder()
+	ctx := c.Web.NewContext(req, rec)
+
+	ctr := ui.NewController(c)
+	err := ctr.Redirect(ctx, "redirect-test-boosted", "one", "two")
+	require.NoError(t, err)
+	assert.Equal(t, "/path/one/and/two", rec.Header().Get(htmx.HeaderRedirect))
+	assert.Equal(t, http.StatusOK, rec.Code)
+}
+
+func TestController_RedirectWithDetails_Query(t *testing.T) {
+	c.Web.GET("/path/:first", func(c echo.Context) error {
+		return nil
+	}).Name = "redirect-with-query"
+
+	ctx, _ := tests.NewContext(c.Web, "/abc")
+	ctr := ui.NewController(c)
+	err := ctr.RedirectWithDetails(ctx, "redirect-with-query", "?tab=profile", http.StatusFound, "one")
+	require.NoError(t, err)
+	assert.Equal(t, "/path/one?tab=profile", ctx.Response().Header().Get(echo.HeaderLocation))
+	assert.Equal(t, http.StatusFound, ctx.Response().Status)
+}
+
 func TestController_RenderToHTMLBlob(t *testing.T) {
 	setup := func() (ui.Controller, ui.Page) {
 		ctx, _ := tests.NewContext(c.Web, "/test/TestController_RenderPage")

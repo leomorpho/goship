@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -14,14 +15,14 @@ import (
 	"github.com/leomorpho/goship-modules/notifications"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/app/foundation"
-	"github.com/leomorpho/goship/app/web/middleware"
+	appmiddleware "github.com/leomorpho/goship/app/web/middleware"
 	"github.com/leomorpho/goship/config"
+	"github.com/leomorpho/goship/framework/logging"
+	"github.com/leomorpho/goship/framework/middleware"
 	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
 	"github.com/leomorpho/goship/framework/runtimeplan"
 	profilesvc "github.com/leomorpho/goship/modules/profile"
-	"github.com/rs/zerolog/log"
 	slogecho "github.com/samber/slog-echo"
-	"github.com/ziflex/lecho/v3"
 )
 
 const (
@@ -90,8 +91,12 @@ func activeDatabaseDialect(cfg *config.Config) string {
 
 func RegisterStaticRoutes(c *foundation.Container) {
 	// Static files with proper cache control.
-	c.Web.Group("", middleware.CacheControl(c.Config.Cache.Expiration.StaticFile), echomw.Gzip()).
+	c.Web.Group("", appmiddleware.CacheControl(c.Config.Cache.Expiration.StaticFile), echomw.Gzip()).
 		Static(config.StaticPrefix, config.StaticDir)
+
+	if c.Config.Storage.Driver == config.StorageDriverLocal {
+		c.Web.Static("/uploads", c.Config.Storage.LocalStoragePath)
+	}
 
 	// Custom handler for serving Android asset links.
 	c.Web.GET(pathAndroidAssetLinks, func(ctx echo.Context) error {
@@ -110,15 +115,13 @@ func commonMiddleware(c *foundation.Container, deps *RouteDeps, sessionStore *se
 	return []echo.MiddlewareFunc{
 		echomw.RemoveTrailingSlashWithConfig(echomw.TrailingSlashConfig{RedirectCode: http.StatusMovedPermanently}),
 		echomw.Secure(),
-		echomw.RequestID(),
-		middleware.LogRequestID(),
+		middleware.RequestID(),
 		session.Middleware(sessionStore),
-		middleware.LoadAuthenticatedUser(c.Auth, deps.ProfileService, deps.SubscriptionsRepo),
+		appmiddleware.LoadAuthenticatedUser(c.Auth, deps.ProfileService, deps.SubscriptionsRepo),
 		echomw.CSRFWithConfig(echomw.CSRFConfig{
 			TokenLookup:  "form:csrf,header:X-CSRF-Token,query:csrf",
 			CookieMaxAge: 172800, // 48h
 		}),
-		lecho.Middleware(lecho.Config{Logger: c.Logger}),
 	}
 }
 
@@ -127,36 +130,37 @@ func ApplyMainMiddleware(c *foundation.Container, g *echo.Group, logger *slog.Lo
 	base := commonMiddleware(c, deps, sessionStore)
 
 	mw := []echo.MiddlewareFunc{
-		middleware.RecoverPanics(c.Logger),
+		appmiddleware.RecoverPanics(c.Logger),
 		echomw.Gzip(),
 		slogecho.New(logger),
 		echomw.TimeoutWithConfig(echomw.TimeoutConfig{Skipper: sseSkipper, Timeout: c.Config.App.Timeout}),
 	}
 	mw = append(mw, base...)
-	mw = append(mw, middleware.SetDeviceTypeToServe())
+	mw = append(mw, appmiddleware.SetDeviceTypeToServe())
 	g.Use(mw...)
 
 	if webFeatures.EnablePageCache {
-		g.Use(middleware.ServeCachedPage(c.Cache))
+		g.Use(appmiddleware.ServeCachedPage(c.Cache))
 	} else {
-		log.Info().Msg("page cache middleware disabled (cache dependency unavailable or web process disabled)")
+		logging.FromContext(context.Background()).Info("page cache middleware disabled (cache dependency unavailable or web process disabled)")
 	}
 }
 
-func ApplyRealtimeMiddleware(c *foundation.Container, s *echo.Group, deps *RouteDeps) {
+func ApplyRealtimeMiddleware(c *foundation.Container, s *echo.Group, logger *slog.Logger, deps *RouteDeps) {
 	sessionStore := sessions.NewCookieStore([]byte(c.Config.App.EncryptionKey))
 	base := commonMiddleware(c, deps, sessionStore)
-	mw := []echo.MiddlewareFunc{middleware.RecoverPanics(c.Logger), echomw.Logger()}
+	mw := []echo.MiddlewareFunc{appmiddleware.RecoverPanics(c.Logger), slogecho.New(logger)}
 	mw = append(mw, base...)
 	s.Use(mw...)
 }
 
-func ApplyExternalMiddleware(c *foundation.Container, e *echo.Group, deps *RouteDeps) {
+func ApplyExternalMiddleware(c *foundation.Container, e *echo.Group, logger *slog.Logger, deps *RouteDeps) {
 	sessionStore := sessions.NewCookieStore([]byte(c.Config.App.EncryptionKey))
 	base := commonMiddleware(c, deps, sessionStore)
 	mw := []echo.MiddlewareFunc{
-		middleware.RecoverPanics(c.Logger),
+		appmiddleware.RecoverPanics(c.Logger),
 		echomw.Gzip(),
+		slogecho.New(logger),
 		echomw.TimeoutWithConfig(echomw.TimeoutConfig{Skipper: sseSkipper, Timeout: c.Config.App.Timeout}),
 	}
 	mw = append(mw, base...)

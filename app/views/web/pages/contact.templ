@@ -6,7 +6,7 @@ import (
 	"github.com/leomorpho/goship/app/views/web/components/gen"
 )
 
-// Renders: contact component.
+// Renders: contact page with introductory message and contact form
 templ Contact(page *controller.Page) {
 	if page.HTMX.Request.Target != "contact" {
 		<article data-component="contact" class="message is-link">

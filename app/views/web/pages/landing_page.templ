@@ -10,7 +10,7 @@ import (
 	pwacomponents "github.com/leomorpho/goship/modules/pwa/views/web/components/gen"
 )
 
-// Renders: landing-page component.
+// Renders: main landing page with hero, features, pricing, and FAQ
 templ LandingPage(page *controller.Page) {
 	<div data-component="landing-page" class="top-0 z-50 flex flex-row justify-center items-center flex-wrap ">
 		if !page.IsIosDevice {
@@ -78,6 +78,7 @@ templ mobileDarkModeButton() {
 }
 
 // Renders: animate-on-scroll-library component.
+// Renders: AOS library links and initialization script
 templ AnimateOnScrollLibrary() {
 	<!-- Animate on scroll library -->
 	<link data-component="animate-on-scroll-library" href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet"/>
@@ -300,6 +301,7 @@ templ pricingForLandingPage(page *controller.Page, data viewmodels.LandingPage) 
 }
 
 // Renders: q-a-section component.
+// Renders: common questions and answers section
 templ QASection(questions []viewmodels.QAItem) {
 	<div data-component="q-a-section" class="w-full py-8 px-4 md:px-6">
 		<div class="max-w-3xl mx-auto">

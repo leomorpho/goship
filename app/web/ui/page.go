@@ -84,6 +84,9 @@ type Page struct {
 	// IsAuth stores whether or not the user is authenticated
 	IsAuth bool
 
+	// IsAdmin stores whether or not the authenticated user is an admin.
+	IsAdmin bool
+
 	// IsFullyOnboarded indicates whether the user is fully onboarded
 	IsFullyOnboarded bool
 
@@ -185,6 +188,9 @@ func NewPage(ctx echo.Context) Page {
 			p.IsFullyOnboarded = fullyOnboarded.(bool)
 		} else {
 			p.IsFullyOnboarded = false
+		}
+		if isAdmin, ok := ctx.Get(context.AuthenticatedUserIsAdminKey).(bool); ok {
+			p.IsAdmin = isAdmin
 		}
 	}
 	if u := ctx.Get(context.AuthenticatedUserProfilePicURL); u != nil {

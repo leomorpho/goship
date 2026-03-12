@@ -8,7 +8,7 @@ package components
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-// Renders: page-loading-indicator component.
+// Renders: full-screen semi-transparent loading overlay with animated dots
 func PageLoadingIndicator() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -38,7 +38,7 @@ func PageLoadingIndicator() templ.Component {
 	})
 }
 
-// Renders: bottom-loading-indicator component.
+// Renders: inline loading spinner for bottom of lists or containers
 func BottomLoadingIndicator() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context

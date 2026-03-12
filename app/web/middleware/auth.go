@@ -4,7 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
+	"strings"
 
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
@@ -14,7 +16,7 @@ import (
 	"github.com/leomorpho/goship/framework/context"
 	"github.com/leomorpho/goship/framework/dberrors"
 	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
-	"github.com/rs/zerolog/log"
+	"log/slog"
 )
 
 type profileThumbnailReader interface {
@@ -33,6 +35,7 @@ func LoadAuthenticatedUser(
 				c.Set(context.AuthenticatedUserIDKey, u.UserID)
 				c.Set(context.AuthenticatedUserNameKey, u.UserName)
 				c.Set(context.AuthenticatedUserEmailKey, u.UserEmail)
+				c.Set(context.AuthenticatedUserIsAdminKey, userIsAdmin(u.UserEmail))
 				if u.HasProfile {
 					c.Set(context.AuthenticatedProfileIDKey, u.ProfileID)
 					c.Set(context.ProfileFullyOnboarded, u.ProfileFullyOnboarded)
@@ -118,7 +121,7 @@ func RequireAuthentication() echo.MiddlewareFunc {
 				// Get the session
 				sess, err := session.Get("session", c)
 				if err != nil {
-					log.Error().Err(err).Msg("failed to open session to save redirectAfterLogin URL to it")
+					slog.Error("failed to open session to save redirectAfterLogin URL to it", "error", err)
 				} else {
 					// Store the original URL they were trying to access
 					currentURL := c.Request().RequestURI
@@ -151,4 +154,37 @@ func RequireNoAuthentication() echo.MiddlewareFunc {
 			return next(c)
 		}
 	}
+}
+
+// RequireAdmin requires an authenticated admin user.
+func RequireAdmin() echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			if c.Get(context.AuthenticatedUserIDKey) == nil {
+				return echo.NewHTTPError(http.StatusUnauthorized)
+			}
+			isAdmin, _ := c.Get(context.AuthenticatedUserIsAdminKey).(bool)
+			if !isAdmin {
+				return echo.NewHTTPError(http.StatusForbidden, "admin access required")
+			}
+			return next(c)
+		}
+	}
+}
+
+func userIsAdmin(email string) bool {
+	email = strings.ToLower(strings.TrimSpace(email))
+	if email == "" {
+		return false
+	}
+	raw := strings.TrimSpace(os.Getenv("PAGODA_ADMIN_EMAILS"))
+	if raw == "" {
+		return false
+	}
+	for _, candidate := range strings.Split(raw, ",") {
+		if strings.ToLower(strings.TrimSpace(candidate)) == email {
+			return true
+		}
+	}
+	return false
 }

@@ -8,7 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/leomorpho/goship/app/foundation"
 	"github.com/leomorpho/goship/framework/dberrors"
-	"github.com/rs/zerolog/log"
+	"log/slog"
 )
 
 // LoadAuthenticatedUser loads the authenticated user, if one, and stores in context
@@ -21,7 +21,7 @@ func SetLastSeenOnline(authClient *foundation.AuthClient) echo.MiddlewareFunc {
 			case err == nil:
 				err = authClient.SetLastOnlineTimestamp(c, u.UserID)
 				if err != nil {
-					log.Error().Err(err).Msg("failed to set last seen online")
+					slog.Error("failed to set last seen online", "error", err)
 				}
 				c.Logger().Infof("last seen timestamp set for user: %d", u.UserID)
 			default:

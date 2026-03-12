@@ -8,7 +8,7 @@ import (
 	"github.com/leomorpho/goship/app/views/web/helpers/gen"
 )
 
-// Renders: home component.
+// Renders: home page with welcome message, recent posts, and file serving info
 templ Home(page *controller.Page) {
 	if page.HTMX.Request.Target != "posts" {
 		@homeTopContent(page)

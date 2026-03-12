@@ -4,6 +4,7 @@ import (
 	stdcontext "context"
 	"fmt"
 	"io/fs"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"time"
@@ -23,7 +24,6 @@ import (
 	"github.com/leomorpho/goship/app/views/web/pages/gen"
 	"github.com/leomorpho/goship/app/web/viewmodels"
 	customctx "github.com/leomorpho/goship/framework/context"
-	"github.com/rs/zerolog/log"
 )
 
 const notificationQueryParam = "notif"
@@ -148,7 +148,7 @@ func (r *NormalNotificationsRoute) Get(ctx echo.Context) error {
 	if timestampParam != "" {
 		parsedTime, err := time.Parse(time.RFC3339Nano, timestampParam)
 		if err != nil {
-			log.Error().Str("convo", "invalid timestamp format")
+			slog.Error("invalid timestamp format", "convo", "invalid timestamp format")
 			return echo.NewHTTPError(http.StatusBadRequest, "Invalid timestamp format")
 		}
 		timestamp = &parsedTime
@@ -376,12 +376,12 @@ func (r *OutgoingNotificationsRoute) RegisterSubscription(ctx echo.Context) erro
 
 	if permission != nil {
 		if err := r.notificationPermissionService.CreatePermission(ctx.Request().Context(), profileID, *permission, platform); err != nil {
-			log.Error().Err(err).Msg("failed to create notification permission")
+			slog.Error("failed to create notification permission", "error", err)
 		}
 	} else {
 		for _, perm := range domain.NotificationPermissions.Members() {
 			if err := r.notificationPermissionService.CreatePermission(ctx.Request().Context(), profileID, perm, platform); err != nil {
-				log.Error().Err(err).Msg("failed to create notification permission")
+				slog.Error("failed to create notification permission", "error", err)
 			}
 		}
 	}
@@ -446,12 +446,12 @@ func (r *OutgoingNotificationsRoute) DeleteSubscription(ctx echo.Context) error 
 
 	if permission != nil {
 		if err := r.notificationPermissionService.DeletePermission(ctx.Request().Context(), profileID, *permission, platform, nil); err != nil {
-			log.Error().Err(err).Msg("failed to delete notification permission")
+			slog.Error("failed to delete notification permission", "error", err)
 		}
 	} else {
 		for _, perm := range domain.NotificationPermissions.Members() {
 			if err := r.notificationPermissionService.DeletePermission(ctx.Request().Context(), profileID, perm, platform, nil); err != nil {
-				log.Error().Err(err).Msg("failed to delete notification permission")
+				slog.Error("failed to delete notification permission", "error", err)
 			}
 		}
 	}
@@ -512,7 +512,7 @@ func (r *OutgoingNotificationsRoute) DeleteEmailSubscription(ctx echo.Context) e
 	case domain.NotificationPermissionNewFriendActivity:
 		notificationName = "partner activity"
 	default:
-		log.Error().Str("notifPermission", permission.Value).Msg("no notification exists with that name")
+		slog.Error("no notification exists with that name", "notifPermission", permission.Value)
 	}
 
 	permissionErr := r.notificationPermissionService.DeletePermission(
@@ -529,12 +529,13 @@ func (r *OutgoingNotificationsRoute) DeleteEmailSubscription(ctx echo.Context) e
 	}
 
 	if permissionErr != nil {
-		log.Error().Err(permissionErr).
-			Int("profileID", profileData.ID).
-			Str("notifPermission", permission.Value).
-			Str("platform", domain.NotificationPlatformEmail.Value).
-			Str("token", token).
-			Msg("failed to delete email notification permission")
+		slog.Error("failed to delete email notification permission",
+			"error", permissionErr,
+			"profileID", profileData.ID,
+			"notifPermission", permission.Value,
+			"platform", domain.NotificationPlatformEmail.Value,
+			"token", token,
+		)
 
 		if dberrors.IsNotFound(permissionErr) {
 			if notificationName != "" {

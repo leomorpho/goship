@@ -21,7 +21,7 @@ require (
 	github.com/jackc/pgx/v4 v4.18.1
 	github.com/janberktold/sse v0.0.0-20160725172337-a8efe87fc656
 	github.com/labstack/echo-contrib v0.15.0
-	github.com/labstack/echo/v4 v4.11.4
+	github.com/labstack/echo/v4 v4.13.3
 	github.com/labstack/gommon v0.4.2
 	github.com/leomorpho/goship-modules/emailsubscriptions v0.0.0
 	github.com/leomorpho/goship-modules/jobs v0.0.0
@@ -35,14 +35,14 @@ require (
 	github.com/nyaruka/phonenumbers v1.3.4
 	github.com/orsinium-labs/enum v1.3.0
 	github.com/resend/resend-go/v2 v2.5.0
-	github.com/rs/zerolog v1.29.1
+	github.com/rs/zerolog v1.34.0
 	github.com/samber/slog-echo v1.12.1
 	github.com/stretchr/testify v1.11.1
 	github.com/stripe/stripe-go/v78 v78.6.0
 	github.com/testcontainers/testcontainers-go v0.29.1
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.29.1
-	github.com/ziflex/lecho/v3 v3.5.0
-	golang.org/x/crypto v0.43.0
+	github.com/ziflex/lecho/v3 v3.10.0
+	golang.org/x/crypto v0.45.0
 	golang.org/x/exp v0.0.0-20251023183803-a4bb9ffd2546
 	modernc.org/sqlite v1.46.1
 )
@@ -172,11 +172,12 @@ require (
 	github.com/redis/go-redis/v9 v9.14.1 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
-	github.com/rs/xid v1.5.0 // indirect
+	github.com/rs/xid v1.6.0 // indirect
 	github.com/samber/lo v1.39.0 // indirect
 	github.com/shirou/gopsutil/v3 v3.23.12 // indirect
 	github.com/shoenig/go-m1cpu v0.1.6 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
+	github.com/spf13/afero v1.15.0 // indirect
 	github.com/spf13/cast v1.10.0 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/tklauser/go-sysconf v0.3.12 // indirect
@@ -193,11 +194,11 @@ require (
 	go.opentelemetry.io/otel/trace v1.27.0 // indirect
 	golang.org/x/image v0.15.0 // indirect
 	golang.org/x/mod v0.29.0 // indirect
-	golang.org/x/net v0.46.0 // indirect
+	golang.org/x/net v0.47.0 // indirect
 	golang.org/x/oauth2 v0.21.0 // indirect
-	golang.org/x/sync v0.17.0 // indirect
-	golang.org/x/sys v0.37.0 // indirect
-	golang.org/x/text v0.30.0 // indirect
+	golang.org/x/sync v0.18.0 // indirect
+	golang.org/x/sys v0.38.0 // indirect
+	golang.org/x/text v0.31.0 // indirect
 	golang.org/x/time v0.14.0 // indirect
 	golang.org/x/tools v0.38.0 // indirect
 	google.golang.org/api v0.183.0 // indirect

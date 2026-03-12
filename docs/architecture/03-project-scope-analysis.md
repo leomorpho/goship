@@ -101,6 +101,10 @@ Task processors under `app/jobs`:
 
 Worker bootstrap and registration in `cmd/worker/main.go`.
 
+**Supported Backends:**
+- **Asynq:** Distributed task processing via Redis. Requires a separate worker process.
+- **Backlite:** SQLite-backed task processing for single-binary or zero-dependency modes. Runs in-process with the web server, removing the need for a separate worker.
+
 ## 8) Frontend Delivery Model
 
 - Server-rendered pages via Templ (`app/views/` + `app/web/ui`)
@@ -112,6 +116,14 @@ Build pipeline:
 
 - JS via `frontend/vite.config.ts` + Vite
 - CSS via Tailwind CLI in Makefile
+
+## 9) Admin Panel
+
+Reflection-based administrative interface for managing database resources.
+
+- Resource registration and CRUD operations for Bob-generated models.
+- Embedded Backlite queue monitoring.
+- Built-in Templ components for common admin UI patterns.
 
 ## Environments and Configuration
 

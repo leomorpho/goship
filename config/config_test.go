@@ -40,6 +40,25 @@ func TestGetConfig_EnvironmentOverrides(t *testing.T) {
 	assert.False(t, cfg.Processes.Worker)
 }
 
+func TestGetConfig_APPENVCompatibilityAlias(t *testing.T) {
+	useIsolatedWorkingDir(t)
+	t.Setenv("PAGODA_APP_ENVIRONMENT", "")
+	t.Setenv("APP_ENV", "production")
+
+	cfg, err := GetConfig()
+	require.NoError(t, err)
+	assert.Equal(t, EnvProduction, cfg.App.Environment)
+}
+
+func TestGetConfig_EnvironmentNormalization(t *testing.T) {
+	useIsolatedWorkingDir(t)
+	t.Setenv("PAGODA_APP_ENVIRONMENT", "development")
+
+	cfg, err := GetConfig()
+	require.NoError(t, err)
+	assert.Equal(t, EnvDevelop, cfg.App.Environment)
+}
+
 func TestGetConfig_UsesProcessProfile(t *testing.T) {
 	useIsolatedWorkingDir(t)
 	t.Setenv("PAGODA_APP_ENVIRONMENT", string(EnvLocal))

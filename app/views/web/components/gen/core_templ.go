@@ -16,7 +16,7 @@ import (
 	"strings"
 )
 
-// Renders: metatags component.
+// Renders: HTML head metatags for SEO, social sharing, and PWA configuration
 func Metatags(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -129,7 +129,7 @@ func Metatags(page *controller.Page) templ.Component {
 	})
 }
 
-// Renders: c-s-s component.
+// Renders: CSS stylesheet links and inline global styles
 func CSS() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -185,7 +185,7 @@ func CSS() templ.Component {
 	})
 }
 
-// Renders: j-s component.
+// Renders: global JavaScript bundle and third-party library script tags
 func JS() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -347,7 +347,7 @@ func htmxBeforeSwap() templ.ComponentScript {
 	}
 }
 
-// Renders: j-s-footer component.
+// Renders: footer JavaScript initialization and HTMX event listeners
 func JSFooter(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -458,7 +458,7 @@ func beforeBodyEnd() templ.Component {
 	})
 }
 
-// Renders: text-footer component.
+// Renders: application footer with copyright notice and navigation links
 func TextFooter(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context

@@ -20,7 +20,7 @@ import (
 	customctx "github.com/leomorpho/goship/framework/context"
 	"github.com/leomorpho/goship/framework/core"
 	"github.com/leomorpho/goship/framework/domain"
-	"github.com/rs/zerolog/log"
+	"log/slog"
 	"github.com/stripe/stripe-go/v78"
 	portalsession "github.com/stripe/stripe-go/v78/billingportal/session"
 	"github.com/stripe/stripe-go/v78/checkout/session"
@@ -164,7 +164,7 @@ func (m *RouteModule) HandleWebhook(ctx echo.Context) error {
 	secret := m.controller.Container.Config.App.StripeWebhookSecret
 	event, err := webhook.ConstructEvent(payload, ctx.Request().Header.Get("Stripe-Signature"), secret)
 	if err != nil {
-		log.Error().Err(err).Str("StripeWebhookSecret", secret).Msg("error verifying webhook signature")
+		slog.Error("error verifying webhook signature", "error", err, "StripeWebhookSecret", secret)
 		return ctx.JSON(http.StatusBadRequest, map[string]string{"error": "error verifying webhook signature"})
 	}
 
@@ -172,7 +172,7 @@ func (m *RouteModule) HandleWebhook(ctx echo.Context) error {
 	case "customer.subscription.deleted":
 		var subscription stripe.Subscription
 		if err := json.Unmarshal(event.Data.Raw, &subscription); err != nil {
-			log.Error().Err(err).Msg("error parsing webhook JSON")
+			slog.Error("error parsing webhook JSON", "error", err)
 			return echo.ErrBadRequest
 		}
 
@@ -187,7 +187,7 @@ func (m *RouteModule) HandleWebhook(ctx echo.Context) error {
 	case "customer.subscription.updated":
 		var subscription stripe.Subscription
 		if err := json.Unmarshal(event.Data.Raw, &subscription); err != nil {
-			log.Error().Err(err).Msg("error parsing webhook JSON")
+			slog.Error("error parsing webhook JSON", "error", err)
 			return echo.ErrBadRequest
 		}
 
@@ -211,7 +211,7 @@ func (m *RouteModule) HandleWebhook(ctx echo.Context) error {
 	case "customer.subscription.created":
 		var subscription stripe.Subscription
 		if err := json.Unmarshal(event.Data.Raw, &subscription); err != nil {
-			log.Error().Err(err).Msg("error parsing webhook JSON")
+			slog.Error("error parsing webhook JSON", "error", err)
 			return echo.ErrBadRequest
 		}
 
@@ -226,7 +226,7 @@ func (m *RouteModule) HandleWebhook(ctx echo.Context) error {
 	case "invoice.payment_failed":
 		var invoice stripe.Invoice
 		if err := json.Unmarshal(event.Data.Raw, &invoice); err != nil {
-			log.Error().Err(err).Msg("error parsing webhook JSON")
+			slog.Error("error parsing webhook JSON", "error", err)
 			return echo.ErrBadRequest
 		}
 
@@ -253,10 +253,11 @@ func (m *RouteModule) HandleWebhook(ctx echo.Context) error {
 			true,
 		)
 		if err != nil {
-			log.Error().Err(err).
-				Int("selfProfileID", profileID).
-				Str("type", domain.NotificationTypePaymentFailed.Value).
-				Msg("failed to create notification")
+			slog.Error("failed to create notification",
+				"error", err,
+				"selfProfileID", profileID,
+				"type", domain.NotificationTypePaymentFailed.Value,
+			)
 		}
 
 		if err := m.service.CancelWithGracePeriod(ctx.Request().Context(), profileID); err != nil {
@@ -264,7 +265,7 @@ func (m *RouteModule) HandleWebhook(ctx echo.Context) error {
 		}
 
 	default:
-		log.Error().Str("eventType", string(event.Type)).Msg("unhandled event type")
+		slog.Error("unhandled event type", "eventType", string(event.Type))
 	}
 
 	return ctx.JSON(http.StatusOK, map[string]string{"status": "success"})

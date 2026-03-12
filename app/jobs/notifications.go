@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"math/rand"
 	"strconv"
 	"strings"
@@ -19,7 +18,7 @@ import (
 	dbqueries "github.com/leomorpho/goship/db/queries"
 	"github.com/leomorpho/goship/framework/core"
 	"github.com/leomorpho/goship/framework/domain"
-	"github.com/rs/zerolog/log"
+	"log/slog"
 )
 
 var dailyNotifText = []string{
@@ -85,15 +84,14 @@ func (d *AllDailyConvoNotificationsProcessor) ProcessTask(
 
 		payload, err := json.Marshal(DailyConvoNotificationsPayload{ProfileIDs: batch})
 		if err != nil {
-			log.Error().Err(err).Msg("failed to marshal TypeDailyConvoNotification payload")
+			slog.Error("failed to marshal TypeDailyConvoNotification payload", "error", err)
 			continue
 		}
 		if _, err := d.taskRunner.Enqueue(ctx, TypeDailyConvoNotification, payload, core.EnqueueOptions{
 			Timeout:   120 * time.Second,
 			Retention: 24 * time.Hour,
 		}); err != nil {
-			log.Error().Err(err).
-				Msg("failed to start TypeDailyConvoNotification task")
+			slog.Error("failed to start TypeDailyConvoNotification task", "error", err)
 		}
 	}
 
@@ -137,7 +135,7 @@ func (d *DailyConvoNotificationsProcessor) ProcessTask(
 
 	var p DailyConvoNotificationsPayload
 	if err := json.Unmarshal(t.Payload(), &p); err != nil {
-		fmt.Printf("Error unmarshalling payload: %v\n", err)
+		slog.Error("Error unmarshalling payload", "error", err)
 		return err
 	}
 
@@ -157,10 +155,7 @@ func (d *DailyConvoNotificationsProcessor) ProcessTask(
 
 		prod, _, _, err := d.subscriptionRepo.GetCurrentlyActiveProduct(ctx, profileID)
 		if err != nil {
-			log.Error().
-				Err(err).
-				Int("profileID", profileID).
-				Msg("failed to get currently active plan")
+			slog.Error("failed to get currently active plan", "error", err, "profileID", profileID)
 			return err
 		}
 		var title string
@@ -181,11 +176,10 @@ func (d *DailyConvoNotificationsProcessor) ProcessTask(
 			Link:                      url,
 		}, true, true)
 		if err != nil {
-			log.Error().
-				Err(err).
-				Int("profileID", profileID).
-				Str("type", domain.NotificationTypeDailyConversationReminder.Value).
-				Msg("failed to send notification")
+			slog.Error("failed to send notification",
+				"error", err,
+				"profileID", profileID,
+				"type", domain.NotificationTypeDailyConversationReminder.Value)
 		}
 	}
 

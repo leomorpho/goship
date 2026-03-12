@@ -117,3 +117,27 @@ func TestLoadValidPasswordToken(t *testing.T) {
 	err = tests.ExecuteMiddleware(ctx, LoadValidPasswordToken(c.Auth))
 	assert.Nil(t, err)
 }
+
+func TestRequireAdmin(t *testing.T) {
+	ctx, _ := tests.NewContext(c.Web, "/")
+	tests.InitSession(ctx)
+
+	err := tests.ExecuteMiddleware(ctx, RequireAdmin())
+	tests.AssertHTTPErrorCode(t, err, http.StatusUnauthorized)
+
+	ctx.Set(context.AuthenticatedUserIDKey, usr.ID)
+	ctx.Set(context.AuthenticatedUserIsAdminKey, false)
+	err = tests.ExecuteMiddleware(ctx, RequireAdmin())
+	tests.AssertHTTPErrorCode(t, err, http.StatusForbidden)
+
+	ctx.Set(context.AuthenticatedUserIsAdminKey, true)
+	err = tests.ExecuteMiddleware(ctx, RequireAdmin())
+	require.NoError(t, err)
+}
+
+func TestUserIsAdmin(t *testing.T) {
+	t.Setenv("PAGODA_ADMIN_EMAILS", "admin@example.com, owner@example.com")
+	assert.True(t, userIsAdmin("admin@example.com"))
+	assert.True(t, userIsAdmin("Owner@example.com"))
+	assert.False(t, userIsAdmin("user@example.com"))
+}

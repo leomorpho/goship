@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
+	"log/slog"
 	"time"
 
 	"github.com/hibiken/asynq"
@@ -83,14 +83,16 @@ func (c *Client) countTasksInQueue(
 ) int {
 	queues, err := c.inspector.Queues()
 	if err != nil {
-		log.Fatalf("failed to list queues: %v", err)
+		slog.Error("failed to list queues", "error", err)
+		return 0
 	}
 
 	count := 0
 	for _, q := range queues {
 		tasks, err := listTasksFunc(q)
 		if err != nil {
-			log.Fatalf("failed to list tasks for queue %s: %v", q, err)
+			slog.Error("failed to list tasks for queue", "queue", q, "error", err)
+			return 0
 		}
 		for _, task := range tasks {
 			if task.Type == taskType {

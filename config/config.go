@@ -26,6 +26,7 @@ type environment string
 type dbmode string
 type runtimeprofile string
 type dbdriver string
+type storagedriver string
 
 const (
 	// EnvLocal represents the local environment
@@ -66,6 +67,12 @@ const (
 
 	// DBDriverSQLite uses an embedded SQLite database.
 	DBDriverSQLite dbdriver = "sqlite"
+
+	// StorageDriverLocal uses the local filesystem via Afero.
+	StorageDriverLocal storagedriver = "local"
+
+	// StorageDriverMinIO uses MinIO/S3 compatible storage.
+	StorageDriverMinIO storagedriver = "minio"
 )
 
 // SwitchEnvironment sets the environment variable used to dictate which environment the application is
@@ -82,6 +89,7 @@ type (
 	Config struct {
 		HTTP        HTTPConfig
 		App         AppConfig
+		Log         LogConfig
 		Runtime     RuntimeConfig
 		Processes   ProcessesConfig
 		Adapters    AdaptersConfig
@@ -91,6 +99,11 @@ type (
 		Phone       PhoneConfig
 		Recommender RecommenderConfig
 		Storage     StorageConfig
+	}
+
+	LogConfig struct {
+		Level  string `env:"PAGODA_LOG_LEVEL" env-default:"info"`
+		Format string `env:"PAGODA_LOG_FORMAT" env-default:"text"`
 	}
 
 	RuntimeConfig struct {
@@ -232,14 +245,16 @@ type (
 	}
 
 	StorageConfig struct {
-		AppBucketName             string `env:"PAGODA_STORAGE_APPBUCKETNAME"`
-		StaticFilesBucketName     string `env:"PAGODA_STORAGE_STATICFILESBUCKETNAME"`
-		S3Endpoint                string `env:"PAGODA_STORAGE_S3ENDPOINT"`
-		S3AccessKey               string `env:"PAGODA_STORAGE_S3ACCESSKEY"`
-		S3SecretKey               string `env:"PAGODA_STORAGE_S3SECRETKEY"`
-		S3UseSSL                  bool   `env:"PAGODA_STORAGE_S3USESSL"`
-		ProfilePhotoMaxFileSizeMB int64  `env:"PAGODA_STORAGE_PROFILEPHOTOMAXFILESIZEMB"`
-		PhotosMaxFileSizeMB       int64  `env:"PAGODA_STORAGE_PHOTOSMAXFILESIZEMB"`
+		Driver                    storagedriver `env:"PAGODA_STORAGE_DRIVER"`
+		LocalStoragePath          string        `env:"PAGODA_STORAGE_LOCALSTORAGEPATH" env-default:"./uploads"`
+		AppBucketName             string        `env:"PAGODA_STORAGE_APPBUCKETNAME"`
+		StaticFilesBucketName     string        `env:"PAGODA_STORAGE_STATICFILESBUCKETNAME"`
+		S3Endpoint                string        `env:"PAGODA_STORAGE_S3ENDPOINT"`
+		S3AccessKey               string        `env:"PAGODA_STORAGE_S3ACCESSKEY"`
+		S3SecretKey               string        `env:"PAGODA_STORAGE_S3SECRETKEY"`
+		S3UseSSL                  bool          `env:"PAGODA_STORAGE_S3USESSL"`
+		ProfilePhotoMaxFileSizeMB int64         `env:"PAGODA_STORAGE_PROFILEPHOTOMAXFILESIZEMB"`
+		PhotosMaxFileSizeMB       int64         `env:"PAGODA_STORAGE_PHOTOSMAXFILESIZEMB"`
 	}
 )
 
@@ -328,6 +343,10 @@ func defaultConfig() Config {
 				MaxLikedQuestionHistoryFreePlan:                   3,
 			},
 		},
+		Log: LogConfig{
+			Level:  "info",
+			Format: "text",
+		},
 		Runtime:   RuntimeConfig{},
 		Processes: ProcessesConfig{},
 		Adapters: AdaptersConfig{
@@ -382,6 +401,8 @@ func defaultConfig() Config {
 			NumProfilesToMatchAtOnce: 100,
 		},
 		Storage: StorageConfig{
+			Driver:                    StorageDriverLocal,
+			LocalStoragePath:          "./uploads",
 			AppBucketName:             "goship-dev",
 			StaticFilesBucketName:     "goship-static",
 			S3Endpoint:                "s3.us-west-002.backblazeb2.com",
@@ -396,12 +417,41 @@ func defaultConfig() Config {
 
 func resolveEnvironment(configured environment) environment {
 	if env := strings.TrimSpace(os.Getenv("PAGODA_APP_ENVIRONMENT")); env != "" {
-		return environment(env)
+		return normalizeEnvironment(environment(env))
+	}
+	// APP_ENV is supported as a compatibility alias.
+	if env := strings.TrimSpace(os.Getenv("APP_ENV")); env != "" {
+		return normalizeEnvironment(environment(env))
 	}
 	if configured != "" {
-		return configured
+		return normalizeEnvironment(configured)
 	}
 	return EnvLocal
+}
+
+func normalizeEnvironment(env environment) environment {
+	switch strings.ToLower(strings.TrimSpace(string(env))) {
+	case "production":
+		return EnvProduction
+	case "development":
+		return EnvDevelop
+	case "testing":
+		return EnvTest
+	case "prod":
+		return EnvProduction
+	case "dev":
+		return EnvDevelop
+	case "test":
+		return EnvTest
+	case "local":
+		return EnvLocal
+	case "staging":
+		return EnvStaging
+	case "qa":
+		return EnvQA
+	default:
+		return env
+	}
 }
 
 func applyLegacyEnvAliases(c *Config) {

@@ -33,6 +33,40 @@ Use this placement rule for every new file:
 - Put code in `app/...` when it encodes product behavior/UI for the GoShip app.
 - Put code in `framework/...` when it is reusable as framework infrastructure across apps.
 
+## Standalone and Managed Boundary
+
+GoShip must remain a fully standalone framework.
+
+That means:
+
+- a GoShip-derived app must be able to run, configure storage, and manage backups without any external control plane
+- a hosted control plane may consume stable runtime hooks from GoShip, but it must not become a required dependency of the runtime
+- provider-specific fleet logic, customer workflow, and multi-app orchestration do not belong in the app runtime layer
+
+Rule of thumb:
+
+- capability that one app can use on its own belongs in GoShip
+- authority over many apps belongs in the external control plane
+
+See `architecture/09-standalone-and-managed-mode.md` for the canonical split.
+
+## Config Authority Rule
+
+GoShip defines the config schema and standalone admin/settings capability.
+
+Source-of-truth layers:
+
+1. framework defaults
+2. app repo config
+3. environment and secret injection
+4. managed overrides from an external authority, when the app is intentionally running in managed mode
+
+Important boundary:
+
+- external systems should not mutate arbitrary app config files as their normal control mechanism
+- managed overrides should be limited, explicit, and inspectable at runtime
+- local settings UI may become read-only in managed mode, but the standalone capability still lives in GoShip
+
 ## Web Layer Layout
 
 App web code is now app-scoped:

@@ -38,8 +38,19 @@ func (c CLI) resolveDBURL() (string, error) {
 	return resolveRuntimeDBURL()
 }
 
+func (c CLI) resolveDBDriver() (string, error) {
+	if c.ResolveDBDriver != nil {
+		return c.ResolveDBDriver()
+	}
+	return resolveRuntimeDBDriver()
+}
+
 func resolveRuntimeDBURL() (string, error) {
 	return rt.ResolveDBURL()
+}
+
+func resolveRuntimeDBDriver() (string, error) {
+	return rt.ResolveDBDriver()
 }
 
 func pathExists(path string) bool {

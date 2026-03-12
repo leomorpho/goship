@@ -17,10 +17,11 @@ import (
 	"github.com/leomorpho/goship/app/views"
 	"github.com/leomorpho/goship/app/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/views/web/pages/gen"
-	"github.com/leomorpho/goship/app/web/viewmodels"
+	viewmodels "github.com/leomorpho/goship/app/web/viewmodels"
 	profilesvc "github.com/leomorpho/goship/modules/profile"
-	"github.com/rs/zerolog/log"
-)
+	"log/slog"
+	)
+
 
 type (
 	profilePrefsRoute struct {
@@ -305,7 +306,7 @@ func (p *preferences) GetPhoneVerificationComponent(ctx echo.Context) error {
 
 	_, err = p.smsSenderService.CreateConfirmationCode(ctx.Request().Context(), profile.ID, profile.PhoneNumberE164)
 	if err != nil {
-		log.Error().Err(err).Msg("failed to send verification code.")
+		slog.Error("failed to send verification code", "error", err)
 		uxflashmessages.Danger(ctx, "Failed to send verification code 😨")
 		return p.ctr.RenderPage(ctx, page)
 	}

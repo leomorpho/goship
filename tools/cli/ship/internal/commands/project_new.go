@@ -66,6 +66,7 @@ func RunNew(args []string, d NewDeps) int {
 	if opts.DryRun {
 		fmt.Fprintln(d.Out, "Dry-run mode: no files were written.")
 	}
+	fmt.Fprintf(d.Out, "GitHub Actions workflows created. Add DEPLOY_KEY secret to enable deployment.\n")
 	fmt.Fprintf(d.Out, "Next: cd %s && ship module:add <module> && make run\n", opts.AppPath)
 	return 0
 }
@@ -187,6 +188,10 @@ func baseScaffoldFiles(opts NewProjectOptions) map[string]string {
 		filepath.Join(opts.AppPath, "docs", "00-index.md"):                           renderDocsIndexSkeleton(),
 		filepath.Join(opts.AppPath, "docs", "architecture", "01-architecture.md"):    renderArchitectureSkeleton(),
 		filepath.Join(opts.AppPath, "docs", "architecture", "08-cognitive-model.md"): renderCognitiveModelSkeleton(),
+		filepath.Join(opts.AppPath, ".github", "workflows", "ci.yml"):                renderGithubCI(),
+		filepath.Join(opts.AppPath, ".github", "workflows", "deploy.yml"):            renderGithubDeploy(),
+		filepath.Join(opts.AppPath, ".github", "workflows", "security.yml"):          renderGithubSecurity(),
+		filepath.Join(opts.AppPath, ".github", "dependabot.yml"):                     renderGithubDependabot(),
 	}
 }
 
@@ -411,5 +416,72 @@ SELECT * FROM users WHERE id = ?;
 
 -- name: GetUserByEmail :one
 SELECT * FROM users WHERE email = ?;
+`
+}
+
+func renderGithubCI() string {
+	return `name: CI
+on: [push, pull_request]
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: { go-version: '1.24' }
+      - uses: actions/setup-node@v4
+        with: { node-version: '22' }
+      - run: go install github.com/a-h/templ/cmd/templ@latest
+      - run: npm install --prefix frontend
+      - run: go run ./tools/cli/ship/cmd/ship verify --skip-tests
+      - run: go test ./...
+`
+}
+
+func renderGithubDeploy() string {
+	return `name: Deploy
+on:
+  push:
+    branches: [main]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: webfactory/ssh-agent@v0.9.0
+        with: { ssh-private-key: '${{ secrets.DEPLOY_KEY }}' }
+      - run: gem install kamal
+      - run: kamal deploy
+`
+}
+
+func renderGithubSecurity() string {
+	return `name: Security
+on:
+  schedule: [{ cron: '0 9 * * 1' }]
+jobs:
+  govulncheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: { go-version: '1.24' }
+      - run: go install golang.org/x/vuln/cmd/govulncheck@latest
+      - run: govulncheck ./...
+`
+}
+
+func renderGithubDependabot() string {
+	return `version: 2
+updates:
+  - package-ecosystem: gomod
+    directory: /
+    schedule: { interval: weekly }
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule: { interval: weekly }
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly }
 `
 }

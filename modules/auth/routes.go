@@ -2,6 +2,7 @@ package auth
 
 import (
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -15,19 +16,26 @@ import (
 	"github.com/leomorpho/goship/framework/context"
 	"github.com/leomorpho/goship/framework/dberrors"
 	"github.com/leomorpho/goship/framework/domain"
+	"github.com/leomorpho/goship/framework/repos/ratelimit"
 	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
 	pages "github.com/leomorpho/goship/modules/auth/views/web/pages/gen"
-	"github.com/rs/zerolog/log"
+	"log/slog"
+)
+
+var (
+	authPostRateLimitOnce sync.Once
+	authPostRateLimitMW   echo.MiddlewareFunc
 )
 
 func registerRoutes(r echoRouteRegistrar, service *Service) {
+	postRateLimit := authPostRateLimitMiddleware()
 	userGroup := r.Group("/user", middleware.RequireNoAuthentication())
 	userGroup.GET("/login", service.getLogin).Name = routeNames.RouteNameLogin
-	userGroup.POST("/login", service.postLogin).Name = routeNames.RouteNameLoginSubmit
+	userGroup.POST("/login", service.postLogin, postRateLimit).Name = routeNames.RouteNameLoginSubmit
 	userGroup.GET("/register", service.getRegister).Name = routeNames.RouteNameRegister
-	userGroup.POST("/register", service.postRegister).Name = routeNames.RouteNameRegisterSubmit
+	userGroup.POST("/register", service.postRegister, postRateLimit).Name = routeNames.RouteNameRegisterSubmit
 	userGroup.GET("/password", service.getForgotPassword).Name = routeNames.RouteNameForgotPassword
-	userGroup.POST("/password", service.postForgotPassword).Name = routeNames.RouteNameForgotPasswordSubmit
+	userGroup.POST("/password", service.postForgotPassword, postRateLimit).Name = routeNames.RouteNameForgotPasswordSubmit
 
 	resetGroup := userGroup.Group(
 		"/password/reset",
@@ -35,12 +43,23 @@ func registerRoutes(r echoRouteRegistrar, service *Service) {
 		middleware.LoadValidPasswordToken(service.ctr.Container.Auth),
 	)
 	resetGroup.GET("/token/:user/:password_token/:token", service.getResetPassword).Name = routeNames.RouteNameResetPassword
-	resetGroup.POST("/token/:user/:password_token/:token", service.postResetPassword).Name = routeNames.RouteNameResetPasswordSubmit
+	resetGroup.POST("/token/:user/:password_token/:token", service.postResetPassword, postRateLimit).Name = routeNames.RouteNameResetPasswordSubmit
 
 	allGroup := r.Group("/auth", middleware.RequireAuthentication())
 	allGroup.GET("/logout", service.getLogout, middleware.RequireAuthentication()).Name = routeNames.RouteNameLogout
 
 	r.GET("/email/verify/:token", service.getVerifyEmail).Name = routeNames.RouteNameVerifyEmail
+}
+
+func authPostRateLimitMiddleware() echo.MiddlewareFunc {
+	authPostRateLimitOnce.Do(func() {
+		store, err := ratelimit.NewOtterStore(10_000)
+		if err != nil {
+			panic(err)
+		}
+		authPostRateLimitMW = middleware.RateLimit(store, 10, time.Minute)
+	})
+	return authPostRateLimitMW
 }
 
 type echoRouteRegistrar interface {
@@ -195,7 +214,7 @@ func (s *Service) postRegister(ctx echo.Context) error {
 		err := s.notificationPermissionService.CreatePermission(
 			ctx.Request().Context(), registration.ProfileID, perm, &domain.NotificationPlatformEmail)
 		if err != nil {
-			log.Error().Err(err).Int("profileID", registration.ProfileID).Msg("failed to create notification permission")
+			slog.Error("failed to create notification permission", "error", err, "profileID", registration.ProfileID)
 		}
 	}
 

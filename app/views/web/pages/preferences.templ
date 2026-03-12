@@ -7,7 +7,7 @@ import (
 	"github.com/leomorpho/goship/app/views/web/components/gen"
 )
 
-// Renders: settings component.
+// Renders: user preferences page with display name, notifications, and subscription settings
 templ Settings(page *controller.Page) {
 	if data, ok := page.Data.(viewmodels.PreferencesData); ok {
 		<div data-component="settings" class="sm:mt-0 mb-10 mx-2 sm:mx-4 md:mx-6 lg:mx-14 xl:mx-24 space-y-4" id="preferences">
@@ -49,6 +49,7 @@ templ firstWelcome() {
 }
 
 // Renders: display-name component.
+// Renders: editable display name input field
 templ DisplayName(page *controller.Page) {
 	<div data-component="display-name"
 		id="displayName"
@@ -88,6 +89,7 @@ templ DisplayName(page *controller.Page) {
 }
 
 // Renders: notification-permissions component.
+// Renders: notification settings with toggles and information
 templ NotificationPermissions(page *controller.Page, data viewmodels.NotificationPermissionsData) {
 	<h1 data-component="notification-permissions" class="text-3xl md:text-4xl font-semibold mb-4 pt-10 md:pt-14 lg:pt-16 mb-4">
 		🔔 Notifications 
@@ -363,6 +365,7 @@ templ deleteAccountAndData(page *controller.Page) {
 }
 
 // Renders: about-me component.
+// Renders: "About Me" section with editable biography textarea
 templ AboutMe(page *controller.Page) {
 	<div data-component="about-me" id="aboutMe">
 		<h1 class="text-3xl md:text-4xl font-semibold mb-4 pt-10 md:pt-14 lg:pt-16">🙋 About Me</h1>

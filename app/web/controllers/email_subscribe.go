@@ -14,7 +14,7 @@ import (
 	"github.com/leomorpho/goship/config"
 	"github.com/leomorpho/goship/framework/context"
 	"github.com/leomorpho/goship/framework/domain"
-	"github.com/rs/zerolog/log"
+	"log/slog"
 
 	"github.com/labstack/echo/v4"
 )
@@ -88,7 +88,7 @@ func (c *emailSubscribe) Post(ctx echo.Context) error {
 		} else if e, ok := err.(*modemailsubscriptions.ErrEmailVerificationFailed); ok {
 			errMsg = e.Error()
 		} else {
-			log.Error().Err(err)
+			slog.Error("unexpected error in email subscription", "error", err)
 			ctx.Echo().Logger.Error(err)
 			errMsg = "An unexpected error occurred. We're looking into it. Please try again later."
 		}

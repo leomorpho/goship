@@ -6,7 +6,7 @@ import (
 	"github.com/leomorpho/goship/app/views/web/components/gen"
 )
 
-// Renders: about component.
+// Renders: about us page with support email contact button
 templ About(page *controller.Page) {
 	@components.PrevNavBarWithTitle("", "", "☎️ Contact us")
 	if data, ok := page.Data.(viewmodels.AboutData); ok {

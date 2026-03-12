@@ -16,6 +16,15 @@ The application follows a layered structure:
 - `db/queries` + `db/gen`: Bob SQL query sources and generated DB layer
 - `app/jobs`: task processors
 
+## Operating Modes
+
+GoShip is designed to run in two operational contexts without changing app code:
+
+- standalone/self-managed: the app owns its own settings, backup actions, and deployment choices
+- externally managed: the app keeps the same runtime capability, but an external authority may provide secrets, managed overrides, and restore orchestration
+
+The runtime itself must stay standalone-capable. External control-plane logic is not a required part of the app architecture.
+
 ## Web Runtime Flow
 
 1. `cmd/web/main.go` creates container via `foundation.NewContainer()`.

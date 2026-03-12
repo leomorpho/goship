@@ -206,6 +206,53 @@ func TestResolveDBURL_UsesTestDatabaseName(t *testing.T) {
 	}
 }
 
+func TestResolveDBDriver_PrefersEnv(t *testing.T) {
+	t.Setenv("DB_DRIVER", "mysql")
+
+	got, err := resolveRuntimeDBDriver()
+	if err != nil {
+		t.Fatalf("resolveRuntimeDBDriver error = %v", err)
+	}
+	if got != "mysql" {
+		t.Fatalf("db driver = %q, want mysql", got)
+	}
+}
+
+func TestResolveDBDriver_FromConfigEmbedded(t *testing.T) {
+	root := t.TempDir()
+	prevWD, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(prevWD) })
+	if err := os.Chdir(root); err != nil {
+		t.Fatal(err)
+	}
+
+	t.Setenv("DB_DRIVER", "")
+	t.Setenv("PAGODA_DATABASE_DRIVER", "")
+	t.Setenv("PAGODA_DB_DRIVER", "")
+	t.Setenv("APP_ENV", "local")
+
+	dotEnv := strings.Join([]string{
+		"PAGODA_APP_ENVIRONMENT=local",
+		"PAGODA_DATABASE_DBMODE=embedded",
+		"PAGODA_DATABASE_EMBEDDEDCONNECTION=dbs/main.db",
+		"",
+	}, "\n")
+	if err := os.WriteFile(filepath.Join(root, ".env"), []byte(dotEnv), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := resolveRuntimeDBDriver()
+	if err != nil {
+		t.Fatalf("resolveRuntimeDBDriver error = %v", err)
+	}
+	if got != "sqlite" {
+		t.Fatalf("db driver = %q, want sqlite", got)
+	}
+}
+
 func TestResolveComposeCommandWith_DockerComposeAvailable(t *testing.T) {
 	lookPath := func(bin string) (string, error) {
 		if bin == "docker-compose" {

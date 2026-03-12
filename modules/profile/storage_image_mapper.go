@@ -1,9 +1,10 @@
 package profiles
 
 import (
+	"log/slog"
+
 	dbgen "github.com/leomorpho/goship/db/gen"
 	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
-	"github.com/rs/zerolog/log"
 )
 
 func mapProfilePhotoSizeRecordsToStorageImages(records []dbgen.ProfilePhotoSizeRecord) []*storagerepo.ImageFile {
@@ -46,10 +47,11 @@ func deleteImageFiles(storage storagerepo.StorageClientInterface, files []*stora
 				continue
 			}
 			if err := storage.DeleteFile(storagerepo.BucketMainApp, size.ObjectKey); err != nil {
-				log.Error().Err(err).
-					Str("objectKey", size.ObjectKey).
-					Int("imageID", file.ID).
-					Msg("failed to delete storage artifact while deleting user data")
+				slog.Error("failed to delete storage artifact while deleting user data",
+					"error", err,
+					"objectKey", size.ObjectKey,
+					"imageID", file.ID,
+				)
 			}
 		}
 	}

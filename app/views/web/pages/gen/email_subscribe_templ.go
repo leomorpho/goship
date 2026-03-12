@@ -14,7 +14,7 @@ import (
 	"github.com/leomorpho/goship/app/web/viewmodels"
 )
 
-// Renders: email-subscribe component.
+// Renders: newsletter subscription section with location picker, map, and email form
 func EmailSubscribe(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context

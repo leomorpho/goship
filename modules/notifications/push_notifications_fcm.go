@@ -8,9 +8,10 @@ import (
 	firebase "firebase.google.com/go/v4"
 	"firebase.google.com/go/v4/messaging"
 	"github.com/leomorpho/goship/framework/domain"
-	"github.com/rs/zerolog/log"
+	"log/slog"
 	"google.golang.org/api/option"
-)
+	)
+
 
 type FcmSubscription struct {
 	Token string
@@ -84,7 +85,7 @@ func (p *FcmPushService) AddPushSubscription(ctx context.Context, profileID int,
 
 func (p *FcmPushService) SendPushNotifications(ctx context.Context, profileID int, title, message string, numUnreadNotifs int, sendSound bool) error {
 	if p.fcmClient == nil {
-		log.Warn().Msg("No FCM client is set, not actually sending any real messages")
+		slog.Warn("No FCM client is set, not actually sending any real messages")
 		return nil
 	}
 
@@ -100,7 +101,7 @@ func (p *FcmPushService) SendPushNotifications(ctx context.Context, profileID in
 		sound = "default"
 	}
 	for _, sub := range subs {
-		log.Debug().Str("token", sub.Token).Msg("Sending FCM push notification")
+		slog.Debug("Sending FCM push notification", "token", sub.Token)
 		msg := &messaging.Message{
 			APNS: &messaging.APNSConfig{
 				Payload: &messaging.APNSPayload{
@@ -123,23 +124,19 @@ func (p *FcmPushService) SendPushNotifications(ctx context.Context, profileID in
 		if err != nil {
 			// Handle invalid tokens and log error
 			if messaging.IsUnregistered(err) || messaging.IsInvalidArgument(err) {
-				log.Warn().Err(err).Str("token", sub.Token).Msg("Invalid FCM token, marking for cleanup")
+				slog.Warn("Invalid FCM token, marking for cleanup", "error", err, "token", sub.Token)
 				invalidSubscriptions = append(invalidSubscriptions, sub.Token)
 			} else {
-				log.Error().Err(err).
-					Str("token", sub.Token).
-					Msg("failed to send FCM push notification for this token")
+				slog.Error("failed to send FCM push notification for this token", "error", err, "token", sub.Token)
 			}
 		}
-		log.Debug().Str("token", sub.Token).
-			Str("response", resp).
-			Msg("Sent FCM push notification to token")
+		slog.Debug("Sent FCM push notification to token", "token", sub.Token, "response", resp)
 	}
 
 	// Cleanup invalid subscriptions
 	for _, sub := range invalidSubscriptions {
 		if err := p.DeletePushSubscriptionByToken(ctx, profileID, sub); err != nil {
-			log.Error().Err(err).Str("token", sub).Msg("Failed to delete invalid FCM subscription")
+			slog.Error("Failed to delete invalid FCM subscription", "error", err, "token", sub)
 			return err // Handle or log failure to delete subscription
 		}
 	}

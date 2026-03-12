@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-// Renders: metatags component.
+// Renders: HTML head metatags for SEO, social sharing, and PWA configuration
 templ Metatags(page *controller.Page) {
 	<title data-component="metatags">
 		{ page.AppName }
@@ -37,7 +37,7 @@ templ Metatags(page *controller.Page) {
 	<meta name="description" content="Goship is a Go/HTMX starter kit here to help you get your idea to market before you can sneeze once."/>
 }
 
-// Renders: c-s-s component.
+// Renders: CSS stylesheet links and inline global styles
 templ CSS() {
 	<link data-component="c-s-s" rel="stylesheet" href={ helpers.File("styles_bundle.css") }/>
 	<link rel="manifest" crossorigin="use-credentials" href={ helpers.File("manifest.json") }/>
@@ -69,7 +69,7 @@ templ CSS() {
 	</style>
 }
 
-// Renders: j-s component.
+// Renders: global JavaScript bundle and third-party library script tags
 templ JS() {
 	// START PWA splash screen (TODO: not working lol)
 	<script data-component="j-s" src="https://cdn.jsdelivr.net/npm/ios-pwa-splash@1.0.0/cdn.min.js"></script>
@@ -158,7 +158,7 @@ script htmxBeforeSwap() {
     });
 }
 
-// Renders: j-s-footer component.
+// Renders: footer JavaScript initialization and HTMX event listeners
 templ JSFooter(page *controller.Page) {
 	if len(page.CSRF) > 0 {
 		@csrfJS(page.CSRF)
@@ -200,7 +200,7 @@ templ beforeBodyEnd() {
 	<script data-component="j-s-footer" src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
 }
 
-// Renders: text-footer component.
+// Renders: application footer with copyright notice and navigation links
 templ TextFooter(page *controller.Page) {
 	<div data-component="text-footer" class="mx-1 sm:mx-2 py-3">
 		<footer class="bg-slate-100 dark:bg-gray-800 rounded-lg shadow m-4">

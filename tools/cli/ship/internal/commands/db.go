@@ -14,13 +14,14 @@ import (
 )
 
 type DBDeps struct {
-	Out          io.Writer
-	Err          io.Writer
-	ResolveDBURL func() (string, error)
-	RunGoose     func(args ...string) int
-	RunCmd       func(name string, args ...string) int
-	GooseDir     string
-	FindGoModule func(start string) (string, string, error)
+	Out             io.Writer
+	Err             io.Writer
+	ResolveDBURL    func() (string, error)
+	ResolveDBDriver func() (string, error)
+	RunGoose        func(args ...string) int
+	RunCmd          func(name string, args ...string) int
+	GooseDir        string
+	FindGoModule    func(start string) (string, string, error)
 }
 
 func RunDB(args []string, d DBDeps) int {
@@ -61,6 +62,8 @@ func RunDB(args []string, d DBDeps) int {
 			return 1
 		}
 		return d.RunCmd("go", "run", "./cmd/seed/main.go")
+	case "console":
+		return runConsole(args[1:], d)
 	case "help", "-h", "--help":
 		PrintDBHelp(d.Out)
 		return 0
@@ -296,6 +299,157 @@ func runGenerate(args []string, d DBDeps) int {
 	return 0
 }
 
+func runConsole(args []string, d DBDeps) int {
+	if len(args) != 0 {
+		fmt.Fprintln(d.Err, "usage: ship db:console")
+		return 1
+	}
+
+	dbURL, err := d.ResolveDBURL()
+	if err != nil {
+		fmt.Fprintf(d.Err, "failed to resolve database URL: %v\n", err)
+		return 1
+	}
+
+	driver, err := resolveConsoleDriver(d, dbURL)
+	if err != nil {
+		fmt.Fprintf(d.Err, "failed to resolve database driver: %v\n", err)
+		return 1
+	}
+
+	name, cmdArgs, err := dbConsoleCommand(driver, dbURL)
+	if err != nil {
+		fmt.Fprintf(d.Err, "failed to build db shell command: %v\n", err)
+		return 1
+	}
+	return d.RunCmd(name, cmdArgs...)
+}
+
+func resolveConsoleDriver(d DBDeps, dbURL string) (string, error) {
+	if d.ResolveDBDriver != nil {
+		driver, err := d.ResolveDBDriver()
+		if err != nil {
+			return "", err
+		}
+		normalized := normalizeConsoleDriver(driver)
+		if normalized != "" {
+			return normalized, nil
+		}
+		if strings.TrimSpace(driver) != "" {
+			return "", fmt.Errorf("unsupported DB driver %q (supported: postgres, mysql, sqlite)", driver)
+		}
+	}
+
+	if inferred := inferConsoleDriverFromURL(dbURL); inferred != "" {
+		return inferred, nil
+	}
+	return "", fmt.Errorf("unable to determine DB driver from URL")
+}
+
+func normalizeConsoleDriver(driver string) string {
+	switch strings.ToLower(strings.TrimSpace(driver)) {
+	case "postgres", "postgresql", "pgx":
+		return "postgres"
+	case "mysql", "mariadb":
+		return "mysql"
+	case "sqlite", "sqlite3":
+		return "sqlite"
+	default:
+		return ""
+	}
+}
+
+func inferConsoleDriverFromURL(dbURL string) string {
+	if strings.HasPrefix(dbURL, "sqlite://") || strings.HasPrefix(dbURL, "sqlite3://") {
+		return "sqlite"
+	}
+	u, err := url.Parse(dbURL)
+	if err != nil {
+		return ""
+	}
+	return normalizeConsoleDriver(u.Scheme)
+}
+
+func dbConsoleCommand(driver string, dbURL string) (string, []string, error) {
+	switch normalizeConsoleDriver(driver) {
+	case "postgres":
+		return "psql", []string{dbURL}, nil
+	case "mysql":
+		args, err := mysqlConsoleArgs(dbURL)
+		if err != nil {
+			return "", nil, err
+		}
+		return "mysql", args, nil
+	case "sqlite":
+		path, err := sqliteConsolePath(dbURL)
+		if err != nil {
+			return "", nil, err
+		}
+		return "sqlite3", []string{path}, nil
+	default:
+		return "", nil, fmt.Errorf("unsupported DB driver %q", driver)
+	}
+}
+
+func mysqlConsoleArgs(dbURL string) ([]string, error) {
+	u, err := url.Parse(dbURL)
+	if err != nil {
+		return nil, err
+	}
+	if normalizeConsoleDriver(u.Scheme) != "mysql" {
+		return nil, fmt.Errorf("expected mysql URL, got %q", u.Scheme)
+	}
+	host := strings.TrimSpace(u.Hostname())
+	if host == "" {
+		return nil, fmt.Errorf("mysql URL is missing host")
+	}
+
+	args := []string{"--host", host}
+	if port := strings.TrimSpace(u.Port()); port != "" {
+		args = append(args, "--port", port)
+	}
+	if user := strings.TrimSpace(u.User.Username()); user != "" {
+		args = append(args, "--user", user)
+	}
+	if pass, ok := u.User.Password(); ok && strings.TrimSpace(pass) != "" {
+		args = append(args, "--password="+pass)
+	}
+	if dbName := strings.TrimSpace(strings.TrimPrefix(u.Path, "/")); dbName != "" {
+		args = append(args, dbName)
+	}
+	return args, nil
+}
+
+func sqliteConsolePath(dbURL string) (string, error) {
+	switch {
+	case strings.HasPrefix(dbURL, "sqlite://"):
+		return normalizeSQLitePath(strings.TrimPrefix(dbURL, "sqlite://"))
+	case strings.HasPrefix(dbURL, "sqlite3://"):
+		return normalizeSQLitePath(strings.TrimPrefix(dbURL, "sqlite3://"))
+	default:
+		u, err := url.Parse(dbURL)
+		if err != nil {
+			return "", err
+		}
+		if normalizeConsoleDriver(u.Scheme) != "sqlite" {
+			return "", fmt.Errorf("expected sqlite URL, got %q", u.Scheme)
+		}
+		return normalizeSQLitePath(strings.TrimPrefix(dbURL, u.Scheme+"://"))
+	}
+}
+
+func normalizeSQLitePath(raw string) (string, error) {
+	dsn := strings.TrimSpace(raw)
+	if idx := strings.Index(dsn, "?"); idx >= 0 {
+		dsn = dsn[:idx]
+	}
+	dsn = strings.TrimSpace(dsn)
+	if dsn == "" {
+		return "", fmt.Errorf("sqlite URL is missing database path")
+	}
+	return dsn, nil
+}
+
 func resolveBobgenConfigs(d DBDeps, explicitConfig string) ([]string, error) {
 	if strings.TrimSpace(explicitConfig) != "" && explicitConfig != filepath.ToSlash(filepath.Join("db", "bobgen.yaml")) {
 		return []string{explicitConfig}, nil
@@ -398,6 +552,7 @@ func PrintDBHelp(w io.Writer) {
 	fmt.Fprintln(w, "  ship db:make <migration_name>")
 	fmt.Fprintln(w, "  ship db:migrate")
 	fmt.Fprintln(w, "  ship db:status")
+	fmt.Fprintln(w, "  ship db:console")
 	fmt.Fprintln(w, "  ship db:reset [--seed] [--force] [--yes] [--dry-run]")
 	fmt.Fprintln(w, "  ship db:drop [--force] [--yes] [--dry-run]")
 	fmt.Fprintln(w, "  ship db:rollback [amount]")

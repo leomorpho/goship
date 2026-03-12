@@ -21,9 +21,12 @@ func RunDev(args []string, d DevDeps) int {
 		}
 	}
 
-	mode := "web"
+	mode := "all"
 	if len(args) > 0 {
 		switch args[0] {
+		case "web":
+			mode = "web"
+			args = args[1:]
 		case "worker":
 			mode = "worker"
 			args = args[1:]
@@ -35,8 +38,9 @@ func RunDev(args []string, d DevDeps) int {
 
 	fs := flag.NewFlagSet("dev", flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
+	web := fs.Bool("web", false, "run web-only dev mode")
 	worker := fs.Bool("worker", false, "run worker-only dev mode")
-	all := fs.Bool("all", false, "run full dev mode")
+	all := fs.Bool("all", false, "run full dev mode (default)")
 	if err := fs.Parse(args); err != nil {
 		fmt.Fprintf(d.Err, "invalid dev arguments: %v\n", err)
 		return 1
@@ -45,9 +49,12 @@ func RunDev(args []string, d DevDeps) int {
 		fmt.Fprintf(d.Err, "unexpected dev arguments: %v\n", fs.Args())
 		return 1
 	}
-	if *worker && *all {
-		fmt.Fprintln(d.Err, "cannot set both --worker and --all")
+	if (*web && *worker) || (*web && *all) || (*worker && *all) {
+		fmt.Fprintln(d.Err, "cannot set more than one of --web, --worker, --all")
 		return 1
+	}
+	if *web {
+		mode = "web"
 	}
 	if *worker {
 		mode = "worker"
@@ -75,10 +82,10 @@ func RunDev(args []string, d DevDeps) int {
 
 func PrintDevHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship dev commands:")
-	fmt.Fprintln(w, "  ship dev")
-	fmt.Fprintln(w, "  ship dev worker")
-	fmt.Fprintln(w, "  ship dev all")
+	fmt.Fprintln(w, "  ship dev          run full dev mode (web + worker + js + templ)")
+	fmt.Fprintln(w, "  ship dev web      run web-only dev mode")
+	fmt.Fprintln(w, "  ship dev worker   run worker-only dev mode")
+	fmt.Fprintln(w, "  ship dev --web")
 	fmt.Fprintln(w, "  ship dev --worker")
-	fmt.Fprintln(w, "  ship dev --all")
-	fmt.Fprintln(w, "  (default runs web; use --all to run web + worker concurrently)")
+	fmt.Fprintln(w, "  (default multiplexes processes via overmind/goreman and Procfile.dev)")
 }

@@ -31,12 +31,13 @@ type CmdRunner = rt.CmdRunner
 type ExecRunner = rt.ExecRunner
 
 type CLI struct {
-	Out            io.Writer
-	Err            io.Writer
-	Runner         CmdRunner
-	RunDevAll      func() int
-	ResolveCompose func() ([]string, error)
-	ResolveDBURL   func() (string, error)
+	Out             io.Writer
+	Err             io.Writer
+	Runner          CmdRunner
+	RunDevAll       func() int
+	ResolveCompose  func() ([]string, error)
+	ResolveDBURL    func() (string, error)
+	ResolveDBDriver func() (string, error)
 }
 
 func New() CLI {
@@ -191,11 +192,12 @@ func (c CLI) runRoutes(args []string) int {
 func (c CLI) runDB(args []string) int {
 	return cmd.RunDB(args, cmd.DBDeps{
 		Out: c.Out, Err: c.Err,
-		ResolveDBURL: c.resolveDBURL,
-		RunGoose:     c.runGooseCmd,
-		RunCmd:       c.runCmd,
-		GooseDir:     gooseDir,
-		FindGoModule: findGoModule,
+		ResolveDBURL:    c.resolveDBURL,
+		ResolveDBDriver: c.resolveDBDriver,
+		RunGoose:        c.runGooseCmd,
+		RunCmd:          c.runCmd,
+		GooseDir:        gooseDir,
+		FindGoModule:    findGoModule,
 	})
 }
 

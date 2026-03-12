@@ -20,7 +20,7 @@ import (
 	"github.com/leomorpho/goship/app/web/viewmodels"
 	dbqueries "github.com/leomorpho/goship/db/queries"
 	"github.com/leomorpho/goship/framework/domain"
-	"github.com/rs/zerolog/log"
+	"log/slog"
 )
 
 type UpdateEmailSender struct {
@@ -114,11 +114,11 @@ func (e *UpdateEmailSender) GetAudience(ctx context.Context) ([]int, error) {
 	profileIDsSlice := profileIDs.ToSlice()
 
 	if len(profileIDsSlice) != (len(profilesWithDailyUpdates) + len(profilesWithOnlyPartnerUpdates)) {
-		log.Error().
-			Int("len(profileIDsSlice)", len(profileIDsSlice)).
-			Int("len(profilesWithDailyUpdates)", len(profilesWithDailyUpdates)).
-			Int("len(profilesWithOnlyPartnerUpdates)", len(profilesWithOnlyPartnerUpdates)).
-			Msg("there is an error in the queries to get the daily updates as the amounts do not match")
+		slog.Error("there is an error in the queries to get the daily updates as the amounts do not match",
+			"len(profileIDsSlice)", len(profileIDsSlice),
+			"len(profilesWithDailyUpdates)", len(profilesWithDailyUpdates),
+			"len(profilesWithOnlyPartnerUpdates)", len(profilesWithOnlyPartnerUpdates),
+		)
 	}
 
 	return profileIDsSlice, nil

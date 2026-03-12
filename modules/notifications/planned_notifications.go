@@ -7,7 +7,7 @@ import (
 
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/framework/domain"
-	"github.com/rs/zerolog/log"
+	"log/slog"
 )
 
 type plannedNotificationCandidate struct {
@@ -57,11 +57,11 @@ func (p *PlannedNotificationsService) CreateNotificationTimeObjects(
 	for _, profile := range profiles {
 		if profile.NotificationTimeUpdatedAt == nil || profile.NotificationTimeUpdatedAt.Before(lastRelevantNotificationTimeGeneration) {
 			if _, err := p.UpsertNotificationTime(ctx, profile.ProfileID, notifType); err != nil {
-				log.Debug().
-					Err(err).
-					Int("profileID", profile.ProfileID).
-					Str("notificationType", notifType.Value).
-					Msg("skipping notification time upsert for profile")
+				slog.Debug("skipping notification time upsert for profile",
+					"error", err,
+					"profileID", profile.ProfileID,
+					"notificationType", notifType.Value,
+				)
 			}
 		}
 	}
@@ -72,9 +72,10 @@ func (p *PlannedNotificationsService) DeleteStaleLastSeenObjects(ctx context.Con
 	const timeToKeepDays = 30
 	deleteBeforeTime := time.Now().Add(time.Hour * 24 * -timeToKeepDays)
 	if err := p.store.deleteStaleLastSeenBefore(ctx, deleteBeforeTime); err != nil {
-		log.Error().Err(err).
-			Time("deleteBeforeTime", deleteBeforeTime).
-			Msg("failed to delete old LastSeenOnline objects")
+		slog.Error("failed to delete old LastSeenOnline objects",
+			"error", err,
+			"deleteBeforeTime", deleteBeforeTime,
+		)
 	}
 }
 

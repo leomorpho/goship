@@ -17,6 +17,7 @@ type ScaffoldMakeOptions struct {
 	Migrate   bool
 	DryRun    bool
 	Force     bool
+	TestFirst bool
 }
 
 type ScaffoldDeps struct {
@@ -46,8 +47,15 @@ func RunMakeScaffold(args []string, d ScaffoldDeps) int {
 		"ship db:make " + migrationName,
 		"ship make:controller " + controllerName + " --actions index,show,create,update,destroy --auth " + opts.Auth + " --domain " + domainName + " --wire --path " + opts.Path,
 	}
+	if opts.TestFirst {
+		steps[2] += " --test-first"
+	}
 	if !opts.API {
-		steps = append(steps, "ship make:resource "+resourceName+" --path "+opts.Path+" --auth "+opts.Auth+" --views "+opts.Views+" --domain "+domainName+" --wire")
+		resourceStep := "ship make:resource " + resourceName + " --path " + opts.Path + " --auth " + opts.Auth + " --views " + opts.Views + " --domain " + domainName + " --wire"
+		if opts.TestFirst {
+			resourceStep += " --test-first"
+		}
+		steps = append(steps, resourceStep)
 	}
 	if opts.Migrate {
 		steps = append(steps, "ship db:migrate")
@@ -74,12 +82,18 @@ func RunMakeScaffold(args []string, d ScaffoldDeps) int {
 	}
 
 	controllerArgs := []string{controllerName, "--actions", "index,show,create,update,destroy", "--auth", opts.Auth, "--domain", domainName, "--wire", "--path", opts.Path}
+	if opts.TestFirst {
+		controllerArgs = append(controllerArgs, "--test-first")
+	}
 	if code := d.RunController(controllerArgs); code != 0 {
 		return code
 	}
 
 	if !opts.API {
 		resourceArgs := []string{resourceName, "--path", opts.Path, "--auth", opts.Auth, "--views", opts.Views, "--domain", domainName, "--wire"}
+		if opts.TestFirst {
+			resourceArgs = append(resourceArgs, "--test-first")
+		}
 		if code := d.RunResource(resourceArgs); code != 0 {
 			return code
 		}
@@ -89,6 +103,10 @@ func RunMakeScaffold(args []string, d ScaffoldDeps) int {
 		if code := d.RunDBMigrate(nil); code != 0 {
 			return code
 		}
+	}
+
+	if opts.TestFirst {
+		fmt.Fprintln(d.Out, "\nTests generated. Make them pass, then remove t.Skip calls.")
 	}
 	return 0
 }
@@ -109,6 +127,8 @@ func ParseMakeScaffoldArgs(args []string) (ScaffoldMakeOptions, error) {
 			opts.API = true
 		case token == "--migrate":
 			opts.Migrate = true
+		case token == "--test-first":
+			opts.TestFirst = true
 		case token == "--dry-run":
 			opts.DryRun = true
 		case token == "--force":

@@ -80,6 +80,57 @@ func TestRunDBStatus_DBURLResolutionError(t *testing.T) {
 	}
 }
 
+func TestRunDBConsole_DBURLResolutionError(t *testing.T) {
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	runner := &fakeRunner{}
+	cli := CLI{
+		Out:    out,
+		Err:    errOut,
+		Runner: runner,
+		ResolveDBURL: func() (string, error) {
+			return "", errors.New("missing url")
+		},
+	}
+	code := cli.Run([]string{"db:console"})
+	if code != 1 {
+		t.Fatalf("exit code = %d, want 1", code)
+	}
+	if !strings.Contains(errOut.String(), "failed to resolve database URL") {
+		t.Fatalf("stderr = %q, want db url resolution failure", errOut.String())
+	}
+	if len(runner.calls) != 0 {
+		t.Fatalf("runner calls = %v, want none", runner.calls)
+	}
+}
+
+func TestRunDBConsole_DBDriverResolutionError(t *testing.T) {
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	runner := &fakeRunner{}
+	cli := CLI{
+		Out:    out,
+		Err:    errOut,
+		Runner: runner,
+		ResolveDBURL: func() (string, error) {
+			return testDBURL, nil
+		},
+		ResolveDBDriver: func() (string, error) {
+			return "", errors.New("driver missing")
+		},
+	}
+	code := cli.Run([]string{"db:console"})
+	if code != 1 {
+		t.Fatalf("exit code = %d, want 1", code)
+	}
+	if !strings.Contains(errOut.String(), "failed to resolve database driver") {
+		t.Fatalf("stderr = %q, want db driver resolution failure", errOut.String())
+	}
+	if len(runner.calls) != 0 {
+		t.Fatalf("runner calls = %v, want none", runner.calls)
+	}
+}
+
 func TestRunDBReset_DBURLResolutionError(t *testing.T) {
 	out := &bytes.Buffer{}
 	errOut := &bytes.Buffer{}

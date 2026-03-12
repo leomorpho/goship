@@ -5,7 +5,7 @@ templ FormCSRF(token string) {
 	<input data-component="form-c-s-r-f" type="hidden" name="csrf" value={ token }/>
 }
 
-// Renders: form-field-errors component.
+// Renders: list of validation errors below a form field
 templ FormFieldErrors(errs []string) {
 	for _, err := range errs {
 		<div data-component="form-field-errors"

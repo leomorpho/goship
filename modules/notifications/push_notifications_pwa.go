@@ -5,8 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-
-	"github.com/rs/zerolog/log"
+	"log/slog"
 
 	"github.com/SherClockHolmes/webpush-go"
 	"github.com/leomorpho/goship/framework/domain"
@@ -105,14 +104,10 @@ func (p *PwaPushService) SendPushNotifications(ctx context.Context, profileID in
 				}
 				resp.Body.Close() // Always close the response body
 			}
-			log.Error().Err(err).
-				Str("endpoint", sub.Endpoint).
-				Msg("failed to send push notification for this endpoint")
+			slog.Error("failed to send push notification for this endpoint", "error", err, "endpoint", sub.Endpoint)
 			continue // Skip to the next subscription
 		}
-		log.Debug().Err(err).
-			Str("endpoint", sub.Endpoint).
-			Msg("Sent push notification to endpoint")
+		slog.Debug("Sent push notification to endpoint", "endpoint", sub.Endpoint)
 		defer resp.Body.Close()
 	}
 

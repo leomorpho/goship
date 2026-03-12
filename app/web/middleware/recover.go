@@ -4,11 +4,10 @@ import (
 	"github.com/labstack/echo/v4"
 	echomw "github.com/labstack/echo/v4/middleware"
 	gommonlog "github.com/labstack/gommon/log"
-	"github.com/ziflex/lecho/v3"
 )
 
 // RecoverPanics wraps Echo's recovery middleware and emits structured panic logs.
-func RecoverPanics(logger *lecho.Logger) echo.MiddlewareFunc {
+func RecoverPanics(logger echo.Logger) echo.MiddlewareFunc {
 	return echomw.RecoverWithConfig(echomw.RecoverConfig{
 		LogErrorFunc: func(c echo.Context, err error, stack []byte) error {
 			fields := gommonlog.JSON{

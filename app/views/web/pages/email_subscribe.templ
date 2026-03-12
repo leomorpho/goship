@@ -6,7 +6,7 @@ import (
 	"github.com/leomorpho/goship/app/views/web/components/gen"
 )
 
-// Renders: email-subscribe component.
+// Renders: newsletter subscription section with location picker, map, and email form
 templ EmailSubscribe(page *controller.Page) {
 	if data, ok := page.Data.(viewmodels.EmailSubscriptionData); ok {
 		<div data-component="email-subscribe" hx-swap="innerHTML" hx-target="this">

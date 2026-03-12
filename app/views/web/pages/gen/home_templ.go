@@ -16,7 +16,7 @@ import (
 	"github.com/leomorpho/goship/app/web/viewmodels"
 )
 
-// Renders: home component.
+// Renders: home page with welcome message, recent posts, and file serving info
 func Home(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context

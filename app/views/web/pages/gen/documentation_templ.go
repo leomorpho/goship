@@ -14,7 +14,7 @@ import (
 	"github.com/leomorpho/goship/app/web/capabilities"
 )
 
-// Renders: documentation-landing-page component.
+// Renders: documentation landing page with why GoShip, core capabilities, and tech stack
 func DocumentationLandingPage(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context

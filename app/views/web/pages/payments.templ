@@ -8,7 +8,7 @@ import (
 	"github.com/leomorpho/goship/app/web/routenames"
 )
 
-// Renders: pricing-page component.
+// Renders: subscription pricing page with plan cards
 templ PricingPage(page *controller.Page) {
 	@components.PrevNavBarWithTitle(page.ToURL(routenames.RouteNamePreferences), "", "🍻 Subscription")
 	if data, ok := page.Data.(viewmodels.PricingPageData); ok {
@@ -91,6 +91,7 @@ templ pricingCard(page *controller.Page, title, subtitle, price string, points [
 }
 
 // Renders: payment-success component.
+// Renders: success message page after payment with return to home button
 templ PaymentSuccess(page *controller.Page) {
 	<div data-component="payment-success"
 		class="text-xl md:text-2xl lg:text-3xl font-heavy flex flex-col justify-center items-center min-h-screen"

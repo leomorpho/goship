@@ -543,7 +543,7 @@ var registrationConfirmationGoTemplate = template.Must(template.New("content").P
 </html>
 `))
 
-// Renders: registration-confirmation component.
+// Renders: welcome email with registration confirmation and getting started info
 templ RegistrationConfirmation(page *controller.Page) {
 	if data, ok := page.Data.(viewmodels.EmailDefaultData); ok {
 		@templ.FromGoHTML(registrationConfirmationGoTemplate, data)

@@ -174,6 +174,12 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			wantCalls: []fakeCall{{name: "goose", args: []string{"-dir", gooseDir, "postgres", testDBURL, "status"}}},
 		},
 		{
+			name:      "db console",
+			args:      []string{"db:console"},
+			wantCode:  0,
+			wantCalls: []fakeCall{{name: "psql", args: []string{testDBURL}}},
+		},
+		{
 			name:     "db reset requires yes",
 			args:     []string{"db:reset"},
 			wantCode: 1,
@@ -456,6 +462,9 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			}
 			cli.ResolveDBURL = func() (string, error) {
 				return testDBURL, nil
+			}
+			cli.ResolveDBDriver = func() (string, error) {
+				return "postgres", nil
 			}
 			if tt.useDevAllRunner {
 				cli.RunDevAll = func() int {

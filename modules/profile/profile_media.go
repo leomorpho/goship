@@ -16,7 +16,7 @@ import (
 	dbgen "github.com/leomorpho/goship/db/gen"
 	"github.com/leomorpho/goship/framework/domain"
 	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
-	"github.com/rs/zerolog/log"
+	"log/slog"
 )
 
 func (p *ProfileService) GetPhotosByProfileByID(
@@ -32,7 +32,7 @@ func (p *ProfileService) GetPhotosByProfileByID(
 	photos, err := p.storageRepo.GetImageObjectsFromFiles(mapProfilePhotoSizeRecordsToStorageImages(rows))
 	if err != nil {
 		if customErr, ok := err.(*storagerepo.NoImagesInFiles); ok {
-			log.Error().Str("Error", customErr.Message)
+			slog.Error("Error in GetPhotosByProfileByID", "error", customErr.Message)
 		} else {
 			return nil, err
 		}
@@ -44,7 +44,7 @@ func (p *ProfileService) GetPhotosByProfileByID(
 func (p *ProfileService) GetProfilePhotoThumbnailURL(userID int) string {
 	defaultProfilePic := "https://www.gravatar.com/avatar/?d=mp&s=200"
 	if p.db == nil || p.storageRepo == nil {
-		log.Warn().Int("userID", userID).Msg("profile thumbnail lookup unavailable: missing db or storage dependency")
+		slog.Warn("profile thumbnail lookup unavailable: missing db or storage dependency", "userID", userID)
 		return defaultProfilePic
 	}
 
@@ -54,7 +54,7 @@ func (p *ProfileService) GetProfilePhotoThumbnailURL(userID int) string {
 		return defaultProfilePic
 	}
 	if err != nil {
-		log.Error().Err(err).Int("userID", userID).Msg("failed to fetch profile thumbnail object key")
+		slog.Error("failed to fetch profile thumbnail object key", "error", err, "userID", userID)
 		return defaultProfilePic
 	}
 	if objectKey == "" {
@@ -62,7 +62,7 @@ func (p *ProfileService) GetProfilePhotoThumbnailURL(userID int) string {
 	}
 	url, urlErr := p.storageRepo.GetPresignedURL(storagerepo.BucketMainApp, objectKey, 2*24*time.Hour)
 	if urlErr != nil {
-		log.Error().Err(urlErr).Int("userID", userID).Str("objectKey", objectKey).Msg("failed to sign profile thumbnail URL")
+		slog.Error("failed to sign profile thumbnail URL", "error", urlErr, "userID", userID, "objectKey", objectKey)
 		return defaultProfilePic
 	}
 	return url
@@ -88,7 +88,7 @@ func (p *ProfileService) SetProfilePhoto(
 	if err == nil && profileImageID.Valid {
 		err = p.DeletePhoto(ctx, int(profileImageID.Int64), nil)
 		if err != nil {
-			log.Err(err).Str("err", "failed to delete old photo when uploading new profile photo")
+			slog.Error("failed to delete old photo when uploading new profile photo", "error", err)
 		}
 	}
 
@@ -185,20 +185,21 @@ func (p *ProfileService) UploadImageSizes(
 		objectName := fmt.Sprintf("profile_%d_%s_%s_%s%s",
 			profileID, imageCategory.Value, uuid.New().String(), sizeName.Value, ext)
 
-		log.Info().
-			Str("imageCategory", imageCategory.Value).
-			Str("sizeName", sizeName.Value).
-			Int("profileID", profileID).
-			Msg("Uploading image for profile")
+		slog.Info("Uploading image for profile",
+			"imageCategory", imageCategory.Value,
+			"sizeName", sizeName.Value,
+			"profileID", profileID,
+		)
 
 		// Upload the resized image
 		filestorageEntryID, err := p.storageRepo.UploadFile(storagerepo.BucketMainApp, objectName, bytes.NewReader(buf.Bytes()))
 		if err != nil {
-			log.Err(err).
-				Str("imageCategory", imageCategory.Value).
-				Str("sizeName", sizeName.Value).
-				Int("profileID", profileID).
-				Msg("failed to upload image for profile")
+			slog.Error("failed to upload image for profile",
+				"error", err,
+				"imageCategory", imageCategory.Value,
+				"sizeName", sizeName.Value,
+				"profileID", profileID,
+			)
 			return nil, fmt.Errorf("failed to upload %s image: %w", sizeName, err)
 		}
 
@@ -215,10 +216,11 @@ func (p *ProfileService) UploadImageSizes(
 	now := time.Now().UTC()
 	imageID, err := dbgen.InsertImage(ctx, p.db, p.dbDialect, imageCategory.Value, now, now)
 	if err != nil {
-		log.Err(err).
-			Str("imageCategory", imageCategory.Value).
-			Int("profileID", profileID).
-			Msg("failed to create image object for profile")
+		slog.Error("failed to create image object for profile",
+			"error", err,
+			"imageCategory", imageCategory.Value,
+			"profileID", profileID,
+		)
 		return nil, err
 	}
 
@@ -235,19 +237,20 @@ func (p *ProfileService) UploadImageSizes(
 			now,
 			now,
 		); err != nil {
-			log.Err(err).
-				Str("imageCategory", imageCategory.Value).
-				Str("sizeName", item.size.Value).
-				Int("profileID", profileID).
-				Msg("failed to save image size objects for profile")
+			slog.Error("failed to save image size objects for profile",
+				"error", err,
+				"imageCategory", imageCategory.Value,
+				"sizeName", item.size.Value,
+				"profileID", profileID,
+			)
 			return nil, fmt.Errorf("failed to save image size for %s: %w", item.size.Value, err)
 		}
 	}
 
-	log.Info().
-		Str("imageCategory", imageCategory.Value).
-		Int("profileID", profileID).
-		Msg("Successfully added Image for profile")
+	slog.Info("Successfully added Image for profile",
+		"imageCategory", imageCategory.Value,
+		"profileID", profileID,
+	)
 
 	return &imageID, nil
 }

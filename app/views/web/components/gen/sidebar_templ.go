@@ -12,7 +12,7 @@ import (
 	"github.com/leomorpho/goship/app/controller"
 )
 
-// Renders: sidebar component.
+// Renders: sidebar with navigation links and logo, sticky and vertically centered
 func Sidebar(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -34,7 +34,7 @@ func Sidebar(page *controller.Page) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<aside data-component=\"sidebar\" data-component=\"sidebar\" id=\"logo-sidebar\" class=\"fixed left-5 z-40 w-64 bg-white border-r border-gray-200 dark:bg-gray-800 dark:border-gray-700 rounded-lg\" style=\"top: 50%; transform: translateY(-50%);\" aria-label=\"Sidebar\"><div class=\"h-full p-4 px-6 overflow-y-auto\"><ul class=\"space-y-2 font-medium\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<aside data-component=\"sidebar\" id=\"logo-sidebar\" class=\"fixed left-5 z-40 w-64 bg-white border-r border-gray-200 dark:bg-gray-800 dark:border-gray-700 rounded-lg\" style=\"top: 50%; transform: translateY(-50%);\" aria-label=\"Sidebar\"><div class=\"h-full p-4 px-6 overflow-y-auto\"><ul class=\"space-y-2 font-medium\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

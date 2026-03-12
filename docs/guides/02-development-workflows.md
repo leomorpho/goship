@@ -1,26 +1,26 @@
 # Development Workflows
 <!-- FRONTEND_SYNC: Landing capability explorer in app/views/web/pages/landing_page.templ links here for Database and Migrations and Testing. Keep both landing copy and this doc aligned. -->
 
+## Configuration
+
+Copy `.env.example` to `.env` and fill in the values your environment needs. All configuration is managed via environment variables. The application does not use YAML files for secrets or environment-specific overrides; the `.env` file is the single source of truth for local development.
+
 ## Local Startup
 
 Primary commands:
 
+- `make dev`: starts all development processes (web, worker, js, templ) multiplexed via `overmind`
 - `make run`: single-binary web process with SQLite + Otter + Backlite
-- `make dev`: infra + web process
-- `make dev-worker`: infra + worker process
-- `make dev-full`: infra + web + worker + JS/CSS watchers
 - `go run ./tools/cli/ship/cmd/ship dev`: CLI equivalent of `make dev`
-
-Before running locally, copy `.env.example` to `.env` and fill in the values your environment needs.
 
 Recommended modes:
 
+- Unified dev mode:
+  `make dev` (or `ship dev`)
+  Starts the web server (via `air`), worker, Vite (js), and Templ (watch) processes in a single multiplexed stream. Requires `overmind` or `goreman`.
 - Single-binary mode:
   `cp .env.example .env && make run`
   Uses embedded SQLite, in-memory Otter cache, and Backlite jobs. No Docker required.
-- Standard mode:
-  `make dev`
-  Uses the existing infra-oriented workflow and is still the right path when you want Redis-backed runtime behavior or multi-process parity.
 
 Legacy aliases still exist (`make init`, `make watch`) but they are no longer the preferred path.
 
@@ -31,6 +31,18 @@ Legacy aliases still exist (`make init`, `make watch`) but they are no longer th
 - `watch-css`
 - `watch-go-worker`
 
+## Single Binary Mode
+
+For the fastest development experience with zero dependencies:
+
+1. Set the following in your `.env`:
+   - `PAGODA_DB_DRIVER=sqlite`
+   - `PAGODA_CACHE_DRIVER=otter`
+   - `PAGODA_JOBS_DRIVER=backlite`
+2. Run `make run`.
+
+This mode uses an embedded SQLite database, the Otter in-memory cache, and the Backlite in-process job queue. No Docker is required.
+
 ## Services and Infra
 
 Docker Compose currently provisions:
@@ -40,9 +52,9 @@ Docker Compose currently provisions:
 
 Notes:
 
-- Postgres service is currently not started by default.
-- Runtime can operate with embedded DB mode; external DB remains supported by config.
-- `make run` does not start Docker Compose or any accessory services.
+- **Postgres and Redis are optional.** The runtime can operate entirely with embedded SQLite, in-memory Otter cache, and Backlite jobs.
+- External database and cache services remain fully supported by configuration.
+- `make run` does not start Docker Compose or any accessory services; use `make dev` if you need the full infrastructure stack.
 
 ## Assets
 

@@ -72,6 +72,7 @@ func HasMakefile() bool {
 type runtimeConfig struct {
 	DatabaseURL       string `env:"DATABASE_URL"`
 	LegacyDatabaseURL string `env:"PAGODA_DATABASE_URL"`
+	DBDriver          string `env:"DB_DRIVER,PAGODA_DATABASE_DRIVER,PAGODA_DB_DRIVER"`
 	AppEnvironment    string `env:"PAGODA_APP_ENVIRONMENT"`
 }
 
@@ -149,6 +150,48 @@ func ResolveDBURL() (string, error) {
 		u.User = url.UserPassword(user, cfg.Database.Password)
 	}
 	return u.String(), nil
+}
+
+func ResolveDBDriver() (string, error) {
+	runtimeEnv, err := loadRuntimeConfig()
+	if err != nil {
+		return "", err
+	}
+	if driver := normalizeRuntimeDBDriver(runtimeEnv.DBDriver); driver != "" {
+		return driver, nil
+	}
+	if strings.TrimSpace(runtimeEnv.DBDriver) != "" {
+		return "", errors.New("unsupported DB_DRIVER; supported values are postgres, mysql, sqlite")
+	}
+
+	cfg, err := appconfig.GetConfig()
+	if err != nil {
+		return "", err
+	}
+
+	if strings.EqualFold(string(cfg.Database.DbMode), "embedded") {
+		return "sqlite", nil
+	}
+	if driver := normalizeRuntimeDBDriver(string(cfg.Database.Driver)); driver != "" {
+		return driver, nil
+	}
+	if strings.EqualFold(string(cfg.Database.DbMode), "standalone") {
+		return "postgres", nil
+	}
+	return "", errors.New("database driver is empty; set DB_DRIVER")
+}
+
+func normalizeRuntimeDBDriver(raw string) string {
+	switch strings.ToLower(strings.TrimSpace(raw)) {
+	case "postgres", "postgresql", "pgx":
+		return "postgres"
+	case "mysql", "mariadb":
+		return "mysql"
+	case "sqlite", "sqlite3":
+		return "sqlite"
+	default:
+		return ""
+	}
 }
 
 func loadRuntimeConfig() (runtimeConfig, error) {

@@ -11,7 +11,7 @@ import templruntime "github.com/a-h/templ/runtime"
 import "github.com/leomorpho/goship/app/controller"
 
 // "github.com/leomorpho/goship/app/views/web/components/gen"
-// Renders: documentation-architecture-page component.
+// Renders: architecture documentation page
 func DocumentationArchitecturePage(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context

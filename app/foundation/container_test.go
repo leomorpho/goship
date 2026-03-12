@@ -3,11 +3,14 @@ package foundation
 import (
 	"testing"
 
+	"github.com/leomorpho/goship/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestNewContainer(t *testing.T) {
+	t.Setenv("PAGODA_APP_ENVIRONMENT", string(config.EnvTest))
+
 	c := NewContainer()
 	t.Cleanup(func() {
 		require.NoError(t, c.Shutdown())

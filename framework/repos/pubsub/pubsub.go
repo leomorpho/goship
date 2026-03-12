@@ -3,10 +3,10 @@ package pubsub
 import (
 	"context"
 	"encoding/json"
+	"log/slog"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/nats-io/nats.go"
-	"github.com/rs/zerolog/log"
 )
 
 type SSEEvent struct {
@@ -37,7 +37,7 @@ func (c *NATSPubSubClient) SSESubscribe(ctx context.Context, topic string) (<-ch
 	sub, err := c.conn.Subscribe(topic, func(m *nats.Msg) {
 		var event SSEEvent
 		if err := json.Unmarshal(m.Data, &event); err != nil {
-			log.Error().Err(err).Msg("Error unmarshalling message")
+			slog.Error("Error unmarshalling message", "error", err)
 			return
 		}
 		select {
@@ -90,7 +90,7 @@ func (c *RedisPubSubClient) SSESubscribe(ctx context.Context, subject string) (<
 			case msg := <-ch:
 				var event SSEEvent
 				if err := json.Unmarshal([]byte(msg.Payload), &event); err != nil {
-					log.Error().Err(err).Msg("Error unmarshalling message")
+					slog.Error("Error unmarshalling message", "error", err)
 					continue // or consider closing the channel and returning on a fatal error
 				}
 				select {

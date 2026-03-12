@@ -14,7 +14,7 @@ import (
 	"github.com/leomorpho/goship/app/web/routenames"
 )
 
-// Renders: error component.
+// Renders: error status page with code, title, subtitle, and back-to-home button
 func Error(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
