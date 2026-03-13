@@ -65,6 +65,76 @@ func TestConversationServiceSendMessagePersistsHistory(t *testing.T) {
 	require.Equal(t, "Hello from the user", conversations[0].Title)
 }
 
+func TestConversationServiceSendMessage_LoadsPriorHistoryAcrossRequests(t *testing.T) {
+	db := newConversationTestDB(t)
+	store := NewConversationSQLStore(db, "sqlite")
+
+	callCount := 0
+	provider := mockProvider{
+		complete: func(_ context.Context, req Request) (*Response, error) {
+			callCount++
+			switch callCount {
+			case 1:
+				require.Len(t, req.Messages, 1)
+				require.Equal(t, []Message{
+					{Role: "user", Content: "First question"},
+				}, req.Messages)
+				return &Response{
+					Content:      "First answer",
+					InputTokens:  10,
+					OutputTokens: 4,
+					Model:        ClaudeHaiku4,
+				}, nil
+			case 2:
+				require.Equal(t, []Message{
+					{Role: "user", Content: "First question"},
+					{Role: "assistant", Content: "First answer"},
+					{Role: "user", Content: "Second question"},
+				}, req.Messages)
+				return &Response{
+					Content:      "Second answer",
+					InputTokens:  18,
+					OutputTokens: 7,
+					Model:        ClaudeHaiku4,
+				}, nil
+			default:
+				t.Fatalf("unexpected provider call count %d", callCount)
+				return nil, nil
+			}
+		},
+		stream: func(context.Context, Request) (<-chan Token, error) {
+			return nil, nil
+		},
+	}
+
+	service := NewConversationService(store, provider)
+	conversation, err := service.CreateConversation(context.Background(), 1, ClaudeHaiku4, "")
+	require.NoError(t, err)
+
+	firstStream, err := service.SendMessage(context.Background(), conversation.ID, "First question")
+	require.NoError(t, err)
+	for token := range firstStream {
+		require.NoError(t, token.Error)
+	}
+
+	secondStream, err := service.SendMessage(context.Background(), conversation.ID, "Second question")
+	require.NoError(t, err)
+	for token := range secondStream {
+		require.NoError(t, token.Error)
+	}
+
+	history, err := service.GetHistory(context.Background(), conversation.ID)
+	require.NoError(t, err)
+	require.Len(t, history, 4)
+	require.Equal(t, "First question", history[0].Content)
+	require.Equal(t, "First answer", history[1].Content)
+	require.Equal(t, "Second question", history[2].Content)
+	require.Equal(t, "Second answer", history[3].Content)
+	require.Equal(t, 18, history[3].InputTokens)
+	require.Equal(t, 7, history[3].OutputTokens)
+	require.Equal(t, ClaudeHaiku4, history[3].Model)
+}
+
 func TestConversationSQLStoreListMessagesOrdersByCreatedAt(t *testing.T) {
 	db := newConversationTestDB(t)
 	store := NewConversationSQLStore(db, "sqlite")
