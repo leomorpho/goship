@@ -4,6 +4,10 @@ func NewAboutData() AboutData {
 	return AboutData{}
 }
 
+func NewAIDemoPageData() AIDemoPageData {
+	return AIDemoPageData{}
+}
+
 func NewCapabilityDocLink() CapabilityDocLink {
 	return CapabilityDocLink{}
 }

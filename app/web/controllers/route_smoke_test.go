@@ -63,6 +63,7 @@ func TestRouteSmoke_PublicAndAuthenticatedGets(t *testing.T) {
 		{name: "push subscriptions", routeName: routeNames.RouteNameGetPushSubscriptions, client: smokeClientOnboarded, wantStatus: http.StatusOK},
 		{name: "pricing", routeName: routeNames.RouteNamePricingPage, client: smokeClientOnboarded, wantStatus: http.StatusOK},
 		{name: "payment public key", routeName: routeNames.RouteNamePaymentProcessorGetPublicKey, client: smokeClientOnboarded, wantStatus: http.StatusOK},
+		{name: "ai demo", routeName: routeNames.RouteNameAIDemo, client: smokeClientOnboarded, wantStatus: http.StatusOK},
 	}
 
 	for _, tc := range tests {

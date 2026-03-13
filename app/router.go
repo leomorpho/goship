@@ -261,6 +261,12 @@ func registerAuthRoutes(c *foundation.Container, g *echo.Group, ctr ui.Controlle
 		return err
 	}
 
+	if c.Config.App.Environment != config.EnvProduction {
+		aiDemo := controllers.NewAIDemoRoute(ctr)
+		onboardedGroup.GET("/ai-demo", aiDemo.Get).Name = routeNames.RouteNameAIDemo
+		onboardedGroup.GET("/ai-demo/stream", aiDemo.Stream).Name = routeNames.RouteNameAIDemoStream
+	}
+
 	// ship:routes:auth:start
 	// ship:routes:auth:end
 

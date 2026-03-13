@@ -32,6 +32,8 @@ const (
 	RouteNameDeleteAccountPage       = "delete_account.page"
 	RouteNameDeleteAccountRequest    = "delete_account.request"
 	RouteNamePrivacyPolicy           = "privacy_policy"
+	RouteNameAIDemo                  = "ai_demo"
+	RouteNameAIDemoStream            = "ai_demo.stream"
 
 	RouteNameHomeFeed           = "home_feed"
 	RouteNameGetHomeFeedButtons = "home_feed.buttons"

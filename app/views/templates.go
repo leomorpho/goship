@@ -28,6 +28,7 @@ const (
 	PageDeleteAccount          Page = "delete_account.page"
 	PagePrivacyPolicy          Page = "privacy_policy"
 	PageWiki                   Page = "wiki"
+	PageAIDemo                 Page = "ai_demo"
 
 	SSEAnsweredByFriend Page = "sse_answered_by_friend"
 )

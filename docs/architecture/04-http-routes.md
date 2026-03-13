@@ -119,6 +119,7 @@ Registered only when not production:
 Realtime is conditionally wired:
 
 - `GET /auth/realtime` is registered only when runtime web features enable realtime (notifier + pubsub available).
+- `GET /auth/ai-demo` and `GET /auth/ai-demo/stream` are registered only when the app environment is not production.
 
 Notification center routes have implementations but are still not wired:
 

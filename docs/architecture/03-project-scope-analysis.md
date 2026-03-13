@@ -127,6 +127,7 @@ Build pipeline:
 - `modules/ai` exposes a provider-agnostic completion boundary via `container.AI`
 - Anthropic, OpenAI, and OpenRouter are wired providers
 - The service supports unary completion, token streaming, and structured JSON decoding into Go types
+- Non-production builds expose an authenticated `/auth/ai-demo` page that demonstrates HTMX + SSE streaming against the AI service
 
 ## 10) Admin Panel
 
