@@ -18,6 +18,10 @@ Last updated: 2026-03-13
 - `Provider.Stream(ctx, ai.Request)`
 - `Service.Complete(ctx, ai.Request)`
 - `Service.Stream(ctx, ai.Request)`
+- `ConversationService.CreateConversation(ctx, userID, model, title)`
+- `ConversationService.SendMessage(ctx, conversationID, userMessage)`
+- `ConversationService.ListConversations(ctx, userID)`
+- `ConversationService.GetHistory(ctx, conversationID)`
 
 The app container wires the concrete provider in [container.go](/workspace/project/app/foundation/container.go).
 
@@ -55,6 +59,28 @@ Structured output:
 - The service will decode the model response JSON into that pointer.
 - Anthropic uses a forced tool call for structured output.
 - OpenAI and OpenRouter use JSON-schema response formatting.
+
+## Conversation Persistence
+
+`modules/ai` now ships a persistence layer for chatbot-style flows:
+
+- `ai_conversations`
+- `ai_messages`
+
+The SQL store lives in:
+
+- [conversation_store_sql.go](/workspace/project/modules/ai/conversation_store_sql.go)
+
+The service lives in:
+
+- [conversation_service.go](/workspace/project/modules/ai/conversation_service.go)
+
+Current behavior:
+
+- create a conversation per user and model
+- append user messages before dispatching to the provider
+- save the assistant response after completion
+- keep token counts and response model on assistant messages when the provider returns them
 
 ## SSE Pattern
 

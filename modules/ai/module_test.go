@@ -8,7 +8,7 @@ import (
 )
 
 func TestNewModule_UnsupportedDriverReturnsUnavailableService(t *testing.T) {
-	module := NewModule(NewService(NewUnavailableProvider(`unsupported AI driver "openrouter"`), nil))
+	module := NewModule(NewService(NewUnavailableProvider(`unsupported AI driver "openrouter"`), nil), nil)
 	require.NotNil(t, module)
 	require.NotNil(t, module.Service())
 
@@ -19,7 +19,7 @@ func TestNewModule_UnsupportedDriverReturnsUnavailableService(t *testing.T) {
 }
 
 func TestNewModule_MissingAPIKeyReturnsUnavailableService(t *testing.T) {
-	module := NewModule(NewService(NewUnavailableProvider("missing ANTHROPIC_API_KEY"), nil))
+	module := NewModule(NewService(NewUnavailableProvider("missing ANTHROPIC_API_KEY"), nil), nil)
 	require.NotNil(t, module)
 	require.NotNil(t, module.Service())
 

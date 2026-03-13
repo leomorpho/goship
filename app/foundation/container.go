@@ -402,7 +402,10 @@ func (c *Container) initAI() {
 		provider = ai.NewUnavailableProvider(fmt.Sprintf("unsupported AI driver %q", c.Config.AI.Driver))
 	}
 
-	module := ai.NewModule(ai.NewService(provider, logging.NewLogger(c.Config.Log)))
+	module := ai.NewModule(
+		ai.NewService(provider, logging.NewLogger(c.Config.Log)),
+		ai.NewConversationService(ai.NewConversationSQLStore(c.Database, c.Config.Adapters.DB), provider),
+	)
 	c.AI = module.Service()
 }
 

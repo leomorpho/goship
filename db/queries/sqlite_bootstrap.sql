@@ -39,3 +39,27 @@ CREATE TABLE IF NOT EXISTS last_seen_onlines (
 	user_last_seen_at INTEGER NOT NULL,
 	FOREIGN KEY(user_last_seen_at) REFERENCES users(id) ON DELETE CASCADE
 )
+
+-- name: sqlite_bootstrap_create_ai_conversations
+CREATE TABLE IF NOT EXISTS ai_conversations (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	user_id INTEGER NOT NULL,
+	model TEXT NOT NULL,
+	title TEXT,
+	created_at DATETIME NOT NULL,
+	updated_at DATETIME NOT NULL,
+	FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+)
+
+-- name: sqlite_bootstrap_create_ai_messages
+CREATE TABLE IF NOT EXISTS ai_messages (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	conversation_id INTEGER NOT NULL,
+	role TEXT NOT NULL,
+	content TEXT NOT NULL,
+	input_tokens INTEGER,
+	output_tokens INTEGER,
+	model TEXT,
+	created_at DATETIME NOT NULL,
+	FOREIGN KEY(conversation_id) REFERENCES ai_conversations(id) ON DELETE CASCADE
+)

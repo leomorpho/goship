@@ -5,19 +5,23 @@ import (
 	"fmt"
 	"io/fs"
 	"log/slog"
+
+	dbmigrate "github.com/leomorpho/goship/modules/ai/db/migrate"
 )
 
 type Module struct {
-	service *Service
+	service       *Service
+	conversations *ConversationService
 }
 
-func NewModule(service *Service) *Module {
+func NewModule(service *Service, conversations *ConversationService) *Module {
 	if service == nil {
 		service = NewService(NewUnavailableProvider("missing AI service"), slog.Default())
 	}
 
 	return &Module{
-		service: service,
+		service:       service,
+		conversations: conversations,
 	}
 }
 
@@ -26,7 +30,7 @@ func (m *Module) ID() string {
 }
 
 func (m *Module) Migrations() fs.FS {
-	return nil
+	return dbmigrate.Migrations()
 }
 
 func (m *Module) Service() *Service {
@@ -34,6 +38,13 @@ func (m *Module) Service() *Service {
 		return nil
 	}
 	return m.service
+}
+
+func (m *Module) Conversations() *ConversationService {
+	if m == nil {
+		return nil
+	}
+	return m.conversations
 }
 
 func NewUnavailableProvider(reason string) Provider {

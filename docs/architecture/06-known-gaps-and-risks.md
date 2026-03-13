@@ -86,12 +86,13 @@ Impact:
 
 ## 10) AI Provider Coverage Is Still Narrow (Medium)
 
-`modules/ai` now provides a stable app-facing completion boundary with Anthropic, OpenAI, and OpenRouter adapters, but provider coverage is still incomplete and the configured driver becomes unavailable without matching credentials.
+`modules/ai` now provides a stable app-facing completion boundary with Anthropic, OpenAI, and OpenRouter adapters plus persisted conversation history, but provider coverage is still incomplete and the configured driver becomes unavailable without matching credentials.
 
 Impact:
 
 - Apps can build against the AI seam today, but multi-provider portability is not delivered yet.
-- Environments without Anthropic credentials will keep a non-nil AI service that returns a clear provider-unavailable error at call time.
+- Environments without matching provider credentials will keep a non-nil AI service that returns a clear provider-unavailable error at call time.
+- Conversation persistence exists at the module layer, but there is still no first-class app UI for browsing or resuming stored AI threads.
 
 ## Suggested Priority Order
 
