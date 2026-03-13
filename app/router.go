@@ -67,6 +67,9 @@ func BuildRouter(c *foundation.Container, modules RouterModules) error {
 	g := c.Web.Group("")
 	e := c.Web.Group("")
 	s := c.Web.Group("")
+	v1 := e.Group("/api/v1") // ship:routes:api:v1:start
+	_ = v1
+	// ship:routes:api:v1:end
 
 	if c.Config.HTTP.TLS.Enabled {
 		appweb.ApplyTLSRedirect(g, e, s)

@@ -180,6 +180,7 @@ Doctor checks (current):
 - validates agent allowlist artifacts are in sync with `tools/agent-policy/allowed-commands.yaml`
 - validates enabled modules in `config/modules.yaml` include `db/migrate/migrations` and `db/bobgen.yaml`
 - validates cross-boundary import rules (controller `QueryProfile()` ban, jobs SQL coupling ban, notifications pubsub framework-core coupling ban, module source isolation ban for direct `github.com/leomorpho/goship/*` imports except explicit allowlist paths)
+- warns when `/api/` routes appear to render HTML directly instead of using the standard JSON API helpers
 
 Field syntax for `make:model`:
 
