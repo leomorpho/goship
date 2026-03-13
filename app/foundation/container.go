@@ -25,6 +25,7 @@ import (
 	"github.com/leomorpho/goship/framework/logging"
 	"github.com/leomorpho/goship/framework/repos/mailer"
 	"github.com/leomorpho/goship/modules/ai"
+	"github.com/leomorpho/goship/modules/auditlog"
 )
 
 // Container contains all services used by the application and provides an easy way to handle dependency
@@ -56,6 +57,9 @@ type Container struct {
 
 	// AI stores the app-facing AI service.
 	AI *ai.Service
+
+	// AuditLogs stores the app-facing audit log service.
+	AuditLogs *auditlog.Service
 
 	// EventBus stores the synchronous domain event bus.
 	EventBus *events.Bus
@@ -89,6 +93,7 @@ func NewContainer() *Container {
 	c.initAuth()
 	c.initMail()
 	c.initAI()
+	c.initAuditLogs()
 	c.initEventBus()
 	c.initPaymentProcessor()
 	// ship:container:start
@@ -416,6 +421,11 @@ func (c *Container) initAI() {
 	c.AI = module.Service()
 }
 
+func (c *Container) initAuditLogs() {
+	module := auditlog.NewModule(auditlog.NewService(auditlog.NewSQLStore(c.Database)))
+	c.AuditLogs = module.Service()
+}
+
 func (c *Container) initEventBus() {
 	c.EventBus = events.NewBus()
 
@@ -432,6 +442,7 @@ func (c *Container) initEventBus() {
 		logger.Info("domain event published", "event", "UserLoggedOut", "user_id", event.UserID)
 		return nil
 	})
+	auditlog.Subscribe(c.EventBus, c.AuditLogs)
 }
 
 func (c *Container) initPaymentProcessor() {

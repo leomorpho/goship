@@ -63,3 +63,20 @@ CREATE TABLE IF NOT EXISTS ai_messages (
 	created_at DATETIME NOT NULL,
 	FOREIGN KEY(conversation_id) REFERENCES ai_conversations(id) ON DELETE CASCADE
 )
+
+-- name: sqlite_bootstrap_create_audit_logs
+CREATE TABLE IF NOT EXISTS audit_logs (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	user_id INTEGER,
+	action TEXT NOT NULL,
+	resource_type TEXT,
+	resource_id TEXT,
+	changes TEXT,
+	ip_address TEXT,
+	user_agent TEXT,
+	created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id ON audit_logs(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_resource ON audit_logs(resource_type, resource_id)

@@ -1,10 +1,12 @@
 package admin
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/labstack/echo/v4"
@@ -50,6 +52,25 @@ func TestAdminRoutes_AdminQueueMonitor(t *testing.T) {
 	}
 }
 
+func TestAdminRoutes_AdminAuditLogs(t *testing.T) {
+	c := newContainerForAdminRoutes(t, true)
+
+	if err := c.AuditLogs.Record(context.Background(), "user.login", "user", "1", nil); err != nil {
+		t.Fatalf("Record() error = %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/admin/audit-logs?action=user.login", nil)
+	rec := httptest.NewRecorder()
+	c.Web.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusOK)
+	}
+	if !strings.Contains(rec.Body.String(), "user.login") {
+		t.Fatalf("body = %q, want audit action", rec.Body.String())
+	}
+}
+
 func newContainerForAdminRoutes(t *testing.T, admin bool) *foundation.Container {
 	t.Helper()
 	if err := chdirRepoRoot(); err != nil {
@@ -71,6 +92,7 @@ func newContainerForAdminRoutes(t *testing.T, admin bool) *foundation.Container 
 	module := New(ModuleDeps{
 		Controller: ui.NewController(c),
 		DB:         c.Database,
+		AuditLogs:  c.AuditLogs,
 	})
 	if err := module.RegisterRoutes(c.Web); err != nil {
 		t.Fatalf("register routes: %v", err)

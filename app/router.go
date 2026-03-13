@@ -256,6 +256,7 @@ func registerAuthRoutes(c *foundation.Container, g *echo.Group, ctr ui.Controlle
 	adminPanelModule := adminmodule.New(adminmodule.ModuleDeps{
 		Controller: ctr,
 		DB:         c.Database,
+		AuditLogs:  c.AuditLogs,
 	})
 	if err := adminPanelModule.RegisterRoutes(onboardedGroup); err != nil {
 		return err

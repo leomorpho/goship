@@ -4,28 +4,33 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"html"
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
-	backliteui "github.com/mikestefanello/backlite/ui"
 	"github.com/labstack/echo/v4"
 	"github.com/leomorpho/goship/app/web/middleware"
 	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/framework/core"
+	"github.com/leomorpho/goship/modules/auditlog"
+	backliteui "github.com/mikestefanello/backlite/ui"
 )
 
 type routes struct {
 	controller ui.Controller
 	db         *sql.DB
+	auditLogs  *auditlog.Service
 }
 
-func registerRoutes(r core.Router, controller ui.Controller, db *sql.DB) error {
-	h := &routes{controller: controller, db: db}
+func registerRoutes(r core.Router, controller ui.Controller, db *sql.DB, auditLogs *auditlog.Service) error {
+	h := &routes{controller: controller, db: db, auditLogs: auditLogs}
 	g := r.Group("/admin", middleware.RequireAdmin())
 	g.GET("", h.Index)
 	g.GET("/queues", h.Queues)
 	g.GET("/queues/*", h.Queues)
+	g.GET("/audit-logs", h.AuditLogs)
 	g.GET("/:resource", h.List)
 	g.GET("/:resource/new", h.New)
 	g.POST("/:resource", h.Create)
@@ -41,6 +46,60 @@ func (r *routes) Index(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusNotFound, "no admin resources registered")
 	}
 	return ctx.Redirect(http.StatusFound, "/admin/"+strings.ToLower(resources[0].PluralName))
+}
+
+func (r *routes) AuditLogs(ctx echo.Context) error {
+	if r.auditLogs == nil {
+		return echo.NewHTTPError(http.StatusNotFound, "audit logs are not configured")
+	}
+
+	filters := auditlog.ListFilters{
+		Action:       strings.TrimSpace(ctx.QueryParam("action")),
+		ResourceType: strings.TrimSpace(ctx.QueryParam("resource_type")),
+		ResourceID:   strings.TrimSpace(ctx.QueryParam("resource_id")),
+		Limit:        parsePositiveInt(ctx.QueryParam("limit"), 100),
+	}
+	if rawUserID := strings.TrimSpace(ctx.QueryParam("user_id")); rawUserID != "" {
+		userID, err := strconv.ParseInt(rawUserID, 10, 64)
+		if err != nil {
+			return echo.NewHTTPError(http.StatusBadRequest, "user_id must be numeric")
+		}
+		filters.UserID = &userID
+	}
+
+	logs, err := r.auditLogs.List(ctx.Request().Context(), filters)
+	if err != nil {
+		return err
+	}
+
+	var b strings.Builder
+	b.WriteString("<html><body><h1>Admin - Audit Logs</h1>")
+	b.WriteString(`<form method="get" action="/admin/audit-logs">`)
+	b.WriteString(`User <input name="user_id" value="` + html.EscapeString(ctx.QueryParam("user_id")) + `">`)
+	b.WriteString(` Action <input name="action" value="` + html.EscapeString(filters.Action) + `">`)
+	b.WriteString(` Resource <input name="resource_type" value="` + html.EscapeString(filters.ResourceType) + `">`)
+	b.WriteString(` Resource ID <input name="resource_id" value="` + html.EscapeString(filters.ResourceID) + `">`)
+	b.WriteString(` <button type="submit">Filter</button></form>`)
+	b.WriteString("<table><thead><tr><th>When</th><th>User</th><th>Action</th><th>Resource</th><th>IP</th></tr></thead><tbody>")
+	for _, entry := range logs {
+		user := "-"
+		if entry.UserID != nil {
+			user = strconv.FormatInt(*entry.UserID, 10)
+		}
+		resource := entry.ResourceType
+		if entry.ResourceID != "" {
+			resource = strings.Trim(resource+":"+entry.ResourceID, ":")
+		}
+		b.WriteString("<tr>")
+		b.WriteString("<td>" + html.EscapeString(entry.CreatedAt.Format(time.RFC3339)) + "</td>")
+		b.WriteString("<td>" + html.EscapeString(user) + "</td>")
+		b.WriteString("<td>" + html.EscapeString(entry.Action) + "</td>")
+		b.WriteString("<td>" + html.EscapeString(resource) + "</td>")
+		b.WriteString("<td>" + html.EscapeString(entry.IPAddress) + "</td>")
+		b.WriteString("</tr>")
+	}
+	b.WriteString("</tbody></table></body></html>")
+	return ctx.HTML(http.StatusOK, b.String())
 }
 
 func (r *routes) List(ctx echo.Context) error {
