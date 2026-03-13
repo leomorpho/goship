@@ -12,6 +12,7 @@ GoShip is a Go + Echo + Templ + HTMX starter application that ships with:
 - Notification infrastructure (DB + push + SSE-oriented architecture)
 - S3-compatible file storage support with image variants
 - Background task processing (Asynq worker)
+- Provider-agnostic AI completion service with an Anthropic adapter
 - Frontend asset bundling for Svelte components and vanilla JS
 
 The repository still carries heritage from a related product domain ("Cherie"), and some feature areas are partially wired or intentionally disabled.
@@ -121,7 +122,13 @@ Build pipeline:
 - JS via `frontend/vite.config.ts` + Vite
 - CSS via Tailwind CLI in Makefile
 
-## 9) Admin Panel
+## 9) AI Integration
+
+- `modules/ai` exposes a provider-agnostic completion boundary via `container.AI`
+- Anthropic is the currently wired provider through `github.com/anthropics/anthropic-sdk-go`
+- The service supports unary completion, token streaming, and structured JSON decoding into Go types
+
+## 10) Admin Panel
 
 Reflection-based administrative interface for managing database resources.
 

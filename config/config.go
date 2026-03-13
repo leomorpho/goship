@@ -107,6 +107,7 @@ type (
 		Storage     StorageConfig
 		Backup      BackupConfig
 		OAuth       OAuthConfig
+		AI          AIConfig
 	}
 
 	LogConfig struct {
@@ -331,6 +332,16 @@ type (
 	OAuthDiscordConfig struct {
 		ClientID     string `env:"OAUTH_DISCORD_CLIENT_ID"`
 		ClientSecret string `env:"OAUTH_DISCORD_CLIENT_SECRET"`
+	}
+
+	AIConfig struct {
+		Driver    string `env:"AI_DRIVER" env-default:"anthropic"`
+		Anthropic AIAnthropicConfig
+	}
+
+	AIAnthropicConfig struct {
+		APIKey       string `env:"ANTHROPIC_API_KEY"`
+		DefaultModel string `env:"ANTHROPIC_DEFAULT_MODEL" env-default:"claude-haiku-4-5-20251001"`
 	}
 )
 
@@ -670,6 +681,12 @@ func defaultConfig() Config {
 			GitHub:  OAuthGitHubConfig{},
 			Google:  OAuthGoogleConfig{},
 			Discord: OAuthDiscordConfig{},
+		},
+		AI: AIConfig{
+			Driver: "anthropic",
+			Anthropic: AIAnthropicConfig{
+				DefaultModel: "claude-haiku-4-5-20251001",
+			},
 		},
 	}
 }

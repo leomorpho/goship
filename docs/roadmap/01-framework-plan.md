@@ -177,6 +177,7 @@ Primary infrastructure seams to abstract:
 4. `PubSub`
 5. `BlobStorage`
 6. `Mailer`
+7. `AI`
 
 Non-goal:
 

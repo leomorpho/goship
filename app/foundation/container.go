@@ -3,12 +3,12 @@ package foundation
 import (
 	"database/sql"
 	"fmt"
-	"strings"
-
 	"os"
+	"strings"
 
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/labstack/echo/v4"
+	anthropicdriver "github.com/leomorpho/goship/modules/ai/drivers/anthropic"
 	"github.com/stripe/stripe-go/v78"
 	_ "modernc.org/sqlite"
 
@@ -19,6 +19,7 @@ import (
 	coreadapters "github.com/leomorpho/goship/framework/core/adapters"
 	"github.com/leomorpho/goship/framework/logging"
 	"github.com/leomorpho/goship/framework/repos/mailer"
+	"github.com/leomorpho/goship/modules/ai"
 )
 
 // Container contains all services used by the application and provides an easy way to handle dependency
@@ -48,6 +49,9 @@ type Container struct {
 	// Auth stores an authentication client
 	Auth *AuthClient
 
+	// AI stores the app-facing AI service.
+	AI *ai.Service
+
 	// Notifier handles all notifications to clients
 	Notifier *notifications.NotifierService
 
@@ -76,6 +80,7 @@ func NewContainer() *Container {
 	c.initSchema()
 	c.initAuth()
 	c.initMail()
+	c.initAI()
 	c.initPaymentProcessor()
 	// ship:container:start
 	// ship:container:end
@@ -362,6 +367,24 @@ func (c *Container) initMail() {
 	if err != nil {
 		panic(fmt.Sprintf("failed to create mail client: %v", err))
 	}
+}
+
+func (c *Container) initAI() {
+	var provider ai.Provider
+
+	switch strings.ToLower(strings.TrimSpace(c.Config.AI.Driver)) {
+	case "", "anthropic":
+		if strings.TrimSpace(c.Config.AI.Anthropic.APIKey) == "" {
+			provider = ai.NewUnavailableProvider("missing ANTHROPIC_API_KEY")
+		} else {
+			provider = anthropicdriver.New(c.Config.AI.Anthropic.APIKey, c.Config.AI.Anthropic.DefaultModel)
+		}
+	default:
+		provider = ai.NewUnavailableProvider(fmt.Sprintf("unsupported AI driver %q", c.Config.AI.Driver))
+	}
+
+	module := ai.NewModule(ai.NewService(provider, logging.NewLogger(c.Config.Log)))
+	c.AI = module.Service()
 }
 
 func (c *Container) initPaymentProcessor() {

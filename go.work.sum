@@ -24,6 +24,7 @@ cloud.google.com/go/clouddms v1.7.6/go.mod h1:8HWZ2tznZ0mNAtTpfnRNT0QOThqn9MBUqT
 cloud.google.com/go/cloudtasks v1.12.8/go.mod h1:aX8qWCtmVf4H4SDYUbeZth9C0n9dBj4dwiTYi4Or/P4=
 cloud.google.com/go/compute v1.27.0 h1:EGawh2RUnfHT5g8f/FX3Ds6KZuIBC77hZoDrBvEZw94=
 cloud.google.com/go/compute v1.27.0/go.mod h1:LG5HwRmWFKM2C5XxHRiNzkLLXW48WwvyVC0mfWsYPOM=
+cloud.google.com/go/compute v1.27.2 h1:5cE5hdrwJV/92ravlwIFRGnyH9CpLGhh4N0ZDVTU+BA=
 cloud.google.com/go/contactcenterinsights v1.13.2/go.mod h1:AfkSB8t7mt2sIY6WpfO61nD9J9fcidIchtxm9FqJVXk=
 cloud.google.com/go/container v1.35.1/go.mod h1:udm8fgLm3TtpnjFN4QLLjZezAIIp/VnMo316yIRVRQU=
 cloud.google.com/go/containeranalysis v0.11.6/go.mod h1:YRf7nxcTcN63/Kz9f86efzvrV33g/UV8JDdudRbYEUI=
@@ -132,6 +133,8 @@ github.com/apparentlymart/go-textseg/v13 v13.0.0 h1:Y+KvPE1NYz0xl601PVImeQfFyEy6
 github.com/apparentlymart/go-textseg/v13 v13.0.0/go.mod h1:ZK2fH7c4NqDTLtiYLvIkEghdlcqw7yxLeM89kiTRPUo=
 github.com/armon/go-metrics v0.4.1/go.mod h1:E6amYzXo6aW1tqzoZGT755KkbgrJsSdpwZ+3JqfkOG4=
 github.com/armon/go-socks5 v0.0.0-20160902184237-e75332964ef5/go.mod h1:wHh0iHkYZB8zMSxRWpUBQtwG5a7fFgvEO+odwuTv2gs=
+github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.11.3 h1:dT3MqvGhSoaIhRseqw2I0yH81l7wiR2vjs57O51EAm8=
+github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.11.3/go.mod h1:GlAeCkHwugxdHaueRr4nhPuY+WW+gR8UjlcqzPr1SPI=
 github.com/aymerick/douceur v0.2.0/go.mod h1:wlT5vV2O3h55X9m7iVYN0TBM0NH/MmbLnd30/FjWUq4=
 github.com/blang/semver/v4 v4.0.0/go.mod h1:IbckMUScFkM3pff0VJDNKRiT6TG/YpiHIM2yvyW5YoQ=
 github.com/casbin/casbin/v2 v2.64.0/go.mod h1:vByNa/Fchek0KZUgG5wEsl7iFsiviAYKRtgrQfcJqHg=

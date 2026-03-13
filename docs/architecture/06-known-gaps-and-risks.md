@@ -84,6 +84,15 @@ Impact:
 - Promotion currently requires custom/manual tooling around the framework contract.
 - Operators can report compatibility and promotion path, but cannot run a one-command migration flow yet.
 
+## 10) AI Provider Coverage Is Still Narrow (Medium)
+
+`modules/ai` now provides a stable app-facing completion boundary, but only the Anthropic adapter is implemented and it becomes unavailable without `ANTHROPIC_API_KEY`.
+
+Impact:
+
+- Apps can build against the AI seam today, but multi-provider portability is not delivered yet.
+- Environments without Anthropic credentials will keep a non-nil AI service that returns a clear provider-unavailable error at call time.
+
 ## Suggested Priority Order
 
 1. Complete cache adapter coverage so page caching works consistently across supported backends.
