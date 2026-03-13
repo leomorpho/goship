@@ -24,6 +24,7 @@ import (
 	eventtypes "github.com/leomorpho/goship/framework/events/types"
 	"github.com/leomorpho/goship/framework/logging"
 	"github.com/leomorpho/goship/framework/repos/mailer"
+	"github.com/leomorpho/goship/framework/sse"
 	"github.com/leomorpho/goship/modules/ai"
 	"github.com/leomorpho/goship/modules/auditlog"
 )
@@ -67,6 +68,9 @@ type Container struct {
 	// Notifier handles all notifications to clients
 	Notifier *notifications.NotifierService
 
+	// SSEHub stores the in-process SSE fan-out hub.
+	SSEHub *sse.Hub
+
 	// CoreCache exposes cache via the backend-agnostic core seam.
 	CoreCache core.Cache
 	// CoreJobs exposes jobs via the backend-agnostic core seam.
@@ -95,6 +99,7 @@ func NewContainer() *Container {
 	c.initAI()
 	c.initAuditLogs()
 	c.initEventBus()
+	c.initSSEHub()
 	c.initPaymentProcessor()
 	// ship:container:start
 	// ship:container:end
@@ -443,6 +448,10 @@ func (c *Container) initEventBus() {
 		return nil
 	})
 	auditlog.Subscribe(c.EventBus, c.AuditLogs)
+}
+
+func (c *Container) initSSEHub() {
+	c.SSEHub = sse.NewHub()
 }
 
 func (c *Container) initPaymentProcessor() {

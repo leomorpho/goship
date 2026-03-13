@@ -34,6 +34,9 @@ const (
 	RouteNamePrivacyPolicy           = "privacy_policy"
 	RouteNameAIDemo                  = "ai_demo"
 	RouteNameAIDemoStream            = "ai_demo.stream"
+	RouteNameSharedCounter           = "shared_counter"
+	RouteNameSharedCounterStream     = "shared_counter.stream"
+	RouteNameSharedCounterIncrement  = "shared_counter.increment"
 
 	RouteNameHomeFeed           = "home_feed"
 	RouteNameGetHomeFeedButtons = "home_feed.buttons"

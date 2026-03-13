@@ -149,6 +149,11 @@ func registerPublicRoutes(c *foundation.Container, g *echo.Group, ctr ui.Control
 		g.GET("/error/403", errHandler.GetHttp403Forbidden)
 		g.GET("/error/404", errHandler.GetHttp404NotFound)
 		g.GET("/error/500", errHandler.GetHttp500InternalServerError)
+
+		sharedCounter := controllers.NewSharedCounterRoute(ctr)
+		g.GET("/examples/shared-counter", sharedCounter.Get).Name = routeNames.RouteNameSharedCounter
+		g.GET("/examples/shared-counter/stream", sharedCounter.Stream).Name = routeNames.RouteNameSharedCounterStream
+		g.POST("/examples/shared-counter/increment", sharedCounter.Increment).Name = routeNames.RouteNameSharedCounterIncrement
 	}
 
 	// ship:routes:public:start
