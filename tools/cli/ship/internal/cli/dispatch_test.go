@@ -42,16 +42,20 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			wantErr:  "usage: ship new <app>",
 		},
 		{
-			name:      "dev default",
-			args:      []string{"dev"},
-			wantCode:  0,
-			wantCalls: []fakeCall{{name: "go", args: []string{"run", "./cmd/web"}}},
+			name:            "dev default",
+			args:            []string{"dev"},
+			wantCode:        0,
+			wantCalls:       nil,
+			useDevAllRunner: true,
+			devAllCode:      0,
 		},
 		{
-			name:      "shipdev alias",
-			args:      []string{"shipdev"},
-			wantCode:  0,
-			wantCalls: []fakeCall{{name: "go", args: []string{"run", "./cmd/web"}}},
+			name:            "shipdev alias",
+			args:            []string{"shipdev"},
+			wantCode:        0,
+			wantCalls:       nil,
+			useDevAllRunner: true,
+			devAllCode:      0,
 		},
 		{
 			name:      "dev worker positional",
@@ -93,7 +97,7 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			name:     "dev both flags invalid",
 			args:     []string{"dev", "--all", "--worker"},
 			wantCode: 1,
-			wantErr:  "cannot set both --worker and --all",
+			wantErr:  "cannot set more than one of --web, --worker, --all",
 		},
 		{
 			name:     "dev unexpected arg invalid",
@@ -421,14 +425,14 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 		},
 		{
 			name:       "runner exit code is propagated",
-			args:       []string{"dev"},
+			args:       []string{"dev", "web"},
 			wantCode:   7,
 			wantCalls:  []fakeCall{{name: "go", args: []string{"run", "./cmd/web"}}},
 			runnerCode: 7,
 		},
 		{
 			name:      "runner error prints message",
-			args:      []string{"dev"},
+			args:      []string{"dev", "web"},
 			wantCode:  1,
 			wantCalls: []fakeCall{{name: "go", args: []string{"run", "./cmd/web"}}},
 			wantErr:   "failed to run command",
@@ -465,6 +469,10 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			}
 			cli.ResolveDBDriver = func() (string, error) {
 				return "postgres", nil
+			}
+			cli.RunDevAll = func() int {
+				devAllCalls++
+				return tt.devAllCode
 			}
 			if tt.useDevAllRunner {
 				cli.RunDevAll = func() int {
