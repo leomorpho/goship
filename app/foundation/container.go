@@ -9,6 +9,8 @@ import (
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/labstack/echo/v4"
 	anthropicdriver "github.com/leomorpho/goship/modules/ai/drivers/anthropic"
+	openaidriver "github.com/leomorpho/goship/modules/ai/drivers/openai"
+	openrouterdriver "github.com/leomorpho/goship/modules/ai/drivers/openrouter"
 	"github.com/stripe/stripe-go/v78"
 	_ "modernc.org/sqlite"
 
@@ -378,6 +380,23 @@ func (c *Container) initAI() {
 			provider = ai.NewUnavailableProvider("missing ANTHROPIC_API_KEY")
 		} else {
 			provider = anthropicdriver.New(c.Config.AI.Anthropic.APIKey, c.Config.AI.Anthropic.DefaultModel)
+		}
+	case "openai":
+		if strings.TrimSpace(c.Config.AI.OpenAI.APIKey) == "" {
+			provider = ai.NewUnavailableProvider("missing OPENAI_API_KEY")
+		} else {
+			provider = openaidriver.New(c.Config.AI.OpenAI.APIKey, c.Config.AI.OpenAI.DefaultModel)
+		}
+	case "openrouter":
+		if strings.TrimSpace(c.Config.AI.OpenRouter.APIKey) == "" {
+			provider = ai.NewUnavailableProvider("missing OPENROUTER_API_KEY")
+		} else {
+			provider = openrouterdriver.New(
+				c.Config.AI.OpenRouter.APIKey,
+				c.Config.AI.OpenRouter.DefaultModel,
+				c.Config.AI.OpenRouter.SiteURL,
+				c.Config.AI.OpenRouter.SiteName,
+			)
 		}
 	default:
 		provider = ai.NewUnavailableProvider(fmt.Sprintf("unsupported AI driver %q", c.Config.AI.Driver))

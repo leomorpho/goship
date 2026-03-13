@@ -335,13 +335,27 @@ type (
 	}
 
 	AIConfig struct {
-		Driver    string `env:"AI_DRIVER" env-default:"anthropic"`
-		Anthropic AIAnthropicConfig
+		Driver     string `env:"AI_DRIVER" env-default:"anthropic"`
+		Anthropic  AIAnthropicConfig
+		OpenAI     AIOpenAIConfig
+		OpenRouter AIOpenRouterConfig
 	}
 
 	AIAnthropicConfig struct {
 		APIKey       string `env:"ANTHROPIC_API_KEY"`
 		DefaultModel string `env:"ANTHROPIC_DEFAULT_MODEL" env-default:"claude-haiku-4-5-20251001"`
+	}
+
+	AIOpenAIConfig struct {
+		APIKey       string `env:"OPENAI_API_KEY"`
+		DefaultModel string `env:"OPENAI_DEFAULT_MODEL" env-default:"gpt-4o-mini"`
+	}
+
+	AIOpenRouterConfig struct {
+		APIKey       string `env:"OPENROUTER_API_KEY"`
+		DefaultModel string `env:"OPENROUTER_DEFAULT_MODEL" env-default:"anthropic/claude-haiku-4-5-20251001"`
+		SiteURL      string `env:"OPENROUTER_SITE_URL"`
+		SiteName     string `env:"OPENROUTER_SITE_NAME"`
 	}
 )
 
@@ -686,6 +700,12 @@ func defaultConfig() Config {
 			Driver: "anthropic",
 			Anthropic: AIAnthropicConfig{
 				DefaultModel: "claude-haiku-4-5-20251001",
+			},
+			OpenAI: AIOpenAIConfig{
+				DefaultModel: "gpt-4o-mini",
+			},
+			OpenRouter: AIOpenRouterConfig{
+				DefaultModel: "anthropic/claude-haiku-4-5-20251001",
 			},
 		},
 	}

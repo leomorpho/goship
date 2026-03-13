@@ -86,7 +86,7 @@ Impact:
 
 ## 10) AI Provider Coverage Is Still Narrow (Medium)
 
-`modules/ai` now provides a stable app-facing completion boundary, but only the Anthropic adapter is implemented and it becomes unavailable without `ANTHROPIC_API_KEY`.
+`modules/ai` now provides a stable app-facing completion boundary with Anthropic, OpenAI, and OpenRouter adapters, but provider coverage is still incomplete and the configured driver becomes unavailable without matching credentials.
 
 Impact:
 

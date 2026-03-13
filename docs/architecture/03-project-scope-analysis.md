@@ -125,7 +125,7 @@ Build pipeline:
 ## 9) AI Integration
 
 - `modules/ai` exposes a provider-agnostic completion boundary via `container.AI`
-- Anthropic is the currently wired provider through `github.com/anthropics/anthropic-sdk-go`
+- Anthropic, OpenAI, and OpenRouter are wired providers
 - The service supports unary completion, token streaming, and structured JSON decoding into Go types
 
 ## 10) Admin Panel
