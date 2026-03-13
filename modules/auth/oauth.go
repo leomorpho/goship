@@ -45,9 +45,11 @@ type OAuthUser struct {
 }
 
 type OAuthLoginResult struct {
-	UserID    int
-	ProfileID int
-	NewUser   bool
+	UserID                int
+	ProfileID             int
+	UserEmail             string
+	NewUser               bool
+	ProfileFullyOnboarded bool
 }
 
 type OAuthProviderLink struct {
@@ -273,18 +275,16 @@ func (s *OAuthService) HandleCallback(ctx context.Context, providerName, code st
 	if err := s.markUserVerifiedByUserID(ctx, registration.UserID); err != nil {
 		return nil, err
 	}
+	if err := s.markProfileFullyOnboarded(ctx, registration.ProfileID); err != nil {
+		return nil, err
+	}
 	if err := s.createDefaultNotificationPermissions(ctx, registration.ProfileID); err != nil {
 		return nil, err
 	}
 	if err := s.upsertOAuthAccount(ctx, registration.UserID, oauthUser, encryptedToken); err != nil {
 		return nil, err
 	}
-
-	return &OAuthLoginResult{
-		UserID:    registration.UserID,
-		ProfileID: registration.ProfileID,
-		NewUser:   true,
-	}, nil
+	return s.resultForUser(ctx, registration.UserID, true)
 }
 
 func (s *OAuthService) resultForUser(ctx context.Context, userID int, newUser bool) (*OAuthLoginResult, error) {
@@ -293,8 +293,12 @@ func (s *OAuthService) resultForUser(ctx context.Context, userID int, newUser bo
 		return nil, err
 	}
 	result := &OAuthLoginResult{UserID: userID, NewUser: newUser}
-	if identity != nil && identity.HasProfile {
-		result.ProfileID = identity.ProfileID
+	if identity != nil {
+		result.UserEmail = identity.UserEmail
+		result.ProfileFullyOnboarded = identity.ProfileFullyOnboarded
+		if identity.HasProfile {
+			result.ProfileID = identity.ProfileID
+		}
 	}
 	return result, nil
 }
@@ -348,6 +352,14 @@ ON CONFLICT(provider, provider_id) DO UPDATE SET
 func (s *OAuthService) markUserVerifiedByUserID(ctx context.Context, userID int) error {
 	query := `UPDATE users SET verified = true WHERE id = ` + placeholder(s.dbDialect, 1)
 	_, err := s.db.ExecContext(ctx, query, userID)
+	return err
+}
+
+func (s *OAuthService) markProfileFullyOnboarded(ctx context.Context, profileID int) error {
+	err := s.profileService.MarkProfileFullyOnboarded(ctx, profileID)
+	if err == nil || errors.Is(err, profilesvc.ErrProfileDBNotConfigured) {
+		return nil
+	}
 	return err
 }
 

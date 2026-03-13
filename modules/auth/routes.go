@@ -314,6 +314,9 @@ func (s *Service) getOAuthProviderCallback(ctx echo.Context) error {
 	if err != nil {
 		return s.ctr.Fail(err, "unable to complete oauth callback")
 	}
+	if result.NewUser {
+		s.publishUserRegistered(ctx, result.UserID, result.UserEmail)
+	}
 	if s.twoFactor != nil {
 		enabled, err := s.twoFactor.IsEnabled(ctx.Request().Context(), result.UserID)
 		if err != nil {

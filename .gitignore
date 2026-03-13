@@ -212,3 +212,4 @@ bubblewrap
 
 # private nested repos / planning workspaces
 /tools/private/
+.doombox/

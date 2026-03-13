@@ -5,12 +5,16 @@ import (
 	"database/sql"
 	"errors"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 
+	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/leomorpho/goship/app/foundation"
+	"github.com/leomorpho/goship/app/web/routenames"
+	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/config"
 	"github.com/leomorpho/goship/framework/tests"
 	profilesvc "github.com/leomorpho/goship/modules/profile"
@@ -40,6 +44,10 @@ type fakeOAuthAuthClient struct {
 	db *sql.DB
 }
 
+type fakeOAuthAuthStore struct {
+	db *sql.DB
+}
+
 func (f fakeOAuthAuthClient) RandomToken(length int) (string, error) {
 	if length <= 0 {
 		return "", errors.New("invalid length")
@@ -56,7 +64,51 @@ func (f fakeOAuthAuthClient) HashPassword(password string) (string, error) {
 }
 
 func (f fakeOAuthAuthClient) GetIdentityByUserID(ctx context.Context, userID int) (*foundation.AuthIdentity, error) {
-	row := f.db.QueryRowContext(ctx, `
+	return lookupAuthIdentity(ctx, f.db, userID)
+}
+
+func (f fakeOAuthAuthStore) GetIdentityByUserID(ctx context.Context, userID int) (*foundation.AuthIdentity, error) {
+	return lookupAuthIdentity(ctx, f.db, userID)
+}
+
+func (f fakeOAuthAuthStore) GetUserRecordByEmail(context.Context, string) (*foundation.AuthUserRecord, error) {
+	return nil, errors.New("not implemented")
+}
+
+func (f fakeOAuthAuthStore) GetUserDisplayNameByUserID(context.Context, int) (string, error) {
+	return "", errors.New("not implemented")
+}
+
+func (f fakeOAuthAuthStore) UpdateUserDisplayNameByUserID(context.Context, int, string) error {
+	return errors.New("not implemented")
+}
+
+func (f fakeOAuthAuthStore) UpdateUserPasswordHashByUserID(context.Context, int, string) error {
+	return errors.New("not implemented")
+}
+
+func (f fakeOAuthAuthStore) MarkUserVerifiedByUserID(context.Context, int) error {
+	return errors.New("not implemented")
+}
+
+func (f fakeOAuthAuthStore) CreateLastSeenOnline(context.Context, int, time.Time) error {
+	return errors.New("not implemented")
+}
+
+func (f fakeOAuthAuthStore) CreatePasswordToken(context.Context, int, string) (int, error) {
+	return 0, errors.New("not implemented")
+}
+
+func (f fakeOAuthAuthStore) GetPasswordTokenHash(context.Context, int, int, time.Time) (string, error) {
+	return "", errors.New("not implemented")
+}
+
+func (f fakeOAuthAuthStore) DeletePasswordTokens(context.Context, int) error {
+	return errors.New("not implemented")
+}
+
+func lookupAuthIdentity(ctx context.Context, db *sql.DB, userID int) (*foundation.AuthIdentity, error) {
+	row := db.QueryRowContext(ctx, `
 		SELECT u.id, u.name, u.email, p.id, COALESCE(p.fully_onboarded, false)
 		FROM users u
 		LEFT JOIN profiles p ON p.user_profile = u.id
@@ -103,6 +155,9 @@ func TestOAuthServiceHandleCallback_CreatesUserProfileAndAccount(t *testing.T) {
 	if !result.NewUser {
 		t.Fatalf("expected new user result")
 	}
+	if !result.ProfileFullyOnboarded {
+		t.Fatalf("expected oauth-created profile to be fully onboarded")
+	}
 	if result.UserID <= 0 || result.ProfileID <= 0 {
 		t.Fatalf("expected user and profile IDs, got %#v", result)
 	}
@@ -121,6 +176,14 @@ func TestOAuthServiceHandleCallback_CreatesUserProfileAndAccount(t *testing.T) {
 	}
 	if storedToken == "provider-access-token" || storedToken == "" {
 		t.Fatalf("expected encrypted oauth token, got %q", storedToken)
+	}
+
+	var fullyOnboarded bool
+	if err := db.QueryRow(`SELECT fully_onboarded FROM profiles WHERE id = ?`, result.ProfileID).Scan(&fullyOnboarded); err != nil {
+		t.Fatalf("query profile onboarding: %v", err)
+	}
+	if !fullyOnboarded {
+		t.Fatalf("expected oauth-created profile to be marked fully onboarded")
 	}
 }
 
@@ -201,6 +264,88 @@ func TestConsumeOAuthState_ValidatesAndClearsSession(t *testing.T) {
 	}
 	if err := consumeOAuthState(ctx, "github", "expected-state"); !errors.Is(err, errOAuthStateInvalid) {
 		t.Fatalf("expected cleared session to fail with errOAuthStateInvalid, got %v", err)
+	}
+}
+
+func TestGetOAuthProviderCallback_CreatesSessionAndRedirectsHome(t *testing.T) {
+	db := newOAuthTestDB(t)
+	cfg := oauthTestConfig()
+	authClient := foundation.NewAuthClient(cfg, fakeOAuthAuthStore{db: db})
+	profileService := profilesvc.NewProfileServiceWithDBDeps(db, "sqlite", nil, nil, nil)
+
+	e := echo.New()
+	e.GET("/user/login", func(c echo.Context) error { return c.NoContent(http.StatusOK) }).Name = routenames.RouteNameLogin
+	e.GET("/auth/homeFeed", func(c echo.Context) error { return c.NoContent(http.StatusOK) }).Name = routenames.RouteNameHomeFeed
+	e.GET("/welcome/preferences", func(c echo.Context) error { return c.NoContent(http.StatusOK) }).Name = routenames.RouteNamePreferences
+	e.GET("/auth/2fa/verify", func(c echo.Context) error { return c.NoContent(http.StatusOK) }).Name = routenames.RouteNameTwoFactorVerify
+
+	container := &foundation.Container{
+		Config: cfg,
+		Auth:   authClient,
+		Web:    e,
+		Logger: e.Logger,
+	}
+	service := &Service{
+		ctr:            ui.NewController(container),
+		profileService: *profileService,
+	}
+	service.oauth = NewOAuthService(cfg, db, authClient, Deps{ProfileService: *profileService})
+	service.oauth.providers = map[string]OAuthProvider{
+		"github": fakeOAuthProvider{
+			name: "github",
+			user: &OAuthUser{
+				ProviderID: "gh-route-123",
+				Email:      "route-user@example.com",
+				Name:       "Route User",
+			},
+		},
+	}
+	service.oauth.exchangeCode = func(context.Context, OAuthProvider, string) (*oauth2.Token, error) {
+		return &oauth2.Token{AccessToken: "provider-access-token"}, nil
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/auth/oauth/github/callback?code=valid-code&state=expected-state", nil)
+	rec := httptest.NewRecorder()
+	ctx := e.NewContext(req, rec)
+	ctx.SetPath("/auth/oauth/:provider/callback")
+	ctx.SetParamNames("provider")
+	ctx.SetParamValues("github")
+
+	sessionMiddleware := session.Middleware(sessions.NewCookieStore([]byte("secret")))
+	if err := tests.ExecuteMiddleware(ctx, sessionMiddleware); err != nil {
+		t.Fatalf("ExecuteMiddleware() error = %v", err)
+	}
+
+	sess, err := session.Get("session", ctx)
+	if err != nil {
+		t.Fatalf("session.Get() error = %v", err)
+	}
+	sess.Values["oauth_state"] = "expected-state"
+	sess.Values["oauth_provider"] = "github"
+	if err := sess.Save(ctx.Request(), ctx.Response()); err != nil {
+		t.Fatalf("sess.Save() error = %v", err)
+	}
+
+	if err := service.getOAuthProviderCallback(ctx); err != nil {
+		t.Fatalf("getOAuthProviderCallback() error = %v", err)
+	}
+
+	if rec.Code != http.StatusFound {
+		t.Fatalf("expected status %d, got %d", http.StatusFound, rec.Code)
+	}
+	if location := rec.Header().Get("Location"); location != e.Reverse(routenames.RouteNameHomeFeed) {
+		t.Fatalf("expected redirect to %q, got %q", e.Reverse(routenames.RouteNameHomeFeed), location)
+	}
+
+	authSession, err := session.Get("ua", ctx)
+	if err != nil {
+		t.Fatalf("session.Get(auth) error = %v", err)
+	}
+	if authSession.Values["authenticated"] != true {
+		t.Fatalf("expected authenticated session, got %#v", authSession.Values["authenticated"])
+	}
+	if userID, ok := authSession.Values["user_id"].(int); !ok || userID <= 0 {
+		t.Fatalf("expected authenticated user id in session, got %#v", authSession.Values["user_id"])
 	}
 }
 
