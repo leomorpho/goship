@@ -7,6 +7,7 @@ import (
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/framework/core"
+	dbmigrate "github.com/leomorpho/goship/modules/auth/db/migrate"
 	profilesvc "github.com/leomorpho/goship/modules/profile"
 )
 
@@ -32,7 +33,7 @@ func (m *Module) ID() string {
 }
 
 func (m *Module) Migrations() fs.FS {
-	return nil
+	return dbmigrate.Migrations()
 }
 
 func (m *Module) RegisterRoutes(r core.Router) error {

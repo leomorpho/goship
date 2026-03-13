@@ -106,6 +106,7 @@ type (
 		Recommender RecommenderConfig
 		Storage     StorageConfig
 		Backup      BackupConfig
+		OAuth       OAuthConfig
 	}
 
 	LogConfig struct {
@@ -309,6 +310,27 @@ type (
 		AccessKey string `env:"PAGODA_BACKUP_S3_ACCESSKEY"`
 		SecretKey string `env:"PAGODA_BACKUP_S3_SECRETKEY"`
 		UseSSL    bool   `env:"PAGODA_BACKUP_S3_USESSL" env-default:"true"`
+	}
+
+	OAuthConfig struct {
+		GitHub  OAuthGitHubConfig
+		Google  OAuthGoogleConfig
+		Discord OAuthDiscordConfig
+	}
+
+	OAuthGitHubConfig struct {
+		ClientID     string `env:"OAUTH_GITHUB_CLIENT_ID"`
+		ClientSecret string `env:"OAUTH_GITHUB_CLIENT_SECRET"`
+	}
+
+	OAuthGoogleConfig struct {
+		ClientID     string `env:"OAUTH_GOOGLE_CLIENT_ID"`
+		ClientSecret string `env:"OAUTH_GOOGLE_CLIENT_SECRET"`
+	}
+
+	OAuthDiscordConfig struct {
+		ClientID     string `env:"OAUTH_DISCORD_CLIENT_ID"`
+		ClientSecret string `env:"OAUTH_DISCORD_CLIENT_SECRET"`
 	}
 )
 
@@ -643,6 +665,11 @@ func defaultConfig() Config {
 				SecretKey: "K001...",
 				UseSSL:    true,
 			},
+		},
+		OAuth: OAuthConfig{
+			GitHub:  OAuthGitHubConfig{},
+			Google:  OAuthGoogleConfig{},
+			Discord: OAuthDiscordConfig{},
 		},
 	}
 }

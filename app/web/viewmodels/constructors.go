@@ -97,6 +97,16 @@ func NewLoginForm() *LoginForm {
 	return &LoginForm{}
 }
 
+func NewLoginOAuthProvider() LoginOAuthProvider {
+	return LoginOAuthProvider{}
+}
+
+func NewLoginOAuthData() LoginOAuthData {
+	return LoginOAuthData{
+		Providers: []LoginOAuthProvider{},
+	}
+}
+
 func NewNotificationItem() NotificationItem {
 	return NotificationItem{}
 }

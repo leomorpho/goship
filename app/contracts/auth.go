@@ -14,6 +14,18 @@ type LoginRequest struct {
 	Submission ui.FormSubmission
 }
 
+// Route: GET /auth/oauth/:provider
+type OAuthStartRequest struct {
+	Provider string `param:"provider" validate:"required"`
+}
+
+// Route: GET /auth/oauth/:provider/callback
+type OAuthCallbackRequest struct {
+	Provider string `param:"provider" validate:"required"`
+	Code     string `query:"code" validate:"required"`
+	State    string `query:"state" validate:"required"`
+}
+
 // Route: GET /user/register
 type RegisterPage struct {
 	UserSignupEnabled  bool
@@ -23,10 +35,10 @@ type RegisterPage struct {
 
 // Route: POST /user/register
 type RegisterRequest struct {
-	Name       string            `form:"name" validate:"required"`
-	Email      string            `form:"email" validate:"required,email"`
-	Password   string            `form:"password" validate:"required,min=8"`
-	Birthdate  string            `form:"birthdate" validate:"required"`
+	Name       string `form:"name" validate:"required"`
+	Email      string `form:"email" validate:"required,email"`
+	Password   string `form:"password" validate:"required,min=8"`
+	Birthdate  string `form:"birthdate" validate:"required"`
 	Submission ui.FormSubmission
 }
 
@@ -36,7 +48,7 @@ type ForgotPasswordPage struct {
 
 // Route: POST /user/password
 type ForgotPasswordRequest struct {
-	Email      string            `form:"email" validate:"required,email"`
+	Email      string `form:"email" validate:"required,email"`
 	Submission ui.FormSubmission
 }
 
@@ -46,6 +58,6 @@ type ResetPasswordPage struct {
 
 // Route: POST /user/password/reset/:user/:password_token/:token
 type ResetPasswordRequest struct {
-	Password   string            `form:"password" validate:"required,min=8"`
+	Password   string `form:"password" validate:"required,min=8"`
 	Submission ui.FormSubmission
 }

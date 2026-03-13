@@ -69,6 +69,19 @@ templ Login(page *controller.Page) {
 					>Cancel</a>
 				</div>
 			</div>
+			if data, ok := page.Data.(viewmodels.LoginOAuthData); ok && len(data.Providers) > 0 {
+				<div class="mx-5 mt-6">
+					<p class="text-center text-xs uppercase tracking-[0.3em] text-slate-500">Or continue with</p>
+					<div class="mt-3 grid gap-2">
+						for _, provider := range data.Providers {
+							<a
+								class="block rounded-full border border-slate-300 px-4 py-2 text-center text-sm font-medium text-slate-700 hover:border-slate-400 hover:bg-slate-50"
+								href={ templ.URL(page.ToURL(routenames.RouteNameOAuthStart, provider.Name)) }
+							>{ provider.Label }</a>
+						}
+					</div>
+				</div>
+			}
 			@components.AuthButtons(page, false, true, true)
 			@components.FormCSRF(page.CSRF)
 		</form>

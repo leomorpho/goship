@@ -91,6 +91,8 @@ Fully onboarded-only routes (`/auth` with onboarding guard):
 
 ## Auth-Adjacent Routes
 
+- `GET /auth/oauth/:provider`
+- `GET /auth/oauth/:provider/callback`
 - `GET /email/verify/:token`
 
 ## External Integration Routes

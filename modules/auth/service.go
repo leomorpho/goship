@@ -22,6 +22,7 @@ type Service struct {
 	profileService                profilesvc.ProfileService
 	subscriptionsService          *paidsubscriptions.Service
 	notificationPermissionService *notifications.NotificationPermissionService
+	oauth                         *OAuthService
 }
 
 func NewService(deps Deps) *Service {
@@ -30,6 +31,12 @@ func NewService(deps Deps) *Service {
 		profileService:                deps.ProfileService,
 		subscriptionsService:          deps.SubscriptionsService,
 		notificationPermissionService: deps.NotificationPermissionService,
+		oauth: NewOAuthService(
+			deps.Controller.Container.Config,
+			deps.Controller.Container.Database,
+			deps.Controller.Container.Auth,
+			deps,
+		),
 	}
 }
 

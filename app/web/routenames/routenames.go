@@ -5,6 +5,8 @@ const (
 	RouteNameForgotPasswordSubmit    = "forgot_password.submit"
 	RouteNameLogin                   = "login"
 	RouteNameLoginSubmit             = "login.submit"
+	RouteNameOAuthStart              = "oauth.start"
+	RouteNameOAuthCallback           = "oauth.callback"
 	RouteNameLogout                  = "logout"
 	RouteNameRegister                = "register"
 	RouteNameRegisterSubmit          = "register.submit"

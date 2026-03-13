@@ -2,9 +2,11 @@ package auth
 
 import (
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
+	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	"github.com/leomorpho/goship/app/foundation"
 	templates "github.com/leomorpho/goship/app/views"
@@ -48,6 +50,8 @@ func registerRoutes(r echoRouteRegistrar, service *Service) {
 	allGroup := r.Group("/auth", middleware.RequireAuthentication())
 	allGroup.GET("/logout", service.getLogout, middleware.RequireAuthentication()).Name = routeNames.RouteNameLogout
 
+	r.GET("/auth/oauth/:provider", service.getOAuthProviderStart, middleware.RequireNoAuthentication()).Name = routeNames.RouteNameOAuthStart
+	r.GET("/auth/oauth/:provider/callback", service.getOAuthProviderCallback, middleware.RequireNoAuthentication()).Name = routeNames.RouteNameOAuthCallback
 	r.GET("/email/verify/:token", service.getVerifyEmail).Name = routeNames.RouteNameVerifyEmail
 }
 
@@ -74,6 +78,14 @@ func (s *Service) getLogin(ctx echo.Context) error {
 	page.Name = templates.PageLogin
 	page.Title = "Log in"
 	page.Form = viewmodels.NewLoginForm()
+	data := viewmodels.NewLoginOAuthData()
+	for _, provider := range s.oauth.EnabledProviders() {
+		providerView := viewmodels.NewLoginOAuthProvider()
+		providerView.Name = provider.Name
+		providerView.Label = provider.Label
+		data.Providers = append(data.Providers, providerView)
+	}
+	page.Data = data
 	page.Component = pages.Login(&page)
 	page.HTMX.Request.Boosted = true
 
@@ -119,22 +131,7 @@ func (s *Service) postLogin(ctx echo.Context) error {
 		return s.ctr.Fail(err, "unable to log in user")
 	}
 
-	redirect, err := s.redirectAfterLogin(ctx)
-	if err != nil {
-		return err
-	}
-	if redirect {
-		return nil
-	}
-
-	identity, err := s.ctr.Container.Auth.GetIdentityByUserID(ctx.Request().Context(), usr.UserID)
-	if err != nil {
-		return s.ctr.Fail(err, "unable to determine profile onboarding status")
-	}
-	if identity == nil || !identity.ProfileFullyOnboarded {
-		return s.ctr.Redirect(ctx, routeNames.RouteNamePreferences)
-	}
-	return s.ctr.Redirect(ctx, routeNames.RouteNameHomeFeed)
+	return s.finishLogin(ctx, usr.UserID)
 }
 
 func (s *Service) getRegister(ctx echo.Context) error {
@@ -236,6 +233,93 @@ func (s *Service) postRegister(ctx echo.Context) error {
 	}
 
 	return s.ctr.Redirect(ctx, routeNames.RouteNamePreferences)
+}
+
+func (s *Service) finishLogin(ctx echo.Context, userID int) error {
+	redirect, err := s.redirectAfterLogin(ctx)
+	if err != nil {
+		return err
+	}
+	if redirect {
+		return nil
+	}
+
+	identity, err := s.ctr.Container.Auth.GetIdentityByUserID(ctx.Request().Context(), userID)
+	if err != nil {
+		return s.ctr.Fail(err, "unable to determine profile onboarding status")
+	}
+	if identity == nil || !identity.ProfileFullyOnboarded {
+		return s.ctr.Redirect(ctx, routeNames.RouteNamePreferences)
+	}
+	return s.ctr.Redirect(ctx, routeNames.RouteNameHomeFeed)
+}
+
+func (s *Service) getOAuthProviderStart(ctx echo.Context) error {
+	provider := ctx.Param("provider")
+	state, err := s.ctr.Container.Auth.RandomToken(32)
+	if err != nil {
+		return s.ctr.Fail(err, "unable to create oauth state")
+	}
+
+	authorizationURL, err := s.oauth.AuthorizationURL(provider, state)
+	if err != nil {
+		uxflashmessages.Warning(ctx, "That sign-in provider is not available.")
+		return s.ctr.Redirect(ctx, routeNames.RouteNameLogin)
+	}
+
+	sess, err := session.Get("session", ctx)
+	if err != nil {
+		return s.ctr.Fail(err, "unable to open session for oauth state")
+	}
+	sess.Values["oauth_state"] = state
+	sess.Values["oauth_provider"] = provider
+	if err := sess.Save(ctx.Request(), ctx.Response()); err != nil {
+		return s.ctr.Fail(err, "unable to save oauth state")
+	}
+
+	return ctx.Redirect(http.StatusFound, authorizationURL)
+}
+
+func (s *Service) getOAuthProviderCallback(ctx echo.Context) error {
+	provider := ctx.Param("provider")
+	code := ctx.QueryParam("code")
+	state := ctx.QueryParam("state")
+	if strings.TrimSpace(code) == "" || strings.TrimSpace(state) == "" {
+		uxflashmessages.Danger(ctx, "OAuth sign-in could not be completed.")
+		return s.ctr.Redirect(ctx, routeNames.RouteNameLogin)
+	}
+
+	if err := consumeOAuthState(ctx, provider, state); err != nil {
+		uxflashmessages.Danger(ctx, "OAuth state validation failed. Please try again.")
+		return s.ctr.Redirect(ctx, routeNames.RouteNameLogin)
+	}
+
+	result, err := s.oauth.HandleCallback(ctx.Request().Context(), provider, code)
+	if err != nil {
+		return s.ctr.Fail(err, "unable to complete oauth callback")
+	}
+	if err := s.ctr.Container.Auth.Login(ctx, result.UserID); err != nil {
+		return s.ctr.Fail(err, "unable to create oauth session")
+	}
+	return s.finishLogin(ctx, result.UserID)
+}
+
+func consumeOAuthState(ctx echo.Context, provider, state string) error {
+	sess, err := session.Get("session", ctx)
+	if err != nil {
+		return err
+	}
+	storedState, _ := sess.Values["oauth_state"].(string)
+	storedProvider, _ := sess.Values["oauth_provider"].(string)
+	delete(sess.Values, "oauth_state")
+	delete(sess.Values, "oauth_provider")
+	if err := sess.Save(ctx.Request(), ctx.Response()); err != nil {
+		return err
+	}
+	if storedState == "" || storedState != state || storedProvider != provider {
+		return errOAuthStateInvalid
+	}
+	return nil
 }
 
 func (s *Service) getForgotPassword(ctx echo.Context) error {
