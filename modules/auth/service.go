@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
@@ -14,6 +15,7 @@ import (
 	routeNames "github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/app/web/viewmodels"
+	"github.com/leomorpho/goship/framework/events/types"
 	profilesvc "github.com/leomorpho/goship/modules/profile"
 	"github.com/mileusna/useragent"
 )
@@ -119,4 +121,43 @@ func (s *Service) sendPasswordResetEmail(ctx echo.Context, profileName, email, u
 		return err
 	}
 	return nil
+}
+
+func (s *Service) publishEvent(ctx context.Context, event any) {
+	if s == nil || s.ctr.Container == nil || s.ctr.Container.EventBus == nil {
+		return
+	}
+	if err := s.ctr.Container.EventBus.Publish(ctx, event); err != nil {
+		s.ctr.Container.Logger.Errorf("failed to publish domain event: %v", err)
+	}
+}
+
+func (s *Service) publishUserRegistered(ctx echo.Context, userID int, email string) {
+	s.publishEvent(ctx.Request().Context(), types.UserRegistered{
+		UserID: int64(userID),
+		Email:  email,
+		At:     time.Now().UTC(),
+	})
+}
+
+func (s *Service) publishUserLoggedIn(ctx echo.Context, userID int) {
+	s.publishEvent(ctx.Request().Context(), types.UserLoggedIn{
+		UserID: int64(userID),
+		IP:     ctx.RealIP(),
+		At:     time.Now().UTC(),
+	})
+}
+
+func (s *Service) publishUserLoggedOut(ctx echo.Context, userID int) {
+	s.publishEvent(ctx.Request().Context(), types.UserLoggedOut{
+		UserID: int64(userID),
+		At:     time.Now().UTC(),
+	})
+}
+
+func (s *Service) publishPasswordChanged(ctx echo.Context, userID int) {
+	s.publishEvent(ctx.Request().Context(), types.PasswordChanged{
+		UserID: int64(userID),
+		At:     time.Now().UTC(),
+	})
 }

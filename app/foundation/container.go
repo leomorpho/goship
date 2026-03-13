@@ -1,6 +1,7 @@
 package foundation
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"os"
@@ -19,6 +20,8 @@ import (
 	dbqueries "github.com/leomorpho/goship/db/queries"
 	"github.com/leomorpho/goship/framework/core"
 	coreadapters "github.com/leomorpho/goship/framework/core/adapters"
+	"github.com/leomorpho/goship/framework/events"
+	eventtypes "github.com/leomorpho/goship/framework/events/types"
 	"github.com/leomorpho/goship/framework/logging"
 	"github.com/leomorpho/goship/framework/repos/mailer"
 	"github.com/leomorpho/goship/modules/ai"
@@ -54,6 +57,9 @@ type Container struct {
 	// AI stores the app-facing AI service.
 	AI *ai.Service
 
+	// EventBus stores the synchronous domain event bus.
+	EventBus *events.Bus
+
 	// Notifier handles all notifications to clients
 	Notifier *notifications.NotifierService
 
@@ -83,6 +89,7 @@ func NewContainer() *Container {
 	c.initAuth()
 	c.initMail()
 	c.initAI()
+	c.initEventBus()
 	c.initPaymentProcessor()
 	// ship:container:start
 	// ship:container:end
@@ -407,6 +414,24 @@ func (c *Container) initAI() {
 		ai.NewConversationService(ai.NewConversationSQLStore(c.Database, c.Config.Adapters.DB), provider),
 	)
 	c.AI = module.Service()
+}
+
+func (c *Container) initEventBus() {
+	c.EventBus = events.NewBus()
+
+	logger := logging.NewLogger(c.Config.Log)
+	events.Subscribe(c.EventBus, func(_ context.Context, event eventtypes.UserRegistered) error {
+		logger.Info("domain event published", "event", "UserRegistered", "user_id", event.UserID)
+		return nil
+	})
+	events.Subscribe(c.EventBus, func(_ context.Context, event eventtypes.UserLoggedIn) error {
+		logger.Info("domain event published", "event", "UserLoggedIn", "user_id", event.UserID, "ip", event.IP)
+		return nil
+	})
+	events.Subscribe(c.EventBus, func(_ context.Context, event eventtypes.UserLoggedOut) error {
+		logger.Info("domain event published", "event", "UserLoggedOut", "user_id", event.UserID)
+		return nil
+	})
 }
 
 func (c *Container) initPaymentProcessor() {

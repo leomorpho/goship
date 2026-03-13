@@ -110,7 +110,13 @@ Worker bootstrap and registration in `cmd/worker/main.go`.
 - **Asynq:** Distributed task processing via Redis. Requires a separate worker process.
 - **Backlite:** SQLite-backed task processing for single-binary or zero-dependency modes. Runs in-process with the web server, removing the need for a separate worker.
 
-## 8) Frontend Delivery Model
+## 8) Domain Events
+
+- `framework/events` now provides a typed in-process event bus with generic subscription helpers
+- `app/foundation.Container` exposes `EventBus`
+- Auth flows publish shared events such as `UserRegistered`, `UserLoggedIn`, `UserLoggedOut`, and `PasswordChanged`
+
+## 9) Frontend Delivery Model
 
 - Server-rendered pages via Templ (`app/views/` + `app/web/ui`)
 - HTMX-enhanced interactions
@@ -122,7 +128,7 @@ Build pipeline:
 - JS via `frontend/vite.config.ts` + Vite
 - CSS via Tailwind CLI in Makefile
 
-## 9) AI Integration
+## 10) AI Integration
 
 - `modules/ai` exposes a provider-agnostic completion boundary via `container.AI`
 - Anthropic, OpenAI, and OpenRouter are wired providers
@@ -130,7 +136,7 @@ Build pipeline:
 - The module also includes a persistence layer for storing conversation threads and message history in `ai_conversations` / `ai_messages`
 - Non-production builds expose an authenticated `/auth/ai-demo` page that demonstrates HTMX + SSE streaming against the AI service
 
-## 10) Admin Panel
+## 11) Admin Panel
 
 Reflection-based administrative interface for managing database resources.
 

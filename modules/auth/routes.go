@@ -143,6 +143,7 @@ func (s *Service) postLogin(ctx echo.Context) error {
 	if err := s.ctr.Container.Auth.Login(ctx, usr.UserID); err != nil {
 		return s.ctr.Fail(err, "unable to log in user")
 	}
+	s.publishUserLoggedIn(ctx, usr.UserID)
 
 	return s.finishLogin(ctx, usr.UserID)
 }
@@ -233,6 +234,8 @@ func (s *Service) postRegister(ctx echo.Context) error {
 		uxflashmessages.Info(ctx, "Your account has been created.")
 		return s.ctr.Redirect(ctx, routeNames.RouteNameLogin)
 	}
+	s.publishUserRegistered(ctx, registration.UserID, registration.UserEmail)
+	s.publishUserLoggedIn(ctx, registration.UserID)
 
 	uxflashmessages.Success(ctx, "Your account has been created. You are now logged in. 👌")
 	s.sendVerificationEmail(ctx, registration.UserEmail)
@@ -326,6 +329,7 @@ func (s *Service) getOAuthProviderCallback(ctx echo.Context) error {
 	if err := s.ctr.Container.Auth.Login(ctx, result.UserID); err != nil {
 		return s.ctr.Fail(err, "unable to create oauth session")
 	}
+	s.publishUserLoggedIn(ctx, result.UserID)
 	return s.finishLogin(ctx, result.UserID)
 }
 
@@ -451,12 +455,16 @@ func (s *Service) postResetPassword(ctx echo.Context) error {
 	if err = s.ctr.Container.Auth.DeletePasswordTokens(ctx, userID); err != nil {
 		return s.ctr.Fail(err, "unable to delete password tokens")
 	}
+	s.publishPasswordChanged(ctx, userID)
 
 	uxflashmessages.Success(ctx, "Your password has been updated.")
 	return s.ctr.Redirect(ctx, routeNames.RouteNameLogin)
 }
 
 func (s *Service) getLogout(ctx echo.Context) error {
+	if userID, ok := ctx.Get(context.AuthenticatedUserIDKey).(int); ok && userID > 0 {
+		s.publishUserLoggedOut(ctx, userID)
+	}
 	if err := s.ctr.Container.Auth.Logout(ctx); err != nil {
 		uxflashmessages.Danger(ctx, "An error occurred. Please try again.")
 	}

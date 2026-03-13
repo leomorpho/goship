@@ -1,9 +1,11 @@
 package foundation
 
 import (
+	"context"
 	"testing"
 
 	"github.com/leomorpho/goship/config"
+	"github.com/leomorpho/goship/framework/events/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -23,6 +25,7 @@ func TestNewContainer(t *testing.T) {
 	assert.NotNil(t, c.Mail)
 	assert.NotNil(t, c.Auth)
 	assert.NotNil(t, c.AI)
+	assert.NotNil(t, c.EventBus)
 	if c.Adapters.Selection.Cache == "redis" || c.Adapters.Selection.Cache == "otter" || c.Adapters.Selection.Cache == "memory" {
 		assert.NotNil(t, c.Cache)
 	} else {
@@ -37,6 +40,7 @@ func TestNewContainer(t *testing.T) {
 	assert.NotEmpty(t, c.Adapters.Selection.Cache)
 	assert.NotEmpty(t, c.Adapters.Selection.Jobs)
 	assert.NotEmpty(t, c.Adapters.Selection.PubSub)
+	assert.NoError(t, c.EventBus.Publish(context.Background(), types.UserLoggedIn{UserID: 1}))
 }
 
 func TestContainerShutdownNilSafe(t *testing.T) {

@@ -16,6 +16,7 @@ import (
 const (
 	gooseDir      = "db/migrate/migrations"
 	modelQueryDir = "db/queries"
+	eventTypesDir = "framework/events/types"
 	gooseGoRunRef = "github.com/pressly/goose/v3/cmd/goose@v3.26.0"
 )
 
@@ -233,6 +234,8 @@ func (c CLI) runMake(args []string) int {
 		return c.runMakeModule(args[1:])
 	case "model":
 		return c.runGenerateModel(args[1:])
+	case "event":
+		return c.runGenerateEvent(args[1:])
 	case "resource":
 		return c.runGenerateResource(args[1:])
 	case "help", "-h", "--help":
@@ -287,6 +290,13 @@ func (c CLI) runGenerateModel(args []string) int {
 	return gen.RunGenerateModel(args, gen.GenerateModelDeps{
 		Out: c.Out, Err: c.Err,
 		RunCmd: c.runCmd, HasFile: hasFile, QueryDir: modelQueryDir,
+	})
+}
+
+func (c CLI) runGenerateEvent(args []string) int {
+	return gen.RunGenerateEvent(args, gen.GenerateEventDeps{
+		Out: c.Out, Err: c.Err,
+		HasFile: hasFile, TypesDir: eventTypesDir,
 	})
 }
 

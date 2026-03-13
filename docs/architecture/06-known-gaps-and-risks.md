@@ -94,6 +94,15 @@ Impact:
 - Environments without matching provider credentials will keep a non-nil AI service that returns a clear provider-unavailable error at call time.
 - Conversation persistence exists at the module layer, but there is still no first-class app UI for browsing or resuming stored AI threads.
 
+## 11) Domain Events Are In-Process Only (Low)
+
+`framework/events` now covers synchronous in-process publish/subscribe and a jobs enqueue helper, but it does not yet ship a generic async re-dispatch worker or delivery guarantees across processes.
+
+Impact:
+
+- Domain events are reliable inside a single process and easy to test.
+- Cross-process fanout still requires explicit jobs or pubsub integration by the caller.
+
 ## Suggested Priority Order
 
 1. Complete cache adapter coverage so page caching works consistently across supported backends.

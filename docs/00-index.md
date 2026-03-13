@@ -39,6 +39,7 @@ Last updated: 2026-03-04
 4. `G04` - `guides/04-deployment-kamal.md`: current deployment workflow via Kamal.
 5. `G05` - `guides/05-jobs-module.md`: jobs module install/wiring contract, backend rules, and migration notes.
 6. `G06` - `guides/06-ai-module.md`: AI module provider selection, request contract, and SSE demo pattern.
+7. `G07` - `guides/07-domain-events.md`: domain event bus, shared event types, and async enqueue contract.
 
 ### Reference
 

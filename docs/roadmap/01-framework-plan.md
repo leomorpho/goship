@@ -178,6 +178,7 @@ Primary infrastructure seams to abstract:
 5. `BlobStorage`
 6. `Mailer`
 7. `AI`
+8. `DomainEvents`
 
 Non-goal:
 
