@@ -7,7 +7,10 @@ CREATE TABLE IF NOT EXISTS users (
 	email TEXT NOT NULL UNIQUE,
 	password TEXT NOT NULL,
 	verified INTEGER NOT NULL DEFAULT 0,
-	last_online DATETIME NULL
+	last_online DATETIME NULL,
+	totp_secret TEXT,
+	totp_enabled INTEGER NOT NULL DEFAULT 0,
+	totp_backup_codes TEXT
 )
 
 -- name: sqlite_bootstrap_create_profiles

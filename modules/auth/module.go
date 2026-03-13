@@ -16,6 +16,7 @@ type Deps struct {
 	ProfileService                profilesvc.ProfileService
 	SubscriptionsService          *paidsubscriptions.Service
 	NotificationPermissionService *notifications.NotificationPermissionService
+	TwoFactorAuth                 TwoFactorAuth
 }
 
 type Module struct {

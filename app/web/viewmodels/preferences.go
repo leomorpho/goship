@@ -24,6 +24,7 @@ type (
 		IsTrial                       bool
 		HasMonthlySubscriptionExpiry  bool
 		MonthlySybscriptionExpiration string
+		TwoFactorEnabled              bool
 
 		NotificationPermissionsData NotificationPermissionsData
 	}

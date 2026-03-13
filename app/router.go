@@ -6,8 +6,8 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/leomorpho/goship-modules/notifications"
-	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	notificationroutes "github.com/leomorpho/goship-modules/notifications/routes"
+	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	paidsubscriptionroutes "github.com/leomorpho/goship-modules/paidsubscriptions/routes"
 	"github.com/leomorpho/goship/app/foundation"
 	appweb "github.com/leomorpho/goship/app/web"
@@ -18,10 +18,11 @@ import (
 	"github.com/leomorpho/goship/config"
 	"github.com/leomorpho/goship/framework/logging"
 	"github.com/leomorpho/goship/framework/runtimeplan"
+	twofamodule "github.com/leomorpho/goship/modules/2fa"
 	adminmodule "github.com/leomorpho/goship/modules/admin"
 	authmodule "github.com/leomorpho/goship/modules/auth"
-	pwamodule "github.com/leomorpho/goship/modules/pwa"
 	profilemodule "github.com/leomorpho/goship/modules/profile"
+	pwamodule "github.com/leomorpho/goship/modules/pwa"
 )
 
 type RouterModules struct {
@@ -166,11 +167,17 @@ func registerDocsRoutes(g *echo.Group, ctr ui.Controller) error {
 }
 
 func registerAuthRoutes(c *foundation.Container, g *echo.Group, ctr ui.Controller, deps *appweb.RouteDeps) error {
+	twoFactorService := twofamodule.NewService(
+		twofamodule.NewSQLStore(c.Database, c.Config.Adapters.DB),
+		string(c.Config.App.Name),
+		c.Config.App.EncryptionKey,
+	)
 	authModule := authmodule.New(authmodule.Deps{
 		Controller:                    ctr,
 		ProfileService:                *deps.ProfileService,
 		SubscriptionsService:          deps.SubscriptionsRepo,
 		NotificationPermissionService: deps.NotificationPermissionService,
+		TwoFactorAuth:                 twoFactorService,
 	})
 	if err := authModule.RegisterRoutes(g); err != nil {
 		return err
@@ -203,6 +210,14 @@ func registerAuthRoutes(c *foundation.Container, g *echo.Group, ctr ui.Controlle
 	profilePrefs := controllers.NewProfilePrefsRoute(ctr, deps.ProfileService)
 	onboardingGroup.GET("/profileBio", profilePrefs.GetBio).Name = routeNames.RouteNameGetBio
 	onboardingGroup.POST("/profileBio/update", profilePrefs.UpdateBio).Name = routeNames.RouteNameUpdateBio
+
+	twoFactorModule := twofamodule.NewModule(twofamodule.ModuleDeps{
+		Controller: ctr,
+		Service:    twoFactorService,
+	})
+	if err := twoFactorModule.RegisterRoutes(g); err != nil {
+		return err
+	}
 
 	onboardedGroup := g.Group("/auth", middleware.RequireAuthentication(), middleware.RedirectToOnboardingIfNotComplete())
 

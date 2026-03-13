@@ -177,6 +177,28 @@ func NewSmsVerificationCodeInfo() *SmsVerificationCodeInfo {
 	return &SmsVerificationCodeInfo{}
 }
 
+func NewTwoFactorSetupData() TwoFactorSetupData {
+	return TwoFactorSetupData{}
+}
+
+func NewTwoFactorSetupForm() *TwoFactorSetupForm {
+	return &TwoFactorSetupForm{}
+}
+
+func NewTwoFactorBackupCodesData() TwoFactorBackupCodesData {
+	return TwoFactorBackupCodesData{
+		Codes: []string{},
+	}
+}
+
+func NewTwoFactorVerifyData() TwoFactorVerifyData {
+	return TwoFactorVerifyData{}
+}
+
+func NewTwoFactorVerifyForm() *TwoFactorVerifyForm {
+	return &TwoFactorVerifyForm{}
+}
+
 func NewDisplayNameForm() *DisplayNameForm {
 	return &DisplayNameForm{}
 }

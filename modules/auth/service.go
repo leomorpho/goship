@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -23,6 +24,12 @@ type Service struct {
 	subscriptionsService          *paidsubscriptions.Service
 	notificationPermissionService *notifications.NotificationPermissionService
 	oauth                         *OAuthService
+	twoFactor                     TwoFactorAuth
+}
+
+type TwoFactorAuth interface {
+	IsEnabled(ctx context.Context, userID int) (bool, error)
+	BeginPendingLogin(ctx echo.Context, userID int) error
 }
 
 func NewService(deps Deps) *Service {
@@ -37,6 +44,7 @@ func NewService(deps Deps) *Service {
 			deps.Controller.Container.Auth,
 			deps,
 		),
+		twoFactor: deps.TwoFactorAuth,
 	}
 }
 

@@ -26,6 +26,15 @@ type OAuthCallbackRequest struct {
 	State    string `query:"state" validate:"required"`
 }
 
+// Route: GET /auth/2fa/verify
+type TwoFactorVerifyPage struct{}
+
+// Route: POST /auth/2fa/verify
+type TwoFactorVerifyRequest struct {
+	Code       string `form:"code" validate:"required"`
+	Submission ui.FormSubmission
+}
+
 // Route: GET /user/register
 type RegisterPage struct {
 	UserSignupEnabled  bool

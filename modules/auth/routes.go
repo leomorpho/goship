@@ -127,6 +127,19 @@ func (s *Service) postLogin(ctx echo.Context) error {
 		return s.ctr.Fail(err, "error authenticating user during login")
 	}
 
+	if s.twoFactor != nil {
+		enabled, err := s.twoFactor.IsEnabled(ctx.Request().Context(), usr.UserID)
+		if err != nil {
+			return s.ctr.Fail(err, "unable to determine two factor state")
+		}
+		if enabled {
+			if err := s.twoFactor.BeginPendingLogin(ctx, usr.UserID); err != nil {
+				return s.ctr.Fail(err, "unable to start two factor login")
+			}
+			return s.ctr.Redirect(ctx, routeNames.RouteNameTwoFactorVerify)
+		}
+	}
+
 	if err := s.ctr.Container.Auth.Login(ctx, usr.UserID); err != nil {
 		return s.ctr.Fail(err, "unable to log in user")
 	}
@@ -297,6 +310,18 @@ func (s *Service) getOAuthProviderCallback(ctx echo.Context) error {
 	result, err := s.oauth.HandleCallback(ctx.Request().Context(), provider, code)
 	if err != nil {
 		return s.ctr.Fail(err, "unable to complete oauth callback")
+	}
+	if s.twoFactor != nil {
+		enabled, err := s.twoFactor.IsEnabled(ctx.Request().Context(), result.UserID)
+		if err != nil {
+			return s.ctr.Fail(err, "unable to determine two factor state")
+		}
+		if enabled {
+			if err := s.twoFactor.BeginPendingLogin(ctx, result.UserID); err != nil {
+				return s.ctr.Fail(err, "unable to start two factor login")
+			}
+			return s.ctr.Redirect(ctx, routeNames.RouteNameTwoFactorVerify)
+		}
 	}
 	if err := s.ctr.Container.Auth.Login(ctx, result.UserID); err != nil {
 		return s.ctr.Fail(err, "unable to create oauth session")

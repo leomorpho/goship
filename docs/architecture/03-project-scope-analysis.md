@@ -30,6 +30,7 @@ Core flows implemented in routes and services:
 
 - Login/logout (`app/web/controllers/login.go`, `logout.go`)
 - OAuth/social login for enabled GitHub, Google, and Discord providers (`modules/auth`)
+- Optional TOTP-based two-factor authentication with recovery backup codes (`modules/2fa`)
 - Register (`register.go`)
 - Forgot/reset password (`forgot_password.go`, `reset_password.go`)
 - Email verification (`verify_email.go`)
@@ -41,6 +42,7 @@ Key implementation choices:
 - Password reset tokens stored as bcrypt hashes.
 - Email verification tokens use JWT signed with app encryption key.
 - OAuth account linking reuses existing user records when the provider email already exists and stores provider access tokens encrypted at rest in `oauth_accounts`.
+- Two-factor authentication defers full session creation behind a short-lived signed pending-login cookie and validates either TOTP codes or one-time backup codes.
 
 ## 2) Onboarding, Preferences, and Profile
 

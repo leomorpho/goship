@@ -23,6 +23,14 @@ templ Settings(page *controller.Page) {
 				@DisplayName(page)
 			</div>
 			@NotificationPermissions(page, data.NotificationPermissionsData)
+			<div data-component="two-factor-settings" class="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+				<h2 class="text-xl font-semibold">🔐 Two-factor authentication</h2>
+				<p class="text-sm text-slate-600">Add an authenticator app code to protect your account, and keep one-time backup codes for recovery.</p>
+				<div class="flex flex-wrap gap-3">
+					<a href={ templ.URL(page.ToURL(routenames.RouteNameTwoFactorSetup)) } class="rounded-full bg-slate-900 px-4 py-2 text-sm font-medium text-white">Set up 2FA</a>
+					<a href={ templ.URL(page.ToURL(routenames.RouteNameTwoFactorBackupCodes)) } class="rounded-full border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700">Regenerate backup codes</a>
+				</div>
+			</div>
 			if data.IsPaymentsEnabled {
 				@subscription(page, data.IsProfileFullyOnboarded, data.ActiveSubscriptionPlanKey, data.ActiveSubscriptionPlanIsPaid, data.MonthlySybscriptionExpiration, data.HasMonthlySubscriptionExpiry, data.IsTrial)
 			}

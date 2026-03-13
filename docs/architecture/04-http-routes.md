@@ -57,6 +57,9 @@ Service worker / app-links:
 - `POST /welcome/preferences/display-name/save`
 - `GET /welcome/preferences/delete-account`
 - `GET /welcome/preferences/delete-account/now`
+- `GET /welcome/preferences/2fa/setup`
+- `POST /welcome/preferences/2fa/setup`
+- `GET /welcome/preferences/2fa/backup-codes`
 - `GET /welcome/finish-onboarding`
 - `GET /welcome/profileBio`
 - `POST /welcome/profileBio/update`
@@ -91,6 +94,8 @@ Fully onboarded-only routes (`/auth` with onboarding guard):
 
 ## Auth-Adjacent Routes
 
+- `GET /auth/2fa/verify`
+- `POST /auth/2fa/verify`
 - `GET /auth/oauth/:provider`
 - `GET /auth/oauth/:provider/callback`
 - `GET /email/verify/:token`
