@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	rt "github.com/leomorpho/goship/tools/cli/ship/internal/runtime"
 )
@@ -242,16 +243,80 @@ func runRollback(args []string, d DBDeps) int {
 }
 
 func runMake(args []string, d DBDeps) int {
-	if len(args) != 1 {
-		fmt.Fprintln(d.Err, "usage: ship db:make <migration_name>")
-		return 1
+	var (
+		name       string
+		tableName  string
+		softDelete bool
+	)
+
+	for i := 0; i < len(args); i++ {
+		arg := strings.TrimSpace(args[i])
+		switch arg {
+		case "--soft-delete":
+			softDelete = true
+		case "--table":
+			if i+1 >= len(args) {
+				fmt.Fprintln(d.Err, "db:make --soft-delete requires --table <table>")
+				return 1
+			}
+			i++
+			tableName = strings.TrimSpace(args[i])
+		default:
+			if strings.HasPrefix(arg, "--table=") {
+				tableName = strings.TrimSpace(strings.TrimPrefix(arg, "--table="))
+				continue
+			}
+			if strings.HasPrefix(arg, "-") {
+				fmt.Fprintf(d.Err, "invalid db:make arguments: unknown flag %s\n", arg)
+				fmt.Fprintln(d.Err, "usage: ship db:make <migration_name> [--soft-delete --table <table>]")
+				return 1
+			}
+			if name != "" {
+				fmt.Fprintln(d.Err, "usage: ship db:make <migration_name> [--soft-delete --table <table>]")
+				return 1
+			}
+			name = arg
+		}
 	}
-	name := strings.TrimSpace(args[0])
+
 	if name == "" {
-		fmt.Fprintln(d.Err, "usage: ship db:make <migration_name>")
+		fmt.Fprintln(d.Err, "usage: ship db:make <migration_name> [--soft-delete --table <table>]")
 		return 1
 	}
+
+	if softDelete {
+		tableName = strings.TrimSpace(tableName)
+		if tableName == "" {
+			fmt.Fprintln(d.Err, "db:make --soft-delete requires --table <table>")
+			return 1
+		}
+		if err := writeSoftDeleteMigration(d.GooseDir, name, tableName, time.Now().UTC()); err != nil {
+			fmt.Fprintf(d.Err, "failed to write soft-delete migration: %v\n", err)
+			return 1
+		}
+		fmt.Fprintf(d.Out, "created soft-delete migration for %s in %s\n", tableName, d.GooseDir)
+		return 0
+	}
+
 	return d.RunGoose("-dir", d.GooseDir, "create", name, "sql")
+}
+
+func writeSoftDeleteMigration(dir string, migrationName string, tableName string, now time.Time) error {
+	filename := fmt.Sprintf("%s_%s.sql", now.UTC().Format("20060102150405"), migrationName)
+	path := filepath.Join(dir, filename)
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return err
+	}
+
+	body := fmt.Sprintf(`-- +goose Up
+ALTER TABLE %s ADD COLUMN deleted_at DATETIME;
+CREATE INDEX idx_%s_deleted_at ON %s(deleted_at);
+
+-- +goose Down
+DROP INDEX IF EXISTS idx_%s_deleted_at;
+`, tableName, tableName, tableName, tableName)
+
+	return os.WriteFile(path, []byte(body), 0o644)
 }
 
 func runGenerate(args []string, d DBDeps) int {
