@@ -162,6 +162,36 @@ func TestGetConfig_SecurityHeaderOverrides(t *testing.T) {
 	assert.Equal(t, "default-src 'self'", cfg.Security.Headers.CSP)
 }
 
+func TestGetConfig_LoadsOpenAIConfig(t *testing.T) {
+	useIsolatedWorkingDir(t)
+	t.Setenv("AI_DRIVER", "openai")
+	t.Setenv("OPENAI_API_KEY", "openai-test-key")
+	t.Setenv("OPENAI_DEFAULT_MODEL", "gpt-4o-mini")
+
+	cfg, err := GetConfig()
+	require.NoError(t, err)
+	assert.Equal(t, "openai", cfg.AI.Driver)
+	assert.Equal(t, "openai-test-key", cfg.AI.OpenAI.APIKey)
+	assert.Equal(t, "gpt-4o-mini", cfg.AI.OpenAI.DefaultModel)
+}
+
+func TestGetConfig_LoadsOpenRouterConfig(t *testing.T) {
+	useIsolatedWorkingDir(t)
+	t.Setenv("AI_DRIVER", "openrouter")
+	t.Setenv("OPENROUTER_API_KEY", "openrouter-test-key")
+	t.Setenv("OPENROUTER_DEFAULT_MODEL", "anthropic/claude-haiku-4-5-20251001")
+	t.Setenv("OPENROUTER_SITE_URL", "https://example.test")
+	t.Setenv("OPENROUTER_SITE_NAME", "Example App")
+
+	cfg, err := GetConfig()
+	require.NoError(t, err)
+	assert.Equal(t, "openrouter", cfg.AI.Driver)
+	assert.Equal(t, "openrouter-test-key", cfg.AI.OpenRouter.APIKey)
+	assert.Equal(t, "anthropic/claude-haiku-4-5-20251001", cfg.AI.OpenRouter.DefaultModel)
+	assert.Equal(t, "https://example.test", cfg.AI.OpenRouter.SiteURL)
+	assert.Equal(t, "Example App", cfg.AI.OpenRouter.SiteName)
+}
+
 func TestGetConfig_ManagedOverridePrecedenceAndReporting(t *testing.T) {
 	useIsolatedWorkingDir(t)
 	require.NoError(t, os.WriteFile(".env", []byte("PAGODA_ADAPTERS_CACHE=repo-cache\n"), 0o644))
