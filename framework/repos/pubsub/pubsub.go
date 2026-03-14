@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"log/slog"
+	"sync"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/nats-io/nats.go"
@@ -112,4 +113,55 @@ func (c *RedisPubSubClient) Publish(ctx context.Context, subject string, event S
 		return err
 	}
 	return c.client.Publish(ctx, subject, eventData).Err()
+}
+
+type InProcPubSubClient struct {
+	mu     sync.RWMutex
+	topics map[string]map[chan SSEEvent]struct{}
+}
+
+func NewInProcPubSubClient() *InProcPubSubClient {
+	return &InProcPubSubClient{
+		topics: make(map[string]map[chan SSEEvent]struct{}),
+	}
+}
+
+func (c *InProcPubSubClient) SSESubscribe(ctx context.Context, topic string) (<-chan SSEEvent, error) {
+	ch := make(chan SSEEvent, 8)
+	c.mu.Lock()
+	if c.topics[topic] == nil {
+		c.topics[topic] = make(map[chan SSEEvent]struct{})
+	}
+	c.topics[topic][ch] = struct{}{}
+	c.mu.Unlock()
+
+	go func() {
+		<-ctx.Done()
+		c.mu.Lock()
+		delete(c.topics[topic], ch)
+		if len(c.topics[topic]) == 0 {
+			delete(c.topics, topic)
+		}
+		c.mu.Unlock()
+		close(ch)
+	}()
+
+	return ch, nil
+}
+
+func (c *InProcPubSubClient) Publish(ctx context.Context, topic string, event SSEEvent) error {
+	c.mu.RLock()
+	subs := make([]chan SSEEvent, 0, len(c.topics[topic]))
+	for ch := range c.topics[topic] {
+		subs = append(subs, ch)
+	}
+	c.mu.RUnlock()
+
+	for _, ch := range subs {
+		select {
+		case ch <- event:
+		default:
+		}
+	}
+	return nil
 }

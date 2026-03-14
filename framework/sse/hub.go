@@ -3,19 +3,29 @@ package sse
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"sync"
 
 	"github.com/a-h/templ"
+	"github.com/leomorpho/goship/framework/core"
 )
 
 type Hub struct {
 	mu     sync.RWMutex
-	topics map[string]map[chan string]struct{}
+	ps     core.PubSub
+	topics map[string]*topicState
 }
 
-func NewHub() *Hub {
+type topicState struct {
+	subs      map[chan string]struct{}
+	psSub     core.Subscription
+	isClosing bool
+}
+
+func NewHub(ps core.PubSub) *Hub {
 	return &Hub{
-		topics: map[string]map[chan string]struct{}{},
+		ps:     ps,
+		topics: make(map[string]*topicState),
 	}
 }
 
@@ -27,17 +37,41 @@ func (h *Hub) Subscribe(topic string) (chan string, func()) {
 
 	h.mu.Lock()
 	defer h.mu.Unlock()
-	if h.topics[topic] == nil {
-		h.topics[topic] = map[chan string]struct{}{}
+
+	ts, ok := h.topics[topic]
+	if !ok {
+		ts = &topicState{
+			subs: make(map[chan string]struct{}),
+		}
+		h.topics[topic] = ts
+
+		if h.ps != nil {
+			sub, err := h.ps.Subscribe(context.Background(), topic, func(ctx context.Context, _ string, payload []byte) error {
+				h.fanoutLocal(topic, string(payload))
+				return nil
+			})
+			if err != nil {
+				// Log error? For now, we continue with local only if pubsub fails
+				fmt.Printf("failed to subscribe to pubsub for topic %s: %v\n", topic, err)
+			} else {
+				ts.psSub = sub
+			}
+		}
 	}
-	h.topics[topic][ch] = struct{}{}
+	ts.subs[ch] = struct{}{}
 
 	return ch, func() {
 		h.mu.Lock()
 		defer h.mu.Unlock()
-		subscribers := h.topics[topic]
-		delete(subscribers, ch)
-		if len(subscribers) == 0 {
+
+		ts, ok := h.topics[topic]
+		if !ok {
+			return
+		}
+
+		delete(ts.subs, ch)
+		if len(ts.subs) == 0 && ts.psSub != nil {
+			_ = ts.psSub.Close()
 			delete(h.topics, topic)
 		}
 	}
@@ -48,9 +82,32 @@ func (h *Hub) Publish(topic string, data string) {
 		return
 	}
 
+	if h.ps != nil {
+		// Publish to distributed pubsub
+		if err := h.ps.Publish(context.Background(), topic, []byte(data)); err != nil {
+			// Fallback to local fanout if pubsub fails?
+			// Some might prefer to only publish to pubsub and let the message come back.
+			// But for reliability/latency, we might want both or just pubsub.
+			// If we do both, we need to handle duplicates.
+			// For now, if we have ps, we let it handle it.
+			// If ps is nil, we fanout locally.
+		}
+		return
+	}
+
+	h.fanoutLocal(topic, data)
+}
+
+func (h *Hub) fanoutLocal(topic, data string) {
 	h.mu.RLock()
-	subscribers := make([]chan string, 0, len(h.topics[topic]))
-	for ch := range h.topics[topic] {
+	ts, ok := h.topics[topic]
+	if !ok {
+		h.mu.RUnlock()
+		return
+	}
+
+	subscribers := make([]chan string, 0, len(ts.subs))
+	for ch := range ts.subs {
 		subscribers = append(subscribers, ch)
 	}
 	h.mu.RUnlock()
@@ -75,4 +132,8 @@ func (h *Hub) PublishHTML(topic string, component templ.Component) error {
 	}
 	h.Publish(topic, buf.String())
 	return nil
+}
+
+func (h *Hub) PublishHTMLComponent(topic string, component templ.Component) error {
+	return h.PublishHTML(topic, component)
 }

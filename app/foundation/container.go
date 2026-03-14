@@ -26,6 +26,7 @@ import (
 	"github.com/leomorpho/goship/framework/logging"
 	"github.com/leomorpho/goship/framework/repos/mailer"
 	"github.com/leomorpho/goship/framework/sse"
+	pubsubrepo "github.com/leomorpho/goship/framework/repos/pubsub"
 	"github.com/leomorpho/goship/modules/ai"
 	"github.com/leomorpho/goship/modules/auditlog"
 )
@@ -100,11 +101,11 @@ func NewContainer() *Container {
 	c.initAI()
 	c.initAuditLogs()
 	c.initEventBus()
-	c.initSSEHub()
 	c.initPaymentProcessor()
 	// ship:container:start
 	// ship:container:end
 	c.initCoreAdapters()
+	c.initSSEHub()
 	return c
 }
 
@@ -143,7 +144,19 @@ func (c *Container) initCoreAdapters() {
 	c.CoreCache = NewCoreCacheAdapter(c.Cache)
 	c.CoreJobs = NewCoreJobsAdapter(nil, c.Adapters.JobsCapabilities)
 	c.CoreJobsInspector = NewCoreJobsInspectorAdapter(nil)
-	c.CorePubSub = NewCorePubSubAdapter(nil)
+
+	var ps pubsubrepo.PubSubClient
+	switch c.Adapters.Selection.PubSub {
+	case "redis":
+		if c.Cache != nil && c.Cache.Client != nil {
+			ps = pubsubrepo.NewRedisPubSubClient(c.Cache.Client)
+		} else {
+			ps = pubsubrepo.NewInProcPubSubClient()
+		}
+	default:
+		ps = pubsubrepo.NewInProcPubSubClient()
+	}
+	c.CorePubSub = NewCorePubSubAdapter(ps)
 }
 
 // Shutdown shuts the Container down and disconnects all connections
@@ -482,7 +495,7 @@ func (c *Container) initEventBus() {
 }
 
 func (c *Container) initSSEHub() {
-	c.SSEHub = sse.NewHub()
+	c.SSEHub = sse.NewHub(c.CorePubSub)
 }
 
 func (c *Container) initPaymentProcessor() {

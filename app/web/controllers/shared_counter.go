@@ -61,16 +61,7 @@ func (r *sharedCounter) Stream(ctx echo.Context) error {
 		return err
 	}
 
-	for {
-		select {
-		case msg := <-ch:
-			if err := stream.SendMessage(msg); err != nil {
-				return nil
-			}
-		case <-ctx.Request().Context().Done():
-			return nil
-		}
-	}
+	return stream.Proxy(ch)
 }
 
 func (r *sharedCounter) Increment(ctx echo.Context) error {

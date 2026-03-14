@@ -58,3 +58,24 @@ func (s *Stream) Wait() {
 	}
 	<-s.ctx.Done()
 }
+
+// Proxy forwards messages from the channel to the stream until the channel is closed
+// or the client disconnects.
+func (s *Stream) Proxy(ch <-chan string) error {
+	if s == nil || s.ctx == nil {
+		return errors.New("stream is nil")
+	}
+	for {
+		select {
+		case msg, ok := <-ch:
+			if !ok {
+				return nil
+			}
+			if err := s.SendMessage(msg); err != nil {
+				return err
+			}
+		case <-s.ctx.Done():
+			return nil // client disconnected
+		}
+	}
+}
