@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log/slog"
 	"os"
 	"strings"
 
@@ -375,16 +376,46 @@ func (c *Container) initAuth() {
 // initMail initialize the mail client
 func (c *Container) initMail() {
 	var err error
-	var mailClientImplementation mailer.MailClientInterface
-
-	if c.Config.App.Environment == config.EnvProduction {
-		mailClientImplementation = mailer.NewResendMailClient(c.Config.Mail.ResendAPIKey)
-	} else {
-		mailClientImplementation = mailer.NewSMTPMailClient("localhost", int(c.Config.Mail.SmtpPort))
-	}
+	mailClientImplementation := c.resolveMailImplementation()
 	c.Mail, err = mailer.NewMailClient(c.Config, mailClientImplementation)
 	if err != nil {
 		panic(fmt.Sprintf("failed to create mail client: %v", err))
+	}
+}
+
+func (c *Container) resolveMailImplementation() mailer.MailClientInterface {
+	driver := strings.ToLower(strings.TrimSpace(c.Config.Mail.Driver))
+	if driver == "" {
+		driver = "log"
+	}
+
+	switch driver {
+	case "resend":
+		apiKey := strings.TrimSpace(c.Config.Mail.Resend.APIKey)
+		if apiKey == "" {
+			apiKey = strings.TrimSpace(c.Config.Mail.ResendAPIKey)
+		}
+		return mailer.NewResendMailClient(apiKey)
+	case "smtp":
+		host := strings.TrimSpace(c.Config.Mail.SMTP.Host)
+		if host == "" {
+			host = strings.TrimSpace(c.Config.Mail.Hostname)
+		}
+		if host == "" {
+			host = "localhost"
+		}
+		port := c.Config.Mail.SMTP.Port
+		if port == 0 {
+			port = int(c.Config.Mail.SmtpPort)
+		}
+		if port == 0 {
+			port = 1025
+		}
+		return mailer.NewSMTPMailClientWithAuth(host, port, c.Config.Mail.SMTP.User, c.Config.Mail.SMTP.Pass)
+	case "log":
+		return mailer.NewLogMailClient(slog.Default())
+	default:
+		panic(fmt.Sprintf("unsupported mail driver %q", c.Config.Mail.Driver))
 	}
 }
 

@@ -5,15 +5,28 @@ import (
 	"net/smtp"
 )
 
+var smtpSendMail = smtp.SendMail
+
 type SMTPMailClient struct {
-	Port int
-	Host string
+	Port     int
+	Host     string
+	Username string
+	Password string
 }
 
 func NewSMTPMailClient(host string, port int) *SMTPMailClient {
 	return &SMTPMailClient{
 		Port: port,
 		Host: host,
+	}
+}
+
+func NewSMTPMailClientWithAuth(host string, port int, user, pass string) *SMTPMailClient {
+	return &SMTPMailClient{
+		Port:     port,
+		Host:     host,
+		Username: user,
+		Password: pass,
 	}
 }
 
@@ -27,11 +40,13 @@ func (c *SMTPMailClient) Send(email *mail) error {
 	smtpPort := c.Port
 	smtpAddr := fmt.Sprintf("%s:%d", smtpHost, smtpPort)
 
-	// Authentication - Mailpit does not require authentication, but you could add it here if needed
-	auth := smtp.PlainAuth("", "", "", smtpHost)
+	var auth smtp.Auth
+	if c.Username != "" || c.Password != "" {
+		auth = smtp.PlainAuth("", c.Username, c.Password, smtpHost)
+	}
 
 	// Sending email
-	err := smtp.SendMail(smtpAddr, auth, email.from, []string{email.to}, []byte(msg))
+	err := smtpSendMail(smtpAddr, auth, email.from, []string{email.to}, []byte(msg))
 	if err != nil {
 		return err
 	}

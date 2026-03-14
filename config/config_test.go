@@ -162,6 +162,15 @@ func TestGetConfig_SecurityHeaderOverrides(t *testing.T) {
 	assert.Equal(t, "default-src 'self'", cfg.Security.Headers.CSP)
 }
 
+func TestGetConfig_MailDriverAliasOverridesDefault(t *testing.T) {
+	useIsolatedWorkingDir(t)
+	t.Setenv("MAIL_DRIVER", "smtp")
+
+	cfg, err := GetConfig()
+	require.NoError(t, err)
+	assert.Equal(t, "smtp", cfg.Mail.Driver)
+}
+
 func TestGetConfig_LoadsOpenAIConfig(t *testing.T) {
 	useIsolatedWorkingDir(t)
 	t.Setenv("AI_DRIVER", "openai")

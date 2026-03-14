@@ -120,9 +120,9 @@ type (
 	}
 
 	SecurityHeadersConfig struct {
-		Enabled bool   `env:"PAGODA_SECURITY_HEADERS_ENABLED" env-default:"true"`
-		HSTS    bool   `env:"PAGODA_SECURITY_HEADERS_HSTS" env-default:"false"`
-		CSP     string `env:"PAGODA_SECURITY_HEADERS_CSP"`
+		Enabled bool   `env:"PAGODA_SECURITY_HEADERS_ENABLED,SECURITY_HEADERS_ENABLED" env-default:"true"`
+		HSTS    bool   `env:"PAGODA_SECURITY_HEADERS_HSTS,SECURITY_HEADERS_HSTS" env-default:"false"`
+		CSP     string `env:"PAGODA_SECURITY_HEADERS_CSP,SECURITY_HEADERS_CSP"`
 	}
 
 	RuntimeConfig struct {
@@ -251,25 +251,25 @@ type (
 
 	// MailConfig stores the mail configuration
 	MailConfig struct {
-		Driver      string `env:"PAGODA_MAIL_DRIVER" env-default:"log"`
-		FromName    string `env:"PAGODA_MAIL_FROM_NAME" env-default:"GoShip App"`
-		FromAddress string `env:"PAGODA_MAIL_FROMADDRESS"`
-		Hostname    string `env:"PAGODA_MAIL_HOSTNAME"`
-		HttpPort    uint16 `env:"PAGODA_MAIL_HTTPPORT"`
-		SmtpPort    uint16 `env:"PAGODA_MAIL_SMTPPORT"`
-		User        string `env:"PAGODA_MAIL_USER"`
-		Password    string `env:"PAGODA_MAIL_PASSWORD"`
+		Driver      string `env:"PAGODA_MAIL_DRIVER,MAIL_DRIVER" env-default:"log"`
+		FromName    string `env:"PAGODA_MAIL_FROM_NAME,MAIL_FROM_NAME" env-default:"GoShip App"`
+		FromAddress string `env:"PAGODA_MAIL_FROMADDRESS,MAIL_FROM_ADDRESS"`
+		Hostname    string `env:"PAGODA_MAIL_HOSTNAME,MAIL_HOSTNAME"`
+		HttpPort    uint16 `env:"PAGODA_MAIL_HTTPPORT,MAIL_HTTPPORT"`
+		SmtpPort    uint16 `env:"PAGODA_MAIL_SMTPPORT,MAIL_SMTP_PORT"`
+		User        string `env:"PAGODA_MAIL_USER,MAIL_USER"`
+		Password    string `env:"PAGODA_MAIL_PASSWORD,MAIL_PASSWORD"`
 		SMTP        struct {
-			Host string `env:"PAGODA_MAIL_SMTP_HOST"`
-			Port int    `env:"PAGODA_MAIL_SMTP_PORT" env-default:"587"`
-			User string `env:"PAGODA_MAIL_SMTP_USER"`
-			Pass string `env:"PAGODA_MAIL_SMTP_PASS"`
-			TLS  bool   `env:"PAGODA_MAIL_SMTP_TLS" env-default:"true"`
+			Host string `env:"PAGODA_MAIL_SMTP_HOST,MAIL_SMTP_HOST"`
+			Port int    `env:"PAGODA_MAIL_SMTP_PORT,MAIL_SMTP_PORT" env-default:"587"`
+			User string `env:"PAGODA_MAIL_SMTP_USER,MAIL_SMTP_USER"`
+			Pass string `env:"PAGODA_MAIL_SMTP_PASS,MAIL_SMTP_PASS"`
+			TLS  bool   `env:"PAGODA_MAIL_SMTP_TLS,MAIL_SMTP_TLS" env-default:"true"`
 		}
 		Resend struct {
-			APIKey string `env:"PAGODA_MAIL_RESEND_API_KEY"`
+			APIKey string `env:"PAGODA_MAIL_RESEND_API_KEY,MAIL_RESEND_API_KEY"`
 		}
-		ResendAPIKey string `env:"PAGODA_MAIL_RESENDAPIKEY"`
+		ResendAPIKey string `env:"PAGODA_MAIL_RESENDAPIKEY,MAIL_RESENDAPIKEY"`
 	}
 
 	PhoneConfig struct {
