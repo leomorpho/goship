@@ -10,9 +10,11 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/a-h/templ"
 	"github.com/leomorpho/goship/app/foundation"
 	"github.com/leomorpho/goship/app/web/middleware"
 	"github.com/leomorpho/goship/framework/context"
+	frameworkmiddleware "github.com/leomorpho/goship/framework/middleware"
 	redirector "github.com/leomorpho/goship/framework/redirect"
 
 	"github.com/labstack/echo/v4"
@@ -59,7 +61,8 @@ func (c *Controller) RenderToHTMLBlob(ctx ctx.Context, page Page) (string, error
 	page.Domain = c.Container.Config.HTTP.Domain
 
 	// Render the templates only for the content portion of the page
-	err = page.Component.Render(ctx, buf)
+	renderCtx := templ.WithNonce(ctx, frameworkmiddleware.CSPNonce(page.Context))
+	err = page.Component.Render(renderCtx, buf)
 
 	if err != nil {
 		return "", c.Fail(err, "failed to parse and execute templates")
@@ -112,9 +115,10 @@ func (c *Controller) RenderPage(ctx echo.Context, page Page) error {
 
 	// Check if this is an HTMX non-boosted request which indicates that only partial
 	// content should be rendered
+	renderCtx := templ.WithNonce(ctx.Request().Context(), frameworkmiddleware.CSPNonce(ctx))
 	if page.HTMX.Request.Enabled && !page.HTMX.Request.Boosted {
 		// Render the templates only for the content portion of the page
-		err = page.Component.Render(ctx.Request().Context(), buf)
+		err = page.Component.Render(renderCtx, buf)
 	} else {
 		// Render the templates for the Page
 		// If the page Layout is set, that will be used to wrap the page component
@@ -122,7 +126,7 @@ func (c *Controller) RenderPage(ctx echo.Context, page Page) error {
 		if page.Layout != nil {
 			component = page.Layout(component, &page)
 		}
-		err = component.Render(ctx.Request().Context(), buf)
+		err = component.Render(renderCtx, buf)
 	}
 
 	if err != nil {

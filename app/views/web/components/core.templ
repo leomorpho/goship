@@ -5,6 +5,7 @@ import (
 	"github.com/leomorpho/goship/app/controller"
 	"github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/app/views/web/helpers/gen"
+	fmw "github.com/leomorpho/goship/framework/middleware"
 	"strings"
 )
 
@@ -70,10 +71,10 @@ templ CSS() {
 }
 
 // Renders: global JavaScript bundle and third-party library script tags
-templ JS() {
+templ JS(page *controller.Page) {
 	// START PWA splash screen (TODO: not working lol)
-	<script data-component="j-s" src="https://cdn.jsdelivr.net/npm/ios-pwa-splash@1.0.0/cdn.min.js"></script>
-	<script id="dynamic-splash-screen" icon-url-data={ templ.JSONString(helpers.File("icon.png")) }>
+	<script nonce={ fmw.CSPNonce(page.Context) } data-component="j-s" src="https://cdn.jsdelivr.net/npm/ios-pwa-splash@1.0.0/cdn.min.js"></script>
+	<script nonce={ fmw.CSPNonce(page.Context) } id="dynamic-splash-screen" icon-url-data={ templ.JSONString(helpers.File("icon.png")) }>
 		(function(){
 			const dynamicSplashScreen = document.getElementById("dynamic-splash-screen");
 			const iconURL = JSON.parse(dynamicSplashScreen.getAttribute("icon-url-data"));
@@ -82,39 +83,39 @@ templ JS() {
 		})()
 	</script>
 	// END PWA splash screen
-	<script src={ helpers.File("vanilla_bundle.js") }></script>
-	<script src={ helpers.File("islands-runtime.js") } data-manifest-url={ helpers.File("islands-manifest.json") }></script>
+	<script nonce={ fmw.CSPNonce(page.Context) } src={ helpers.File("vanilla_bundle.js") }></script>
+	<script nonce={ fmw.CSPNonce(page.Context) } src={ helpers.File("islands-runtime.js") } data-manifest-url={ helpers.File("islands-manifest.json") }></script>
 	// https://cdn.jsdelivr.net/npm/sweetalert2@11 is somehow not working (buttons not showing), so reverting to 2@10
-	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
-	<script src={ helpers.ServiceWorkerFile("service-worker.js") }></script>
-	<script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
-	<script src="https://unpkg.com/htmx.org@1.9.12/dist/ext/sse.js"></script>
-	<script defer async src="https://cdn.jsdelivr.net/npm/@alpinejs/mask@3.x.x/dist/cdn.min.js"></script>
-	<script defer async src="https://cdn.jsdelivr.net/npm/@ryangjchandler/alpine-clipboard@2.x.x/dist/alpine-clipboard.js" defer></script>
-	<script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
-	<script defer async src="https://cdn.jsdelivr.net/npm/@marcreichel/alpine-timeago@latest/dist/alpine-timeago.min.js" defer></script>
-	<script defer async src="https://cdn.jsdelivr.net/npm/@ryangjchandler/alpine-tooltip@1.x.x/dist/cdn.min.js" defer></script>
+	<script nonce={ fmw.CSPNonce(page.Context) } src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+	<script nonce={ fmw.CSPNonce(page.Context) } src={ helpers.ServiceWorkerFile("service-worker.js") }></script>
+	<script nonce={ fmw.CSPNonce(page.Context) } src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
+	<script nonce={ fmw.CSPNonce(page.Context) } src="https://unpkg.com/htmx.org@1.9.12/dist/ext/sse.js"></script>
+	<script nonce={ fmw.CSPNonce(page.Context) } defer async src="https://cdn.jsdelivr.net/npm/@alpinejs/mask@3.x.x/dist/cdn.min.js"></script>
+	<script nonce={ fmw.CSPNonce(page.Context) } defer async src="https://cdn.jsdelivr.net/npm/@ryangjchandler/alpine-clipboard@2.x.x/dist/alpine-clipboard.js" defer></script>
+	<script nonce={ fmw.CSPNonce(page.Context) } defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+	<script nonce={ fmw.CSPNonce(page.Context) } defer async src="https://cdn.jsdelivr.net/npm/@marcreichel/alpine-timeago@latest/dist/alpine-timeago.min.js" defer></script>
+	<script nonce={ fmw.CSPNonce(page.Context) } defer async src="https://cdn.jsdelivr.net/npm/@ryangjchandler/alpine-tooltip@1.x.x/dist/cdn.min.js" defer></script>
 	// I added morph because I was facing this issue https://github.com/alpinejs/alpine/discussions/3985 with the home feed buttons. However, it did not fix it...but, 
 	// people are suggesting to use it for htmx to play more nicely with Alpine, which is certainly a problem I've faced before. Leaving in the hopes it actually helps
 	// with weird alpine/htmx bugs, but to revisit.
-	<script defer async src="https://cdn.jsdelivr.net/npm/@alpinejs/morph@3.x.x/dist/cdn.min.js"></script>
-	<script defer async src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-	<script defer async src="https://unpkg.com/hyperscript.org@0.9.12"></script>
-	<script defer async src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-	<script defer async src="https://js.stripe.com/v3/"></script>
+	<script nonce={ fmw.CSPNonce(page.Context) } defer async src="https://cdn.jsdelivr.net/npm/@alpinejs/morph@3.x.x/dist/cdn.min.js"></script>
+	<script nonce={ fmw.CSPNonce(page.Context) } defer async src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+	<script nonce={ fmw.CSPNonce(page.Context) } defer async src="https://unpkg.com/hyperscript.org@0.9.12"></script>
+	<script nonce={ fmw.CSPNonce(page.Context) } defer async src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+	<script nonce={ fmw.CSPNonce(page.Context) } defer async src="https://js.stripe.com/v3/"></script>
 	// TODO: remove HTMX debug extension for prod
 	// <script src="https://unpkg.com/htmx.org/dist/ext/debug.js"></script>
-	<script defer async src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/datepicker.min.js"></script>
+	<script nonce={ fmw.CSPNonce(page.Context) } defer async src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/datepicker.min.js"></script>
 	// Calheatmap deps, note that the same ones are imported in cal_heatmap.js in static
-	<script defer async src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
-	<script defer async src="https://d3js.org/d3.v7.min.js"></script>
-	<script defer async src="https://unpkg.com/cal-heatmap/dist/cal-heatmap.min.js"></script>
-	<script defer async src="https://unpkg.com/cal-heatmap/dist/plugins/Legend.min.js"></script>
-	<script defer async src="https://unpkg.com/cal-heatmap/dist/plugins/Tooltip.min.js"></script>
-	<script defer async src="https://unpkg.com/cal-heatmap/dist/plugins/CalendarLabel.min.js"></script>
-	<script defer async src="https://unpkg.com/@popperjs/core@2"></script>
+	<script nonce={ fmw.CSPNonce(page.Context) } defer async src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
+	<script nonce={ fmw.CSPNonce(page.Context) } defer async src="https://d3js.org/d3.v7.min.js"></script>
+	<script nonce={ fmw.CSPNonce(page.Context) } defer async src="https://unpkg.com/cal-heatmap/dist/cal-heatmap.min.js"></script>
+	<script nonce={ fmw.CSPNonce(page.Context) } defer async src="https://unpkg.com/cal-heatmap/dist/plugins/Legend.min.js"></script>
+	<script nonce={ fmw.CSPNonce(page.Context) } defer async src="https://unpkg.com/cal-heatmap/dist/plugins/Tooltip.min.js"></script>
+	<script nonce={ fmw.CSPNonce(page.Context) } defer async src="https://unpkg.com/cal-heatmap/dist/plugins/CalendarLabel.min.js"></script>
+	<script nonce={ fmw.CSPNonce(page.Context) } defer async src="https://unpkg.com/@popperjs/core@2"></script>
 	// Cannot defer driver.js
-	<script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
+	<script nonce={ fmw.CSPNonce(page.Context) } src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
 	// above are Calheatmap deps
 	@darkModeSwitcher()
 }
@@ -167,7 +168,7 @@ templ JSFooter(page *controller.Page) {
 	@htmxOnLoad()
 	// TODO: below is currently not working
 	// @htmxWindowOnLoad()
-	@beforeBodyEnd()
+	@beforeBodyEnd(page)
 }
 
 script htmxOnLoad() {
@@ -196,8 +197,8 @@ script htmxWindowOnLoad() {
 	}
 }
 
-templ beforeBodyEnd() {
-	<script data-component="j-s-footer" src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
+templ beforeBodyEnd(page *controller.Page) {
+	<script nonce={ fmw.CSPNonce(page.Context) } data-component="j-s-footer" src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
 }
 
 // Renders: application footer with copyright notice and navigation links
@@ -236,7 +237,7 @@ templ TextFooter(page *controller.Page) {
 			</div>
 		</footer>
 	</div>
-	<script>
+	<script nonce={ fmw.CSPNonce(page.Context) }>
 		document.getElementById('currentYear').textContent = new Date().getFullYear();
 	</script>
 }

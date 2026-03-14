@@ -133,6 +133,7 @@ func ApplyMainMiddleware(c *foundation.Container, g *echo.Group, logger *slog.Lo
 		appmiddleware.RecoverPanics(c.Logger),
 		echomw.Gzip(),
 		slogecho.New(logger),
+		middleware.SecurityHeaders(c.Config.Security, string(c.Config.App.Environment)),
 		echomw.TimeoutWithConfig(echomw.TimeoutConfig{Skipper: sseSkipper, Timeout: c.Config.App.Timeout}),
 	}
 	mw = append(mw, base...)
@@ -149,7 +150,11 @@ func ApplyMainMiddleware(c *foundation.Container, g *echo.Group, logger *slog.Lo
 func ApplyRealtimeMiddleware(c *foundation.Container, s *echo.Group, logger *slog.Logger, deps *RouteDeps) {
 	sessionStore := sessions.NewCookieStore([]byte(c.Config.App.EncryptionKey))
 	base := commonMiddleware(c, deps, sessionStore)
-	mw := []echo.MiddlewareFunc{appmiddleware.RecoverPanics(c.Logger), slogecho.New(logger)}
+	mw := []echo.MiddlewareFunc{
+		appmiddleware.RecoverPanics(c.Logger),
+		slogecho.New(logger),
+		middleware.SecurityHeaders(c.Config.Security, string(c.Config.App.Environment)),
+	}
 	mw = append(mw, base...)
 	s.Use(mw...)
 }
@@ -161,6 +166,7 @@ func ApplyExternalMiddleware(c *foundation.Container, e *echo.Group, logger *slo
 		appmiddleware.RecoverPanics(c.Logger),
 		echomw.Gzip(),
 		slogecho.New(logger),
+		middleware.SecurityHeaders(c.Config.Security, string(c.Config.App.Environment)),
 		echomw.TimeoutWithConfig(echomw.TimeoutConfig{Skipper: sseSkipper, Timeout: c.Config.App.Timeout}),
 	}
 	mw = append(mw, base...)

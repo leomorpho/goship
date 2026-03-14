@@ -433,6 +433,9 @@ Last updated: 2026-03-04
 3. `G03` - `guides/03-how-to-playbook.md`: prioritized how-to guide backlog and writing template.
 4. `G04` - `guides/04-deployment-kamal.md`: current deployment workflow via Kamal.
 5. `G05` - `guides/05-jobs-module.md`: jobs module install/wiring contract, backend rules, and migration notes.
+6. `G06` - `guides/06-ai-module.md`: AI module provider selection, request contract, and SSE demo pattern.
+7. `G07` - `guides/07-domain-events.md`: domain event bus, shared event types, and async enqueue contract.
+8. `G08` - `guides/08-building-an-api.md`: JSON response helpers, content negotiation, and versioned API route convention.
 
 ### Reference
 
@@ -785,6 +788,7 @@ GoShip is a Go + Echo + Templ + HTMX starter application that ships with:
 - Notification infrastructure (DB + push + SSE-oriented architecture)
 - S3-compatible file storage support with image variants
 - Background task processing (Asynq worker)
+- Provider-agnostic AI completion service with an Anthropic adapter
 - Frontend asset bundling for Svelte components and vanilla JS
 
 The repository still carries heritage from a related product domain ("Cherie"), and some feature areas are partially wired or intentionally disabled.
@@ -802,6 +806,8 @@ The repository still carries heritage from a related product domain ("Cherie"), 
 Core flows implemented in routes and services:
 
 - Login/logout (`app/web/controllers/login.go`, `logout.go`)
+- OAuth/social login for enabled GitHub, Google, and Discord providers (`modules/auth`)
+- Optional TOTP-based two-factor authentication with recovery backup codes (`modules/2fa`)
 - Register (`register.go`)
 - Forgot/reset password (`forgot_password.go`, `reset_password.go`)
 - Email verification (`verify_email.go`)
@@ -812,6 +818,8 @@ Key implementation choices:
 - Cookie-backed session auth using Gorilla sessions via Echo middleware.
 - Password reset tokens stored as bcrypt hashes.
 - Email verification tokens use JWT signed with app encryption key.
+- OAuth account linking reuses existing user records when the provider email already exists and stores provider access tokens encrypted at rest in `oauth_accounts`.
+- Two-factor authentication defers full session creation behind a short-lived signed pending-login cookie and validates either TOTP codes or one-time backup codes.
 
 ## 2) Onboarding, Preferences, and Profile
 
@@ -878,7 +886,13 @@ Worker bootstrap and registration in `cmd/worker/main.go`.
 - **Asynq:** Distributed task processing via Redis. Requires a separate worker process.
 - **Backlite:** SQLite-backed task processing for single-binary or zero-dependency modes. Runs in-process with the web server, removing the need for a separate worker.
 
-## 8) Frontend Delivery Model
+## 8) Domain Events
+
+- `framework/events` now provides a typed in-process event bus with generic subscription helpers
+- `app/foundation.Container` exposes `EventBus`
+- Auth flows publish shared events such as `UserRegistered`, `UserLoggedIn`, `UserLoggedOut`, and `PasswordChanged`
+
+## 9) Frontend Delivery Model
 
 - Server-rendered pages via Templ (`app/views/` + `app/web/ui`)
 - HTMX-enhanced interactions
@@ -890,7 +904,15 @@ Build pipeline:
 - JS via `frontend/vite.config.ts` + Vite
 - CSS via Tailwind CLI in Makefile
 
-## 9) Admin Panel
+## 10) AI Integration
+
+- `modules/ai` exposes a provider-agnostic completion boundary via `container.AI`
+- Anthropic, OpenAI, and OpenRouter are wired providers
+- The service supports unary completion, token streaming, and structured JSON decoding into Go types
+- The module also includes a persistence layer for storing conversation threads and message history in `ai_conversations` / `ai_messages`
+- Non-production builds expose an authenticated `/auth/ai-demo` page that demonstrates HTMX + SSE streaming against the AI service
+
+## 11) Admin Panel
 
 Reflection-based administrative interface for managing database resources.
 
@@ -914,6 +936,18 @@ Runtime DB metadata contract:
 
 - `config.Config.RuntimeMetadata()` now provides a normalized DB metadata snapshot for status/reporting surfaces.
 - Metadata includes DB mode/driver, migration tracking table, portability profile, and SQLite-to-Postgres compatibility path (`sqlite-to-postgres-manual-v1`).
+
+Security baseline:
+
+- Dynamic web responses now include default security headers via `framework/middleware/security_headers.go`.
+- CSP is nonce-based per request (`csp_nonce`) and rendered templates consume the nonce from request context.
+- `PAGODA_SECURITY_HEADERS_*` (and `SECURITY_HEADERS_*` aliases) control enablement, HSTS, and full CSP override.
+- Local/dev defaults include Vite HMR websocket allowances for `localhost:5173`.
+
+Health endpoints:
+
+- `GET /health` is now a JSON liveness endpoint (`{"status":"ok"}` when process is running).
+- `GET /health/ready` is a JSON readiness endpoint that runs registered dependency checks (DB, cache, jobs inspector) and returns `503` when any critical check fails.
 
 ## Testing Surface
 
@@ -946,7 +980,9 @@ Ergonomic routing rule:
 ## Public/General Routes
 
 - `GET /` landing page
-- `GET /up` healthcheck
+- `GET /up` liveness healthcheck (legacy alias)
+- `GET /health` liveness healthcheck
+- `GET /health/ready` readiness healthcheck (returns `503` when a registered dependency check fails)
 - `GET /clear-cookie`
 - `GET /about`
 - `GET /privacy-policy`
@@ -992,6 +1028,9 @@ Service worker / app-links:
 - `POST /welcome/preferences/display-name/save`
 - `GET /welcome/preferences/delete-account`
 - `GET /welcome/preferences/delete-account/now`
+- `GET /welcome/preferences/2fa/setup`
+- `POST /welcome/preferences/2fa/setup`
+- `GET /welcome/preferences/2fa/backup-codes`
 - `GET /welcome/finish-onboarding`
 - `GET /welcome/profileBio`
 - `POST /welcome/profileBio/update`
@@ -1026,6 +1065,10 @@ Fully onboarded-only routes (`/auth` with onboarding guard):
 
 ## Auth-Adjacent Routes
 
+- `GET /auth/2fa/verify`
+- `POST /auth/2fa/verify`
+- `GET /auth/oauth/:provider`
+- `GET /auth/oauth/:provider/callback`
 - `GET /email/verify/:token`
 
 ## External Integration Routes
@@ -1047,6 +1090,7 @@ Registered only when not production:
 Realtime is conditionally wired:
 
 - `GET /auth/realtime` is registered only when runtime web features enable realtime (notifier + pubsub available).
+- `GET /auth/ai-demo` and `GET /auth/ai-demo/stream` are registered only when the app environment is not production.
 
 Notification center routes have implementations but are still not wired:
 
@@ -1240,6 +1284,36 @@ Impact:
 
 - Promotion currently requires custom/manual tooling around the framework contract.
 - Operators can report compatibility and promotion path, but cannot run a one-command migration flow yet.
+
+## 10) AI Provider Coverage Is Still Narrow (Medium)
+
+`modules/ai` now provides a stable app-facing completion boundary with Anthropic, OpenAI, and OpenRouter adapters plus persisted conversation history, but provider coverage is still incomplete and the configured driver becomes unavailable without matching credentials.
+
+Impact:
+
+- Apps can build against the AI seam today, but multi-provider portability is not delivered yet.
+- Environments without matching provider credentials will keep a non-nil AI service that returns a clear provider-unavailable error at call time.
+- Conversation persistence exists at the module layer, but there is still no first-class app UI for browsing or resuming stored AI threads.
+
+## 11) Domain Events Are In-Process Only (Low)
+
+`framework/events` now covers synchronous in-process publish/subscribe and a jobs enqueue helper, but it does not yet ship a generic async re-dispatch worker or delivery guarantees across processes.
+
+Impact:
+
+- Domain events are reliable inside a single process and easy to test.
+- Cross-process fanout still requires explicit jobs or pubsub integration by the caller.
+
+## 12) CSP Is Hardened But Still Allows Script Attributes (Low)
+
+Default security headers and nonce-based CSP are now enabled for dynamic responses, but the default
+policy still allows `script-src-attr 'unsafe-inline'` to preserve existing `onload=...` usage in
+deferred stylesheet tags.
+
+Impact:
+
+- The app now blocks inline script blocks unless they carry the request nonce.
+- Inline script attributes remain permitted until those attributes are removed/refactored.
 
 ## Suggested Priority Order
 
@@ -1843,15 +1917,6 @@ Templ generation:
 - or `go run ./tools/cli/ship/cmd/ship templ generate --path app`
 - Generated `*_templ.go` files are moved to `gen/` subdirectories beside each templ package.
 
-## Mail Development
-
-For rapid iteration on email templates:
-
-1. **Email Previews:** Visit `/dev/mail` in your browser (local/dev environments only). This allows you to preview all Templ-based email templates with dummy data without sending any actual emails.
-2. **Test Sending:** Use the CLI to send a real email using your current configuration:
-   `go run cmd/mail_test/main.go <your-email>`
-3. **Log Driver:** In development, the default `PAGODA_MAIL_DRIVER=log` prints all outgoing emails to the console instead of sending them. Set it to `smtp` to use the local Mailpit instance.
-
 ## Database and Migrations
 
 Canonical runtime:
@@ -2297,26 +2362,251 @@ Current behavior:
 - Module wiring happens in `cmd/*` and writes to container core seams.
 - New admin/job UI code must read through `core.JobsInspector`, not backend-specific APIs.
 
-## Scheduled Jobs (Cron)
+---
+FILE: docs/guides/06-ai-module.md
+---
+# AI Module Guide
 
-GoShip uses a centralized cron scheduler for periodic tasks.
+This guide defines the current install and usage contract for `modules/ai`.
 
-**Convention:**
-- All schedules are registered in `app/schedules/schedules.go`.
-- The `Register` function is called during container initialization.
-- **Rule:** Schedules ONLY enqueue jobs. They never contain business logic. This ensures all work is tracked, retried, and observable via the jobs module.
+Last updated: 2026-03-13
 
-**Example:**
+## Goal
+
+- Provide one app-facing AI seam through `container.AI`.
+- Keep provider selection in config and app composition, not in feature code.
+- Support plain completion, token streaming, and structured JSON decoding behind the same request shape.
+
+## Runtime Contract
+
+`modules/ai` exposes:
+
+- `Provider.Complete(ctx, ai.Request)`
+- `Provider.Stream(ctx, ai.Request)`
+- `Service.Complete(ctx, ai.Request)`
+- `Service.Stream(ctx, ai.Request)`
+- `ConversationService.CreateConversation(ctx, userID, model, title)`
+- `ConversationService.SendMessage(ctx, conversationID, userMessage)`
+- `ConversationService.ListConversations(ctx, userID)`
+- `ConversationService.GetHistory(ctx, conversationID)`
+
+The app container wires the concrete provider in [container.go](/workspace/project/app/foundation/container.go).
+
+## Provider Selection
+
+Supported `AI_DRIVER` values today:
+
+- `anthropic`
+- `openai`
+- `openrouter`
+
+Credential requirements:
+
+- `anthropic` requires `ANTHROPIC_API_KEY`
+- `openai` requires `OPENAI_API_KEY`
+- `openrouter` requires `OPENROUTER_API_KEY`
+
+If the selected driver is missing credentials, `container.AI` stays non-nil but returns a clear provider-unavailable error when called.
+
+## Request Shape
+
+`ai.Request` supports:
+
+- `Model`
+- `System`
+- `Messages`
+- `MaxTokens`
+- `Temperature`
+- `Schema`
+- `Tools`
+
+Structured output:
+
+- Set `Schema` to a pointer to the target Go value.
+- The service will decode the model response JSON into that pointer.
+- Anthropic uses a forced tool call for structured output.
+- OpenAI and OpenRouter use JSON-schema response formatting.
+
+## Conversation Persistence
+
+`modules/ai` now ships a persistence layer for chatbot-style flows:
+
+- `ai_conversations`
+- `ai_messages`
+
+The SQL store lives in:
+
+- [conversation_store_sql.go](/workspace/project/modules/ai/conversation_store_sql.go)
+
+The service lives in:
+
+- [conversation_service.go](/workspace/project/modules/ai/conversation_service.go)
+
+Current behavior:
+
+- create a conversation per user and model
+- append user messages before dispatching to the provider
+- save the assistant response after completion
+- keep token counts and response model on assistant messages when the provider returns them
+
+## SSE Pattern
+
+`modules/ai/stream_handler.go` provides `StreamCompletion(...)` for HTMX SSE flows.
+
+Current example:
+
+- `GET /auth/ai-demo`
+- `GET /auth/ai-demo/stream?prompt=...`
+
+The demo route is registered only outside production and shows the recommended HTMX pattern:
+
+- render a page with `hx-ext="sse"`
+- set `sse-connect` to the stream endpoint
+- append token chunks with `sse-swap="message"`
+- handle completion with `sse-swap="done"`
+
+---
+FILE: docs/guides/07-domain-events.md
+---
+# Domain Events Guide
+
+This guide defines the current framework contract for domain events in GoShip.
+
+Last updated: 2026-03-13
+
+## Goal
+
+- Let modules react to cross-cutting behavior without direct imports.
+- Keep event types in a shared framework package.
+- Support synchronous in-process publish/subscribe first, with a jobs-backed async enqueue helper.
+
+## Runtime Contract
+
+Core package:
+
+- [bus.go](/workspace/project/framework/events/bus.go)
+- [async.go](/workspace/project/framework/events/async.go)
+
+Shared event types:
+
+- [auth.go](/workspace/project/framework/events/types/auth.go)
+- [subscription.go](/workspace/project/framework/events/types/subscription.go)
+- [profile.go](/workspace/project/framework/events/types/profile.go)
+
+Container seam:
+
+- [container.go](/workspace/project/app/foundation/container.go)
+  - `EventBus *events.Bus`
+
+## Publish / Subscribe
+
+Use the generic subscribe helper:
+
 ```go
-func Register(s *cron.Cron, c *foundation.Container) {
-    // ship:schedules:start
-    s.AddFunc("0 9 * * *", func() {
-        c.CoreJobs.Enqueue(context.Background(), "daily.report", nil, core.EnqueueOptions{})
-    })
-    // ship:schedules:end
+events.Subscribe(bus, func(ctx context.Context, event types.UserLoggedIn) error {
+    return nil
+})
+```
+
+Publish synchronously:
+
+```go
+err := bus.Publish(ctx, types.UserLoggedIn{UserID: 42, At: time.Now().UTC()})
+```
+
+Current behavior:
+
+- handlers run synchronously in registration order
+- publish returns the first handler error
+- auth routes publish `UserRegistered`, `UserLoggedIn`, `UserLoggedOut`, and `PasswordChanged`
+
+## Async Helper
+
+`events.PublishAsync(...)` serializes an event envelope and enqueues it onto the jobs seam using:
+
+- job name: `framework.events.publish`
+
+This is the current enqueue contract only; no generic worker re-dispatcher is wired yet.
+
+## Generator
+
+Use the scaffold helper for new shared event types:
+
+```text
+ship make:event UserLoggedIn
+```
+
+---
+FILE: docs/guides/08-building-an-api.md
+---
+# Building an API
+
+GoShip supports dual HTML and JSON responses without duplicating handler logic.
+
+## Core Pattern
+
+Use `framework/api` when a handler needs a JSON representation:
+
+```go
+func (pc *PostController) Show(c echo.Context) error {
+	post, err := pc.store.Find(c.Request().Context(), id)
+	if err != nil {
+		return api.Fail(c, http.StatusNotFound, api.NotFound("post not found"))
+	}
+
+	if api.IsAPIRequest(c) {
+		return api.OK(c, contracts.PostResponse{ID: post.ID, Title: post.Title})
+	}
+
+	return render(c, views.PostShow(toPostVM(post)))
 }
 ```
 
+`api.IsAPIRequest` returns `true` when:
+
+- the `Accept` header prefers `application/json`
+- the route path starts with `/api/`
+
+## Response Envelope
+
+Successful responses use:
+
+```json
+{
+  "data": {},
+  "meta": {
+    "page": 1,
+    "per_page": 20,
+    "total": 42
+  }
+}
+```
+
+Errors use:
+
+```json
+{
+  "data": {},
+  "errors": [
+    {
+      "field": "title",
+      "message": "is required",
+      "code": "validation_error"
+    }
+  ]
+}
+```
+
+## Router Convention
+
+Reserve versioned JSON routes under:
+
+```go
+v1 := e.Group("/api/v1") // ship:routes:api:v1:start
+// ship:routes:api:v1:end
+```
+
+Keep JSON-specific routes inside that marker block so generators and doctor checks have one canonical place to inspect.
 
 ---
 FILE: docs/policies/01-engineering-standards.md
@@ -2600,6 +2890,7 @@ Doctor checks (current):
 - validates agent allowlist artifacts are in sync with `tools/agent-policy/allowed-commands.yaml`
 - validates enabled modules in `config/modules.yaml` include `db/migrate/migrations` and `db/bobgen.yaml`
 - validates cross-boundary import rules (controller `QueryProfile()` ban, jobs SQL coupling ban, notifications pubsub framework-core coupling ban, module source isolation ban for direct `github.com/leomorpho/goship/*` imports except explicit allowlist paths)
+- warns when `/api/` routes appear to render HTML directly instead of using the standard JSON API helpers
 
 Field syntax for `make:model`:
 
@@ -3018,6 +3309,8 @@ Primary infrastructure seams to abstract:
 4. `PubSub`
 5. `BlobStorage`
 6. `Mailer`
+7. `AI`
+8. `DomainEvents`
 
 Non-goal:
 

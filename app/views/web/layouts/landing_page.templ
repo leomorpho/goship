@@ -12,7 +12,7 @@ templ LandingPage(content templ.Component, page *controller.Page) {
 		<head>
 			@components.Metatags(page)
 			@components.CSS()
-			@components.JS()
+			@components.JS(page)
 		</head>
 		<body>
 			// @components.BonfireBanner()
