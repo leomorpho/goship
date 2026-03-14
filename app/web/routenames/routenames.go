@@ -46,6 +46,8 @@ const (
 	RouteNameInstallApp                = "install_app"
 	RouteNameClearCookie               = "clear_cookie"
 	RouteNameHealthcheck               = "healthcheck"
+	RouteNameHealthLiveness            = "health.liveness"
+	RouteNameHealthReadiness           = "health.readiness"
 	RouteNameEmailSubscribe            = "email_subscribe"
 	RouteNameEmailSubscribeSubmit      = "email_subscribe.submit"
 	RouteNameVerifyEmailSubscription   = "verify_email_subscription"

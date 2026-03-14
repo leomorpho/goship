@@ -161,6 +161,18 @@ Runtime DB metadata contract:
 - `config.Config.RuntimeMetadata()` now provides a normalized DB metadata snapshot for status/reporting surfaces.
 - Metadata includes DB mode/driver, migration tracking table, portability profile, and SQLite-to-Postgres compatibility path (`sqlite-to-postgres-manual-v1`).
 
+Security baseline:
+
+- Dynamic web responses now include default security headers via `framework/middleware/security_headers.go`.
+- CSP is nonce-based per request (`csp_nonce`) and rendered templates consume the nonce from request context.
+- `PAGODA_SECURITY_HEADERS_*` (and `SECURITY_HEADERS_*` aliases) control enablement, HSTS, and full CSP override.
+- Local/dev defaults include Vite HMR websocket allowances for `localhost:5173`.
+
+Health endpoints:
+
+- `GET /health` is now a JSON liveness endpoint (`{"status":"ok"}` when process is running).
+- `GET /health/ready` is a JSON readiness endpoint that runs registered dependency checks (DB, cache, jobs inspector) and returns `503` when any critical check fails.
+
 ## Testing Surface
 
 - Go tests are distributed across `app/**`, `framework/**`, `modules/**`, and `tools/**`
