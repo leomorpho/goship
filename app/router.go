@@ -117,7 +117,9 @@ func registerPublicRoutes(c *foundation.Container, g *echo.Group, ctr ui.Control
 	g.GET("/clear-cookie", clearCookie.Get).Name = routeNames.RouteNameClearCookie
 
 	healthcheck := controllers.NewHealthCheckRoute(ctr)
-	g.GET("/up", healthcheck.Get).Name = routeNames.RouteNameHealthcheck
+	g.GET("/up", healthcheck.GetLiveness).Name = routeNames.RouteNameHealthcheck
+	g.GET("/health", healthcheck.GetLiveness).Name = routeNames.RouteNameHealthLiveness
+	g.GET("/health/ready", healthcheck.GetReadiness).Name = routeNames.RouteNameHealthReadiness
 
 	// TODO: remove once sentry is stable.
 	g.GET(c.Config.App.TestSentryUrl, func(ctx echo.Context) error {

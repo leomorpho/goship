@@ -103,6 +103,17 @@ Impact:
 - Domain events are reliable inside a single process and easy to test.
 - Cross-process fanout still requires explicit jobs or pubsub integration by the caller.
 
+## 12) CSP Is Hardened But Still Allows Script Attributes (Low)
+
+Default security headers and nonce-based CSP are now enabled for dynamic responses, but the default
+policy still allows `script-src-attr 'unsafe-inline'` to preserve existing `onload=...` usage in
+deferred stylesheet tags.
+
+Impact:
+
+- The app now blocks inline script blocks unless they carry the request nonce.
+- Inline script attributes remain permitted until those attributes are removed/refactored.
+
 ## Suggested Priority Order
 
 1. Complete cache adapter coverage so page caching works consistently across supported backends.
