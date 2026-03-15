@@ -3,6 +3,8 @@
 .local/
 .cache/
 *.test
+/tmp/
+/frontend/vite.config.ts.timestamp-*.mjs
 
 # Local Go build artifacts (root-level binaries from `go build ./cmd/...`)
 /web

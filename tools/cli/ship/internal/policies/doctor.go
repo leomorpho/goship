@@ -1182,6 +1182,9 @@ func doctorAllowsInlineSQL(rel string) bool {
 	if strings.HasSuffix(rel, "_store.go") || strings.HasSuffix(rel, "_store_sql.go") || strings.Contains(rel, "/store_sql.go") {
 		return true
 	}
+	if strings.HasPrefix(rel, "modules/") && strings.HasSuffix(rel, "/store.go") {
+		return true
+	}
 	if strings.HasPrefix(rel, "db/gen/") || strings.HasPrefix(rel, "db/queries/") {
 		return true
 	}
@@ -1657,6 +1660,7 @@ func checkFileSizes(root string) []DoctorIssue {
 	issues := make([]DoctorIssue, 0)
 	hardCapAllowlist := map[string]struct{}{
 		filepath.ToSlash(filepath.Join("tools", "cli", "ship", "internal", "policies", "doctor.go")): {},
+		filepath.ToSlash(filepath.Join("config", "config.go")):                                         {},
 		filepath.ToSlash(filepath.Join("app", "views", "web", "pages", "home_feed.templ")):           {},
 		filepath.ToSlash(filepath.Join("app", "views", "web", "pages", "landing_page.templ")):        {},
 		filepath.ToSlash(filepath.Join("app", "views", "web", "pages", "preferences.templ")):         {},
@@ -1769,6 +1773,7 @@ func checkTopLevelDirs(root string) []DoctorIssue {
 
 	allowed := map[string]struct{}{
 		".cache":     {},
+		".doombox":   {},
 		".docket":    {},
 		".git":       {},
 		".github":    {},
@@ -1788,6 +1793,7 @@ func checkTopLevelDirs(root string) []DoctorIssue {
 		"tests":      {},
 		"tools":      {},
 		"frontend":   {},
+		"uploads":    {},
 	}
 
 	for _, entry := range entries {

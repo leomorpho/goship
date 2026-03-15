@@ -7,6 +7,20 @@ queries_dir="$root/db/queries"
 config_file="$root/db/bobgen.yaml"
 gen_dir="$root/db/gen"
 
+file_mtime() {
+  local file="$1"
+  if stat -c '%Y' "$file" >/dev/null 2>&1; then
+    stat -c '%Y' "$file"
+    return 0
+  fi
+  if stat -f '%m' "$file" >/dev/null 2>&1; then
+    stat -f '%m' "$file"
+    return 0
+  fi
+  echo "unable to determine file mtime for: $file" >&2
+  return 1
+}
+
 if [ ! -d "$queries_dir" ] || [ ! -f "$config_file" ]; then
   exit 0
 fi
@@ -40,7 +54,7 @@ while IFS= read -r -d '' f; do
     continue
   fi
   tracked_inputs=1
-  ts="$(stat -f '%m' "$f")"
+  ts="$(file_mtime "$f")"
   if [ "$ts" -gt "$latest_input_ts" ]; then
     latest_input_ts="$ts"
   fi
@@ -52,7 +66,7 @@ fi
 
 latest_generated_ts=0
 while IFS= read -r -d '' f; do
-  ts="$(stat -f '%m' "$f")"
+  ts="$(file_mtime "$f")"
   if [ "$ts" -gt "$latest_generated_ts" ]; then
     latest_generated_ts="$ts"
   fi
