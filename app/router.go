@@ -86,9 +86,6 @@ func BuildRouter(c *foundation.Container, modules RouterModules) error {
 	if err := registerPublicRoutes(c, g, ctr, deps); err != nil {
 		return err
 	}
-	if err := registerDocsRoutes(g, ctr); err != nil {
-		return err
-	}
 	if !c.Config.App.OperationalConstants.UserSignupEnabled {
 		return nil
 	}
@@ -141,12 +138,6 @@ func registerPublicRoutes(c *foundation.Container, g *echo.Group, ctr ui.Control
 		return err
 	}
 
-	about := controllers.NewAboutUsRoute(ctr)
-	g.GET("/about", about.Get).Name = routeNames.RouteNameAboutUs
-
-	privacyPolicy := controllers.NewPrivacyPolicyRoute(ctr)
-	g.GET("/privacy-policy", privacyPolicy.Get).Name = routeNames.RouteNamePrivacyPolicy
-
 	if ctr.Container.Config.App.Environment != config.EnvProduction {
 		errHandler := controllers.NewErrorHandler(ctr)
 		g.GET("/error/400", errHandler.GetHttp400BadRequest)
@@ -164,15 +155,6 @@ func registerPublicRoutes(c *foundation.Container, g *echo.Group, ctr ui.Control
 	// ship:routes:public:start
 	// ship:routes:public:end
 
-	return nil
-}
-
-func registerDocsRoutes(g *echo.Group, ctr ui.Controller) error {
-	docsRoute := controllers.NewDocsRoute(ctr)
-	g.GET("/docs", docsRoute.GetDocsHome).Name = routeNames.RouteNameDocs
-	g.GET("/docs/gettingStarted", docsRoute.GetDocsGettingStarted).Name = routeNames.RouteNameDocsGettingStarted
-	g.GET("/docs/guidedTour", docsRoute.GetDocsGuidedTour).Name = routeNames.RouteNameDocsGuidedTour
-	g.GET("/docs/architecture", docsRoute.GetDocsArchitecture).Name = routeNames.RouteNameDocsArchitecture
 	return nil
 }
 

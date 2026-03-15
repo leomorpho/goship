@@ -33,7 +33,7 @@ Config selects the mode. `ship new` defaults to single-binary. Upgrading to stan
 
 **Important:** Use `modernc.org/sqlite` (CGO-free, pure Go) not `go-sqlite3` (requires CGO). CGO breaks cross-compilation and complicates single-binary distribution.
 
-**Pagoda precedent:** Full single-binary since v1. Stores data in `./dbs/` directory. `make run` is the only command needed.
+**Pagoda precedent:** Full single-binary since v1. Stores data locally on disk. `make run` is the only command needed.
 
 ---
 

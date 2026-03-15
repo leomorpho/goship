@@ -110,7 +110,7 @@ func TestResolveDBURL_EmbeddedModeUsesSQLiteURL(t *testing.T) {
 	dotEnv := strings.Join([]string{
 		"PAGODA_APP_ENVIRONMENT=local",
 		"PAGODA_DATABASE_DBMODE=embedded",
-		"PAGODA_DATABASE_EMBEDDEDCONNECTION=dbs/main.db",
+		"PAGODA_DATABASE_EMBEDDEDCONNECTION=.local/db/main.db",
 		"",
 	}, "\n")
 	if err := os.WriteFile(filepath.Join(root, ".env"), []byte(dotEnv), 0o644); err != nil {
@@ -121,7 +121,7 @@ func TestResolveDBURL_EmbeddedModeUsesSQLiteURL(t *testing.T) {
 	if err != nil {
 		t.Fatalf("resolveRuntimeDBURL error = %v", err)
 	}
-	if got != "sqlite://dbs/main.db?_journal=WAL&_timeout=5000&_fk=true" {
+	if got != "sqlite://.local/db/main.db?_journal=WAL&_timeout=5000&_fk=true" {
 		t.Fatalf("db url = %q, want sqlite URL", got)
 	}
 }
@@ -237,7 +237,7 @@ func TestResolveDBDriver_FromConfigEmbedded(t *testing.T) {
 	dotEnv := strings.Join([]string{
 		"PAGODA_APP_ENVIRONMENT=local",
 		"PAGODA_DATABASE_DBMODE=embedded",
-		"PAGODA_DATABASE_EMBEDDEDCONNECTION=dbs/main.db",
+		"PAGODA_DATABASE_EMBEDDEDCONNECTION=.local/db/main.db",
 		"",
 	}, "\n")
 	if err := os.WriteFile(filepath.Join(root, ".env"), []byte(dotEnv), 0o644); err != nil {

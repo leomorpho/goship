@@ -44,7 +44,7 @@ func TestRunDBConsole_SQLite(t *testing.T) {
 	code := RunDB([]string{"console"}, DBDeps{
 		Out:             &bytes.Buffer{},
 		Err:             &bytes.Buffer{},
-		ResolveDBURL:    func() (string, error) { return "sqlite://dbs/main.db?_journal=WAL&_timeout=5000&_fk=true", nil },
+		ResolveDBURL:    func() (string, error) { return "sqlite://.local/db/main.db?_journal=WAL&_timeout=5000&_fk=true", nil },
 		ResolveDBDriver: func() (string, error) { return "sqlite", nil },
 		RunCmd: func(name string, args ...string) int {
 			gotName = name
@@ -58,7 +58,7 @@ func TestRunDBConsole_SQLite(t *testing.T) {
 	if gotName != "sqlite3" {
 		t.Fatalf("command = %q, want sqlite3", gotName)
 	}
-	wantArgs := []string{"dbs/main.db"}
+	wantArgs := []string{".local/db/main.db"}
 	if !reflect.DeepEqual(gotArgs, wantArgs) {
 		t.Fatalf("args = %v, want %v", gotArgs, wantArgs)
 	}

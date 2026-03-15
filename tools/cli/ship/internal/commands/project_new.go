@@ -11,8 +11,8 @@ import (
 	"strings"
 	"unicode"
 
-	startertemplate "github.com/leomorpho/goship/starter"
 	policies "github.com/leomorpho/goship/tools/cli/ship/internal/policies"
+	startertemplate "github.com/leomorpho/goship/tools/cli/ship/internal/templates/starter"
 )
 
 type NewProjectOptions struct {
@@ -197,14 +197,15 @@ func baseScaffoldFiles(opts NewProjectOptions) map[string]string {
 
 func renderStarterTemplateFiles(opts NewProjectOptions) (map[string]string, error) {
 	files := make(map[string]string)
-	err := fs.WalkDir(startertemplate.Files, ".", func(path string, d fs.DirEntry, err error) error {
+	err := fs.WalkDir(startertemplate.Files, "testdata/scaffold", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
 		if d.IsDir() {
 			return nil
 		}
-		if path == "config/modules.yaml" {
+		relPath := strings.TrimPrefix(path, "testdata/scaffold/")
+		if relPath == "config/modules.yaml" {
 			return nil
 		}
 
@@ -212,7 +213,7 @@ func renderStarterTemplateFiles(opts NewProjectOptions) (map[string]string, erro
 		if readErr != nil {
 			return readErr
 		}
-		files[filepath.Join(opts.AppPath, path)] = rewriteStarterTemplate(string(b), opts)
+		files[filepath.Join(opts.AppPath, relPath)] = rewriteStarterTemplate(string(b), opts)
 		return nil
 	})
 	if err != nil {

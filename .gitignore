@@ -1,6 +1,6 @@
 # Go ------------------------------------------------------------------------------------------
 .idea
-tmp/
+.local/
 .cache/
 *.test
 
@@ -25,10 +25,9 @@ schemaspy-output/
 .env
 tests/e2e/node_modules
 tests/e2e/test-results
-data/mailpit.db-shm
-data/mailpit.db-wal
-data/mailpit.db
-dbs
+.local/data/mailpit.db-shm
+.local/data/mailpit.db-wal
+.local/data/mailpit.db
 
 # Ignore all JavaScript and CSS files in the static folder and its subdirectories
 # /static/**/*.js

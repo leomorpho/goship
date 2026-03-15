@@ -17,6 +17,6 @@ done < "${PKG_FILE}"
 
 # Compile controller tests without executing TestMain/httptest server startup.
 go test -c ./app/web/controllers
-rm -f "${ROOT_DIR}/routes.test"
+rm -f "${ROOT_DIR}/controllers.test"
 
 echo "Compile checks passed."

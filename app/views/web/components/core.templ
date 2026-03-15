@@ -3,7 +3,6 @@ package components
 import (
 	"fmt"
 	"github.com/leomorpho/goship/app/controller"
-	"github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/app/views/web/helpers/gen"
 	fmw "github.com/leomorpho/goship/framework/middleware"
 	"strings"
@@ -218,20 +217,10 @@ templ TextFooter(page *controller.Page) {
 					class="flex flex-wrap items-center mt-3 text-sm font-medium text-gray-500 dark:text-gray-400 sm:mt-0"
 				>
 					<li>
-						<a
-							hx-get={ page.ToURL(routenames.RouteNameAboutUs) }
-							class="hover:underline me-4 md:me-6 cursor-pointer"
-						>
-							Contact Us
-						</a>
+						<span class="me-4 md:me-6">Single-app mode</span>
 					</li>
 					<li>
-						<a
-							hx-get={ page.ToURL(routenames.RouteNamePrivacyPolicy) }
-							class="hover:underline me-4 md:me-6 cursor-pointer"
-						>
-							Privacy Policy
-						</a>
+						<span>Starter baseline</span>
 					</li>
 				</ul>
 			</div>

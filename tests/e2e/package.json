@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "playwright test",
+    "test:smoke": "playwright test tests/smoke.spec.ts",
     "test:dev": "NODE_ENV=development playwright test",
     "test:prod": "NODE_ENV=production playwright test"
   },

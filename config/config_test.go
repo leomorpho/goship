@@ -106,7 +106,7 @@ func TestGetConfig_LoadsDotEnv(t *testing.T) {
 func TestGetConfig_DBDriverOverridesLegacyEmbeddedSettings(t *testing.T) {
 	useIsolatedWorkingDir(t)
 	t.Setenv("PAGODA_DB_DRIVER", "sqlite")
-	t.Setenv("PAGODA_DB_PATH", "dbs/app.db")
+	t.Setenv("PAGODA_DB_PATH", ".local/db/app.db")
 	t.Setenv("PAGODA_DATABASE_DBMODE", string(DBModeStandalone))
 	t.Setenv("PAGODA_DATABASE_EMBEDDEDDRIVER", "sqlite3")
 
@@ -115,7 +115,7 @@ func TestGetConfig_DBDriverOverridesLegacyEmbeddedSettings(t *testing.T) {
 	assert.Equal(t, DBDriverSQLite, cfg.Database.Driver)
 	assert.Equal(t, DBModeEmbedded, cfg.Database.DbMode)
 	assert.Equal(t, "sqlite", cfg.Database.EmbeddedDriver)
-	assert.Equal(t, "dbs/app.db?_journal=WAL&_timeout=5000&_fk=true", cfg.Database.EmbeddedConnection)
+	assert.Equal(t, ".local/db/app.db?_journal=WAL&_timeout=5000&_fk=true", cfg.Database.EmbeddedConnection)
 }
 
 func TestGetConfig_JobsDriverAliasOverridesDefault(t *testing.T) {
@@ -247,13 +247,13 @@ func TestGetConfig_ManagedRuntimeProfileAppliesWhenProcessesUnset(t *testing.T) 
 
 func TestGetConfig_BackupDefaultsUseDatabasePath(t *testing.T) {
 	useIsolatedWorkingDir(t)
-	t.Setenv("PAGODA_DB_PATH", "dbs/custom.db")
+	t.Setenv("PAGODA_DB_PATH", ".local/db/custom.db")
 	t.Setenv("PAGODA_BACKUP_SQLITE_PATH", "")
 
 	cfg, err := GetConfig()
 	require.NoError(t, err)
-	assert.Equal(t, "dbs/custom.db", cfg.Database.Path)
-	assert.Equal(t, "dbs/custom.db", cfg.Backup.SQLitePath)
+	assert.Equal(t, ".local/db/custom.db", cfg.Database.Path)
+	assert.Equal(t, ".local/db/custom.db", cfg.Backup.SQLitePath)
 	assert.Equal(t, "sqlite-file", cfg.Backup.Driver)
 }
 

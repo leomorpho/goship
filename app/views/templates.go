@@ -5,7 +5,6 @@ type (
 )
 
 const (
-	PageAbout                  Page = "about"
 	PageLanding                Page = "landing"
 	PageContact                Page = "contact"
 	PageError                  Page = "error"
@@ -26,8 +25,6 @@ const (
 	PagePricing                Page = "pricing"
 	PageSuccessfullySubscribed Page = "successfully_subscribed"
 	PageDeleteAccount          Page = "delete_account.page"
-	PagePrivacyPolicy          Page = "privacy_policy"
-	PageWiki                   Page = "wiki"
 	PageAIDemo                 Page = "ai_demo"
 
 	SSEAnsweredByFriend Page = "sse_answered_by_friend"

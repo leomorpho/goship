@@ -493,7 +493,6 @@ Last updated: 2026-03-04
 FILE: docs/architecture/01-architecture.md
 ---
 # Architecture
-<!-- FRONTEND_SYNC: Landing capability explorer in app/views/web/pages/landing_page.templ links here for Validation and Forms, Jobs and Scheduling, and Events and Realtime. Keep both landing copy and this doc aligned. -->
 
 ## High-Level Layout
 
@@ -623,9 +622,8 @@ HTMX behavior is integrated in the page object (`Page.HTMX`) and controller rend
 FILE: docs/architecture/02-structure-and-boundaries.md
 ---
 # Structure and Boundaries
-<!-- FRONTEND_SYNC: Landing capability explorer in app/views/web/pages/landing_page.templ links here for Views and Server UI. Keep both landing copy and this doc aligned. -->
 
-This document defines where code belongs as GoShip evolves into a Rails-like framework plus example app.
+This document defines where code belongs as GoShip evolves into a Rails-like framework plus a canonical single app runtime.
 
 ## Current Top-Level Shape (Single Repository)
 
@@ -791,7 +789,7 @@ GoShip is a Go + Echo + Templ + HTMX starter application that ships with:
 - Provider-agnostic AI completion service with an Anthropic adapter
 - Frontend asset bundling for Svelte components and vanilla JS
 
-The repository still carries heritage from a related product domain ("Cherie"), and some feature areas are partially wired or intentionally disabled.
+GoShip is maintained as a single-app repository: one canonical runtime app under `app/` + `cmd/`, plus framework/modules/tooling packages.
 
 ## Runtime Programs
 
@@ -979,21 +977,12 @@ Ergonomic routing rule:
 
 ## Public/General Routes
 
-- `GET /` landing page
+- `GET /` starter home page
 - `GET /up` liveness healthcheck (legacy alias)
 - `GET /health` liveness healthcheck
 - `GET /health/ready` readiness healthcheck (returns `503` when a registered dependency check fails)
 - `GET /clear-cookie`
-- `GET /about`
-- `GET /privacy-policy`
 - `GET /install-app`
-
-Docs pages (user-facing in-app docs):
-
-- `GET /docs`
-- `GET /docs/gettingStarted`
-- `GET /docs/guidedTour`
-- `GET /docs/architecture`
 
 Email subscription:
 
@@ -1252,13 +1241,14 @@ Impact:
 
 - Contributors can experience confusion about canonical local dev DB path.
 
-## 6) In-App Docs Are Present But Sparse (Low)
+## 6) Legacy Marketing/Docs UI Artifacts Still Exist In Source (Low)
 
-`/docs/*` pages exist, but architecture/getting-started sections are mostly placeholders.
+The public marketing/docs routes were removed, but some related templ source files/components remain in the tree and are no longer part of the active HTTP surface.
 
 Impact:
 
-- Existing user-facing docs routes do not currently reflect true implementation depth.
+- Contributors can mistake dead UI assets for active runtime behavior.
+- Follow-up cleanup should remove or archive unreferenced page templates.
 
 ## 7) Some Feature Paths Still Use Placeholder Data (Low)
 
@@ -1853,7 +1843,7 @@ Copy `.env.example` to `.env` and fill in the values your environment needs. All
 
 Primary commands:
 
-- `make dev`: starts all development processes (web, worker, js, templ) multiplexed via `overmind`
+- `make dev`: starts auto development mode (single-binary default; full multiprocess when jobs adapter is `asynq`)
 - `make run`: single-binary web process with SQLite + Otter + Backlite
 - `go run ./tools/cli/ship/cmd/ship dev`: CLI equivalent of `make dev`
 
@@ -1861,7 +1851,11 @@ Recommended modes:
 
 - Unified dev mode:
   `make dev` (or `ship dev`)
-  Starts the web server (via `air`), worker, Vite (js), and Templ (watch) processes in a single multiplexed stream. Requires `overmind` or `goreman`.
+  Runs in auto mode by convention: web-only for single-binary adapters, full mode when jobs adapter is `asynq`.
+  In interactive terminals, `ship dev` prints the local URL and prompts to open it in your browser (`[Y/n]`, Enter = yes). Browser open is deferred until the URL is reachable.
+- Full multiprocess mode:
+  `make dev-full` (or `ship dev --all`)
+  Starts the web server (via `air`), worker, Vite (js), and Tailwind CSS watchers in a single multiplexed stream. Templ generation runs in `air` pre-build commands via `ship templ generate --path app` and `ship templ generate --path modules`. Requires `overmind` or `goreman`.
 - Single-binary mode:
   `cp .env.example .env && make run`
   Uses embedded SQLite, in-memory Otter cache, and Backlite jobs. No Docker required.
@@ -1986,10 +1980,12 @@ Go tests:
 
 E2E tests:
 
+- `make e2e-smoke` (single happy-path smoke; Playwright starts `go run ./cmd/web` automatically via `webServer`)
 - `make e2e`
 - `make e2eui`
 
-Note: current e2e specs are partially stale and should be treated as non-authoritative for GoShip behavior.
+CI uses the smoke spec only (`tests/e2e/tests/smoke.spec.ts`) to validate startup and basic app serving.
+Note: broader legacy e2e specs are partially stale and should be treated as non-authoritative for GoShip behavior.
 
 ## Agent Command Policy
 
@@ -2724,7 +2720,7 @@ Module location:
 
 ## Repository Placement
 
-The CLI is in the same repository as the framework and example app.
+The CLI is in the same repository as the framework and canonical single app runtime.
 
 - Repo model: monorepo with multiple Go modules.
 - App/framework module: repository root.
@@ -2733,7 +2729,7 @@ The CLI is in the same repository as the framework and example app.
 
 Why this shape:
 
-1. Single repo keeps framework, app example, and CLI evolution in sync.
+1. Single repo keeps framework, app runtime, and CLI evolution in sync.
 2. Separate CLI module keeps dependency graph and release surface clean.
 3. Developers can iterate across modules locally without publishing interim versions.
 
@@ -2758,7 +2754,7 @@ Project lifecycle:
 
 Local runtime:
 
-- `ship dev` (web-only default)
+- `ship dev` (auto default: web-only for single-binary adapters; full mode when jobs adapter is `asynq`)
 - `ship dev --worker`
 - `ship dev --all`
 - `ship check`
@@ -2811,7 +2807,10 @@ Command grammar policy:
 
 These commands are implemented as wrappers over existing workflows:
 
-- `ship dev` -> `go run ./cmd/web`
+- `ship dev` -> auto mode:
+  - jobs adapter `asynq` => full mode (`ship dev --all`)
+  - other jobs adapters => `go run ./cmd/web`
+  - in interactive terminals, prints the local URL and prompts to open it in a browser (`[Y/n]`, Enter = yes); browser launch waits until the URL is reachable
 - `ship dev --worker` -> `go run ./cmd/worker`
 - `ship dev --all` -> starts both processes concurrently with prefixed logs (`[web]`, `[worker]`) and signal-aware shutdown
 - `ship check` -> `go test ./...` (compile + unit checks, no integration-tagged tests)
@@ -2850,7 +2849,7 @@ Safety matrix:
 | `db:drop` | requires `--yes` (or `--dry-run`) | requires `--force` + `--yes` (or `--dry-run`) | requires `--force` + `--yes` |
 | `db:create` | safe; supports `--dry-run` | safe; supports `--dry-run` | safe; supports `--dry-run` |
 - `ship templ generate --path app` -> `templ generate -path app`, then move each `*_templ.go` into sibling `gen/` directory
-- `ship new <app>` -> create minimal deterministic project scaffold in a new directory (no network calls)
+- `ship new <app>` -> create minimal deterministic project scaffold in a new directory from CLI-embedded starter templates (no network calls)
 - `ship agent:setup` -> generate per-agent allowlist artifacts from `tools/agent-policy/allowed-commands.yaml`
 - `ship agent:check` -> fail if generated artifacts drift from canonical allowlist (for pre-commit/CI parity)
 - `ship agent:status` -> show best-effort local Codex/Claude/Gemini install status vs repo policy
@@ -3285,6 +3284,7 @@ Rules for versioned tooling in generated apps:
 1. `app/` contains app-specific web handlers and templ views.
 2. `framework/` is the framework/infrastructure layer.
 3. `cmd/` contains process entrypoints.
+4. `ship new` templates are embedded from `tools/cli/ship/internal/templates/starter` (no separate runtime `starter/` app tree in repo root).
 
 Note: app composition/runtime wiring has moved to `app/foundation`. `framework/repos` remains intentionally centralized for now and will be split into app-specific vs reusable framework modules in a dedicated follow-up pass.
 
@@ -4005,7 +4005,7 @@ GoShip should be:
 2. **Self-contained modules** — each optional capability (notifications, payments, profile, PWA, etc.) ships as a module that brings its own schema, migrations, routes, and views, and can be installed/removed via CLI.
 3. **LLM-forward** — the codebase structure, tooling, and conventions are optimized so that an LLM can scaffold, edit, and verify changes reliably with minimal human correction.
 4. **Islands-first JS** — JS components are lazy-loaded per-page via an islands architecture. Each component is a proper JS/TS file with full tooling. No monolithic bundle.
-5. **Two distinct apps** — the GoShip repo contains a `landing` app (goship.run marketing site) and a `starter` app (minimal skeleton used by `ship new`). They are separate entrypoints.
+5. **Single canonical app** — the GoShip repo contains one runtime app (`app/` + `cmd/`), and `ship new` scaffolds from CLI-embedded starter templates.
 
 ---
 
@@ -4148,15 +4148,11 @@ This is the same marker-comment pattern already used for route wiring in `app/ro
 
 ---
 
-## 3. App Split: Landing vs Starter
+## 3. Single-App Repository Model
 
-### Problem
+### Decision
 
-The current `app/` serves two purposes:
-1. It's the `goship.run` landing page / marketing site
-2. It's the reference implementation / template for `ship new myapp`
-
-These have different audiences, different update cadences, and different complexity requirements.
+GoShip now uses a single-app repository model.
 
 ### Target Structure
 
@@ -4166,29 +4162,16 @@ cmd/
 ├── worker/       # Shared worker process entrypoint
 └── seed/         # Shared seeder
 
-app/              # The landing/marketing app (goship.run)
-                  # Showcases all modules, has real content
-                  # NOT the template for new projects
-
-starter/          # Minimal skeleton used by `ship new`
-├── app/          # Bare app: auth, profile, home feed — nothing else
-├── cmd/
-└── docs/
+app/              # Canonical runtime app for this repository
 ```
 
-OR (simpler): `starter/` is maintained as a separate repository `goship-starter` and `ship new` clones/fetches it. This keeps the main repo clean.
+`ship new` template source lives inside the CLI module:
 
-**Recommendation:** Start with `starter/` as a subdirectory of this repo, then extract to its own repo once stable.
+```
+tools/cli/ship/internal/templates/starter/testdata/scaffold/
+```
 
-The landing app should showcase:
-- All available modules (install and demonstrate them)
-- The Vite islands architecture
-- GoShip DX features (ship CLI, doctor, MCP)
-
-The starter app should be:
-- Auth + one example page (home feed)
-- Minimal: no payments, no push notifications unless opted in via `ship module:add`
-- What `ship new myapp` generates
+This keeps runtime concerns separate from scaffold-template concerns while preserving deterministic, offline `ship new` behavior.
 
 ---
 
@@ -4649,39 +4632,27 @@ Where `Router` is a minimal interface over Echo group registration (define it he
 
 ---
 
-## Group E — App Split: Landing vs Starter
+## Group E — Single-App Repository Layout
 
-### E01 — Create `starter/` minimal skeleton
+### E01 — Remove root runtime `starter/` app tree
 
-**Status:** `[ ] todo`
-**Depends on:** D01, D02
-**Files:** new `starter/` directory
+**Status:** `[x] done`
+**Files:** removed root `starter/` directory
 
-**Context:** Minimal app used by `ship new`. Auth + profile + home feed only. No payments, push, PWA by default.
-
-**What to do:**
-1. Create `starter/` mirroring `app/` structure: `router.go`, `foundation/container.go`, `views/web/pages/home_feed.templ`, `views/web/pages/landing.templ`.
-2. Include only auth + profile modules.
-3. Ensure `go build ./...` from `starter/`.
-4. Write `starter/README.md`: "Minimal GoShip starter. Add modules with `ship module:add`."
-
-**Done when:** `starter/` compiles. Contains only auth + profile + home feed.
+**Result:**
+1. Repository now follows a single canonical app model (`app/` + `cmd/`).
+2. Runtime and scaffold concerns are no longer represented as two root app trees.
 
 ---
 
-### E02 — Wire `ship new` to use `starter/` as template
+### E02 — Wire `ship new` to CLI-embedded starter templates
 
-**Status:** `[ ] todo`
-**Depends on:** E01
-**Files:** `tools/cli/ship/internal/commands/new.go`
+**Status:** `[x] done`
+**Files:** `tools/cli/ship/internal/commands/project_new.go`, `tools/cli/ship/internal/templates/starter/testdata/scaffold/*`
 
-**What to do:**
-1. Read current `ship new` implementation.
-2. Update to template from `starter/` (embedded in binary or fetched).
-3. Replace placeholder names in generated files.
-4. Print post-install: `cd myapp && ship module:add <module> && make run`.
-
-**Done when:** `ship new testapp` generates working minimal app from starter.
+**Result:**
+1. `ship new` now reads starter template files from CLI-internal embedded assets.
+2. No network calls are required, and scaffold output remains deterministic.
 
 ---
 
@@ -4951,7 +4922,7 @@ Where `Router` is a minimal interface over Echo group registration (define it he
 1. `go get modernc.org/sqlite`.
 2. Add `DB_DRIVER` env var to Config struct (values: `postgres`, `sqlite`; default: `sqlite` for new projects, existing config keeps `postgres`).
 3. In `app/foundation/container.go` DB init: switch on `c.Config.DBDriver`:
-   - `sqlite`: open `modernc.org/sqlite` driver, connect to `./dbs/app.db` (path configurable via `DB_PATH` env var).
+   - `sqlite`: open `modernc.org/sqlite` driver, connect to `./.local/db/app.db` (path configurable via `DB_PATH` env var).
    - `postgres`: existing Postgres connection (unchanged).
 4. Ensure Goose migration runner uses the correct dialect.
 5. Ensure Bob query generation works against SQLite (may need a separate bobgen config).
@@ -5648,7 +5619,7 @@ Config selects the mode. `ship new` defaults to single-binary. Upgrading to stan
 
 **Important:** Use `modernc.org/sqlite` (CGO-free, pure Go) not `go-sqlite3` (requires CGO). CGO breaks cross-compilation and complicates single-binary distribution.
 
-**Pagoda precedent:** Full single-binary since v1. Stores data in `./dbs/` directory. `make run` is the only command needed.
+**Pagoda precedent:** Full single-binary since v1. Stores data locally on disk. `make run` is the only command needed.
 
 ---
 

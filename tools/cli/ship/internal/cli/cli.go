@@ -36,6 +36,7 @@ type CLI struct {
 	Err             io.Writer
 	Runner          CmdRunner
 	RunDevAll       func() int
+	ResolveDevMode  func() (string, error)
 	ResolveCompose  func() ([]string, error)
 	ResolveDBURL    func() (string, error)
 	ResolveDBDriver func() (string, error)
@@ -152,7 +153,21 @@ func (c CLI) runDev(args []string) int {
 	if runner == nil {
 		runner = c.runDevAll
 	}
-	return cmd.RunDev(args, cmd.DevDeps{Out: c.Out, Err: c.Err, RunCmd: c.runCmd, RunDevAll: runner})
+	resolveMode := c.ResolveDevMode
+	if resolveMode == nil {
+		resolveMode = rt.ResolveDevDefaultMode
+	}
+	return cmd.RunDev(args, cmd.DevDeps{
+		Out:                c.Out,
+		Err:                c.Err,
+		RunCmd:             c.runCmd,
+		RunDevAll:          runner,
+		ResolveDefaultMode: resolveMode,
+		ResolveWebURL:      rt.ResolveDevWebURL,
+		IsInteractive:      rt.IsInteractiveTerminal,
+		PromptOpenURL:      rt.PromptOpenBrowser,
+		OpenBrowser:        rt.OpenBrowserURL,
+	})
 }
 
 func (c CLI) runCheck(args []string) int {

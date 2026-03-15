@@ -15,7 +15,7 @@ GoShip is a Go + Echo + Templ + HTMX starter application that ships with:
 - Provider-agnostic AI completion service with an Anthropic adapter
 - Frontend asset bundling for Svelte components and vanilla JS
 
-The repository still carries heritage from a related product domain ("Cherie"), and some feature areas are partially wired or intentionally disabled.
+GoShip is maintained as a single-app repository: one canonical runtime app under `app/` + `cmd/`, plus framework/modules/tooling packages.
 
 ## Runtime Programs
 

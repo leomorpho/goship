@@ -248,7 +248,7 @@ func drawerMenu(page *controller.Page) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = dropdownListEntry(page.ToURL(routenames.RouteNameDocsArchitecture), "Architecture").Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = dropdownListEntry("", "Architecture").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

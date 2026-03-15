@@ -153,6 +153,7 @@ Rules for versioned tooling in generated apps:
 1. `app/` contains app-specific web handlers and templ views.
 2. `framework/` is the framework/infrastructure layer.
 3. `cmd/` contains process entrypoints.
+4. `ship new` templates are embedded from `tools/cli/ship/internal/templates/starter` (no separate runtime `starter/` app tree in repo root).
 
 Note: app composition/runtime wiring has moved to `app/foundation`. `framework/repos` remains intentionally centralized for now and will be split into app-specific vs reusable framework modules in a dedicated follow-up pass.
 

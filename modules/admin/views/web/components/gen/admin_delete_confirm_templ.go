@@ -37,7 +37,7 @@ func AdminDeleteConfirm(action, csrfToken string) templ.Component {
 		var templ_7745c5c3_Var2 templ.SafeURL
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinURLErrs(templ.SafeURL(action))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `admin_delete_confirm.templ`, Line: 5, Col: 89}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `admin/views/web/components/admin_delete_confirm.templ`, Line: 5, Col: 89}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -50,7 +50,7 @@ func AdminDeleteConfirm(action, csrfToken string) templ.Component {
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(csrfToken)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `admin_delete_confirm.templ`, Line: 7, Col: 52}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `admin/views/web/components/admin_delete_confirm.templ`, Line: 7, Col: 52}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {

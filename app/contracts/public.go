@@ -12,17 +12,8 @@ type EmailSubscribePage struct {
 
 // Route: POST /emailSubscribe
 type EmailSubscribeRequest struct {
-	Email      string            `form:"email" validate:"required,email"`
-	Latitude   float64           `form:"lat"`
-	Longitude  float64           `form:"lon"`
+	Email      string  `form:"email" validate:"required,email"`
+	Latitude   float64 `form:"lat"`
+	Longitude  float64 `form:"lon"`
 	Submission ui.FormSubmission
-}
-
-// Route: GET /about
-type AboutPage struct {
-	viewmodels.AboutData
-}
-
-// Route: GET /privacy-policy
-type PrivacyPolicyPage struct {
 }

@@ -1,7 +1,6 @@
 # Structure and Boundaries
-<!-- FRONTEND_SYNC: Landing capability explorer in app/views/web/pages/landing_page.templ links here for Views and Server UI. Keep both landing copy and this doc aligned. -->
 
-This document defines where code belongs as GoShip evolves into a Rails-like framework plus example app.
+This document defines where code belongs as GoShip evolves into a Rails-like framework plus a canonical single app runtime.
 
 ## Current Top-Level Shape (Single Repository)
 

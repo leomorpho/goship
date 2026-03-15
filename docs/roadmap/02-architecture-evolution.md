@@ -15,7 +15,7 @@ GoShip should be:
 2. **Self-contained modules** — each optional capability (notifications, payments, profile, PWA, etc.) ships as a module that brings its own schema, migrations, routes, and views, and can be installed/removed via CLI.
 3. **LLM-forward** — the codebase structure, tooling, and conventions are optimized so that an LLM can scaffold, edit, and verify changes reliably with minimal human correction.
 4. **Islands-first JS** — JS components are lazy-loaded per-page via an islands architecture. Each component is a proper JS/TS file with full tooling. No monolithic bundle.
-5. **Two distinct apps** — the GoShip repo contains a `landing` app (goship.run marketing site) and a `starter` app (minimal skeleton used by `ship new`). They are separate entrypoints.
+5. **Single canonical app** — the GoShip repo contains one runtime app (`app/` + `cmd/`), and `ship new` scaffolds from CLI-embedded starter templates.
 
 ---
 
@@ -158,15 +158,11 @@ This is the same marker-comment pattern already used for route wiring in `app/ro
 
 ---
 
-## 3. App Split: Landing vs Starter
+## 3. Single-App Repository Model
 
-### Problem
+### Decision
 
-The current `app/` serves two purposes:
-1. It's the `goship.run` landing page / marketing site
-2. It's the reference implementation / template for `ship new myapp`
-
-These have different audiences, different update cadences, and different complexity requirements.
+GoShip now uses a single-app repository model.
 
 ### Target Structure
 
@@ -176,29 +172,16 @@ cmd/
 ├── worker/       # Shared worker process entrypoint
 └── seed/         # Shared seeder
 
-app/              # The landing/marketing app (goship.run)
-                  # Showcases all modules, has real content
-                  # NOT the template for new projects
-
-starter/          # Minimal skeleton used by `ship new`
-├── app/          # Bare app: auth, profile, home feed — nothing else
-├── cmd/
-└── docs/
+app/              # Canonical runtime app for this repository
 ```
 
-OR (simpler): `starter/` is maintained as a separate repository `goship-starter` and `ship new` clones/fetches it. This keeps the main repo clean.
+`ship new` template source lives inside the CLI module:
 
-**Recommendation:** Start with `starter/` as a subdirectory of this repo, then extract to its own repo once stable.
+```
+tools/cli/ship/internal/templates/starter/testdata/scaffold/
+```
 
-The landing app should showcase:
-- All available modules (install and demonstrate them)
-- The Vite islands architecture
-- GoShip DX features (ship CLI, doctor, MCP)
-
-The starter app should be:
-- Auth + one example page (home feed)
-- Minimal: no payments, no push notifications unless opted in via `ship module:add`
-- What `ship new myapp` generates
+This keeps runtime concerns separate from scaffold-template concerns while preserving deterministic, offline `ship new` behavior.
 
 ---
 

@@ -435,7 +435,7 @@ type Container struct{}
 			".git",
 			"node_modules",
 			"frontend/node_modules",
-			"tmp",
+			".local",
 			"tools/scripts/venv",
 			"",
 		}, "\n"),

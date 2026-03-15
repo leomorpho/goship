@@ -14,7 +14,7 @@ Module location:
 
 ## Repository Placement
 
-The CLI is in the same repository as the framework and example app.
+The CLI is in the same repository as the framework and canonical single app runtime.
 
 - Repo model: monorepo with multiple Go modules.
 - App/framework module: repository root.
@@ -23,7 +23,7 @@ The CLI is in the same repository as the framework and example app.
 
 Why this shape:
 
-1. Single repo keeps framework, app example, and CLI evolution in sync.
+1. Single repo keeps framework, app runtime, and CLI evolution in sync.
 2. Separate CLI module keeps dependency graph and release surface clean.
 3. Developers can iterate across modules locally without publishing interim versions.
 
@@ -48,7 +48,7 @@ Project lifecycle:
 
 Local runtime:
 
-- `ship dev` (web-only default)
+- `ship dev` (auto default: web-only for single-binary adapters; full mode when jobs adapter is `asynq`)
 - `ship dev --worker`
 - `ship dev --all`
 - `ship check`
@@ -101,7 +101,10 @@ Command grammar policy:
 
 These commands are implemented as wrappers over existing workflows:
 
-- `ship dev` -> `go run ./cmd/web`
+- `ship dev` -> auto mode:
+  - jobs adapter `asynq` => full mode (`ship dev --all`)
+  - other jobs adapters => `go run ./cmd/web`
+  - in interactive terminals, prints the local URL and prompts to open it in a browser (`[Y/n]`, Enter = yes); browser launch waits until the URL is reachable
 - `ship dev --worker` -> `go run ./cmd/worker`
 - `ship dev --all` -> starts both processes concurrently with prefixed logs (`[web]`, `[worker]`) and signal-aware shutdown
 - `ship check` -> `go test ./...` (compile + unit checks, no integration-tagged tests)
@@ -140,7 +143,7 @@ Safety matrix:
 | `db:drop` | requires `--yes` (or `--dry-run`) | requires `--force` + `--yes` (or `--dry-run`) | requires `--force` + `--yes` |
 | `db:create` | safe; supports `--dry-run` | safe; supports `--dry-run` | safe; supports `--dry-run` |
 - `ship templ generate --path app` -> `templ generate -path app`, then move each `*_templ.go` into sibling `gen/` directory
-- `ship new <app>` -> create minimal deterministic project scaffold in a new directory (no network calls)
+- `ship new <app>` -> create minimal deterministic project scaffold in a new directory from CLI-embedded starter templates (no network calls)
 - `ship agent:setup` -> generate per-agent allowlist artifacts from `tools/agent-policy/allowed-commands.yaml`
 - `ship agent:check` -> fail if generated artifacts drift from canonical allowlist (for pre-commit/CI parity)
 - `ship agent:status` -> show best-effort local Codex/Claude/Gemini install status vs repo policy

@@ -358,39 +358,27 @@ Where `Router` is a minimal interface over Echo group registration (define it he
 
 ---
 
-## Group E — App Split: Landing vs Starter
+## Group E — Single-App Repository Layout
 
-### E01 — Create `starter/` minimal skeleton
+### E01 — Remove root runtime `starter/` app tree
 
-**Status:** `[ ] todo`
-**Depends on:** D01, D02
-**Files:** new `starter/` directory
+**Status:** `[x] done`
+**Files:** removed root `starter/` directory
 
-**Context:** Minimal app used by `ship new`. Auth + profile + home feed only. No payments, push, PWA by default.
-
-**What to do:**
-1. Create `starter/` mirroring `app/` structure: `router.go`, `foundation/container.go`, `views/web/pages/home_feed.templ`, `views/web/pages/landing.templ`.
-2. Include only auth + profile modules.
-3. Ensure `go build ./...` from `starter/`.
-4. Write `starter/README.md`: "Minimal GoShip starter. Add modules with `ship module:add`."
-
-**Done when:** `starter/` compiles. Contains only auth + profile + home feed.
+**Result:**
+1. Repository now follows a single canonical app model (`app/` + `cmd/`).
+2. Runtime and scaffold concerns are no longer represented as two root app trees.
 
 ---
 
-### E02 — Wire `ship new` to use `starter/` as template
+### E02 — Wire `ship new` to CLI-embedded starter templates
 
-**Status:** `[ ] todo`
-**Depends on:** E01
-**Files:** `tools/cli/ship/internal/commands/new.go`
+**Status:** `[x] done`
+**Files:** `tools/cli/ship/internal/commands/project_new.go`, `tools/cli/ship/internal/templates/starter/testdata/scaffold/*`
 
-**What to do:**
-1. Read current `ship new` implementation.
-2. Update to template from `starter/` (embedded in binary or fetched).
-3. Replace placeholder names in generated files.
-4. Print post-install: `cd myapp && ship module:add <module> && make run`.
-
-**Done when:** `ship new testapp` generates working minimal app from starter.
+**Result:**
+1. `ship new` now reads starter template files from CLI-internal embedded assets.
+2. No network calls are required, and scaffold output remains deterministic.
 
 ---
 
@@ -660,7 +648,7 @@ Where `Router` is a minimal interface over Echo group registration (define it he
 1. `go get modernc.org/sqlite`.
 2. Add `DB_DRIVER` env var to Config struct (values: `postgres`, `sqlite`; default: `sqlite` for new projects, existing config keeps `postgres`).
 3. In `app/foundation/container.go` DB init: switch on `c.Config.DBDriver`:
-   - `sqlite`: open `modernc.org/sqlite` driver, connect to `./dbs/app.db` (path configurable via `DB_PATH` env var).
+   - `sqlite`: open `modernc.org/sqlite` driver, connect to `./.local/db/app.db` (path configurable via `DB_PATH` env var).
    - `postgres`: existing Postgres connection (unchanged).
 4. Ensure Goose migration runner uses the correct dialect.
 5. Ensure Bob query generation works against SQLite (may need a separate bobgen config).

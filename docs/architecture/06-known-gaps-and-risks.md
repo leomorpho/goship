@@ -51,13 +51,14 @@ Impact:
 
 - Contributors can experience confusion about canonical local dev DB path.
 
-## 6) In-App Docs Are Present But Sparse (Low)
+## 6) Legacy Marketing/Docs UI Artifacts Still Exist In Source (Low)
 
-`/docs/*` pages exist, but architecture/getting-started sections are mostly placeholders.
+The public marketing/docs routes were removed, but some related templ source files/components remain in the tree and are no longer part of the active HTTP surface.
 
 Impact:
 
-- Existing user-facing docs routes do not currently reflect true implementation depth.
+- Contributors can mistake dead UI assets for active runtime behavior.
+- Follow-up cleanup should remove or archive unreferenced page templates.
 
 ## 7) Some Feature Paths Still Use Placeholder Data (Low)
 

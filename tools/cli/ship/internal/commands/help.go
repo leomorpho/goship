@@ -10,7 +10,7 @@ func PrintRootHelp(w io.Writer) {
 	fmt.Fprintln(w)
 	fmt.Fprintln(w, "Usage:")
 	fmt.Fprintln(w, "  ship new <app> [--module <module-path>] [--dry-run] [--force]")
-	fmt.Fprintln(w, "  ship dev [worker|all] [--worker|--all]")
+	fmt.Fprintln(w, "  ship dev [web|worker|all] [--web|--worker|--all]")
 	fmt.Fprintln(w, "  ship check")
 	fmt.Fprintln(w, "  ship doctor [--json]")
 	fmt.Fprintln(w, "  ship config:validate [--json]")

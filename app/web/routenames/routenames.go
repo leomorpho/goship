@@ -17,7 +17,6 @@ const (
 	RouteNameVerifyEmail             = "verify_email"
 	RouteNameContact                 = "contact"
 	RouteNameContactSubmit           = "contact.submit"
-	RouteNameAboutUs                 = "about"
 	RouteNameLandingPage             = "landing_page"
 	RouteNamePreferences             = "preferences"
 	RouteNameTwoFactorSetup          = "two_factor.setup"
@@ -31,7 +30,6 @@ const (
 	RouteNameSubmitPhoneVerification = "phone.verification.submit"
 	RouteNameDeleteAccountPage       = "delete_account.page"
 	RouteNameDeleteAccountRequest    = "delete_account.request"
-	RouteNamePrivacyPolicy           = "privacy_policy"
 	RouteNameAIDemo                  = "ai_demo"
 	RouteNameAIDemoStream            = "ai_demo.stream"
 	RouteNameSharedCounter           = "shared_counter"
@@ -78,10 +76,4 @@ const (
 	RouteNamePaymentProcessorWebhook      = "stripe.webhook"
 	RouteNamePricingPage                  = "pricing_page"
 	RouteNamePaymentProcessorSuccess      = "stripe.success"
-
-	// NOTE: docs route is being actively worked on. Refer to Readme for up to date documentation.
-	RouteNameDocs               = "docs"
-	RouteNameDocsGettingStarted = "docs.getting_started"
-	RouteNameDocsGuidedTour     = "docs.guided_tour"
-	RouteNameDocsArchitecture   = "docs.architecture"
 )

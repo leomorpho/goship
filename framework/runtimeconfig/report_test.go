@@ -56,11 +56,11 @@ func TestBuildReportStandaloneIgnoresManagedSet(t *testing.T) {
 }
 
 func TestParseManagedOverrides(t *testing.T) {
-	overrides, err := ParseManagedOverrides(`{"processes.worker":true,"processes.scheduler":false,"database.path":"dbs/managed.db","limits.page_size":25}`)
+	overrides, err := ParseManagedOverrides(`{"processes.worker":true,"processes.scheduler":false,"database.path":".local/db/managed.db","limits.page_size":25}`)
 	require.NoError(t, err)
 	assert.Equal(t, "true", overrides["processes.worker"])
 	assert.Equal(t, "false", overrides["processes.scheduler"])
-	assert.Equal(t, "dbs/managed.db", overrides["database.path"])
+	assert.Equal(t, ".local/db/managed.db", overrides["database.path"])
 	assert.Equal(t, "25", overrides["limits.page_size"])
 }
 

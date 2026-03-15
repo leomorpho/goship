@@ -9,7 +9,7 @@ Copy `.env.example` to `.env` and fill in the values your environment needs. All
 
 Primary commands:
 
-- `make dev`: starts all development processes (web, worker, js, templ) multiplexed via `overmind`
+- `make dev`: starts auto development mode (single-binary default; full multiprocess when jobs adapter is `asynq`)
 - `make run`: single-binary web process with SQLite + Otter + Backlite
 - `go run ./tools/cli/ship/cmd/ship dev`: CLI equivalent of `make dev`
 
@@ -17,7 +17,11 @@ Recommended modes:
 
 - Unified dev mode:
   `make dev` (or `ship dev`)
-  Starts the web server (via `air`), worker, Vite (js), and Templ (watch) processes in a single multiplexed stream. Requires `overmind` or `goreman`.
+  Runs in auto mode by convention: web-only for single-binary adapters, full mode when jobs adapter is `asynq`.
+  In interactive terminals, `ship dev` prints the local URL and prompts to open it in your browser (`[Y/n]`, Enter = yes). Browser open is deferred until the URL is reachable.
+- Full multiprocess mode:
+  `make dev-full` (or `ship dev --all`)
+  Starts the web server (via `air`), worker, Vite (js), and Tailwind CSS watchers in a single multiplexed stream. Templ generation runs in `air` pre-build commands via `ship templ generate --path app` and `ship templ generate --path modules`. Requires `overmind` or `goreman`.
 - Single-binary mode:
   `cp .env.example .env && make run`
   Uses embedded SQLite, in-memory Otter cache, and Backlite jobs. No Docker required.
@@ -142,10 +146,12 @@ Go tests:
 
 E2E tests:
 
+- `make e2e-smoke` (single happy-path smoke; Playwright starts `go run ./cmd/web` automatically via `webServer`)
 - `make e2e`
 - `make e2eui`
 
-Note: current e2e specs are partially stale and should be treated as non-authoritative for GoShip behavior.
+CI uses the smoke spec only (`tests/e2e/tests/smoke.spec.ts`) to validate startup and basic app serving.
+Note: broader legacy e2e specs are partially stale and should be treated as non-authoritative for GoShip behavior.
 
 ## Agent Command Policy
 

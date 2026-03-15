@@ -64,7 +64,7 @@ templ-gen: ## Generate templ code next to .templ files via ship CLI
 # Core workflow ------------------------------------------------------------------------------
 
 .PHONY: dev
-dev: ## Start local development (unified multiplexed processes)
+dev: ## Start local development in auto mode (single-binary default; full mode when jobs adapter is asynq)
 	go run ./tools/cli/ship/cmd/ship dev
 
 .PHONY: run
@@ -281,6 +281,11 @@ deploy-goship: ## Deploy new Goship version
 e2e: ## Run Playwright tests
 	@echo "Running end-to-end tests..."
 	@cd tests/e2e && npm install && npx playwright test
+
+.PHONY: e2e-smoke
+e2e-smoke: ## Run Playwright smoke test with managed app startup
+	@echo "Running Playwright smoke test..."
+	@cd tests/e2e && npm install && npx playwright test tests/smoke.spec.ts
 
 .PHONY: test-e2e
 e2eui: ## Run Playwright tests

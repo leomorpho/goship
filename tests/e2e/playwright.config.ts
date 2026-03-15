@@ -1,13 +1,32 @@
-import { PlaywrightTestConfig } from "@playwright/test";
+import { defineConfig, devices } from "@playwright/test";
 
-const config: PlaywrightTestConfig = {
+const port = process.env.E2E_PORT ?? "8000";
+const baseURL = process.env.E2E_BASE_URL ?? `http://127.0.0.1:${port}`;
+
+export default defineConfig({
+  testDir: "./tests",
+  fullyParallel: false,
+  workers: process.env.CI ? 1 : undefined,
+  retries: process.env.CI ? 2 : 0,
+  use: {
+    baseURL,
+    trace: "retain-on-failure",
+  },
   projects: [
     {
-      name: "Chrome",
-      use: { browserName: "chromium" },
+      name: "chromium",
+      use: { ...devices["Desktop Chrome"] },
     },
   ],
-  workers: 1, // Adjust the number of workers as needed based on your CI environment capabilities
-  retries: 2,
-};
-export default config;
+  webServer: {
+    command: "go run ./cmd/web",
+    cwd: "../..",
+    url: `${baseURL}/up`,
+    timeout: 120_000,
+    reuseExistingServer: !process.env.CI,
+    env: {
+      ...process.env,
+      PAGODA_HTTP_PORT: port,
+    },
+  },
+});

@@ -43,18 +43,6 @@ templ Navbar(page *controller.Page) {
 							<path fill-rule="evenodd" d="M9.293 2.293a1 1 0 0 1 1.414 0l7 7A1 1 0 0 1 17 11h-1v6a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-6H3a1 1 0 0 1-.707-1.707l7-7Z" clip-rule="evenodd"></path>
 						</svg>
 					</a>
-					if !page.IsAuth {
-						<a
-							hx-get={ page.ToURL(routenames.RouteNameAboutUs) }
-							class="flex items-center p-2 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 group cursor-pointer"
-							id="meet"
-						>
-							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
-								<path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-7-4a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM9 9a.75.75 0 0 0 0 1.5h.253a.25.25 0 0 1 .244.304l-.459 2.066A1.75 1.75 0 0 0 10.747 15H11a.75.75 0 0 0 0-1.5h-.253a.25.25 0 0 1-.244-.304l.459-2.066A1.75 1.75 0 0 0 9.253 9H9Z" clip-rule="evenodd"></path>
-							</svg>
-							<span class="ml-1">{ "Contact Us" }</span>
-						</a>
-					}
 				} else {
 					<a
 						href={ templ.URL(page.ToURL(routenames.RouteNameLandingPage)) }
@@ -70,9 +58,6 @@ templ Navbar(page *controller.Page) {
 			<div
 				class="flex items-center"
 			>
-				<div class="mr-5">
-					@BlogButton()
-				</div>
 				@ThemeToggle("navbar-theme-toggle")
 				if page.IsAuth && page.IsFullyOnboarded {
 					<div
@@ -251,29 +236,6 @@ templ FloatingActionButton(page *controller.Page) {
 				</svg>
 			</div>
 		</div>
-	</a>
-}
-
-// Renders: link with document icon and "Docs" text, hidden on small screens
-templ DocsButton(page *controller.Page) {
-	<a data-component="docs-button"
-		href={ templ.URL(page.ToURL(routenames.RouteNameDocs)) }
-		class="flex items-center w-9 h-9 lg:w-fit lg:h-8 lg:px-4 bg-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600 dark:bg-slate-500 rounded-full mx-2 flex items-center justify-center relative cursor-pointer"
-		id="meet"
-	>
-		<svg
-			xmlns="http://www.w3.org/2000/svg"
-			width="24"
-			height="24"
-			viewBox="0 0 24 24"
-			fill="none"
-			stroke="currentColor"
-			stroke-width="2"
-			stroke-linecap="round"
-			stroke-linejoin="round"
-			class="w-5 h-5"
-		>><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M3 4.984h2"></path><path d="M8 4.984h2.5"></path><path d="M14.5 4.984h2.5"></path><path d="M22 4.984h-2"></path><path d="M4 4.984l5.455 14.516l6.545 -14.516"></path><path d="M9 4.984l6 14.516l6 -14.516"></path></svg>
-		<span class="hidden lg:block ml-1">Docs</span>
 	</a>
 }
 

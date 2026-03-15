@@ -632,10 +632,10 @@ func defaultConfig() Config {
 		},
 		Database: DatabaseConfig{
 			Driver:                 "",
-			Path:                   "dbs/main.db",
+			Path:                   ".local/db/main.db",
 			DbMode:                 DBModeEmbedded,
 			EmbeddedDriver:         "sqlite",
-			EmbeddedConnection:     "dbs/main.db?_journal=WAL&_timeout=5000&_fk=true",
+			EmbeddedConnection:     ".local/db/main.db?_journal=WAL&_timeout=5000&_fk=true",
 			EmbeddedTestConnection: ":memory:?_journal=WAL&_timeout=5000&_fk=true",
 			Hostname:               "localhost",
 			Port:                   5432,
@@ -793,7 +793,7 @@ func applyDatabaseDriverConfig(c *Config) {
 		c.Database.Path = sqlitePathFromConnection(c.Database.EmbeddedConnection)
 	}
 	if strings.TrimSpace(c.Database.Path) == "" {
-		c.Database.Path = "dbs/main.db"
+		c.Database.Path = ".local/db/main.db"
 	}
 
 	switch c.Database.Driver {
@@ -1045,7 +1045,7 @@ func sqlitePathFromConnection(conn string) string {
 func sqliteConnectionString(path string) string {
 	p := strings.TrimSpace(path)
 	if p == "" {
-		p = "dbs/main.db"
+		p = ".local/db/main.db"
 	}
 	return p + "?_journal=WAL&_timeout=5000&_fk=true"
 }
@@ -1081,7 +1081,7 @@ func applyBackupDefaults(c *Config) {
 		c.Backup.SQLitePath = strings.TrimSpace(c.Database.Path)
 	}
 	if c.Backup.SQLitePath == "" {
-		c.Backup.SQLitePath = "dbs/main.db"
+		c.Backup.SQLitePath = ".local/db/main.db"
 	}
 }
 
