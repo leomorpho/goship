@@ -125,6 +125,15 @@ Registered only when not production:
 - `GET /error/404`
 - `GET /error/500`
 
+## Development-Only Email Preview Routes
+
+Registered only when `app.environment=dev`:
+
+- `GET /dev/mail`
+- `GET /dev/mail/welcome`
+- `GET /dev/mail/password-reset`
+- `GET /dev/mail/verify-email`
+
 ## Conditional Routes
 
 Realtime is conditionally wired:

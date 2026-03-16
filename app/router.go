@@ -157,11 +157,25 @@ func registerPublicRoutes(c *foundation.Container, g *echo.Group, ctr ui.Control
 		g.GET("/examples/shared-counter/stream", sharedCounter.Stream).Name = routeNames.RouteNameSharedCounterStream
 		g.POST("/examples/shared-counter/increment", sharedCounter.Increment).Name = routeNames.RouteNameSharedCounterIncrement
 	}
+	registerMailPreviewRoutes(g, ctr)
 
 	// ship:routes:public:start
 	// ship:routes:public:end
 
 	return nil
+}
+
+func registerMailPreviewRoutes(g *echo.Group, ctr ui.Controller) {
+	if ctr.Container == nil || ctr.Container.Config == nil || ctr.Container.Config.App.Environment != config.EnvDevelop {
+		return
+	}
+
+	mailPreview := controllers.NewMailPreviewRoute(ctr)
+	mailGroup := g.Group("/dev/mail")
+	mailGroup.GET("", mailPreview.Index).Name = routeNames.RouteNameMailPreviewIndex
+	mailGroup.GET("/welcome", mailPreview.Welcome).Name = routeNames.RouteNameMailPreviewWelcome
+	mailGroup.GET("/password-reset", mailPreview.PasswordReset).Name = routeNames.RouteNameMailPreviewPasswordReset
+	mailGroup.GET("/verify-email", mailPreview.VerifyEmail).Name = routeNames.RouteNameMailPreviewVerifyEmail
 }
 
 func registerAuthRoutes(c *foundation.Container, g *echo.Group, ctr ui.Controller, deps *appweb.RouteDeps) error {

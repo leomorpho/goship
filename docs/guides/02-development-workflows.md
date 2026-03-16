@@ -29,6 +29,11 @@ Recommended modes:
 
 Legacy aliases still exist (`make init`, `make watch`) but they are no longer the preferred path.
 
+Email template previews (development only):
+
+- Visit `/dev/mail` to see all browser preview links.
+- Direct routes: `/dev/mail/welcome`, `/dev/mail/password-reset`, `/dev/mail/verify-email`.
+
 `dev-full` process group runs:
 
 - `watch-js`
