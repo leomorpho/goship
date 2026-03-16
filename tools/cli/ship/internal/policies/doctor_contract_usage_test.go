@@ -123,4 +123,14 @@ func (formValueRoute) Post(ctx echo.Context) error {
 			}
 		}
 	})
+
+	t.Run("managed hooks controller uses app contracts request types", func(t *testing.T) {
+		root := findRepoRoot(t)
+		issues := RunDoctorChecks(root)
+		for _, issue := range issues {
+			if issue.Code == "DX027" && issue.File == "app/web/controllers/managed_hooks.go" {
+				t.Fatalf("unexpected DX027 issue for managed hooks controller: %+v", issue)
+			}
+		}
+	})
 }
