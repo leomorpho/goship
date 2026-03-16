@@ -26,6 +26,8 @@ func TestNewContainer(t *testing.T) {
 	assert.NotNil(t, c.Auth)
 	assert.NotNil(t, c.AI)
 	assert.NotNil(t, c.EventBus)
+	assert.NotNil(t, c.Scheduler)
+	assert.GreaterOrEqual(t, len(c.Scheduler.Entries()), 2)
 	if c.Adapters.Selection.Cache == "redis" || c.Adapters.Selection.Cache == "otter" || c.Adapters.Selection.Cache == "memory" {
 		assert.NotNil(t, c.Cache)
 	} else {

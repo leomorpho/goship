@@ -35,6 +35,7 @@ require (
 	github.com/nyaruka/phonenumbers v1.3.4
 	github.com/orsinium-labs/enum v1.3.0
 	github.com/resend/resend-go/v2 v2.5.0
+	github.com/robfig/cron/v3 v3.0.1
 	github.com/samber/slog-echo v1.12.1
 	github.com/stretchr/testify v1.11.1
 	github.com/stripe/stripe-go/v78 v78.6.0
@@ -172,7 +173,6 @@ require (
 	github.com/prometheus/procfs v0.11.1 // indirect
 	github.com/redis/go-redis/v9 v9.14.1 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
-	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/rs/xid v1.6.0 // indirect
 	github.com/samber/lo v1.39.0 // indirect
 	github.com/sashabaranov/go-openai v1.41.2 // indirect

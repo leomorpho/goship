@@ -402,6 +402,12 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			wantErr:  "usage: ship make:controller",
 		},
 		{
+			name:     "make schedule missing args",
+			args:     []string{"make:schedule"},
+			wantCode: 1,
+			wantErr:  "usage: ship make:schedule",
+		},
+		{
 			name:      "make model",
 			args:      []string{"make:model", "Post"},
 			wantCode:  0,

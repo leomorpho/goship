@@ -12,10 +12,12 @@ import (
 	anthropicdriver "github.com/leomorpho/goship/modules/ai/drivers/anthropic"
 	openaidriver "github.com/leomorpho/goship/modules/ai/drivers/openai"
 	openrouterdriver "github.com/leomorpho/goship/modules/ai/drivers/openrouter"
+	"github.com/robfig/cron/v3"
 	"github.com/stripe/stripe-go/v78"
 	_ "modernc.org/sqlite"
 
 	"github.com/leomorpho/goship-modules/notifications"
+	"github.com/leomorpho/goship/app/schedules"
 	"github.com/leomorpho/goship/config"
 	dbqueries "github.com/leomorpho/goship/db/queries"
 	"github.com/leomorpho/goship/framework/core"
@@ -81,6 +83,9 @@ type Container struct {
 	// CorePubSub exposes pubsub via the backend-agnostic core seam.
 	CorePubSub core.PubSub
 
+	// Scheduler stores cron-based app schedule registration.
+	Scheduler *cron.Cron
+
 	// Adapters stores resolved adapter selection/capabilities for runtime use.
 	Adapters coreadapters.Resolved
 }
@@ -101,6 +106,7 @@ func NewContainer() *Container {
 	c.initAuditLogs()
 	c.initEventBus()
 	c.initPaymentProcessor()
+	c.initScheduler()
 	// ship:container:start
 	// ship:container:end
 	c.initCoreAdapters()
@@ -156,6 +162,13 @@ func (c *Container) initCoreAdapters() {
 		ps = pubsubrepo.NewInProcPubSubClient()
 	}
 	c.CorePubSub = NewCorePubSubAdapter(ps)
+}
+
+func (c *Container) initScheduler() {
+	c.Scheduler = cron.New(cron.WithSeconds())
+	schedules.Register(c.Scheduler, func() core.Jobs {
+		return c.CoreJobs
+	})
 }
 
 // Shutdown shuts the Container down and disconnects all connections

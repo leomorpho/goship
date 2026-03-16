@@ -23,7 +23,7 @@ func PrintRootHelp(w io.Writer) {
 	fmt.Fprintln(w, "  ship db:<create|generate|make|migrate|status|console|reset|drop|rollback|seed>  (or ship db for help)")
 	fmt.Fprintln(w, "  ship infra:<up|down>                  (or ship infra for help)")
 	fmt.Fprintln(w, "  ship templ <generate>")
-	fmt.Fprintln(w, "  ship make:<scaffold|controller|resource|model|event|module>  (or ship make for help)")
+	fmt.Fprintln(w, "  ship make:<scaffold|controller|resource|model|event|schedule|module>  (or ship make for help)")
 	fmt.Fprintln(w, "  ship module:add <name> [--dry-run]")
 	fmt.Fprintln(w, "  ship module:remove <name> [--dry-run]")
 	fmt.Fprintln(w)
@@ -56,6 +56,7 @@ func PrintRootHelp(w io.Writer) {
 	fmt.Fprintln(w, "  ship make:resource contact")
 	fmt.Fprintln(w, "  ship make:model Post title:string")
 	fmt.Fprintln(w, "  ship make:event UserLoggedIn")
+	fmt.Fprintln(w, "  ship make:schedule DailyReport --cron \"0 9 * * *\"")
 	fmt.Fprintln(w, "  ship make:module EmailSubscriptions")
 }
 
@@ -72,5 +73,6 @@ func PrintMakeHelp(w io.Writer) {
 	fmt.Fprintln(w, "  ship make:resource <name> [--path app] [--auth public|auth] [--views templ|none] [--wire] [--dry-run]")
 	fmt.Fprintln(w, "  ship make:model <Name> [fields...]")
 	fmt.Fprintln(w, "  ship make:event <TypeName> [--force]")
+	fmt.Fprintln(w, "  ship make:schedule <Name> --cron \"<expr>\"")
 	fmt.Fprintln(w, "  ship make:module <Name> [--path modules] [--module-base github.com/leomorpho/goship-modules] [--dry-run] [--force]")
 }

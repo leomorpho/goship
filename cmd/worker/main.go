@@ -132,6 +132,9 @@ func main() {
 	mux.Handle(tasks.TypeDailyConvoNotification, dailyConvoNotificationsProcessor)
 	mux.Handle(tasks.TypeDeleteStaleNotifications, deleteStaleNotificationsProcessor)
 
+	stopScheduler := startWorkerScheduler(c.Scheduler)
+	defer stopScheduler()
+
 	// Start the worker server
 	if err := srv.Run(mux); err != nil {
 		log.Fatalf("could not run worker server: %v", err)

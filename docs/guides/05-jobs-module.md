@@ -2,7 +2,7 @@
 
 This guide defines the install/wiring contract for `modules/jobs`.
 
-Last updated: 2026-03-04
+Last updated: 2026-03-16
 
 ## Goal
 
@@ -28,6 +28,25 @@ Container seam fields:
 - [container.go](/Users/leoaudibert/Workspace/pagoda-based/goship/app/foundation/container.go)
   - `CoreJobs core.Jobs`
   - `CoreJobsInspector core.JobsInspector`
+  - `Scheduler *cron.Cron`
+
+## Scheduled Jobs Convention
+
+App-owned periodic scheduling lives in `app/schedules/schedules.go` and is wired by
+`app/foundation/container.go`.
+
+Rules:
+
+- Register schedules only through `Register(s *cron.Cron, jobsProvider JobsProvider)`.
+- Keep schedule callbacks thin: they only enqueue jobs through `core.Jobs`.
+- Do not run business logic inline in cron callbacks.
+- Keep generated/custom entries inside:
+  - `// ship:schedules:start`
+  - `// ship:schedules:end`
+
+CLI support:
+
+- `ship make:schedule <Name> --cron "<expr>"` inserts a schedule entry at the marker block.
 
 ## Backend Selection Rules
 

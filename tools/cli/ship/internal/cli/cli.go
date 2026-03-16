@@ -251,6 +251,8 @@ func (c CLI) runMake(args []string) int {
 		return c.runGenerateModel(args[1:])
 	case "event":
 		return c.runGenerateEvent(args[1:])
+	case "schedule":
+		return c.runMakeSchedule(args[1:])
 	case "resource":
 		return c.runGenerateResource(args[1:])
 	case "help", "-h", "--help":
@@ -342,5 +344,12 @@ func (c CLI) runMakeScaffold(args []string) int {
 		RunDBMigrate:  func(args []string) int { return c.runDB(append([]string{"migrate"}, args...)) },
 		RunController: c.runMakeController,
 		RunResource:   c.runGenerateResource,
+	})
+}
+
+func (c CLI) runMakeSchedule(args []string) int {
+	return gen.RunMakeSchedule(args, gen.ScheduleDeps{
+		Out: c.Out,
+		Err: c.Err,
 	})
 }

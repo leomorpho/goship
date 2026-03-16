@@ -110,6 +110,8 @@ Task processors under `app/jobs`:
 - Stale notification cleanup
 
 Worker bootstrap and registration in `cmd/worker/main.go`.
+Cron schedule registration is app-owned in `app/schedules/schedules.go`; callbacks enqueue jobs
+through `core.Jobs`, and the worker runtime starts/stops the scheduler lifecycle.
 
 **Supported Backends:**
 - **Asynq:** Distributed task processing via Redis. Requires a separate worker process.

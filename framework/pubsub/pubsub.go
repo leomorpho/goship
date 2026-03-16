@@ -2,7 +2,6 @@ package pubsub
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
 	"github.com/leomorpho/goship/framework/core"
