@@ -258,6 +258,22 @@ func registerAuthRoutes() {
 		mustContainIssueCode(t, issues, "DX024")
 	})
 
+	t.Run("missing data-component on web layout triggers warning", func(t *testing.T) {
+		root := t.TempDir()
+		writeDoctorFixture(t, root)
+		targetDir := filepath.Join(root, "app", "views", "web", "layouts")
+		if err := os.MkdirAll(targetDir, 0o755); err != nil {
+			t.Fatal(err)
+		}
+		target := filepath.Join(targetDir, "missing.templ")
+		if err := os.WriteFile(target, []byte("templ MissingLayout() {\n<div></div>\n}\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+
+		issues := RunDoctorChecks(root)
+		mustContainIssueCode(t, issues, "DX024")
+	})
+
 	t.Run("root binary artifact present", func(t *testing.T) {
 		root := t.TempDir()
 		writeDoctorFixture(t, root)

@@ -992,26 +992,37 @@ func checkRendersComments(root string) []DoctorIssue {
 
 func checkDataComponentAttributes(root string) []DoctorIssue {
 	issues := make([]DoctorIssue, 0)
-	searchDirs := []string{filepath.Join(root, "app", "views", "web", "components")}
+	type searchTarget struct {
+		dir              string
+		skipLayoutSuffix bool
+	}
+	searchTargets := []searchTarget{
+		{dir: filepath.Join(root, "app", "views", "web", "components"), skipLayoutSuffix: true},
+		{dir: filepath.Join(root, "app", "views", "web", "layouts"), skipLayoutSuffix: false},
+	}
 	modulesConfig := filepath.Join(root, "config", "modules.yaml")
 	if manifest, err := rt.LoadModulesManifest(modulesConfig); err == nil {
 		for _, moduleID := range manifest.Modules {
 			compDir := filepath.Join(root, "modules", moduleID, "views", "web", "components")
 			if isDir(compDir) {
-				searchDirs = append(searchDirs, compDir)
+				searchTargets = append(searchTargets, searchTarget{dir: compDir, skipLayoutSuffix: true})
+			}
+			layoutDir := filepath.Join(root, "modules", moduleID, "views", "web", "layouts")
+			if isDir(layoutDir) {
+				searchTargets = append(searchTargets, searchTarget{dir: layoutDir, skipLayoutSuffix: false})
 			}
 		}
 	}
 
-	for _, dir := range searchDirs {
-		if !isDir(dir) {
+	for _, target := range searchTargets {
+		if !isDir(target.dir) {
 			continue
 		}
-		_ = filepath.WalkDir(dir, func(path string, d os.DirEntry, err error) error {
+		_ = filepath.WalkDir(target.dir, func(path string, d os.DirEntry, err error) error {
 			if err != nil || d.IsDir() || filepath.Ext(path) != ".templ" {
 				return nil
 			}
-			if strings.HasSuffix(filepath.Base(path), "_layout.templ") {
+			if target.skipLayoutSuffix && strings.HasSuffix(filepath.Base(path), "_layout.templ") {
 				return nil
 			}
 			lines, readErr := readLines(path)

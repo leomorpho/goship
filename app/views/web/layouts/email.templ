@@ -2,6 +2,7 @@ package layouts
 
 // Renders: standard email layout with centered content and consistent styling
 templ Email(content templ.Component) {
-    @content
+	<div data-component="email">
+		@content
+	</div>
 }
-
