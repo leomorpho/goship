@@ -179,7 +179,7 @@ Impact:
 
 - Framework/runtime now has a consistent translation seam (`container.I18n.T(...)`) and deterministic request language detection.
 - Teams still need to migrate hardcoded strings and complete string-key coverage to get full end-to-end localization coverage.
-- `ship new` scaffolds i18n starter locale files, but production-grade translation completeness and broader locale packs still require follow-up product work.
+- `ship new` scaffolds baseline `en`/`fr` locale files, but production-grade translation completeness still requires follow-up product work per app.
 
 ## Suggested Priority Order
 

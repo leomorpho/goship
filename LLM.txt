@@ -437,7 +437,7 @@ Last updated: 2026-03-04
 7. `G07` - `guides/07-domain-events.md`: domain event bus, shared event types, and async enqueue contract.
 8. `G08` - `guides/08-building-an-api.md`: JSON response helpers, content negotiation, and versioned API route convention.
 9. `G09` - `guides/09-i18n-adapter-contract.md`: installable i18n adapter interface contract, compatibility harness, and implementer checklist.
-10. `G10` - `guides/10-i18n-llm-migration-workflow.md`: LLM-first i18n migration loop, diagnostics schema, and strict-mode rollout contract.
+10. `G10` - `guides/10-i18n-llm-migration-workflow.md`: LLM-first i18n migration loop, coverage/enforcement policy, diagnostics schema, and strict-mode rollout contract.
 
 ### Reference
 
@@ -954,6 +954,7 @@ Reflection-based administrative interface for managing database resources.
 - Runtime toggle: `PAGODA_I18N_ENABLED=false` disables i18n service initialization (safe English fallback path, no startup panic).
 - Runtime default language is configurable via `PAGODA_I18N_DEFAULT_LANGUAGE`.
 - Runtime enforcement mode is configurable via `PAGODA_I18N_STRICT_MODE=off|warn|error` and consumed by `ship doctor` (`DX029`), with optional `.i18n-allowlist`.
+- Canonical coverage scope, exclusions, and command-to-enforcement mapping are documented in `docs/guides/10-i18n-llm-migration-workflow.md`.
 - `ship make:locale <code>` scaffolds a new locale file from `locales/en.toml` (falls back to legacy YAML source when migrating).
 - `ship i18n:init` bootstraps baseline locale files (`en.toml`, `fr.toml`) for apps that started without i18n and prints a deterministic migration command loop.
 - `ship i18n:scan --format json` emits deterministic diagnostics for hardcoded user-facing literals (`--paths`, `--limit` supported) without failing on findings; Go sources are scanned via AST/token positions with guardrails for logs, SQL literals, and `_test.go` files, and JS scanning is scoped to `frontend/islands/` entry paths.
@@ -1454,7 +1455,7 @@ Impact:
 
 - Framework/runtime now has a consistent translation seam (`container.I18n.T(...)`) and deterministic request language detection.
 - Teams still need to migrate hardcoded strings and complete string-key coverage to get full end-to-end localization coverage.
-- `ship new` scaffolds i18n starter locale files, but production-grade translation completeness and broader locale packs still require follow-up product work.
+- `ship new` scaffolds baseline `en`/`fr` locale files, but production-grade translation completeness still requires follow-up product work per app.
 
 ## Suggested Priority Order
 
@@ -3074,6 +3075,47 @@ Use `.i18n-allowlist` for intentional exceptions:
 1. Add a finding ID (`I18N-...` or `I18N-C-...`), or
 2. Add a location key (`path/to/file.go:line`).
 
+## I18n Coverage and Enforcement Policy
+
+Mandatory i18n-backed surfaces:
+
+1. Go HTTP handlers/controllers for user-facing text (HTML and plain text responses).
+2. Templ-rendered HTML copy in `app/views/**` and `modules/*/views/**`.
+3. Islands UI copy in `frontend/islands/**` that is visible to end users.
+4. API human-readable JSON messages (while machine `code` values remain locale-invariant).
+5. User-facing email template copy.
+
+Explicit exclusions (not required to be translation-key backed):
+
+1. Logs, metrics labels, tracing tags, and other operator-only diagnostics.
+2. SQL text, migration text, schema names, route names, and internal constants.
+3. Machine-facing API error `code` values and protocol field names.
+4. Test-only literals (`*_test.go`, fixtures, test snapshots) unless validating localized behavior.
+5. Internal-only panic/debug strings that are never user-visible.
+
+Enforcement mapping by command/policy:
+
+1. `ship i18n:scan`:
+   - Finds hardcoded user-facing literals in supported Go/templ/islands paths.
+   - Emits deterministic JSON diagnostics and confidence tier metadata.
+2. `ship i18n:instrument`:
+   - Applies high-confidence rewrites only for currently supported safe patterns.
+   - Lower confidence findings remain report-only/manual.
+3. `ship doctor --json` (`DX029`):
+   - Enforces strict-mode hardcoded literal checks on controllers/views/islands.
+   - Enforces plural/select completeness for `I18n.TC(...)` and `I18n.TS(...)`.
+   - Supports intentional exceptions through `.i18n-allowlist`.
+4. `ship i18n:missing`:
+   - Reports missing/empty locale keys against baseline English catalogs.
+5. `ship i18n:unused`:
+   - Reports keys not referenced by `I18n.T(...)`/`i18n.T(...)` usage.
+
+Current known enforcement gaps (explicit, temporary):
+
+1. Automatic rewrites are intentionally narrower than scanner detection coverage.
+2. `.i18n-allowlist` still permits legacy `path:line` selectors, which are less stable than finding IDs.
+3. Scanner/doctor focus on application user copy, not operational/internal developer text.
+
 ## Recommended LLM Policy
 
 1. Never bulk-rewrite all findings in one pass.
@@ -3380,7 +3422,7 @@ Safety matrix:
 - `ship i18n:normalize` -> rewrites TOML locale catalogs into deterministic canonical ordering for stable diffs/CI
 - `ship i18n:missing` -> compares baseline English locale keys with other locale files and lists missing/empty translations
 - `ship i18n:unused` -> lists locale keys not referenced by `I18n.T(...)`/`i18n.T(...)` calls in `.go`/`.templ` sources
-- Full LLM migration/operator workflow and JSON contracts: `docs/guides/10-i18n-llm-migration-workflow.md`
+- Full i18n operator policy (coverage matrix, enforcement mapping, strict rollout, JSON contracts): `docs/guides/10-i18n-llm-migration-workflow.md`
 - `ship make:resource <name>` -> scaffold handler (+ optional templ page), ensure route-name constant, and print route snippet for manual insertion in `app/router.go`
 - `ship make:resource <name> --domain <name>` -> generate domain-aware constructor slot (`domainService any`) and route wiring using `nil` placeholder
 - `ship make:resource <name> --wire` -> also insert snippet behind ship markers in `app/router.go`

@@ -580,6 +580,11 @@
       "title": "Remove top15 locale-pack behavior from `ship new`",
       "state": "done",
       "priority": 7
+    },
+    "TKT-145": {
+      "title": "Canonical i18n enforcement scope policy",
+      "state": "done",
+      "priority": 6
     }
   }
 }
