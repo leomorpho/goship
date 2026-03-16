@@ -27,7 +27,8 @@ func TestLoginPageUsesFrenchWhenAcceptLanguageIsFrench(t *testing.T) {
 	s := testutil.NewTestServer(t)
 	s.Get("/user/login", testutil.WithHeader("Accept-Language", "fr-FR,fr;q=0.9")).
 		AssertStatus(200).
-		AssertContains("Connectez-vous a votre compte")
+		AssertContains("Connectez-vous a votre compte").
+		AssertContains(`<html lang="fr"`)
 }
 
 func seedAuthUserForHTTPTest(t *testing.T, s *testutil.TestServer, password string) (int64, string) {

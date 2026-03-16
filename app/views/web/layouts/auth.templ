@@ -11,7 +11,7 @@ import (
 
 templ Auth(content templ.Component, page *controller.Page) {
 	@Doctype()
-	<html lang="en" data-component="auth">
+	<html lang={ page.Language() } data-component="auth">
 		<head>
 			@components.Metatags(page)
 			@components.CSS()

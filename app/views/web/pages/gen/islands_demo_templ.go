@@ -38,176 +38,189 @@ func IslandsDemoPage(page *controller.Page) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<html lang=\"en\" data-theme=\"lightmode\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<html lang=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var2 string
-		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(page.AppName)
+		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(page.Language())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/web/pages/islands_demo.templ`, Line: 18, Col: 24}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/web/pages/islands_demo.templ`, Line: 14, Col: 29}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, " | Islands Demo</title><link rel=\"stylesheet\" href=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\" data-theme=\"lightmode\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var3 templ.SafeURL
-		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinURLErrs(helpers.File("styles_bundle.css"))
+		var templ_7745c5c3_Var3 string
+		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(page.AppName)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/web/pages/islands_demo.templ`, Line: 19, Col: 66}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/web/pages/islands_demo.templ`, Line: 18, Col: 24}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\"></head><body data-component=\"islands-demo-page\" class=\"min-h-screen bg-base-200 text-base-content\"><main class=\"mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-8 px-4 py-10 sm:px-6 lg:px-10\"><header class=\"space-y-3\"><h1 class=\"text-3xl font-black tracking-tight sm:text-4xl\">Framework Islands Demo</h1><p class=\"max-w-3xl text-base-content/80\">Super simple demo page: one counter island each for vanilla JS, React, Vue, and Svelte.</p></header><!-- NOTE: These demo counters may be moved around, but do not delete them. They prove framework island support in GoShip. --><p data-slot=\"islands-regression-note\" class=\"rounded-xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm font-medium text-warning-content\">These demo counters may be moved around, but do not delete them. They prove framework island support in GoShip.</p><section class=\"grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4\"><div data-island=\"VanillaCounter\" data-props=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, " | Islands Demo</title><link rel=\"stylesheet\" href=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var4 string
-		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(templ.JSONString(ui.IslandsDemoIslandProps(page, "VanillaCounter", "Vanilla JS Counter", 0)))
+		var templ_7745c5c3_Var4 templ.SafeURL
+		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinURLErrs(helpers.File("styles_bundle.css"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/web/pages/islands_demo.templ`, Line: 34, Col: 145}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/web/pages/islands_demo.templ`, Line: 19, Col: 66}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\"><section class=\"rounded-xl border border-base-300 bg-base-100 p-4 shadow-sm\"><h3 class=\"text-lg font-semibold\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\"></head><body data-component=\"islands-demo-page\" class=\"min-h-screen bg-base-200 text-base-content\"><main class=\"mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-8 px-4 py-10 sm:px-6 lg:px-10\"><header class=\"space-y-3\"><h1 class=\"text-3xl font-black tracking-tight sm:text-4xl\">Framework Islands Demo</h1><p class=\"max-w-3xl text-base-content/80\">Super simple demo page: one counter island each for vanilla JS, React, Vue, and Svelte.</p></header><!-- NOTE: These demo counters may be moved around, but do not delete them. They prove framework island support in GoShip. --><p data-slot=\"islands-regression-note\" class=\"rounded-xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm font-medium text-warning-content\">These demo counters may be moved around, but do not delete them. They prove framework island support in GoShip.</p><section class=\"grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4\"><div data-island=\"VanillaCounter\" data-props=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var5 string
-		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(ui.IslandsDemoLabel(page, "VanillaCounter", "Vanilla JS Counter"))
+		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(templ.JSONString(ui.IslandsDemoIslandProps(page, "VanillaCounter", "Vanilla JS Counter", 0)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/web/pages/islands_demo.templ`, Line: 36, Col: 109}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/web/pages/islands_demo.templ`, Line: 34, Col: 145}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</h3><p class=\"mt-2 text-3xl font-bold leading-none\">0</p><p class=\"mt-2 text-xs font-medium uppercase tracking-wide opacity-70\">Vanilla JS</p></section></div><div data-island=\"ReactCounter\" data-props=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\"><section class=\"rounded-xl border border-base-300 bg-base-100 p-4 shadow-sm\"><h3 class=\"text-lg font-semibold\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var6 string
-		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(templ.JSONString(ui.IslandsDemoIslandProps(page, "ReactCounter", "React Counter", 10)))
+		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(ui.IslandsDemoLabel(page, "VanillaCounter", "Vanilla JS Counter"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/web/pages/islands_demo.templ`, Line: 41, Col: 137}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/web/pages/islands_demo.templ`, Line: 36, Col: 109}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\"><section class=\"rounded-xl border border-base-300 bg-base-100 p-4 shadow-sm\"><h3 class=\"text-lg font-semibold\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</h3><p class=\"mt-2 text-3xl font-bold leading-none\">0</p><p class=\"mt-2 text-xs font-medium uppercase tracking-wide opacity-70\">Vanilla JS</p></section></div><div data-island=\"ReactCounter\" data-props=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var7 string
-		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(ui.IslandsDemoLabel(page, "ReactCounter", "React Counter"))
+		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(templ.JSONString(ui.IslandsDemoIslandProps(page, "ReactCounter", "React Counter", 10)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/web/pages/islands_demo.templ`, Line: 43, Col: 102}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/web/pages/islands_demo.templ`, Line: 41, Col: 137}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "</h3><p class=\"mt-2 text-3xl font-bold leading-none\">10</p><p class=\"mt-2 text-xs font-medium uppercase tracking-wide opacity-70\">React</p></section></div><div data-island=\"VueCounter\" data-props=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "\"><section class=\"rounded-xl border border-base-300 bg-base-100 p-4 shadow-sm\"><h3 class=\"text-lg font-semibold\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var8 string
-		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(templ.JSONString(ui.IslandsDemoIslandProps(page, "VueCounter", "Vue Counter", 20)))
+		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(ui.IslandsDemoLabel(page, "ReactCounter", "React Counter"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/web/pages/islands_demo.templ`, Line: 48, Col: 131}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/web/pages/islands_demo.templ`, Line: 43, Col: 102}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "\"><section class=\"rounded-xl border border-base-300 bg-base-100 p-4 shadow-sm\"><h3 class=\"text-lg font-semibold\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</h3><p class=\"mt-2 text-3xl font-bold leading-none\">10</p><p class=\"mt-2 text-xs font-medium uppercase tracking-wide opacity-70\">React</p></section></div><div data-island=\"VueCounter\" data-props=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var9 string
-		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(ui.IslandsDemoLabel(page, "VueCounter", "Vue Counter"))
+		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(templ.JSONString(ui.IslandsDemoIslandProps(page, "VueCounter", "Vue Counter", 20)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/web/pages/islands_demo.templ`, Line: 50, Col: 98}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/web/pages/islands_demo.templ`, Line: 48, Col: 131}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</h3><p class=\"mt-2 text-3xl font-bold leading-none\">20</p><p class=\"mt-2 text-xs font-medium uppercase tracking-wide opacity-70\">Vue</p></section></div><div data-island=\"SvelteCounter\" data-props=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\"><section class=\"rounded-xl border border-base-300 bg-base-100 p-4 shadow-sm\"><h3 class=\"text-lg font-semibold\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var10 string
-		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(templ.JSONString(ui.IslandsDemoIslandProps(page, "SvelteCounter", "Svelte Counter", 30)))
+		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(ui.IslandsDemoLabel(page, "VueCounter", "Vue Counter"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/web/pages/islands_demo.templ`, Line: 55, Col: 140}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/web/pages/islands_demo.templ`, Line: 50, Col: 98}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "\"><section class=\"rounded-xl border border-base-300 bg-base-100 p-4 shadow-sm\"><h3 class=\"text-lg font-semibold\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</h3><p class=\"mt-2 text-3xl font-bold leading-none\">20</p><p class=\"mt-2 text-xs font-medium uppercase tracking-wide opacity-70\">Vue</p></section></div><div data-island=\"SvelteCounter\" data-props=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var11 string
-		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(ui.IslandsDemoLabel(page, "SvelteCounter", "Svelte Counter"))
+		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(templ.JSONString(ui.IslandsDemoIslandProps(page, "SvelteCounter", "Svelte Counter", 30)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/web/pages/islands_demo.templ`, Line: 57, Col: 104}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/web/pages/islands_demo.templ`, Line: 55, Col: 140}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</h3><p class=\"mt-2 text-3xl font-bold leading-none\">30</p><p class=\"mt-2 text-xs font-medium uppercase tracking-wide opacity-70\">Svelte</p></section></div></section></main><script nonce=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "\"><section class=\"rounded-xl border border-base-300 bg-base-100 p-4 shadow-sm\"><h3 class=\"text-lg font-semibold\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var12 string
-		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(fmw.CSPNonce(page.Context))
+		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(ui.IslandsDemoLabel(page, "SvelteCounter", "Svelte Counter"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/web/pages/islands_demo.templ`, Line: 64, Col: 45}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/web/pages/islands_demo.templ`, Line: 57, Col: 104}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "\" src=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</h3><p class=\"mt-2 text-3xl font-bold leading-none\">30</p><p class=\"mt-2 text-xs font-medium uppercase tracking-wide opacity-70\">Svelte</p></section></div></section></main><script nonce=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var13 string
-		templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(helpers.File("islands-runtime.js"))
+		templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(fmw.CSPNonce(page.Context))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/web/pages/islands_demo.templ`, Line: 64, Col: 88}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/web/pages/islands_demo.templ`, Line: 64, Col: 45}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\" data-manifest-url=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "\" src=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var14 string
-		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(helpers.File("islands-manifest.json"))
+		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(helpers.File("islands-runtime.js"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/web/pages/islands_demo.templ`, Line: 64, Col: 148}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/web/pages/islands_demo.templ`, Line: 64, Col: 88}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "\"></script></body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "\" data-manifest-url=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var15 string
+		templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(helpers.File("islands-manifest.json"))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `app/views/web/pages/islands_demo.templ`, Line: 64, Col: 148}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "\"></script></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -10,7 +10,7 @@ import (
 
 templ Main(content templ.Component, page *controller.Page) {
 	@Doctype()
-	<html lang="en" class="min-h-screen" data-component="main">
+	<html lang={ page.Language() } class="min-h-screen" data-component="main">
 		<head>
 			@components.Metatags(page)
 			@components.CSS()

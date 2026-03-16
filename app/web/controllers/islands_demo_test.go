@@ -16,6 +16,9 @@ func TestIslandsDemoBootstrapContract_DefaultLocale(t *testing.T) {
 	resp := s.Get("/demo/islands").AssertStatus(200)
 
 	props, doc := decodeIslandProps(t, resp, "VanillaCounter")
+	if htmlLang, ok := doc.Find("html").First().Attr("lang"); !ok || htmlLang != "en" {
+		t.Fatalf("html lang = %q, want en", htmlLang)
+	}
 	locale := stringField(t, nestedMap(t, props, "i18n"), "locale")
 	if locale != "en" {
 		t.Fatalf("i18n locale = %q, want en", locale)
@@ -35,6 +38,9 @@ func TestIslandsDemoBootstrapContract_FrenchLocaleSwitch(t *testing.T) {
 	resp := s.Get("/demo/islands?lang=fr").AssertStatus(200)
 
 	props, doc := decodeIslandProps(t, resp, "VanillaCounter")
+	if htmlLang, ok := doc.Find("html").First().Attr("lang"); !ok || htmlLang != "fr" {
+		t.Fatalf("html lang = %q, want fr", htmlLang)
+	}
 	locale := stringField(t, nestedMap(t, props, "i18n"), "locale")
 	if locale != "fr" {
 		t.Fatalf("i18n locale = %q, want fr", locale)

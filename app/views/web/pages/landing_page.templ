@@ -9,7 +9,7 @@ import (
 // Route(s): rendered by app/router.go page handlers
 
 templ LandingPage(page *controller.Page) {
-	<html lang="en">
+	<html lang={ page.Language() }>
 		<head>
 			<meta charset="utf-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1"/>

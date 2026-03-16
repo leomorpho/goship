@@ -585,6 +585,11 @@
       "title": "Canonical i18n enforcement scope policy",
       "state": "done",
       "priority": 6
+    },
+    "TKT-148": {
+      "title": "Dynamic `\u003chtml lang\u003e` propagation across layouts/pages",
+      "state": "done",
+      "priority": 6
     }
   }
 }

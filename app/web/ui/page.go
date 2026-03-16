@@ -13,6 +13,7 @@ import (
 	"github.com/leomorpho/goship/framework/domain"
 	"github.com/leomorpho/goship/framework/htmx"
 	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
+	i18nmodule "github.com/leomorpho/goship/modules/i18n"
 )
 
 type (
@@ -216,4 +217,15 @@ func (p Page) GetMessages(typ uxflashmessages.Type) []template.HTML {
 		ret[k] = template.HTML(v)
 	}
 	return ret
+}
+
+func (p Page) Language() string {
+	if p.Context == nil || p.Context.Request() == nil {
+		return "en"
+	}
+	lang := i18nmodule.LanguageFromContext(p.Context.Request().Context())
+	if lang == "" {
+		return "en"
+	}
+	return lang
 }
