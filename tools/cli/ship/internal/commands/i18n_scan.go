@@ -235,6 +235,10 @@ func scanI18nFile(root, path string) ([]i18nScanIssue, error) {
 	}
 	relativePath = filepath.ToSlash(relativePath)
 
+	if isJavaScriptLike(ext) && !isIslandsSourcePath(relativePath) {
+		return nil, nil
+	}
+
 	if ext == ".go" {
 		if strings.HasSuffix(relativePath, "_test.go") {
 			return nil, nil
@@ -262,6 +266,20 @@ func scanI18nFile(root, path string) ([]i18nScanIssue, error) {
 		}
 	}
 	return issues, nil
+}
+
+func isJavaScriptLike(ext string) bool {
+	switch ext {
+	case ".js", ".ts", ".svelte", ".vue":
+		return true
+	default:
+		return false
+	}
+}
+
+func isIslandsSourcePath(relativePath string) bool {
+	clean := strings.TrimPrefix(strings.ToLower(relativePath), "./")
+	return strings.HasPrefix(clean, "frontend/islands/")
 }
 
 func scanGoFileAST(relativePath string, data []byte) ([]i18nScanIssue, error) {
@@ -392,6 +410,9 @@ func shouldSkipScanLine(ext, line string) bool {
 		return true
 	}
 	if strings.Contains(line, "I18n.T(") || strings.Contains(line, "i18n.T(") {
+		return true
+	}
+	if isJavaScriptLike(ext) && strings.Contains(strings.ToLower(line), "i18n.t(") {
 		return true
 	}
 	if ext == ".go" {

@@ -471,6 +471,77 @@ func TestDemo(t *testing.T) {
 	}
 }
 
+func TestRunI18nScanIncludesTemplAndIslandsJS(t *testing.T) {
+	root := t.TempDir()
+	writeI18nFixture(t, root, map[string]string{
+		"go.mod": "module example.com/i18n-test\n\ngo 1.25\n",
+		"app/views/web/pages/demo.templ": `package pages
+templ Demo() {
+	<div>
+		<h1>Hello from templ</h1>
+	</div>
+}
+`,
+		"frontend/islands/chat.ts": `export function chat() {
+	const cta = "Send message";
+	return cta;
+}
+`,
+		"frontend/helpers/strings.ts": `export const msg = "Do not scan non-islands ts files";`,
+	})
+
+	prevWD, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(prevWD) })
+	if err := os.Chdir(root); err != nil {
+		t.Fatal(err)
+	}
+
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	code := RunI18n([]string{"scan", "--format", "json"}, I18nDeps{
+		Out:          out,
+		Err:          errOut,
+		FindGoModule: findI18nGoModule,
+	})
+	if code != 0 {
+		t.Fatalf("code = %d, stderr = %s", code, errOut.String())
+	}
+	if strings.TrimSpace(errOut.String()) != "" {
+		t.Fatalf("stderr = %q, want empty", errOut.String())
+	}
+
+	var parsed scanResult
+	if err := json.Unmarshal(out.Bytes(), &parsed); err != nil {
+		t.Fatalf("parse scan JSON: %v\nraw=%s", err, out.String())
+	}
+
+	foundTempl := false
+	foundIslandTS := false
+	for _, issue := range parsed.Issues {
+		if issue.Line <= 0 || issue.Column <= 0 {
+			t.Fatalf("issue must include position: %+v", issue)
+		}
+		if strings.HasPrefix(issue.File, "app/views/web/pages/") {
+			foundTempl = true
+		}
+		if strings.HasPrefix(issue.File, "frontend/islands/") {
+			foundIslandTS = true
+		}
+		if strings.HasPrefix(issue.File, "frontend/helpers/") {
+			t.Fatalf("scanner should ignore non-islands JS/TS paths, got issue %+v", issue)
+		}
+	}
+	if !foundTempl {
+		t.Fatal("expected at least one templ issue")
+	}
+	if !foundIslandTS {
+		t.Fatal("expected at least one islands JS/TS issue")
+	}
+}
+
 type scanResult struct {
 	Issues []scanIssue `json:"issues"`
 }

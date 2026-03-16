@@ -178,7 +178,7 @@ Reflection-based administrative interface for managing database resources.
 - Runtime default language is configurable via `PAGODA_I18N_DEFAULT_LANGUAGE`.
 - `ship make:locale <code>` scaffolds a new locale file from `locales/en.yaml`.
 - `ship i18n:init` bootstraps baseline locale files (`en`, `fr`) for apps that started without i18n and prints a deterministic migration command loop.
-- `ship i18n:scan --format json` emits deterministic diagnostics for hardcoded user-facing literals (`--paths`, `--limit` supported) without failing on findings; Go sources are scanned via AST/token positions with guardrails for logs, SQL literals, and `_test.go` files.
+- `ship i18n:scan --format json` emits deterministic diagnostics for hardcoded user-facing literals (`--paths`, `--limit` supported) without failing on findings; Go sources are scanned via AST/token positions with guardrails for logs, SQL literals, and `_test.go` files, and JS scanning is scoped to `frontend/islands/` entry paths.
 - `ship i18n:missing` reports missing/empty translations versus English source keys.
 - `ship i18n:unused` reports locale keys not referenced in `.go`/`.templ` `I18n.T(...)` usage.
 - Navbar now includes the `language-switcher` component, and switch links preserve current route/query while toggling `lang`.
