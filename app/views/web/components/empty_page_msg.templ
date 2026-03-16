@@ -3,6 +3,8 @@ package components
 import ()
 
 // Renders: centered informational message for empty states
+// Route(s): embedded in web layouts/pages
+
 templ EmptyPageMessage(message, styleClasses string) {
 	<div data-component="empty-page-message"
 		class={ templ.KV("flex flex-col justify-center items-center mt-10 px-2 max-h-screen", styleClasses == ""),

@@ -3,6 +3,8 @@ package components
 import "fmt"
 
 // Renders: small rounded info badge that shows a tooltip on hover
+// Route(s): embedded in web layouts/pages
+
 templ ToolTip(toolTipIndicatorText, bubbleText string) {
 	<div data-component="tool-tip"
 		x-data={ fmt.Sprintf("{ tooltip: '%s' }", bubbleText) }

@@ -1,6 +1,8 @@
 package components
 
 // Renders: navigation bar with back button, optional avatar, and centered title
+// Route(s): embedded in web layouts/pages
+
 templ PrevNavBarWithTitle(prevURL, avatarURL, title string) {
 	// NOTE: the following is a spacer for mobile view, so that the hamburger icon is not shadowed when at the top of the screen.
 	<div data-component="prev-nav-bar-with-title" class="pt-7 md:pt-0"></div>

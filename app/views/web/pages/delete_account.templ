@@ -8,6 +8,8 @@ import (
 )
 
 // Renders: account deletion page with warning and confirmation button
+// Route(s): rendered by app/router.go page handlers
+
 templ DeleteAccountPage(page *controller.Page) {
 	if data, ok := page.Data.(*viewmodels.DeleteAccountData); ok {
 		@deleteAccountPage(page, data)

@@ -7,6 +7,8 @@ import (
 )
 
 // Renders: contact page with introductory message and contact form
+// Route(s): rendered by app/router.go page handlers
+
 templ Contact(page *controller.Page) {
 	if page.HTMX.Request.Target != "contact" {
 		<article data-component="contact" class="message is-link">

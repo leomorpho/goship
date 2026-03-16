@@ -7,6 +7,8 @@ import (
 )
 
 // Renders: newsletter subscription section with location picker, map, and email form
+// Route(s): rendered by app/router.go page handlers
+
 templ EmailSubscribe(page *controller.Page) {
 	if data, ok := page.Data.(viewmodels.EmailSubscriptionData); ok {
 		<div data-component="email-subscribe" hx-swap="innerHTML" hx-target="this">

@@ -7,6 +7,8 @@ import (
 
 // TODO: I think i broke the way the messages are dismissed in the original pagoda system.
 // Renders: messages component.
+// Route(s): embedded in web layouts/pages
+
 templ Messages(page *controller.Page) {
 	<div data-component="messages">
 		for _, m := range page.GetMessages("success") {
@@ -38,6 +40,8 @@ templ message(className, text string) {
 }
 
 // Renders: styled-message component.
+// Route(s): embedded in web layouts/pages
+
 templ StyledMessage(msgType, color, text, bgColorClass, contentColorClass string) {
 	<div data-component="styled-message"
 		data-slot="flash-message"

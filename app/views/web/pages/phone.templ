@@ -11,6 +11,8 @@ import (
 var showVerificationComponentHandle = templ.NewOnceHandle()
 
 // Renders: phone number edit page with input field and get code button
+// Route(s): rendered by app/router.go page handlers
+
 templ EditPhonePage(page *controller.Page) {
 	@components.PrevNavBarWithTitle(page.ToURL(routenames.RouteNamePreferences), "", "Edit Phone")
 	<div data-component="edit-phone-page" id="phone-number-section">
@@ -60,7 +62,11 @@ templ EditPhonePage(page *controller.Page) {
 }
 
 // Renders: phone-verification-field component.
+// Route(s): rendered by app/router.go page handlers
+
 // Renders: verification code input form for phone number confirmation
+// Route(s): rendered by app/router.go page handlers
+
 templ PhoneVerificationField(page *controller.Page) {
 	<div data-component="phone-verification-field" id="phone-verification-section">
 		if form, ok := page.Form.(*viewmodels.PhoneNumberVerification); ok {

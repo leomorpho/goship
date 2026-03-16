@@ -1,11 +1,15 @@
 package components
 
 // Renders: form-c-s-r-f component.
+// Route(s): embedded in web layouts/pages
+
 templ FormCSRF(token string) {
 	<input data-component="form-c-s-r-f" type="hidden" name="csrf" value={ token }/>
 }
 
 // Renders: list of validation errors below a form field
+// Route(s): embedded in web layouts/pages
+
 templ FormFieldErrors(errs []string) {
 	for _, err := range errs {
 		<div data-component="form-field-errors"

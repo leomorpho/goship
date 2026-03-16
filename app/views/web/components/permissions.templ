@@ -6,6 +6,8 @@ import (
 )
 
 // Renders: permissions-buttons component.
+// Route(s): embedded in web layouts/pages
+
 templ PermissionsButtons(platforms map[domain.NotificationPlatform]bool, notifsPermissions viewmodels.NotificationPermissionsData) {
 	<div data-component="permissions-buttons" id="push-notification-toggles"></div>
 	<div id="push-notification-toggle">
@@ -16,6 +18,8 @@ templ PermissionsButtons(platforms map[domain.NotificationPlatform]bool, notifsP
 }
 
 // Renders: platform-permission-button component.
+// Route(s): embedded in web layouts/pages
+
 templ PlatformPermissionButton(platformName domain.NotificationPlatform, permissionGranted bool) {
 	<button data-component="platform-permission-button"
 		type="button"

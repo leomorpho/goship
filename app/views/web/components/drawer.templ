@@ -6,6 +6,8 @@ import (
 )
 
 // Renders: slide-out drawer panel for additional context or actions
+// Route(s): embedded in web layouts/pages
+
 templ Drawer(page *controller.Page, showTopBar bool) {
 	<div data-component="drawer"
 		data-component="drawer"
@@ -199,6 +201,8 @@ templ overlay() {
 }
 
 // Renders: sidebar-shared-fields component.
+// Route(s): embedded in web layouts/pages
+
 templ SidebarSharedFields(page *controller.Page) {
 	<li data-component="sidebar-shared-fields">
 		<a

@@ -9,6 +9,8 @@ import (
 )
 
 // Renders: HTML head metatags for SEO, social sharing, and PWA configuration
+// Route(s): embedded in web layouts/pages
+
 templ Metatags(page *controller.Page) {
 	<title data-component="metatags">
 		{ page.AppName }
@@ -38,6 +40,8 @@ templ Metatags(page *controller.Page) {
 }
 
 // Renders: CSS stylesheet links and inline global styles
+// Route(s): embedded in web layouts/pages
+
 templ CSS() {
 	<link data-component="c-s-s" rel="stylesheet" href={ helpers.File("styles_bundle.css") }/>
 	<link rel="manifest" crossorigin="use-credentials" href={ helpers.File("manifest.json") }/>
@@ -70,6 +74,8 @@ templ CSS() {
 }
 
 // Renders: global JavaScript bundle and third-party library script tags
+// Route(s): embedded in web layouts/pages
+
 templ JS(page *controller.Page) {
 	// START PWA splash screen (TODO: not working lol)
 	<script nonce={ fmw.CSPNonce(page.Context) } data-component="j-s" src="https://cdn.jsdelivr.net/npm/ios-pwa-splash@1.0.0/cdn.min.js"></script>
@@ -159,6 +165,8 @@ script htmxBeforeSwap() {
 }
 
 // Renders: footer JavaScript initialization and HTMX event listeners
+// Route(s): embedded in web layouts/pages
+
 templ JSFooter(page *controller.Page) {
 	if len(page.CSRF) > 0 {
 		@csrfJS(page.CSRF)
@@ -201,6 +209,8 @@ templ beforeBodyEnd(page *controller.Page) {
 }
 
 // Renders: application footer with copyright notice and navigation links
+// Route(s): embedded in web layouts/pages
+
 templ TextFooter(page *controller.Page) {
 	<div data-component="text-footer" class="mx-1 sm:mx-2 py-3">
 		<footer class="bg-slate-100 dark:bg-gray-800 rounded-lg shadow m-4">

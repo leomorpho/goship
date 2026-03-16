@@ -1,6 +1,8 @@
 package components
 
 // Renders: tech-icon component.
+// Route(s): embedded in web layouts/pages
+
 templ TechIcon(styleClasses, websiteUrl, iconUrl, altText string) {
 	<a data-component="tech-icon" href={ templ.SafeURL(websiteUrl) } target="_blank" class={ "flex items-center justify-center w-auto", styleClasses }>
 		<img
@@ -13,6 +15,8 @@ templ TechIcon(styleClasses, websiteUrl, iconUrl, altText string) {
 }
 
 // Renders: tech-icon-with-dark-and-light-modes component.
+// Route(s): embedded in web layouts/pages
+
 templ TechIconWithDarkAndLightModes(styleClasses, websiteUrl, lightModeIconUrl, darkModeIconUrl, altText string) {
 	<a data-component="tech-icon-with-dark-and-light-modes" href={ templ.SafeURL(websiteUrl) } target="_blank" class={ "flex items-center justify-center w-auto", styleClasses }>
 		<img

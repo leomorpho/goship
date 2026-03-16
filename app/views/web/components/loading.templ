@@ -1,6 +1,8 @@
 package components
 
 // Renders: full-screen semi-transparent loading overlay with animated dots
+// Route(s): embedded in web layouts/pages
+
 templ PageLoadingIndicator() {
 	<div data-component="page-loading-indicator" id="page-loading" class="loading-overlay fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 w-screen h-screen">
 		<div class="flex justify-center items-center w-full h-full text-black dark:text-white">
@@ -26,6 +28,8 @@ templ PageLoadingIndicator() {
 }
 
 // Renders: inline loading spinner for bottom of lists or containers
+// Route(s): embedded in web layouts/pages
+
 templ BottomLoadingIndicator() {
 	<div data-component="bottom-loading-indicator" id="bottom-loading" class="flex justify-center items-center z-50 w-full h-full">
 		<div class="flex justify-center items-center w-full h-full text-black dark:text-white">

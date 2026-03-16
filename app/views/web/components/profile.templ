@@ -8,6 +8,8 @@ import (
 )
 
 // Renders: profile component.
+// Route(s): embedded in web layouts/pages
+
 templ Profile(page *controller.Page, profile domain.Profile, isSelf, isPotentialMatch bool, uploadGalleryPicUrl, uploadProfilePicUrl string, galleryPicsMaxCount int) {
 	@ProfileHeader(page, profile, isSelf, isPotentialMatch, false, uploadGalleryPicUrl, uploadProfilePicUrl, galleryPicsMaxCount)
 	<div data-component="profile" class="m-5">
@@ -122,6 +124,8 @@ script initCarousel() {
 }
 
 // Renders: profile-header component.
+// Route(s): embedded in web layouts/pages
+
 templ ProfileHeader(page *controller.Page, profile domain.Profile, isSelf, isPotentialMatch, isIndividualConvoView bool, uploadGalleryPicUrl, uploadProfilePicUrl string, galleryPicsMaxCount int) {
 	<div data-component="profile-header" class="flex flex-wrap items-start">
 		<div class="flex flex-col items-center sm:flex-row sm:justify-between w-full">

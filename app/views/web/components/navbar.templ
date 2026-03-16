@@ -7,6 +7,8 @@ import (
 )
 
 // Renders: top navigation bar with logo, optional install button, home feed link, blog link, theme toggle, and profile menu or login button
+// Route(s): embedded in web layouts/pages
+
 templ Navbar(page *controller.Page) {
 	<nav data-component="navbar"
 		id="navbar"
@@ -185,6 +187,8 @@ templ Navbar(page *controller.Page) {
 }
 
 // Renders: rounded login button with gradient background and key icon
+// Route(s): embedded in web layouts/pages
+
 templ LogInButton(page *controller.Page, btnClasses string) {
 	<button data-component="log-in-button"
 		class={ "bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 text-white font-medium rounded-full flex justify-center items-center w-full", btnClasses }
@@ -208,6 +212,8 @@ templ LogInButton(page *controller.Page, btnClasses string) {
 }
 
 // Renders: rounded home button with gradient background and house icon
+// Route(s): embedded in web layouts/pages
+
 templ HomeButton(page *controller.Page, btnClasses string) {
 	<a data-component="home-button" href={ templ.URL(page.ToURL(routenames.RouteNameLandingPage)) }>
 		<button
@@ -227,6 +233,8 @@ templ HomeButton(page *controller.Page, btnClasses string) {
 }
 
 // Renders: fixed floating action button at the top-right with a home icon and gradient background
+// Route(s): embedded in web layouts/pages
+
 templ FloatingActionButton(page *controller.Page) {
 	<a data-component="floating-action-button" href={ templ.URL(page.ToURL(routenames.RouteNameLandingPage)) }>
 		<div class="group fixed top-0 right-0 p-2 flex items-end justify-end w-16 h-16 z-50">
@@ -246,6 +254,8 @@ templ FloatingActionButton(page *controller.Page) {
 }
 
 // Renders: link with book icon and "Blog" text, centered vertically
+// Route(s): embedded in web layouts/pages
+
 templ BlogButton() {
 	<a data-component="blog-button"
 		href="https://tobyluxembourg.com"
