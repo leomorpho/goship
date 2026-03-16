@@ -478,7 +478,7 @@
     },
     "TKT-096": {
       "title": "M07 Y04 - Audit log module",
-      "state": "todo",
+      "state": "done",
       "priority": 6
     },
     "TKT-097": {
