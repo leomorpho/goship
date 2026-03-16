@@ -821,23 +821,15 @@ func checkConfigStructPlacement(root string) []DoctorIssue {
 func checkRendersComments(root string) []DoctorIssue {
 	issues := make([]DoctorIssue, 0)
 	searchDirs := []string{filepath.Join(root, "app", "views")}
-	modulesDir := filepath.Join(root, "modules")
-	_ = filepath.WalkDir(modulesDir, func(path string, d os.DirEntry, err error) error {
-		if err != nil {
-			return err
+	modulesConfig := filepath.Join(root, "config", "modules.yaml")
+	if manifest, err := rt.LoadModulesManifest(modulesConfig); err == nil {
+		for _, moduleID := range manifest.Modules {
+			viewsDir := filepath.Join(root, "modules", moduleID, "views")
+			if isDir(viewsDir) {
+				searchDirs = append(searchDirs, viewsDir)
+			}
 		}
-		if !d.IsDir() {
-			return nil
-		}
-		if path == modulesDir {
-			return nil
-		}
-		viewsDir := filepath.Join(path, "views")
-		if isDir(viewsDir) {
-			searchDirs = append(searchDirs, viewsDir)
-		}
-		return filepath.SkipDir
-	})
+	}
 
 	for _, dir := range searchDirs {
 		if !isDir(dir) {

@@ -179,6 +179,7 @@ Doctor checks (current):
 - validates router marker pairs used by `--wire` generators
 - validates router marker ordering (`start` before `end`) for `public` and `auth` sections
 - validates package naming conventions in `web/ui` and `web/viewmodels`
+- warns when exported templ functions in `app/views/` or enabled module `views/` directories are missing a `// Renders:` comment
 - flags unexpected root build artifacts (`web`, `worker`, `seed`, `ship`, `ship-mcp`)
 - validates `.gitignore` includes root binary artifact ignore entries
 - enforces a line budget for non-generated human-authored `.go` files (target <= 500 lines)
