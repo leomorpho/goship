@@ -11,6 +11,11 @@ import (
 	"unicode"
 )
 
+type trashTableSummary struct {
+	Table string
+	Count int64
+}
+
 func List(ctx context.Context, db *sql.DB, res AdminResource, page, perPage int) ([]AdminRow, int, error) {
 	if db == nil {
 		return nil, 0, errors.New("db is nil")
@@ -253,4 +258,46 @@ func scanRows(rows *sql.Rows) ([]AdminRow, error) {
 		return nil, err
 	}
 	return out, nil
+}
+
+func listSoftDeleteTableSummaries(ctx context.Context, db *sql.DB) ([]trashTableSummary, error) {
+	if db == nil {
+		return nil, nil
+	}
+
+	rows, err := db.QueryContext(ctx, `SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'`)
+	if err != nil {
+		return nil, nil
+	}
+
+	tableNames := make([]string, 0)
+	for rows.Next() {
+		var table string
+		if err := rows.Scan(&table); err != nil {
+			_ = rows.Close()
+			return nil, err
+		}
+		tableNames = append(tableNames, table)
+	}
+	if err := rows.Err(); err != nil {
+		_ = rows.Close()
+		return nil, err
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+
+	summaries := make([]trashTableSummary, 0)
+	for _, table := range tableNames {
+		query := fmt.Sprintf(`SELECT COUNT(*) FROM "%s" WHERE deleted_at IS NOT NULL`, strings.ReplaceAll(table, `"`, `""`))
+		var count int64
+		if err := db.QueryRowContext(ctx, query).Scan(&count); err != nil {
+			continue
+		}
+		if count > 0 {
+			summaries = append(summaries, trashTableSummary{Table: table, Count: count})
+		}
+	}
+
+	return summaries, nil
 }

@@ -3,6 +3,7 @@ package policies
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -195,4 +196,34 @@ func ok(db interface{ Exec(string, ...any) (any, error) }) {
 			}
 		}
 	})
+
+	t.Run("modules admin routes keep inline sql out of route layer", func(t *testing.T) {
+		root := findRepoRoot(t)
+		issues := RunDoctorChecks(root)
+		for _, issue := range issues {
+			if issue.Code == "DX021" && issue.File == "modules/admin/routes.go" {
+				t.Fatalf("unexpected DX021 issue for modules/admin/routes.go: %+v", issue)
+			}
+		}
+	})
+}
+
+func findRepoRoot(t *testing.T) string {
+	t.Helper()
+	dir, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("getwd: %v", err)
+	}
+	for {
+		if hasFile(filepath.Join(dir, "go.mod")) &&
+			hasFile(filepath.Join(dir, "app", "router.go")) &&
+			hasFile(filepath.Join(dir, "modules", "admin", "routes.go")) {
+			return dir
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir || strings.TrimSpace(parent) == "" {
+			t.Fatalf("repo root not found from %s", dir)
+		}
+		dir = parent
+	}
 }
