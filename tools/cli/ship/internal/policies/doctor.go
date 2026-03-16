@@ -14,6 +14,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"sort"
+	"strconv"
 	"strings"
 	"unicode"
 
@@ -295,8 +297,370 @@ func RunDoctorChecks(root string) []DoctorIssue {
 	issues = append(issues, checkContractUsage(root)...)
 	issues = append(issues, checkCanonicalFilePlacement(root)...)
 	issues = append(issues, checkSoftDeleteQueryFilters(root)...)
+	issues = append(issues, checkI18nLiteralEnforcement(root)...)
 
 	return issues
+}
+
+func checkI18nLiteralEnforcement(root string) []DoctorIssue {
+	mode := resolveI18nStrictMode(root)
+	switch mode {
+	case "off":
+		return nil
+	case "warn", "error":
+	default:
+		return []DoctorIssue{{
+			Code:     "DX029",
+			Message:  fmt.Sprintf("invalid PAGODA_I18N_STRICT_MODE value: %q", mode),
+			Fix:      "use one of: off, warn, error",
+			Severity: "error",
+		}}
+	}
+
+	findings, err := collectI18nStrictFindings(root, []string{
+		filepath.Join("app", "web", "controllers"),
+		filepath.Join("app", "views"),
+		filepath.Join("frontend", "islands"),
+	})
+	if err != nil {
+		return []DoctorIssue{{
+			Code:     "DX029",
+			Message:  fmt.Sprintf("i18n strict-mode scan failed: %v", err),
+			Fix:      "fix scanner/runtime errors before enabling strict mode",
+			Severity: "error",
+		}}
+	}
+	if len(findings) == 0 {
+		return nil
+	}
+
+	allowlist := loadI18nStrictAllowlist(filepath.Join(root, ".i18n-allowlist"))
+	severity := "warning"
+	if mode == "error" {
+		severity = "error"
+	}
+
+	issues := make([]DoctorIssue, 0, len(findings))
+	for _, finding := range findings {
+		locationKey := fmt.Sprintf("%s:%d", finding.File, finding.Line)
+		if _, ok := allowlist[finding.ID]; ok {
+			continue
+		}
+		if _, ok := allowlist[locationKey]; ok {
+			continue
+		}
+		issues = append(issues, DoctorIssue{
+			Code:     "DX029",
+			Message:  fmt.Sprintf("i18n literal %s:%d:%d (%s)", finding.File, finding.Line, finding.Column, finding.ID),
+			Fix:      "replace with i18n key usage or add the issue ID/path:line to .i18n-allowlist",
+			File:     finding.File,
+			Severity: severity,
+		})
+	}
+	return issues
+}
+
+func resolveI18nStrictMode(root string) string {
+	if fromEnv := strings.ToLower(strings.TrimSpace(os.Getenv("PAGODA_I18N_STRICT_MODE"))); fromEnv != "" {
+		return fromEnv
+	}
+
+	dotEnvPath := filepath.Join(root, ".env")
+	content, err := os.ReadFile(dotEnvPath)
+	if err != nil {
+		return "off"
+	}
+	scanner := bufio.NewScanner(strings.NewReader(string(content)))
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		key, value, ok := strings.Cut(line, "=")
+		if !ok {
+			continue
+		}
+		if strings.TrimSpace(key) != "PAGODA_I18N_STRICT_MODE" {
+			continue
+		}
+		clean := strings.ToLower(strings.TrimSpace(value))
+		if clean == "" {
+			return "off"
+		}
+		return clean
+	}
+	return "off"
+}
+
+func loadI18nStrictAllowlist(path string) map[string]struct{} {
+	values := map[string]struct{}{}
+	content, err := os.ReadFile(path)
+	if err != nil {
+		return values
+	}
+	scanner := bufio.NewScanner(strings.NewReader(string(content)))
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		values[line] = struct{}{}
+	}
+	return values
+}
+
+type i18nStrictFinding struct {
+	ID     string
+	File   string
+	Line   int
+	Column int
+}
+
+func collectI18nStrictFindings(root string, relPaths []string) ([]i18nStrictFinding, error) {
+	findings := make([]i18nStrictFinding, 0)
+	for _, rel := range relPaths {
+		target := filepath.Join(root, rel)
+		info, err := os.Stat(target)
+		if err != nil {
+			if errors.Is(err, os.ErrNotExist) {
+				continue
+			}
+			return nil, err
+		}
+		if !info.IsDir() {
+			scanned, err := scanI18nStrictFile(root, target)
+			if err != nil {
+				return nil, err
+			}
+			findings = append(findings, scanned...)
+			continue
+		}
+
+		err = filepath.WalkDir(target, func(path string, d os.DirEntry, walkErr error) error {
+			if walkErr != nil {
+				return walkErr
+			}
+			if d.IsDir() {
+				if d.Name() == "gen" || d.Name() == "node_modules" {
+					return filepath.SkipDir
+				}
+				return nil
+			}
+			scanned, err := scanI18nStrictFile(root, path)
+			if err != nil {
+				return err
+			}
+			findings = append(findings, scanned...)
+			return nil
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	sort.Slice(findings, func(i, j int) bool {
+		if findings[i].File != findings[j].File {
+			return findings[i].File < findings[j].File
+		}
+		if findings[i].Line != findings[j].Line {
+			return findings[i].Line < findings[j].Line
+		}
+		if findings[i].Column != findings[j].Column {
+			return findings[i].Column < findings[j].Column
+		}
+		return findings[i].ID < findings[j].ID
+	})
+
+	return findings, nil
+}
+
+var (
+	doctorI18nStringLiteralPattern = regexp.MustCompile(`"([^"\\]*(\\.[^"\\]*)*)"|'([^'\\]*(\\.[^'\\]*)*)'|` + "`" + `([^` + "`" + `]*)` + "`")
+	doctorI18nTemplTextPattern     = regexp.MustCompile(`>([^<>{]+)<`)
+)
+
+func scanI18nStrictFile(root, path string) ([]i18nStrictFinding, error) {
+	ext := strings.ToLower(filepath.Ext(path))
+	switch ext {
+	case ".go", ".templ", ".js", ".ts", ".svelte", ".vue":
+	default:
+		return nil, nil
+	}
+	rel, err := filepath.Rel(root, path)
+	if err != nil {
+		return nil, err
+	}
+	rel = filepath.ToSlash(rel)
+	if ext == ".go" && strings.HasSuffix(rel, "_test.go") {
+		return nil, nil
+	}
+	if (ext == ".js" || ext == ".ts" || ext == ".svelte" || ext == ".vue") && !strings.HasPrefix(strings.ToLower(rel), "frontend/islands/") {
+		return nil, nil
+	}
+
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	if ext == ".go" {
+		return scanI18nStrictGo(rel, raw)
+	}
+	return scanI18nStrictText(rel, ext, string(raw)), nil
+}
+
+func scanI18nStrictGo(rel string, raw []byte) ([]i18nStrictFinding, error) {
+	fset := token.NewFileSet()
+	file, err := parser.ParseFile(fset, rel, raw, parser.ParseComments)
+	if err != nil {
+		return nil, err
+	}
+	findings := make([]i18nStrictFinding, 0)
+	stack := make([]ast.Node, 0, 32)
+	ast.Inspect(file, func(node ast.Node) bool {
+		if node == nil {
+			if len(stack) > 0 {
+				stack = stack[:len(stack)-1]
+			}
+			return true
+		}
+		stack = append(stack, node)
+		lit, ok := node.(*ast.BasicLit)
+		if !ok || lit.Kind != token.STRING {
+			return true
+		}
+		value, unquoteErr := strconv.Unquote(lit.Value)
+		if unquoteErr != nil {
+			value = strings.Trim(lit.Value, "\"`")
+		}
+		value = strings.TrimSpace(value)
+		if !doctorLooksUserFacingLiteral(value) || doctorIgnoreGoI18nLiteral(stack, value) {
+			return true
+		}
+		pos := fset.Position(lit.Pos())
+		findings = append(findings, i18nStrictFinding{
+			ID:     doctorI18nIssueID(rel, pos.Line, pos.Column, value),
+			File:   rel,
+			Line:   pos.Line,
+			Column: pos.Column,
+		})
+		return true
+	})
+	return findings, nil
+}
+
+func scanI18nStrictText(rel, ext, raw string) []i18nStrictFinding {
+	lines := strings.Split(raw, "\n")
+	findings := make([]i18nStrictFinding, 0)
+	for i, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "" || strings.Contains(line, "I18n.T(") || strings.Contains(line, "i18n.T(") {
+			continue
+		}
+		if (ext == ".js" || ext == ".ts" || ext == ".svelte" || ext == ".vue") && strings.Contains(strings.ToLower(line), "i18n.t(") {
+			continue
+		}
+
+		if ext == ".templ" {
+			matches := doctorI18nTemplTextPattern.FindAllStringSubmatchIndex(line, -1)
+			for _, m := range matches {
+				if len(m) < 4 || m[2] < 0 || m[3] <= m[2] {
+					continue
+				}
+				value := strings.TrimSpace(line[m[2]:m[3]])
+				if !doctorLooksUserFacingLiteral(value) {
+					continue
+				}
+				findings = append(findings, i18nStrictFinding{
+					ID:     doctorI18nIssueID(rel, i+1, m[2]+1, value),
+					File:   rel,
+					Line:   i + 1,
+					Column: m[2] + 1,
+				})
+			}
+			continue
+		}
+
+		matches := doctorI18nStringLiteralPattern.FindAllStringSubmatchIndex(line, -1)
+		for _, m := range matches {
+			if len(m) < 2 || m[0] < 0 || m[1] <= m[0] {
+				continue
+			}
+			value := strings.TrimSpace(strings.Trim(line[m[0]:m[1]], "\"'`"))
+			if !doctorLooksUserFacingLiteral(value) {
+				continue
+			}
+			findings = append(findings, i18nStrictFinding{
+				ID:     doctorI18nIssueID(rel, i+1, m[0]+1, value),
+				File:   rel,
+				Line:   i + 1,
+				Column: m[0] + 1,
+			})
+		}
+	}
+	return findings
+}
+
+func doctorLooksUserFacingLiteral(value string) bool {
+	if len(value) < 3 {
+		return false
+	}
+	hasLetter := false
+	for _, r := range value {
+		if unicode.IsLetter(r) {
+			hasLetter = true
+			break
+		}
+	}
+	if !hasLetter {
+		return false
+	}
+	if strings.HasPrefix(value, "http://") || strings.HasPrefix(value, "https://") {
+		return false
+	}
+	upper := strings.ToUpper(strings.TrimSpace(value))
+	return !strings.HasPrefix(upper, "SELECT ") &&
+		!strings.HasPrefix(upper, "INSERT ") &&
+		!strings.HasPrefix(upper, "UPDATE ") &&
+		!strings.HasPrefix(upper, "DELETE ") &&
+		!strings.HasPrefix(upper, "CREATE ") &&
+		!strings.HasPrefix(upper, "ALTER ") &&
+		!strings.HasPrefix(upper, "DROP ")
+}
+
+func doctorIgnoreGoI18nLiteral(stack []ast.Node, value string) bool {
+	if strings.HasPrefix(strings.ToUpper(strings.TrimSpace(value)), "SELECT ") {
+		return true
+	}
+	for i := len(stack) - 1; i >= 0; i-- {
+		switch node := stack[i].(type) {
+		case *ast.ImportSpec:
+			return true
+		case *ast.CallExpr:
+			sel, ok := node.Fun.(*ast.SelectorExpr)
+			if !ok || sel.Sel == nil {
+				continue
+			}
+			switch sel.Sel.Name {
+			case "Debug", "Info", "Warn", "Error", "Print", "Printf", "Println", "Fatal", "Fatalf", "Fatalln", "New", "Errorf":
+				return true
+			case "T":
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func doctorI18nIssueID(file string, line, column int, literal string) string {
+	base := fmt.Sprintf("%s|%d|%d|%s", file, line, column, literal)
+	sum := 0
+	for _, r := range base {
+		sum = ((sum << 5) - sum) + int(r)
+	}
+	if sum < 0 {
+		sum = -sum
+	}
+	return fmt.Sprintf("I18N-%d", sum)
 }
 
 func doctorCheckAPIRoutes(root string) []DoctorIssue {

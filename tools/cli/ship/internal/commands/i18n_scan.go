@@ -39,6 +39,19 @@ type i18nScanIssue struct {
 	Confidence   string `json:"confidence"`
 }
 
+// I18nScanFinding is the exported i18n scanner diagnostic record.
+type I18nScanFinding struct {
+	ID           string
+	Kind         string
+	Severity     string
+	File         string
+	Line         int
+	Column       int
+	Message      string
+	SuggestedKey string
+	Confidence   string
+}
+
 var (
 	scanStringLiteralPattern = regexp.MustCompile(`"([^"\\]*(\\.[^"\\]*)*)"|'([^'\\]*(\\.[^'\\]*)*)'|` + "`" + `([^` + "`" + `]*)` + "`")
 	scanTemplTextPattern     = regexp.MustCompile(`>([^<>{]+)<`)
@@ -77,6 +90,30 @@ func runI18nScan(args []string, d I18nDeps, root string) int {
 		return 1
 	}
 	return 0
+}
+
+// CollectI18nScanFindings returns deterministic scanner findings for the given project root.
+func CollectI18nScanFindings(root string, paths []string) ([]I18nScanFinding, error) {
+	issues, err := collectI18nScanIssues(root, paths)
+	if err != nil {
+		return nil, err
+	}
+	sortI18nScanIssues(issues)
+	out := make([]I18nScanFinding, 0, len(issues))
+	for _, issue := range issues {
+		out = append(out, I18nScanFinding{
+			ID:           issue.ID,
+			Kind:         issue.Kind,
+			Severity:     issue.Severity,
+			File:         issue.File,
+			Line:         issue.Line,
+			Column:       issue.Column,
+			Message:      issue.Message,
+			SuggestedKey: issue.SuggestedKey,
+			Confidence:   issue.Confidence,
+		})
+	}
+	return out, nil
 }
 
 func parseI18nScanArgs(args []string) (i18nScanOptions, bool, error) {

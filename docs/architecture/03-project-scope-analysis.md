@@ -176,6 +176,7 @@ Reflection-based administrative interface for managing database resources.
 - Locale sources are YAML files in `locales/` with nested keys (for example `auth.login.title`).
 - Runtime toggle: `PAGODA_I18N_ENABLED=false` disables i18n service initialization (safe English fallback path, no startup panic).
 - Runtime default language is configurable via `PAGODA_I18N_DEFAULT_LANGUAGE`.
+- Runtime enforcement mode is configurable via `PAGODA_I18N_STRICT_MODE=off|warn|error` and consumed by `ship doctor` (`DX029`), with optional `.i18n-allowlist`.
 - `ship make:locale <code>` scaffolds a new locale file from `locales/en.yaml`.
 - `ship i18n:init` bootstraps baseline locale files (`en`, `fr`) for apps that started without i18n and prints a deterministic migration command loop.
 - `ship i18n:scan --format json` emits deterministic diagnostics for hardcoded user-facing literals (`--paths`, `--limit` supported) without failing on findings; Go sources are scanned via AST/token positions with guardrails for logs, SQL literals, and `_test.go` files, and JS scanning is scoped to `frontend/islands/` entry paths.

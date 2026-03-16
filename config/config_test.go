@@ -175,11 +175,13 @@ func TestGetConfig_I18nModeOverrides(t *testing.T) {
 	useIsolatedWorkingDir(t)
 	t.Setenv("PAGODA_I18N_ENABLED", "false")
 	t.Setenv("PAGODA_I18N_DEFAULT_LANGUAGE", "fr")
+	t.Setenv("PAGODA_I18N_STRICT_MODE", "warn")
 
 	cfg, err := GetConfig()
 	require.NoError(t, err)
 	assert.False(t, cfg.I18n.Enabled)
 	assert.Equal(t, "fr", cfg.I18n.DefaultLanguage)
+	assert.Equal(t, "warn", cfg.I18n.StrictMode)
 }
 
 func TestGetConfig_LoadsOpenAIConfig(t *testing.T) {

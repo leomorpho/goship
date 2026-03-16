@@ -157,6 +157,7 @@ type (
 	I18nConfig struct {
 		Enabled         bool   `env:"PAGODA_I18N_ENABLED" env-default:"true"`
 		DefaultLanguage string `env:"PAGODA_I18N_DEFAULT_LANGUAGE" env-default:"en"`
+		StrictMode      string `env:"PAGODA_I18N_STRICT_MODE" env-default:"off"`
 	}
 
 	// HTTPConfig stores HTTP configuration
@@ -634,6 +635,7 @@ func defaultConfig() Config {
 		I18n: I18nConfig{
 			Enabled:         true,
 			DefaultLanguage: "en",
+			StrictMode:      "off",
 		},
 		Cache: CacheConfig{
 			Hostname:     "localhost",

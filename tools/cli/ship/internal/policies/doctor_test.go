@@ -150,6 +150,67 @@ func registerAuthRoutes() {
 		mustContainIssueCode(t, issues, "DX023")
 	})
 
+	t.Run("i18n strict mode warn surfaces non-blocking DX029 findings", func(t *testing.T) {
+		root := t.TempDir()
+		writeDoctorFixture(t, root)
+		if err := os.WriteFile(filepath.Join(root, ".env"), []byte("PAGODA_I18N_STRICT_MODE=warn\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		controllerPath := filepath.Join(root, "app", "web", "controllers", "sample.go")
+		controllerBody := "package controllers\nfunc demo() string {\n\treturn \"Welcome users\"\n}\n"
+		if err := os.WriteFile(controllerPath, []byte(controllerBody), 0o644); err != nil {
+			t.Fatal(err)
+		}
+
+		issues := RunDoctorChecks(root)
+		mustContainIssueCode(t, issues, "DX029")
+		for _, issue := range issues {
+			if issue.Code == "DX029" && issue.Severity != "warning" {
+				t.Fatalf("expected DX029 warning severity in warn mode, got %+v", issue)
+			}
+		}
+	})
+
+	t.Run("i18n strict mode error surfaces blocking DX029 findings", func(t *testing.T) {
+		root := t.TempDir()
+		writeDoctorFixture(t, root)
+		if err := os.WriteFile(filepath.Join(root, ".env"), []byte("PAGODA_I18N_STRICT_MODE=error\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		controllerPath := filepath.Join(root, "app", "web", "controllers", "sample.go")
+		controllerBody := "package controllers\nfunc demo() string {\n\treturn \"Welcome users\"\n}\n"
+		if err := os.WriteFile(controllerPath, []byte(controllerBody), 0o644); err != nil {
+			t.Fatal(err)
+		}
+
+		issues := RunDoctorChecks(root)
+		mustContainIssueCode(t, issues, "DX029")
+		for _, issue := range issues {
+			if issue.Code == "DX029" && issue.Severity != "error" {
+				t.Fatalf("expected DX029 error severity in error mode, got %+v", issue)
+			}
+		}
+	})
+
+	t.Run("i18n strict mode allowlist suppresses findings", func(t *testing.T) {
+		root := t.TempDir()
+		writeDoctorFixture(t, root)
+		if err := os.WriteFile(filepath.Join(root, ".env"), []byte("PAGODA_I18N_STRICT_MODE=error\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		controllerPath := filepath.Join(root, "app", "web", "controllers", "sample.go")
+		controllerBody := "package controllers\nfunc demo() string {\n\treturn \"Welcome users\"\n}\n"
+		if err := os.WriteFile(controllerPath, []byte(controllerBody), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(root, ".i18n-allowlist"), []byte("app/web/controllers/sample.go:3\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+
+		issues := RunDoctorChecks(root)
+		mustNotContainIssueCode(t, issues, "DX029")
+	})
+
 	t.Run("renders comment suppresses warning", func(t *testing.T) {
 		root := t.TempDir()
 		writeDoctorFixture(t, root)
