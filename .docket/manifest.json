@@ -488,7 +488,7 @@
     },
     "TKT-098": {
       "title": "M07 Z02 - JSON API pattern and typed response helpers",
-      "state": "todo",
+      "state": "done",
       "priority": 6
     },
     "TKT-099": {
