@@ -648,7 +648,7 @@
     },
     "TKT-157": {
       "title": "Doctor Warning Burn-Down EPIC (DX027 + DX010)",
-      "state": "todo",
+      "state": "done",
       "priority": 4
     },
     "TKT-158": {
@@ -713,13 +713,13 @@
     },
     "TKT-168": {
       "title": "DX010: split MCP ship server tools.go by tool domain",
-      "state": "todo",
+      "state": "done",
       "priority": 6,
       "parent": "TKT-157"
     },
     "TKT-169": {
       "title": "DX010: decompose config/config.go into modular config packages",
-      "state": "todo",
+      "state": "done",
       "priority": 6,
       "parent": "TKT-157"
     }

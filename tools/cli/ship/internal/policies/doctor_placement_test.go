@@ -129,7 +129,7 @@ func bad(db interface{ Exec(string, ...any) (any, error) }) {
 		mustContainIssueCode(t, issues, "DX021")
 	})
 
-	t.Run("config struct outside config.go is rejected", func(t *testing.T) {
+	t.Run("config struct outside allowed config_* files is rejected", func(t *testing.T) {
 		root := t.TempDir()
 		writeDoctorFixture(t, root)
 		path := filepath.Join(root, "config", "extra.go")
@@ -142,6 +142,25 @@ type ExtraConfig struct{}
 		}
 		issues := RunDoctorChecks(root)
 		mustContainIssueCode(t, issues, "DX021")
+	})
+
+	t.Run("config struct in config_* file stays allowed", func(t *testing.T) {
+		root := t.TempDir()
+		writeDoctorFixture(t, root)
+		path := filepath.Join(root, "config", "config_schema.go")
+		content := `package config
+
+type ExtraConfig struct{}
+`
+		if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		issues := RunDoctorChecks(root)
+		for _, issue := range issues {
+			if issue.Code == "DX021" && issue.File == "config/config_schema.go" {
+				t.Fatalf("unexpected DX021 issue for allowed config file: %+v", issue)
+			}
+		}
 	})
 
 	t.Run("static route wiring stays allowed", func(t *testing.T) {

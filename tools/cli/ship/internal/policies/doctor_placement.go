@@ -344,7 +344,7 @@ func checkConfigStructPlacement(root string) []DoctorIssue {
 			return nil
 		}
 		rel := filepath.ToSlash(mustRel(root, path))
-		if rel == "config/config.go" {
+		if doctorAllowsConfigStructFile(rel) {
 			return nil
 		}
 		file, parseErr := parseDoctorGoFile(path)
@@ -368,6 +368,17 @@ func checkConfigStructPlacement(root string) []DoctorIssue {
 		return nil
 	})
 	return issues
+}
+
+func doctorAllowsConfigStructFile(rel string) bool {
+	if rel == "config/config.go" {
+		return true
+	}
+	if !strings.HasPrefix(rel, "config/") {
+		return false
+	}
+	base := filepath.Base(rel)
+	return strings.HasPrefix(base, "config_") && strings.HasSuffix(base, ".go")
 }
 
 func checkRendersComments(root string) []DoctorIssue {
