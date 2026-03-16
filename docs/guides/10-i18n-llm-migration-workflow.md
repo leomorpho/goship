@@ -121,3 +121,16 @@ Use `.i18n-allowlist` for intentional exceptions:
 2. Limit each loop (`--limit 1..50`) and re-run diagnostics after each applied batch.
 3. Prefer `high` confidence rewrites first.
 4. Run `go test ./...` and `ship doctor --json` before each commit.
+
+## Starter Locale Packs Policy
+
+`ship new` supports:
+
+1. Default `starter` pack (`en`, `fr`).
+2. Optional `top15` pack (`ar,de,en,es,fr,hi,id,it,ja,ko,nl,pt,ru,tr,zh`) via `--i18n-locale-pack top15`.
+
+Maintenance policy:
+
+1. `en.toml` remains canonical source for key shape.
+2. New keys are introduced in `en.toml` first, then synchronized to other locales via `ship make:locale`, `ship i18n:missing`, and `ship i18n:normalize`.
+3. Starter-pack translations must be reviewed before production use; scaffold values are bootstrapping defaults, not guaranteed fully translated product copy.

@@ -852,7 +852,7 @@ Current progress:
 - [ ] Move Cherie onto released GoShip modules incrementally (module by module).
 - [ ] Upstream selected Cherie capabilities into optional GoShip modules (notifications/referrals/gamification/security helpers).
 - [ ] Keep Docker-based integration suite as optional/CI-focused (`make test-integration`), not default local path.
-- [ ] Expand starter i18n locale packs (top-language bundle) once LLM-first migration workflow and strict doctor enforcement are stable.
+- [x] Expand starter i18n locale packs (top-language bundle) once LLM-first migration workflow and strict doctor enforcement are stable.
 
 ## Open Questions
 

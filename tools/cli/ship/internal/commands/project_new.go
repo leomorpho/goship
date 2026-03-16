@@ -16,13 +16,15 @@ import (
 )
 
 type NewProjectOptions struct {
-	Name        string
-	Module      string
-	DryRun      bool
-	Force       bool
-	AppPath     string
-	I18nEnabled bool
-	I18nSet     bool
+	Name              string
+	Module            string
+	DryRun            bool
+	Force             bool
+	AppPath           string
+	I18nEnabled       bool
+	I18nSet           bool
+	I18nLocalePack    string
+	I18nLocalePackSet bool
 }
 
 type NewDeps struct {
@@ -39,7 +41,7 @@ func RunNew(args []string, d NewDeps) int {
 	for _, arg := range args {
 		if arg == "-h" || arg == "--help" || arg == "help" {
 			fmt.Fprintln(d.Out, "ship new:")
-			fmt.Fprintln(d.Out, "  ship new <app> [--module <module-path>] [--dry-run] [--force] [--i18n|--no-i18n]")
+			fmt.Fprintln(d.Out, "  ship new <app> [--module <module-path>] [--dry-run] [--force] [--i18n|--no-i18n] [--i18n-locale-pack starter|top15]")
 			return 0
 		}
 	}
@@ -50,7 +52,7 @@ func RunNew(args []string, d NewDeps) int {
 		return 1
 	}
 	if strings.TrimSpace(opts.Name) == "" {
-		fmt.Fprintln(d.Err, "usage: ship new <app> [--module <module-path>] [--dry-run] [--force] [--i18n|--no-i18n]")
+		fmt.Fprintln(d.Err, "usage: ship new <app> [--module <module-path>] [--dry-run] [--force] [--i18n|--no-i18n] [--i18n-locale-pack starter|top15]")
 		return 1
 	}
 	opts, err = resolveNewI18nOptions(opts, d)
@@ -76,7 +78,7 @@ func RunNew(args []string, d NewDeps) int {
 		fmt.Fprintln(d.Out, "Dry-run mode: no files were written.")
 	}
 	fmt.Fprintf(d.Out, "GitHub Actions workflows created. Add DEPLOY_KEY secret to enable deployment.\n")
-	printNewI18nStatus(d.Out, opts.I18nEnabled)
+	printNewI18nStatus(d.Out, opts)
 	fmt.Fprintf(d.Out, "Next: cd %s && ship module:add <module> && make run\n", opts.AppPath)
 	return 0
 }
@@ -107,6 +109,16 @@ func ParseNewArgs(args []string) (NewProjectOptions, error) {
 			}
 			opts.I18nEnabled = false
 			opts.I18nSet = true
+		case strings.HasPrefix(arg, "--i18n-locale-pack="):
+			opts.I18nLocalePack = strings.TrimSpace(strings.TrimPrefix(arg, "--i18n-locale-pack="))
+			opts.I18nLocalePackSet = true
+		case arg == "--i18n-locale-pack":
+			if i+1 >= len(args) {
+				return opts, fmt.Errorf("missing value for --i18n-locale-pack")
+			}
+			i++
+			opts.I18nLocalePack = strings.TrimSpace(args[i])
+			opts.I18nLocalePackSet = true
 		case strings.HasPrefix(arg, "--module="):
 			opts.Module = strings.TrimPrefix(arg, "--module=")
 		case arg == "--module":
@@ -127,6 +139,11 @@ func ParseNewArgs(args []string) (NewProjectOptions, error) {
 	}
 	if err := validateAppName(opts.Name); err != nil {
 		return opts, err
+	}
+	if opts.I18nLocalePackSet {
+		if !isValidI18nLocalePack(opts.I18nLocalePack) {
+			return opts, fmt.Errorf("invalid --i18n-locale-pack value %q (supported: starter, top15)", opts.I18nLocalePack)
+		}
 	}
 	return opts, nil
 }
