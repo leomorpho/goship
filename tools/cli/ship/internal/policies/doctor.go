@@ -292,6 +292,7 @@ func RunDoctorChecks(root string) []DoctorIssue {
 	issues = append(issues, checkModulesManifestFormat(root)...)
 	issues = append(issues, checkEnabledModuleDBArtifacts(root)...)
 	issues = append(issues, checkForbiddenCrossBoundaryImports(root)...)
+	issues = append(issues, checkContractUsage(root)...)
 	issues = append(issues, checkCanonicalFilePlacement(root)...)
 
 	return issues
@@ -1416,6 +1417,180 @@ func checkForbiddenCrossBoundaryImports(root string) []DoctorIssue {
 	issues = append(issues, checkModuleSourceIsolation(root)...)
 
 	return issues
+}
+
+func checkContractUsage(root string) []DoctorIssue {
+	issues := make([]DoctorIssue, 0)
+	controllerDir := filepath.Join(root, "app", "web", "controllers")
+	if !isDir(controllerDir) {
+		return issues
+	}
+
+	_ = filepath.WalkDir(controllerDir, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return nil
+		}
+		if d.IsDir() || !strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "_test.go") {
+			return nil
+		}
+
+		fset := token.NewFileSet()
+		file, parseErr := parser.ParseFile(fset, path, nil, 0)
+		if parseErr != nil {
+			return nil
+		}
+
+		contractAliases := doctorContractsImportAliases(file)
+		contractVars := map[string]struct{}{}
+		rawBind := false
+		rawFormValue := false
+
+		ast.Inspect(file, func(n ast.Node) bool {
+			switch node := n.(type) {
+			case *ast.ValueSpec:
+				if doctorExprUsesContractsType(node.Type, contractAliases) {
+					for _, name := range node.Names {
+						contractVars[name.Name] = struct{}{}
+					}
+				}
+				for i, value := range node.Values {
+					if doctorExprUsesContractsType(value, contractAliases) && i < len(node.Names) {
+						contractVars[node.Names[i].Name] = struct{}{}
+					}
+				}
+			case *ast.AssignStmt:
+				upper := len(node.Rhs)
+				if len(node.Lhs) < upper {
+					upper = len(node.Lhs)
+				}
+				for i := 0; i < upper; i++ {
+					if !doctorExprUsesContractsType(node.Rhs[i], contractAliases) {
+						continue
+					}
+					if ident, ok := node.Lhs[i].(*ast.Ident); ok {
+						contractVars[ident.Name] = struct{}{}
+					}
+				}
+			case *ast.CallExpr:
+				sel, ok := node.Fun.(*ast.SelectorExpr)
+				if !ok || sel.Sel == nil {
+					return true
+				}
+				switch sel.Sel.Name {
+				case "FormValue":
+					rawFormValue = true
+				case "Bind":
+					if len(node.Args) == 0 || !doctorBindArgUsesContractsType(node.Args[0], contractVars, contractAliases) {
+						rawBind = true
+					}
+				}
+			}
+			return true
+		})
+
+		if !rawBind && !rawFormValue {
+			return nil
+		}
+
+		detail := "controller uses raw form parsing without app/contracts request types"
+		switch {
+		case rawBind && !rawFormValue:
+			detail = "controller uses Bind without app/contracts request types"
+		case rawFormValue && !rawBind:
+			detail = "controller uses FormValue directly (prefer app/contracts request types)"
+		}
+
+		issues = append(issues, DoctorIssue{
+			Code:     "DX027",
+			File:     filepath.ToSlash(mustRel(root, path)),
+			Message:  detail,
+			Fix:      "bind/parse request payloads into types from app/contracts instead of raw FormValue/local ad-hoc structs",
+			Severity: "warning",
+		})
+		return nil
+	})
+
+	return issues
+}
+
+func doctorContractsImportAliases(file *ast.File) map[string]struct{} {
+	aliases := map[string]struct{}{}
+	if file == nil {
+		return aliases
+	}
+
+	for _, imp := range file.Imports {
+		if imp == nil || imp.Path == nil {
+			continue
+		}
+		path := strings.Trim(imp.Path.Value, "\"")
+		if !strings.HasSuffix(path, "/app/contracts") && path != "app/contracts" {
+			continue
+		}
+
+		alias := "contracts"
+		if imp.Name != nil {
+			if imp.Name.Name == "_" || imp.Name.Name == "." {
+				continue
+			}
+			alias = imp.Name.Name
+		}
+		aliases[alias] = struct{}{}
+	}
+	return aliases
+}
+
+func doctorExprUsesContractsType(expr ast.Expr, aliases map[string]struct{}) bool {
+	if expr == nil || len(aliases) == 0 {
+		return false
+	}
+
+	switch node := expr.(type) {
+	case *ast.ParenExpr:
+		return doctorExprUsesContractsType(node.X, aliases)
+	case *ast.StarExpr:
+		return doctorExprUsesContractsType(node.X, aliases)
+	case *ast.UnaryExpr:
+		return doctorExprUsesContractsType(node.X, aliases)
+	case *ast.CompositeLit:
+		return doctorExprUsesContractsType(node.Type, aliases)
+	case *ast.SelectorExpr:
+		ident, ok := node.X.(*ast.Ident)
+		if !ok {
+			return false
+		}
+		_, ok = aliases[ident.Name]
+		return ok
+	case *ast.IndexExpr:
+		return doctorExprUsesContractsType(node.X, aliases)
+	case *ast.IndexListExpr:
+		return doctorExprUsesContractsType(node.X, aliases)
+	default:
+		return false
+	}
+}
+
+func doctorBindArgUsesContractsType(arg ast.Expr, contractVars map[string]struct{}, aliases map[string]struct{}) bool {
+	if doctorExprUsesContractsType(arg, aliases) {
+		return true
+	}
+
+	switch node := arg.(type) {
+	case *ast.ParenExpr:
+		return doctorBindArgUsesContractsType(node.X, contractVars, aliases)
+	case *ast.UnaryExpr:
+		ident, ok := node.X.(*ast.Ident)
+		if !ok {
+			return false
+		}
+		_, ok = contractVars[ident.Name]
+		return ok
+	case *ast.Ident:
+		_, ok := contractVars[node.Name]
+		return ok
+	default:
+		return false
+	}
 }
 
 func checkModuleSourceIsolation(root string) []DoctorIssue {
