@@ -1233,6 +1233,13 @@ func checkMarkerIntegrity(root string) []DoctorIssue {
 			orderFix:   "place start marker before end marker to keep generator wiring deterministic",
 		},
 		{
+			file:       filepath.ToSlash(filepath.Join("app", "router.go")),
+			start:      "// ship:routes:external:start",
+			end:        "// ship:routes:external:end",
+			missingFix: "restore route markers in app/router.go to keep generator wiring deterministic",
+			orderFix:   "place start marker before end marker to keep generator wiring deterministic",
+		},
+		{
 			file:       filepath.ToSlash(filepath.Join("app", "foundation", "container.go")),
 			start:      "// ship:container:start",
 			end:        "// ship:container:end",
@@ -1660,7 +1667,7 @@ func checkFileSizes(root string) []DoctorIssue {
 	issues := make([]DoctorIssue, 0)
 	hardCapAllowlist := map[string]struct{}{
 		filepath.ToSlash(filepath.Join("tools", "cli", "ship", "internal", "policies", "doctor.go")): {},
-		filepath.ToSlash(filepath.Join("config", "config.go")):                                         {},
+		filepath.ToSlash(filepath.Join("config", "config.go")):                                       {},
 		filepath.ToSlash(filepath.Join("app", "views", "web", "pages", "home_feed.templ")):           {},
 		filepath.ToSlash(filepath.Join("app", "views", "web", "pages", "landing_page.templ")):        {},
 		filepath.ToSlash(filepath.Join("app", "views", "web", "pages", "preferences.templ")):         {},

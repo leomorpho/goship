@@ -71,6 +71,29 @@ func registerAuthRoutes() {
 		mustContainIssueCode(t, issues, "DX011")
 	})
 
+	t.Run("external route marker missing", func(t *testing.T) {
+		root := t.TempDir()
+		writeDoctorFixture(t, root)
+		router := filepath.Join(root, "app", "router.go")
+		content := `package goship
+
+func registerPublicRoutes() {
+	// ship:routes:public:start
+	// ship:routes:public:end
+}
+
+func registerAuthRoutes() {
+	// ship:routes:auth:start
+	// ship:routes:auth:end
+}
+`
+		if err := os.WriteFile(router, []byte(content), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		issues := RunDoctorChecks(root)
+		mustContainIssueCode(t, issues, "DX005")
+	})
+
 	t.Run("package naming mismatch", func(t *testing.T) {
 		root := t.TempDir()
 		writeDoctorFixture(t, root)
@@ -383,6 +406,11 @@ func registerPublicRoutes() {
 func registerAuthRoutes() {
 	// ship:routes:auth:start
 	// ship:routes:auth:end
+}
+
+func registerExternalRoutes() {
+	// ship:routes:external:start
+	// ship:routes:external:end
 }
 `,
 		filepath.Join(root, "app", "foundation", "container.go"): `package foundation
