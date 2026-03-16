@@ -122,12 +122,11 @@ Use `.i18n-allowlist` for intentional exceptions:
 3. Prefer `high` confidence rewrites first.
 4. Run `go test ./...` and `ship doctor --json` before each commit.
 
-## Starter Locale Packs Policy
+## Starter Locale Policy
 
 `ship new` supports:
 
-1. Default `starter` pack (`en`, `fr`).
-2. Optional `top15` pack (`ar,de,en,es,fr,hi,id,it,ja,ko,nl,pt,ru,tr,zh`) via `--i18n-locale-pack top15`.
+1. Starter locales (`en`, `fr`) when i18n is enabled.
 
 Maintenance policy:
 

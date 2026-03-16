@@ -23,9 +23,8 @@ func TestParseNewArgs(t *testing.T) {
 		{name: "force", args: []string{"demo", "--force"}},
 		{name: "i18n enabled", args: []string{"demo", "--i18n"}},
 		{name: "i18n disabled", args: []string{"demo", "--no-i18n"}},
-		{name: "i18n locale pack equals", args: []string{"demo", "--i18n-locale-pack=top15"}},
-		{name: "i18n locale pack spaced", args: []string{"demo", "--i18n-locale-pack", "starter"}},
-		{name: "invalid i18n locale pack", args: []string{"demo", "--i18n-locale-pack", "badpack"}, wantErr: true},
+		{name: "unsupported locale pack equals", args: []string{"demo", "--i18n-locale-pack=top15"}, wantErr: true},
+		{name: "unsupported locale pack spaced", args: []string{"demo", "--i18n-locale-pack", "starter"}, wantErr: true},
 		{name: "conflicting i18n flags", args: []string{"demo", "--i18n", "--no-i18n"}, wantErr: true},
 		{name: "bad name", args: []string{"-bad"}, wantErr: true},
 		{name: "unknown option", args: []string{"demo", "--wat"}, wantErr: true},
@@ -67,45 +66,6 @@ func TestParseNewArgsI18nFlags(t *testing.T) {
 		t.Fatalf("I18nEnabled = true, want false")
 	}
 
-	opts, err = ParseNewArgs([]string{"demo", "--i18n-locale-pack", "top15"})
-	if err != nil {
-		t.Fatalf("ParseNewArgs returned error: %v", err)
-	}
-	if !opts.I18nLocalePackSet {
-		t.Fatalf("I18nLocalePackSet = false, want true")
-	}
-	if opts.I18nLocalePack != "top15" {
-		t.Fatalf("I18nLocalePack = %q, want top15", opts.I18nLocalePack)
-	}
-}
-
-func TestResolveNewI18nOptionsLocalePackBehavior(t *testing.T) {
-	t.Run("locale pack implies i18n enabled", func(t *testing.T) {
-		opts, err := ParseNewArgs([]string{"demo", "--i18n-locale-pack", "top15"})
-		if err != nil {
-			t.Fatalf("ParseNewArgs returned error: %v", err)
-		}
-		resolved, err := resolveNewI18nOptions(opts, NewDeps{})
-		if err != nil {
-			t.Fatalf("resolveNewI18nOptions returned error: %v", err)
-		}
-		if !resolved.I18nEnabled || !resolved.I18nSet {
-			t.Fatalf("resolved options = %+v, want i18n enabled/set", resolved)
-		}
-		if resolved.I18nLocalePack != "top15" {
-			t.Fatalf("I18nLocalePack = %q, want top15", resolved.I18nLocalePack)
-		}
-	})
-
-	t.Run("no-i18n with locale pack is rejected", func(t *testing.T) {
-		opts, err := ParseNewArgs([]string{"demo", "--no-i18n", "--i18n-locale-pack", "starter"})
-		if err != nil {
-			t.Fatalf("ParseNewArgs returned error: %v", err)
-		}
-		if _, err := resolveNewI18nOptions(opts, NewDeps{}); err == nil {
-			t.Fatal("expected resolveNewI18nOptions to fail for --no-i18n + --i18n-locale-pack")
-		}
-	})
 }
 
 func TestScaffoldNewProject(t *testing.T) {
@@ -237,34 +197,6 @@ func TestScaffoldNewProjectI18nEnabled(t *testing.T) {
 	}
 }
 
-func TestScaffoldNewProjectI18nTop15Pack(t *testing.T) {
-	root := t.TempDir()
-	opts := NewProjectOptions{
-		Name:              "demo",
-		Module:            "example.com/demo",
-		AppPath:           filepath.Join(root, "demo"),
-		I18nEnabled:       true,
-		I18nSet:           true,
-		I18nLocalePack:    "top15",
-		I18nLocalePackSet: true,
-	}
-	if err := ScaffoldNewProject(opts, NewDeps{
-		ParseAgentPolicyBytes:      func(b []byte) (policies.AgentPolicy, error) { return policies.ParsePolicyBytes(b) },
-		RenderAgentPolicyArtifacts: policies.RenderPolicyArtifacts,
-		AgentPolicyFilePath:        policies.AgentPolicyFilePath,
-	}); err != nil {
-		t.Fatalf("ScaffoldNewProject failed: %v", err)
-	}
-
-	wantCodes := []string{"ar", "de", "en", "es", "fr", "hi", "id", "it", "ja", "ko", "nl", "pt", "ru", "tr", "zh"}
-	for _, code := range wantCodes {
-		path := filepath.Join(opts.AppPath, "locales", code+".toml")
-		if _, err := os.Stat(path); err != nil {
-			t.Fatalf("expected locale file %s: %v", path, err)
-		}
-	}
-}
-
 func TestRunNewPromptsForI18nWhenInteractive(t *testing.T) {
 	root := t.TempDir()
 	prevWD, err := os.Getwd()
@@ -291,9 +223,6 @@ func TestRunNewPromptsForI18nWhenInteractive(t *testing.T) {
 	}
 	if !strings.Contains(out.String(), "I18n enabled") {
 		t.Fatalf("stdout = %q, want i18n enabled hint", out.String())
-	}
-	if !strings.Contains(out.String(), "starter pack") {
-		t.Fatalf("stdout = %q, want starter locale pack details", out.String())
 	}
 	for _, p := range []string{
 		filepath.Join(root, "demo", "locales", "en.toml"),

@@ -575,6 +575,11 @@
       "title": "Deprecate lecho and zerolog in favor of slog",
       "state": "backlog",
       "priority": 6
+    },
+    "TKT-144": {
+      "title": "Remove top15 locale-pack behavior from `ship new`",
+      "state": "done",
+      "priority": 7
     }
   }
 }

@@ -437,6 +437,7 @@ Last updated: 2026-03-04
 7. `G07` - `guides/07-domain-events.md`: domain event bus, shared event types, and async enqueue contract.
 8. `G08` - `guides/08-building-an-api.md`: JSON response helpers, content negotiation, and versioned API route convention.
 9. `G09` - `guides/09-i18n-adapter-contract.md`: installable i18n adapter interface contract, compatibility harness, and implementer checklist.
+10. `G10` - `guides/10-i18n-llm-migration-workflow.md`: LLM-first i18n migration loop, diagnostics schema, and strict-mode rollout contract.
 
 ### Reference
 
@@ -949,18 +950,22 @@ Reflection-based administrative interface for managing database resources.
 - `modules/i18n` provides a locale service exposed through the `core.I18n` seam (`container.I18n`) and request middleware for language detection.
 - Language detection priority is: `?lang=<code>` query parameter, authenticated user profile preference, `lang` cookie, `Accept-Language` header, then default locale (`en`).
 - Query-driven language switches now persist the normalized language to the authenticated profile record (`profiles.preferred_language`) and still set the `lang` cookie.
-- Locale sources are YAML files in `locales/` with nested keys (for example `auth.login.title`).
+- Canonical locale sources are TOML files in `locales/` (`*.toml`, dotted keys such as `auth.login.title`); runtime still dual-reads YAML during migration windows.
 - Runtime toggle: `PAGODA_I18N_ENABLED=false` disables i18n service initialization (safe English fallback path, no startup panic).
 - Runtime default language is configurable via `PAGODA_I18N_DEFAULT_LANGUAGE`.
 - Runtime enforcement mode is configurable via `PAGODA_I18N_STRICT_MODE=off|warn|error` and consumed by `ship doctor` (`DX029`), with optional `.i18n-allowlist`.
-- `ship make:locale <code>` scaffolds a new locale file from `locales/en.yaml`.
-- `ship i18n:init` bootstraps baseline locale files (`en`, `fr`) for apps that started without i18n and prints a deterministic migration command loop.
+- `ship make:locale <code>` scaffolds a new locale file from `locales/en.toml` (falls back to legacy YAML source when migrating).
+- `ship i18n:init` bootstraps baseline locale files (`en.toml`, `fr.toml`) for apps that started without i18n and prints a deterministic migration command loop.
 - `ship i18n:scan --format json` emits deterministic diagnostics for hardcoded user-facing literals (`--paths`, `--limit` supported) without failing on findings; Go sources are scanned via AST/token positions with guardrails for logs, SQL literals, and `_test.go` files, and JS scanning is scoped to `frontend/islands/` entry paths.
-- `ship i18n:instrument` provides a deterministic migration plan from scanner findings; `--apply` currently rewrites high-confidence Go controller `c.String` literals into i18n calls and seeds missing keys in `locales/en.yaml`.
-- `ship i18n:missing` reports missing/empty translations versus English source keys.
+- `ship i18n:instrument` provides a deterministic migration plan from scanner findings; `--apply` currently rewrites high-confidence Go controller `c.String` literals into i18n calls and seeds missing keys in baseline locale catalogs.
+- `ship i18n:migrate` converts legacy YAML locale catalogs to canonical TOML catalogs.
+- `ship i18n:normalize` rewrites TOML catalogs to deterministic canonical ordering for stable diffs.
+- `ship i18n:missing` reports missing/empty translations versus English source keys and emits plural/select completeness diagnostics for `I18n.TC(...)`/`I18n.TS(...)` usage.
 - `ship i18n:unused` reports locale keys not referenced in `.go`/`.templ` `I18n.T(...)` usage.
+- Islands bootstrap contract now passes locale/i18n data through `data-props` as `{ i18n: { locale: "<code>", messages: { ... } } }`, and islands resolve labels from that payload for hydration parity.
+- `framework/api` now includes localized error helpers (`NotFoundLocalized`, `UnauthorizedLocalized`, `ValidationLocalized`) that keep machine `code` values stable while localizing human `message` values from request locale context.
 - Navbar now includes the `language-switcher` component, and switch links preserve current route/query while toggling `lang`.
-- `ship new <app>` now supports i18n-aware scaffold startup: interactive prompt (or `--i18n` / `--no-i18n`) and optional starter locale file creation (`locales/en.yaml`, `locales/fr.yaml`), with explicit messaging that i18n can be enabled/migrated later.
+- `ship new <app>` now supports i18n-aware scaffold startup: interactive prompt (or `--i18n` / `--no-i18n`) and optional starter locale file creation (`locales/en.toml`, `locales/fr.toml`), with explicit messaging that i18n can be enabled/migrated later.
 
 ## Environments and Configuration
 
@@ -1441,15 +1446,15 @@ Impact:
 - Integration tests for HTML/form routes are shorter and less error-prone by default.
 - API-heavy and realtime-heavy tests still need some manual request/transport setup.
 
-## 19) I18n Detection Is Runtime Baseline Only (Low)
+## 19) I18n Adoption Is Runtime-Ready But App Migration Is Incomplete (Low)
 
-`modules/i18n` now supports locale files, middleware-based language detection, and CLI locale audits, but the app surface is only partially translated and no persistent profile-language field is wired by default.
+`modules/i18n` now supports locale files (canonical TOML with temporary YAML dual-read), middleware-based language detection, profile-language persistence wiring, and CLI migration/audit commands.
 
 Impact:
 
 - Framework/runtime now has a consistent translation seam (`container.I18n.T(...)`) and deterministic request language detection.
-- Teams still need to migrate hardcoded strings and optionally wire a real user-preference resolver to get full end-to-end localization coverage.
-- `ship new` can now scaffold i18n locale files for starter apps, but starter translations and language-switching UX still require additional app-level wiring for complete end-to-end behavior.
+- Teams still need to migrate hardcoded strings and complete string-key coverage to get full end-to-end localization coverage.
+- `ship new` scaffolds i18n starter locale files, but production-grade translation completeness and broader locale packs still require follow-up product work.
 
 ## Suggested Priority Order
 
@@ -1519,6 +1524,7 @@ This package is the current source of truth for adapter seam contracts.
 
 6. `I18n`
 - `DefaultLanguage`, `SupportedLanguages`, `NormalizeLanguage`, `T`
+- `TC` (count/plural helper), `TS` (choice/select helper)
 
 7. `Mailer`
 - `Send(MailMessage)`
@@ -2219,11 +2225,13 @@ Note: broader legacy e2e specs are partially stale and should be treated as non-
 
 ## Internationalization
 
-Locale source files live in `locales/*.yaml` (`en.yaml` is the source of truth).
+Canonical locale source files live in `locales/*.toml` (`en.toml` is the source of truth for new writes). Runtime/CLI still dual-read YAML during migration windows.
 
 Common commands:
 
-- `go run ./tools/cli/ship/cmd/ship make:locale fr` to scaffold `locales/fr.yaml` with the same keys and empty values.
+- `go run ./tools/cli/ship/cmd/ship make:locale fr` to scaffold `locales/fr.toml` with the same keys and empty values.
+- `go run ./tools/cli/ship/cmd/ship i18n:migrate` to convert legacy `locales/*.yaml` catalogs to canonical TOML.
+- `go run ./tools/cli/ship/cmd/ship i18n:normalize` to rewrite TOML catalogs into deterministic canonical ordering.
 - `go run ./tools/cli/ship/cmd/ship i18n:missing` to list missing/empty translation keys per locale.
 - `go run ./tools/cli/ship/cmd/ship i18n:unused` to list locale keys not referenced in `.go`/`.templ` `I18n.T(...)` calls.
 
@@ -2822,6 +2830,33 @@ func (pc *PostController) Show(c echo.Context) error {
 - the `Accept` header prefers `application/json`
 - the route path starts with `/api/`
 
+## Localized API Errors
+
+For API routes that return human-readable error messages, use localized helpers while keeping machine codes stable:
+
+```go
+return api.Fail(c, http.StatusUnauthorized, api.UnauthorizedLocalized(
+	c.Request().Context(),
+	ctr.Container.I18n,
+	"api.errors.unauthorized",
+	"Unauthorized",
+))
+```
+
+Helpers:
+
+- `api.NotFoundLocalized(...)` -> code `not_found`
+- `api.UnauthorizedLocalized(...)` -> code `unauthorized`
+- `api.ValidationLocalized(...)` -> code `validation_error`
+
+Locale resolution for API requests is provided by the shared i18n middleware (`modules/i18n.DetectLanguage`) in this order:
+
+1. `?lang=<code>` query parameter
+2. profile preference (if authenticated)
+3. `lang` cookie
+4. `Accept-Language` header
+5. i18n default language
+
 ## Response Envelope
 
 Successful responses use:
@@ -2878,6 +2913,8 @@ Adapters must satisfy `core.I18n`:
 2. `SupportedLanguages() []string`
 3. `NormalizeLanguage(raw string) string`
 4. `T(ctx context.Context, key string, templateData ...map[string]any) string`
+5. `TC(ctx context.Context, key string, count any, templateData ...map[string]any) string`
+6. `TS(ctx context.Context, key string, choice string, templateData ...map[string]any) string`
 
 ## Runtime Semantics
 
@@ -2885,7 +2922,9 @@ Adapters must satisfy `core.I18n`:
 2. `SupportedLanguages` must include `DefaultLanguage`.
 3. `NormalizeLanguage` must fall back to `DefaultLanguage` for unsupported inputs.
 4. `T` must return the key for missing translations (stable fallback behavior).
-5. `T` should support template interpolation through `templateData`.
+5. `TC` must resolve pluralized forms by count with default-locale fallback.
+6. `TS` must resolve choice/select variants with `<key>.other` fallback before raw key fallback.
+7. `T`/`TC`/`TS` should support template interpolation through `templateData`.
 
 ## Compatibility Harness
 
@@ -2914,6 +2953,145 @@ contracttests.RunI18nContract(t, contracttests.I18nContractSubject{
 3. Add `RunI18nContract` to adapter tests.
 4. Document locale file format and loading behavior.
 5. Document missing-key behavior and fallback order.
+
+---
+FILE: docs/guides/10-i18n-llm-migration-workflow.md
+---
+# I18n LLM Migration Workflow
+
+This guide defines the deterministic i18n migration loop for humans and LLM agents.
+
+## Canonical Command Loop
+
+1. `ship i18n:init`
+2. `ship i18n:scan --format json --limit 50`
+3. `ship i18n:instrument --apply --limit 50`
+4. `ship doctor --json`
+5. `ship i18n:missing`
+6. `ship i18n:unused`
+7. Repeat from step 2 until no actionable findings remain.
+
+## Fix-One-Issue Loop
+
+1. Run `ship i18n:scan --format json --limit 1`.
+2. If confidence is `high` and context is supported, run `ship i18n:instrument --apply --limit 1`.
+3. If confidence is not `high` or rewrite is skipped, apply a manual key migration.
+4. Run `ship doctor --json`.
+5. Commit once tests pass.
+
+## JSON Schemas (v1)
+
+`ship i18n:scan --format json`:
+
+```json
+{
+  "version": "v1",
+  "issues": [
+    {
+      "id": "I18N-XXXXXXXXXXXX",
+      "kind": "missing_i18n_key",
+      "severity": "warning",
+      "file": "app/views/...",
+      "line": 12,
+      "column": 8,
+      "message": "hardcoded user-facing string ...",
+      "suggested_key": "app.example_key",
+      "confidence": "high"
+    }
+  ]
+}
+```
+
+`ship i18n:instrument`:
+
+```json
+{
+  "version": "v1",
+  "apply": false,
+  "applied": 0,
+  "rewrites": [
+    {
+      "id": "I18N-XXXXXXXXXXXX",
+      "file": "app/web/controllers/...",
+      "line": 42,
+      "column": 10,
+      "before": "c.String(..., \"Text\")",
+      "after": "c.String(..., i18n.T(...))",
+      "message": "rewrite plan entry",
+      "suggested_key": "app.example_key",
+      "confidence": "high"
+    }
+  ],
+  "skipped": [
+    {
+      "id": "I18N-XXXXXXXXXXXX",
+      "file": "app/views/...",
+      "line": 17,
+      "column": 3,
+      "message": "scanner finding",
+      "reason": "unsupported_source_type",
+      "confidence": "medium"
+    }
+  ]
+}
+```
+
+`ship doctor --json`:
+
+```json
+{
+  "ok": false,
+  "issues": [
+    {
+      "type": "DX029",
+      "file": "app/web/controllers/example.go",
+      "detail": "i18n literal app/web/controllers/example.go:12:5 (I18N-...)",
+      "severity": "warning"
+    }
+  ]
+}
+```
+
+## Issue ID Contract
+
+1. Scan findings use `I18N-<12 uppercase hex>`.
+2. Plural/select completeness findings use `I18N-C-<10 uppercase hex>`.
+3. Doctor strict-mode gate uses issue code `DX029` and includes the underlying i18n finding ID in `detail`.
+
+## Confidence Tiers
+
+1. `high`: eligible for automated rewrite in supported contexts (current safe path is selected Go controller string responses).
+2. `medium`: report-only; use manual migration.
+
+## Strict-Mode Rollout
+
+1. `PAGODA_I18N_STRICT_MODE=off`: no strict enforcement.
+2. `PAGODA_I18N_STRICT_MODE=warn`: findings are warnings (`DX029`) and non-blocking.
+3. `PAGODA_I18N_STRICT_MODE=error`: findings are blocking errors (`DX029`).
+
+Use `.i18n-allowlist` for intentional exceptions:
+
+1. Add a finding ID (`I18N-...` or `I18N-C-...`), or
+2. Add a location key (`path/to/file.go:line`).
+
+## Recommended LLM Policy
+
+1. Never bulk-rewrite all findings in one pass.
+2. Limit each loop (`--limit 1..50`) and re-run diagnostics after each applied batch.
+3. Prefer `high` confidence rewrites first.
+4. Run `go test ./...` and `ship doctor --json` before each commit.
+
+## Starter Locale Policy
+
+`ship new` supports:
+
+1. Starter locales (`en`, `fr`) when i18n is enabled.
+
+Maintenance policy:
+
+1. `en.toml` remains canonical source for key shape.
+2. New keys are introduced in `en.toml` first, then synchronized to other locales via `ship make:locale`, `ship i18n:missing`, and `ship i18n:normalize`.
+3. Starter-pack translations must be reviewed before production use; scaffold values are bootstrapping defaults, not guaranteed fully translated product copy.
 
 ---
 FILE: docs/policies/01-engineering-standards.md
@@ -3062,6 +3240,8 @@ Project lifecycle:
 - `ship i18n:init [--force]`
 - `ship i18n:scan [--format json] [--paths <path1,path2,...>] [--limit <n>]`
 - `ship i18n:instrument [--apply] [--paths <path1,path2,...>] [--limit <n>]`
+- `ship i18n:migrate [--force]`
+- `ship i18n:normalize`
 - `ship i18n:missing`
 - `ship i18n:unused`
 - `ship agent:setup`
@@ -3178,7 +3358,7 @@ Safety matrix:
 - `ship templ generate --path app` -> `templ generate -path app`, then move each `*_templ.go` into sibling `gen/` directory
 - `ship new <app>` -> create minimal deterministic project scaffold in a new directory from CLI-embedded starter templates (no network calls)
   - interactive terminals prompt for i18n starter enablement unless `--i18n`/`--no-i18n` is provided
-  - when enabled, starter locale files are scaffolded at `locales/en.yaml` and `locales/fr.yaml`
+  - when enabled, starter locale files are scaffolded at `locales/en.toml` and `locales/fr.toml`
   - when disabled, CLI prints a follow-up hint that i18n can be enabled/migrated later with `ship i18n:*` + doctor-driven loops
 - `ship agent:setup` -> generate per-agent allowlist artifacts from `tools/agent-policy/allowed-commands.yaml`
 - `ship agent:check` -> fail if generated artifacts drift from canonical allowlist (for pre-commit/CI parity)
@@ -3193,11 +3373,14 @@ Safety matrix:
 - `ship api:spec` -> parses `app/contracts/*.go` `// Route:` contracts and prints OpenAPI 3.0 JSON to stdout
 - `ship api:spec --out <path>` -> writes generated OpenAPI JSON to the given file path
 - `ship api:spec --serve` -> serves Swagger UI + generated spec at `http://127.0.0.1:<port>/api/docs` until interrupted
-- `ship i18n:init [--force]` -> scaffolds `locales/en.yaml` and `locales/fr.yaml` for existing apps, preserving existing files unless `--force` is passed; prints deterministic next-step migration loop commands
+- `ship i18n:init [--force]` -> scaffolds `locales/en.toml` and `locales/fr.toml` for existing apps, preserving existing files unless `--force` is passed; prints deterministic next-step migration loop commands
 - `ship i18n:scan [--format json] [--paths <path1,path2,...>] [--limit <n>]` -> scans Go/templ/islands sources for hardcoded user-facing literals and emits deterministic JSON diagnostics (`id`, `kind`, `severity`, `file`, `line`, `column`, `message`, `suggested_key`, `confidence`)
-- `ship i18n:instrument [--apply] [--paths <path1,path2,...>] [--limit <n>]` -> builds a deterministic rewrite plan for high-confidence findings; default mode is dry-run JSON report, `--apply` rewrites safe Go controller `c.String(..., "literal")` sites to i18n calls and appends missing baseline keys to `locales/en.yaml`
-- `ship i18n:missing` -> compares `locales/en.yaml` keys with other locale files and lists missing/empty translations
+- `ship i18n:instrument [--apply] [--paths <path1,path2,...>] [--limit <n>]` -> builds a deterministic rewrite plan for high-confidence findings; default mode is dry-run JSON report, `--apply` rewrites safe Go controller `c.String(..., "literal")` sites to i18n calls and appends missing baseline keys to `locales/en.toml` (falls back to legacy YAML when present)
+- `ship i18n:migrate [--force]` -> converts `locales/*.yaml`/`*.yml` catalogs to canonical `locales/*.toml` catalogs (preserves existing TOML unless `--force`)
+- `ship i18n:normalize` -> rewrites TOML locale catalogs into deterministic canonical ordering for stable diffs/CI
+- `ship i18n:missing` -> compares baseline English locale keys with other locale files and lists missing/empty translations
 - `ship i18n:unused` -> lists locale keys not referenced by `I18n.T(...)`/`i18n.T(...)` calls in `.go`/`.templ` sources
+- Full LLM migration/operator workflow and JSON contracts: `docs/guides/10-i18n-llm-migration-workflow.md`
 - `ship make:resource <name>` -> scaffold handler (+ optional templ page), ensure route-name constant, and print route snippet for manual insertion in `app/router.go`
 - `ship make:resource <name> --domain <name>` -> generate domain-aware constructor slot (`domainService any`) and route wiring using `nil` placeholder
 - `ship make:resource <name> --wire` -> also insert snippet behind ship markers in `app/router.go`
@@ -3205,7 +3388,7 @@ Safety matrix:
 - `ship make:model <Name>` -> scaffold a model query file at `db/queries/<model>.sql` with Bob-friendly named-query placeholders
 - `ship make:model <Name> [fields...]` -> include typed field comments in the query scaffold and print next DB steps (`db:make`, `db:migrate`, `db:generate`)
 - `ship make:factory <Name>` -> scaffold `tests/factories/<name>_factory.go` with a typed `Record` struct + `factory.New(...)` baseline
-- `ship make:locale <code>` -> scaffold `locales/<code>.yaml` from `locales/en.yaml` with matching keys and empty values
+- `ship make:locale <code>` -> scaffold `locales/<code>.toml` from `locales/en.toml` (or legacy `en.yaml`) with matching keys and empty values
 - `ship make:controller <Name>` -> generate controller/handler scaffold in `app/web/controllers`
 - `ship make:controller <Name> --domain <name>` -> generate domain-aware constructor slot (`domainService any`) and route wiring using `nil` placeholder
 - `ship make:controller <Name> --actions ... --wire` -> wire generated routes into `app/router.go` markers
@@ -3237,7 +3420,7 @@ Doctor checks (current):
 - validates cross-boundary import rules (controller `QueryProfile()` ban, jobs SQL coupling ban, notifications pubsub framework-core coupling ban, module source isolation ban for direct `github.com/leomorpho/goship/*` imports except explicit allowlist paths)
 - warns when `/api/` routes appear to render HTML directly instead of using the standard JSON API helpers
 - warns when SQL queries in `db/queries/` reference soft-delete tables without an explicit `deleted_at` filter (`DX028`)
-- i18n strict-mode enforcement (`PAGODA_I18N_STRICT_MODE=off|warn|error`) for hardcoded literals in controllers/views/islands, with `.i18n-allowlist` support for intentional exceptions (`DX029`)
+- i18n strict-mode enforcement (`PAGODA_I18N_STRICT_MODE=off|warn|error`) for hardcoded literals in controllers/views/islands and plural/select locale completeness for `I18n.TC(...)`/`I18n.TS(...)`, with `.i18n-allowlist` support for intentional exceptions (`DX029`)
 
 Field syntax for `make:model`:
 
@@ -3263,8 +3446,8 @@ Field syntax for `make:model`:
 3. Supports `--dry-run` and `--force`.
 4. Supports `--i18n` and `--no-i18n` (otherwise prompts in interactive terminals).
 5. If i18n is enabled during scaffold, writes starter locale files:
-`locales/en.yaml`
-`locales/fr.yaml`
+`locales/en.toml`
+`locales/fr.toml`
 
 Generated project workflow:
 
@@ -3683,8 +3866,9 @@ Non-goal:
 9. Route contracts in `app/contracts` are now consumable by `ship api:spec` for generated OpenAPI 3.0 output.
 10. Test-data factory baseline now lives in `framework/factory` with `ship make:factory` scaffold support.
 11. Typed HTTP integration helpers now live in `framework/testutil` (`NewTestServer`, `PostForm` CSRF automation, `AsUser`, fluent response assertions).
-12. I18n baseline now lives in `modules/i18n` with locale files under `locales/`, runtime toggle support (`PAGODA_I18N_ENABLED` / `PAGODA_I18N_DEFAULT_LANGUAGE`), strict-mode doctor enforcement (`PAGODA_I18N_STRICT_MODE` + `.i18n-allowlist`), profile preference persistence (`profiles.preferred_language`), and CLI support for `make:locale`, `i18n:init`, `i18n:scan`, `i18n:instrument`, `i18n:missing`, and `i18n:unused`.
+12. I18n baseline now lives in `modules/i18n` with canonical TOML locale files under `locales/` (temporary YAML dual-read migration support), runtime toggle support (`PAGODA_I18N_ENABLED` / `PAGODA_I18N_DEFAULT_LANGUAGE`), strict-mode doctor enforcement (`PAGODA_I18N_STRICT_MODE` + `.i18n-allowlist`), profile preference persistence (`profiles.preferred_language`), and CLI support for `make:locale`, `i18n:init`, `i18n:scan`, `i18n:instrument`, `i18n:migrate`, `i18n:normalize`, `i18n:missing`, and `i18n:unused`.
 13. `ship new` now asks (interactive) whether to enable i18n in the starter app, supports explicit `--i18n|--no-i18n` for non-interactive runs, and prints an explicit “enable later + migrate later” path.
+14. I18n operator DX is now documented in `docs/guides/10-i18n-llm-migration-workflow.md`, including canonical migration loop, deterministic diagnostics schema, issue-ID contract, and strict rollout (`off -> warn -> error`) guidance.
 
 ## Upstream/Downstream Relationship
 
@@ -4335,7 +4519,7 @@ Current progress:
 - [ ] Move Cherie onto released GoShip modules incrementally (module by module).
 - [ ] Upstream selected Cherie capabilities into optional GoShip modules (notifications/referrals/gamification/security helpers).
 - [ ] Keep Docker-based integration suite as optional/CI-focused (`make test-integration`), not default local path.
-- [ ] Expand starter i18n locale packs (top-language bundle) once LLM-first migration workflow and strict doctor enforcement are stable.
+- [x] Keep starter i18n scaffolding focused on `en`/`fr`; treat broader locale sets as follow-up work outside `ship new`.
 
 ## Open Questions
 
