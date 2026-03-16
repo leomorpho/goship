@@ -12,6 +12,12 @@ import (
 	i18nmodule "github.com/leomorpho/goship/modules/i18n"
 )
 
+type localizedAPIRequestOpts struct {
+	path           string
+	acceptLanguage string
+	cookies        []*http.Cookie
+}
+
 func TestUnauthorizedLocalized_StableCodeAcrossLocales(t *testing.T) {
 	service := testI18nService(t)
 	e := echo.New()
@@ -50,6 +56,65 @@ func TestUnauthorizedLocalized_StableCodeAcrossLocales(t *testing.T) {
 	}
 	if enPayload.Errors[0].Message != "Unauthorized" {
 		t.Fatalf("en message = %q, want %q", enPayload.Errors[0].Message, "Unauthorized")
+	}
+}
+
+func TestUnauthorizedLocalized_LanguageResolutionPriority(t *testing.T) {
+	service := testI18nService(t)
+	e := echo.New()
+	handler := i18nmodule.DetectLanguage(service, nil)(func(c echo.Context) error {
+		return Fail(c, http.StatusUnauthorized, UnauthorizedLocalized(
+			c.Request().Context(),
+			service,
+			"api.errors.unauthorized",
+			"Unauthorized",
+		))
+	})
+
+	queryPayload, queryHeader := runLocalizedAPIRequestWithOptions(t, e, handler, localizedAPIRequestOpts{
+		path:           "/api/v1/demo?lang=fr",
+		acceptLanguage: "en, fr;q=0.8",
+		cookies:        []*http.Cookie{{Name: "lang", Value: "en"}},
+	})
+	if queryHeader != "fr" {
+		t.Fatalf("query-driven content-language = %q, want fr", queryHeader)
+	}
+	if queryPayload.Errors[0].Code != ErrorCodeUnauthorized {
+		t.Fatalf("query-driven code = %q, want %q", queryPayload.Errors[0].Code, ErrorCodeUnauthorized)
+	}
+
+	cookiePayload, cookieHeader := runLocalizedAPIRequestWithOptions(t, e, handler, localizedAPIRequestOpts{
+		path:           "/api/v1/demo",
+		acceptLanguage: "en, fr;q=0.8",
+		cookies:        []*http.Cookie{{Name: "lang", Value: "fr"}},
+	})
+	if cookieHeader != "fr" {
+		t.Fatalf("cookie content-language = %q, want fr", cookieHeader)
+	}
+	if cookiePayload.Errors[0].Message != "Non autorise" {
+		t.Fatalf("cookie message = %q, want %q", cookiePayload.Errors[0].Message, "Non autorise")
+	}
+
+	headerPayload, headerHeader := runLocalizedAPIRequestWithOptions(t, e, handler, localizedAPIRequestOpts{
+		path:           "/api/v1/demo",
+		acceptLanguage: "fr, en;q=0.8",
+	})
+	if headerHeader != "fr" {
+		t.Fatalf("header content-language = %q, want fr", headerHeader)
+	}
+	if headerPayload.Errors[0].Code != ErrorCodeUnauthorized {
+		t.Fatalf("header code = %q, want %q", headerPayload.Errors[0].Code, ErrorCodeUnauthorized)
+	}
+
+	defaultPayload, defaultHeader := runLocalizedAPIRequestWithOptions(t, e, handler, localizedAPIRequestOpts{
+		path:           "/api/v1/demo",
+		acceptLanguage: "es-MX,es;q=0.9",
+	})
+	if defaultHeader != "en" {
+		t.Fatalf("default content-language = %q, want en", defaultHeader)
+	}
+	if defaultPayload.Errors[0].Message != "Unauthorized" {
+		t.Fatalf("default message = %q, want %q", defaultPayload.Errors[0].Message, "Unauthorized")
 	}
 }
 
@@ -99,9 +164,20 @@ func TestNotFoundLocalized_FallsBackToDefaultLocaleAndFallbackText(t *testing.T)
 
 func runLocalizedAPIRequest(t *testing.T, e *echo.Echo, handler echo.HandlerFunc, path string, acceptLanguage string) (Response[struct{}], string) {
 	t.Helper()
-	req := httptest.NewRequest(http.MethodGet, path, nil)
-	if acceptLanguage != "" {
-		req.Header.Set("Accept-Language", acceptLanguage)
+	return runLocalizedAPIRequestWithOptions(t, e, handler, localizedAPIRequestOpts{
+		path:           path,
+		acceptLanguage: acceptLanguage,
+	})
+}
+
+func runLocalizedAPIRequestWithOptions(t *testing.T, e *echo.Echo, handler echo.HandlerFunc, opts localizedAPIRequestOpts) (Response[struct{}], string) {
+	t.Helper()
+	req := httptest.NewRequest(http.MethodGet, opts.path, nil)
+	if opts.acceptLanguage != "" {
+		req.Header.Set("Accept-Language", opts.acceptLanguage)
+	}
+	for _, cookie := range opts.cookies {
+		req.AddCookie(cookie)
 	}
 	rec := httptest.NewRecorder()
 	ctx := e.NewContext(req, rec)

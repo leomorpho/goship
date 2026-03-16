@@ -586,6 +586,11 @@
       "state": "done",
       "priority": 6
     },
+    "TKT-147": {
+      "title": "API locale propagation contract tests (integration + unit, no starter route mandate)",
+      "state": "done",
+      "priority": 6
+    },
     "TKT-148": {
       "title": "Dynamic `\u003chtml lang\u003e` propagation across layouts/pages",
       "state": "done",
