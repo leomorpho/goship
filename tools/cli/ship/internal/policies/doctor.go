@@ -1532,7 +1532,12 @@ func hasRendersComment(lines []string, idx int) bool {
 		if trim == "" {
 			continue
 		}
-		return strings.HasPrefix(trim, "// Renders:")
+		if !strings.HasPrefix(trim, "//") {
+			return false
+		}
+		if strings.HasPrefix(trim, "// Renders:") {
+			return true
+		}
 	}
 	return false
 }
