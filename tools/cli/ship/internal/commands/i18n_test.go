@@ -705,6 +705,95 @@ templ Demo() {
 	}
 }
 
+func TestRunI18nScanIncludesIslandsJSX(t *testing.T) {
+	root := t.TempDir()
+	writeI18nFixture(t, root, map[string]string{
+		"go.mod": "module example.com/i18n-test\n\ngo 1.25\n",
+		"frontend/islands/react_counter.jsx": `export function ReactCounter() {
+	const label = "Click counter now";
+	return <button>{label}</button>;
+}
+`,
+	})
+
+	prevWD, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(prevWD) })
+	if err := os.Chdir(root); err != nil {
+		t.Fatal(err)
+	}
+
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	code := RunI18n([]string{"scan", "--format", "json"}, I18nDeps{
+		Out:          out,
+		Err:          errOut,
+		FindGoModule: findI18nGoModule,
+	})
+	if code != 0 {
+		t.Fatalf("code = %d, stderr = %s", code, errOut.String())
+	}
+	var parsed scanResult
+	if err := json.Unmarshal(out.Bytes(), &parsed); err != nil {
+		t.Fatalf("parse scan JSON: %v\nraw=%s", err, out.String())
+	}
+	found := false
+	for _, issue := range parsed.Issues {
+		if strings.HasPrefix(issue.File, "frontend/islands/react_counter.jsx") {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatalf("expected jsx issue in frontend/islands/react_counter.jsx, got %+v", parsed.Issues)
+	}
+}
+
+func TestRunI18nScanIgnoresNestedI18nCalls(t *testing.T) {
+	root := t.TempDir()
+	writeI18nFixture(t, root, map[string]string{
+		"go.mod": "module example.com/i18n-test\n\ngo 1.25\n",
+		"app/web/controllers/sample.go": `package controllers
+func demo() string {
+	_ = container.I18n.T(ctx, "auth.login.title")
+	return "Welcome user"
+}
+`,
+	})
+
+	prevWD, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(prevWD) })
+	if err := os.Chdir(root); err != nil {
+		t.Fatal(err)
+	}
+
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	code := RunI18n([]string{"scan", "--format", "json", "--paths", "app/web/controllers"}, I18nDeps{
+		Out:          out,
+		Err:          errOut,
+		FindGoModule: findI18nGoModule,
+	})
+	if code != 0 {
+		t.Fatalf("code = %d, stderr = %s", code, errOut.String())
+	}
+	var parsed scanResult
+	if err := json.Unmarshal(out.Bytes(), &parsed); err != nil {
+		t.Fatalf("parse scan JSON: %v\nraw=%s", err, out.String())
+	}
+	if len(parsed.Issues) != 1 {
+		t.Fatalf("issues len = %d, want 1", len(parsed.Issues))
+	}
+	if !strings.Contains(parsed.Issues[0].Message, "Welcome user") {
+		t.Fatalf("issue message = %q, want welcome literal finding", parsed.Issues[0].Message)
+	}
+}
+
 func TestRunI18nInstrumentDryRunDeterministicAndNoWrite(t *testing.T) {
 	root := t.TempDir()
 	writeI18nFixture(t, root, map[string]string{

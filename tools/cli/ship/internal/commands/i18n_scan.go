@@ -257,7 +257,7 @@ func collectI18nScanIssues(root string, paths []string) ([]i18nScanIssue, error)
 func scanI18nFile(root, path string) ([]i18nScanIssue, error) {
 	ext := strings.ToLower(filepath.Ext(path))
 	switch ext {
-	case ".go", ".templ", ".js", ".ts", ".svelte", ".vue":
+	case ".go", ".templ", ".js", ".ts", ".jsx", ".tsx", ".svelte", ".vue":
 	default:
 		return nil, nil
 	}
@@ -307,7 +307,7 @@ func scanI18nFile(root, path string) ([]i18nScanIssue, error) {
 
 func isJavaScriptLike(ext string) bool {
 	switch ext {
-	case ".js", ".ts", ".svelte", ".vue":
+	case ".js", ".ts", ".jsx", ".tsx", ".svelte", ".vue":
 		return true
 	default:
 		return false
@@ -388,12 +388,22 @@ func exprIsI18nCall(expr ast.Expr) bool {
 	default:
 		return false
 	}
-	ident, ok := selector.X.(*ast.Ident)
-	if !ok {
+	return exprIsI18nReceiver(selector.X)
+}
+
+func exprIsI18nReceiver(expr ast.Expr) bool {
+	switch typed := expr.(type) {
+	case *ast.Ident:
+		name := strings.ToLower(strings.TrimSpace(typed.Name))
+		return name == "i18n"
+	case *ast.SelectorExpr:
+		if typed.Sel != nil && strings.EqualFold(strings.TrimSpace(typed.Sel.Name), "i18n") {
+			return true
+		}
+		return exprIsI18nReceiver(typed.X)
+	default:
 		return false
 	}
-	name := strings.ToLower(strings.TrimSpace(ident.Name))
-	return name == "i18n"
 }
 
 func exprIsLoggingCall(expr ast.Expr) bool {

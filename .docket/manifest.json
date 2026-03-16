@@ -605,6 +605,11 @@
       "title": "Harden i18n allowlist contract for stability",
       "state": "done",
       "priority": 5
+    },
+    "TKT-151": {
+      "title": "Broaden i18n scanner coverage and diagnostics quality",
+      "state": "done",
+      "priority": 5
     }
   }
 }
