@@ -3,6 +3,8 @@ package commands
 import (
 	"bytes"
 	"encoding/json"
+	"go/parser"
+	"go/token"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -542,6 +544,193 @@ templ Demo() {
 	}
 }
 
+func TestRunI18nInstrumentDryRunDeterministicAndNoWrite(t *testing.T) {
+	root := t.TempDir()
+	writeI18nFixture(t, root, map[string]string{
+		"go.mod": "module example.com/i18n-test\n\ngo 1.25\n",
+		"locales/en.yaml": `
+app:
+  title: "Demo"
+`,
+		"app/web/controllers/home.go": `package controllers
+
+import "net/http"
+
+func Home(c *Controller) error {
+	return c.String(http.StatusOK, "Welcome traveler")
+}
+`,
+		"app/views/web/pages/demo.templ": `package pages
+templ Demo() {
+	<h1>Hello from templ</h1>
+}
+`,
+	})
+
+	prevWD, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(prevWD) })
+	if err := os.Chdir(root); err != nil {
+		t.Fatal(err)
+	}
+
+	run := func() instrumentResult {
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+		code := RunI18n([]string{
+			"instrument",
+			"--paths", "app/web/controllers,app/views",
+		}, I18nDeps{
+			Out:          out,
+			Err:          errOut,
+			FindGoModule: findI18nGoModule,
+		})
+		if code != 0 {
+			t.Fatalf("code = %d, stderr = %s", code, errOut.String())
+		}
+		if strings.TrimSpace(errOut.String()) != "" {
+			t.Fatalf("stderr = %q, want empty", errOut.String())
+		}
+
+		var parsed instrumentResult
+		if err := json.Unmarshal(out.Bytes(), &parsed); err != nil {
+			t.Fatalf("parse instrument JSON: %v\nraw=%s", err, out.String())
+		}
+		return parsed
+	}
+
+	first := run()
+	second := run()
+	if !reflect.DeepEqual(first, second) {
+		t.Fatalf("instrument output was not deterministic: first=%+v second=%+v", first, second)
+	}
+	if len(first.Rewrites) != 1 {
+		t.Fatalf("rewrites len = %d, want 1", len(first.Rewrites))
+	}
+	if len(first.Skipped) == 0 {
+		t.Fatal("expected at least one skipped finding in dry-run output")
+	}
+
+	content, err := os.ReadFile(filepath.Join(root, "app/web/controllers/home.go"))
+	if err != nil {
+		t.Fatalf("read source after dry-run: %v", err)
+	}
+	if !strings.Contains(string(content), `return c.String(http.StatusOK, "Welcome traveler")`) {
+		t.Fatalf("dry-run should not rewrite file, got:\n%s", string(content))
+	}
+}
+
+func TestRunI18nInstrumentApplyRewritesAndUpdatesLocale(t *testing.T) {
+	root := t.TempDir()
+	writeI18nFixture(t, root, map[string]string{
+		"go.mod": "module example.com/i18n-test\n\ngo 1.25\n",
+		"locales/en.yaml": `
+app:
+  title: "Demo"
+`,
+		"app/web/controllers/home.go": `package controllers
+
+import "net/http"
+
+func Home(c *Controller) error {
+	return c.String(http.StatusOK, "Welcome traveler")
+}
+`,
+	})
+
+	prevWD, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(prevWD) })
+	if err := os.Chdir(root); err != nil {
+		t.Fatal(err)
+	}
+
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	code := RunI18n([]string{
+		"instrument",
+		"--apply",
+		"--paths", "app/web/controllers",
+	}, I18nDeps{
+		Out:          out,
+		Err:          errOut,
+		FindGoModule: findI18nGoModule,
+	})
+	if code != 0 {
+		t.Fatalf("code = %d, stderr = %s", code, errOut.String())
+	}
+	if strings.TrimSpace(errOut.String()) != "" {
+		t.Fatalf("stderr = %q, want empty", errOut.String())
+	}
+
+	rewrittenPath := filepath.Join(root, "app/web/controllers/home.go")
+	rewritten, err := os.ReadFile(rewrittenPath)
+	if err != nil {
+		t.Fatalf("read rewritten source: %v", err)
+	}
+	if !strings.Contains(string(rewritten), `c.Container.I18n.T(c.Request().Context(), "app.welcome_traveler")`) {
+		t.Fatalf("expected rewritten i18n call, got:\n%s", string(rewritten))
+	}
+
+	fset := token.NewFileSet()
+	if _, err := parser.ParseFile(fset, rewrittenPath, rewritten, parser.ParseComments); err != nil {
+		t.Fatalf("rewritten file must remain parseable Go syntax: %v", err)
+	}
+
+	locale, err := os.ReadFile(filepath.Join(root, "locales/en.yaml"))
+	if err != nil {
+		t.Fatalf("read baseline locale: %v", err)
+	}
+	if !strings.Contains(string(locale), `app.welcome_traveler: "Welcome traveler"`) {
+		t.Fatalf("expected generated locale key in en.yaml, got:\n%s", string(locale))
+	}
+}
+
+func TestRunI18nInstrumentUsageAndInvalidArgs(t *testing.T) {
+	helpOut := &bytes.Buffer{}
+	helpErr := &bytes.Buffer{}
+	if code := RunI18n([]string{"instrument", "--help"}, I18nDeps{
+		Out:          helpOut,
+		Err:          helpErr,
+		FindGoModule: findI18nGoModule,
+	}); code != 0 {
+		t.Fatalf("help code = %d, stderr = %q", code, helpErr.String())
+	}
+	if !strings.Contains(helpOut.String(), "usage: ship i18n:instrument [--apply] [--paths <path1,path2,...>] [--limit <n>]") {
+		t.Fatalf("help stdout = %q", helpOut.String())
+	}
+
+	root := t.TempDir()
+	writeI18nFixture(t, root, map[string]string{
+		"go.mod": "module example.com/i18n-test\n\ngo 1.25\n",
+	})
+	prevWD, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(prevWD) })
+	if err := os.Chdir(root); err != nil {
+		t.Fatal(err)
+	}
+
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	if code := RunI18n([]string{"instrument", "--unknown"}, I18nDeps{
+		Out:          out,
+		Err:          errOut,
+		FindGoModule: findI18nGoModule,
+	}); code != 1 {
+		t.Fatalf("invalid args code = %d, want 1", code)
+	}
+	if !strings.Contains(errOut.String(), "usage: ship i18n:instrument") {
+		t.Fatalf("stderr = %q, want instrument usage", errOut.String())
+	}
+}
+
 type scanResult struct {
 	Issues []scanIssue `json:"issues"`
 }
@@ -556,6 +745,27 @@ type scanIssue struct {
 	Message      string `json:"message"`
 	SuggestedKey string `json:"suggested_key"`
 	Confidence   string `json:"confidence"`
+}
+
+type instrumentResult struct {
+	Rewrites []instrumentRewrite `json:"rewrites"`
+	Skipped  []instrumentSkip    `json:"skipped"`
+}
+
+type instrumentRewrite struct {
+	File         string `json:"file"`
+	Line         int    `json:"line"`
+	Column       int    `json:"column"`
+	Before       string `json:"before"`
+	After        string `json:"after"`
+	SuggestedKey string `json:"suggested_key"`
+}
+
+type instrumentSkip struct {
+	File   string `json:"file"`
+	Line   int    `json:"line"`
+	Column int    `json:"column"`
+	Reason string `json:"reason"`
 }
 
 func writeI18nFixture(t *testing.T, root string, files map[string]string) {

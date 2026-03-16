@@ -436,6 +436,7 @@ Last updated: 2026-03-04
 6. `G06` - `guides/06-ai-module.md`: AI module provider selection, request contract, and SSE demo pattern.
 7. `G07` - `guides/07-domain-events.md`: domain event bus, shared event types, and async enqueue contract.
 8. `G08` - `guides/08-building-an-api.md`: JSON response helpers, content negotiation, and versioned API route convention.
+9. `G09` - `guides/09-i18n-adapter-contract.md`: installable i18n adapter interface contract, compatibility harness, and implementer checklist.
 
 ### Reference
 
@@ -945,12 +946,20 @@ Reflection-based administrative interface for managing database resources.
 
 ## 14) Internationalization Baseline
 
-- `modules/i18n` provides a locale service (`container.I18n`) and request middleware for language detection.
-- Language detection priority is: `?lang=<code>` query parameter, authenticated user preference resolver (when provided), `lang` cookie, `Accept-Language` header, then default locale (`en`).
+- `modules/i18n` provides a locale service exposed through the `core.I18n` seam (`container.I18n`) and request middleware for language detection.
+- Language detection priority is: `?lang=<code>` query parameter, authenticated user profile preference, `lang` cookie, `Accept-Language` header, then default locale (`en`).
+- Query-driven language switches now persist the normalized language to the authenticated profile record (`profiles.preferred_language`) and still set the `lang` cookie.
 - Locale sources are YAML files in `locales/` with nested keys (for example `auth.login.title`).
+- Runtime toggle: `PAGODA_I18N_ENABLED=false` disables i18n service initialization (safe English fallback path, no startup panic).
+- Runtime default language is configurable via `PAGODA_I18N_DEFAULT_LANGUAGE`.
+- Runtime enforcement mode is configurable via `PAGODA_I18N_STRICT_MODE=off|warn|error` and consumed by `ship doctor` (`DX029`), with optional `.i18n-allowlist`.
 - `ship make:locale <code>` scaffolds a new locale file from `locales/en.yaml`.
+- `ship i18n:init` bootstraps baseline locale files (`en`, `fr`) for apps that started without i18n and prints a deterministic migration command loop.
+- `ship i18n:scan --format json` emits deterministic diagnostics for hardcoded user-facing literals (`--paths`, `--limit` supported) without failing on findings; Go sources are scanned via AST/token positions with guardrails for logs, SQL literals, and `_test.go` files, and JS scanning is scoped to `frontend/islands/` entry paths.
+- `ship i18n:instrument` provides a deterministic migration plan from scanner findings; `--apply` currently rewrites high-confidence Go controller `c.String` literals into i18n calls and seeds missing keys in `locales/en.yaml`.
 - `ship i18n:missing` reports missing/empty translations versus English source keys.
 - `ship i18n:unused` reports locale keys not referenced in `.go`/`.templ` `I18n.T(...)` usage.
+- Navbar now includes the `language-switcher` component, and switch links preserve current route/query while toggling `lang`.
 - `ship new <app>` now supports i18n-aware scaffold startup: interactive prompt (or `--i18n` / `--no-i18n`) and optional starter locale file creation (`locales/en.yaml`, `locales/fr.yaml`), with explicit messaging that i18n can be enabled/migrated later.
 
 ## Environments and Configuration
@@ -1508,7 +1517,10 @@ This package is the current source of truth for adapter seam contracts.
 5. `BlobStorage`
 - `Put`, `Delete`, `PresignGet`
 
-6. `Mailer`
+6. `I18n`
+- `DefaultLanguage`, `SupportedLanguages`, `NormalizeLanguage`, `T`
+
+7. `Mailer`
 - `Send(MailMessage)`
 
 ## Capability Validation
@@ -1539,6 +1551,7 @@ Current startup behavior:
   - `CoreCache` (`core.Cache`) via `foundation.CoreCacheAdapter`
   - `CoreJobs` (`core.Jobs`) via `foundation.CoreJobsAdapter`
   - `CorePubSub` (`core.PubSub`) via `foundation.CorePubSubAdapter`
+  - `I18n` (`core.I18n`) via `modules/i18n.Service`
 - container no longer needs to expose a concrete pubsub client field for application wiring.
 
 First migrated call site:
@@ -1547,6 +1560,7 @@ First migrated call site:
 - `modules/notifications/notifier.go` now publishes/subscribes through `core.PubSub` with explicit SSE event payload encoding.
 - `app/jobs/notifications.go` now uses a small planned-notification source interface, enabling table-driven unit tests without DB/container boot.
 - `modules/notifications/notifier.go` now exposes notifier-owned `SSEEvent` payloads so route code no longer depends on pubsub package event types.
+- i18n adapter compatibility checks now run through `framework/core/contracttests.RunI18nContract`, with the default module wired in `modules/i18n/contract_harness_test.go`.
 
 ## Scope Boundaries
 
@@ -2850,6 +2864,58 @@ v1 := e.Group("/api/v1") // ship:routes:api:v1:start
 Keep JSON-specific routes inside that marker block so generators and doctor checks have one canonical place to inspect.
 
 ---
+FILE: docs/guides/09-i18n-adapter-contract.md
+---
+# I18n Adapter Contract
+
+This guide defines the compatibility contract for installable i18n adapters.
+
+## Required Interface
+
+Adapters must satisfy `core.I18n`:
+
+1. `DefaultLanguage() string`
+2. `SupportedLanguages() []string`
+3. `NormalizeLanguage(raw string) string`
+4. `T(ctx context.Context, key string, templateData ...map[string]any) string`
+
+## Runtime Semantics
+
+1. `DefaultLanguage` must return a non-empty locale code.
+2. `SupportedLanguages` must include `DefaultLanguage`.
+3. `NormalizeLanguage` must fall back to `DefaultLanguage` for unsupported inputs.
+4. `T` must return the key for missing translations (stable fallback behavior).
+5. `T` should support template interpolation through `templateData`.
+
+## Compatibility Harness
+
+Shared contract tests live in `framework/core/contracttests`:
+
+- `RunI18nContract(t, subject)` runs baseline adapter checks.
+- Adapter implementations should wire this in their own package tests.
+
+Default adapter example:
+
+```go
+contracttests.RunI18nContract(t, contracttests.I18nContractSubject{
+    Name:               "modules/i18n default adapter",
+    KnownDefaultKey:    "app.welcome",
+    KnownDefaultResult: "Welcome",
+    Build: func(t *testing.T) contracttests.I18nContractAdapter {
+        // construct adapter with test locales...
+    },
+})
+```
+
+## Implementer Checklist
+
+1. Implement `core.I18n`.
+2. Add adapter-specific behavior tests (plurals, fallback chain, parsing).
+3. Add `RunI18nContract` to adapter tests.
+4. Document locale file format and loading behavior.
+5. Document missing-key behavior and fallback order.
+
+---
 FILE: docs/policies/01-engineering-standards.md
 ---
 # Repository Requirements (Engineering Standards)
@@ -2993,6 +3059,9 @@ Project lifecycle:
 - `ship config:validate [--json]`
 - `ship routes [--json]`
 - `ship api:spec [--out <path>] [--serve]`
+- `ship i18n:init [--force]`
+- `ship i18n:scan [--format json] [--paths <path1,path2,...>] [--limit <n>]`
+- `ship i18n:instrument [--apply] [--paths <path1,path2,...>] [--limit <n>]`
 - `ship i18n:missing`
 - `ship i18n:unused`
 - `ship agent:setup`
@@ -3124,6 +3193,9 @@ Safety matrix:
 - `ship api:spec` -> parses `app/contracts/*.go` `// Route:` contracts and prints OpenAPI 3.0 JSON to stdout
 - `ship api:spec --out <path>` -> writes generated OpenAPI JSON to the given file path
 - `ship api:spec --serve` -> serves Swagger UI + generated spec at `http://127.0.0.1:<port>/api/docs` until interrupted
+- `ship i18n:init [--force]` -> scaffolds `locales/en.yaml` and `locales/fr.yaml` for existing apps, preserving existing files unless `--force` is passed; prints deterministic next-step migration loop commands
+- `ship i18n:scan [--format json] [--paths <path1,path2,...>] [--limit <n>]` -> scans Go/templ/islands sources for hardcoded user-facing literals and emits deterministic JSON diagnostics (`id`, `kind`, `severity`, `file`, `line`, `column`, `message`, `suggested_key`, `confidence`)
+- `ship i18n:instrument [--apply] [--paths <path1,path2,...>] [--limit <n>]` -> builds a deterministic rewrite plan for high-confidence findings; default mode is dry-run JSON report, `--apply` rewrites safe Go controller `c.String(..., "literal")` sites to i18n calls and appends missing baseline keys to `locales/en.yaml`
 - `ship i18n:missing` -> compares `locales/en.yaml` keys with other locale files and lists missing/empty translations
 - `ship i18n:unused` -> lists locale keys not referenced by `I18n.T(...)`/`i18n.T(...)` calls in `.go`/`.templ` sources
 - `ship make:resource <name>` -> scaffold handler (+ optional templ page), ensure route-name constant, and print route snippet for manual insertion in `app/router.go`
@@ -3165,6 +3237,7 @@ Doctor checks (current):
 - validates cross-boundary import rules (controller `QueryProfile()` ban, jobs SQL coupling ban, notifications pubsub framework-core coupling ban, module source isolation ban for direct `github.com/leomorpho/goship/*` imports except explicit allowlist paths)
 - warns when `/api/` routes appear to render HTML directly instead of using the standard JSON API helpers
 - warns when SQL queries in `db/queries/` reference soft-delete tables without an explicit `deleted_at` filter (`DX028`)
+- i18n strict-mode enforcement (`PAGODA_I18N_STRICT_MODE=off|warn|error`) for hardcoded literals in controllers/views/islands, with `.i18n-allowlist` support for intentional exceptions (`DX029`)
 
 Field syntax for `make:model`:
 
@@ -3610,7 +3683,7 @@ Non-goal:
 9. Route contracts in `app/contracts` are now consumable by `ship api:spec` for generated OpenAPI 3.0 output.
 10. Test-data factory baseline now lives in `framework/factory` with `ship make:factory` scaffold support.
 11. Typed HTTP integration helpers now live in `framework/testutil` (`NewTestServer`, `PostForm` CSRF automation, `AsUser`, fluent response assertions).
-12. I18n baseline now lives in `modules/i18n` with locale files under `locales/` and CLI support for `make:locale`, `i18n:missing`, and `i18n:unused`.
+12. I18n baseline now lives in `modules/i18n` with locale files under `locales/`, runtime toggle support (`PAGODA_I18N_ENABLED` / `PAGODA_I18N_DEFAULT_LANGUAGE`), strict-mode doctor enforcement (`PAGODA_I18N_STRICT_MODE` + `.i18n-allowlist`), profile preference persistence (`profiles.preferred_language`), and CLI support for `make:locale`, `i18n:init`, `i18n:scan`, `i18n:instrument`, `i18n:missing`, and `i18n:unused`.
 13. `ship new` now asks (interactive) whether to enable i18n in the starter app, supports explicit `--i18n|--no-i18n` for non-interactive runs, and prints an explicit “enable later + migrate later” path.
 
 ## Upstream/Downstream Relationship
