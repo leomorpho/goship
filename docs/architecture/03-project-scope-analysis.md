@@ -90,6 +90,7 @@ Status of exposure:
 - Reusable subscription repo module (`modules/emailsubscriptions`)
 - App integration wiring for module services (`app/web/wiring.go`, `app/jobs/mail.go`)
 - Mail provider abstraction supports SMTP and Resend (`framework/repos/mailer`)
+- Email templates render via templ components in `app/views/emails/`, with `framework/repos/mailer.RenderEmail` producing both HTML and plain-text fallback output
 
 ## 6) File Storage and Images
 

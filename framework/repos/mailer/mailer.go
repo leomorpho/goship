@@ -1,7 +1,6 @@
 package mailer
 
 import (
-	"bytes"
 	"context"
 	"errors"
 
@@ -67,19 +66,17 @@ func (m *MailClient) send(email *mail, ctx context.Context) error {
 
 	// Check if a component was supplied
 	if email.component != nil {
-		// Render the templates for the Email
-		buf := &bytes.Buffer{}
-
 		// If the email layout is set, that will be used to wrap the email component
 		component := email.component
 		if email.layout != nil {
 			component = email.layout(component)
 		}
-		if err := component.Render(ctx, buf); err != nil {
+		html, _, err := RenderEmail(ctx, component)
+		if err != nil {
 			return err
 		}
 
-		email.body = buf.String()
+		email.body = html
 	}
 
 	// Delegate sending to the mailSender
