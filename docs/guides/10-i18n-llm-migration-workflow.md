@@ -9,8 +9,9 @@ This guide defines the deterministic i18n migration loop for humans and LLM agen
 3. `ship i18n:instrument --apply --limit 50`
 4. `ship doctor --json`
 5. `ship i18n:missing`
-6. `ship i18n:unused`
-7. Repeat from step 2 until no actionable findings remain.
+6. `ship i18n:compile`
+7. `ship i18n:unused`
+8. Repeat from step 2 until no actionable findings remain.
 
 ## Fix-One-Issue Loop
 

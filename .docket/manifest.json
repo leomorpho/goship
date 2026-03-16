@@ -615,6 +615,11 @@
       "title": "Expand safe i18n instrumentation rewrite coverage",
       "state": "done",
       "priority": 5
+    },
+    "TKT-153": {
+      "title": "Generate typed i18n keys for Go and JS to reduce string drift",
+      "state": "done",
+      "priority": 5
     }
   }
 }

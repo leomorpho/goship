@@ -308,6 +308,90 @@ func TestRunI18nInitOverwriteGuardAndForce(t *testing.T) {
 	}
 }
 
+func TestRunI18nCompileGeneratesTypedKeysForGoAndTS(t *testing.T) {
+	root := t.TempDir()
+	writeI18nFixture(t, root, map[string]string{
+		"go.mod": "module example.com/i18n-test\n\ngo 1.25\n",
+		"locales/en.toml": `
+"app.title" = "Demo"
+"auth.login.title" = "Sign in"
+"profile.edit-phone.title" = "Edit phone"
+`,
+	})
+
+	prevWD, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(prevWD) })
+	if err := os.Chdir(root); err != nil {
+		t.Fatal(err)
+	}
+
+	runCompile := func() {
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+		if code := RunI18n([]string{"compile"}, I18nDeps{
+			Out:          out,
+			Err:          errOut,
+			FindGoModule: findI18nGoModule,
+		}); code != 0 {
+			t.Fatalf("compile code = %d, stderr = %s", code, errOut.String())
+		}
+		if strings.TrimSpace(errOut.String()) != "" {
+			t.Fatalf("stderr = %q, want empty", errOut.String())
+		}
+	}
+
+	runCompile()
+
+	goPath := filepath.Join(root, "app", "i18nkeys", "keys_gen.go")
+	goContent, err := os.ReadFile(goPath)
+	if err != nil {
+		t.Fatalf("read generated go keys: %v", err)
+	}
+	if !strings.Contains(string(goContent), `KeyAppTitle = "app.title"`) {
+		t.Fatalf("generated go keys missing app title const:\n%s", string(goContent))
+	}
+	if !strings.Contains(string(goContent), `KeyAuthLoginTitle = "auth.login.title"`) {
+		t.Fatalf("generated go keys missing auth login const:\n%s", string(goContent))
+	}
+	fset := token.NewFileSet()
+	if _, err := parser.ParseFile(fset, goPath, goContent, parser.ParseComments); err != nil {
+		t.Fatalf("generated go file must parse: %v", err)
+	}
+
+	tsPath := filepath.Join(root, "frontend", "islands", "i18n-keys.ts")
+	tsContent, err := os.ReadFile(tsPath)
+	if err != nil {
+		t.Fatalf("read generated ts keys: %v", err)
+	}
+	if !strings.Contains(string(tsContent), `"auth.login.title": "auth.login.title"`) {
+		t.Fatalf("generated ts keys missing auth.login.title:\n%s", string(tsContent))
+	}
+	if !strings.Contains(string(tsContent), "export type I18nKey = keyof typeof i18nKeys;") {
+		t.Fatalf("generated ts keys missing I18nKey type alias:\n%s", string(tsContent))
+	}
+
+	beforeGo := string(goContent)
+	beforeTS := string(tsContent)
+	runCompile()
+	afterGo, err := os.ReadFile(goPath)
+	if err != nil {
+		t.Fatalf("read generated go keys after rerun: %v", err)
+	}
+	afterTS, err := os.ReadFile(tsPath)
+	if err != nil {
+		t.Fatalf("read generated ts keys after rerun: %v", err)
+	}
+	if beforeGo != string(afterGo) {
+		t.Fatalf("generated go keys should be deterministic across runs")
+	}
+	if beforeTS != string(afterTS) {
+		t.Fatalf("generated ts keys should be deterministic across runs")
+	}
+}
+
 func TestRunI18nInitUsageAndHelp(t *testing.T) {
 	helpOut := &bytes.Buffer{}
 	helpErr := &bytes.Buffer{}

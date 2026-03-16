@@ -53,6 +53,8 @@ func RunI18n(args []string, d I18nDeps) int {
 		return runI18nMigrate(args[1:], d, root)
 	case "normalize":
 		return runI18nNormalize(args[1:], d, root)
+	case "compile":
+		return runI18nCompile(args[1:], d, root)
 	case "missing":
 		return runI18nMissing(d, root)
 	case "unused":
@@ -71,6 +73,7 @@ func PrintI18nHelp(w io.Writer) {
 	fmt.Fprintln(w, "  ship i18n:instrument [--apply] [--paths <path1,path2,...>] [--limit <n>]")
 	fmt.Fprintln(w, "  ship i18n:migrate [--force]")
 	fmt.Fprintln(w, "  ship i18n:normalize")
+	fmt.Fprintln(w, "  ship i18n:compile")
 	fmt.Fprintln(w, "  ship i18n:missing")
 	fmt.Fprintln(w, "  ship i18n:unused")
 }
