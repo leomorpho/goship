@@ -152,6 +152,8 @@ type I18n interface {
 	SupportedLanguages() []string
 	NormalizeLanguage(raw string) string
 	T(ctx context.Context, key string, templateData ...map[string]any) string
+	TC(ctx context.Context, key string, count any, templateData ...map[string]any) string
+	TS(ctx context.Context, key string, choice string, templateData ...map[string]any) string
 }
 
 // PutObjectInput describes an object upload request.

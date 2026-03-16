@@ -12,6 +12,8 @@ type I18nContractAdapter interface {
 	SupportedLanguages() []string
 	NormalizeLanguage(raw string) string
 	T(ctx context.Context, key string, templateData ...map[string]any) string
+	TC(ctx context.Context, key string, count any, templateData ...map[string]any) string
+	TS(ctx context.Context, key string, choice string, templateData ...map[string]any) string
 }
 
 // I18nContractSubject describes one adapter implementation to validate.
@@ -69,6 +71,12 @@ func RunI18nContract(t *testing.T, subject I18nContractSubject) {
 		const missingKey = "__contract_missing_key__"
 		if got := adapter.T(context.Background(), missingKey); got != missingKey {
 			t.Fatalf("%s: missing key fallback = %q, want %q", subject.Name, got, missingKey)
+		}
+		if got := adapter.TC(context.Background(), missingKey, 1); got != missingKey {
+			t.Fatalf("%s: missing plural key fallback = %q, want %q", subject.Name, got, missingKey)
+		}
+		if got := adapter.TS(context.Background(), missingKey, "admin"); got != missingKey {
+			t.Fatalf("%s: missing select key fallback = %q, want %q", subject.Name, got, missingKey)
 		}
 	})
 

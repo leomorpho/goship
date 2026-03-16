@@ -134,18 +134,7 @@ func NewService(opts Options) (*Service, error) {
 	sort.Strings(localeCodes)
 	for _, localeCode := range localeCodes {
 		flat := localeMaps[localeCode]
-		messages := make([]*goi18n.Message, 0, len(flat))
-		keys := make([]string, 0, len(flat))
-		for key := range flat {
-			keys = append(keys, key)
-		}
-		sort.Strings(keys)
-		for _, key := range keys {
-			messages = append(messages, &goi18n.Message{
-				ID:    key,
-				Other: flat[key],
-			})
-		}
+		messages := buildMessagesFromFlat(flat)
 		if len(messages) > 0 {
 			if err := bundle.AddMessages(language.Make(localeCode), messages...); err != nil {
 				return nil, fmt.Errorf("register locale %s: %w", localeCode, err)
@@ -209,6 +198,44 @@ func (s *Service) NormalizeLanguage(raw string) string {
 }
 
 func (s *Service) T(ctx context.Context, key string, templateData ...map[string]any) string {
+	return s.localize(ctx, key, nil, templateData...)
+}
+
+func (s *Service) TC(ctx context.Context, key string, count any, templateData ...map[string]any) string {
+	merged := mergeTemplateData(templateData...)
+	if merged == nil {
+		merged = map[string]any{}
+	}
+	if _, ok := merged["Count"]; !ok {
+		merged["Count"] = count
+	}
+	return s.localize(ctx, key, count, merged)
+}
+
+func (s *Service) TS(ctx context.Context, key string, choice string, templateData ...map[string]any) string {
+	if s == nil {
+		return key
+	}
+	key = strings.TrimSpace(key)
+	if key == "" {
+		return ""
+	}
+
+	normalizedChoice := strings.ToLower(strings.TrimSpace(choice))
+	if normalizedChoice != "" {
+		candidate := key + "." + normalizedChoice
+		if translated := s.T(ctx, candidate, templateData...); translated != candidate {
+			return translated
+		}
+	}
+	fallback := key + ".other"
+	if translated := s.T(ctx, fallback, templateData...); translated != fallback {
+		return translated
+	}
+	return s.T(ctx, key, templateData...)
+}
+
+func (s *Service) localize(ctx context.Context, key string, pluralCount any, templateData ...map[string]any) string {
 	if s == nil {
 		return key
 	}
@@ -220,15 +247,47 @@ func (s *Service) T(ctx context.Context, key string, templateData ...map[string]
 	lang := s.NormalizeLanguage(LanguageFromContext(ctx))
 	localizer := s.localizer(lang)
 	cfg := &goi18n.LocalizeConfig{MessageID: key}
-	if len(templateData) > 0 {
-		cfg.TemplateData = templateData[0]
+	merged := mergeTemplateData(templateData...)
+	if len(merged) > 0 {
+		cfg.TemplateData = merged
+	}
+	if pluralCount != nil {
+		cfg.PluralCount = pluralCount
 	}
 
 	msg, err := localizer.Localize(cfg)
-	if err != nil || strings.TrimSpace(msg) == "" {
-		return key
+	if err == nil && strings.TrimSpace(msg) != "" {
+		return msg
 	}
-	return msg
+
+	// When a locale has partial plural forms, fall back to default-language message resolution.
+	if pluralCount != nil && lang != s.defaultLanguage {
+		defaultLocalizer := s.localizer(s.defaultLanguage)
+		fallbackMsg, fallbackErr := defaultLocalizer.Localize(cfg)
+		if fallbackErr == nil && strings.TrimSpace(fallbackMsg) != "" {
+			return fallbackMsg
+		}
+	}
+	return key
+}
+
+func mergeTemplateData(values ...map[string]any) map[string]any {
+	if len(values) == 0 {
+		return nil
+	}
+	merged := map[string]any{}
+	for _, item := range values {
+		if len(item) == 0 {
+			continue
+		}
+		for key, value := range item {
+			merged[key] = value
+		}
+	}
+	if len(merged) == 0 {
+		return nil
+	}
+	return merged
 }
 
 func (s *Service) localizer(lang string) *goi18n.Localizer {
@@ -309,6 +368,94 @@ func flattenLocaleMap(prefix string, value any, out map[string]string) {
 		if prefix != "" {
 			out[prefix] = strings.TrimSpace(fmt.Sprint(typed))
 		}
+	}
+}
+
+func buildMessagesFromFlat(flat map[string]string) []*goi18n.Message {
+	regular := map[string]string{}
+	plural := map[string]*goi18n.Message{}
+
+	for key, value := range flat {
+		base, category, ok := splitPluralMessageKey(key)
+		if !ok {
+			regular[key] = value
+			continue
+		}
+
+		msg, exists := plural[base]
+		if !exists {
+			msg = &goi18n.Message{ID: base}
+			plural[base] = msg
+		}
+		assignPluralCategory(msg, category, value)
+	}
+
+	for key, value := range regular {
+		if grouped, ok := plural[key]; ok && strings.TrimSpace(grouped.Other) == "" {
+			grouped.Other = value
+			continue
+		}
+	}
+
+	keys := make([]string, 0, len(regular)+len(plural))
+	for key := range regular {
+		if _, grouped := plural[key]; grouped {
+			continue
+		}
+		keys = append(keys, key)
+	}
+	for key := range plural {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+
+	messages := make([]*goi18n.Message, 0, len(keys))
+	for _, key := range keys {
+		if grouped, ok := plural[key]; ok {
+			messages = append(messages, grouped)
+			continue
+		}
+		messages = append(messages, &goi18n.Message{
+			ID:    key,
+			Other: regular[key],
+		})
+	}
+	return messages
+}
+
+func splitPluralMessageKey(key string) (base string, category string, ok bool) {
+	trimmed := strings.TrimSpace(key)
+	if trimmed == "" {
+		return "", "", false
+	}
+	idx := strings.LastIndex(trimmed, ".")
+	if idx <= 0 || idx >= len(trimmed)-1 {
+		return "", "", false
+	}
+	base = strings.TrimSpace(trimmed[:idx])
+	category = strings.ToLower(strings.TrimSpace(trimmed[idx+1:]))
+	switch category {
+	case "zero", "one", "two", "few", "many", "other":
+		return base, category, true
+	default:
+		return "", "", false
+	}
+}
+
+func assignPluralCategory(msg *goi18n.Message, category string, value string) {
+	switch category {
+	case "zero":
+		msg.Zero = value
+	case "one":
+		msg.One = value
+	case "two":
+		msg.Two = value
+	case "few":
+		msg.Few = value
+	case "many":
+		msg.Many = value
+	case "other":
+		msg.Other = value
 	}
 }
 

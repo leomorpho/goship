@@ -553,7 +553,9 @@ func scanI18nStrictText(rel, ext, raw string) []i18nStrictFinding {
 	findings := make([]i18nStrictFinding, 0)
 	for i, line := range lines {
 		trimmed := strings.TrimSpace(line)
-		if trimmed == "" || strings.Contains(line, "I18n.T(") || strings.Contains(line, "i18n.T(") {
+		if trimmed == "" || strings.Contains(line, "I18n.T(") || strings.Contains(line, "i18n.T(") ||
+			strings.Contains(line, "I18n.TC(") || strings.Contains(line, "i18n.TC(") ||
+			strings.Contains(line, "I18n.TS(") || strings.Contains(line, "i18n.TS(") {
 			continue
 		}
 		if (ext == ".js" || ext == ".ts" || ext == ".svelte" || ext == ".vue") && strings.Contains(strings.ToLower(line), "i18n.t(") {
@@ -643,7 +645,7 @@ func doctorIgnoreGoI18nLiteral(stack []ast.Node, value string) bool {
 			switch sel.Sel.Name {
 			case "Debug", "Info", "Warn", "Error", "Print", "Printf", "Println", "Fatal", "Fatalf", "Fatalln", "New", "Errorf":
 				return true
-			case "T":
+			case "T", "TC", "TS":
 				return true
 			}
 		}

@@ -380,7 +380,12 @@ func shouldIgnoreGoLiteral(stack []ast.Node, literal string) bool {
 
 func exprIsI18nCall(expr ast.Expr) bool {
 	selector, ok := expr.(*ast.SelectorExpr)
-	if !ok || selector.Sel == nil || selector.Sel.Name != "T" {
+	if !ok || selector.Sel == nil {
+		return false
+	}
+	switch selector.Sel.Name {
+	case "T", "TC", "TS":
+	default:
 		return false
 	}
 	ident, ok := selector.X.(*ast.Ident)
@@ -446,7 +451,9 @@ func shouldSkipScanLine(ext, line string) bool {
 	if line == "" {
 		return true
 	}
-	if strings.Contains(line, "I18n.T(") || strings.Contains(line, "i18n.T(") {
+	if strings.Contains(line, "I18n.T(") || strings.Contains(line, "i18n.T(") ||
+		strings.Contains(line, "I18n.TC(") || strings.Contains(line, "i18n.TC(") ||
+		strings.Contains(line, "I18n.TS(") || strings.Contains(line, "i18n.TS(") {
 		return true
 	}
 	if isJavaScriptLike(ext) && strings.Contains(strings.ToLower(line), "i18n.t(") {

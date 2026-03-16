@@ -384,7 +384,7 @@ func runI18nNormalize(args []string, d I18nDeps, root string) int {
 	return 0
 }
 
-var i18nKeyUsePattern = regexp.MustCompile(`(?:I18n\.T|i18n\.T)\s*\([^)]*"([a-zA-Z0-9._-]+)"`)
+var i18nKeyUsePattern = regexp.MustCompile(`(?:I18n\.(?:T|TC|TS)|i18n\.(?:T|TC|TS))\s*\([^)]*"([a-zA-Z0-9._-]+)"`)
 
 func collectUsedI18nKeys(root string) (map[string]struct{}, error) {
 	used := map[string]struct{}{}

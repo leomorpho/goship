@@ -54,6 +54,7 @@ This package is the current source of truth for adapter seam contracts.
 
 6. `I18n`
 - `DefaultLanguage`, `SupportedLanguages`, `NormalizeLanguage`, `T`
+- `TC` (count/plural helper), `TS` (choice/select helper)
 
 7. `Mailer`
 - `Send(MailMessage)`

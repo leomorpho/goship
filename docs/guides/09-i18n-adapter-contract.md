@@ -10,6 +10,8 @@ Adapters must satisfy `core.I18n`:
 2. `SupportedLanguages() []string`
 3. `NormalizeLanguage(raw string) string`
 4. `T(ctx context.Context, key string, templateData ...map[string]any) string`
+5. `TC(ctx context.Context, key string, count any, templateData ...map[string]any) string`
+6. `TS(ctx context.Context, key string, choice string, templateData ...map[string]any) string`
 
 ## Runtime Semantics
 
@@ -17,7 +19,9 @@ Adapters must satisfy `core.I18n`:
 2. `SupportedLanguages` must include `DefaultLanguage`.
 3. `NormalizeLanguage` must fall back to `DefaultLanguage` for unsupported inputs.
 4. `T` must return the key for missing translations (stable fallback behavior).
-5. `T` should support template interpolation through `templateData`.
+5. `TC` must resolve pluralized forms by count with default-locale fallback.
+6. `TS` must resolve choice/select variants with `<key>.other` fallback before raw key fallback.
+7. `T`/`TC`/`TS` should support template interpolation through `templateData`.
 
 ## Compatibility Harness
 
