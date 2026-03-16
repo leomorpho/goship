@@ -643,7 +643,7 @@
     },
     "TKT-156": {
       "title": "Doctor Zero-Failure Baseline EPIC",
-      "state": "todo",
+      "state": "done",
       "priority": 1
     },
     "TKT-157": {
@@ -677,7 +677,7 @@
     },
     "TKT-162": {
       "title": "Docs: publish canonical doctor policy for templ comments and tmp artifacts",
-      "state": "todo",
+      "state": "done",
       "priority": 3,
       "parent": "TKT-156"
     },
