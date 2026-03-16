@@ -625,6 +625,11 @@
       "title": "Translator workflow contract and maintenance policy",
       "state": "done",
       "priority": 5
+    },
+    "TKT-155": {
+      "title": "Strict CI profile for i18n-enabled apps",
+      "state": "done",
+      "priority": 5
     }
   }
 }

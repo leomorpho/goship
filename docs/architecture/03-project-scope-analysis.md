@@ -185,6 +185,7 @@ Reflection-based administrative interface for managing database resources.
 - `ship i18n:migrate` converts legacy YAML locale catalogs to canonical TOML catalogs.
 - `ship i18n:normalize` rewrites TOML catalogs to deterministic canonical ordering for stable diffs.
 - `ship i18n:compile` generates typed key artifacts from baseline locale catalogs for Go (`app/i18nkeys/keys_gen.go`) and islands TypeScript (`frontend/islands/i18n-keys.ts`).
+- `ship i18n:ci` provides a deterministic strict-mode CI gate (scanner + doctor `DX029`) for i18n-enabled apps.
 - `ship i18n:missing` reports missing/empty translations versus English source keys and emits plural/select completeness diagnostics for `I18n.TC(...)`/`I18n.TS(...)` usage.
 - `ship i18n:unused` reports locale keys not referenced in `.go`/`.templ` `I18n.T(...)` usage.
 - Islands bootstrap contract now passes locale/i18n data through `data-props` as `{ i18n: { locale: "<code>", messages: { ... } } }`, and islands resolve labels from that payload for hydration parity.

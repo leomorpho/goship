@@ -48,6 +48,7 @@ Project lifecycle:
 - `ship i18n:migrate [--force]`
 - `ship i18n:normalize`
 - `ship i18n:compile`
+- `ship i18n:ci`
 - `ship i18n:missing`
 - `ship i18n:unused`
 - `ship agent:setup`
@@ -185,6 +186,7 @@ Safety matrix:
 - `ship i18n:migrate [--force]` -> converts `locales/*.yaml`/`*.yml` catalogs to canonical `locales/*.toml` catalogs (preserves existing TOML unless `--force`)
 - `ship i18n:normalize` -> rewrites TOML locale catalogs into deterministic canonical ordering for stable diffs/CI
 - `ship i18n:compile` -> generates typed i18n key artifacts from baseline English catalogs for Go (`app/i18nkeys/keys_gen.go`) and islands TypeScript (`frontend/islands/i18n-keys.ts`)
+- `ship i18n:ci` -> deterministic strict i18n CI profile command; enforces scanner findings + strict-mode doctor `DX029` findings and exits non-zero on violations
 - `ship i18n:missing` -> compares baseline English locale keys with other locale files and lists missing/empty translations
 - `ship i18n:unused` -> lists locale keys not referenced by `I18n.T(...)`/`i18n.T(...)` calls in `.go`/`.templ` sources
 - Full i18n operator policy (coverage matrix, enforcement mapping, strict rollout, JSON contracts): `docs/guides/10-i18n-llm-migration-workflow.md`

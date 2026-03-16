@@ -392,6 +392,84 @@ func TestRunI18nCompileGeneratesTypedKeysForGoAndTS(t *testing.T) {
 	}
 }
 
+func TestRunI18nCIFailsWhenScannerOrStrictDoctorFindingsExist(t *testing.T) {
+	root := t.TempDir()
+	writeI18nFixture(t, root, map[string]string{
+		"go.mod": "module example.com/i18n-test\n\ngo 1.25\n",
+		"locales/en.toml": `"app.title" = "Demo"` + "\n",
+		"app/web/controllers/sample.go": `package controllers
+func demo() string {
+	return "Welcome users"
+}
+`,
+	})
+
+	prevWD, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(prevWD) })
+	if err := os.Chdir(root); err != nil {
+		t.Fatal(err)
+	}
+
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	code := RunI18n([]string{"ci"}, I18nDeps{
+		Out:          out,
+		Err:          errOut,
+		FindGoModule: findI18nGoModule,
+	})
+	if code != 1 {
+		t.Fatalf("code = %d, want 1", code)
+	}
+	if !strings.Contains(errOut.String(), "scanner findings:") {
+		t.Fatalf("stderr = %q, want scanner findings summary", errOut.String())
+	}
+	if !strings.Contains(errOut.String(), "doctor DX029 findings:") {
+		t.Fatalf("stderr = %q, want doctor findings summary", errOut.String())
+	}
+}
+
+func TestRunI18nCIPassesWhenNoScannerOrStrictDoctorFindings(t *testing.T) {
+	root := t.TempDir()
+	writeI18nFixture(t, root, map[string]string{
+		"go.mod": "module example.com/i18n-test\n\ngo 1.25\n",
+		"locales/en.toml": `"app.title" = "Demo"` + "\n",
+		"app/web/controllers/sample.go": `package controllers
+func demo() string {
+	return container.I18n.T(ctx, "app.title")
+}
+`,
+	})
+
+	prevWD, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(prevWD) })
+	if err := os.Chdir(root); err != nil {
+		t.Fatal(err)
+	}
+
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	code := RunI18n([]string{"ci"}, I18nDeps{
+		Out:          out,
+		Err:          errOut,
+		FindGoModule: findI18nGoModule,
+	})
+	if code != 0 {
+		t.Fatalf("code = %d, stderr = %s", code, errOut.String())
+	}
+	if strings.TrimSpace(errOut.String()) != "" {
+		t.Fatalf("stderr = %q, want empty", errOut.String())
+	}
+	if !strings.Contains(out.String(), "i18n:ci passed.") {
+		t.Fatalf("stdout = %q, want pass message", out.String())
+	}
+}
+
 func TestRunI18nInitUsageAndHelp(t *testing.T) {
 	helpOut := &bytes.Buffer{}
 	helpErr := &bytes.Buffer{}

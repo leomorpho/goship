@@ -165,6 +165,19 @@ Current known enforcement gaps (explicit, temporary):
 3. Prefer `high` confidence rewrites first.
 4. Run `go test ./...` and `ship doctor --json` before each commit.
 
+## CI Profile (Strict)
+
+Use `ship i18n:ci` for deterministic strict i18n CI gates in i18n-enabled apps.
+
+Recommended rollout:
+
+1. Start with migration loops and `PAGODA_I18N_STRICT_MODE=warn`.
+2. Clean scanner + completeness findings and adopt stable allowlist entries only where intentional.
+3. Switch to `PAGODA_I18N_STRICT_MODE=error`.
+4. Gate CI with:
+   - `go test ./...`
+   - `ship i18n:ci`
+
 ## Starter Locale Policy
 
 `ship new` supports:
