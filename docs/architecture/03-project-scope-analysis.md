@@ -203,6 +203,7 @@ Health endpoints:
 ## Testing Surface
 
 - Go tests are distributed across `app/**`, `framework/**`, `modules/**`, and `tools/**`
+- `framework/factory` + `tests/factories` now provide a typed baseline for building and inserting repeatable test data records
 - Playwright e2e folder exists (`tests/e2e/`), but specs are currently product-domain stale and marked TODO
 
 ## Operational Tooling

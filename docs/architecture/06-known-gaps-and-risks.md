@@ -153,6 +153,15 @@ Impact:
 - API docs are now auto-generated and drift-resistant for route/path/request schema shape.
 - Teams still need follow-up refinement for richer per-operation responses/examples/auth scopes when publishing external API docs.
 
+## 17) Factory Scaffolding Is Intentional Baseline (Low)
+
+`ship make:factory` now creates typed test factory scaffolds, but generated files intentionally include only minimal fields and no app-specific trait library.
+
+Impact:
+
+- Teams get consistent factory structure and naming with less boilerplate.
+- Rich domain-specific traits still require local customization after scaffold generation.
+
 ## Suggested Priority Order
 
 1. Complete cache adapter coverage so page caching works consistently across supported backends.

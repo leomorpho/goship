@@ -268,6 +268,8 @@ func (c CLI) runMake(args []string) int {
 		return c.runMakeSchedule(args[1:])
 	case "resource":
 		return c.runGenerateResource(args[1:])
+	case "factory":
+		return c.runMakeFactory(args[1:])
 	case "help", "-h", "--help":
 		cmd.PrintMakeHelp(c.Out)
 		return 0
@@ -373,6 +375,13 @@ func (c CLI) runMakeSchedule(args []string) int {
 
 func (c CLI) runMakeCommand(args []string) int {
 	return gen.RunMakeCommand(args, gen.MakeCommandDeps{
+		Out: c.Out,
+		Err: c.Err,
+	})
+}
+
+func (c CLI) runMakeFactory(args []string) int {
+	return gen.RunMakeFactory(args, gen.FactoryDeps{
 		Out: c.Out,
 		Err: c.Err,
 	})

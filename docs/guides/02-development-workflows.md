@@ -166,6 +166,15 @@ Go tests:
 - `make cover`
 - `bash tools/scripts/precommit-tests.sh` (full stateless gate used before commit/CI)
 
+Test data factories:
+
+- `framework/factory` provides generic test builders with `Build` and DB-backed `Create`.
+- `tests/factories/user_factory.go` is the canonical example for user records + traits.
+- Scaffold a new factory with: `go run ./tools/cli/ship/cmd/ship make:factory <Name>`.
+- Typical usage in tests:
+  - `user := factories.User.Create(t, db)`
+  - `admin := factories.User.Create(t, db, factories.WithAdminRole)`
+
 E2E tests:
 
 - `make e2e-smoke` (single happy-path smoke; Playwright starts `go run ./cmd/web` automatically via `webServer`)
