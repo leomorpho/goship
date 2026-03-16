@@ -194,6 +194,119 @@ func TestRunVerify(t *testing.T) {
 			t.Fatalf("stderr = %q, want relocation failure output", errOut.String())
 		}
 	})
+
+	t.Run("warns when scaffold tests are still skipped", func(t *testing.T) {
+		root := t.TempDir()
+		writeVerifyGoMod(t, root)
+		testFile := filepath.Join(root, "scaffold_test.go")
+		content := `package verify
+
+import "testing"
+
+func TestScaffoldTodo(t *testing.T) {
+	t.Skip("scaffold: implement resource behavior")
+}
+`
+		if err := os.WriteFile(testFile, []byte(content), 0o644); err != nil {
+			t.Fatal(err)
+		}
+
+		prevWD := chdirVerifyRoot(t, root)
+		t.Cleanup(func() { _ = os.Chdir(prevWD) })
+
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+		code := RunVerify([]string{"--skip-tests"}, VerifyDeps{
+			Out:          out,
+			Err:          errOut,
+			FindGoModule: findVerifyGoModule,
+			RelocateTempl: func(rootPath string) error {
+				return nil
+			},
+			RunStep: func(name string, args ...string) (int, string, error) {
+				return 0, "ok", nil
+			},
+			LookPath: func(file string) (string, error) {
+				return "/usr/bin/" + file, nil
+			},
+			RunDoctor: func() (int, string, error) {
+				return 0, `{"ok":true,"issues":[]}`, nil
+			},
+		})
+		if code != 0 {
+			t.Fatalf("exit code = %d, want 0", code)
+		}
+		if errOut.Len() != 0 {
+			t.Fatalf("stderr = %q, want empty", errOut.String())
+		}
+		if !strings.Contains(out.String(), "Warning: 1 scaffolded tests are still skipped.") {
+			t.Fatalf("stdout = %q, want scaffold warning", out.String())
+		}
+		if !strings.Contains(out.String(), "scaffold_test.go:TestScaffoldTodo") {
+			t.Fatalf("stdout = %q, want file and test name", out.String())
+		}
+	})
+
+	t.Run("json output includes warning severity for scaffold skips", func(t *testing.T) {
+		root := t.TempDir()
+		writeVerifyGoMod(t, root)
+		testFile := filepath.Join(root, "scaffold_test.go")
+		content := `package verify
+
+import "testing"
+
+func TestScaffoldTodo(t *testing.T) {
+	t.Skip("scaffold: implement resource behavior")
+}
+`
+		if err := os.WriteFile(testFile, []byte(content), 0o644); err != nil {
+			t.Fatal(err)
+		}
+
+		prevWD := chdirVerifyRoot(t, root)
+		t.Cleanup(func() { _ = os.Chdir(prevWD) })
+
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+		code := RunVerify([]string{"--json", "--skip-tests"}, VerifyDeps{
+			Out:          out,
+			Err:          errOut,
+			FindGoModule: findVerifyGoModule,
+			RelocateTempl: func(rootPath string) error {
+				return nil
+			},
+			RunStep: func(name string, args ...string) (int, string, error) {
+				return 0, "ok", nil
+			},
+			LookPath: func(file string) (string, error) {
+				return "/usr/bin/" + file, nil
+			},
+			RunDoctor: func() (int, string, error) {
+				return 0, `{"ok":true,"issues":[]}`, nil
+			},
+		})
+		if code != 0 {
+			t.Fatalf("exit code = %d, want 0", code)
+		}
+		if errOut.Len() != 0 {
+			t.Fatalf("stderr = %q, want empty", errOut.String())
+		}
+
+		var payload verifyJSONResult
+		if err := json.Unmarshal(out.Bytes(), &payload); err != nil {
+			t.Fatalf("decode json: %v", err)
+		}
+		foundWarning := false
+		for _, step := range payload.Steps {
+			if step.Name == "scaffold skip checks" && step.Severity == "warning" {
+				foundWarning = true
+				break
+			}
+		}
+		if !foundWarning {
+			t.Fatalf("expected scaffold warning step, got %+v", payload.Steps)
+		}
+	})
 }
 
 func writeVerifyGoMod(t *testing.T, root string) {

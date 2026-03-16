@@ -9,6 +9,8 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"path/filepath"
+	"regexp"
 	"strings"
 
 	policies "github.com/leomorpho/goship/tools/cli/ship/internal/policies"
@@ -25,9 +27,10 @@ type VerifyDeps struct {
 }
 
 type verifyJSONStep struct {
-	Name   string `json:"name"`
-	OK     bool   `json:"ok"`
-	Output string `json:"output"`
+	Name     string `json:"name"`
+	OK       bool   `json:"ok"`
+	Output   string `json:"output"`
+	Severity string `json:"severity,omitempty"`
 }
 
 type verifyJSONResult struct {
@@ -94,11 +97,12 @@ func RunVerify(args []string, d VerifyDeps) int {
 	results := make([]verifyJSONStep, 0, 5)
 	var failed *verifyJSONStep
 
-	appendStep := func(name string, ok bool, output string) {
+	appendStep := func(name string, ok bool, output string, severity string) {
 		results = append(results, verifyJSONStep{
-			Name:   name,
-			OK:     ok,
-			Output: strings.TrimSpace(output),
+			Name:     name,
+			OK:       ok,
+			Output:   strings.TrimSpace(output),
+			Severity: strings.TrimSpace(severity),
 		})
 		if !ok && failed == nil {
 			failed = &results[len(results)-1]
@@ -112,40 +116,56 @@ func RunVerify(args []string, d VerifyDeps) int {
 				runErr = relocateErr
 			}
 		}
-		appendStep("templ generate", code == 0 && runErr == nil, mergeVerifyOutput(output, runErr))
+		appendStep("templ generate", code == 0 && runErr == nil, mergeVerifyOutput(output, runErr), "")
 		if failed != nil {
 			return nil
 		}
 
 		code, output, runErr = runStep("go", "build", "./...")
-		appendStep("go build ./...", code == 0 && runErr == nil, mergeVerifyOutput(output, runErr))
+		appendStep("go build ./...", code == 0 && runErr == nil, mergeVerifyOutput(output, runErr), "")
 		if failed != nil {
 			return nil
 		}
 
 		code, output, runErr = runDoctor()
-		appendStep("ship doctor --json", code == 0 && runErr == nil, mergeVerifyOutput(output, runErr))
+		appendStep("ship doctor --json", code == 0 && runErr == nil, mergeVerifyOutput(output, runErr), "")
 		if failed != nil {
 			return nil
 		}
 
 		if _, err := lookPath("nilaway"); err != nil {
-			appendStep("nilaway ./...", true, "nilaway not installed; skipping")
+			appendStep("nilaway ./...", true, "nilaway not installed; skipping", "warning")
 		} else {
 			code, output, runErr = runStep("nilaway", "./...")
-			appendStep("nilaway ./...", code == 0 && runErr == nil, mergeVerifyOutput(output, runErr))
+			appendStep("nilaway ./...", code == 0 && runErr == nil, mergeVerifyOutput(output, runErr), "")
 			if failed != nil {
 				return nil
 			}
 		}
 
 		if *skipTests {
-			appendStep("go test ./...", true, "skipped via --skip-tests")
+			appendStep("go test ./...", true, "skipped via --skip-tests", "warning")
+		} else {
+			code, output, runErr = runStep("go", "test", "./...")
+			appendStep("go test ./...", code == 0 && runErr == nil, mergeVerifyOutput(output, runErr), "")
+		}
+		if failed != nil {
 			return nil
 		}
 
-		code, output, runErr = runStep("go", "test", "./...")
-		appendStep("go test ./...", code == 0 && runErr == nil, mergeVerifyOutput(output, runErr))
+		scaffoldSkips, scanErr := findScaffoldSkippedTests(".")
+		if scanErr != nil {
+			appendStep("scaffold skip checks", true, fmt.Sprintf("Warning: failed to scan scaffold skips: %v", scanErr), "warning")
+			return nil
+		}
+		if len(scaffoldSkips) > 0 {
+			appendStep(
+				"scaffold skip checks",
+				true,
+				fmt.Sprintf("Warning: %d scaffolded tests are still skipped.\n%s", len(scaffoldSkips), strings.Join(scaffoldSkips, "\n")),
+				"warning",
+			)
+		}
 		return nil
 	}); err != nil {
 		fmt.Fprintf(d.Err, "verify failed: %v\n", err)
@@ -165,7 +185,7 @@ func RunVerify(args []string, d VerifyDeps) int {
 	}
 
 	for _, step := range results {
-		if strings.Contains(step.Output, "skipping") || strings.Contains(step.Output, "skipped") {
+		if step.Severity == "warning" || strings.Contains(step.Output, "skipping") || strings.Contains(step.Output, "skipped") {
 			fmt.Fprintf(d.Out, "! %s: %s\n", step.Name, step.Output)
 		}
 	}
@@ -225,4 +245,58 @@ func runVerifyDoctorJSON(findGoModule func(start string) (string, string, error)
 		FindGoModule: findGoModule,
 	})
 	return code, strings.TrimSpace(out.String() + errOut.String()), nil
+}
+
+var (
+	scaffoldSkipPattern = regexp.MustCompile(`t\.Skip\(\s*"scaffold:`)
+	testFuncPattern     = regexp.MustCompile(`^\s*func\s+(Test[^\s(]+)\s*\(`)
+)
+
+func findScaffoldSkippedTests(root string) ([]string, error) {
+	results := make([]string, 0)
+	err := filepath.WalkDir(root, func(path string, d os.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		if d.IsDir() {
+			switch d.Name() {
+			case ".git", "vendor", "node_modules", ".cache":
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		if !strings.HasSuffix(path, "_test.go") {
+			return nil
+		}
+
+		content, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		rel, err := filepath.Rel(root, path)
+		if err != nil {
+			rel = path
+		}
+		rel = filepath.ToSlash(rel)
+
+		currentTest := ""
+		for _, line := range strings.Split(string(content), "\n") {
+			if m := testFuncPattern.FindStringSubmatch(line); len(m) == 2 {
+				currentTest = m[1]
+			}
+			if !scaffoldSkipPattern.MatchString(line) {
+				continue
+			}
+			testName := currentTest
+			if strings.TrimSpace(testName) == "" {
+				testName = "<unknown>"
+			}
+			results = append(results, rel+":"+testName)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return results, nil
 }
