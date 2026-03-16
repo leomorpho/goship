@@ -22,6 +22,7 @@ GoShip is maintained as a single-app repository: one canonical runtime app under
 - `cmd/web/main.go`: main HTTP application server
 - `cmd/worker/main.go`: asynchronous worker process for task handlers
 - `cmd/seed/main.go`: seed runner for test/dev data
+- `cmd/cli/main.go`: app-level command runner (`app/commands/*`)
 
 ## Feature Areas
 

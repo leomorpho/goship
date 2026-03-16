@@ -141,6 +141,8 @@ func (c CLI) runNamespaced(args []string) (int, bool) {
 		return c.runModule(rest), true
 	case "config":
 		return c.runConfig(rest), true
+	case "run":
+		return c.runRun(rest), true
 	default:
 		fmt.Fprintf(c.Err, "unknown command namespace: %s\n\n", ns)
 		cmd.PrintRootHelp(c.Err)
@@ -251,6 +253,8 @@ func (c CLI) runMake(args []string) int {
 		return c.runGenerateModel(args[1:])
 	case "event":
 		return c.runGenerateEvent(args[1:])
+	case "command":
+		return c.runMakeCommand(args[1:])
 	case "schedule":
 		return c.runMakeSchedule(args[1:])
 	case "resource":
@@ -352,4 +356,46 @@ func (c CLI) runMakeSchedule(args []string) int {
 		Out: c.Out,
 		Err: c.Err,
 	})
+}
+
+func (c CLI) runMakeCommand(args []string) int {
+	return gen.RunMakeCommand(args, gen.MakeCommandDeps{
+		Out: c.Out,
+		Err: c.Err,
+	})
+}
+
+func (c CLI) runRun(args []string) int {
+	if len(args) == 0 {
+		fmt.Fprintln(c.Err, "usage: ship run:command <name> [-- <args...>]")
+		return 1
+	}
+	switch args[0] {
+	case "command":
+		return c.runRunCommand(args[1:])
+	default:
+		fmt.Fprintf(c.Err, "unknown run command: %s\n", args[0])
+		return 1
+	}
+}
+
+func (c CLI) runRunCommand(args []string) int {
+	if len(args) == 0 || strings.TrimSpace(args[0]) == "" {
+		fmt.Fprintln(c.Err, "usage: ship run:command <name> [-- <args...>]")
+		return 1
+	}
+
+	name := strings.TrimSpace(args[0])
+	passthrough := []string{}
+	if len(args) > 1 {
+		if args[1] == "--" {
+			passthrough = append(passthrough, args[2:]...)
+		} else {
+			passthrough = append(passthrough, args[1:]...)
+		}
+	}
+
+	runArgs := []string{"run", "./cmd/cli/main.go", name}
+	runArgs = append(runArgs, passthrough...)
+	return c.runCmd("go", runArgs...)
 }

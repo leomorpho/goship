@@ -162,6 +162,24 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			wantErr:  "use namespaced DB commands",
 		},
 		{
+			name:      "run command",
+			args:      []string{"run:command", "send:test-email"},
+			wantCode:  0,
+			wantCalls: []fakeCall{{name: "go", args: []string{"run", "./cmd/cli/main.go", "send:test-email"}}},
+		},
+		{
+			name:      "run command with passthrough args",
+			args:      []string{"run:command", "send:test-email", "--", "--dry-run"},
+			wantCode:  0,
+			wantCalls: []fakeCall{{name: "go", args: []string{"run", "./cmd/cli/main.go", "send:test-email", "--dry-run"}}},
+		},
+		{
+			name:     "run command missing name",
+			args:     []string{"run:command"},
+			wantCode: 1,
+			wantErr:  "usage: ship run:command <name>",
+		},
+		{
 			name:      "db migrate",
 			args:      []string{"db:migrate"},
 			wantCode:  0,
@@ -406,6 +424,12 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			args:     []string{"make:schedule"},
 			wantCode: 1,
 			wantErr:  "usage: ship make:schedule",
+		},
+		{
+			name:     "make command missing args",
+			args:     []string{"make:command"},
+			wantCode: 1,
+			wantErr:  "usage: ship make:command",
 		},
 		{
 			name:      "make model",

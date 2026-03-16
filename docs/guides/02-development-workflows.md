@@ -139,6 +139,22 @@ Task processor registration:
 
 - `cmd/worker/main.go`
 
+## App Commands
+
+App-scoped CLI commands live under `app/commands` and are executed via `cmd/cli/main.go`.
+
+Run commands through `ship`:
+
+- `go run ./tools/cli/ship/cmd/ship run:command <name>`
+- passthrough args: `go run ./tools/cli/ship/cmd/ship run:command send:test-email -- --to you@example.com --dry-run`
+
+Generate a new command scaffold:
+
+- `go run ./tools/cli/ship/cmd/ship make:command BackfillUserStats`
+
+The generator writes `app/commands/<name>.go` and wires registration in `cmd/cli/main.go` between
+`// ship:commands:start` and `// ship:commands:end`.
+
 ## Testing
 
 Go tests:
