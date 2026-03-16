@@ -185,6 +185,7 @@ Safety matrix:
 - `ship i18n:normalize` -> rewrites TOML locale catalogs into deterministic canonical ordering for stable diffs/CI
 - `ship i18n:missing` -> compares baseline English locale keys with other locale files and lists missing/empty translations
 - `ship i18n:unused` -> lists locale keys not referenced by `I18n.T(...)`/`i18n.T(...)` calls in `.go`/`.templ` sources
+- Full LLM migration/operator workflow and JSON contracts: `docs/guides/10-i18n-llm-migration-workflow.md`
 - `ship make:resource <name>` -> scaffold handler (+ optional templ page), ensure route-name constant, and print route snippet for manual insertion in `app/router.go`
 - `ship make:resource <name> --domain <name>` -> generate domain-aware constructor slot (`domainService any`) and route wiring using `nil` placeholder
 - `ship make:resource <name> --wire` -> also insert snippet behind ship markers in `app/router.go`
