@@ -46,7 +46,7 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "svelte-maplibre": "^0.8.2",
-    "svelte-multiselect": "^10.2.0",
+    "svelte-multiselect": "^10.3.0",
     "svelte-tel-input": "^3.3.9",
     "svelte-tiptap": "^1.1.2",
     "uppload": "^2.7.2",
