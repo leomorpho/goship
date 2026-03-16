@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 
+	"github.com/leomorpho/goship/app/contracts"
 	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/framework/context"
 	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
@@ -42,15 +43,18 @@ func (c *contact) Get(ctx echo.Context) error {
 }
 
 func (c *contact) Post(ctx echo.Context) error {
-	var form viewmodels.ContactForm
-	ctx.Set(context.FormKey, &form)
+	var req contracts.ContactRequest
+	form := viewmodels.NewContactForm()
+	ctx.Set(context.FormKey, form)
 
 	// Parse the form values
-	if err := ctx.Bind(&form); err != nil {
+	if err := ctx.Bind(&req); err != nil {
 		return c.Fail(err, "unable to bind form")
 	}
+	form.Email = req.Email
+	form.Message = req.Message
 
-	if err := form.Submission.Process(ctx, form); err != nil {
+	if err := form.Submission.Process(ctx, *form); err != nil {
 		return c.Fail(err, "unable to process form submission")
 	}
 

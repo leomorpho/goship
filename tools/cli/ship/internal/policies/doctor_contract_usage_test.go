@@ -103,4 +103,14 @@ func (formValueRoute) Post(ctx echo.Context) error {
 		issues := RunDoctorChecks(root)
 		mustContainIssueCode(t, issues, "DX027")
 	})
+
+	t.Run("contact controller uses app contracts request type", func(t *testing.T) {
+		root := findRepoRoot(t)
+		issues := RunDoctorChecks(root)
+		for _, issue := range issues {
+			if issue.Code == "DX027" && issue.File == "app/web/controllers/contact.go" {
+				t.Fatalf("unexpected DX027 issue for contact controller: %+v", issue)
+			}
+		}
+	})
 }
