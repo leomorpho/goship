@@ -3,6 +3,8 @@ package components
 import (
 	"github.com/leomorpho/goship/app/controller"
 	"github.com/leomorpho/goship/app/web/routenames"
+	i18nmodule "github.com/leomorpho/goship/modules/i18n"
+	i18nviews "github.com/leomorpho/goship/modules/i18n/views/gen"
 	pwacomponents "github.com/leomorpho/goship/modules/pwa/views/web/components/gen"
 )
 
@@ -60,6 +62,9 @@ templ Navbar(page *controller.Page) {
 			<div
 				class="flex items-center"
 			>
+				<div class="mx-2 text-sm">
+					@i18nviews.LanguageSwitcher(i18nmodule.LanguageFromContext(page.Context.Request().Context()), page.URL)
+				</div>
 				<div data-slot="theme-toggle" data-action="toggle-theme">
 					@ThemeToggle("navbar-theme-toggle")
 				</div>

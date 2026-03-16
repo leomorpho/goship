@@ -178,6 +178,7 @@ Reflection-based administrative interface for managing database resources.
 - `ship i18n:scan --format json` emits deterministic diagnostics for hardcoded user-facing literals (`--paths`, `--limit` supported) without failing on findings.
 - `ship i18n:missing` reports missing/empty translations versus English source keys.
 - `ship i18n:unused` reports locale keys not referenced in `.go`/`.templ` `I18n.T(...)` usage.
+- Navbar now includes the `language-switcher` component, and switch links preserve current route/query while toggling `lang`.
 - `ship new <app>` now supports i18n-aware scaffold startup: interactive prompt (or `--i18n` / `--no-i18n`) and optional starter locale file creation (`locales/en.yaml`, `locales/fr.yaml`), with explicit messaging that i18n can be enabled/migrated later.
 
 ## Environments and Configuration
