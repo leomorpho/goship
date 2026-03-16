@@ -3,6 +3,7 @@ package controllers
 import (
 	"errors"
 	"fmt"
+	"github.com/leomorpho/goship/app/contracts"
 
 	modemailsubscriptions "github.com/leomorpho/goship-modules/emailsubscriptions"
 	"github.com/leomorpho/goship/app/views"
@@ -54,15 +55,19 @@ func (c *emailSubscribe) Get(ctx echo.Context) error {
 }
 
 func (c *emailSubscribe) Post(ctx echo.Context) error {
-	var form viewmodels.EmailSubscriptionForm
-	ctx.Set(context.FormKey, &form)
+	req := contracts.EmailSubscribeRequest{}
+	form := viewmodels.NewEmailSubscriptionForm()
+	ctx.Set(context.FormKey, form)
 
 	// Parse the form values
-	if err := ctx.Bind(&form); err != nil {
+	if err := ctx.Bind(&req); err != nil {
 		return c.ctr.Fail(err, "unable to bind form")
 	}
+	form.Email = req.Email
+	form.Latitude = req.Latitude
+	form.Longitude = req.Longitude
 
-	if err := form.Submission.Process(ctx, form); err != nil {
+	if err := form.Submission.Process(ctx, *form); err != nil {
 		return c.ctr.Fail(err, "unable to process form submission")
 	}
 
