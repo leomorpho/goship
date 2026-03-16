@@ -453,12 +453,12 @@
     },
     "TKT-091": {
       "title": "M07 X03 - AI streaming via SSE + HTMX",
-      "state": "todo",
+      "state": "done",
       "priority": 6
     },
     "TKT-092": {
       "title": "M07 X04 - AI conversation history persistence",
-      "state": "todo",
+      "state": "done",
       "priority": 6
     },
     "TKT-093": {
