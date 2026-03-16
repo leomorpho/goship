@@ -263,22 +263,22 @@
     },
     "TKT-053": {
       "title": "M05 L01 - Enforce canonical file placement in `ship doctor`",
-      "state": "todo",
+      "state": "done",
       "priority": 4
     },
     "TKT-054": {
       "title": "M05 L02 - Enforce file size conventions in `ship doctor`",
-      "state": "todo",
+      "state": "done",
       "priority": 4
     },
     "TKT-055": {
       "title": "M05 L03 - Enforce marker comment integrity in `ship doctor`",
-      "state": "todo",
+      "state": "done",
       "priority": 4
     },
     "TKT-056": {
       "title": "M05 L04 - Add `ship verify` as the single done-check command",
-      "state": "todo",
+      "state": "done",
       "priority": 4
     },
     "TKT-057": {
@@ -288,27 +288,27 @@
     },
     "TKT-058": {
       "title": "M05 M01 - Add `ship_doctor` MCP tool",
-      "state": "todo",
+      "state": "done",
       "priority": 4
     },
     "TKT-059": {
       "title": "M05 M02 - Add `ship_routes` MCP tool",
-      "state": "todo",
+      "state": "done",
       "priority": 4
     },
     "TKT-060": {
       "title": "M05 M03 - Add `ship_modules` MCP tool",
-      "state": "todo",
+      "state": "done",
       "priority": 4
     },
     "TKT-061": {
       "title": "M05 M04 - Add `ship_scaffold` MCP tool",
-      "state": "todo",
+      "state": "done",
       "priority": 4
     },
     "TKT-062": {
       "title": "M05 M05 - Add `ship_verify` MCP tool",
-      "state": "todo",
+      "state": "done",
       "priority": 4
     },
     "TKT-063": {
@@ -333,7 +333,7 @@
     },
     "TKT-067": {
       "title": "M05 O02 - Enforce contract usage in `ship doctor`",
-      "state": "todo",
+      "state": "done",
       "priority": 4
     },
     "TKT-068": {
@@ -343,7 +343,7 @@
     },
     "TKT-069": {
       "title": "M05 P02 - Add scaffold test to `ship verify` pre-completion check",
-      "state": "todo",
+      "state": "done",
       "priority": 4
     },
     "TKT-070": {
@@ -353,12 +353,12 @@
     },
     "TKT-071": {
       "title": "M05 Q02 - Add `ship agent:start` for isolated worktree workflow",
-      "state": "todo",
+      "state": "done",
       "priority": 4
     },
     "TKT-072": {
       "title": "M05 Q03 - Add `ship agent:finish` for worktree cleanup and PR prep",
-      "state": "todo",
+      "state": "done",
       "priority": 4
     },
     "TKT-073": {
@@ -368,12 +368,12 @@
     },
     "TKT-074": {
       "title": "M05 R02 - Add `ship doctor` check for missing `// Renders:` comments",
-      "state": "todo",
+      "state": "done",
       "priority": 4
     },
     "TKT-075": {
       "title": "M05 R03 - Add `ship doctor` check for missing `data-component` attributes",
-      "state": "todo",
+      "state": "done",
       "priority": 4
     },
     "TKT-076": {
@@ -388,7 +388,7 @@
     },
     "TKT-078": {
       "title": "M06 T01 - Multi-process SQLite safety (WAL mode + connection pool)",
-      "state": "todo",
+      "state": "done",
       "priority": 5
     },
     "TKT-079": {
@@ -413,42 +413,42 @@
     },
     "TKT-083": {
       "title": "M06 U02 - Templ-based email templates",
-      "state": "todo",
+      "state": "done",
       "priority": 5
     },
     "TKT-084": {
       "title": "M06 U03 - Email preview routes (development only)",
-      "state": "todo",
+      "state": "done",
       "priority": 5
     },
     "TKT-085": {
       "title": "M06 V01 - Cron job scheduling convention",
-      "state": "todo",
+      "state": "done",
       "priority": 5
     },
     "TKT-086": {
       "title": "M06 V02 - App-level CLI commands convention",
-      "state": "todo",
+      "state": "done",
       "priority": 5
     },
     "TKT-087": {
       "title": "M07 W01 - OAuth / Social Login module",
-      "state": "todo",
+      "state": "done",
       "priority": 6
     },
     "TKT-088": {
       "title": "M07 W02 - Two-Factor Authentication (TOTP) module",
-      "state": "todo",
+      "state": "done",
       "priority": 6
     },
     "TKT-089": {
       "title": "M07 X01 - `modules/ai` core: provider interface + Anthropic adapter",
-      "state": "todo",
+      "state": "done",
       "priority": 6
     },
     "TKT-090": {
       "title": "M07 X02 - OpenAI and OpenRouter adapters",
-      "state": "todo",
+      "state": "done",
       "priority": 6
     },
     "TKT-091": {
@@ -493,22 +493,22 @@
     },
     "TKT-099": {
       "title": "M07 Z03 - OpenAPI spec generation from route contracts",
-      "state": "todo",
+      "state": "done",
       "priority": 6
     },
     "TKT-100": {
       "title": "M07 AA01 - Test data factory system",
-      "state": "todo",
+      "state": "done",
       "priority": 6
     },
     "TKT-101": {
       "title": "M07 AA02 - Typed HTTP test helpers",
-      "state": "todo",
+      "state": "done",
       "priority": 6
     },
     "TKT-102": {
       "title": "M07 AB01 - i18n module",
-      "state": "todo",
+      "state": "done",
       "priority": 6
     },
     "TKT-103": {
@@ -558,12 +558,12 @@
     },
     "TKT-112": {
       "title": "A09 - Managed Mode Settings Lock And Read-Only Admin Surfaces",
-      "state": "todo",
+      "state": "done",
       "priority": 5
     },
     "TKT-113": {
       "title": "A09 - Signed Managed Hooks For Backup, Restore, And Runtime Status",
-      "state": "todo",
+      "state": "done",
       "priority": 7
     },
     "TKT-114": {
@@ -707,7 +707,7 @@
     },
     "TKT-167": {
       "title": "DX010: split doctor policy engine file by responsibility",
-      "state": "todo",
+      "state": "done",
       "priority": 5,
       "parent": "TKT-157"
     },
