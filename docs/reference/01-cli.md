@@ -44,6 +44,8 @@ Project lifecycle:
 - `ship agent:setup`
 - `ship agent:check`
 - `ship agent:status`
+- `ship agent:start --task "<description>" [--id TASK-001]`
+- `ship agent:finish --id TASK-001 --message "feat(scope): summary" [--pr]`
 - `ship upgrade --to <version> [--dry-run]`
 
 Local runtime:
@@ -147,6 +149,8 @@ Safety matrix:
 - `ship agent:setup` -> generate per-agent allowlist artifacts from `tools/agent-policy/allowed-commands.yaml`
 - `ship agent:check` -> fail if generated artifacts drift from canonical allowlist (for pre-commit/CI parity)
 - `ship agent:status` -> show best-effort local Codex/Claude/Gemini install status vs repo policy
+- `ship agent:start --task ... [--id ...]` -> create `.worktrees/<id>` on branch `agent/<id>`, generate `TASK.md` with task text + `ship describe` JSON + discovered `CLAUDE.md` context
+- `ship agent:finish --id ... --message ... [--pr]` -> run `ship verify` in worktree, `git add -A`, validate conventional commit message, commit, optional `git push -u origin agent/<id>` + `gh pr create`, then `git worktree remove`
 - `ship doctor --json` -> machine-readable doctor result on stdout; exit code 0 when there are no errors, 1 when any error is reported
 - `ship config:validate` -> prints the known `PAGODA_*` config variables with type/default metadata and fails when any required variable is missing
 - `ship config:validate --json` -> prints the same contract as JSON for agent tooling

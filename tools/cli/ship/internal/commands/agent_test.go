@@ -373,8 +373,8 @@ func TestAgentFinishRunsGitCommands(t *testing.T) {
 			return nil
 		},
 		RunGh: func(rootDir string, args ...string) error {
-			if canonicalPath(rootDir) != canonicalPath(root) {
-				t.Fatalf("gh run from %s, want %s", rootDir, root)
+			if canonicalPath(rootDir) != canonicalPath(worktreePath) {
+				t.Fatalf("gh run from %s, want %s", rootDir, worktreePath)
 			}
 			ghArgs = args
 			return nil
@@ -389,8 +389,8 @@ func TestAgentFinishRunsGitCommands(t *testing.T) {
 	if !verifyCalled {
 		t.Fatalf("verify not invoked")
 	}
-	if len(gitCalls) != 3 {
-		t.Fatalf("git calls = %d, want 3", len(gitCalls))
+	if len(gitCalls) != 4 {
+		t.Fatalf("git calls = %d, want 4", len(gitCalls))
 	}
 	if gitCalls[0][1] != "add" || gitCalls[0][2] != "-A" {
 		t.Fatalf("unexpected git add call: %v", gitCalls[0])
@@ -398,13 +398,70 @@ func TestAgentFinishRunsGitCommands(t *testing.T) {
 	if gitCalls[1][1] != "commit" || gitCalls[1][2] != "-m" {
 		t.Fatalf("unexpected git commit call: %v", gitCalls[1])
 	}
-	if gitCalls[2][1] != "worktree" || gitCalls[2][2] != "remove" {
-		t.Fatalf("unexpected git remove call: %v", gitCalls[2])
+	if gitCalls[2][1] != "push" || gitCalls[2][2] != "-u" || gitCalls[2][3] != "origin" {
+		t.Fatalf("unexpected git push call: %v", gitCalls[2])
+	}
+	if gitCalls[3][1] != "worktree" || gitCalls[3][2] != "remove" {
+		t.Fatalf("unexpected git remove call: %v", gitCalls[3])
 	}
 	if len(ghArgs) == 0 || ghArgs[0] != "pr" {
 		t.Fatalf("unexpected gh args: %v", ghArgs)
 	}
+	if !containsArg(ghArgs, "--head") || !containsArg(ghArgs, "agent/"+sanitizeTaskID(worktreeID)) {
+		t.Fatalf("gh args missing --head branch: %v", ghArgs)
+	}
 	if !strings.Contains(out.String(), "finalized and removed") {
 		t.Fatalf("unexpected output: %q", out.String())
 	}
+}
+
+func TestAgentFinishRejectsNonConventionalMessage(t *testing.T) {
+	root := t.TempDir()
+	writeGoModule(t, root)
+
+	prevWD, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(prevWD) })
+	if err := os.Chdir(root); err != nil {
+		t.Fatal(err)
+	}
+
+	worktreeID := "bad msg"
+	worktreePath := filepath.Join(root, ".worktrees", sanitizeTaskID(worktreeID))
+	if err := os.MkdirAll(worktreePath, 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	verifyCalled := false
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	code := RunAgent([]string{"finish", "--id", worktreeID, "--message", "bad message"}, AgentDeps{
+		Out:          out,
+		Err:          errOut,
+		FindGoModule: findGoModuleTest,
+		RunVerify: func(string) error {
+			verifyCalled = true
+			return nil
+		},
+	})
+	if code == 0 {
+		t.Fatalf("expected failure for non-conventional message")
+	}
+	if verifyCalled {
+		t.Fatalf("verify should not run when message is invalid")
+	}
+	if !strings.Contains(errOut.String(), "invalid --message") {
+		t.Fatalf("unexpected error output: %q", errOut.String())
+	}
+}
+
+func containsArg(args []string, want string) bool {
+	for _, arg := range args {
+		if arg == want {
+			return true
+		}
+	}
+	return false
 }

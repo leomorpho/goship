@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
 
@@ -36,6 +37,11 @@ func runAgentFinish(args []string, d AgentDeps) int {
 	}
 	if strings.TrimSpace(*message) == "" {
 		fmt.Fprintln(d.Err, "--message is required")
+		return 1
+	}
+	commitMessage := strings.TrimSpace(*message)
+	if err := validateConventionalCommitMessage(commitMessage); err != nil {
+		fmt.Fprintf(d.Err, "invalid --message: %v\n", err)
 		return 1
 	}
 
@@ -78,19 +84,24 @@ func runAgentFinish(args []string, d AgentDeps) int {
 		fmt.Fprintf(d.Err, "git add failed: %v\n", err)
 		return 1
 	}
-	if err := runGit(worktreePath, "commit", "-m", strings.TrimSpace(*message)); err != nil {
+	if err := runGit(worktreePath, "commit", "-m", commitMessage); err != nil {
 		fmt.Fprintf(d.Err, "git commit failed: %v\n", err)
 		return 1
 	}
 
 	if *prFlag {
+		branch := fmt.Sprintf("agent/%s", sanitizedID)
+		if err := runGit(worktreePath, "push", "-u", "origin", branch); err != nil {
+			fmt.Fprintf(d.Err, "git push failed: %v\n", err)
+			return 1
+		}
 		description := readTaskDescriptionFromFile(filepath.Join(worktreePath, "TASK.md"))
 		runGh := d.RunGh
 		if runGh == nil {
 			runGh = defaultRunGh
 		}
 		body := "Agent task: " + description
-		if err := runGh(root, "pr", "create", "--title", strings.TrimSpace(*message), "--body", body); err != nil {
+		if err := runGh(worktreePath, "pr", "create", "--title", commitMessage, "--body", body, "--head", branch); err != nil {
 			fmt.Fprintf(d.Err, "gh pr create failed: %v\n", err)
 			return 1
 		}
@@ -162,4 +173,20 @@ func readTaskDescriptionFromFile(path string) string {
 		rest = rest[:end]
 	}
 	return strings.TrimSpace(rest)
+}
+
+var conventionalCommitPattern = regexp.MustCompile(`^(feat|fix|docs|refactor|test|chore|perf|style|build|ci)(\([a-z0-9-]+\))?: .+`)
+
+func validateConventionalCommitMessage(message string) error {
+	if !conventionalCommitPattern.MatchString(message) {
+		return fmt.Errorf("must match <type>(<scope>): <description>")
+	}
+	parts := strings.SplitN(message, ": ", 2)
+	if len(parts) != 2 {
+		return fmt.Errorf("must include \": \" separator")
+	}
+	if strings.HasSuffix(strings.TrimSpace(parts[1]), ".") {
+		return fmt.Errorf("description must not end with a period")
+	}
+	return nil
 }
