@@ -958,7 +958,7 @@ Reflection-based administrative interface for managing database resources.
 - `ship make:locale <code>` scaffolds a new locale file from `locales/en.toml` (falls back to legacy YAML source when migrating).
 - `ship i18n:init` bootstraps baseline locale files (`en.toml`, `fr.toml`) for apps that started without i18n and prints a deterministic migration command loop.
 - `ship i18n:scan --format json` emits deterministic diagnostics for hardcoded user-facing literals (`--paths`, `--limit` supported) without failing on findings; Go sources are scanned via AST/token positions with guardrails for logs, SQL literals, and `_test.go` files, and islands scanning is scoped to `frontend/islands/` (`.js`, `.ts`, `.jsx`, `.tsx`, `.svelte`, `.vue`) entry paths.
-- `ship i18n:instrument` provides a deterministic migration plan from scanner findings; `--apply` currently rewrites high-confidence Go controller `c.String` literals into i18n calls and seeds missing keys in baseline locale catalogs.
+- `ship i18n:instrument` provides a deterministic migration plan from scanner findings; `--apply` currently rewrites high-confidence Go controller `*.String` literals (for example `c.String`, `ctx.String`) into i18n calls and seeds missing keys in baseline locale catalogs.
 - `ship i18n:migrate` converts legacy YAML locale catalogs to canonical TOML catalogs.
 - `ship i18n:normalize` rewrites TOML catalogs to deterministic canonical ordering for stable diffs.
 - `ship i18n:missing` reports missing/empty translations versus English source keys and emits plural/select completeness diagnostics for `I18n.TC(...)`/`I18n.TS(...)` usage.
@@ -3062,7 +3062,7 @@ This guide defines the deterministic i18n migration loop for humans and LLM agen
 
 ## Confidence Tiers
 
-1. `high`: eligible for automated rewrite in supported contexts (current safe path is selected Go controller string responses).
+1. `high`: eligible for automated rewrite in supported contexts (current safe path is selected Go controller `*.String` response literals).
 2. `medium`: report-only; use manual migration.
 
 ## Strict-Mode Rollout
@@ -3419,7 +3419,7 @@ Safety matrix:
 - `ship api:spec --serve` -> serves Swagger UI + generated spec at `http://127.0.0.1:<port>/api/docs` until interrupted
 - `ship i18n:init [--force]` -> scaffolds `locales/en.toml` and `locales/fr.toml` for existing apps, preserving existing files unless `--force` is passed; prints deterministic next-step migration loop commands
 - `ship i18n:scan [--format json] [--paths <path1,path2,...>] [--limit <n>]` -> scans Go/templ/islands sources (including `.js`, `.ts`, `.jsx`, `.tsx`, `.svelte`, `.vue` under `frontend/islands/`) for hardcoded user-facing literals and emits deterministic JSON diagnostics (`id`, `kind`, `severity`, `file`, `line`, `column`, `message`, `suggested_key`, `confidence`)
-- `ship i18n:instrument [--apply] [--paths <path1,path2,...>] [--limit <n>]` -> builds a deterministic rewrite plan for high-confidence findings; default mode is dry-run JSON report, `--apply` rewrites safe Go controller `c.String(..., "literal")` sites to i18n calls and appends missing baseline keys to `locales/en.toml` (falls back to legacy YAML when present)
+- `ship i18n:instrument [--apply] [--paths <path1,path2,...>] [--limit <n>]` -> builds a deterministic rewrite plan for high-confidence findings; default mode is dry-run JSON report, `--apply` rewrites safe Go controller `*.String(..., "literal")` response sites (for example `c.String`, `ctx.String`) to i18n calls and appends missing baseline keys to `locales/en.toml` (falls back to legacy YAML when present)
 - `ship i18n:migrate [--force]` -> converts `locales/*.yaml`/`*.yml` catalogs to canonical `locales/*.toml` catalogs (preserves existing TOML unless `--force`)
 - `ship i18n:normalize` -> rewrites TOML locale catalogs into deterministic canonical ordering for stable diffs/CI
 - `ship i18n:missing` -> compares baseline English locale keys with other locale files and lists missing/empty translations

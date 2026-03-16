@@ -610,6 +610,11 @@
       "title": "Broaden i18n scanner coverage and diagnostics quality",
       "state": "done",
       "priority": 5
+    },
+    "TKT-152": {
+      "title": "Expand safe i18n instrumentation rewrite coverage",
+      "state": "done",
+      "priority": 5
     }
   }
 }

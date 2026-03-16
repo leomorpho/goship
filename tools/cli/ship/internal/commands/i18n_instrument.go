@@ -344,7 +344,11 @@ func collectGoInstrumentCandidatesFromFile(root, path string, out map[string]i18
 			return true
 		}
 		receiver, ok := selector.X.(*ast.Ident)
-		if !ok || receiver.Name != "c" {
+		if !ok {
+			return true
+		}
+		receiverName := strings.TrimSpace(receiver.Name)
+		if receiverName == "" {
 			return true
 		}
 		if len(call.Args) < 2 {
@@ -378,7 +382,7 @@ func collectGoInstrumentCandidatesFromFile(root, path string, out map[string]i18
 				Line:         start.Line,
 				Column:       start.Column,
 				Before:       lit.Value,
-				After:        fmt.Sprintf(`c.Container.I18n.T(c.Request().Context(), %q)`, issue.SuggestedKey),
+				After:        fmt.Sprintf(`%s.Container.I18n.T(%s.Request().Context(), %q)`, receiverName, receiverName, issue.SuggestedKey),
 				Message:      issue.Message,
 				SuggestedKey: issue.SuggestedKey,
 				Confidence:   issue.Confidence,

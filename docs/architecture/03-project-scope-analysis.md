@@ -181,7 +181,7 @@ Reflection-based administrative interface for managing database resources.
 - `ship make:locale <code>` scaffolds a new locale file from `locales/en.toml` (falls back to legacy YAML source when migrating).
 - `ship i18n:init` bootstraps baseline locale files (`en.toml`, `fr.toml`) for apps that started without i18n and prints a deterministic migration command loop.
 - `ship i18n:scan --format json` emits deterministic diagnostics for hardcoded user-facing literals (`--paths`, `--limit` supported) without failing on findings; Go sources are scanned via AST/token positions with guardrails for logs, SQL literals, and `_test.go` files, and islands scanning is scoped to `frontend/islands/` (`.js`, `.ts`, `.jsx`, `.tsx`, `.svelte`, `.vue`) entry paths.
-- `ship i18n:instrument` provides a deterministic migration plan from scanner findings; `--apply` currently rewrites high-confidence Go controller `c.String` literals into i18n calls and seeds missing keys in baseline locale catalogs.
+- `ship i18n:instrument` provides a deterministic migration plan from scanner findings; `--apply` currently rewrites high-confidence Go controller `*.String` literals (for example `c.String`, `ctx.String`) into i18n calls and seeds missing keys in baseline locale catalogs.
 - `ship i18n:migrate` converts legacy YAML locale catalogs to canonical TOML catalogs.
 - `ship i18n:normalize` rewrites TOML catalogs to deterministic canonical ordering for stable diffs.
 - `ship i18n:missing` reports missing/empty translations versus English source keys and emits plural/select completeness diagnostics for `I18n.TC(...)`/`I18n.TS(...)` usage.

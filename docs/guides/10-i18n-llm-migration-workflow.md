@@ -101,7 +101,7 @@ This guide defines the deterministic i18n migration loop for humans and LLM agen
 
 ## Confidence Tiers
 
-1. `high`: eligible for automated rewrite in supported contexts (current safe path is selected Go controller string responses).
+1. `high`: eligible for automated rewrite in supported contexts (current safe path is selected Go controller `*.String` response literals).
 2. `medium`: report-only; use manual migration.
 
 ## Strict-Mode Rollout

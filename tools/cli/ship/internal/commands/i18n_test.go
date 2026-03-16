@@ -940,6 +940,57 @@ func Home(c *Controller) error {
 	}
 }
 
+func TestRunI18nInstrumentApplyRewritesCtxStringPattern(t *testing.T) {
+	root := t.TempDir()
+	writeI18nFixture(t, root, map[string]string{
+		"go.mod": "module example.com/i18n-test\n\ngo 1.25\n",
+		"locales/en.yaml": `
+app:
+  title: "Demo"
+`,
+		"app/web/controllers/home.go": `package controllers
+
+import "net/http"
+
+func Home(ctx *Controller) error {
+	return ctx.String(http.StatusOK, "Welcome from ctx")
+}
+`,
+	})
+
+	prevWD, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(prevWD) })
+	if err := os.Chdir(root); err != nil {
+		t.Fatal(err)
+	}
+
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	code := RunI18n([]string{
+		"instrument",
+		"--apply",
+		"--paths", "app/web/controllers",
+	}, I18nDeps{
+		Out:          out,
+		Err:          errOut,
+		FindGoModule: findI18nGoModule,
+	})
+	if code != 0 {
+		t.Fatalf("code = %d, stderr = %s", code, errOut.String())
+	}
+
+	rewritten, err := os.ReadFile(filepath.Join(root, "app/web/controllers/home.go"))
+	if err != nil {
+		t.Fatalf("read rewritten source: %v", err)
+	}
+	if !strings.Contains(string(rewritten), `ctx.Container.I18n.T(ctx.Request().Context(), "app.welcome_from_ctx")`) {
+		t.Fatalf("expected ctx receiver rewrite, got:\n%s", string(rewritten))
+	}
+}
+
 func TestRunI18nInstrumentUsageAndInvalidArgs(t *testing.T) {
 	helpOut := &bytes.Buffer{}
 	helpErr := &bytes.Buffer{}
