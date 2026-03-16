@@ -113,6 +113,9 @@ func registerPublicRoutes(c *foundation.Container, g *echo.Group, ctr ui.Control
 	clearCookie := controllers.NewClearCookiesRoute(ctr)
 	g.GET("/clear-cookie", clearCookie.Get).Name = routeNames.RouteNameClearCookie
 
+	islandsDemo := controllers.NewIslandsDemoRoute(ctr)
+	g.GET("/demo/islands", islandsDemo.Get).Name = routeNames.RouteNameIslandsDemo
+
 	healthcheck := controllers.NewHealthCheckRoute(ctr)
 	g.GET("/up", healthcheck.GetLiveness).Name = routeNames.RouteNameHealthcheck
 	g.GET("/health", healthcheck.GetLiveness).Name = routeNames.RouteNameHealthLiveness

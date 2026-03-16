@@ -70,6 +70,8 @@ async function mountIsland(el, manifest) {
     }
 
     if (typeof mod.default === "function") {
+      // Ensure fallback server markup is removed before framework mount.
+      el.replaceChildren();
       new mod.default({ target: el, props });
       return;
     }

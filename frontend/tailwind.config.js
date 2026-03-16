@@ -1,8 +1,13 @@
+const path = require("node:path");
+
+const repoRoot = path.resolve(__dirname, "..");
+
 module.exports = {
   content: [
-    "./javascript/**/*.{js,svelte}",
-    "../app/views/**/*.templ",
-    "./node_modules/flowbite/**/*.js",
+    path.join(__dirname, "javascript/**/*.{js,ts,jsx,tsx,svelte,vue}"),
+    path.join(__dirname, "islands/**/*.{js,ts,jsx,tsx,svelte,vue}"),
+    path.join(repoRoot, "app/views/**/*.templ"),
+    path.join(__dirname, "node_modules/flowbite/**/*.js"),
   ],
   theme: {
     extend: {

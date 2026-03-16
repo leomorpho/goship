@@ -18,6 +18,7 @@ Recommended modes:
 - Unified dev mode:
   `make dev` (or `ship dev`)
   Runs in auto mode by convention: web-only for single-binary adapters, full mode when jobs adapter is `asynq`.
+  Web mode runs via `air -c .air.toml` so Go rebuilds and templ generation happen automatically on edits.
   In interactive terminals, `ship dev` prints the local URL and prompts to open it in your browser (`[Y/n]`, Enter = yes). Browser open is deferred until the URL is reachable.
 - Full multiprocess mode:
   `make dev-full` (or `ship dev --all`)

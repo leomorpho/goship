@@ -97,7 +97,7 @@ func RunDevAll(out io.Writer, errOut io.Writer) int {
 		name string
 		args []string
 	}{
-		{name: "web", args: []string{"run", "./cmd/web"}},
+		{name: "web", args: []string{"-c", ".air.toml"}},
 		{name: "worker", args: []string{"run", "./cmd/worker"}},
 	}
 
@@ -105,7 +105,11 @@ func RunDevAll(out io.Writer, errOut io.Writer) int {
 	exitCh := make(chan devProcessExit, len(processes))
 
 	for _, proc := range processes {
-		command := exec.CommandContext(ctx, "go", proc.args...)
+		bin := "go"
+		if proc.name == "web" {
+			bin = "air"
+		}
+		command := exec.CommandContext(ctx, bin, proc.args...)
 		command.Stdout = newPrefixedWriter(out, proc.name)
 		command.Stderr = newPrefixedWriter(errOut, proc.name)
 		command.Stdin = os.Stdin

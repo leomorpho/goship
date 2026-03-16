@@ -13,7 +13,7 @@ GoShip is a Go + Echo + Templ + HTMX starter application that ships with:
 - S3-compatible file storage support with image variants
 - Background task processing (Asynq worker)
 - Provider-agnostic AI completion service with an Anthropic adapter
-- Frontend asset bundling for Svelte components and vanilla JS
+- Frontend asset bundling for vanilla JS plus Svelte/React/Vue islands
 
 GoShip is maintained as a single-app repository: one canonical runtime app under `app/` + `cmd/`, plus framework/modules/tooling packages.
 
@@ -122,6 +122,7 @@ Worker bootstrap and registration in `cmd/worker/main.go`.
 - HTMX-enhanced interactions
 - Optional client islands built as per-component JS chunks under `app/static/islands/`
 - Optional vanilla JS bundle into `app/static/vanilla_bundle.js`
+- Public demo route `/demo/islands` that renders regression-guarded counter islands for vanilla JS, React, Vue, and Svelte
 
 Build pipeline:
 

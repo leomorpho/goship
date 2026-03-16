@@ -26,6 +26,7 @@ const (
 	PageSuccessfullySubscribed Page = "successfully_subscribed"
 	PageDeleteAccount          Page = "delete_account.page"
 	PageAIDemo                 Page = "ai_demo"
+	PageIslandsDemo            Page = "islands_demo"
 
 	SSEAnsweredByFriend Page = "sse_answered_by_friend"
 )

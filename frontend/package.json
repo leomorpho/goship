@@ -21,6 +21,8 @@
   "homepage": "https://github.com/leomorpho/pagoda#readme",
   "devDependencies": {
     "@faker-js/faker": "^8.4.1",
+    "@vitejs/plugin-react": "^4.7.0",
+    "@vitejs/plugin-vue": "^5.2.4",
     "@sveltejs/vite-plugin-svelte": "^3.1.2",
     "@types/node": "^20.12.7",
     "daisyui": "^4.6.2",
@@ -41,11 +43,14 @@
     "@use-gesture/vanilla": "^10.3.0",
     "@virgilsecurity/e3kit-browser": "^3.0.5",
     "clsx": "^2.1.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "svelte-maplibre": "^0.8.2",
     "svelte-multiselect": "^10.2.0",
     "svelte-tel-input": "^3.3.9",
     "svelte-tiptap": "^1.1.2",
     "uppload": "^2.7.2",
+    "vue": "^3.5.22",
     "wc-toast": "^1.3.1",
     "workbox-precaching": "^7.0.0"
   }

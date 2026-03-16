@@ -1,6 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import vue from "@vitejs/plugin-vue";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 import sveltePreprocess from "svelte-preprocess";
 
@@ -26,13 +28,13 @@ function collectIslandEntries(rootDir: string): Record<string, string> {
         continue;
       }
 
-      if (!/\.(svelte|tsx|jsx|vue)$/.test(entry.name)) {
+      if (!/\.(svelte|tsx|jsx|vue|js|ts)$/.test(entry.name)) {
         continue;
       }
 
       const relPath = path.relative(rootDir, fullPath);
       const normalized = relPath.split(path.sep).join("/");
-      const entryName = normalized.replace(/\.(svelte|tsx|jsx|vue)$/, "");
+      const entryName = normalized.replace(/\.(svelte|tsx|jsx|vue|js|ts)$/, "");
       entries[`islands/${entryName}`] = fullPath;
     }
   };
@@ -48,7 +50,7 @@ function islandNameFromFacadeModuleId(id: string | null | undefined): string {
 
   const relPath = path.relative(islandsDir, id);
   const normalized = relPath.split(path.sep).join("/");
-  return normalized.replace(/\.(svelte|tsx|jsx|vue)$/, "");
+  return normalized.replace(/\.(svelte|tsx|jsx|vue|js|ts)$/, "");
 }
 
 function islandsManifestPlugin() {
@@ -92,6 +94,8 @@ function islandsManifestPlugin() {
 
 export default defineConfig({
   plugins: [
+    react(),
+    vue(),
     svelte({
       preprocess: sveltePreprocess({ typescript: true }),
     }),
@@ -104,6 +108,7 @@ export default defineConfig({
     sourcemap: true,
     manifest: false,
     rollupOptions: {
+      preserveEntrySignatures: "strict",
       input: {
         islands_runtime: islandsRuntimeEntry,
         vanilla_bundle: vanillaEntry,

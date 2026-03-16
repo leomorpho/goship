@@ -35,6 +35,7 @@ const (
 	RouteNameSharedCounter           = "shared_counter"
 	RouteNameSharedCounterStream     = "shared_counter.stream"
 	RouteNameSharedCounterIncrement  = "shared_counter.increment"
+	RouteNameIslandsDemo             = "islands_demo"
 
 	RouteNameHomeFeed           = "home_feed"
 	RouteNameGetHomeFeedButtons = "home_feed.buttons"

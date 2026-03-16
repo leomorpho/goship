@@ -5,27 +5,60 @@ import (
 	"github.com/leomorpho/goship/app/web/routenames"
 )
 
-// Renders: minimal starter-style landing page with auth entry points.
+// Renders: minimal standalone starter page with direct auth and demo links.
 templ LandingPage(page *controller.Page) {
-	<div data-component="landing-page" class="mx-auto max-w-3xl px-6 py-20 text-center space-y-6">
-		<p class="text-xs uppercase tracking-[0.2em] text-primary-content/70">GoShip</p>
-		<h1 class="text-4xl md:text-5xl font-semibold tracking-tight">Build one app, ship it fast</h1>
-		<p class="text-base md:text-lg text-primary-content/80">
-			A single-app Go framework with strong defaults for server-rendered UI, jobs, and modules.
-		</p>
-		<div class="flex flex-col sm:flex-row gap-3 justify-center">
-			<a
-				href={ templ.URL(page.ToURL(routenames.RouteNameRegister)) }
-				class="inline-flex items-center justify-center rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-900"
-			>
-				Create account
-			</a>
-			<a
-				href={ templ.URL(page.ToURL(routenames.RouteNameLogin)) }
-				class="inline-flex items-center justify-center rounded-full border border-white/40 px-6 py-3 text-sm font-semibold text-white"
-			>
-				Log in
-			</a>
-		</div>
-	</div>
+	<html lang="en">
+		<head>
+			<meta charset="utf-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1"/>
+			<title>{ page.AppName }</title>
+			<style>
+			body {
+				margin: 0;
+				font-family: sans-serif;
+				background: #0f172a;
+				color: #e2e8f0;
+			}
+			main {
+				max-width: 720px;
+				margin: 0 auto;
+				padding: 48px 20px;
+				text-align: center;
+			}
+			h1 {
+				font-size: 2rem;
+				margin: 0 0 12px 0;
+			}
+			p {
+				margin: 0 0 24px 0;
+			}
+			.actions {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 10px;
+				justify-content: center;
+			}
+			.actions a {
+				text-decoration: none;
+				background: #e2e8f0;
+				color: #0f172a;
+				padding: 10px 14px;
+				border-radius: 10px;
+				font-weight: 600;
+				font-size: 14px;
+			}
+			</style>
+		</head>
+		<body data-component="landing-page">
+			<main>
+				<h1>GoShip</h1>
+				<p>A simple starter home page.</p>
+				<div class="actions">
+					<a href={ templ.URL(page.ToURL(routenames.RouteNameRegister)) }>Create account</a>
+					<a href={ templ.URL(page.ToURL(routenames.RouteNameLogin)) }>Log in</a>
+					<a href={ templ.URL(page.ToURL(routenames.RouteNameIslandsDemo)) }>Islands demo</a>
+				</div>
+			</main>
+		</body>
+	</html>
 }

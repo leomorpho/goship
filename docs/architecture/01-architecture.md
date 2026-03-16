@@ -115,6 +115,7 @@ HTMX behavior is integrated in the page object (`Page.HTMX`) and controller rend
 
 - `frontend/vite.config.ts` builds the vanilla bundle plus per-island JS chunks from `frontend/islands/`
 - The islands runtime loads component JS and CSS on demand via `app/static/islands-manifest.json`
+- Islands can be authored in vanilla JS/TS, Svelte, React, or Vue entry files under `frontend/islands/`
 - Frontend build output is written to `app/static/`
 - Tailwind build pipeline outputs `app/static/styles_bundle.css`
 

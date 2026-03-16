@@ -35,6 +35,7 @@ func TestRouteSmoke_PublicAndAuthenticatedGets(t *testing.T) {
 		wantStatus int
 	}{
 		{name: "landing", routeName: routeNames.RouteNameLandingPage, client: smokeClientAnonymous, wantStatus: http.StatusOK},
+		{name: "islands demo", routeName: routeNames.RouteNameIslandsDemo, client: smokeClientAnonymous, wantStatus: http.StatusOK},
 		{name: "healthcheck", routeName: routeNames.RouteNameHealthcheck, client: smokeClientAnonymous, wantStatus: http.StatusOK},
 		{name: "health liveness", routeName: routeNames.RouteNameHealthLiveness, client: smokeClientAnonymous, wantStatus: http.StatusOK},
 		{name: "health readiness", routeName: routeNames.RouteNameHealthReadiness, client: smokeClientAnonymous, wantStatus: http.StatusOK},

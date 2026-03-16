@@ -70,10 +70,10 @@ func TestRunDev_ExplicitModeOverridesResolver(t *testing.T) {
 	if devAllCalls != 0 {
 		t.Fatalf("RunDevAll calls = %d, want 0", devAllCalls)
 	}
-	if gotName != "go" {
-		t.Fatalf("RunCmd name = %q, want go", gotName)
+	if gotName != "air" {
+		t.Fatalf("RunCmd name = %q, want air", gotName)
 	}
-	if len(gotArgs) != 2 || gotArgs[0] != "run" || gotArgs[1] != "./cmd/web" {
-		t.Fatalf("RunCmd args = %v, want [run ./cmd/web]", gotArgs)
+	if len(gotArgs) != 2 || gotArgs[0] != "-c" || gotArgs[1] != ".air.toml" {
+		t.Fatalf("RunCmd args = %v, want [-c .air.toml]", gotArgs)
 	}
 }

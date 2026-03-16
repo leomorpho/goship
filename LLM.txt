@@ -609,6 +609,7 @@ HTMX behavior is integrated in the page object (`Page.HTMX`) and controller rend
 
 - `frontend/vite.config.ts` builds the vanilla bundle plus per-island JS chunks from `frontend/islands/`
 - The islands runtime loads component JS and CSS on demand via `app/static/islands-manifest.json`
+- Islands can be authored in vanilla JS/TS, Svelte, React, or Vue entry files under `frontend/islands/`
 - Frontend build output is written to `app/static/`
 - Tailwind build pipeline outputs `app/static/styles_bundle.css`
 
@@ -787,7 +788,7 @@ GoShip is a Go + Echo + Templ + HTMX starter application that ships with:
 - S3-compatible file storage support with image variants
 - Background task processing (Asynq worker)
 - Provider-agnostic AI completion service with an Anthropic adapter
-- Frontend asset bundling for Svelte components and vanilla JS
+- Frontend asset bundling for vanilla JS plus Svelte/React/Vue islands
 
 GoShip is maintained as a single-app repository: one canonical runtime app under `app/` + `cmd/`, plus framework/modules/tooling packages.
 
@@ -896,6 +897,7 @@ Worker bootstrap and registration in `cmd/worker/main.go`.
 - HTMX-enhanced interactions
 - Optional client islands built as per-component JS chunks under `app/static/islands/`
 - Optional vanilla JS bundle into `app/static/vanilla_bundle.js`
+- Public demo route `/demo/islands` that renders regression-guarded counter islands for vanilla JS, React, Vue, and Svelte
 
 Build pipeline:
 
@@ -978,6 +980,7 @@ Ergonomic routing rule:
 ## Public/General Routes
 
 - `GET /` starter home page
+- `GET /demo/islands` framework islands demo (vanilla JS, React, Vue, Svelte)
 - `GET /up` liveness healthcheck (legacy alias)
 - `GET /health` liveness healthcheck
 - `GET /health/ready` readiness healthcheck (returns `503` when a registered dependency check fails)
@@ -1852,6 +1855,7 @@ Recommended modes:
 - Unified dev mode:
   `make dev` (or `ship dev`)
   Runs in auto mode by convention: web-only for single-binary adapters, full mode when jobs adapter is `asynq`.
+  Web mode runs via `air -c .air.toml` so Go rebuilds and templ generation happen automatically on edits.
   In interactive terminals, `ship dev` prints the local URL and prompts to open it in your browser (`[Y/n]`, Enter = yes). Browser open is deferred until the URL is reachable.
 - Full multiprocess mode:
   `make dev-full` (or `ship dev --all`)
@@ -2809,10 +2813,10 @@ These commands are implemented as wrappers over existing workflows:
 
 - `ship dev` -> auto mode:
   - jobs adapter `asynq` => full mode (`ship dev --all`)
-  - other jobs adapters => `go run ./cmd/web`
-  - in interactive terminals, prints the local URL and prompts to open it in a browser (`[Y/n]`, Enter = yes); browser launch waits until the URL is reachable
+  - other jobs adapters => `air -c .air.toml` (web with live reload + templ pre-generation)
+- in interactive terminals, prints the local URL and prompts to open it in a browser (`[Y/n]`, Enter = yes); browser launch waits until the URL is reachable
 - `ship dev --worker` -> `go run ./cmd/worker`
-- `ship dev --all` -> starts both processes concurrently with prefixed logs (`[web]`, `[worker]`) and signal-aware shutdown
+- `ship dev --all` -> starts web (`air -c .air.toml`) and worker concurrently with prefixed logs (`[web]`, `[worker]`) and signal-aware shutdown
 - `ship check` -> `go test ./...` (compile + unit checks, no integration-tagged tests)
 - `ship test` -> `go test ./...` (integration-tagged tests are excluded by default)
 - `ship test --integration` -> `go test -tags=integration ./...`

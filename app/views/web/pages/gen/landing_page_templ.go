@@ -13,7 +13,7 @@ import (
 	"github.com/leomorpho/goship/app/web/routenames"
 )
 
-// Renders: minimal starter-style landing page with auth entry points.
+// Renders: minimal standalone starter page with direct auth and demo links.
 func LandingPage(page *controller.Page) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -35,33 +35,59 @@ func LandingPage(page *controller.Page) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div data-component=\"landing-page\" class=\"mx-auto max-w-3xl px-6 py-20 text-center space-y-6\"><p class=\"text-xs uppercase tracking-[0.2em] text-primary-content/70\">GoShip</p><h1 class=\"text-4xl md:text-5xl font-semibold tracking-tight\">Build one app, ship it fast</h1><p class=\"text-base md:text-lg text-primary-content/80\">A single-app Go framework with strong defaults for server-rendered UI, jobs, and modules.</p><div class=\"flex flex-col sm:flex-row gap-3 justify-center\"><a href=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<html lang=\"en\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"><title>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var2 templ.SafeURL
-		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(page.ToURL(routenames.RouteNameRegister)))
+		var templ_7745c5c3_Var2 string
+		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(page.AppName)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/landing_page.templ`, Line: 18, Col: 62}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/landing_page.templ`, Line: 14, Col: 24}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "\" class=\"inline-flex items-center justify-center rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-900\">Create account</a> <a href=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</title><style>\n\t\t\tbody {\n\t\t\t\tmargin: 0;\n\t\t\t\tfont-family: sans-serif;\n\t\t\t\tbackground: #0f172a;\n\t\t\t\tcolor: #e2e8f0;\n\t\t\t}\n\t\t\tmain {\n\t\t\t\tmax-width: 720px;\n\t\t\t\tmargin: 0 auto;\n\t\t\t\tpadding: 48px 20px;\n\t\t\t\ttext-align: center;\n\t\t\t}\n\t\t\th1 {\n\t\t\t\tfont-size: 2rem;\n\t\t\t\tmargin: 0 0 12px 0;\n\t\t\t}\n\t\t\tp {\n\t\t\t\tmargin: 0 0 24px 0;\n\t\t\t}\n\t\t\t.actions {\n\t\t\t\tdisplay: flex;\n\t\t\t\tflex-wrap: wrap;\n\t\t\t\tgap: 10px;\n\t\t\t\tjustify-content: center;\n\t\t\t}\n\t\t\t.actions a {\n\t\t\t\ttext-decoration: none;\n\t\t\t\tbackground: #e2e8f0;\n\t\t\t\tcolor: #0f172a;\n\t\t\t\tpadding: 10px 14px;\n\t\t\t\tborder-radius: 10px;\n\t\t\t\tfont-weight: 600;\n\t\t\t\tfont-size: 14px;\n\t\t\t}\n\t\t\t</style></head><body data-component=\"landing-page\"><main><h1>GoShip</h1><p>A simple starter home page.</p><div class=\"actions\"><a href=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var3 templ.SafeURL
-		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(page.ToURL(routenames.RouteNameLogin)))
+		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(page.ToURL(routenames.RouteNameRegister)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/landing_page.templ`, Line: 24, Col: 59}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/landing_page.templ`, Line: 57, Col: 66}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\" class=\"inline-flex items-center justify-center rounded-full border border-white/40 px-6 py-3 text-sm font-semibold text-white\">Log in</a></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\">Create account</a> <a href=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var4 templ.SafeURL
+		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(page.ToURL(routenames.RouteNameLogin)))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/landing_page.templ`, Line: 58, Col: 63}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\">Log in</a> <a href=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var5 templ.SafeURL
+		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(page.ToURL(routenames.RouteNameIslandsDemo)))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/web/pages/landing_page.templ`, Line: 59, Col: 69}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "\">Islands demo</a></div></main></body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

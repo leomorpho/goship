@@ -103,10 +103,10 @@ These commands are implemented as wrappers over existing workflows:
 
 - `ship dev` -> auto mode:
   - jobs adapter `asynq` => full mode (`ship dev --all`)
-  - other jobs adapters => `go run ./cmd/web`
-  - in interactive terminals, prints the local URL and prompts to open it in a browser (`[Y/n]`, Enter = yes); browser launch waits until the URL is reachable
+  - other jobs adapters => `air -c .air.toml` (web with live reload + templ pre-generation)
+- in interactive terminals, prints the local URL and prompts to open it in a browser (`[Y/n]`, Enter = yes); browser launch waits until the URL is reachable
 - `ship dev --worker` -> `go run ./cmd/worker`
-- `ship dev --all` -> starts both processes concurrently with prefixed logs (`[web]`, `[worker]`) and signal-aware shutdown
+- `ship dev --all` -> starts web (`air -c .air.toml`) and worker concurrently with prefixed logs (`[web]`, `[worker]`) and signal-aware shutdown
 - `ship check` -> `go test ./...` (compile + unit checks, no integration-tagged tests)
 - `ship test` -> `go test ./...` (integration-tagged tests are excluded by default)
 - `ship test --integration` -> `go test -tags=integration ./...`

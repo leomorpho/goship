@@ -97,7 +97,7 @@ func RunDev(args []string, d DevDeps) int {
 		if maybeOpenWhenReady != nil {
 			maybeOpenWhenReady(done)
 		}
-		code := d.RunCmd("go", "run", "./cmd/web")
+		code := d.RunCmd("air", "-c", ".air.toml")
 		close(done)
 		return code
 	case "worker":
@@ -122,7 +122,7 @@ func RunDev(args []string, d DevDeps) int {
 
 func PrintDevHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship dev commands:")
-	fmt.Fprintln(w, "  ship dev          run auto dev mode (default: web; uses full mode when jobs adapter is asynq)")
+	fmt.Fprintln(w, "  ship dev          run auto dev mode (default: web with air; uses full mode when jobs adapter is asynq)")
 	fmt.Fprintln(w, "  ship dev web      run web-only dev mode")
 	fmt.Fprintln(w, "  ship dev worker   run worker-only dev mode")
 	fmt.Fprintln(w, "  ship dev all      run full dev mode (web + worker + js + css)")
