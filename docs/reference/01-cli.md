@@ -220,6 +220,7 @@ Doctor checks (current):
 - warns when exported templ functions in `app/views/` or enabled module `views/` directories are missing a `// Renders:` comment
 - warns when component templates in `app/views/web/components/` or enabled module component dirs miss/mismatch `data-component="<kebab-name>"` on the root element (excluding `*_layout.templ`)
 - flags unexpected root build artifacts (`web`, `worker`, `seed`, `ship`, `ship-mcp`)
+- allows top-level `tmp/` as intentional local dev build output (`air` default in this repo)
 - validates `.gitignore` includes root binary artifact ignore entries
 - enforces a line budget for non-generated human-authored `.go` files (target <= 500 lines)
 - validates CLI reference docs include core command tokens (`ship new`, `ship doctor`, `ship make:*`, `ship db:migrate`, `ship test --integration`)

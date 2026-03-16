@@ -135,6 +135,16 @@ func registerAuthRoutes() {
 		mustNotContainIssueCode(t, issues, "DX013")
 	})
 
+	t.Run("tmp directory is allowed for dev build artifacts", func(t *testing.T) {
+		root := t.TempDir()
+		writeDoctorFixture(t, root)
+		if err := os.MkdirAll(filepath.Join(root, "tmp"), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		issues := RunDoctorChecks(root)
+		mustNotContainIssueCode(t, issues, "DX013")
+	})
+
 	t.Run("missing renders comment triggers warning", func(t *testing.T) {
 		root := t.TempDir()
 		writeDoctorFixture(t, root)
