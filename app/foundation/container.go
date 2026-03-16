@@ -31,7 +31,6 @@ import (
 	"github.com/leomorpho/goship/modules/ai"
 	"github.com/leomorpho/goship/modules/auditlog"
 	"github.com/leomorpho/goship/modules/flags"
-	i18nmodule "github.com/leomorpho/goship/modules/i18n"
 )
 
 // Container contains all services used by the application and provides an easy way to handle dependency
@@ -71,7 +70,7 @@ type Container struct {
 	Flags *flags.Service
 
 	// I18n stores localized message resolution for request flows.
-	I18n *i18nmodule.Service
+	I18n core.I18n
 
 	// EventBus stores the synchronous domain event bus.
 	EventBus *events.Bus

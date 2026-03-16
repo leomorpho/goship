@@ -146,6 +146,14 @@ type JobsInspector interface {
 	Get(ctx context.Context, id string) (JobRecord, bool, error)
 }
 
+// I18n is the app-facing localization boundary.
+type I18n interface {
+	DefaultLanguage() string
+	SupportedLanguages() []string
+	NormalizeLanguage(raw string) string
+	T(ctx context.Context, key string, templateData ...map[string]any) string
+}
+
 // PutObjectInput describes an object upload request.
 type PutObjectInput struct {
 	Bucket      string

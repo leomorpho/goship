@@ -14,7 +14,12 @@ type ProfileLanguageResolver interface {
 	PreferredLanguage(ctx context.Context, userID int) (lang string, ok bool, err error)
 }
 
-func DetectLanguage(service *Service, resolver ProfileLanguageResolver) echo.MiddlewareFunc {
+type LanguageService interface {
+	DefaultLanguage() string
+	NormalizeLanguage(raw string) string
+}
+
+func DetectLanguage(service LanguageService, resolver ProfileLanguageResolver) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			lang, setCookie := detectLanguage(c, service, resolver)
@@ -35,7 +40,7 @@ func DetectLanguage(service *Service, resolver ProfileLanguageResolver) echo.Mid
 	}
 }
 
-func detectLanguage(c echo.Context, service *Service, resolver ProfileLanguageResolver) (string, bool) {
+func detectLanguage(c echo.Context, service LanguageService, resolver ProfileLanguageResolver) (string, bool) {
 	if service == nil {
 		return defaultLanguage, false
 	}
@@ -66,7 +71,7 @@ func detectLanguage(c echo.Context, service *Service, resolver ProfileLanguageRe
 	return service.DefaultLanguage(), false
 }
 
-func parseAcceptLanguage(value string, service *Service) string {
+func parseAcceptLanguage(value string, service LanguageService) string {
 	tags, _, err := language.ParseAcceptLanguage(value)
 	if err != nil {
 		return service.NormalizeLanguage(value)

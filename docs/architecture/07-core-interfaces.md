@@ -52,7 +52,10 @@ This package is the current source of truth for adapter seam contracts.
 5. `BlobStorage`
 - `Put`, `Delete`, `PresignGet`
 
-6. `Mailer`
+6. `I18n`
+- `DefaultLanguage`, `SupportedLanguages`, `NormalizeLanguage`, `T`
+
+7. `Mailer`
 - `Send(MailMessage)`
 
 ## Capability Validation
@@ -83,6 +86,7 @@ Current startup behavior:
   - `CoreCache` (`core.Cache`) via `foundation.CoreCacheAdapter`
   - `CoreJobs` (`core.Jobs`) via `foundation.CoreJobsAdapter`
   - `CorePubSub` (`core.PubSub`) via `foundation.CorePubSubAdapter`
+  - `I18n` (`core.I18n`) via `modules/i18n.Service`
 - container no longer needs to expose a concrete pubsub client field for application wiring.
 
 First migrated call site:

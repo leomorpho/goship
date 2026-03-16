@@ -170,7 +170,7 @@ Reflection-based administrative interface for managing database resources.
 
 ## 14) Internationalization Baseline
 
-- `modules/i18n` provides a locale service (`container.I18n`) and request middleware for language detection.
+- `modules/i18n` provides a locale service exposed through the `core.I18n` seam (`container.I18n`) and request middleware for language detection.
 - Language detection priority is: `?lang=<code>` query parameter, authenticated user preference resolver (when provided), `lang` cookie, `Accept-Language` header, then default locale (`en`).
 - Locale sources are YAML files in `locales/` with nested keys (for example `auth.login.title`).
 - `ship make:locale <code>` scaffolds a new locale file from `locales/en.yaml`.
