@@ -294,6 +294,7 @@ func RunDoctorChecks(root string) []DoctorIssue {
 	issues = append(issues, checkForbiddenCrossBoundaryImports(root)...)
 	issues = append(issues, checkContractUsage(root)...)
 	issues = append(issues, checkCanonicalFilePlacement(root)...)
+	issues = append(issues, checkSoftDeleteQueryFilters(root)...)
 
 	return issues
 }
@@ -431,6 +432,142 @@ func doctorControllerBodies(root string) map[string][]doctorHandlerBody {
 		}
 	}
 	return result
+}
+
+func checkSoftDeleteQueryFilters(root string) []DoctorIssue {
+	tables := discoverSoftDeleteTables(root)
+	if len(tables) == 0 {
+		return nil
+	}
+
+	queriesDir := filepath.Join(root, "db", "queries")
+	if !isDir(queriesDir) {
+		return nil
+	}
+
+	issues := make([]DoctorIssue, 0)
+	_ = filepath.WalkDir(queriesDir, func(path string, d os.DirEntry, err error) error {
+		if err != nil || d == nil || d.IsDir() || !strings.HasSuffix(strings.ToLower(d.Name()), ".sql") {
+			return nil
+		}
+
+		content, readErr := os.ReadFile(path)
+		if readErr != nil {
+			return nil
+		}
+
+		statements := strings.Split(string(content), ";")
+		for _, raw := range statements {
+			stmt := strings.TrimSpace(stripSQLLineComments(raw))
+			if stmt == "" {
+				continue
+			}
+
+			normalized := normalizeSQLForDoctor(stmt)
+			if !strings.HasPrefix(strings.TrimSpace(normalized), "select ") {
+				continue
+			}
+			if strings.Contains(normalized, " deleted_at is null ") || strings.Contains(normalized, " deleted_at is not null ") {
+				continue
+			}
+
+			for table := range tables {
+				if !doctorStatementReferencesTable(normalized, table) {
+					continue
+				}
+				issues = append(issues, DoctorIssue{
+					Code:     "DX028",
+					Message:  fmt.Sprintf("query references soft-delete table %q without deleted_at filter", table),
+					Fix:      "add `deleted_at IS NULL` for active rows (or `deleted_at IS NOT NULL` for trash queries)",
+					File:     filepath.ToSlash(mustRel(root, path)),
+					Severity: "warning",
+				})
+				break
+			}
+		}
+
+		return nil
+	})
+
+	return issues
+}
+
+func discoverSoftDeleteTables(root string) map[string]struct{} {
+	migrationsDir := filepath.Join(root, "db", "migrate", "migrations")
+	if !isDir(migrationsDir) {
+		return nil
+	}
+
+	tables := make(map[string]struct{})
+	createTableRE := regexp.MustCompile(`(?i)create\s+table\s+(?:if\s+not\s+exists\s+)?["` + "`" + `]?([a-z0-9_]+)["` + "`" + `]?`)
+	alterTableRE := regexp.MustCompile(`(?i)alter\s+table\s+["` + "`" + `]?([a-z0-9_]+)["` + "`" + `]?\s+add\s+column\s+["` + "`" + `]?deleted_at["` + "`" + `]?`)
+
+	_ = filepath.WalkDir(migrationsDir, func(path string, d os.DirEntry, err error) error {
+		if err != nil || d == nil || d.IsDir() || !strings.HasSuffix(strings.ToLower(d.Name()), ".sql") {
+			return nil
+		}
+
+		content, readErr := os.ReadFile(path)
+		if readErr != nil {
+			return nil
+		}
+
+		for _, raw := range strings.Split(string(content), ";") {
+			stmt := strings.TrimSpace(stripSQLLineComments(raw))
+			if stmt == "" {
+				continue
+			}
+			lower := strings.ToLower(stmt)
+			if !strings.Contains(lower, "deleted_at") {
+				continue
+			}
+
+			if matches := alterTableRE.FindStringSubmatch(lower); len(matches) == 2 {
+				tables[strings.TrimSpace(matches[1])] = struct{}{}
+				continue
+			}
+			if !strings.HasPrefix(strings.TrimSpace(lower), "create table") {
+				continue
+			}
+			if matches := createTableRE.FindStringSubmatch(lower); len(matches) == 2 {
+				tables[strings.TrimSpace(matches[1])] = struct{}{}
+			}
+		}
+
+		return nil
+	})
+
+	return tables
+}
+
+func normalizeSQLForDoctor(sql string) string {
+	replacer := strings.NewReplacer("\n", " ", "\r", " ", "\t", " ", "\"", "", "`", "")
+	normalized := replacer.Replace(strings.ToLower(sql))
+	return " " + strings.Join(strings.Fields(normalized), " ") + " "
+}
+
+func stripSQLLineComments(sql string) string {
+	lines := strings.Split(sql, "\n")
+	kept := make([]string, 0, len(lines))
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if strings.HasPrefix(trimmed, "--") {
+			continue
+		}
+		kept = append(kept, line)
+	}
+	return strings.Join(kept, "\n")
+}
+
+func doctorStatementReferencesTable(normalizedStmt string, table string) bool {
+	t := strings.TrimSpace(strings.ToLower(table))
+	if t == "" {
+		return false
+	}
+
+	from := " from " + t + " "
+	join := " join " + t + " "
+	return strings.Contains(normalizedStmt, from) || strings.Contains(normalizedStmt, join)
 }
 
 func doctorExprContainsAPIPath(expr ast.Expr) bool {

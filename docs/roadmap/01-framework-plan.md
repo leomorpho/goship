@@ -129,6 +129,7 @@ Primary command groups to match Rails ergonomics while staying Go-native:
 - `ship adapter:set <db|cache|jobs|pubsub|storage|mailer> <impl>`
 5. Data/schema:
 - `ship db:make <name>`
+- `ship db:make <name> --soft-delete --table <table>`
 - `ship db:migrate`
 - `ship db:rollback`
 - `ship db:seed`

@@ -1,6 +1,7 @@
 package admin
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -32,6 +33,7 @@ func registerRoutes(r core.Router, controller ui.Controller, db *sql.DB, auditLo
 	g.GET("/queues/*", h.Queues)
 	g.GET("/managed-settings", h.ManagedSettings)
 	g.GET("/audit-logs", h.AuditLogs)
+	g.GET("/trash", h.Trash)
 	g.GET("/:resource", h.List)
 	g.GET("/:resource/new", h.New)
 	g.POST("/:resource", h.Create)
@@ -71,6 +73,41 @@ func (r *routes) ManagedSettings(ctx echo.Context) error {
 		b.WriteString("<td>" + html.EscapeString(status.Value) + "</td>")
 		b.WriteString("<td>" + html.EscapeString(string(status.Access)) + "</td>")
 		b.WriteString("<td>" + html.EscapeString(string(status.Source)) + "</td>")
+		b.WriteString("</tr>")
+	}
+	b.WriteString("</tbody></table></body></html>")
+	return ctx.HTML(http.StatusOK, b.String())
+}
+
+type trashTableSummary struct {
+	Table string
+	Count int64
+}
+
+func (r *routes) Trash(ctx echo.Context) error {
+	if r.db == nil {
+		return echo.NewHTTPError(http.StatusServiceUnavailable, "database is not configured")
+	}
+
+	tables, err := listSoftDeleteTableSummaries(ctx.Request().Context(), r.db)
+	if err != nil {
+		return err
+	}
+
+	var b strings.Builder
+	b.WriteString("<html><body><h1>Admin - Trash</h1>")
+	b.WriteString(`<p><a href="/admin/managed-settings">Managed settings</a></p>`)
+	if len(tables) == 0 {
+		b.WriteString("<p>No soft-deleted rows found.</p>")
+		b.WriteString("</body></html>")
+		return ctx.HTML(http.StatusOK, b.String())
+	}
+
+	b.WriteString("<table><thead><tr><th>Table</th><th>Deleted Rows</th></tr></thead><tbody>")
+	for _, table := range tables {
+		b.WriteString("<tr>")
+		b.WriteString("<td>" + html.EscapeString(table.Table) + "</td>")
+		b.WriteString("<td>" + strconv.FormatInt(table.Count, 10) + "</td>")
 		b.WriteString("</tr>")
 	}
 	b.WriteString("</tbody></table></body></html>")
@@ -266,6 +303,50 @@ func parsePositiveInt(raw string, fallback int) int {
 		return fallback
 	}
 	return v
+}
+
+func listSoftDeleteTableSummaries(ctx context.Context, db *sql.DB) ([]trashTableSummary, error) {
+	if db == nil {
+		return nil, nil
+	}
+
+	// SQLite-first: discover regular tables from sqlite_master, then probe deleted_at counts.
+	rows, err := db.QueryContext(ctx, `SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'`)
+	if err != nil {
+		return nil, nil
+	}
+
+	tableNames := make([]string, 0)
+	for rows.Next() {
+		var table string
+		if err := rows.Scan(&table); err != nil {
+			_ = rows.Close()
+			return nil, err
+		}
+		tableNames = append(tableNames, table)
+	}
+	if err := rows.Err(); err != nil {
+		_ = rows.Close()
+		return nil, err
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+
+	summaries := make([]trashTableSummary, 0)
+	for _, table := range tableNames {
+		query := fmt.Sprintf(`SELECT COUNT(*) FROM "%s" WHERE deleted_at IS NOT NULL`, strings.ReplaceAll(table, `"`, `""`))
+		var count int64
+		if err := db.QueryRowContext(ctx, query).Scan(&count); err != nil {
+			// Table exists but does not implement soft-delete convention.
+			continue
+		}
+		if count > 0 {
+			summaries = append(summaries, trashTableSummary{Table: table, Count: count})
+		}
+	}
+
+	return summaries, nil
 }
 
 func readValuesFromRequest(ctx echo.Context, res AdminResource) (map[string]any, map[string]string) {

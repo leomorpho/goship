@@ -124,6 +124,16 @@ Impact:
 - Replays are blocked per process instance, but not across independently running replicas.
 - Process restarts clear replay history and reopen the short nonce window until entries are rebuilt.
 
+## 14) Soft-Delete Query Guardrail Is Warning-Only (Low)
+
+`ship doctor` now warns (`DX028`) when SQL queries in `db/queries/` reference soft-delete tables
+without a `deleted_at` filter, but this remains a warning and not a hard failure.
+
+Impact:
+
+- Teams still need code review discipline for edge-case query intent.
+- Unfiltered soft-delete queries are surfaced early but are not blocked at commit time by default.
+
 ## Suggested Priority Order
 
 1. Complete cache adapter coverage so page caching works consistently across supported backends.

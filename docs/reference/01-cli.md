@@ -67,7 +67,7 @@ Database:
 
 - `ship db:create [--dry-run]` (or `ship db` for help)
 - `ship db:generate [--config <path>] [--dry-run]`
-- `ship db:make <migration_name>` (or `ship db` for help)
+- `ship db:make <migration_name> [--soft-delete --table <table>]` (or `ship db` for help)
 - `ship db:migrate`
 - `ship db:status`
 - `ship db:reset [--seed] [--force] [--yes] [--dry-run]`
@@ -125,6 +125,7 @@ These commands are implemented as wrappers over existing workflows:
 - `ship db:reset [--seed] [--force] [--yes] [--dry-run]` -> prints plan, runs `goose reset`, then `goose up`; optional seed
 - `ship db:drop [--force] [--yes] [--dry-run]` -> prints plan, runs `goose reset` (reverts all applied migrations; does not physically drop the database)
 - `ship db:make <migration_name>` -> `goose create <migration_name> sql`
+- `ship db:make <migration_name> --soft-delete --table <table>` -> writes a migration that adds `deleted_at DATETIME` plus `idx_<table>_deleted_at`
 - `ship db:rollback [amount]` -> `goose down` (default) or `goose down-to <amount>`
 - Goose is managed by `ship`: it uses `goose` from `PATH` when present, otherwise falls back to `go run github.com/pressly/goose/v3/cmd/goose@v3.26.0`.
 - `ship db:seed` -> `go run ./cmd/seed/main.go`
@@ -197,6 +198,7 @@ Doctor checks (current):
 - validates enabled modules in `config/modules.yaml` include `db/migrate/migrations` and `db/bobgen.yaml`
 - validates cross-boundary import rules (controller `QueryProfile()` ban, jobs SQL coupling ban, notifications pubsub framework-core coupling ban, module source isolation ban for direct `github.com/leomorpho/goship/*` imports except explicit allowlist paths)
 - warns when `/api/` routes appear to render HTML directly instead of using the standard JSON API helpers
+- warns when SQL queries in `db/queries/` reference soft-delete tables without an explicit `deleted_at` filter (`DX028`)
 
 Field syntax for `make:model`:
 

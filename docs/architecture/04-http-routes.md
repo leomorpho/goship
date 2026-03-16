@@ -93,6 +93,7 @@ Admin routes (`/auth/admin`, admin role required):
 - `GET /auth/admin/queues/*`
 - `GET /auth/admin/managed-settings`
 - `GET /auth/admin/audit-logs`
+- `GET /auth/admin/trash`
 - `GET /auth/admin/:resource`
 - `GET /auth/admin/:resource/new`
 - `POST /auth/admin/:resource`

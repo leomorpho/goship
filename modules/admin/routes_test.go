@@ -87,6 +87,36 @@ func TestAdminRoutes_AdminManagedSettings(t *testing.T) {
 	}
 }
 
+func TestAdminRoutes_AdminTrashView(t *testing.T) {
+	c := newContainerForAdminRoutes(t, true)
+
+	_, err := c.Database.Exec(`
+CREATE TABLE IF NOT EXISTS test_soft_delete_rows (
+	id INTEGER PRIMARY KEY,
+	deleted_at DATETIME
+);
+INSERT INTO test_soft_delete_rows (id, deleted_at) VALUES (1, CURRENT_TIMESTAMP);
+`)
+	if err != nil {
+		t.Fatalf("seed soft delete table: %v", err)
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/admin/trash", nil)
+	rec := httptest.NewRecorder()
+	c.Web.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusOK)
+	}
+	body := rec.Body.String()
+	if !strings.Contains(body, "Admin - Trash") {
+		t.Fatalf("body = %q, want trash heading", body)
+	}
+	if !strings.Contains(body, "test_soft_delete_rows") {
+		t.Fatalf("body = %q, want soft delete table name", body)
+	}
+}
+
 func newContainerForAdminRoutes(t *testing.T, admin bool) *foundation.Container {
 	t.Helper()
 	if err := chdirRepoRoot(); err != nil {

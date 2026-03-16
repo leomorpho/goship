@@ -152,6 +152,7 @@ Reflection-based administrative interface for managing database resources.
 - Resource registration and CRUD operations for Bob-generated models.
 - Embedded Backlite queue monitoring.
 - Managed settings status page at `/auth/admin/managed-settings` for operator visibility into effective value/source/access state.
+- Trash page at `/auth/admin/trash` for operator visibility into soft-deleted row counts by table.
 - Built-in Templ components for common admin UI patterns.
 
 ## Environments and Configuration
