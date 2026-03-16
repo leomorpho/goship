@@ -171,15 +171,15 @@ Impact:
 - Integration tests for HTML/form routes are shorter and less error-prone by default.
 - API-heavy and realtime-heavy tests still need some manual request/transport setup.
 
-## 19) I18n Detection Is Runtime Baseline Only (Low)
+## 19) I18n Adoption Is Runtime-Ready But App Migration Is Incomplete (Low)
 
-`modules/i18n` now supports locale files, middleware-based language detection, and CLI locale audits, but the app surface is only partially translated and no persistent profile-language field is wired by default.
+`modules/i18n` now supports locale files (canonical TOML with temporary YAML dual-read), middleware-based language detection, profile-language persistence wiring, and CLI migration/audit commands.
 
 Impact:
 
 - Framework/runtime now has a consistent translation seam (`container.I18n.T(...)`) and deterministic request language detection.
-- Teams still need to migrate hardcoded strings and optionally wire a real user-preference resolver to get full end-to-end localization coverage.
-- `ship new` can now scaffold i18n locale files for starter apps, but starter translations and language-switching UX still require additional app-level wiring for complete end-to-end behavior.
+- Teams still need to migrate hardcoded strings and complete string-key coverage to get full end-to-end localization coverage.
+- `ship new` scaffolds i18n starter locale files, but production-grade translation completeness and broader locale packs still require follow-up product work.
 
 ## Suggested Priority Order
 

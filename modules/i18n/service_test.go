@@ -64,6 +64,46 @@ auth:
 	}
 }
 
+func TestServiceSupportsTOMLLocaleFiles(t *testing.T) {
+	localeDir := t.TempDir()
+	writeLocaleFile(t, localeDir, "en.toml", `
+"auth.login.title" = "Sign in to your account"
+`)
+	writeLocaleFile(t, localeDir, "fr.toml", `
+"auth.login.title" = "Connectez-vous a votre compte"
+`)
+
+	service, err := NewService(Options{LocaleDir: localeDir, DefaultLanguage: "en"})
+	if err != nil {
+		t.Fatalf("new service: %v", err)
+	}
+
+	if got := service.T(WithLanguage(context.Background(), "fr"), "auth.login.title"); got != "Connectez-vous a votre compte" {
+		t.Fatalf("french translation = %q", got)
+	}
+}
+
+func TestServicePrefersTOMLWhenBothTOMLAndYAMLExist(t *testing.T) {
+	localeDir := t.TempDir()
+	writeLocaleFile(t, localeDir, "en.yaml", `
+auth:
+  login:
+    title: "English from yaml"
+`)
+	writeLocaleFile(t, localeDir, "en.toml", `
+"auth.login.title" = "English from toml"
+`)
+
+	service, err := NewService(Options{LocaleDir: localeDir, DefaultLanguage: "en"})
+	if err != nil {
+		t.Fatalf("new service: %v", err)
+	}
+
+	if got := service.T(context.Background(), "auth.login.title"); got != "English from toml" {
+		t.Fatalf("translation = %q, want toml value", got)
+	}
+}
+
 func writeLocaleFile(t *testing.T, dir, name, content string) {
 	t.Helper()
 	if err := os.MkdirAll(dir, 0o755); err != nil {

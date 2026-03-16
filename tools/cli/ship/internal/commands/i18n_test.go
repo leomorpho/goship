@@ -149,15 +149,15 @@ func TestRunI18nInitCreatesBaselineLocales(t *testing.T) {
 		t.Fatalf("stderr = %q, want empty", errOut.String())
 	}
 
-	en, err := os.ReadFile(filepath.Join(root, "locales", "en.yaml"))
+	en, err := os.ReadFile(filepath.Join(root, "locales", "en.toml"))
 	if err != nil {
 		t.Fatalf("read en locale: %v", err)
 	}
-	fr, err := os.ReadFile(filepath.Join(root, "locales", "fr.yaml"))
+	fr, err := os.ReadFile(filepath.Join(root, "locales", "fr.toml"))
 	if err != nil {
 		t.Fatalf("read fr locale: %v", err)
 	}
-	if !strings.Contains(string(en), "app:") || !strings.Contains(string(fr), "app:") {
+	if !strings.Contains(string(en), `"app.title" =`) || !strings.Contains(string(fr), `"app.title" =`) {
 		t.Fatalf("expected baseline locale content, en=%q fr=%q", string(en), string(fr))
 	}
 	if !strings.Contains(out.String(), "ship i18n:scan --format json") {
@@ -189,7 +189,7 @@ func TestRunI18nInitIsIdempotentWithoutForce(t *testing.T) {
 	}); code != 0 {
 		t.Fatalf("first run code = %d, stderr = %s", code, firstErr.String())
 	}
-	before, err := os.ReadFile(filepath.Join(root, "locales", "en.yaml"))
+	before, err := os.ReadFile(filepath.Join(root, "locales", "en.toml"))
 	if err != nil {
 		t.Fatalf("read initial en locale: %v", err)
 	}
@@ -203,7 +203,7 @@ func TestRunI18nInitIsIdempotentWithoutForce(t *testing.T) {
 	}); code != 0 {
 		t.Fatalf("second run code = %d, stderr = %s", code, secondErr.String())
 	}
-	after, err := os.ReadFile(filepath.Join(root, "locales", "en.yaml"))
+	after, err := os.ReadFile(filepath.Join(root, "locales", "en.toml"))
 	if err != nil {
 		t.Fatalf("read rerun en locale: %v", err)
 	}
@@ -216,8 +216,8 @@ func TestRunI18nInitOverwriteGuardAndForce(t *testing.T) {
 	root := t.TempDir()
 	writeI18nFixture(t, root, map[string]string{
 		"go.mod": "module example.com/i18n-test\n\ngo 1.25\n",
-		"locales/en.yaml": "custom: keep-me\n",
-		"locales/fr.yaml": "custom: garde-moi\n",
+		"locales/en.toml": `"custom" = "keep-me"` + "\n",
+		"locales/fr.toml": `"custom" = "garde-moi"` + "\n",
 	})
 
 	prevWD, err := os.Getwd()
@@ -238,11 +238,11 @@ func TestRunI18nInitOverwriteGuardAndForce(t *testing.T) {
 	}); code != 0 {
 		t.Fatalf("init code = %d, stderr = %s", code, errOut.String())
 	}
-	enNoForce, err := os.ReadFile(filepath.Join(root, "locales", "en.yaml"))
+	enNoForce, err := os.ReadFile(filepath.Join(root, "locales", "en.toml"))
 	if err != nil {
 		t.Fatalf("read en without force: %v", err)
 	}
-	if strings.TrimSpace(string(enNoForce)) != "custom: keep-me" {
+	if strings.TrimSpace(string(enNoForce)) != `"custom" = "keep-me"` {
 		t.Fatalf("expected existing en locale to be preserved without --force, got %q", string(enNoForce))
 	}
 
@@ -255,11 +255,11 @@ func TestRunI18nInitOverwriteGuardAndForce(t *testing.T) {
 	}); code != 0 {
 		t.Fatalf("force init code = %d, stderr = %s", code, forceErr.String())
 	}
-	enForce, err := os.ReadFile(filepath.Join(root, "locales", "en.yaml"))
+	enForce, err := os.ReadFile(filepath.Join(root, "locales", "en.toml"))
 	if err != nil {
 		t.Fatalf("read en with force: %v", err)
 	}
-	if strings.TrimSpace(string(enForce)) == "custom: keep-me" {
+	if strings.TrimSpace(string(enForce)) == `"custom" = "keep-me"` {
 		t.Fatalf("expected --force to overwrite en locale")
 	}
 }
@@ -302,6 +302,123 @@ func TestRunI18nInitUsageAndHelp(t *testing.T) {
 	}
 	if !strings.Contains(errOut.String(), "usage: ship i18n:init [--force]") {
 		t.Fatalf("stderr = %q, want init usage", errOut.String())
+	}
+}
+
+func TestRunI18nMigrateConvertsYAMLToTOML(t *testing.T) {
+	root := t.TempDir()
+	writeI18nFixture(t, root, map[string]string{
+		"go.mod": "module example.com/i18n-test\n\ngo 1.25\n",
+		"locales/en.yaml": `
+auth:
+  login:
+    title: "Sign in to your account"
+`,
+		"locales/fr.yaml": `
+auth:
+  login:
+    title: "Connectez-vous a votre compte"
+`,
+	})
+
+	prevWD, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(prevWD) })
+	if err := os.Chdir(root); err != nil {
+		t.Fatal(err)
+	}
+
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	if code := RunI18n([]string{"migrate"}, I18nDeps{
+		Out:          out,
+		Err:          errOut,
+		FindGoModule: findI18nGoModule,
+	}); code != 0 {
+		t.Fatalf("migrate code = %d, stderr = %s", code, errOut.String())
+	}
+	if strings.TrimSpace(errOut.String()) != "" {
+		t.Fatalf("stderr = %q, want empty", errOut.String())
+	}
+
+	enToml, err := os.ReadFile(filepath.Join(root, "locales", "en.toml"))
+	if err != nil {
+		t.Fatalf("read en.toml: %v", err)
+	}
+	frToml, err := os.ReadFile(filepath.Join(root, "locales", "fr.toml"))
+	if err != nil {
+		t.Fatalf("read fr.toml: %v", err)
+	}
+	if !strings.Contains(string(enToml), `"auth.login.title" = "Sign in to your account"`) {
+		t.Fatalf("en.toml missing migrated key:\n%s", string(enToml))
+	}
+	if !strings.Contains(string(frToml), `"auth.login.title" = "Connectez-vous a votre compte"`) {
+		t.Fatalf("fr.toml missing migrated key:\n%s", string(frToml))
+	}
+}
+
+func TestRunI18nNormalizeIsIdempotentForTOML(t *testing.T) {
+	root := t.TempDir()
+	writeI18nFixture(t, root, map[string]string{
+		"go.mod": "module example.com/i18n-test\n\ngo 1.25\n",
+		"locales/en.toml": `
+[auth]
+  [auth.login]
+  submit = "Sign in"
+  title = "Sign in to your account"
+[common]
+save = "Save"
+cancel = "Cancel"
+`,
+	})
+
+	prevWD, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(prevWD) })
+	if err := os.Chdir(root); err != nil {
+		t.Fatal(err)
+	}
+
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	if code := RunI18n([]string{"normalize"}, I18nDeps{
+		Out:          out,
+		Err:          errOut,
+		FindGoModule: findI18nGoModule,
+	}); code != 0 {
+		t.Fatalf("normalize code = %d, stderr = %s", code, errOut.String())
+	}
+	if strings.TrimSpace(errOut.String()) != "" {
+		t.Fatalf("stderr = %q, want empty", errOut.String())
+	}
+
+	first, err := os.ReadFile(filepath.Join(root, "locales", "en.toml"))
+	if err != nil {
+		t.Fatalf("read first normalize output: %v", err)
+	}
+	if !strings.Contains(string(first), `"auth.login.submit" = "Sign in"`) {
+		t.Fatalf("normalized output missing expected key:\n%s", string(first))
+	}
+
+	secondOut := &bytes.Buffer{}
+	secondErr := &bytes.Buffer{}
+	if code := RunI18n([]string{"normalize"}, I18nDeps{
+		Out:          secondOut,
+		Err:          secondErr,
+		FindGoModule: findI18nGoModule,
+	}); code != 0 {
+		t.Fatalf("second normalize code = %d, stderr = %s", code, secondErr.String())
+	}
+	second, err := os.ReadFile(filepath.Join(root, "locales", "en.toml"))
+	if err != nil {
+		t.Fatalf("read second normalize output: %v", err)
+	}
+	if string(first) != string(second) {
+		t.Fatalf("normalize should be idempotent:\nfirst:\n%s\nsecond:\n%s", string(first), string(second))
 	}
 }
 

@@ -201,11 +201,13 @@ Note: broader legacy e2e specs are partially stale and should be treated as non-
 
 ## Internationalization
 
-Locale source files live in `locales/*.yaml` (`en.yaml` is the source of truth).
+Canonical locale source files live in `locales/*.toml` (`en.toml` is the source of truth for new writes). Runtime/CLI still dual-read YAML during migration windows.
 
 Common commands:
 
-- `go run ./tools/cli/ship/cmd/ship make:locale fr` to scaffold `locales/fr.yaml` with the same keys and empty values.
+- `go run ./tools/cli/ship/cmd/ship make:locale fr` to scaffold `locales/fr.toml` with the same keys and empty values.
+- `go run ./tools/cli/ship/cmd/ship i18n:migrate` to convert legacy `locales/*.yaml` catalogs to canonical TOML.
+- `go run ./tools/cli/ship/cmd/ship i18n:normalize` to rewrite TOML catalogs into deterministic canonical ordering.
 - `go run ./tools/cli/ship/cmd/ship i18n:missing` to list missing/empty translation keys per locale.
 - `go run ./tools/cli/ship/cmd/ship i18n:unused` to list locale keys not referenced in `.go`/`.templ` `I18n.T(...)` calls.
 

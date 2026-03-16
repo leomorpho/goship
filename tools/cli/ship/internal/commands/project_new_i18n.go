@@ -31,18 +31,15 @@ func i18nScaffoldFiles(opts NewProjectOptions) map[string]string {
 
 	displayName := starterDisplayName(opts.Name)
 	return map[string]string{
-		filepath.Join(opts.AppPath, "locales", "en.yaml"): renderStarterLocaleFile(displayName, "Welcome"),
-		filepath.Join(opts.AppPath, "locales", "fr.yaml"): renderStarterLocaleFile(displayName, "Bienvenue"),
+		filepath.Join(opts.AppPath, "locales", "en.toml"): renderStarterLocaleFile(displayName, "Welcome"),
+		filepath.Join(opts.AppPath, "locales", "fr.toml"): renderStarterLocaleFile(displayName, "Bienvenue"),
 	}
 }
 
 func renderStarterLocaleFile(appName, landingTitle string) string {
 	return fmt.Sprintf(`# Starter locale scaffold.
-app:
-  name: "%s"
-pages:
-  landing:
-    title: "%s"
+"app.name" = "%s"
+"pages.landing.title" = "%s"
 `, appName, landingTitle)
 }
 

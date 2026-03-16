@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"gopkg.in/yaml.v3"
+	"github.com/BurntSushi/toml"
 )
 
 func TestParseMakeLocaleArgs(t *testing.T) {
@@ -71,10 +71,8 @@ func TestRunMakeLocale_GeneratesLocaleFile(t *testing.T) {
 	if err := os.MkdirAll(localesDir, 0o755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(localesDir, "en.yaml"), []byte(`
-auth:
-  login:
-    title: "Sign in to your account"
+	if err := os.WriteFile(filepath.Join(localesDir, "en.toml"), []byte(`
+"auth.login.title" = "Sign in to your account"
 `), 0o644); err != nil {
 		t.Fatal(err)
 	}
@@ -93,19 +91,17 @@ auth:
 		t.Fatalf("stderr = %q, want empty", errOut.String())
 	}
 
-	target := filepath.Join(localesDir, "fr.yaml")
+	target := filepath.Join(localesDir, "fr.toml")
 	content, err := os.ReadFile(target)
 	if err != nil {
 		t.Fatalf("read fr locale: %v", err)
 	}
 	var parsed map[string]any
-	if err := yaml.Unmarshal(content, &parsed); err != nil {
+	if _, err := toml.Decode(string(content), &parsed); err != nil {
 		t.Fatalf("parse fr locale: %v", err)
 	}
 
-	auth, _ := parsed["auth"].(map[string]any)
-	login, _ := auth["login"].(map[string]any)
-	if got, _ := login["title"].(string); got != "" {
+	if got, _ := parsed["auth.login.title"].(string); got != "" {
 		t.Fatalf("fr auth.login.title = %q, want empty", got)
 	}
 }

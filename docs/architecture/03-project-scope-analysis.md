@@ -173,18 +173,20 @@ Reflection-based administrative interface for managing database resources.
 - `modules/i18n` provides a locale service exposed through the `core.I18n` seam (`container.I18n`) and request middleware for language detection.
 - Language detection priority is: `?lang=<code>` query parameter, authenticated user profile preference, `lang` cookie, `Accept-Language` header, then default locale (`en`).
 - Query-driven language switches now persist the normalized language to the authenticated profile record (`profiles.preferred_language`) and still set the `lang` cookie.
-- Locale sources are YAML files in `locales/` with nested keys (for example `auth.login.title`).
+- Canonical locale sources are TOML files in `locales/` (`*.toml`, dotted keys such as `auth.login.title`); runtime still dual-reads YAML during migration windows.
 - Runtime toggle: `PAGODA_I18N_ENABLED=false` disables i18n service initialization (safe English fallback path, no startup panic).
 - Runtime default language is configurable via `PAGODA_I18N_DEFAULT_LANGUAGE`.
 - Runtime enforcement mode is configurable via `PAGODA_I18N_STRICT_MODE=off|warn|error` and consumed by `ship doctor` (`DX029`), with optional `.i18n-allowlist`.
-- `ship make:locale <code>` scaffolds a new locale file from `locales/en.yaml`.
-- `ship i18n:init` bootstraps baseline locale files (`en`, `fr`) for apps that started without i18n and prints a deterministic migration command loop.
+- `ship make:locale <code>` scaffolds a new locale file from `locales/en.toml` (falls back to legacy YAML source when migrating).
+- `ship i18n:init` bootstraps baseline locale files (`en.toml`, `fr.toml`) for apps that started without i18n and prints a deterministic migration command loop.
 - `ship i18n:scan --format json` emits deterministic diagnostics for hardcoded user-facing literals (`--paths`, `--limit` supported) without failing on findings; Go sources are scanned via AST/token positions with guardrails for logs, SQL literals, and `_test.go` files, and JS scanning is scoped to `frontend/islands/` entry paths.
-- `ship i18n:instrument` provides a deterministic migration plan from scanner findings; `--apply` currently rewrites high-confidence Go controller `c.String` literals into i18n calls and seeds missing keys in `locales/en.yaml`.
+- `ship i18n:instrument` provides a deterministic migration plan from scanner findings; `--apply` currently rewrites high-confidence Go controller `c.String` literals into i18n calls and seeds missing keys in baseline locale catalogs.
+- `ship i18n:migrate` converts legacy YAML locale catalogs to canonical TOML catalogs.
+- `ship i18n:normalize` rewrites TOML catalogs to deterministic canonical ordering for stable diffs.
 - `ship i18n:missing` reports missing/empty translations versus English source keys.
 - `ship i18n:unused` reports locale keys not referenced in `.go`/`.templ` `I18n.T(...)` usage.
 - Navbar now includes the `language-switcher` component, and switch links preserve current route/query while toggling `lang`.
-- `ship new <app>` now supports i18n-aware scaffold startup: interactive prompt (or `--i18n` / `--no-i18n`) and optional starter locale file creation (`locales/en.yaml`, `locales/fr.yaml`), with explicit messaging that i18n can be enabled/migrated later.
+- `ship new <app>` now supports i18n-aware scaffold startup: interactive prompt (or `--i18n` / `--no-i18n`) and optional starter locale file creation (`locales/en.toml`, `locales/fr.toml`), with explicit messaging that i18n can be enabled/migrated later.
 
 ## Environments and Configuration
 

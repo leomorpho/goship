@@ -45,6 +45,8 @@ Project lifecycle:
 - `ship i18n:init [--force]`
 - `ship i18n:scan [--format json] [--paths <path1,path2,...>] [--limit <n>]`
 - `ship i18n:instrument [--apply] [--paths <path1,path2,...>] [--limit <n>]`
+- `ship i18n:migrate [--force]`
+- `ship i18n:normalize`
 - `ship i18n:missing`
 - `ship i18n:unused`
 - `ship agent:setup`
@@ -161,7 +163,7 @@ Safety matrix:
 - `ship templ generate --path app` -> `templ generate -path app`, then move each `*_templ.go` into sibling `gen/` directory
 - `ship new <app>` -> create minimal deterministic project scaffold in a new directory from CLI-embedded starter templates (no network calls)
   - interactive terminals prompt for i18n starter enablement unless `--i18n`/`--no-i18n` is provided
-  - when enabled, starter locale files are scaffolded at `locales/en.yaml` and `locales/fr.yaml`
+  - when enabled, starter locale files are scaffolded at `locales/en.toml` and `locales/fr.toml`
   - when disabled, CLI prints a follow-up hint that i18n can be enabled/migrated later with `ship i18n:*` + doctor-driven loops
 - `ship agent:setup` -> generate per-agent allowlist artifacts from `tools/agent-policy/allowed-commands.yaml`
 - `ship agent:check` -> fail if generated artifacts drift from canonical allowlist (for pre-commit/CI parity)
@@ -176,10 +178,12 @@ Safety matrix:
 - `ship api:spec` -> parses `app/contracts/*.go` `// Route:` contracts and prints OpenAPI 3.0 JSON to stdout
 - `ship api:spec --out <path>` -> writes generated OpenAPI JSON to the given file path
 - `ship api:spec --serve` -> serves Swagger UI + generated spec at `http://127.0.0.1:<port>/api/docs` until interrupted
-- `ship i18n:init [--force]` -> scaffolds `locales/en.yaml` and `locales/fr.yaml` for existing apps, preserving existing files unless `--force` is passed; prints deterministic next-step migration loop commands
+- `ship i18n:init [--force]` -> scaffolds `locales/en.toml` and `locales/fr.toml` for existing apps, preserving existing files unless `--force` is passed; prints deterministic next-step migration loop commands
 - `ship i18n:scan [--format json] [--paths <path1,path2,...>] [--limit <n>]` -> scans Go/templ/islands sources for hardcoded user-facing literals and emits deterministic JSON diagnostics (`id`, `kind`, `severity`, `file`, `line`, `column`, `message`, `suggested_key`, `confidence`)
-- `ship i18n:instrument [--apply] [--paths <path1,path2,...>] [--limit <n>]` -> builds a deterministic rewrite plan for high-confidence findings; default mode is dry-run JSON report, `--apply` rewrites safe Go controller `c.String(..., "literal")` sites to i18n calls and appends missing baseline keys to `locales/en.yaml`
-- `ship i18n:missing` -> compares `locales/en.yaml` keys with other locale files and lists missing/empty translations
+- `ship i18n:instrument [--apply] [--paths <path1,path2,...>] [--limit <n>]` -> builds a deterministic rewrite plan for high-confidence findings; default mode is dry-run JSON report, `--apply` rewrites safe Go controller `c.String(..., "literal")` sites to i18n calls and appends missing baseline keys to `locales/en.toml` (falls back to legacy YAML when present)
+- `ship i18n:migrate [--force]` -> converts `locales/*.yaml`/`*.yml` catalogs to canonical `locales/*.toml` catalogs (preserves existing TOML unless `--force`)
+- `ship i18n:normalize` -> rewrites TOML locale catalogs into deterministic canonical ordering for stable diffs/CI
+- `ship i18n:missing` -> compares baseline English locale keys with other locale files and lists missing/empty translations
 - `ship i18n:unused` -> lists locale keys not referenced by `I18n.T(...)`/`i18n.T(...)` calls in `.go`/`.templ` sources
 - `ship make:resource <name>` -> scaffold handler (+ optional templ page), ensure route-name constant, and print route snippet for manual insertion in `app/router.go`
 - `ship make:resource <name> --domain <name>` -> generate domain-aware constructor slot (`domainService any`) and route wiring using `nil` placeholder
@@ -188,7 +192,7 @@ Safety matrix:
 - `ship make:model <Name>` -> scaffold a model query file at `db/queries/<model>.sql` with Bob-friendly named-query placeholders
 - `ship make:model <Name> [fields...]` -> include typed field comments in the query scaffold and print next DB steps (`db:make`, `db:migrate`, `db:generate`)
 - `ship make:factory <Name>` -> scaffold `tests/factories/<name>_factory.go` with a typed `Record` struct + `factory.New(...)` baseline
-- `ship make:locale <code>` -> scaffold `locales/<code>.yaml` from `locales/en.yaml` with matching keys and empty values
+- `ship make:locale <code>` -> scaffold `locales/<code>.toml` from `locales/en.toml` (or legacy `en.yaml`) with matching keys and empty values
 - `ship make:controller <Name>` -> generate controller/handler scaffold in `app/web/controllers`
 - `ship make:controller <Name> --domain <name>` -> generate domain-aware constructor slot (`domainService any`) and route wiring using `nil` placeholder
 - `ship make:controller <Name> --actions ... --wire` -> wire generated routes into `app/router.go` markers
@@ -246,8 +250,8 @@ Field syntax for `make:model`:
 3. Supports `--dry-run` and `--force`.
 4. Supports `--i18n` and `--no-i18n` (otherwise prompts in interactive terminals).
 5. If i18n is enabled during scaffold, writes starter locale files:
-`locales/en.yaml`
-`locales/fr.yaml`
+`locales/en.toml`
+`locales/fr.toml`
 
 Generated project workflow:
 

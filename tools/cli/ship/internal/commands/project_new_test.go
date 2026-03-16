@@ -176,8 +176,8 @@ func TestScaffoldNewProjectI18nEnabled(t *testing.T) {
 	}
 
 	for _, p := range []string{
-		filepath.Join(opts.AppPath, "locales", "en.yaml"),
-		filepath.Join(opts.AppPath, "locales", "fr.yaml"),
+		filepath.Join(opts.AppPath, "locales", "en.toml"),
+		filepath.Join(opts.AppPath, "locales", "fr.toml"),
 	} {
 		if _, err := os.Stat(p); err != nil {
 			t.Fatalf("expected file %s: %v", p, err)
@@ -222,8 +222,8 @@ func TestRunNewPromptsForI18nWhenInteractive(t *testing.T) {
 		t.Fatalf("stdout = %q, want i18n enabled hint", out.String())
 	}
 	for _, p := range []string{
-		filepath.Join(root, "demo", "locales", "en.yaml"),
-		filepath.Join(root, "demo", "locales", "fr.yaml"),
+		filepath.Join(root, "demo", "locales", "en.toml"),
+		filepath.Join(root, "demo", "locales", "fr.toml"),
 	} {
 		if _, err := os.Stat(p); err != nil {
 			t.Fatalf("expected file %s: %v", p, err)

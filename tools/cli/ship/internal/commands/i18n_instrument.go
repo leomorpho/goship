@@ -443,7 +443,8 @@ func applyI18nInstrument(root string, candidates []i18nInstrumentCandidate) (int
 		}
 	}
 
-	if err := ensureInstrumentLocaleKeys(filepath.Join(root, "locales", "en.yaml"), keysToAdd); err != nil {
+	baselinePath := resolveEnglishLocalePathForWrite(filepath.Join(root, "locales"))
+	if err := ensureInstrumentLocaleKeys(baselinePath, keysToAdd); err != nil {
 		return applied, err
 	}
 	return applied, nil
@@ -454,38 +455,55 @@ func ensureInstrumentLocaleKeys(path string, keys map[string]string) error {
 		return nil
 	}
 	existing := map[string]string{}
-	loaded, err := loadLocaleFlat(path)
+	loaded, err := loadLocaleFlatFromFile(path)
 	if err == nil {
 		existing = loaded
 	}
 
-	raw, err := os.ReadFile(path)
-	if err != nil {
-		return fmt.Errorf("read baseline locale %s: %w", path, err)
+	merged := make(map[string]string, len(existing)+len(keys))
+	for key, value := range existing {
+		merged[key] = value
 	}
-
-	missing := make([]string, 0)
+	missing := make([]string, 0, len(keys))
 	for key := range keys {
 		if _, ok := existing[key]; ok {
 			continue
 		}
 		missing = append(missing, key)
+		merged[key] = keys[key]
 	}
 	if len(missing) == 0 {
 		return nil
 	}
 	sort.Strings(missing)
 
-	builder := strings.Builder{}
-	builder.Write(raw)
-	if len(raw) > 0 && raw[len(raw)-1] != '\n' {
-		builder.WriteByte('\n')
+	switch detectLocaleFormat(path) {
+	case localeFormatTOML:
+		if err := os.WriteFile(path, []byte(renderCanonicalTOML(merged)), 0o644); err != nil {
+			return fmt.Errorf("write baseline locale %s: %w", path, err)
+		}
+		return nil
+	case localeFormatYAML:
+		raw, err := os.ReadFile(path)
+		if err != nil {
+			return fmt.Errorf("read baseline locale %s: %w", path, err)
+		}
+		builder := strings.Builder{}
+		builder.Write(raw)
+		if len(raw) > 0 && raw[len(raw)-1] != '\n' {
+			builder.WriteByte('\n')
+		}
+		for _, key := range missing {
+			builder.WriteString(fmt.Sprintf("%s: %s\n", key, strconv.Quote(keys[key])))
+		}
+		if err := os.WriteFile(path, []byte(builder.String()), 0o644); err != nil {
+			return fmt.Errorf("write baseline locale %s: %w", path, err)
+		}
+		return nil
+	default:
+		if err := os.WriteFile(path, []byte(renderCanonicalTOML(merged)), 0o644); err != nil {
+			return fmt.Errorf("write baseline locale %s: %w", path, err)
+		}
+		return nil
 	}
-	for _, key := range missing {
-		builder.WriteString(fmt.Sprintf("%s: %s\n", key, strconv.Quote(keys[key])))
-	}
-	if err := os.WriteFile(path, []byte(builder.String()), 0o644); err != nil {
-		return fmt.Errorf("write baseline locale %s: %w", path, err)
-	}
-	return nil
 }

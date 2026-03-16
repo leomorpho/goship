@@ -10,6 +10,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/BurntSushi/toml"
 	goi18n "github.com/nicksnyder/go-i18n/v2/i18n"
 	"golang.org/x/text/language"
 	"gopkg.in/yaml.v3"
@@ -54,25 +55,85 @@ func NewService(opts Options) (*Service, error) {
 	bundle := goi18n.NewBundle(language.Make(defaultLang))
 	supported := map[string]struct{}{}
 
+	type localeFile struct {
+		name       string
+		path       string
+		localeCode string
+		priority   int
+	}
+	files := make([]localeFile, 0)
 	for _, entry := range entries {
-		if entry.IsDir() || filepath.Ext(entry.Name()) != ".yaml" {
+		if entry.IsDir() {
 			continue
 		}
-
-		localeCode := normalizeLanguageTag(strings.TrimSuffix(entry.Name(), filepath.Ext(entry.Name())))
+		ext := strings.ToLower(filepath.Ext(entry.Name()))
+		priority := 0
+		switch ext {
+		case ".toml":
+			priority = 2
+		case ".yaml", ".yml":
+			priority = 1
+		default:
+			continue
+		}
+		localeCode := normalizeLanguageTag(strings.TrimSuffix(entry.Name(), ext))
 		if localeCode == "" {
 			continue
 		}
+		files = append(files, localeFile{
+			name:       entry.Name(),
+			path:       filepath.Join(localeDir, entry.Name()),
+			localeCode: localeCode,
+			priority:   priority,
+		})
+	}
+	sort.Slice(files, func(i, j int) bool {
+		left := files[i]
+		right := files[j]
+		if left.localeCode != right.localeCode {
+			return left.localeCode < right.localeCode
+		}
+		if left.priority != right.priority {
+			return left.priority < right.priority
+		}
+		return left.name < right.name
+	})
 
-		raw, readErr := os.ReadFile(filepath.Join(localeDir, entry.Name()))
+	localeMaps := map[string]map[string]string{}
+	for _, file := range files {
+		raw, readErr := os.ReadFile(file.path)
 		if readErr != nil {
-			return nil, fmt.Errorf("read locale file %s: %w", entry.Name(), readErr)
-		}
-		flat, flattenErr := flattenLocaleYAML(raw)
-		if flattenErr != nil {
-			return nil, fmt.Errorf("parse locale file %s: %w", entry.Name(), flattenErr)
+			return nil, fmt.Errorf("read locale file %s: %w", file.name, readErr)
 		}
 
+		ext := strings.ToLower(filepath.Ext(file.name))
+		var flat map[string]string
+		var parseErr error
+		switch ext {
+		case ".toml":
+			flat, parseErr = flattenLocaleTOML(raw)
+		default:
+			flat, parseErr = flattenLocaleYAML(raw)
+		}
+		if parseErr != nil {
+			return nil, fmt.Errorf("parse locale file %s: %w", file.name, parseErr)
+		}
+
+		if _, ok := localeMaps[file.localeCode]; !ok {
+			localeMaps[file.localeCode] = map[string]string{}
+		}
+		for key, value := range flat {
+			localeMaps[file.localeCode][key] = value
+		}
+	}
+
+	localeCodes := make([]string, 0, len(localeMaps))
+	for localeCode := range localeMaps {
+		localeCodes = append(localeCodes, localeCode)
+	}
+	sort.Strings(localeCodes)
+	for _, localeCode := range localeCodes {
+		flat := localeMaps[localeCode]
 		messages := make([]*goi18n.Message, 0, len(flat))
 		keys := make([]string, 0, len(flat))
 		for key := range flat {
@@ -206,6 +267,16 @@ func flattenLocaleYAML(data []byte) (map[string]string, error) {
 		return nil, err
 	}
 
+	out := map[string]string{}
+	flattenLocaleMap("", raw, out)
+	return out, nil
+}
+
+func flattenLocaleTOML(data []byte) (map[string]string, error) {
+	var raw map[string]any
+	if _, err := toml.Decode(string(data), &raw); err != nil {
+		return nil, err
+	}
 	out := map[string]string{}
 	flattenLocaleMap("", raw, out)
 	return out, nil
