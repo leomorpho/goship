@@ -59,6 +59,36 @@ func TestStreamCompletionReturnsProviderError(t *testing.T) {
 	require.Contains(t, rec.Body.String(), "stream broke")
 }
 
+func TestStreamCompletionReturnsErrorWhenProviderUnavailable(t *testing.T) {
+	rec := httptest.NewRecorder()
+	err := StreamCompletion(context.Background(), rec, Request{
+		Messages: []Message{{Role: "user", Content: "hello"}},
+	}, nil)
+	require.EqualError(t, err, "ai provider unavailable")
+}
+
+func TestStreamCompletionWritesDoneWhenStreamClosesWithoutDoneToken(t *testing.T) {
+	provider := mockProvider{
+		complete: func(context.Context, Request) (*Response, error) {
+			return nil, nil
+		},
+		stream: func(context.Context, Request) (<-chan Token, error) {
+			ch := make(chan Token, 2)
+			ch <- Token{Content: "partial"}
+			close(ch)
+			return ch, nil
+		},
+	}
+
+	rec := httptest.NewRecorder()
+	err := StreamCompletion(context.Background(), rec, Request{
+		Messages: []Message{{Role: "user", Content: "hello"}},
+	}, provider)
+	require.NoError(t, err)
+	require.Contains(t, rec.Body.String(), "data: partial")
+	require.Contains(t, rec.Body.String(), "event: done")
+}
+
 type streamTestError string
 
 func (e streamTestError) Error() string {
