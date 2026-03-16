@@ -595,6 +595,11 @@
       "title": "Dynamic `\u003chtml lang\u003e` propagation across layouts/pages",
       "state": "done",
       "priority": 6
+    },
+    "TKT-149": {
+      "title": "De-duplicate plural/select completeness logic across CLI and doctor",
+      "state": "done",
+      "priority": 6
     }
   }
 }
