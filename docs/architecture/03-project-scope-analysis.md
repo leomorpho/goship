@@ -168,6 +168,15 @@ Reflection-based administrative interface for managing database resources.
 - `ship api:spec` generates an OpenAPI 3.0 JSON document from those typed contracts.
 - The generator supports stdout output, file output (`--out`), and local Swagger UI serving (`--serve`).
 
+## 14) Internationalization Baseline
+
+- `modules/i18n` provides a locale service (`container.I18n`) and request middleware for language detection.
+- Language detection priority is: `?lang=<code>` query parameter, authenticated user preference resolver (when provided), `lang` cookie, `Accept-Language` header, then default locale (`en`).
+- Locale sources are YAML files in `locales/` with nested keys (for example `auth.login.title`).
+- `ship make:locale <code>` scaffolds a new locale file from `locales/en.yaml`.
+- `ship i18n:missing` reports missing/empty translations versus English source keys.
+- `ship i18n:unused` reports locale keys not referenced in `.go`/`.templ` `I18n.T(...)` usage.
+
 ## Environments and Configuration
 
 Config loading:

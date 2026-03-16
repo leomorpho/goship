@@ -199,6 +199,16 @@ E2E tests:
 CI uses the smoke spec only (`tests/e2e/tests/smoke.spec.ts`) to validate startup and basic app serving.
 Note: broader legacy e2e specs are partially stale and should be treated as non-authoritative for GoShip behavior.
 
+## Internationalization
+
+Locale source files live in `locales/*.yaml` (`en.yaml` is the source of truth).
+
+Common commands:
+
+- `go run ./tools/cli/ship/cmd/ship make:locale fr` to scaffold `locales/fr.yaml` with the same keys and empty values.
+- `go run ./tools/cli/ship/cmd/ship i18n:missing` to list missing/empty translation keys per locale.
+- `go run ./tools/cli/ship/cmd/ship i18n:unused` to list locale keys not referenced in `.go`/`.templ` `I18n.T(...)` calls.
+
 ## Agent Command Policy
 
 Canonical allowlist:

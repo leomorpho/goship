@@ -1,0 +1,13 @@
+auth:
+  login:
+    title: "Sign in to your account"
+    submit: "Sign in"
+  register:
+    title: "Create your account"
+navigation:
+  home: "Home"
+  login: "Log in"
+  logout: "Log out"
+common:
+  cancel: "Cancel"
+  save: "Save"

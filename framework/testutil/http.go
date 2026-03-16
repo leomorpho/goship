@@ -2,7 +2,6 @@ package testutil
 
 import (
 	"bytes"
-	"database/sql"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -40,9 +39,6 @@ func NewTestServer(t testing.TB) *TestServer {
 	config.SwitchEnvironment(config.EnvTest)
 
 	c := foundation.NewContainer()
-	if err := ensureNotificationsSchemaCompat(c.Database); err != nil {
-		t.Fatalf("ensure notifications schema compatibility: %v", err)
-	}
 
 	paidSubscriptions := paidsubscriptions.New(paidsubscriptions.NewSQLStore(
 		c.Database,
@@ -266,80 +262,6 @@ func (r *TestResponse) body() []byte {
 	}
 	r.bodyRaw = payload
 	return payload
-}
-
-func ensureNotificationsSchemaCompat(db *sql.DB) error {
-	if db == nil {
-		return nil
-	}
-
-	columns, err := tableColumns(db, "notifications")
-	if err != nil {
-		return err
-	}
-	if len(columns) == 0 {
-		return nil
-	}
-
-	hasProfileID := columns["profile_id"]
-	hasLegacyProfileID := columns["profile_notifications"]
-
-	if !hasProfileID {
-		if _, err := db.Exec(`ALTER TABLE notifications ADD COLUMN profile_id INTEGER`); err != nil {
-			return err
-		}
-		hasProfileID = true
-	}
-	if !hasLegacyProfileID {
-		if _, err := db.Exec(`ALTER TABLE notifications ADD COLUMN profile_notifications INTEGER`); err != nil {
-			return err
-		}
-		hasLegacyProfileID = true
-	}
-
-	if hasProfileID && hasLegacyProfileID {
-		if _, err := db.Exec(`
-			UPDATE notifications
-			SET profile_id = COALESCE(profile_id, profile_notifications),
-			    profile_notifications = COALESCE(profile_notifications, profile_id)
-		`); err != nil {
-			return err
-		}
-	}
-
-	_, err = db.Exec(`
-		CREATE INDEX IF NOT EXISTS notifications_profile_id_created_at_idx
-		ON notifications (profile_id, created_at DESC)
-	`)
-	return err
-}
-
-func tableColumns(db *sql.DB, table string) (map[string]bool, error) {
-	rows, err := db.Query(`PRAGMA table_info(` + table + `)`)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	columns := make(map[string]bool)
-	for rows.Next() {
-		var (
-			cid        int
-			name       string
-			typeName   string
-			notNull    int
-			defaultV   sql.NullString
-			primaryKey int
-		)
-		if err := rows.Scan(&cid, &name, &typeName, &notNull, &defaultV, &primaryKey); err != nil {
-			return nil, err
-		}
-		columns[strings.ToLower(strings.TrimSpace(name))] = true
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return columns, nil
 }
 
 func jsonUnmarshal(data []byte, v any) error {

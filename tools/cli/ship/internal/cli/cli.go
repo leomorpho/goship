@@ -85,6 +85,13 @@ func (c CLI) Run(args []string) int {
 		}
 		fmt.Fprintf(c.Err, "use namespaced API commands, e.g. ship api:%s\n", args[1])
 		return 1
+	case "i18n":
+		if len(args) == 1 || args[1] == "help" || args[1] == "-h" || args[1] == "--help" {
+			cmd.PrintI18nHelp(c.Out)
+			return 0
+		}
+		fmt.Fprintf(c.Err, "use namespaced i18n commands, e.g. ship i18n:%s\n", args[1])
+		return 1
 	case "routes":
 		return c.runRoutes(args[1:])
 	case "describe":
@@ -150,6 +157,8 @@ func (c CLI) runNamespaced(args []string) (int, bool) {
 		return c.runConfig(rest), true
 	case "api":
 		return c.runAPI(rest), true
+	case "i18n":
+		return c.runI18n(rest), true
 	case "run":
 		return c.runRun(rest), true
 	default:
@@ -270,6 +279,8 @@ func (c CLI) runMake(args []string) int {
 		return c.runGenerateResource(args[1:])
 	case "factory":
 		return c.runMakeFactory(args[1:])
+	case "locale":
+		return c.runMakeLocale(args[1:])
 	case "help", "-h", "--help":
 		cmd.PrintMakeHelp(c.Out)
 		return 0
@@ -304,6 +315,10 @@ func (c CLI) runConfig(args []string) int {
 
 func (c CLI) runAPI(args []string) int {
 	return cmd.RunAPI(args, cmd.APIDeps{Out: c.Out, Err: c.Err, FindGoModule: findGoModule})
+}
+
+func (c CLI) runI18n(args []string) int {
+	return cmd.RunI18n(args, cmd.I18nDeps{Out: c.Out, Err: c.Err, FindGoModule: findGoModule})
 }
 
 func (c CLI) runAgent(args []string) int {
@@ -382,6 +397,13 @@ func (c CLI) runMakeCommand(args []string) int {
 
 func (c CLI) runMakeFactory(args []string) int {
 	return gen.RunMakeFactory(args, gen.FactoryDeps{
+		Out: c.Out,
+		Err: c.Err,
+	})
+}
+
+func (c CLI) runMakeLocale(args []string) int {
+	return gen.RunMakeLocale(args, gen.LocaleDeps{
 		Out: c.Out,
 		Err: c.Err,
 	})

@@ -26,6 +26,7 @@ func TestNewContainer(t *testing.T) {
 	assert.NotNil(t, c.Auth)
 	assert.NotNil(t, c.AI)
 	assert.NotNil(t, c.Flags)
+	assert.NotNil(t, c.I18n)
 	assert.NotNil(t, c.EventBus)
 	assert.NotNil(t, c.Scheduler)
 	assert.GreaterOrEqual(t, len(c.Scheduler.Entries()), 2)

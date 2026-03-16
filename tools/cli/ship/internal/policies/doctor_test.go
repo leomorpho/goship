@@ -125,6 +125,16 @@ func registerAuthRoutes() {
 		mustNotContainIssueCode(t, issues, "DX013")
 	})
 
+	t.Run("locales directory is allowed", func(t *testing.T) {
+		root := t.TempDir()
+		writeDoctorFixture(t, root)
+		if err := os.MkdirAll(filepath.Join(root, "locales"), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		issues := RunDoctorChecks(root)
+		mustNotContainIssueCode(t, issues, "DX013")
+	})
+
 	t.Run("missing renders comment triggers warning", func(t *testing.T) {
 		root := t.TempDir()
 		writeDoctorFixture(t, root)

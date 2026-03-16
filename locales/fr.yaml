@@ -1,0 +1,13 @@
+auth:
+  login:
+    title: "Connectez-vous a votre compte"
+    submit: "Se connecter"
+  register:
+    title: "Creez votre compte"
+navigation:
+  home: "Accueil"
+  login: "Connexion"
+  logout: "Deconnexion"
+common:
+  cancel: "Annuler"
+  save: "Enregistrer"

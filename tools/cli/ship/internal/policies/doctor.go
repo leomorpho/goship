@@ -2106,6 +2106,7 @@ func checkTopLevelDirs(root string) []DoctorIssue {
 		"framework":  {},
 		"infra":      {},
 		"javascript": {},
+		"locales":    {},
 		"modules":    {},
 		"tests":      {},
 		"tools":      {},

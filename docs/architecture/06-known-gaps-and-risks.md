@@ -171,6 +171,15 @@ Impact:
 - Integration tests for HTML/form routes are shorter and less error-prone by default.
 - API-heavy and realtime-heavy tests still need some manual request/transport setup.
 
+## 19) I18n Detection Is Runtime Baseline Only (Low)
+
+`modules/i18n` now supports locale files, middleware-based language detection, and CLI locale audits, but the app surface is only partially translated and no persistent profile-language field is wired by default.
+
+Impact:
+
+- Framework/runtime now has a consistent translation seam (`container.I18n.T(...)`) and deterministic request language detection.
+- Teams still need to migrate hardcoded strings and optionally wire a real user-preference resolver to get full end-to-end localization coverage.
+
 ## Suggested Priority Order
 
 1. Complete cache adapter coverage so page caching works consistently across supported backends.

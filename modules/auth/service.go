@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/labstack/echo-contrib/session"
@@ -160,4 +161,15 @@ func (s *Service) publishPasswordChanged(ctx echo.Context, userID int) {
 		UserID: int64(userID),
 		At:     time.Now().UTC(),
 	})
+}
+
+func (s *Service) t(ctx echo.Context, key, fallback string) string {
+	if s == nil || s.ctr.Container == nil || s.ctr.Container.I18n == nil {
+		return fallback
+	}
+	translated := strings.TrimSpace(s.ctr.Container.I18n.T(ctx.Request().Context(), key))
+	if translated == "" || translated == key {
+		return fallback
+	}
+	return translated
 }

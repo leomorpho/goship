@@ -21,6 +21,7 @@ import (
 	"github.com/leomorpho/goship/framework/middleware"
 	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
 	"github.com/leomorpho/goship/framework/runtimeplan"
+	i18nmodule "github.com/leomorpho/goship/modules/i18n"
 	profilesvc "github.com/leomorpho/goship/modules/profile"
 	slogecho "github.com/samber/slog-echo"
 )
@@ -118,6 +119,7 @@ func commonMiddleware(c *foundation.Container, deps *RouteDeps, sessionStore *se
 		middleware.RequestID(),
 		session.Middleware(sessionStore),
 		appmiddleware.LoadAuthenticatedUser(c.Auth, deps.ProfileService, deps.SubscriptionsRepo),
+		i18nmodule.DetectLanguage(c.I18n, nil),
 		echomw.CSRFWithConfig(echomw.CSRFConfig{
 			TokenLookup:  "form:csrf,header:X-CSRF-Token,query:csrf",
 			CookieMaxAge: 172800, // 48h

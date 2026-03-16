@@ -1,0 +1,18 @@
+package views
+
+// Route(s): embedded in layout/header where language switching is exposed
+// Renders: language switcher links for locale query parameter toggling
+templ LanguageSwitcher(current string) {
+	<nav data-component="language-switcher" aria-label="Language switcher">
+		if current == "en" {
+			<strong>EN</strong>
+		} else {
+			<a href={ templ.URL("/?lang=en") }>EN</a>
+		}
+		if current == "fr" {
+			<strong>FR</strong>
+		} else {
+			<a href={ templ.URL("/?lang=fr") }>FR</a>
+		}
+	</nav>
+}

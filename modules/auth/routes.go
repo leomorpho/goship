@@ -76,7 +76,7 @@ func (s *Service) getLogin(ctx echo.Context) error {
 	page := ui.NewPage(ctx)
 	page.Layout = layouts.Auth
 	page.Name = templates.PageLogin
-	page.Title = "Log in"
+	page.Title = s.t(ctx, "auth.login.title", "Log in")
 	page.Form = viewmodels.NewLoginForm()
 	data := viewmodels.NewLoginOAuthData()
 	for _, provider := range s.oauth.EnabledProviders() {

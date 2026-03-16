@@ -23,6 +23,13 @@ func TestLoginFlowWithHTTPTestutil(t *testing.T) {
 	s.Get("/auth/logout", s.AsUser(userID)).AssertRedirectsTo("/")
 }
 
+func TestLoginPageUsesFrenchWhenAcceptLanguageIsFrench(t *testing.T) {
+	s := testutil.NewTestServer(t)
+	s.Get("/user/login", testutil.WithHeader("Accept-Language", "fr-FR,fr;q=0.9")).
+		AssertStatus(200).
+		AssertContains("Connectez-vous a votre compte")
+}
+
 func seedAuthUserForHTTPTest(t *testing.T, s *testutil.TestServer, password string) (int64, string) {
 	t.Helper()
 

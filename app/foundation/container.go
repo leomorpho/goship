@@ -31,6 +31,7 @@ import (
 	"github.com/leomorpho/goship/modules/ai"
 	"github.com/leomorpho/goship/modules/auditlog"
 	"github.com/leomorpho/goship/modules/flags"
+	i18nmodule "github.com/leomorpho/goship/modules/i18n"
 )
 
 // Container contains all services used by the application and provides an easy way to handle dependency
@@ -69,6 +70,9 @@ type Container struct {
 	// Flags stores the app-facing feature flag service.
 	Flags *flags.Service
 
+	// I18n stores localized message resolution for request flows.
+	I18n *i18nmodule.Service
+
 	// EventBus stores the synchronous domain event bus.
 	EventBus *events.Bus
 
@@ -98,6 +102,7 @@ type Container struct {
 func NewContainer() *Container {
 	c := new(Container)
 	c.initConfig()
+	c.initI18n()
 	c.validateAdapterPlan()
 	c.initValidator()
 	c.initWeb()

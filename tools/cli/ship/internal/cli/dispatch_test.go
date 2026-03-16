@@ -150,6 +150,12 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			wantOut:  "ship api commands:",
 		},
 		{
+			name:     "i18n help",
+			args:     []string{"i18n", "--help"},
+			wantCode: 0,
+			wantOut:  "ship i18n commands:",
+		},
+		{
 			name:     "config validate json",
 			args:     []string{"config:validate", "--json"},
 			wantCode: 0,

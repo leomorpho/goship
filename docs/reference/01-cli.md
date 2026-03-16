@@ -42,6 +42,8 @@ Project lifecycle:
 - `ship config:validate [--json]`
 - `ship routes [--json]`
 - `ship api:spec [--out <path>] [--serve]`
+- `ship i18n:missing`
+- `ship i18n:unused`
 - `ship agent:setup`
 - `ship agent:check`
 - `ship agent:status`
@@ -82,6 +84,7 @@ Generation:
 - `ship make:resource <name> [--path app] [--auth public|auth] [--views templ|none] [--domain <name>] [--wire] [--dry-run]` (or `ship make` for help)
 - `ship make:model <Name> [fields...] [--force]`
 - `ship make:factory <Name>`
+- `ship make:locale <code>`
 - `ship make:controller <Name|NameController> [--actions index,show,create,update,destroy] [--auth public|auth] [--domain <name>] [--wire]`
 - `ship make:schedule <Name> --cron "<expr>"`
 - `ship make:command <Name>`
@@ -167,6 +170,8 @@ Safety matrix:
 - `ship api:spec` -> parses `app/contracts/*.go` `// Route:` contracts and prints OpenAPI 3.0 JSON to stdout
 - `ship api:spec --out <path>` -> writes generated OpenAPI JSON to the given file path
 - `ship api:spec --serve` -> serves Swagger UI + generated spec at `http://127.0.0.1:<port>/api/docs` until interrupted
+- `ship i18n:missing` -> compares `locales/en.yaml` keys with other locale files and lists missing/empty translations
+- `ship i18n:unused` -> lists locale keys not referenced by `I18n.T(...)`/`i18n.T(...)` calls in `.go`/`.templ` sources
 - `ship make:resource <name>` -> scaffold handler (+ optional templ page), ensure route-name constant, and print route snippet for manual insertion in `app/router.go`
 - `ship make:resource <name> --domain <name>` -> generate domain-aware constructor slot (`domainService any`) and route wiring using `nil` placeholder
 - `ship make:resource <name> --wire` -> also insert snippet behind ship markers in `app/router.go`
@@ -174,6 +179,7 @@ Safety matrix:
 - `ship make:model <Name>` -> scaffold a model query file at `db/queries/<model>.sql` with Bob-friendly named-query placeholders
 - `ship make:model <Name> [fields...]` -> include typed field comments in the query scaffold and print next DB steps (`db:make`, `db:migrate`, `db:generate`)
 - `ship make:factory <Name>` -> scaffold `tests/factories/<name>_factory.go` with a typed `Record` struct + `factory.New(...)` baseline
+- `ship make:locale <code>` -> scaffold `locales/<code>.yaml` from `locales/en.yaml` with matching keys and empty values
 - `ship make:controller <Name>` -> generate controller/handler scaffold in `app/web/controllers`
 - `ship make:controller <Name> --domain <name>` -> generate domain-aware constructor slot (`domainService any`) and route wiring using `nil` placeholder
 - `ship make:controller <Name> --actions ... --wire` -> wire generated routes into `app/router.go` markers
