@@ -42,6 +42,7 @@ Project lifecycle:
 - `ship config:validate [--json]`
 - `ship routes [--json]`
 - `ship api:spec [--out <path>] [--serve]`
+- `ship i18n:init [--force]`
 - `ship i18n:missing`
 - `ship i18n:unused`
 - `ship agent:setup`
@@ -173,6 +174,7 @@ Safety matrix:
 - `ship api:spec` -> parses `app/contracts/*.go` `// Route:` contracts and prints OpenAPI 3.0 JSON to stdout
 - `ship api:spec --out <path>` -> writes generated OpenAPI JSON to the given file path
 - `ship api:spec --serve` -> serves Swagger UI + generated spec at `http://127.0.0.1:<port>/api/docs` until interrupted
+- `ship i18n:init [--force]` -> scaffolds `locales/en.yaml` and `locales/fr.yaml` for existing apps, preserving existing files unless `--force` is passed; prints deterministic next-step migration loop commands
 - `ship i18n:missing` -> compares `locales/en.yaml` keys with other locale files and lists missing/empty translations
 - `ship i18n:unused` -> lists locale keys not referenced by `I18n.T(...)`/`i18n.T(...)` calls in `.go`/`.templ` sources
 - `ship make:resource <name>` -> scaffold handler (+ optional templ page), ensure route-name constant, and print route snippet for manual insertion in `app/router.go`

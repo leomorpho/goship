@@ -174,6 +174,7 @@ Reflection-based administrative interface for managing database resources.
 - Language detection priority is: `?lang=<code>` query parameter, authenticated user preference resolver (when provided), `lang` cookie, `Accept-Language` header, then default locale (`en`).
 - Locale sources are YAML files in `locales/` with nested keys (for example `auth.login.title`).
 - `ship make:locale <code>` scaffolds a new locale file from `locales/en.yaml`.
+- `ship i18n:init` bootstraps baseline locale files (`en`, `fr`) for apps that started without i18n and prints a deterministic migration command loop.
 - `ship i18n:missing` reports missing/empty translations versus English source keys.
 - `ship i18n:unused` reports locale keys not referenced in `.go`/`.templ` `I18n.T(...)` usage.
 - `ship new <app>` now supports i18n-aware scaffold startup: interactive prompt (or `--i18n` / `--no-i18n`) and optional starter locale file creation (`locales/en.yaml`, `locales/fr.yaml`), with explicit messaging that i18n can be enabled/migrated later.
