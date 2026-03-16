@@ -152,8 +152,15 @@ Reflection-based administrative interface for managing database resources.
 - Resource registration and CRUD operations for Bob-generated models.
 - Embedded Backlite queue monitoring.
 - Managed settings status page at `/auth/admin/managed-settings` for operator visibility into effective value/source/access state.
+- Feature flags page at `/auth/admin/flags` with server-side toggle actions.
 - Trash page at `/auth/admin/trash` for operator visibility into soft-deleted row counts by table.
 - Built-in Templ components for common admin UI patterns.
+
+## 12) Feature Flags
+
+- `modules/flags` provides a DB-backed flag service with optional cache acceleration.
+- `container.Flags` exposes flag evaluation (`Enabled`) to application code.
+- Rollout checks are deterministic per `(flag key, user id)` hash bucket.
 
 ## Environments and Configuration
 

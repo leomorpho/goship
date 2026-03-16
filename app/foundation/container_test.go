@@ -25,6 +25,7 @@ func TestNewContainer(t *testing.T) {
 	assert.NotNil(t, c.Mail)
 	assert.NotNil(t, c.Auth)
 	assert.NotNil(t, c.AI)
+	assert.NotNil(t, c.Flags)
 	assert.NotNil(t, c.EventBus)
 	assert.NotNil(t, c.Scheduler)
 	assert.GreaterOrEqual(t, len(c.Scheduler.Entries()), 2)
@@ -48,6 +49,28 @@ func TestNewContainer(t *testing.T) {
 	`)
 	require.NoError(t, err)
 	assert.NoError(t, c.EventBus.Publish(context.Background(), types.UserLoggedIn{UserID: 1}))
+
+	_, err = c.Database.Exec(`
+		CREATE TABLE IF NOT EXISTS feature_flags (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			key TEXT NOT NULL UNIQUE,
+			enabled INTEGER NOT NULL DEFAULT 0,
+			rollout_pct INTEGER NOT NULL DEFAULT 0,
+			user_ids TEXT,
+			description TEXT,
+			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+		)
+	`)
+	require.NoError(t, err)
+	_, err = c.Database.Exec(`
+		INSERT INTO feature_flags (key, enabled, rollout_pct, description)
+		VALUES ('my_flag', 1, 100, 'container test')
+	`)
+	require.NoError(t, err)
+	enabled, err := c.Flags.Enabled(context.Background(), "my_flag")
+	require.NoError(t, err)
+	assert.True(t, enabled)
 }
 
 func TestContainerShutdownNilSafe(t *testing.T) {

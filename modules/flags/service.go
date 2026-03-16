@@ -38,6 +38,32 @@ func (s *Service) Enabled(ctx context.Context, key string, userID ...int64) (boo
 	return inRollout(key, userID[0], flag.RolloutPct), nil
 }
 
+func (s *Service) List(ctx context.Context) ([]Flag, error) {
+	if s == nil || s.store == nil {
+		return nil, fmt.Errorf("flag store unavailable")
+	}
+	return s.store.List(ctx)
+}
+
+func (s *Service) Toggle(ctx context.Context, key string) (Flag, error) {
+	if s == nil || s.store == nil {
+		return Flag{}, fmt.Errorf("flag store unavailable")
+	}
+
+	flag, err := s.lookup(ctx, key)
+	if err != nil {
+		return Flag{}, err
+	}
+	flag.Enabled = !flag.Enabled
+	if err := s.store.Update(ctx, flag); err != nil {
+		return Flag{}, err
+	}
+	if err := s.deleteCache(ctx, key); err != nil {
+		return Flag{}, err
+	}
+	return flag, nil
+}
+
 func (s *Service) Create(ctx context.Context, flag Flag) error {
 	if err := s.store.Create(ctx, flag); err != nil {
 		return err
@@ -60,6 +86,9 @@ func (s *Service) Delete(ctx context.Context, key string) error {
 }
 
 func (s *Service) lookup(ctx context.Context, key string) (Flag, error) {
+	if s == nil || s.store == nil {
+		return Flag{}, fmt.Errorf("flag store unavailable")
+	}
 	if s.cache != nil {
 		if payload, found, err := s.cache.Get(ctx, cacheKey(key)); err == nil && found {
 			var flag Flag

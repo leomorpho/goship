@@ -117,6 +117,52 @@ INSERT INTO test_soft_delete_rows (id, deleted_at) VALUES (1, CURRENT_TIMESTAMP)
 	}
 }
 
+func TestAdminRoutes_AdminFlagsToggle(t *testing.T) {
+	c := newContainerForAdminRoutes(t, true)
+
+	_, err := c.Database.Exec(`
+CREATE TABLE IF NOT EXISTS feature_flags (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    key TEXT NOT NULL UNIQUE,
+    enabled INTEGER NOT NULL DEFAULT 0,
+    rollout_pct INTEGER NOT NULL DEFAULT 0,
+    user_ids TEXT,
+    description TEXT,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+INSERT INTO feature_flags (key, enabled, rollout_pct, description) VALUES ('new_checkout_flow', 0, 100, 'checkout rollout');
+`)
+	if err != nil {
+		t.Fatalf("seed feature_flags: %v", err)
+	}
+
+	listReq := httptest.NewRequest(http.MethodGet, "/admin/flags", nil)
+	listRec := httptest.NewRecorder()
+	c.Web.ServeHTTP(listRec, listReq)
+	if listRec.Code != http.StatusOK {
+		t.Fatalf("list status = %d, want %d", listRec.Code, http.StatusOK)
+	}
+	if !strings.Contains(listRec.Body.String(), "new_checkout_flow") {
+		t.Fatalf("list body = %q, want seeded key", listRec.Body.String())
+	}
+
+	toggleReq := httptest.NewRequest(http.MethodPost, "/admin/flags/new_checkout_flow/toggle", nil)
+	toggleRec := httptest.NewRecorder()
+	c.Web.ServeHTTP(toggleRec, toggleReq)
+	if toggleRec.Code != http.StatusFound {
+		t.Fatalf("toggle status = %d, want %d", toggleRec.Code, http.StatusFound)
+	}
+
+	var enabled int
+	if err := c.Database.QueryRow(`SELECT enabled FROM feature_flags WHERE key = 'new_checkout_flow'`).Scan(&enabled); err != nil {
+		t.Fatalf("select enabled: %v", err)
+	}
+	if enabled != 1 {
+		t.Fatalf("enabled = %d, want 1", enabled)
+	}
+}
+
 func newContainerForAdminRoutes(t *testing.T, admin bool) *foundation.Container {
 	t.Helper()
 	if err := chdirRepoRoot(); err != nil {
@@ -142,6 +188,7 @@ func newContainerForAdminRoutes(t *testing.T, admin bool) *foundation.Container 
 		Controller: ui.NewController(c),
 		DB:         c.Database,
 		AuditLogs:  c.AuditLogs,
+		Flags:      c.Flags,
 	})
 	if err := module.RegisterRoutes(c.Web); err != nil {
 		t.Fatalf("register routes: %v", err)

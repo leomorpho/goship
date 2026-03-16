@@ -195,6 +195,7 @@ Non-goal:
 5. Near-term default is single-binary-first (SQLite first), with expansion to separate worker, cache, and database services through adapters.
 6. Redis is optional capability, not a hard requirement.
 7. GoShip must remain fully standalone; any hosted control plane consumes stable runtime hooks and managed overrides but does not become a framework dependency.
+8. Feature flags baseline is framework-owned (`modules/flags` + `container.Flags`) with admin toggle access at `/auth/admin/flags`.
 
 ## Upstream/Downstream Relationship
 

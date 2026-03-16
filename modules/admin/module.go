@@ -8,18 +8,21 @@ import (
 	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/framework/core"
 	"github.com/leomorpho/goship/modules/auditlog"
+	"github.com/leomorpho/goship/modules/flags"
 )
 
 type ModuleDeps struct {
 	Controller ui.Controller
 	DB         *sql.DB
 	AuditLogs  *auditlog.Service
+	Flags      *flags.Service
 }
 
 type Module struct {
 	controller ui.Controller
 	db         *sql.DB
 	auditLogs  *auditlog.Service
+	flags      *flags.Service
 }
 
 var registerDefaultsOnce sync.Once
@@ -30,6 +33,7 @@ func New(deps ModuleDeps) *Module {
 		controller: deps.Controller,
 		db:         deps.DB,
 		auditLogs:  deps.AuditLogs,
+		flags:      deps.Flags,
 	}
 }
 
@@ -42,7 +46,7 @@ func (m *Module) Migrations() fs.FS {
 }
 
 func (m *Module) RegisterRoutes(r core.Router) error {
-	return registerRoutes(r, m.controller, m.db, m.auditLogs)
+	return registerRoutes(r, m.controller, m.db, m.auditLogs, m.flags)
 }
 
 type User struct {

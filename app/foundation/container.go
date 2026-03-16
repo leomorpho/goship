@@ -30,6 +30,7 @@ import (
 	"github.com/leomorpho/goship/framework/sse"
 	"github.com/leomorpho/goship/modules/ai"
 	"github.com/leomorpho/goship/modules/auditlog"
+	"github.com/leomorpho/goship/modules/flags"
 )
 
 // Container contains all services used by the application and provides an easy way to handle dependency
@@ -64,6 +65,9 @@ type Container struct {
 
 	// AuditLogs stores the app-facing audit log service.
 	AuditLogs *auditlog.Service
+
+	// Flags stores the app-facing feature flag service.
+	Flags *flags.Service
 
 	// EventBus stores the synchronous domain event bus.
 	EventBus *events.Bus
@@ -104,6 +108,7 @@ func NewContainer() *Container {
 	c.initMail()
 	c.initAI()
 	c.initAuditLogs()
+	c.initFlags()
 	c.initEventBus()
 	c.initPaymentProcessor()
 	c.initScheduler()
@@ -466,6 +471,11 @@ func (c *Container) initAI() {
 func (c *Container) initAuditLogs() {
 	module := auditlog.NewModule(auditlog.NewService(auditlog.NewSQLStore(c.Database)))
 	c.AuditLogs = module.Service()
+}
+
+func (c *Container) initFlags() {
+	module := flags.NewModule(flags.NewService(flags.NewSQLStore(c.Database), NewCoreCacheAdapter(c.Cache)))
+	c.Flags = module.Service()
 }
 
 func (c *Container) initEventBus() {

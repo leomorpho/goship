@@ -16,6 +16,7 @@ import (
 	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/framework/core"
 	"github.com/leomorpho/goship/modules/auditlog"
+	"github.com/leomorpho/goship/modules/flags"
 	backliteui "github.com/mikestefanello/backlite/ui"
 )
 
@@ -23,16 +24,19 @@ type routes struct {
 	controller ui.Controller
 	db         *sql.DB
 	auditLogs  *auditlog.Service
+	flags      *flags.Service
 }
 
-func registerRoutes(r core.Router, controller ui.Controller, db *sql.DB, auditLogs *auditlog.Service) error {
-	h := &routes{controller: controller, db: db, auditLogs: auditLogs}
+func registerRoutes(r core.Router, controller ui.Controller, db *sql.DB, auditLogs *auditlog.Service, flagsService *flags.Service) error {
+	h := &routes{controller: controller, db: db, auditLogs: auditLogs, flags: flagsService}
 	g := r.Group("/admin", middleware.RequireAdmin())
 	g.GET("", h.Index)
 	g.GET("/queues", h.Queues)
 	g.GET("/queues/*", h.Queues)
 	g.GET("/managed-settings", h.ManagedSettings)
 	g.GET("/audit-logs", h.AuditLogs)
+	g.GET("/flags", h.Flags)
+	g.POST("/flags/:key/toggle", h.ToggleFlag)
 	g.GET("/trash", h.Trash)
 	g.GET("/:resource", h.List)
 	g.GET("/:resource/new", h.New)
@@ -77,6 +81,61 @@ func (r *routes) ManagedSettings(ctx echo.Context) error {
 	}
 	b.WriteString("</tbody></table></body></html>")
 	return ctx.HTML(http.StatusOK, b.String())
+}
+
+func (r *routes) Flags(ctx echo.Context) error {
+	if r.flags == nil {
+		return echo.NewHTTPError(http.StatusNotFound, "feature flags are not configured")
+	}
+
+	items, err := r.flags.List(ctx.Request().Context())
+	if err != nil {
+		return err
+	}
+
+	var b strings.Builder
+	b.WriteString("<html><body><h1>Admin - Feature Flags</h1>")
+	b.WriteString(`<p><a href="/admin/managed-settings">Managed settings</a></p>`)
+	if len(items) == 0 {
+		b.WriteString("<p>No feature flags found.</p></body></html>")
+		return ctx.HTML(http.StatusOK, b.String())
+	}
+
+	b.WriteString("<table><thead><tr><th>Key</th><th>Enabled</th><th>Rollout %</th><th>Action</th></tr></thead><tbody>")
+	for _, item := range items {
+		status := "off"
+		if item.Enabled {
+			status = "on"
+		}
+		b.WriteString("<tr>")
+		b.WriteString("<td>" + html.EscapeString(item.Key) + "</td>")
+		b.WriteString("<td>" + status + "</td>")
+		b.WriteString("<td>" + strconv.Itoa(item.RolloutPct) + "</td>")
+		b.WriteString(`<td><form method="post" action="/admin/flags/` + html.EscapeString(item.Key) + `/toggle">`)
+		b.WriteString(`<button type="submit">Toggle</button></form></td>`)
+		b.WriteString("</tr>")
+	}
+	b.WriteString("</tbody></table></body></html>")
+	return ctx.HTML(http.StatusOK, b.String())
+}
+
+func (r *routes) ToggleFlag(ctx echo.Context) error {
+	if r.flags == nil {
+		return echo.NewHTTPError(http.StatusNotFound, "feature flags are not configured")
+	}
+
+	key := strings.TrimSpace(ctx.Param("key"))
+	if key == "" {
+		return echo.NewHTTPError(http.StatusBadRequest, "flag key is required")
+	}
+	if _, err := r.flags.Toggle(ctx.Request().Context(), key); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return echo.NewHTTPError(http.StatusNotFound, "flag not found")
+		}
+		return err
+	}
+
+	return ctx.Redirect(http.StatusFound, "/admin/flags")
 }
 
 type trashTableSummary struct {

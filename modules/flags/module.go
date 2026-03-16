@@ -2,6 +2,8 @@ package flags
 
 import "io/fs"
 
+import dbmigrate "github.com/leomorpho/goship/modules/flags/db/migrate"
+
 type Module struct {
 	service *Service
 }
@@ -15,7 +17,7 @@ func (m *Module) ID() string {
 }
 
 func (m *Module) Migrations() fs.FS {
-	return nil
+	return dbmigrate.Migrations()
 }
 
 func (m *Module) Service() *Service {

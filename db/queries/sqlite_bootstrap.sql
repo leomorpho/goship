@@ -80,3 +80,17 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 
 CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id ON audit_logs(user_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_resource ON audit_logs(resource_type, resource_id)
+
+-- name: sqlite_bootstrap_create_feature_flags
+CREATE TABLE IF NOT EXISTS feature_flags (
+	id INTEGER PRIMARY KEY AUTOINCREMENT,
+	key TEXT NOT NULL UNIQUE,
+	enabled INTEGER NOT NULL DEFAULT 0,
+	rollout_pct INTEGER NOT NULL DEFAULT 0,
+	user_ids TEXT,
+	description TEXT,
+	created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_feature_flags_key ON feature_flags(key)

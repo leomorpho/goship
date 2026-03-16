@@ -134,6 +134,16 @@ Impact:
 - Teams still need code review discipline for edge-case query intent.
 - Unfiltered soft-delete queries are surfaced early but are not blocked at commit time by default.
 
+## 15) Feature Flag Admin Surface Is Toggle-First (Low)
+
+`/auth/admin/flags` now provides list and toggle support for stored flags, but advanced editing
+(rollout percentage, targeted user IDs, metadata management) is not exposed in the admin surface yet.
+
+Impact:
+
+- Runtime can evaluate cached DB-backed flags today.
+- Operators can quickly enable/disable flags, but still need SQL/seed workflows for richer targeting updates.
+
 ## Suggested Priority Order
 
 1. Complete cache adapter coverage so page caching works consistently across supported backends.

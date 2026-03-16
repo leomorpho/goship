@@ -159,6 +159,7 @@ func ensureEmbeddedSQLiteSchema(db *sql.DB) error {
 		"sqlite_bootstrap_create_password_tokens",
 		"sqlite_bootstrap_create_last_seen_onlines",
 		"sqlite_bootstrap_create_audit_logs",
+		"sqlite_bootstrap_create_feature_flags",
 	}
 
 	for _, name := range stmtNames {

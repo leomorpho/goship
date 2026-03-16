@@ -278,3 +278,4 @@ Rule:
 
 - `ship console`
 - advanced generator variants
+- `ship make:flag` (feature-flag seed/helper command)
