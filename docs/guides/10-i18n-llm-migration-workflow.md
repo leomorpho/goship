@@ -176,3 +176,33 @@ Maintenance policy:
 1. `en.toml` remains canonical source for key shape.
 2. New keys are introduced in `en.toml` first, then synchronized to other locales via `ship make:locale`, `ship i18n:missing`, and `ship i18n:normalize`.
 3. Starter-pack translations must be reviewed before production use; scaffold values are bootstrapping defaults, not guaranteed fully translated product copy.
+
+## Translator Workflow Contract
+
+Ownership and baseline policy:
+
+1. `locales/en.toml` is the canonical baseline owned by application developers.
+2. Non-English locale files are translator-owned artifacts synchronized from English keys.
+3. Key renames/deletions must be intentional and reviewed because they invalidate downstream translations.
+
+Key lifecycle contract:
+
+1. Add new key in `en.toml` with final placeholder structure.
+2. Run `ship make:locale <code>` (for new locales) or sync existing locale files.
+3. Run `ship i18n:missing` to identify untranslated keys.
+4. Fill translations and re-run `ship i18n:missing` until clean.
+5. Run `ship i18n:normalize` and `ship i18n:compile` for deterministic artifacts.
+6. Run `ship i18n:unused` to remove stale keys before merge.
+
+Translation quality gates:
+
+1. No empty string values for required production locales.
+2. No placeholder passthrough values that simply duplicate key names.
+3. `TC`/`TS` keys must include required fallback forms (`*.other` and at least one non-`other` variant).
+4. `ship doctor --json` in strict mode should be clean (or explicitly allowlisted).
+
+Production-readiness expectations:
+
+1. Scaffolded locale values are bootstrap defaults, not production-grade copy.
+2. Locale packs must be reviewed by humans before release in that locale.
+3. Teams should roll out strict mode gradually (`off -> warn -> error`) as translation coverage matures.

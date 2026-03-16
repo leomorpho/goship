@@ -620,6 +620,11 @@
       "title": "Generate typed i18n keys for Go and JS to reduce string drift",
       "state": "done",
       "priority": 5
+    },
+    "TKT-154": {
+      "title": "Translator workflow contract and maintenance policy",
+      "state": "done",
+      "priority": 5
     }
   }
 }
