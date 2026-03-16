@@ -95,6 +95,7 @@ First migrated call site:
 - `modules/notifications/notifier.go` now publishes/subscribes through `core.PubSub` with explicit SSE event payload encoding.
 - `app/jobs/notifications.go` now uses a small planned-notification source interface, enabling table-driven unit tests without DB/container boot.
 - `modules/notifications/notifier.go` now exposes notifier-owned `SSEEvent` payloads so route code no longer depends on pubsub package event types.
+- i18n adapter compatibility checks now run through `framework/core/contracttests.RunI18nContract`, with the default module wired in `modules/i18n/contract_harness_test.go`.
 
 ## Scope Boundaries
 
