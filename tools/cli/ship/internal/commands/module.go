@@ -83,6 +83,19 @@ var moduleCatalog = map[string]moduleInfo{
 `,
 		RouterSnippets: map[string]string{},
 	},
+	"2fa": {
+		ID: "2fa",
+		ContainerSnippet: `
+	// ship:module:2fa
+	// TODO: wire the two-factor authentication module services.
+`,
+		RouterSnippets: map[string]string{
+			"auth": `
+	// ship:module:2fa
+	// TODO: register 2FA setup/verify routes via modules/2fa/routes.go.
+`,
+		},
+	},
 	"pwa": {
 		ID: "pwa",
 		ContainerSnippet: `

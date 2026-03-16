@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -114,5 +115,77 @@ func TestRemoveModuleFromManifest(t *testing.T) {
 	}
 	if !strings.Contains(content, "- jobs") {
 		t.Fatalf("unexpected manifest: %s", content)
+	}
+}
+
+func TestApplyModuleAdd_TwoFactor(t *testing.T) {
+	root := t.TempDir()
+
+	containerPath := filepath.Join(root, "app", "foundation", "container.go")
+	if err := os.MkdirAll(filepath.Dir(containerPath), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	containerContent := `package foundation
+
+func NewContainer() *Container {
+	c := &Container{}
+	// ship:container:start
+	// ship:container:end
+	return c
+}
+
+type Container struct{}
+`
+	if err := os.WriteFile(containerPath, []byte(containerContent), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	routerPath := filepath.Join(root, "app", "router.go")
+	if err := os.MkdirAll(filepath.Dir(routerPath), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	routerContent := `package goship
+
+func registerPublicRoutes() {
+	// ship:routes:public:start
+	// ship:routes:public:end
+}
+
+func registerAuthRoutes() {
+	// ship:routes:auth:start
+	// ship:routes:auth:end
+}
+
+func registerExternalRoutes() {
+	// ship:routes:external:start
+	// ship:routes:external:end
+}
+`
+	if err := os.WriteFile(routerPath, []byte(routerContent), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	manifestPath := filepath.Join(root, "config", "modules.yaml")
+	if err := os.MkdirAll(filepath.Dir(manifestPath), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(manifestPath, []byte(modulesManifestHeader), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	info, ok := moduleCatalog["2fa"]
+	if !ok {
+		t.Fatal("expected 2fa in module catalog")
+	}
+	if err := applyModuleAdd(root, info, false, io.Discard); err != nil {
+		t.Fatalf("applyModuleAdd error: %v", err)
+	}
+
+	manifest, err := os.ReadFile(manifestPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(manifest), "- 2fa") {
+		t.Fatalf("expected 2fa in modules manifest, got:\n%s", string(manifest))
 	}
 }
