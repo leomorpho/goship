@@ -186,6 +186,7 @@ Reflection-based administrative interface for managing database resources.
 - `ship i18n:missing` reports missing/empty translations versus English source keys and emits plural/select completeness diagnostics for `I18n.TC(...)`/`I18n.TS(...)` usage.
 - `ship i18n:unused` reports locale keys not referenced in `.go`/`.templ` `I18n.T(...)` usage.
 - Islands bootstrap contract now passes locale/i18n data through `data-props` as `{ i18n: { locale: "<code>", messages: { ... } } }`, and islands resolve labels from that payload for hydration parity.
+- `framework/api` now includes localized error helpers (`NotFoundLocalized`, `UnauthorizedLocalized`, `ValidationLocalized`) that keep machine `code` values stable while localizing human `message` values from request locale context.
 - Navbar now includes the `language-switcher` component, and switch links preserve current route/query while toggling `lang`.
 - `ship new <app>` now supports i18n-aware scaffold startup: interactive prompt (or `--i18n` / `--no-i18n`) and optional starter locale file creation (`locales/en.toml`, `locales/fr.toml`), with explicit messaging that i18n can be enabled/migrated later.
 

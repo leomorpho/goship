@@ -26,6 +26,33 @@ func (pc *PostController) Show(c echo.Context) error {
 - the `Accept` header prefers `application/json`
 - the route path starts with `/api/`
 
+## Localized API Errors
+
+For API routes that return human-readable error messages, use localized helpers while keeping machine codes stable:
+
+```go
+return api.Fail(c, http.StatusUnauthorized, api.UnauthorizedLocalized(
+	c.Request().Context(),
+	ctr.Container.I18n,
+	"api.errors.unauthorized",
+	"Unauthorized",
+))
+```
+
+Helpers:
+
+- `api.NotFoundLocalized(...)` -> code `not_found`
+- `api.UnauthorizedLocalized(...)` -> code `unauthorized`
+- `api.ValidationLocalized(...)` -> code `validation_error`
+
+Locale resolution for API requests is provided by the shared i18n middleware (`modules/i18n.DetectLanguage`) in this order:
+
+1. `?lang=<code>` query parameter
+2. profile preference (if authenticated)
+3. `lang` cookie
+4. `Accept-Language` header
+5. i18n default language
+
 ## Response Envelope
 
 Successful responses use:
