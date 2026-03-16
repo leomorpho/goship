@@ -89,6 +89,38 @@ Rules:
 
 The external control plane should not rely on mutating arbitrary config files in application repos as its normal operating mechanism.
 
+## Signed Managed Hook Contract (v1)
+
+When managed mode is enabled, GoShip exposes a narrow signed HTTP bridge for control-plane actions:
+
+- `GET /managed/status`
+- `POST /managed/backup`
+- `POST /managed/restore`
+
+All managed hook requests must include:
+
+- `X-GoShip-Timestamp` (unix seconds)
+- `X-GoShip-Nonce` (single-use nonce)
+- `X-GoShip-Signature` (hex HMAC-SHA256)
+
+Canonical signature payload:
+
+- `METHOD + "\n" + PATH_WITH_QUERY + "\n" + TIMESTAMP + "\n" + NONCE + "\n" + RAW_BODY`
+
+Verification/runtime rules:
+
+- shared secret: `PAGODA_MANAGED_HOOKS_SECRET`
+- max clock skew: `PAGODA_MANAGED_HOOKS_MAX_SKEW_SECONDS` (default `300`)
+- replay nonce TTL: `PAGODA_MANAGED_HOOKS_NONCE_TTL_SECONDS` (default `300`)
+- replay protection rejects reuse of the same nonce+timestamp tuple inside the TTL window
+
+Response contract:
+
+- `401` for missing/invalid signature material
+- `409` for replayed nonce+timestamp
+- `503` when the managed hook secret is not configured
+- `404` when managed mode is disabled
+
 ## SQLite-First Promotion Contract (v1)
 
 GoShip defines a first promotion contract from SQLite to Postgres that stays framework-native and control-plane-agnostic.

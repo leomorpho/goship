@@ -111,6 +111,9 @@ Admin routes (`/auth/admin`, admin role required):
 ## External Integration Routes
 
 - `POST /Q2HBfAY7iid59J1SUN8h1Y3WxJcPWA/payments/webhooks`
+- `GET /managed/status` (managed mode only, signed)
+- `POST /managed/backup` (managed mode only, signed)
+- `POST /managed/restore` (managed mode only, signed)
 
 ## Development-Only Error Preview Routes
 
@@ -128,6 +131,7 @@ Realtime is conditionally wired:
 
 - `GET /auth/realtime` is registered only when runtime web features enable realtime (notifier + pubsub available).
 - `GET /auth/ai-demo` and `GET /auth/ai-demo/stream` are registered only when the app environment is not production.
+- `/managed/*` routes are registered only when `PAGODA_MANAGED_MODE=true` and require valid `X-GoShip-*` signature headers.
 
 Notification center routes have implementations but are still not wired:
 

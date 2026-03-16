@@ -115,6 +115,15 @@ Impact:
 - The app now blocks inline script blocks unless they carry the request nonce.
 - Inline script attributes remain permitted until those attributes are removed/refactored.
 
+## 13) Managed Hook Replay Cache Is Process-Local (Medium)
+
+Managed hook signatures now enforce nonce replay protection, but the nonce cache is currently in-memory per process.
+
+Impact:
+
+- Replays are blocked per process instance, but not across independently running replicas.
+- Process restarts clear replay history and reopen the short nonce window until entries are rebuilt.
+
 ## Suggested Priority Order
 
 1. Complete cache adapter coverage so page caching works consistently across supported backends.
@@ -122,3 +131,4 @@ Impact:
 3. Re-enable or remove notification-center routes consistently.
 4. Refresh e2e tests to match current GoShip flows.
 5. Align local stack docs with actual DB mode and compose services.
+6. Add shared/distributed replay storage for managed hook nonce tracking in multi-replica deployments.

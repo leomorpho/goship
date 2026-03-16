@@ -942,6 +942,8 @@ Runtime DB metadata contract:
 - `config.Config.RuntimeMetadata()` now provides a normalized DB metadata snapshot for status/reporting surfaces.
 - Metadata includes DB mode/driver, migration tracking table, portability profile, and SQLite-to-Postgres compatibility path (`sqlite-to-postgres-manual-v1`).
 - `config.Config.ManagedSettingStatuses()` provides normalized managed-setting access states for settings/admin surfaces.
+- Managed mode now includes a signed control-plane bridge at `/managed/status`, `/managed/backup`, and `/managed/restore`.
+- Managed hook verification is configurable through `PAGODA_MANAGED_HOOKS_SECRET`, `PAGODA_MANAGED_HOOKS_MAX_SKEW_SECONDS`, and `PAGODA_MANAGED_HOOKS_NONCE_TTL_SECONDS`.
 
 Security baseline:
 
@@ -1086,6 +1088,9 @@ Admin routes (`/auth/admin`, admin role required):
 ## External Integration Routes
 
 - `POST /Q2HBfAY7iid59J1SUN8h1Y3WxJcPWA/payments/webhooks`
+- `GET /managed/status` (managed mode only, signed)
+- `POST /managed/backup` (managed mode only, signed)
+- `POST /managed/restore` (managed mode only, signed)
 
 ## Development-Only Error Preview Routes
 
@@ -1103,6 +1108,7 @@ Realtime is conditionally wired:
 
 - `GET /auth/realtime` is registered only when runtime web features enable realtime (notifier + pubsub available).
 - `GET /auth/ai-demo` and `GET /auth/ai-demo/stream` are registered only when the app environment is not production.
+- `/managed/*` routes are registered only when `PAGODA_MANAGED_MODE=true` and require valid `X-GoShip-*` signature headers.
 
 Notification center routes have implementations but are still not wired:
 
@@ -1328,6 +1334,15 @@ Impact:
 - The app now blocks inline script blocks unless they carry the request nonce.
 - Inline script attributes remain permitted until those attributes are removed/refactored.
 
+## 13) Managed Hook Replay Cache Is Process-Local (Medium)
+
+Managed hook signatures now enforce nonce replay protection, but the nonce cache is currently in-memory per process.
+
+Impact:
+
+- Replays are blocked per process instance, but not across independently running replicas.
+- Process restarts clear replay history and reopen the short nonce window until entries are rebuilt.
+
 ## Suggested Priority Order
 
 1. Complete cache adapter coverage so page caching works consistently across supported backends.
@@ -1335,6 +1350,7 @@ Impact:
 3. Re-enable or remove notification-center routes consistently.
 4. Refresh e2e tests to match current GoShip flows.
 5. Align local stack docs with actual DB mode and compose services.
+6. Add shared/distributed replay storage for managed hook nonce tracking in multi-replica deployments.
 
 ---
 FILE: docs/architecture/07-core-interfaces.md
@@ -1606,6 +1622,38 @@ Rules:
 - the runtime should be able to report both the effective value and the source of that value
 
 The external control plane should not rely on mutating arbitrary config files in application repos as its normal operating mechanism.
+
+## Signed Managed Hook Contract (v1)
+
+When managed mode is enabled, GoShip exposes a narrow signed HTTP bridge for control-plane actions:
+
+- `GET /managed/status`
+- `POST /managed/backup`
+- `POST /managed/restore`
+
+All managed hook requests must include:
+
+- `X-GoShip-Timestamp` (unix seconds)
+- `X-GoShip-Nonce` (single-use nonce)
+- `X-GoShip-Signature` (hex HMAC-SHA256)
+
+Canonical signature payload:
+
+- `METHOD + "\n" + PATH_WITH_QUERY + "\n" + TIMESTAMP + "\n" + NONCE + "\n" + RAW_BODY`
+
+Verification/runtime rules:
+
+- shared secret: `PAGODA_MANAGED_HOOKS_SECRET`
+- max clock skew: `PAGODA_MANAGED_HOOKS_MAX_SKEW_SECONDS` (default `300`)
+- replay nonce TTL: `PAGODA_MANAGED_HOOKS_NONCE_TTL_SECONDS` (default `300`)
+- replay protection rejects reuse of the same nonce+timestamp tuple inside the TTL window
+
+Response contract:
+
+- `401` for missing/invalid signature material
+- `409` for replayed nonce+timestamp
+- `503` when the managed hook secret is not configured
+- `404` when managed mode is disabled
 
 ## SQLite-First Promotion Contract (v1)
 
@@ -3466,7 +3514,7 @@ Framework follow-up for this boundary is tracked in:
 - `TKT-110` managed-mode config authority (done)
 - `TKT-111` backup capability contract and S3-compatible providers (done)
 - `TKT-112` managed-mode settings lock/read-only admin surfaces (done)
-- `TKT-113` signed managed hooks for backup, restore, and runtime status
+- `TKT-113` signed managed hooks for backup, restore, and runtime status (done)
 - `TKT-114` SQLite-first promotion path to Postgres (done)
 
 ## Documentation Quality Initiative

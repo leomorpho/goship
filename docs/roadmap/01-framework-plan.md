@@ -311,7 +311,7 @@ Framework follow-up for this boundary is tracked in:
 - `TKT-110` managed-mode config authority (done)
 - `TKT-111` backup capability contract and S3-compatible providers (done)
 - `TKT-112` managed-mode settings lock/read-only admin surfaces (done)
-- `TKT-113` signed managed hooks for backup, restore, and runtime status
+- `TKT-113` signed managed hooks for backup, restore, and runtime status (done)
 - `TKT-114` SQLite-first promotion path to Postgres (done)
 
 ## Documentation Quality Initiative

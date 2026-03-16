@@ -77,4 +77,7 @@ const (
 	RouteNamePaymentProcessorWebhook      = "stripe.webhook"
 	RouteNamePricingPage                  = "pricing_page"
 	RouteNamePaymentProcessorSuccess      = "stripe.success"
+	RouteNameManagedStatus                = "managed.status"
+	RouteNameManagedBackup                = "managed.backup"
+	RouteNameManagedRestore               = "managed.restore"
 )

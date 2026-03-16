@@ -3,6 +3,7 @@ package goship
 import (
 	"errors"
 	"log/slog"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/leomorpho/goship-modules/notifications"
@@ -16,8 +17,10 @@ import (
 	routeNames "github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/config"
+	"github.com/leomorpho/goship/framework/backup"
 	"github.com/leomorpho/goship/framework/logging"
 	"github.com/leomorpho/goship/framework/runtimeplan"
+	frameworksecurity "github.com/leomorpho/goship/framework/security"
 	twofamodule "github.com/leomorpho/goship/modules/2fa"
 	adminmodule "github.com/leomorpho/goship/modules/admin"
 	authmodule "github.com/leomorpho/goship/modules/auth"
@@ -273,6 +276,23 @@ func registerExternalRoutes(c *foundation.Container, e *echo.Group, ctr ui.Contr
 	paymentsModule := paidsubscriptionroutes.NewRouteModule(ctr, deps.SubscriptionsRepo)
 	if err := paymentsModule.RegisterExternalRoutes(e, deps.StripeWebhookPath); err != nil {
 		return err
+	}
+
+	if c.Config.Managed.Enabled {
+		managedHooks := controllers.NewManagedHooksRoute(ctr, controllers.ManagedHooksDeps{
+			BackupDriver:  backup.NewSQLiteDriver(),
+			RestoreDriver: backup.NoopRestorer{},
+		})
+		verifier := frameworksecurity.NewManagedHookVerifier(
+			c.Config.Managed.HooksSecret,
+			time.Duration(c.Config.Managed.HooksMaxSkewSeconds)*time.Second,
+			time.Duration(c.Config.Managed.HooksNonceTTLSeconds)*time.Second,
+		)
+
+		managedGroup := e.Group("/managed", middleware.RequireManagedHookSignature(verifier))
+		managedGroup.GET("/status", managedHooks.GetRuntimeStatus).Name = routeNames.RouteNameManagedStatus
+		managedGroup.POST("/backup", managedHooks.StartBackup).Name = routeNames.RouteNameManagedBackup
+		managedGroup.POST("/restore", managedHooks.StartRestore).Name = routeNames.RouteNameManagedRestore
 	}
 
 	// ship:routes:external:start

@@ -130,10 +130,13 @@ type (
 	}
 
 	ManagedConfig struct {
-		Enabled       bool                 `env:"PAGODA_MANAGED_MODE"`
-		Authority     string               `env:"PAGODA_MANAGED_AUTHORITY"`
-		OverridesJSON string               `env:"PAGODA_MANAGED_OVERRIDES"`
-		RuntimeReport runtimeconfig.Report `env:"-"`
+		Enabled              bool                 `env:"PAGODA_MANAGED_MODE"`
+		Authority            string               `env:"PAGODA_MANAGED_AUTHORITY"`
+		OverridesJSON        string               `env:"PAGODA_MANAGED_OVERRIDES"`
+		HooksSecret          string               `env:"PAGODA_MANAGED_HOOKS_SECRET"`
+		HooksMaxSkewSeconds  int                  `env:"PAGODA_MANAGED_HOOKS_MAX_SKEW_SECONDS" env-default:"300"`
+		HooksNonceTTLSeconds int                  `env:"PAGODA_MANAGED_HOOKS_NONCE_TTL_SECONDS" env-default:"300"`
+		RuntimeReport        runtimeconfig.Report `env:"-"`
 	}
 
 	ProcessesConfig struct {
@@ -610,8 +613,11 @@ func defaultConfig() Config {
 				CSP:     "",
 			},
 		},
-		Runtime:   RuntimeConfig{},
-		Managed:   ManagedConfig{},
+		Runtime: RuntimeConfig{},
+		Managed: ManagedConfig{
+			HooksMaxSkewSeconds:  300,
+			HooksNonceTTLSeconds: 300,
+		},
 		Processes: ProcessesConfig{},
 		Adapters: AdaptersConfig{
 			DB:     "sqlite",
