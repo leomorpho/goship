@@ -9,6 +9,16 @@ function toInitialCount(value) {
   return 0;
 }
 
+function resolveLabel(props = {}, fallback) {
+  if (props?.i18n?.messages && typeof props.i18n.messages.label === "string" && props.i18n.messages.label.length > 0) {
+    return props.i18n.messages.label;
+  }
+  if (typeof props.label === "string" && props.label.length > 0) {
+    return props.label;
+  }
+  return fallback;
+}
+
 function Counter({ initialCount, label }) {
   const [count, setCount] = useState(toInitialCount(initialCount));
 
@@ -34,5 +44,5 @@ function Counter({ initialCount, label }) {
 
 export function mount(el, props = {}) {
   const root = createRoot(el);
-  root.render(<Counter {...props} />);
+  root.render(<Counter initialCount={props.initialCount} label={resolveLabel(props, "React Counter")} />);
 }

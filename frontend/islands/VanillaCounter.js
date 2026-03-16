@@ -6,12 +6,20 @@ function toInitialCount(value) {
   return 0;
 }
 
+function resolveLabel(props = {}, fallback) {
+  if (props?.i18n?.messages && typeof props.i18n.messages.label === "string" && props.i18n.messages.label.length > 0) {
+    return props.i18n.messages.label;
+  }
+  if (typeof props.label === "string" && props.label.length > 0) {
+    return props.label;
+  }
+  return fallback;
+}
+
 export function mount(el, props = {}) {
   const state = {
     count: toInitialCount(props.initialCount),
-    label: typeof props.label === "string" && props.label.length > 0
-      ? props.label
-      : "Vanilla Counter",
+    label: resolveLabel(props, "Vanilla Counter"),
   };
 
   const container = document.createElement("section");
