@@ -13,7 +13,7 @@ type EmailSubscribePage struct {
 // Route: POST /emailSubscribe
 type EmailSubscribeRequest struct {
 	Email      string  `form:"email" validate:"required,email"`
-	Latitude   float64 `form:"lat"`
-	Longitude  float64 `form:"lon"`
+	Latitude   float64 `form:"latitude"`
+	Longitude  float64 `form:"longitude"`
 	Submission ui.FormSubmission
 }

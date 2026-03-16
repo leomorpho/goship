@@ -30,7 +30,7 @@ type VerifyPhoneRequest struct {
 
 // Route: POST /preferences/display-name/save
 type UpdateDisplayNameRequest struct {
-	DisplayName string `form:"display_name" validate:"required"`
+	DisplayName string `form:"name" validate:"required"`
 	Submission  ui.FormSubmission
 }
 

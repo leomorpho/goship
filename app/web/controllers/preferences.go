@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/leomorpho/goship/app/contracts"
 	"github.com/leomorpho/goship/app/views"
 	"github.com/leomorpho/goship/app/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/views/web/pages/gen"
@@ -28,11 +29,6 @@ type (
 	profilePrefsRoute struct {
 		ctr            ui.Controller
 		profileService *profilesvc.ProfileService
-	}
-
-	profileBioFormData struct {
-		Bio        string `form:"bio" validate:"required"`
-		Submission ui.FormSubmission
 	}
 )
 
@@ -70,18 +66,19 @@ func (p *profilePrefsRoute) GetBio(ctx echo.Context) error {
 }
 
 func (p *profilePrefsRoute) UpdateBio(ctx echo.Context) error {
-	// Create a new instance of geolocationPoint to hold the incoming data
-	var profileBioData viewmodels.ProfileBioFormData
-	ctx.Set(context.FormKey, &profileBioData)
+	req := contracts.UpdateBioRequest{}
+	form := viewmodels.NewProfileBioFormData()
+	ctx.Set(context.FormKey, form)
 
-	if err := ctx.Bind(&profileBioData); err != nil {
+	if err := ctx.Bind(&req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid bio data")
 	}
+	form.Bio = req.Bio
 
-	if err := profileBioData.Submission.Process(ctx, profileBioData); err != nil {
+	if err := form.Submission.Process(ctx, *form); err != nil {
 		return p.ctr.Fail(err, "unable to process form submission")
 	}
-	if profileBioData.Submission.HasErrors() {
+	if form.Submission.HasErrors() {
 		return p.GetBio(ctx)
 	}
 
@@ -90,7 +87,7 @@ func (p *profilePrefsRoute) UpdateBio(ctx echo.Context) error {
 		return err
 	}
 
-	if err := p.profileService.UpdateProfileBio(ctx.Request().Context(), profileID, profileBioData.Bio); err != nil {
+	if err := p.profileService.UpdateProfileBio(ctx.Request().Context(), profileID, form.Bio); err != nil {
 		return err
 	}
 
@@ -338,16 +335,17 @@ func (p *preferences) GetPhoneVerificationComponent(ctx echo.Context) error {
 }
 
 func (p *preferences) SubmitPhoneVerificationCode(ctx echo.Context) error {
-
-	var form viewmodels.PhoneNumberVerification
-	ctx.Set(context.FormKey, &form)
+	req := contracts.VerifyPhoneRequest{}
+	form := viewmodels.NewPhoneNumberVerification()
+	ctx.Set(context.FormKey, form)
 
 	// Parse the form values
-	if err := ctx.Bind(&form); err != nil {
+	if err := ctx.Bind(&req); err != nil {
 		return p.ctr.Fail(err, "unable to parse verification code form")
 	}
+	form.VerificationCode = req.VerificationCode
 
-	if err := form.Submission.Process(ctx, form); err != nil {
+	if err := form.Submission.Process(ctx, *form); err != nil {
 		return p.ctr.Fail(err, "unable to process form submission")
 	}
 
@@ -389,26 +387,19 @@ func (p *preferences) SubmitPhoneVerificationCode(ctx echo.Context) error {
 	return p.GetPhoneVerificationComponent(ctx)
 }
 
-type phoneNumberFormData struct {
-	PhoneNumberE164Format string `form:"phone_number_e164" validate:"required"`
-	CountryCode           string `form:"country_code" validate:"required"`
-	Submission            ui.FormSubmission
-}
-
 func (p *preferences) SavePhoneInfo(ctx echo.Context) error {
-	// Create a new instance of geolocationPoint to hold the incoming data
-	var phoneNumberFormData phoneNumberFormData
-	ctx.Set(context.FormKey, &phoneNumberFormData)
+	req := contracts.UpdatePhoneRequest{}
+	ctx.Set(context.FormKey, &req)
 
-	if err := ctx.Bind(&phoneNumberFormData); err != nil {
+	if err := ctx.Bind(&req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid bio data")
 	}
 
-	if err := phoneNumberFormData.Submission.Process(ctx, phoneNumberFormData); err != nil {
+	if err := req.Submission.Process(ctx, req); err != nil {
 		return p.ctr.Fail(err, "unable to process form submission")
 	}
 
-	if phoneNumberFormData.Submission.HasErrors() {
+	if req.Submission.HasErrors() {
 		return p.ctr.Redirect(ctx, "preferences")
 	}
 
@@ -420,8 +411,8 @@ func (p *preferences) SavePhoneInfo(ctx echo.Context) error {
 	return p.profileService.UpdateProfilePhone(
 		ctx.Request().Context(),
 		profileID,
-		phoneNumberFormData.CountryCode,
-		phoneNumberFormData.PhoneNumberE164Format,
+		req.CountryCode,
+		req.PhoneNumberE164Format,
 	)
 }
 
@@ -452,19 +443,20 @@ func (p *preferences) GetDisplayName(ctx echo.Context) error {
 }
 
 func (p *preferences) SaveDisplayName(ctx echo.Context) error {
-	// Create a new instance of geolocationPoint to hold the incoming data
-	var displayNameFormData viewmodels.DisplayNameForm
-	ctx.Set(context.FormKey, &displayNameFormData)
+	req := contracts.UpdateDisplayNameRequest{}
+	form := viewmodels.NewDisplayNameForm()
+	ctx.Set(context.FormKey, form)
 
-	if err := ctx.Bind(&displayNameFormData); err != nil {
+	if err := ctx.Bind(&req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid display name data")
 	}
+	form.DisplayName = req.DisplayName
 
-	if err := displayNameFormData.Submission.Process(ctx, displayNameFormData); err != nil {
+	if err := form.Submission.Process(ctx, *form); err != nil {
 		return p.ctr.Fail(err, "unable to process form submission")
 	}
 
-	if displayNameFormData.Submission.HasErrors() {
+	if form.Submission.HasErrors() {
 		return p.GetDisplayName(ctx)
 	}
 
@@ -474,7 +466,7 @@ func (p *preferences) SaveDisplayName(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusUnauthorized, "authenticated user id missing from context")
 	}
 
-	if err := p.ctr.Container.Auth.SetUserDisplayNameByUserID(ctx, userID, displayNameFormData.DisplayName); err != nil {
+	if err := p.ctr.Container.Auth.SetUserDisplayNameByUserID(ctx, userID, form.DisplayName); err != nil {
 		return err
 	}
 
