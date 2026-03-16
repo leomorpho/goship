@@ -220,6 +220,44 @@ func registerAuthRoutes() {
 		mustContainIssueCode(t, issues, "DX024")
 	})
 
+	t.Run("layout template is excluded from data-component check", func(t *testing.T) {
+		root := t.TempDir()
+		writeDoctorFixture(t, root)
+		targetDir := filepath.Join(root, "app", "views", "web", "components")
+		if err := os.MkdirAll(targetDir, 0o755); err != nil {
+			t.Fatal(err)
+		}
+		target := filepath.Join(targetDir, "example_layout.templ")
+		content := "templ ExampleLayout() {\n<div></div>\n}\n"
+		if err := os.WriteFile(target, []byte(content), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		issues := RunDoctorChecks(root)
+		mustNotContainIssueCode(t, issues, "DX024")
+	})
+
+	t.Run("module component data-component warning only when module is enabled", func(t *testing.T) {
+		root := t.TempDir()
+		writeDoctorFixture(t, root)
+		targetDir := filepath.Join(root, "modules", "local", "views", "web", "components")
+		if err := os.MkdirAll(targetDir, 0o755); err != nil {
+			t.Fatal(err)
+		}
+		target := filepath.Join(targetDir, "missing_attr.templ")
+		if err := os.WriteFile(target, []byte("templ MissingAttr() {\n<div></div>\n}\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+
+		issues := RunDoctorChecks(root)
+		mustNotContainIssueCode(t, issues, "DX024")
+
+		if err := os.WriteFile(filepath.Join(root, "config", "modules.yaml"), []byte("modules:\n  - local\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		issues = RunDoctorChecks(root)
+		mustContainIssueCode(t, issues, "DX024")
+	})
+
 	t.Run("root binary artifact present", func(t *testing.T) {
 		root := t.TempDir()
 		writeDoctorFixture(t, root)
