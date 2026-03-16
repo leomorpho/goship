@@ -198,6 +198,7 @@ Non-goal:
 8. Feature flags baseline is framework-owned (`modules/flags` + `container.Flags`) with admin toggle access at `/auth/admin/flags`.
 9. Route contracts in `app/contracts` are now consumable by `ship api:spec` for generated OpenAPI 3.0 output.
 10. Test-data factory baseline now lives in `framework/factory` with `ship make:factory` scaffold support.
+11. Typed HTTP integration helpers now live in `framework/testutil` (`NewTestServer`, `PostForm` CSRF automation, `AsUser`, fluent response assertions).
 
 ## Upstream/Downstream Relationship
 

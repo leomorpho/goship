@@ -162,6 +162,15 @@ Impact:
 - Teams get consistent factory structure and naming with less boilerplate.
 - Rich domain-specific traits still require local customization after scaffold generation.
 
+## 18) HTTP Test Helper Coverage Is Form-Focused Baseline (Low)
+
+`framework/testutil` now covers the most common app-route testing flow (GET + form POST with CSRF, auth session cookie injection, fluent response assertions), but it does not yet include first-class helpers for JSON request bodies, multipart uploads, or websocket/SSE assertions.
+
+Impact:
+
+- Integration tests for HTML/form routes are shorter and less error-prone by default.
+- API-heavy and realtime-heavy tests still need some manual request/transport setup.
+
 ## Suggested Priority Order
 
 1. Complete cache adapter coverage so page caching works consistently across supported backends.

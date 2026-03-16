@@ -175,6 +175,21 @@ Test data factories:
   - `user := factories.User.Create(t, db)`
   - `admin := factories.User.Create(t, db, factories.WithAdminRole)`
 
+HTTP integration test helpers:
+
+- `framework/testutil` provides `NewTestServer(t)` for app-level request tests with a real container + in-memory DB.
+- `PostForm` automatically fetches and submits CSRF tokens for form routes.
+- `AsUser(userID)` signs an auth session cookie so tests can hit authenticated routes without manually building session cookies.
+- Response assertions support fluent checks:
+  - `AssertStatus(code)`
+  - `AssertRedirectsTo(path)`
+  - `AssertContains(text)`
+  - `AssertJSON(&target)`
+- Example:
+  - `s := testutil.NewTestServer(t)`
+  - `s.PostForm("/user/login", form).AssertRedirectsTo("/welcome/preferences")`
+  - `s.Get("/auth/logout", s.AsUser(userID)).AssertRedirectsTo("/")`
+
 E2E tests:
 
 - `make e2e-smoke` (single happy-path smoke; Playwright starts `go run ./cmd/web` automatically via `webServer`)
