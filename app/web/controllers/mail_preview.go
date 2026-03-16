@@ -42,40 +42,43 @@ func (r *mailPreview) Index(ctx echo.Context) error {
 }
 
 func (r *mailPreview) Welcome(ctx echo.Context) error {
+	data := viewmodels.NewEmailDefaultData()
+	data.AppName = string(r.ctr.Container.Config.App.Name)
+	data.SupportEmail = r.ctr.Container.Config.App.SupportEmail
+	data.Domain = r.ctr.Container.Config.HTTP.Domain
+	data.ConfirmationLink = "https://example.test/confirm-email"
+
 	page := &controller.Page{
-		Data: viewmodels.EmailDefaultData{
-			AppName:          string(r.ctr.Container.Config.App.Name),
-			SupportEmail:     r.ctr.Container.Config.App.SupportEmail,
-			Domain:           r.ctr.Container.Config.HTTP.Domain,
-			ConfirmationLink: "https://example.test/confirm-email",
-		},
+		Data: data,
 	}
 	return r.renderEmailPreview(ctx, emailviews.RegistrationConfirmation(page))
 }
 
 func (r *mailPreview) PasswordReset(ctx echo.Context) error {
+	data := viewmodels.NewEmailPasswordResetData()
+	data.AppName = string(r.ctr.Container.Config.App.Name)
+	data.SupportEmail = r.ctr.Container.Config.App.SupportEmail
+	data.Domain = r.ctr.Container.Config.HTTP.Domain
+	data.ProfileName = "Preview User"
+	data.PasswordResetLink = "https://example.test/reset-password"
+	data.OperatingSystem = "macOS"
+	data.BrowserName = "Firefox"
+
 	page := &controller.Page{
-		Data: viewmodels.EmailPasswordResetData{
-			AppName:           string(r.ctr.Container.Config.App.Name),
-			SupportEmail:      r.ctr.Container.Config.App.SupportEmail,
-			Domain:            r.ctr.Container.Config.HTTP.Domain,
-			ProfileName:       "Preview User",
-			PasswordResetLink: "https://example.test/reset-password",
-			OperatingSystem:   "macOS",
-			BrowserName:       "Firefox",
-		},
+		Data: data,
 	}
 	return r.renderEmailPreview(ctx, emailviews.PasswordReset(page))
 }
 
 func (r *mailPreview) VerifyEmail(ctx echo.Context) error {
+	data := viewmodels.NewEmailDefaultData()
+	data.AppName = string(r.ctr.Container.Config.App.Name)
+	data.SupportEmail = r.ctr.Container.Config.App.SupportEmail
+	data.Domain = r.ctr.Container.Config.HTTP.Domain
+	data.ConfirmationLink = "https://example.test/verify-email"
+
 	page := &controller.Page{
-		Data: viewmodels.EmailDefaultData{
-			AppName:          string(r.ctr.Container.Config.App.Name),
-			SupportEmail:     r.ctr.Container.Config.App.SupportEmail,
-			Domain:           r.ctr.Container.Config.HTTP.Domain,
-			ConfirmationLink: "https://example.test/verify-email",
-		},
+		Data: data,
 	}
 	return r.renderEmailPreview(ctx, emailviews.RegistrationConfirmation(page))
 }
