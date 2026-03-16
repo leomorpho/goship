@@ -39,7 +39,7 @@
     "@khmyznikov/pwa-install": "^0.3.7",
     "@tiptap/extension-floating-menu": "^2.3.0",
     "@tiptap/extension-placeholder": "^2.3.0",
-    "@tiptap/starter-kit": "^2.3.0",
+    "@tiptap/starter-kit": "^3.20.3",
     "@use-gesture/vanilla": "^10.3.0",
     "@virgilsecurity/e3kit-browser": "^3.0.5",
     "clsx": "^2.1.0",
