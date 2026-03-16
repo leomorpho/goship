@@ -483,7 +483,7 @@
     },
     "TKT-097": {
       "title": "M07 Z01 - First-class SSE (Server-Sent Events) support",
-      "state": "in-progress",
+      "state": "done",
       "priority": 6
     },
     "TKT-098": {
