@@ -436,8 +436,8 @@ Last updated: 2026-03-04
 6. `G06` - `guides/06-ai-module.md`: AI module provider selection, request contract, and SSE demo pattern.
 7. `G07` - `guides/07-domain-events.md`: domain event bus, shared event types, and async enqueue contract.
 8. `G08` - `guides/08-building-an-api.md`: JSON response helpers, content negotiation, and versioned API route convention.
-9. `G09` - `guides/09-i18n-adapter-contract.md`: installable i18n adapter interface contract, compatibility harness, and implementer checklist.
-10. `G10` - `guides/10-i18n-llm-migration-workflow.md`: LLM-first i18n migration loop, coverage/enforcement policy, diagnostics schema, and strict-mode rollout contract.
+9. `G09` - `guides/09-i18n-adapter-contract.md`: redirect stub to canonical i18n guide.
+10. `G10` - `guides/10-i18n-llm-migration-workflow.md`: canonical i18n guide (adapter contract, migration loop, coverage/enforcement policy, diagnostics schema, strict rollout, translator workflow, CI profile).
 
 ### Reference
 
@@ -2905,58 +2905,20 @@ Keep JSON-specific routes inside that marker block so generators and doctor chec
 ---
 FILE: docs/guides/09-i18n-adapter-contract.md
 ---
-# I18n Adapter Contract
+# I18n Adapter Contract (Redirect)
 
-This guide defines the compatibility contract for installable i18n adapters.
+This guide is now a pointer only.
 
-## Required Interface
+Canonical i18n documentation lives in:
 
-Adapters must satisfy `core.I18n`:
+- `docs/guides/10-i18n-llm-migration-workflow.md`
 
-1. `DefaultLanguage() string`
-2. `SupportedLanguages() []string`
-3. `NormalizeLanguage(raw string) string`
-4. `T(ctx context.Context, key string, templateData ...map[string]any) string`
-5. `TC(ctx context.Context, key string, count any, templateData ...map[string]any) string`
-6. `TS(ctx context.Context, key string, choice string, templateData ...map[string]any) string`
+Use `G10` as the single source of truth for:
 
-## Runtime Semantics
-
-1. `DefaultLanguage` must return a non-empty locale code.
-2. `SupportedLanguages` must include `DefaultLanguage`.
-3. `NormalizeLanguage` must fall back to `DefaultLanguage` for unsupported inputs.
-4. `T` must return the key for missing translations (stable fallback behavior).
-5. `TC` must resolve pluralized forms by count with default-locale fallback.
-6. `TS` must resolve choice/select variants with `<key>.other` fallback before raw key fallback.
-7. `T`/`TC`/`TS` should support template interpolation through `templateData`.
-
-## Compatibility Harness
-
-Shared contract tests live in `framework/core/contracttests`:
-
-- `RunI18nContract(t, subject)` runs baseline adapter checks.
-- Adapter implementations should wire this in their own package tests.
-
-Default adapter example:
-
-```go
-contracttests.RunI18nContract(t, contracttests.I18nContractSubject{
-    Name:               "modules/i18n default adapter",
-    KnownDefaultKey:    "app.welcome",
-    KnownDefaultResult: "Welcome",
-    Build: func(t *testing.T) contracttests.I18nContractAdapter {
-        // construct adapter with test locales...
-    },
-})
-```
-
-## Implementer Checklist
-
-1. Implement `core.I18n`.
-2. Add adapter-specific behavior tests (plurals, fallback chain, parsing).
-3. Add `RunI18nContract` to adapter tests.
-4. Document locale file format and loading behavior.
-5. Document missing-key behavior and fallback order.
+1. Adapter/runtime contract expectations.
+2. LLM migration loop and diagnostics schema.
+3. Coverage/enforcement policy and strict rollout.
+4. Translator workflow and CI profile.
 
 ---
 FILE: docs/guides/10-i18n-llm-migration-workflow.md
@@ -3182,6 +3144,31 @@ Production-readiness expectations:
 1. Scaffolded locale values are bootstrap defaults, not production-grade copy.
 2. Locale packs must be reviewed by humans before release in that locale.
 3. Teams should roll out strict mode gradually (`off -> warn -> error`) as translation coverage matures.
+
+## Installable Adapter Contract
+
+Required runtime interface (`core.I18n`):
+
+1. `DefaultLanguage() string`
+2. `SupportedLanguages() []string`
+3. `NormalizeLanguage(raw string) string`
+4. `T(ctx context.Context, key string, templateData ...map[string]any) string`
+5. `TC(ctx context.Context, key string, count any, templateData ...map[string]any) string`
+6. `TS(ctx context.Context, key string, choice string, templateData ...map[string]any) string`
+
+Runtime semantics:
+
+1. `DefaultLanguage` must be non-empty.
+2. `SupportedLanguages` must include the default language.
+3. `NormalizeLanguage` must fall back to default for unsupported input.
+4. Missing key behavior must be deterministic (default adapter returns key/fallback text path).
+5. `TC` and `TS` must support fallback behavior required by this guide (`*.other` rules and default locale fallback).
+
+Compatibility harness:
+
+1. Use `framework/core/contracttests.RunI18nContract` in adapter tests.
+2. Include adapter-specific tests for plural/select behavior and locale fallback chain.
+3. Keep adapter behavior documented in one place (this guide) so LLM and human workflows stay aligned.
 
 ---
 FILE: docs/policies/01-engineering-standards.md

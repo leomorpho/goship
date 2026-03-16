@@ -219,3 +219,28 @@ Production-readiness expectations:
 1. Scaffolded locale values are bootstrap defaults, not production-grade copy.
 2. Locale packs must be reviewed by humans before release in that locale.
 3. Teams should roll out strict mode gradually (`off -> warn -> error`) as translation coverage matures.
+
+## Installable Adapter Contract
+
+Required runtime interface (`core.I18n`):
+
+1. `DefaultLanguage() string`
+2. `SupportedLanguages() []string`
+3. `NormalizeLanguage(raw string) string`
+4. `T(ctx context.Context, key string, templateData ...map[string]any) string`
+5. `TC(ctx context.Context, key string, count any, templateData ...map[string]any) string`
+6. `TS(ctx context.Context, key string, choice string, templateData ...map[string]any) string`
+
+Runtime semantics:
+
+1. `DefaultLanguage` must be non-empty.
+2. `SupportedLanguages` must include the default language.
+3. `NormalizeLanguage` must fall back to default for unsupported input.
+4. Missing key behavior must be deterministic (default adapter returns key/fallback text path).
+5. `TC` and `TS` must support fallback behavior required by this guide (`*.other` rules and default locale fallback).
+
+Compatibility harness:
+
+1. Use `framework/core/contracttests.RunI18nContract` in adapter tests.
+2. Include adapter-specific tests for plural/select behavior and locale fallback chain.
+3. Keep adapter behavior documented in one place (this guide) so LLM and human workflows stay aligned.

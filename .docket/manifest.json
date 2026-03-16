@@ -576,6 +576,11 @@
       "state": "backlog",
       "priority": 6
     },
+    "TKT-143": {
+      "title": "i18n hardening wave 2 (scope, enforcement, docs consolidation)",
+      "state": "done",
+      "priority": 4
+    },
     "TKT-144": {
       "title": "Remove top15 locale-pack behavior from `ship new`",
       "state": "done",
@@ -585,6 +590,11 @@
       "title": "Canonical i18n enforcement scope policy",
       "state": "done",
       "priority": 6
+    },
+    "TKT-146": {
+      "title": "Consolidate all i18n documentation into one canonical document",
+      "state": "done",
+      "priority": 5
     },
     "TKT-147": {
       "title": "API locale propagation contract tests (integration + unit, no starter route mandate)",

@@ -41,8 +41,8 @@ Last updated: 2026-03-04
 6. `G06` - `guides/06-ai-module.md`: AI module provider selection, request contract, and SSE demo pattern.
 7. `G07` - `guides/07-domain-events.md`: domain event bus, shared event types, and async enqueue contract.
 8. `G08` - `guides/08-building-an-api.md`: JSON response helpers, content negotiation, and versioned API route convention.
-9. `G09` - `guides/09-i18n-adapter-contract.md`: installable i18n adapter interface contract, compatibility harness, and implementer checklist.
-10. `G10` - `guides/10-i18n-llm-migration-workflow.md`: LLM-first i18n migration loop, coverage/enforcement policy, diagnostics schema, and strict-mode rollout contract.
+9. `G09` - `guides/09-i18n-adapter-contract.md`: redirect stub to canonical i18n guide.
+10. `G10` - `guides/10-i18n-llm-migration-workflow.md`: canonical i18n guide (adapter contract, migration loop, coverage/enforcement policy, diagnostics schema, strict rollout, translator workflow, CI profile).
 
 ### Reference
 
