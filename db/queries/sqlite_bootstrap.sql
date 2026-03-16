@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS profiles (
 	updated_at DATETIME NOT NULL,
 	user_profile INTEGER NOT NULL UNIQUE,
 	fully_onboarded INTEGER NOT NULL DEFAULT 0,
+	preferred_language TEXT,
 	FOREIGN KEY(user_profile) REFERENCES users(id) ON DELETE CASCADE
 )
 

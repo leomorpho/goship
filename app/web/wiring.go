@@ -119,7 +119,7 @@ func commonMiddleware(c *foundation.Container, deps *RouteDeps, sessionStore *se
 		middleware.RequestID(),
 		session.Middleware(sessionStore),
 		appmiddleware.LoadAuthenticatedUser(c.Auth, deps.ProfileService, deps.SubscriptionsRepo),
-		i18nmodule.DetectLanguage(c.I18n, nil),
+		i18nmodule.DetectLanguage(c.I18n, deps.ProfileService),
 		echomw.CSRFWithConfig(echomw.CSRFConfig{
 			TokenLookup:  "form:csrf,header:X-CSRF-Token,query:csrf",
 			CookieMaxAge: 172800, // 48h

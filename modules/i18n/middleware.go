@@ -12,6 +12,7 @@ import (
 
 type ProfileLanguageResolver interface {
 	PreferredLanguage(ctx context.Context, userID int) (lang string, ok bool, err error)
+	SetPreferredLanguage(ctx context.Context, userID int, lang string) error
 }
 
 type LanguageService interface {
@@ -47,7 +48,13 @@ func detectLanguage(c echo.Context, service LanguageService, resolver ProfileLan
 
 	langFromQuery := strings.TrimSpace(c.QueryParam("lang"))
 	if langFromQuery != "" {
-		return service.NormalizeLanguage(langFromQuery), true
+		normalized := service.NormalizeLanguage(langFromQuery)
+		if resolver != nil {
+			if userID, ok := c.Get(appctx.AuthenticatedUserIDKey).(int); ok && userID > 0 {
+				_ = resolver.SetPreferredLanguage(c.Request().Context(), userID, normalized)
+			}
+		}
+		return normalized, true
 	}
 
 	if resolver != nil {

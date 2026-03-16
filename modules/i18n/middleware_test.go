@@ -1,6 +1,7 @@
 package i18n
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -9,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v4"
+	appctx "github.com/leomorpho/goship/framework/context"
 )
 
 func TestDetectLanguage_UsesAcceptLanguageHeader(t *testing.T) {
@@ -77,6 +79,69 @@ func TestDetectLanguage_NilServiceFallsBackToEnglish(t *testing.T) {
 	}
 }
 
+func TestDetectLanguage_PreferenceOrderAndPersistence(t *testing.T) {
+	service := testService(t)
+	e := echo.New()
+
+	t.Run("query wins over profile and persists", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/?lang=en", nil)
+		req.Header.Set("Accept-Language", "fr, en;q=0.8")
+		req.AddCookie(&http.Cookie{Name: "lang", Value: "fr"})
+		rec := httptest.NewRecorder()
+		ctx := e.NewContext(req, rec)
+		ctx.Set(appctx.AuthenticatedUserIDKey, 7)
+
+		resolver := &fakeProfileLanguageResolver{
+			preferred: "fr",
+			ok:        true,
+		}
+		lang, setCookie := detectLanguage(ctx, service, resolver)
+		if lang != "en" {
+			t.Fatalf("lang = %q, want en", lang)
+		}
+		if !setCookie {
+			t.Fatal("expected query-driven language switch to request cookie set")
+		}
+		if len(resolver.setCalls) != 1 || resolver.setCalls[0] != "en" {
+			t.Fatalf("expected resolver persistence call with en, got %#v", resolver.setCalls)
+		}
+	})
+
+	t.Run("profile wins over cookie and header", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		req.Header.Set("Accept-Language", "en, fr;q=0.8")
+		req.AddCookie(&http.Cookie{Name: "lang", Value: "en"})
+		rec := httptest.NewRecorder()
+		ctx := e.NewContext(req, rec)
+		ctx.Set(appctx.AuthenticatedUserIDKey, 7)
+
+		resolver := &fakeProfileLanguageResolver{
+			preferred: "fr",
+			ok:        true,
+		}
+		lang, setCookie := detectLanguage(ctx, service, resolver)
+		if lang != "fr" {
+			t.Fatalf("lang = %q, want fr", lang)
+		}
+		if setCookie {
+			t.Fatal("did not expect cookie write when profile preference is used")
+		}
+	})
+
+	t.Run("cookie wins over header", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodGet, "/", nil)
+		req.Header.Set("Accept-Language", "en, fr;q=0.8")
+		req.AddCookie(&http.Cookie{Name: "lang", Value: "fr"})
+		rec := httptest.NewRecorder()
+		ctx := e.NewContext(req, rec)
+
+		lang, _ := detectLanguage(ctx, service, nil)
+		if lang != "fr" {
+			t.Fatalf("lang = %q, want fr", lang)
+		}
+	})
+}
+
 func testService(t *testing.T) *Service {
 	t.Helper()
 
@@ -110,4 +175,19 @@ func writeTestLocale(t *testing.T, dir, name, content string) {
 	if err := os.WriteFile(filepath.Join(dir, name), []byte(content), 0o644); err != nil {
 		t.Fatalf("write locale: %v", err)
 	}
+}
+
+type fakeProfileLanguageResolver struct {
+	preferred string
+	ok        bool
+	setCalls  []string
+}
+
+func (f *fakeProfileLanguageResolver) PreferredLanguage(_ context.Context, _ int) (string, bool, error) {
+	return f.preferred, f.ok, nil
+}
+
+func (f *fakeProfileLanguageResolver) SetPreferredLanguage(_ context.Context, _ int, lang string) error {
+	f.setCalls = append(f.setCalls, lang)
+	return nil
 }

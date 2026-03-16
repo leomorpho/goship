@@ -171,7 +171,8 @@ Reflection-based administrative interface for managing database resources.
 ## 14) Internationalization Baseline
 
 - `modules/i18n` provides a locale service exposed through the `core.I18n` seam (`container.I18n`) and request middleware for language detection.
-- Language detection priority is: `?lang=<code>` query parameter, authenticated user preference resolver (when provided), `lang` cookie, `Accept-Language` header, then default locale (`en`).
+- Language detection priority is: `?lang=<code>` query parameter, authenticated user profile preference, `lang` cookie, `Accept-Language` header, then default locale (`en`).
+- Query-driven language switches now persist the normalized language to the authenticated profile record (`profiles.preferred_language`) and still set the `lang` cookie.
 - Locale sources are YAML files in `locales/` with nested keys (for example `auth.login.title`).
 - Runtime toggle: `PAGODA_I18N_ENABLED=false` disables i18n service initialization (safe English fallback path, no startup panic).
 - Runtime default language is configurable via `PAGODA_I18N_DEFAULT_LANGUAGE`.
