@@ -36,7 +36,7 @@
   },
   "dependencies": {
     "@deck.gl/mapbox": "^8.9.35",
-    "@khmyznikov/pwa-install": "^0.3.7",
+    "@khmyznikov/pwa-install": "^0.6.3",
     "@tiptap/extension-floating-menu": "^2.3.0",
     "@tiptap/extension-placeholder": "^2.3.0",
     "@tiptap/starter-kit": "^2.3.0",
