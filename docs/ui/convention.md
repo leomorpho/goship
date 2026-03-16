@@ -102,6 +102,12 @@ Every **exported** templ component function gets two comment lines immediately a
 templ ComponentName(...) {
 ```
 
+**Ordering and spacing behavior:**
+- Preferred order is `// Renders:` then `// Route(s):`.
+- `ship doctor` (`DX023`) treats the pre-function comment block as order-agnostic for `// Renders:` and allows optional blank lines between annotation comments.
+- The comment block must remain contiguous directly above the exported `templ` declaration (no code between comments and the function).
+- `// Route(s):` is a required convention for contributors even though current `DX023` enforcement is focused on `// Renders:`.
+
 **Examples:**
 ```go
 // Renders: sticky top nav with logo, home icon, notification bell with unread count badge, profile dropdown, and theme toggle button

@@ -1460,6 +1460,18 @@ Impact:
 - Teams still need to migrate hardcoded strings and complete string-key coverage to get full end-to-end localization coverage.
 - `ship new` scaffolds baseline `en`/`fr` locale files, but production-grade translation completeness still requires follow-up product work per app.
 
+## 20) Doctor Policy Baseline for `tmp/` and Templ Comments (Informational)
+
+`ship doctor` policy is now explicitly aligned with the local dev loop and templ annotation conventions:
+
+- top-level `tmp/` is intentional local dev output (`air` build artifacts) and is allowlisted under `DX013`;
+- exported templ functions must include `// Renders:` in the contiguous pre-function comment block (`DX023`), with order-agnostic support when paired with `// Route(s):` and optional blank lines.
+
+Impact:
+
+- running `ship dev` no longer creates a guaranteed `DX013` failure via `tmp/`;
+- templ comment annotations are less brittle to harmless ordering/spacing differences while preserving convention clarity.
+
 ## Suggested Priority Order
 
 1. Complete cache adapter coverage so page caching works consistently across supported backends.
@@ -3489,7 +3501,7 @@ Doctor checks (current):
 - validates router marker pairs used by `--wire` generators
 - validates router marker ordering (`start` before `end`) for `public` and `auth` sections
 - validates package naming conventions in `web/ui` and `web/viewmodels`
-- warns when exported templ functions in `app/views/` or enabled module `views/` directories are missing a `// Renders:` comment
+- warns when exported templ functions in `app/views/` or enabled module `views/` directories are missing a `// Renders:` comment; `DX023` scans the contiguous pre-function comment block and tolerates `// Renders:`/`// Route(s):` ordering differences plus optional blank lines
 - warns when component templates in `app/views/web/components/` or enabled module component dirs miss/mismatch `data-component="<kebab-name>"` on the root element (excluding `*_layout.templ`)
 - flags unexpected root build artifacts (`web`, `worker`, `seed`, `ship`, `ship-mcp`)
 - allows top-level `tmp/` as intentional local dev build output (`air` default in this repo)
@@ -9999,6 +10011,12 @@ Every **exported** templ component function gets two comment lines immediately a
 // Route(s): <comma-separated route patterns where this component appears>
 templ ComponentName(...) {
 ```
+
+**Ordering and spacing behavior:**
+- Preferred order is `// Renders:` then `// Route(s):`.
+- `ship doctor` (`DX023`) treats the pre-function comment block as order-agnostic for `// Renders:` and allows optional blank lines between annotation comments.
+- The comment block must remain contiguous directly above the exported `templ` declaration (no code between comments and the function).
+- `// Route(s):` is a required convention for contributors even though current `DX023` enforcement is focused on `// Renders:`.
 
 **Examples:**
 ```go

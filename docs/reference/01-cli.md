@@ -217,7 +217,7 @@ Doctor checks (current):
 - validates router marker pairs used by `--wire` generators
 - validates router marker ordering (`start` before `end`) for `public` and `auth` sections
 - validates package naming conventions in `web/ui` and `web/viewmodels`
-- warns when exported templ functions in `app/views/` or enabled module `views/` directories are missing a `// Renders:` comment
+- warns when exported templ functions in `app/views/` or enabled module `views/` directories are missing a `// Renders:` comment; `DX023` scans the contiguous pre-function comment block and tolerates `// Renders:`/`// Route(s):` ordering differences plus optional blank lines
 - warns when component templates in `app/views/web/components/` or enabled module component dirs miss/mismatch `data-component="<kebab-name>"` on the root element (excluding `*_layout.templ`)
 - flags unexpected root build artifacts (`web`, `worker`, `seed`, `ship`, `ship-mcp`)
 - allows top-level `tmp/` as intentional local dev build output (`air` default in this repo)

@@ -181,6 +181,18 @@ Impact:
 - Teams still need to migrate hardcoded strings and complete string-key coverage to get full end-to-end localization coverage.
 - `ship new` scaffolds baseline `en`/`fr` locale files, but production-grade translation completeness still requires follow-up product work per app.
 
+## 20) Doctor Policy Baseline for `tmp/` and Templ Comments (Informational)
+
+`ship doctor` policy is now explicitly aligned with the local dev loop and templ annotation conventions:
+
+- top-level `tmp/` is intentional local dev output (`air` build artifacts) and is allowlisted under `DX013`;
+- exported templ functions must include `// Renders:` in the contiguous pre-function comment block (`DX023`), with order-agnostic support when paired with `// Route(s):` and optional blank lines.
+
+Impact:
+
+- running `ship dev` no longer creates a guaranteed `DX013` failure via `tmp/`;
+- templ comment annotations are less brittle to harmless ordering/spacing differences while preserving convention clarity.
+
 ## Suggested Priority Order
 
 1. Complete cache adapter coverage so page caching works consistently across supported backends.
