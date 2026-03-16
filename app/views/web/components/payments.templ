@@ -8,7 +8,7 @@ import (
 
 // Renders: manage-subscription-button component.
 templ ManageSubscriptionButton(page *controller.Page, subscriptionPlanKey string, isTrial bool, isPaidPlan bool) {
-	<div data-component="manage-subscription-button">
+	<div data-component="manage-subscription-button" data-slot="plan-card">
 		if !isPaidPlan || (isPaidPlan && isTrial) || subscriptionPlanKey == appsubscriptions.PlanFreeKey {
 			@PricingPage(page)
 		} else {
@@ -21,6 +21,8 @@ templ ManageSubscriptionButton(page *controller.Page, subscriptionPlanKey string
 // Renders: pricing-page component.
 templ PricingPage(page *controller.Page) {
 	<button data-component="pricing-page"
+		data-slot="subscribe-button"
+		data-action="subscribe-plan"
 		hx-get={ page.ToURL(routenames.RouteNamePricingPage) }
 		hx-target="#main-content"
 		hx-select="#main-content"
@@ -40,7 +42,8 @@ templ StripePortal(page *controller.Page) {
 		@FormCSRF(page.CSRF)
 		<button
 			type="submit"
-			type="submit"
+			data-slot="subscribe-button"
+			data-action="manage-subscription"
 			class="text-white bg-purple-600 hover:bg-primary-700 focus:ring-4 focus:ring-primary-200 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:text-white  dark:focus:ring-primary-900"
 		>
 			Manage billing

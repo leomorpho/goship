@@ -6,7 +6,6 @@ import "github.com/leomorpho/goship/app/web/routenames"
 // Renders: mobile-optimized bottom navigation bar with icons for home, notifications, and profile
 templ BottomNav(page *controller.Page) {
 	<div data-component="bottom-nav"
-		data-component="bottom-nav"
 		id="bottom-navbar"
 		navbar-state-data={ templ.JSONString(page.ShowBottomNavbar) }
 		if page.IsAuth && page.IsFullyOnboarded {
@@ -38,6 +37,7 @@ templ BottomNav(page *controller.Page) {
 		>
 			<button
 				id="bottomNavbarHomefeedButton"
+				data-slot="home-nav-item"
 				hx-get={ page.ToURL(routenames.RouteNameHomeFeed) }
 				type="button"
 				class="inline-flex flex-col items-center justify-center px-5 hover:bg-gray-100 dark:hover:bg-gray-800 group rounded-xl m-2"
@@ -69,6 +69,7 @@ templ BottomNav(page *controller.Page) {
 			// Notifications button
 			<button
 				id="bottom-navbar-notifications-button"
+				data-slot="notifications-nav-item"
 				hx-get={ page.ToURL("normalNotifications") }
 				type="button"
 				class="inline-flex flex-col items-center justify-center px-5 hover:bg-gray-100 dark:hover:bg-gray-800 group rounded-xl m-2"
@@ -116,6 +117,7 @@ templ BottomNav(page *controller.Page) {
 			// Settings button
 			<button
 				id="bottom-navbar-settings-button"
+				data-slot="settings-nav-item"
 				hx-get={ page.ToURL(routenames.RouteNamePreferences) }
 				type="button"
 				class="inline-flex flex-col items-center justify-center px-5 hover:bg-gray-100 dark:hover:bg-gray-800 group rounded-xl m-2"
@@ -147,6 +149,7 @@ templ BottomNav(page *controller.Page) {
 			// Profile button
 			<button
 				id="bottom-navbar-profile-button"
+				data-slot="profile-nav-item"
 				hx-get={ page.ToURL(routenames.RouteNameProfile) }
 				type="button"
 				class="inline-flex flex-col items-center justify-center px-5 hover:bg-gray-100 dark:hover:bg-gray-800 group rounded-xl m-2"
@@ -178,4 +181,3 @@ templ BottomNav(page *controller.Page) {
 		</div>
 	</div>
 }
-

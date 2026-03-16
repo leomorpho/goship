@@ -22,7 +22,7 @@ templ Navbar(page *controller.Page) {
 		hx-push-url="true"
 	>
 		<div class="container mx-auto px-4 py-2 flex justify-between items-center">
-			<a id="navbar-logo-with-brand" href={ templ.URL(page.ToURL(routenames.RouteNameLandingPage)) } class="flex items-center space-x-3 font-mono">
+			<a data-slot="home-link" id="navbar-logo-with-brand" href={ templ.URL(page.ToURL(routenames.RouteNameLandingPage)) } class="flex items-center space-x-3 font-mono">
 				<img src="/files/favicon.png" class="h-8" alt="Logo"/>
 				<span class="text-2xl font-semibold">{ page.AppName }</span>
 			</a>
@@ -58,13 +58,16 @@ templ Navbar(page *controller.Page) {
 			<div
 				class="flex items-center"
 			>
-				@ThemeToggle("navbar-theme-toggle")
+				<div data-slot="theme-toggle" data-action="toggle-theme">
+					@ThemeToggle("navbar-theme-toggle")
+				</div>
 				if page.IsAuth && page.IsFullyOnboarded {
 					<div
 						class="flex relative items-center"
 					>
 						<div
 							id="notifications-navbar"
+							data-slot="notification-bell"
 							class="w-10 h-10 bg-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600 dark:bg-slate-500 rounded-full mx-2 flex items-center justify-center relative cursor-pointer"
 							hx-get={ page.ToURL("normalNotifications") }
 						>
@@ -85,6 +88,7 @@ templ Navbar(page *controller.Page) {
 									hx-target="this"
 									hx-select="span"
 									hx-push-url="false"
+									data-slot="notification-count"
 									id="normal-notifications-count-navbar"
 									class="absolute -top-1 -right-1 inline-flex items-center justify-center px-1 text-xs font-medium text-white bg-red-600 rounded-full"
 								></span>
@@ -96,10 +100,12 @@ templ Navbar(page *controller.Page) {
 					<div
 						x-data="{ open: false }"
 						x-cloak
+						data-slot="profile-menu"
 						class="relative"
 					>
 						<button
 							id="navbar-profile-menu"
+							data-action="open-profile-menu"
 							type="button"
 							class={ "cursor-pointer",
 						templ.KV("w-10 h-10 bg-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600 dark:bg-slate-500 rounded-full mx-2 flex items-center justify-center relative", page.IsAuth) ,
