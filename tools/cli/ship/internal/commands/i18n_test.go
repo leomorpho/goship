@@ -410,6 +410,67 @@ func TestRunI18nScanJSONInvalidArgs(t *testing.T) {
 	}
 }
 
+func TestRunI18nScanGoASTIgnoresLogsSQLAndTests(t *testing.T) {
+	root := t.TempDir()
+	writeI18nFixture(t, root, map[string]string{
+		"go.mod": "module example.com/i18n-test\n\ngo 1.25\n",
+		"app/web/controllers/sample.go": `package controllers
+import (
+	"log/slog"
+)
+func demo() string {
+	slog.Info("worker started")
+	query := "SELECT id, name FROM users"
+	_ = query
+	return "Welcome user"
+}
+`,
+		"app/web/controllers/sample_test.go": `package controllers
+func TestDemo(t *testing.T) {
+	_ = "fixture string should be ignored"
+}
+`,
+	})
+
+	prevWD, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(prevWD) })
+	if err := os.Chdir(root); err != nil {
+		t.Fatal(err)
+	}
+
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	code := RunI18n([]string{
+		"scan",
+		"--format", "json",
+		"--paths", "app/web/controllers",
+	}, I18nDeps{
+		Out:          out,
+		Err:          errOut,
+		FindGoModule: findI18nGoModule,
+	})
+	if code != 0 {
+		t.Fatalf("code = %d, stderr = %s", code, errOut.String())
+	}
+	if strings.TrimSpace(errOut.String()) != "" {
+		t.Fatalf("stderr = %q, want empty", errOut.String())
+	}
+
+	var parsed scanResult
+	if err := json.Unmarshal(out.Bytes(), &parsed); err != nil {
+		t.Fatalf("parse scan JSON: %v\nraw=%s", err, out.String())
+	}
+	if len(parsed.Issues) != 1 {
+		t.Fatalf("issues len = %d, want 1", len(parsed.Issues))
+	}
+	if !strings.Contains(parsed.Issues[0].Message, "Welcome user") {
+		t.Fatalf("issue message = %q, want welcome literal finding", parsed.Issues[0].Message)
+	}
+}
+
 type scanResult struct {
 	Issues []scanIssue `json:"issues"`
 }

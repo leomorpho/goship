@@ -5,6 +5,9 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"go/ast"
+	"go/parser"
+	"go/token"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -226,13 +229,21 @@ func scanI18nFile(root, path string) ([]i18nScanIssue, error) {
 	if err != nil {
 		return nil, fmt.Errorf("read %s: %w", path, err)
 	}
-	lines := strings.Split(string(data), "\n")
-	issues := make([]i18nScanIssue, 0)
 	relativePath, err := filepath.Rel(root, path)
 	if err != nil {
 		return nil, err
 	}
 	relativePath = filepath.ToSlash(relativePath)
+
+	if ext == ".go" {
+		if strings.HasSuffix(relativePath, "_test.go") {
+			return nil, nil
+		}
+		return scanGoFileAST(relativePath, data)
+	}
+
+	lines := strings.Split(string(data), "\n")
+	issues := make([]i18nScanIssue, 0)
 
 	for idx, rawLine := range lines {
 		lineNo := idx + 1
@@ -251,6 +262,129 @@ func scanI18nFile(root, path string) ([]i18nScanIssue, error) {
 		}
 	}
 	return issues, nil
+}
+
+func scanGoFileAST(relativePath string, data []byte) ([]i18nScanIssue, error) {
+	fset := token.NewFileSet()
+	file, err := parser.ParseFile(fset, relativePath, data, parser.ParseComments)
+	if err != nil {
+		return nil, fmt.Errorf("parse go file %s: %w", relativePath, err)
+	}
+
+	issues := make([]i18nScanIssue, 0)
+	stack := make([]ast.Node, 0, 32)
+	ast.Inspect(file, func(node ast.Node) bool {
+		if node == nil {
+			if len(stack) > 0 {
+				stack = stack[:len(stack)-1]
+			}
+			return true
+		}
+		stack = append(stack, node)
+
+		lit, ok := node.(*ast.BasicLit)
+		if !ok || lit.Kind != token.STRING {
+			return true
+		}
+		cleaned, unquoteErr := strconv.Unquote(lit.Value)
+		if unquoteErr != nil {
+			cleaned = strings.Trim(lit.Value, "\"`")
+		}
+		cleaned = strings.TrimSpace(cleaned)
+		if !isUserFacingLiteral(cleaned) {
+			return true
+		}
+		if shouldIgnoreGoLiteral(stack, cleaned) {
+			return true
+		}
+
+		pos := fset.Position(lit.Pos())
+		issues = append(issues, newI18nScanIssue(relativePath, pos.Line, pos.Column, cleaned))
+		return true
+	})
+	return issues, nil
+}
+
+func shouldIgnoreGoLiteral(stack []ast.Node, literal string) bool {
+	if isSQLLiteral(literal) {
+		return true
+	}
+
+	for i := len(stack) - 1; i >= 0; i-- {
+		switch node := stack[i].(type) {
+		case *ast.ImportSpec:
+			return true
+		case *ast.CallExpr:
+			if exprIsI18nCall(node.Fun) || exprIsLoggingCall(node.Fun) || exprIsErrorCall(node.Fun) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func exprIsI18nCall(expr ast.Expr) bool {
+	selector, ok := expr.(*ast.SelectorExpr)
+	if !ok || selector.Sel == nil || selector.Sel.Name != "T" {
+		return false
+	}
+	ident, ok := selector.X.(*ast.Ident)
+	if !ok {
+		return false
+	}
+	name := strings.ToLower(strings.TrimSpace(ident.Name))
+	return name == "i18n"
+}
+
+func exprIsLoggingCall(expr ast.Expr) bool {
+	selector, ok := expr.(*ast.SelectorExpr)
+	if !ok || selector.Sel == nil {
+		return false
+	}
+	switch selector.Sel.Name {
+	case "Debug", "Info", "Warn", "Error", "Print", "Printf", "Println", "Fatal", "Fatalf", "Fatalln":
+		return true
+	default:
+		return false
+	}
+}
+
+func exprIsErrorCall(expr ast.Expr) bool {
+	selector, ok := expr.(*ast.SelectorExpr)
+	if !ok || selector.Sel == nil {
+		return false
+	}
+	if ident, ok := selector.X.(*ast.Ident); ok {
+		if ident.Name == "errors" && (selector.Sel.Name == "New" || selector.Sel.Name == "Join") {
+			return true
+		}
+		if ident.Name == "fmt" && selector.Sel.Name == "Errorf" {
+			return true
+		}
+	}
+	return false
+}
+
+func isSQLLiteral(value string) bool {
+	upper := strings.ToUpper(strings.TrimSpace(value))
+	switch {
+	case strings.HasPrefix(upper, "SELECT "):
+		return true
+	case strings.HasPrefix(upper, "INSERT "):
+		return true
+	case strings.HasPrefix(upper, "UPDATE "):
+		return true
+	case strings.HasPrefix(upper, "DELETE "):
+		return true
+	case strings.HasPrefix(upper, "CREATE "):
+		return true
+	case strings.HasPrefix(upper, "ALTER "):
+		return true
+	case strings.HasPrefix(upper, "DROP "):
+		return true
+	default:
+		return false
+	}
 }
 
 func shouldSkipScanLine(ext, line string) bool {
