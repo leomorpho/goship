@@ -199,7 +199,7 @@ Non-goal:
 9. Route contracts in `app/contracts` are now consumable by `ship api:spec` for generated OpenAPI 3.0 output.
 10. Test-data factory baseline now lives in `framework/factory` with `ship make:factory` scaffold support.
 11. Typed HTTP integration helpers now live in `framework/testutil` (`NewTestServer`, `PostForm` CSRF automation, `AsUser`, fluent response assertions).
-12. I18n baseline now lives in `modules/i18n` with locale files under `locales/` and CLI support for `make:locale`, `i18n:init`, `i18n:missing`, and `i18n:unused`.
+12. I18n baseline now lives in `modules/i18n` with locale files under `locales/` and CLI support for `make:locale`, `i18n:init`, `i18n:scan`, `i18n:missing`, and `i18n:unused`.
 13. `ship new` now asks (interactive) whether to enable i18n in the starter app, supports explicit `--i18n|--no-i18n` for non-interactive runs, and prints an explicit “enable later + migrate later” path.
 
 ## Upstream/Downstream Relationship

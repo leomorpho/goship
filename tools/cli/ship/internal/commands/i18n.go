@@ -47,6 +47,8 @@ func RunI18n(args []string, d I18nDeps) int {
 	switch args[0] {
 	case "init":
 		return runI18nInit(args[1:], d, root)
+	case "scan":
+		return runI18nScan(args[1:], d, root)
 	case "missing":
 		return runI18nMissing(d, root)
 	case "unused":
@@ -61,6 +63,7 @@ func RunI18n(args []string, d I18nDeps) int {
 func PrintI18nHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship i18n commands:")
 	fmt.Fprintln(w, "  ship i18n:init [--force]")
+	fmt.Fprintln(w, "  ship i18n:scan [--format json] [--paths <path1,path2,...>] [--limit <n>]")
 	fmt.Fprintln(w, "  ship i18n:missing")
 	fmt.Fprintln(w, "  ship i18n:unused")
 }

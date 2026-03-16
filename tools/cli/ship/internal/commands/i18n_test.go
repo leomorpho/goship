@@ -2,8 +2,10 @@ package commands
 
 import (
 	"bytes"
+	"encoding/json"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -299,6 +301,129 @@ func TestRunI18nInitUsageAndHelp(t *testing.T) {
 	if !strings.Contains(errOut.String(), "usage: ship i18n:init [--force]") {
 		t.Fatalf("stderr = %q, want init usage", errOut.String())
 	}
+}
+
+func TestRunI18nScanJSONDeterministicWithPathsAndLimit(t *testing.T) {
+	root := t.TempDir()
+	writeI18nFixture(t, root, map[string]string{
+		"go.mod": "module example.com/i18n-test\n\ngo 1.25\n",
+		"app/web/controllers/sample.go": `package controllers
+func demo() string {
+	_ = container.I18n.T(ctx, "auth.login.title")
+	return "Welcome from Go"
+}
+`,
+		"app/views/web/pages/demo.templ": `package pages
+templ Demo() {
+	<h1>Hello from templ</h1>
+}
+`,
+		"frontend/islands/demo.ts": `export function demo() {
+	const label = "Click here now";
+	return label;
+}
+`,
+	})
+
+	prevWD, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(prevWD) })
+	if err := os.Chdir(root); err != nil {
+		t.Fatal(err)
+	}
+
+	run := func() scanResult {
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+		code := RunI18n([]string{
+			"scan",
+			"--format", "json",
+			"--paths", "app/web/controllers,frontend/islands",
+			"--limit", "2",
+		}, I18nDeps{
+			Out:          out,
+			Err:          errOut,
+			FindGoModule: findI18nGoModule,
+		})
+		if code != 0 {
+			t.Fatalf("code = %d, stderr = %s", code, errOut.String())
+		}
+		if strings.TrimSpace(errOut.String()) != "" {
+			t.Fatalf("stderr = %q, want empty", errOut.String())
+		}
+		var parsed scanResult
+		if err := json.Unmarshal(out.Bytes(), &parsed); err != nil {
+			t.Fatalf("parse scan JSON: %v\nraw=%s", err, out.String())
+		}
+		return parsed
+	}
+
+	first := run()
+	second := run()
+	if !reflect.DeepEqual(first, second) {
+		t.Fatalf("scan output was not deterministic: first=%+v second=%+v", first, second)
+	}
+	if len(first.Issues) != 2 {
+		t.Fatalf("issues len = %d, want 2", len(first.Issues))
+	}
+	for _, issue := range first.Issues {
+		if !strings.HasPrefix(issue.File, "app/web/controllers/") && !strings.HasPrefix(issue.File, "frontend/islands/") {
+			t.Fatalf("issue file %q should respect --paths filter", issue.File)
+		}
+		if issue.ID == "" || issue.Kind == "" || issue.Severity == "" || issue.Message == "" || issue.Confidence == "" {
+			t.Fatalf("issue missing required fields: %+v", issue)
+		}
+		if issue.Line <= 0 || issue.Column <= 0 {
+			t.Fatalf("issue position must be positive: %+v", issue)
+		}
+	}
+}
+
+func TestRunI18nScanJSONInvalidArgs(t *testing.T) {
+	root := t.TempDir()
+	writeI18nFixture(t, root, map[string]string{
+		"go.mod": "module example.com/i18n-test\n\ngo 1.25\n",
+	})
+
+	prevWD, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(prevWD) })
+	if err := os.Chdir(root); err != nil {
+		t.Fatal(err)
+	}
+
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	if code := RunI18n([]string{"scan", "--format", "table"}, I18nDeps{
+		Out:          out,
+		Err:          errOut,
+		FindGoModule: findI18nGoModule,
+	}); code != 1 {
+		t.Fatalf("code = %d, want 1", code)
+	}
+	if !strings.Contains(errOut.String(), "usage: ship i18n:scan") {
+		t.Fatalf("stderr = %q, want usage", errOut.String())
+	}
+}
+
+type scanResult struct {
+	Issues []scanIssue `json:"issues"`
+}
+
+type scanIssue struct {
+	ID           string `json:"id"`
+	Kind         string `json:"kind"`
+	Severity     string `json:"severity"`
+	File         string `json:"file"`
+	Line         int    `json:"line"`
+	Column       int    `json:"column"`
+	Message      string `json:"message"`
+	SuggestedKey string `json:"suggested_key"`
+	Confidence   string `json:"confidence"`
 }
 
 func writeI18nFixture(t *testing.T, root string, files map[string]string) {
