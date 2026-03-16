@@ -162,6 +162,12 @@ Reflection-based administrative interface for managing database resources.
 - `container.Flags` exposes flag evaluation (`Enabled`) to application code.
 - Rollout checks are deterministic per `(flag key, user id)` hash bucket.
 
+## 13) API Contract Specs
+
+- `app/contracts/*.go` `// Route: METHOD /path` comments now act as the OpenAPI source-of-truth contract.
+- `ship api:spec` generates an OpenAPI 3.0 JSON document from those typed contracts.
+- The generator supports stdout output, file output (`--out`), and local Swagger UI serving (`--serve`).
+
 ## Environments and Configuration
 
 Config loading:

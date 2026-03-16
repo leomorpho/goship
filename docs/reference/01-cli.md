@@ -41,6 +41,7 @@ Project lifecycle:
 - `ship doctor [--json]`
 - `ship config:validate [--json]`
 - `ship routes [--json]`
+- `ship api:spec [--out <path>] [--serve]`
 - `ship agent:setup`
 - `ship agent:check`
 - `ship agent:status`
@@ -162,6 +163,9 @@ Safety matrix:
 - `ship config:validate --json` -> prints the same contract as JSON for agent tooling
 - `ship routes` -> prints a route inventory table from `app/router.go` AST parsing (`METHOD PATH AUTH HANDLER`)
 - `ship routes --json` -> prints the same route inventory as a JSON array
+- `ship api:spec` -> parses `app/contracts/*.go` `// Route:` contracts and prints OpenAPI 3.0 JSON to stdout
+- `ship api:spec --out <path>` -> writes generated OpenAPI JSON to the given file path
+- `ship api:spec --serve` -> serves Swagger UI + generated spec at `http://127.0.0.1:<port>/api/docs` until interrupted
 - `ship make:resource <name>` -> scaffold handler (+ optional templ page), ensure route-name constant, and print route snippet for manual insertion in `app/router.go`
 - `ship make:resource <name> --domain <name>` -> generate domain-aware constructor slot (`domainService any`) and route wiring using `nil` placeholder
 - `ship make:resource <name> --wire` -> also insert snippet behind ship markers in `app/router.go`

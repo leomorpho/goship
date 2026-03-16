@@ -78,6 +78,13 @@ func (c CLI) Run(args []string) int {
 		return c.runDoctor(args[1:])
 	case "config":
 		return c.runConfig(args[1:])
+	case "api":
+		if len(args) == 1 || args[1] == "help" || args[1] == "-h" || args[1] == "--help" {
+			cmd.PrintAPIHelp(c.Out)
+			return 0
+		}
+		fmt.Fprintf(c.Err, "use namespaced API commands, e.g. ship api:%s\n", args[1])
+		return 1
 	case "routes":
 		return c.runRoutes(args[1:])
 	case "describe":
@@ -141,6 +148,8 @@ func (c CLI) runNamespaced(args []string) (int, bool) {
 		return c.runModule(rest), true
 	case "config":
 		return c.runConfig(rest), true
+	case "api":
+		return c.runAPI(rest), true
 	case "run":
 		return c.runRun(rest), true
 	default:
@@ -289,6 +298,10 @@ func (c CLI) runDoctor(args []string) int {
 
 func (c CLI) runConfig(args []string) int {
 	return cmd.RunConfig(args, cmd.ConfigDeps{Out: c.Out, Err: c.Err, FindGoModule: findGoModule})
+}
+
+func (c CLI) runAPI(args []string) int {
+	return cmd.RunAPI(args, cmd.APIDeps{Out: c.Out, Err: c.Err, FindGoModule: findGoModule})
 }
 
 func (c CLI) runAgent(args []string) int {

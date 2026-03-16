@@ -196,6 +196,7 @@ Non-goal:
 6. Redis is optional capability, not a hard requirement.
 7. GoShip must remain fully standalone; any hosted control plane consumes stable runtime hooks and managed overrides but does not become a framework dependency.
 8. Feature flags baseline is framework-owned (`modules/flags` + `container.Flags`) with admin toggle access at `/auth/admin/flags`.
+9. Route contracts in `app/contracts` are now consumable by `ship api:spec` for generated OpenAPI 3.0 output.
 
 ## Upstream/Downstream Relationship
 
