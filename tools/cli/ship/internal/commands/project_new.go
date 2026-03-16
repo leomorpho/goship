@@ -16,11 +16,13 @@ import (
 )
 
 type NewProjectOptions struct {
-	Name    string
-	Module  string
-	DryRun  bool
-	Force   bool
-	AppPath string
+	Name        string
+	Module      string
+	DryRun      bool
+	Force       bool
+	AppPath     string
+	I18nEnabled bool
+	I18nSet     bool
 }
 
 type NewDeps struct {
@@ -29,13 +31,15 @@ type NewDeps struct {
 	ParseAgentPolicyBytes      func(b []byte) (policies.AgentPolicy, error)
 	RenderAgentPolicyArtifacts func(policy policies.AgentPolicy) (map[string][]byte, error)
 	AgentPolicyFilePath        string
+	IsInteractive              func() bool
+	PromptI18nEnable           func() (bool, error)
 }
 
 func RunNew(args []string, d NewDeps) int {
 	for _, arg := range args {
 		if arg == "-h" || arg == "--help" || arg == "help" {
 			fmt.Fprintln(d.Out, "ship new:")
-			fmt.Fprintln(d.Out, "  ship new <app> [--module <module-path>] [--dry-run] [--force]")
+			fmt.Fprintln(d.Out, "  ship new <app> [--module <module-path>] [--dry-run] [--force] [--i18n|--no-i18n]")
 			return 0
 		}
 	}
@@ -46,7 +50,12 @@ func RunNew(args []string, d NewDeps) int {
 		return 1
 	}
 	if strings.TrimSpace(opts.Name) == "" {
-		fmt.Fprintln(d.Err, "usage: ship new <app> [--module <module-path>] [--dry-run] [--force]")
+		fmt.Fprintln(d.Err, "usage: ship new <app> [--module <module-path>] [--dry-run] [--force] [--i18n|--no-i18n]")
+		return 1
+	}
+	opts, err = resolveNewI18nOptions(opts, d)
+	if err != nil {
+		fmt.Fprintf(d.Err, "invalid new arguments: %v\n", err)
 		return 1
 	}
 
@@ -67,6 +76,7 @@ func RunNew(args []string, d NewDeps) int {
 		fmt.Fprintln(d.Out, "Dry-run mode: no files were written.")
 	}
 	fmt.Fprintf(d.Out, "GitHub Actions workflows created. Add DEPLOY_KEY secret to enable deployment.\n")
+	printNewI18nStatus(d.Out, opts.I18nEnabled)
 	fmt.Fprintf(d.Out, "Next: cd %s && ship module:add <module> && make run\n", opts.AppPath)
 	return 0
 }
@@ -85,6 +95,18 @@ func ParseNewArgs(args []string) (NewProjectOptions, error) {
 			opts.DryRun = true
 		case arg == "--force":
 			opts.Force = true
+		case arg == "--i18n":
+			if opts.I18nSet && !opts.I18nEnabled {
+				return opts, fmt.Errorf("cannot combine --i18n and --no-i18n")
+			}
+			opts.I18nEnabled = true
+			opts.I18nSet = true
+		case arg == "--no-i18n":
+			if opts.I18nSet && opts.I18nEnabled {
+				return opts, fmt.Errorf("cannot combine --i18n and --no-i18n")
+			}
+			opts.I18nEnabled = false
+			opts.I18nSet = true
 		case strings.HasPrefix(arg, "--module="):
 			opts.Module = strings.TrimPrefix(arg, "--module=")
 		case arg == "--module":
@@ -134,6 +156,9 @@ func ScaffoldNewProject(opts NewProjectOptions, d NewDeps) error {
 		return err
 	}
 	for path, content := range starterFiles {
+		files[path] = content
+	}
+	for path, content := range i18nScaffoldFiles(opts) {
 		files[path] = content
 	}
 	policyYAML := renderScaffoldAgentPolicyYAML()
@@ -213,7 +238,9 @@ func renderStarterTemplateFiles(opts NewProjectOptions) (map[string]string, erro
 		if readErr != nil {
 			return readErr
 		}
-		files[filepath.Join(opts.AppPath, relPath)] = rewriteStarterTemplate(string(b), opts)
+		content := rewriteStarterTemplate(string(b), opts)
+		content = rewriteStarterI18nTemplate(relPath, content, opts)
+		files[filepath.Join(opts.AppPath, relPath)] = content
 		return nil
 	})
 	if err != nil {

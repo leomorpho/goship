@@ -37,7 +37,7 @@ Design constraints:
 
 Project lifecycle:
 
-- `ship new <app> [--module <module-path>] [--dry-run] [--force]`
+- `ship new <app> [--module <module-path>] [--dry-run] [--force] [--i18n|--no-i18n]`
 - `ship doctor [--json]`
 - `ship config:validate [--json]`
 - `ship routes [--json]`
@@ -157,6 +157,9 @@ Safety matrix:
 | `db:create` | safe; supports `--dry-run` | safe; supports `--dry-run` | safe; supports `--dry-run` |
 - `ship templ generate --path app` -> `templ generate -path app`, then move each `*_templ.go` into sibling `gen/` directory
 - `ship new <app>` -> create minimal deterministic project scaffold in a new directory from CLI-embedded starter templates (no network calls)
+  - interactive terminals prompt for i18n starter enablement unless `--i18n`/`--no-i18n` is provided
+  - when enabled, starter locale files are scaffolded at `locales/en.yaml` and `locales/fr.yaml`
+  - when disabled, CLI prints a follow-up hint that i18n can be enabled/migrated later with `ship i18n:*` + doctor-driven loops
 - `ship agent:setup` -> generate per-agent allowlist artifacts from `tools/agent-policy/allowed-commands.yaml`
 - `ship agent:check` -> fail if generated artifacts drift from canonical allowlist (for pre-commit/CI parity)
 - `ship agent:status` -> show best-effort local Codex/Claude/Gemini install status vs repo policy
@@ -234,6 +237,10 @@ Field syntax for `make:model`:
 `db/{migrate/migrations,queries,gen,bobgen.yaml}`
 `docs/00-index.md` and baseline architecture docs
 3. Supports `--dry-run` and `--force`.
+4. Supports `--i18n` and `--no-i18n` (otherwise prompts in interactive terminals).
+5. If i18n is enabled during scaffold, writes starter locale files:
+`locales/en.yaml`
+`locales/fr.yaml`
 
 Generated project workflow:
 

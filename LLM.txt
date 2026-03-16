@@ -937,6 +937,22 @@ Reflection-based administrative interface for managing database resources.
 - `container.Flags` exposes flag evaluation (`Enabled`) to application code.
 - Rollout checks are deterministic per `(flag key, user id)` hash bucket.
 
+## 13) API Contract Specs
+
+- `app/contracts/*.go` `// Route: METHOD /path` comments now act as the OpenAPI source-of-truth contract.
+- `ship api:spec` generates an OpenAPI 3.0 JSON document from those typed contracts.
+- The generator supports stdout output, file output (`--out`), and local Swagger UI serving (`--serve`).
+
+## 14) Internationalization Baseline
+
+- `modules/i18n` provides a locale service (`container.I18n`) and request middleware for language detection.
+- Language detection priority is: `?lang=<code>` query parameter, authenticated user preference resolver (when provided), `lang` cookie, `Accept-Language` header, then default locale (`en`).
+- Locale sources are YAML files in `locales/` with nested keys (for example `auth.login.title`).
+- `ship make:locale <code>` scaffolds a new locale file from `locales/en.yaml`.
+- `ship i18n:missing` reports missing/empty translations versus English source keys.
+- `ship i18n:unused` reports locale keys not referenced in `.go`/`.templ` `I18n.T(...)` usage.
+- `ship new <app>` now supports i18n-aware scaffold startup: interactive prompt (or `--i18n` / `--no-i18n`) and optional starter locale file creation (`locales/en.yaml`, `locales/fr.yaml`), with explicit messaging that i18n can be enabled/migrated later.
+
 ## Environments and Configuration
 
 Config loading:
@@ -972,6 +988,8 @@ Health endpoints:
 ## Testing Surface
 
 - Go tests are distributed across `app/**`, `framework/**`, `modules/**`, and `tools/**`
+- `framework/factory` + `tests/factories` now provide a typed baseline for building and inserting repeatable test data records
+- `framework/testutil` now provides typed HTTP test helpers (`NewTestServer`, `PostForm` with automatic CSRF, `AsUser`, fluent response assertions) for app-route integration tests
 - Playwright e2e folder exists (`tests/e2e/`), but specs are currently product-domain stale and marked TODO
 
 ## Operational Tooling
@@ -1386,6 +1404,43 @@ Impact:
 
 - Runtime can evaluate cached DB-backed flags today.
 - Operators can quickly enable/disable flags, but still need SQL/seed workflows for richer targeting updates.
+
+## 16) OpenAPI Generation Is Contract-First Baseline (Low)
+
+`ship api:spec` now generates valid OpenAPI 3.0 output from `app/contracts` route comments, but the first pass intentionally keeps response envelopes and security details generic.
+
+Impact:
+
+- API docs are now auto-generated and drift-resistant for route/path/request schema shape.
+- Teams still need follow-up refinement for richer per-operation responses/examples/auth scopes when publishing external API docs.
+
+## 17) Factory Scaffolding Is Intentional Baseline (Low)
+
+`ship make:factory` now creates typed test factory scaffolds, but generated files intentionally include only minimal fields and no app-specific trait library.
+
+Impact:
+
+- Teams get consistent factory structure and naming with less boilerplate.
+- Rich domain-specific traits still require local customization after scaffold generation.
+
+## 18) HTTP Test Helper Coverage Is Form-Focused Baseline (Low)
+
+`framework/testutil` now covers the most common app-route testing flow (GET + form POST with CSRF, auth session cookie injection, fluent response assertions), but it does not yet include first-class helpers for JSON request bodies, multipart uploads, or websocket/SSE assertions.
+
+Impact:
+
+- Integration tests for HTML/form routes are shorter and less error-prone by default.
+- API-heavy and realtime-heavy tests still need some manual request/transport setup.
+
+## 19) I18n Detection Is Runtime Baseline Only (Low)
+
+`modules/i18n` now supports locale files, middleware-based language detection, and CLI locale audits, but the app surface is only partially translated and no persistent profile-language field is wired by default.
+
+Impact:
+
+- Framework/runtime now has a consistent translation seam (`container.I18n.T(...)`) and deterministic request language detection.
+- Teams still need to migrate hardcoded strings and optionally wire a real user-preference resolver to get full end-to-end localization coverage.
+- `ship new` can now scaffold i18n locale files for starter apps, but starter translations and language-switching UX still require additional app-level wiring for complete end-to-end behavior.
 
 ## Suggested Priority Order
 
@@ -2115,6 +2170,30 @@ Go tests:
 - `make cover`
 - `bash tools/scripts/precommit-tests.sh` (full stateless gate used before commit/CI)
 
+Test data factories:
+
+- `framework/factory` provides generic test builders with `Build` and DB-backed `Create`.
+- `tests/factories/user_factory.go` is the canonical example for user records + traits.
+- Scaffold a new factory with: `go run ./tools/cli/ship/cmd/ship make:factory <Name>`.
+- Typical usage in tests:
+  - `user := factories.User.Create(t, db)`
+  - `admin := factories.User.Create(t, db, factories.WithAdminRole)`
+
+HTTP integration test helpers:
+
+- `framework/testutil` provides `NewTestServer(t)` for app-level request tests with a real container + in-memory DB.
+- `PostForm` automatically fetches and submits CSRF tokens for form routes.
+- `AsUser(userID)` signs an auth session cookie so tests can hit authenticated routes without manually building session cookies.
+- Response assertions support fluent checks:
+  - `AssertStatus(code)`
+  - `AssertRedirectsTo(path)`
+  - `AssertContains(text)`
+  - `AssertJSON(&target)`
+- Example:
+  - `s := testutil.NewTestServer(t)`
+  - `s.PostForm("/user/login", form).AssertRedirectsTo("/welcome/preferences")`
+  - `s.Get("/auth/logout", s.AsUser(userID)).AssertRedirectsTo("/")`
+
 E2E tests:
 
 - `make e2e-smoke` (single happy-path smoke; Playwright starts `go run ./cmd/web` automatically via `webServer`)
@@ -2123,6 +2202,16 @@ E2E tests:
 
 CI uses the smoke spec only (`tests/e2e/tests/smoke.spec.ts`) to validate startup and basic app serving.
 Note: broader legacy e2e specs are partially stale and should be treated as non-authoritative for GoShip behavior.
+
+## Internationalization
+
+Locale source files live in `locales/*.yaml` (`en.yaml` is the source of truth).
+
+Common commands:
+
+- `go run ./tools/cli/ship/cmd/ship make:locale fr` to scaffold `locales/fr.yaml` with the same keys and empty values.
+- `go run ./tools/cli/ship/cmd/ship i18n:missing` to list missing/empty translation keys per locale.
+- `go run ./tools/cli/ship/cmd/ship i18n:unused` to list locale keys not referenced in `.go`/`.templ` `I18n.T(...)` calls.
 
 ## Agent Command Policy
 
@@ -2899,10 +2988,13 @@ Design constraints:
 
 Project lifecycle:
 
-- `ship new <app> [--module <module-path>] [--dry-run] [--force]`
+- `ship new <app> [--module <module-path>] [--dry-run] [--force] [--i18n|--no-i18n]`
 - `ship doctor [--json]`
 - `ship config:validate [--json]`
 - `ship routes [--json]`
+- `ship api:spec [--out <path>] [--serve]`
+- `ship i18n:missing`
+- `ship i18n:unused`
 - `ship agent:setup`
 - `ship agent:check`
 - `ship agent:status`
@@ -2942,6 +3034,8 @@ Generation:
 - `ship templ generate [--path <dir>] [--file <file.templ>]`
 - `ship make:resource <name> [--path app] [--auth public|auth] [--views templ|none] [--domain <name>] [--wire] [--dry-run]` (or `ship make` for help)
 - `ship make:model <Name> [fields...] [--force]`
+- `ship make:factory <Name>`
+- `ship make:locale <code>`
 - `ship make:controller <Name|NameController> [--actions index,show,create,update,destroy] [--auth public|auth] [--domain <name>] [--wire]`
 - `ship make:schedule <Name> --cron "<expr>"`
 - `ship make:command <Name>`
@@ -3014,6 +3108,9 @@ Safety matrix:
 | `db:create` | safe; supports `--dry-run` | safe; supports `--dry-run` | safe; supports `--dry-run` |
 - `ship templ generate --path app` -> `templ generate -path app`, then move each `*_templ.go` into sibling `gen/` directory
 - `ship new <app>` -> create minimal deterministic project scaffold in a new directory from CLI-embedded starter templates (no network calls)
+  - interactive terminals prompt for i18n starter enablement unless `--i18n`/`--no-i18n` is provided
+  - when enabled, starter locale files are scaffolded at `locales/en.yaml` and `locales/fr.yaml`
+  - when disabled, CLI prints a follow-up hint that i18n can be enabled/migrated later with `ship i18n:*` + doctor-driven loops
 - `ship agent:setup` -> generate per-agent allowlist artifacts from `tools/agent-policy/allowed-commands.yaml`
 - `ship agent:check` -> fail if generated artifacts drift from canonical allowlist (for pre-commit/CI parity)
 - `ship agent:status` -> show best-effort local Codex/Claude/Gemini install status vs repo policy
@@ -3024,12 +3121,19 @@ Safety matrix:
 - `ship config:validate --json` -> prints the same contract as JSON for agent tooling
 - `ship routes` -> prints a route inventory table from `app/router.go` AST parsing (`METHOD PATH AUTH HANDLER`)
 - `ship routes --json` -> prints the same route inventory as a JSON array
+- `ship api:spec` -> parses `app/contracts/*.go` `// Route:` contracts and prints OpenAPI 3.0 JSON to stdout
+- `ship api:spec --out <path>` -> writes generated OpenAPI JSON to the given file path
+- `ship api:spec --serve` -> serves Swagger UI + generated spec at `http://127.0.0.1:<port>/api/docs` until interrupted
+- `ship i18n:missing` -> compares `locales/en.yaml` keys with other locale files and lists missing/empty translations
+- `ship i18n:unused` -> lists locale keys not referenced by `I18n.T(...)`/`i18n.T(...)` calls in `.go`/`.templ` sources
 - `ship make:resource <name>` -> scaffold handler (+ optional templ page), ensure route-name constant, and print route snippet for manual insertion in `app/router.go`
 - `ship make:resource <name> --domain <name>` -> generate domain-aware constructor slot (`domainService any`) and route wiring using `nil` placeholder
 - `ship make:resource <name> --wire` -> also insert snippet behind ship markers in `app/router.go`
 - `ship make:resource <name> --dry-run` -> preview all planned changes without writing files
 - `ship make:model <Name>` -> scaffold a model query file at `db/queries/<model>.sql` with Bob-friendly named-query placeholders
 - `ship make:model <Name> [fields...]` -> include typed field comments in the query scaffold and print next DB steps (`db:make`, `db:migrate`, `db:generate`)
+- `ship make:factory <Name>` -> scaffold `tests/factories/<name>_factory.go` with a typed `Record` struct + `factory.New(...)` baseline
+- `ship make:locale <code>` -> scaffold `locales/<code>.yaml` from `locales/en.yaml` with matching keys and empty values
 - `ship make:controller <Name>` -> generate controller/handler scaffold in `app/web/controllers`
 - `ship make:controller <Name> --domain <name>` -> generate domain-aware constructor slot (`domainService any`) and route wiring using `nil` placeholder
 - `ship make:controller <Name> --actions ... --wire` -> wire generated routes into `app/router.go` markers
@@ -3084,6 +3188,10 @@ Field syntax for `make:model`:
 `db/{migrate/migrations,queries,gen,bobgen.yaml}`
 `docs/00-index.md` and baseline architecture docs
 3. Supports `--dry-run` and `--force`.
+4. Supports `--i18n` and `--no-i18n` (otherwise prompts in interactive terminals).
+5. If i18n is enabled during scaffold, writes starter locale files:
+`locales/en.yaml`
+`locales/fr.yaml`
 
 Generated project workflow:
 
@@ -3499,6 +3607,11 @@ Non-goal:
 6. Redis is optional capability, not a hard requirement.
 7. GoShip must remain fully standalone; any hosted control plane consumes stable runtime hooks and managed overrides but does not become a framework dependency.
 8. Feature flags baseline is framework-owned (`modules/flags` + `container.Flags`) with admin toggle access at `/auth/admin/flags`.
+9. Route contracts in `app/contracts` are now consumable by `ship api:spec` for generated OpenAPI 3.0 output.
+10. Test-data factory baseline now lives in `framework/factory` with `ship make:factory` scaffold support.
+11. Typed HTTP integration helpers now live in `framework/testutil` (`NewTestServer`, `PostForm` CSRF automation, `AsUser`, fluent response assertions).
+12. I18n baseline now lives in `modules/i18n` with locale files under `locales/` and CLI support for `make:locale`, `i18n:missing`, and `i18n:unused`.
+13. `ship new` now asks (interactive) whether to enable i18n in the starter app, supports explicit `--i18n|--no-i18n` for non-interactive runs, and prints an explicit “enable later + migrate later” path.
 
 ## Upstream/Downstream Relationship
 
@@ -4149,6 +4262,7 @@ Current progress:
 - [ ] Move Cherie onto released GoShip modules incrementally (module by module).
 - [ ] Upstream selected Cherie capabilities into optional GoShip modules (notifications/referrals/gamification/security helpers).
 - [ ] Keep Docker-based integration suite as optional/CI-focused (`make test-integration`), not default local path.
+- [ ] Expand starter i18n locale packs (top-language bundle) once LLM-first migration workflow and strict doctor enforcement are stable.
 
 ## Open Questions
 

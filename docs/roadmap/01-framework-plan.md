@@ -200,6 +200,7 @@ Non-goal:
 10. Test-data factory baseline now lives in `framework/factory` with `ship make:factory` scaffold support.
 11. Typed HTTP integration helpers now live in `framework/testutil` (`NewTestServer`, `PostForm` CSRF automation, `AsUser`, fluent response assertions).
 12. I18n baseline now lives in `modules/i18n` with locale files under `locales/` and CLI support for `make:locale`, `i18n:missing`, and `i18n:unused`.
+13. `ship new` now asks (interactive) whether to enable i18n in the starter app, supports explicit `--i18n|--no-i18n` for non-interactive runs, and prints an explicit “enable later + migrate later” path.
 
 ## Upstream/Downstream Relationship
 
@@ -850,6 +851,7 @@ Current progress:
 - [ ] Move Cherie onto released GoShip modules incrementally (module by module).
 - [ ] Upstream selected Cherie capabilities into optional GoShip modules (notifications/referrals/gamification/security helpers).
 - [ ] Keep Docker-based integration suite as optional/CI-focused (`make test-integration`), not default local path.
+- [ ] Expand starter i18n locale packs (top-language bundle) once LLM-first migration workflow and strict doctor enforcement are stable.
 
 ## Open Questions
 

@@ -298,6 +298,10 @@ func (c CLI) runNew(args []string) int {
 		ParseAgentPolicyBytes:      policies.ParsePolicyBytes,
 		RenderAgentPolicyArtifacts: policies.RenderPolicyArtifacts,
 		AgentPolicyFilePath:        policies.AgentPolicyFilePath,
+		IsInteractive:              rt.IsInteractiveTerminal,
+		PromptI18nEnable: func() (bool, error) {
+			return rt.PromptYesNo("Enable i18n in this starter app? [y/N]: ", false)
+		},
 	})
 }
 

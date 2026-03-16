@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"bytes"
 	"os"
 	"path/filepath"
 	"strings"
@@ -20,6 +21,9 @@ func TestParseNewArgs(t *testing.T) {
 		{name: "module spaced", args: []string{"demo", "--module", "example.com/demo"}},
 		{name: "dry-run", args: []string{"demo", "--dry-run"}},
 		{name: "force", args: []string{"demo", "--force"}},
+		{name: "i18n enabled", args: []string{"demo", "--i18n"}},
+		{name: "i18n disabled", args: []string{"demo", "--no-i18n"}},
+		{name: "conflicting i18n flags", args: []string{"demo", "--i18n", "--no-i18n"}, wantErr: true},
 		{name: "bad name", args: []string{"-bad"}, wantErr: true},
 		{name: "unknown option", args: []string{"demo", "--wat"}, wantErr: true},
 		{name: "too many args", args: []string{"demo", "extra"}, wantErr: true},
@@ -34,6 +38,30 @@ func TestParseNewArgs(t *testing.T) {
 				t.Fatalf("unexpected error: %v", err)
 			}
 		})
+	}
+}
+
+func TestParseNewArgsI18nFlags(t *testing.T) {
+	opts, err := ParseNewArgs([]string{"demo", "--i18n"})
+	if err != nil {
+		t.Fatalf("ParseNewArgs returned error: %v", err)
+	}
+	if !opts.I18nSet {
+		t.Fatalf("I18nSet = false, want true")
+	}
+	if !opts.I18nEnabled {
+		t.Fatalf("I18nEnabled = false, want true")
+	}
+
+	opts, err = ParseNewArgs([]string{"demo", "--no-i18n"})
+	if err != nil {
+		t.Fatalf("ParseNewArgs returned error: %v", err)
+	}
+	if !opts.I18nSet {
+		t.Fatalf("I18nSet = false, want true")
+	}
+	if opts.I18nEnabled {
+		t.Fatalf("I18nEnabled = true, want false")
 	}
 }
 
@@ -127,5 +155,78 @@ func TestScaffoldNewProjectDryRun(t *testing.T) {
 	}
 	if _, err := os.Stat(opts.AppPath); !os.IsNotExist(err) {
 		t.Fatalf("expected no files in dry-run mode")
+	}
+}
+
+func TestScaffoldNewProjectI18nEnabled(t *testing.T) {
+	root := t.TempDir()
+	opts := NewProjectOptions{
+		Name:        "demo",
+		Module:      "example.com/demo",
+		AppPath:     filepath.Join(root, "demo"),
+		I18nEnabled: true,
+		I18nSet:     true,
+	}
+	if err := ScaffoldNewProject(opts, NewDeps{
+		ParseAgentPolicyBytes:      func(b []byte) (policies.AgentPolicy, error) { return policies.ParsePolicyBytes(b) },
+		RenderAgentPolicyArtifacts: policies.RenderPolicyArtifacts,
+		AgentPolicyFilePath:        policies.AgentPolicyFilePath,
+	}); err != nil {
+		t.Fatalf("ScaffoldNewProject failed: %v", err)
+	}
+
+	for _, p := range []string{
+		filepath.Join(opts.AppPath, "locales", "en.yaml"),
+		filepath.Join(opts.AppPath, "locales", "fr.yaml"),
+	} {
+		if _, err := os.Stat(p); err != nil {
+			t.Fatalf("expected file %s: %v", p, err)
+		}
+	}
+
+	containerBytes, err := os.ReadFile(filepath.Join(opts.AppPath, "app", "foundation", "container.go"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	container := string(containerBytes)
+	if !strings.Contains(container, "[]string{\"auth\", \"profile\", \"i18n\"}") {
+		t.Fatalf("expected i18n module enabled in starter container:\n%s", container)
+	}
+}
+
+func TestRunNewPromptsForI18nWhenInteractive(t *testing.T) {
+	root := t.TempDir()
+	prevWD, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(prevWD) })
+	if err := os.Chdir(root); err != nil {
+		t.Fatal(err)
+	}
+
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	if code := RunNew([]string{"demo"}, NewDeps{
+		Out:                        out,
+		Err:                        errOut,
+		ParseAgentPolicyBytes:      policies.ParsePolicyBytes,
+		RenderAgentPolicyArtifacts: policies.RenderPolicyArtifacts,
+		AgentPolicyFilePath:        policies.AgentPolicyFilePath,
+		IsInteractive:              func() bool { return true },
+		PromptI18nEnable:           func() (bool, error) { return true, nil },
+	}); code != 0 {
+		t.Fatalf("RunNew code = %d, stderr = %s", code, errOut.String())
+	}
+	if !strings.Contains(out.String(), "I18n enabled") {
+		t.Fatalf("stdout = %q, want i18n enabled hint", out.String())
+	}
+	for _, p := range []string{
+		filepath.Join(root, "demo", "locales", "en.yaml"),
+		filepath.Join(root, "demo", "locales", "fr.yaml"),
+	} {
+		if _, err := os.Stat(p); err != nil {
+			t.Fatalf("expected file %s: %v", p, err)
+		}
 	}
 }

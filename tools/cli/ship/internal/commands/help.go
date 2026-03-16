@@ -9,7 +9,7 @@ func PrintRootHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship - GoShip CLI")
 	fmt.Fprintln(w)
 	fmt.Fprintln(w, "Usage:")
-	fmt.Fprintln(w, "  ship new <app> [--module <module-path>] [--dry-run] [--force]")
+	fmt.Fprintln(w, "  ship new <app> [--module <module-path>] [--dry-run] [--force] [--i18n|--no-i18n]")
 	fmt.Fprintln(w, "  ship dev [web|worker|all] [--web|--worker|--all]")
 	fmt.Fprintln(w, "  ship check")
 	fmt.Fprintln(w, "  ship doctor [--json]")

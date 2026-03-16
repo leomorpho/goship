@@ -48,17 +48,27 @@ func IsInteractiveTerminal() bool {
 }
 
 func PromptOpenBrowser(url string) (bool, error) {
-	fmt.Printf("Open %s in your browser? [Y/n]: ", url)
+	return PromptYesNo(fmt.Sprintf("Open %s in your browser? [Y/n]: ", url), true)
+}
+
+func PromptYesNo(prompt string, defaultYes bool) (bool, error) {
+	fmt.Print(prompt)
 	reader := bufio.NewReader(os.Stdin)
 	line, err := reader.ReadString('\n')
 	if err != nil {
 		return false, err
 	}
 	answer := strings.ToLower(strings.TrimSpace(line))
-	if answer == "" || answer == "y" || answer == "yes" {
+	if answer == "" {
+		return defaultYes, nil
+	}
+	if answer == "y" || answer == "yes" {
 		return true, nil
 	}
-	return false, nil
+	if answer == "n" || answer == "no" {
+		return false, nil
+	}
+	return defaultYes, nil
 }
 
 func OpenBrowserURL(url string) error {
