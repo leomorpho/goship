@@ -59,6 +59,24 @@ func TestDetectLanguage_QueryParamWinsAndSetsCookie(t *testing.T) {
 	}
 }
 
+func TestDetectLanguage_NilServiceFallsBackToEnglish(t *testing.T) {
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	rec := httptest.NewRecorder()
+	ctx := e.NewContext(req, rec)
+
+	handler := DetectLanguage(nil, nil)(func(c echo.Context) error {
+		return c.NoContent(http.StatusNoContent)
+	})
+
+	if err := handler(ctx); err != nil {
+		t.Fatalf("handler returned error: %v", err)
+	}
+	if got := rec.Header().Get("Content-Language"); got != "en" {
+		t.Fatalf("content-language = %q, want en", got)
+	}
+}
+
 func testService(t *testing.T) *Service {
 	t.Helper()
 

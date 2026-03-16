@@ -171,6 +171,17 @@ func TestGetConfig_MailDriverAliasOverridesDefault(t *testing.T) {
 	assert.Equal(t, "smtp", cfg.Mail.Driver)
 }
 
+func TestGetConfig_I18nModeOverrides(t *testing.T) {
+	useIsolatedWorkingDir(t)
+	t.Setenv("PAGODA_I18N_ENABLED", "false")
+	t.Setenv("PAGODA_I18N_DEFAULT_LANGUAGE", "fr")
+
+	cfg, err := GetConfig()
+	require.NoError(t, err)
+	assert.False(t, cfg.I18n.Enabled)
+	assert.Equal(t, "fr", cfg.I18n.DefaultLanguage)
+}
+
 func TestGetConfig_LoadsOpenAIConfig(t *testing.T) {
 	useIsolatedWorkingDir(t)
 	t.Setenv("AI_DRIVER", "openai")

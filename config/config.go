@@ -99,6 +99,7 @@ type (
 		Managed     ManagedConfig
 		Processes   ProcessesConfig
 		Adapters    AdaptersConfig
+		I18n        I18nConfig
 		Cache       CacheConfig
 		Database    DatabaseConfig
 		Mail        MailConfig
@@ -151,6 +152,11 @@ type (
 		Cache  string `env:"PAGODA_ADAPTERS_CACHE,PAGODA_CACHE_DRIVER"`
 		Jobs   string `env:"PAGODA_ADAPTERS_JOBS,PAGODA_JOBS_DRIVER"`
 		PubSub string `env:"PAGODA_ADAPTERS_PUBSUB"`
+	}
+
+	I18nConfig struct {
+		Enabled         bool   `env:"PAGODA_I18N_ENABLED" env-default:"true"`
+		DefaultLanguage string `env:"PAGODA_I18N_DEFAULT_LANGUAGE" env-default:"en"`
 	}
 
 	// HTTPConfig stores HTTP configuration
@@ -624,6 +630,10 @@ func defaultConfig() Config {
 			Cache:  "otter",
 			Jobs:   "backlite",
 			PubSub: "inproc",
+		},
+		I18n: I18nConfig{
+			Enabled:         true,
+			DefaultLanguage: "en",
 		},
 		Cache: CacheConfig{
 			Hostname:     "localhost",

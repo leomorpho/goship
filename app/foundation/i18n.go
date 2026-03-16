@@ -9,9 +9,22 @@ import (
 )
 
 func (c *Container) initI18n() {
+	if c == nil || c.Config == nil {
+		return
+	}
+	if !c.Config.I18n.Enabled {
+		c.I18n = nil
+		return
+	}
+
+	defaultLanguage := c.Config.I18n.DefaultLanguage
+	if defaultLanguage == "" {
+		defaultLanguage = "en"
+	}
+
 	service, err := i18nmodule.NewService(i18nmodule.Options{
 		LocaleDir:       localeDir(),
-		DefaultLanguage: "en",
+		DefaultLanguage: defaultLanguage,
 	})
 	if err != nil {
 		panic(fmt.Sprintf("failed to initialize i18n service: %v", err))

@@ -173,6 +173,8 @@ Reflection-based administrative interface for managing database resources.
 - `modules/i18n` provides a locale service exposed through the `core.I18n` seam (`container.I18n`) and request middleware for language detection.
 - Language detection priority is: `?lang=<code>` query parameter, authenticated user preference resolver (when provided), `lang` cookie, `Accept-Language` header, then default locale (`en`).
 - Locale sources are YAML files in `locales/` with nested keys (for example `auth.login.title`).
+- Runtime toggle: `PAGODA_I18N_ENABLED=false` disables i18n service initialization (safe English fallback path, no startup panic).
+- Runtime default language is configurable via `PAGODA_I18N_DEFAULT_LANGUAGE`.
 - `ship make:locale <code>` scaffolds a new locale file from `locales/en.yaml`.
 - `ship i18n:init` bootstraps baseline locale files (`en`, `fr`) for apps that started without i18n and prints a deterministic migration command loop.
 - `ship i18n:scan --format json` emits deterministic diagnostics for hardcoded user-facing literals (`--paths`, `--limit` supported) without failing on findings.
