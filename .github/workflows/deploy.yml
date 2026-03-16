@@ -6,7 +6,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: webfactory/ssh-agent@v0.9.0
         with: { ssh-private-key: '${{ secrets.DEPLOY_KEY }}' }
       - run: gem install kamal
