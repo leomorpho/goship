@@ -86,6 +86,20 @@ Fully onboarded-only routes (`/auth` with onboarding guard):
 - `GET /auth/payments/pricing`
 - `GET /auth/payments/success`
 
+Admin routes (`/auth/admin`, admin role required):
+
+- `GET /auth/admin`
+- `GET /auth/admin/queues`
+- `GET /auth/admin/queues/*`
+- `GET /auth/admin/managed-settings`
+- `GET /auth/admin/audit-logs`
+- `GET /auth/admin/:resource`
+- `GET /auth/admin/:resource/new`
+- `POST /auth/admin/:resource`
+- `GET /auth/admin/:resource/:id`
+- `PUT /auth/admin/:resource/:id`
+- `DELETE /auth/admin/:resource/:id`
+
 ## Auth-Adjacent Routes
 
 - `GET /auth/2fa/verify`

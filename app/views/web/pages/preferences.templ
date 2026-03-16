@@ -23,6 +23,50 @@ templ Settings(page *controller.Page) {
 				@DisplayName(page)
 			</div>
 			@NotificationPermissions(page, data.NotificationPermissionsData)
+			<div data-component="managed-runtime-settings" class="space-y-3 rounded-2xl border border-slate-200 bg-white p-4">
+				<h2 class="text-xl font-semibold">Runtime setting control</h2>
+				if data.ManagedMode {
+					<p class="text-sm text-slate-600">
+						Managed mode is enabled.
+						if data.ManagedAuthority != "" {
+							<span> Authority: { data.ManagedAuthority }.</span>
+						}
+						<span> Managed keys are locked locally.</span>
+					</p>
+				} else {
+					<p class="text-sm text-slate-600">Standalone mode is enabled. Managed keys remain locally editable.</p>
+				}
+				<div class="overflow-x-auto">
+					<table class="min-w-full divide-y divide-slate-200 text-sm">
+						<thead>
+							<tr class="text-left text-slate-600">
+								<th class="px-2 py-2 font-medium">Setting</th>
+								<th class="px-2 py-2 font-medium">Value</th>
+								<th class="px-2 py-2 font-medium">State</th>
+								<th class="px-2 py-2 font-medium">Source</th>
+							</tr>
+						</thead>
+						<tbody class="divide-y divide-slate-100">
+							for _, setting := range data.ManagedSettings {
+								<tr>
+									<td class="px-2 py-2 font-medium text-slate-900">{ setting.Label }</td>
+									<td class="px-2 py-2 text-slate-700">{ setting.Value }</td>
+									<td class="px-2 py-2">
+										if setting.Access == "externally-managed" {
+											<span class="inline-flex rounded-full border border-sky-300 bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-700">externally managed</span>
+										} else if setting.Access == "read-only" {
+											<span class="inline-flex rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">read only</span>
+										} else {
+											<span class="inline-flex rounded-full border border-emerald-300 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">editable</span>
+										}
+									</td>
+									<td class="px-2 py-2 text-slate-700">{ setting.Source }</td>
+								</tr>
+							}
+						</tbody>
+					</table>
+				</div>
+			</div>
 			<div data-component="two-factor-settings" class="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
 				<h2 class="text-xl font-semibold">🔐 Two-factor authentication</h2>
 				<p class="text-sm text-slate-600">Add an authenticator app code to protect your account, and keep one-time backup codes for recovery.</p>

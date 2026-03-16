@@ -2,6 +2,7 @@ package admin
 
 import (
 	"context"
+	"database/sql"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -71,6 +72,21 @@ func TestAdminRoutes_AdminAuditLogs(t *testing.T) {
 	}
 }
 
+func TestAdminRoutes_AdminManagedSettings(t *testing.T) {
+	c := newContainerForAdminRoutes(t, true)
+
+	req := httptest.NewRequest(http.MethodGet, "/admin/managed-settings", nil)
+	rec := httptest.NewRecorder()
+	c.Web.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusOK)
+	}
+	if !strings.Contains(rec.Body.String(), "Managed Runtime Settings") {
+		t.Fatalf("body = %q, want managed settings heading", rec.Body.String())
+	}
+}
+
 func newContainerForAdminRoutes(t *testing.T, admin bool) *foundation.Container {
 	t.Helper()
 	if err := chdirRepoRoot(); err != nil {
@@ -78,6 +94,9 @@ func newContainerForAdminRoutes(t *testing.T, admin bool) *foundation.Container 
 	}
 	config.SwitchEnvironment(config.EnvTest)
 	c := foundation.NewContainer()
+	if err := ensureBackliteSchema(c.Database); err != nil {
+		t.Fatalf("ensure backlite schema: %v", err)
+	}
 	t.Cleanup(func() { _ = c.Shutdown() })
 
 	c.Web.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
@@ -98,6 +117,42 @@ func newContainerForAdminRoutes(t *testing.T, admin bool) *foundation.Container 
 		t.Fatalf("register routes: %v", err)
 	}
 	return c
+}
+
+func ensureBackliteSchema(db *sql.DB) error {
+	if db == nil {
+		return nil
+	}
+
+	schema := `
+CREATE TABLE IF NOT EXISTS backlite_tasks (
+    id text PRIMARY KEY,
+    created_at integer NOT NULL,
+    queue text NOT NULL,
+    task blob NOT NULL,
+    wait_until integer,
+    claimed_at integer,
+    last_executed_at integer,
+    attempts integer NOT NULL DEFAULT 0
+) STRICT;
+
+CREATE TABLE IF NOT EXISTS backlite_tasks_completed (
+    id text PRIMARY KEY NOT NULL,
+    created_at integer NOT NULL,
+    queue text NOT NULL,
+    last_executed_at integer,
+    attempts integer NOT NULL,
+    last_duration_micro integer,
+    succeeded integer,
+    task blob,
+    expires_at integer,
+    error text
+) STRICT;
+
+CREATE INDEX IF NOT EXISTS backlite_tasks_wait_until ON backlite_tasks (wait_until) WHERE wait_until IS NOT NULL;
+`
+	_, err := db.Exec(schema)
+	return err
 }
 
 func chdirRepoRoot() error {

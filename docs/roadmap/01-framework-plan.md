@@ -257,6 +257,12 @@ Boundary rules:
 3. provider deployment logic must not become a required part of app runtime;
 4. managed overrides must be explicit, allowlisted, and inspectable.
 
+Current managed settings UX contract:
+
+1. managed-capable settings expose explicit local access states (`editable`, `read-only`, `externally-managed`);
+2. settings surface (`/welcome/preferences`) shows effective value, source layer, and authority metadata;
+3. admin surface (`/auth/admin/managed-settings`) shows the same access-state model for operators.
+
 ### SQLite-To-Postgres Promotion Contract (v1)
 
 Promotion target:
@@ -302,11 +308,11 @@ Minimum framework tooling/hooks to expose:
 
 Framework follow-up for this boundary is tracked in:
 
-- `TKT-110` managed-mode config authority
-- `TKT-111` backup capability contract and S3-compatible providers
-- `TKT-112` managed-mode settings lock/read-only admin surfaces
+- `TKT-110` managed-mode config authority (done)
+- `TKT-111` backup capability contract and S3-compatible providers (done)
+- `TKT-112` managed-mode settings lock/read-only admin surfaces (done)
 - `TKT-113` signed managed hooks for backup, restore, and runtime status
-- `TKT-114` SQLite-first promotion path to Postgres
+- `TKT-114` SQLite-first promotion path to Postgres (done)
 
 ## Documentation Quality Initiative
 

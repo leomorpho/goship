@@ -2,26 +2,27 @@ package controllers
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/app/web/routenames"
-	routeNames "github.com/leomorpho/goship/app/web/routenames"
-	"github.com/leomorpho/goship/app/web/ui"
-	"github.com/leomorpho/goship/framework/context"
-	"github.com/leomorpho/goship/framework/domain"
-	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
-
-	"github.com/leomorpho/goship-modules/notifications"
-	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/app/views"
 	"github.com/leomorpho/goship/app/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/views/web/pages/gen"
+	"github.com/leomorpho/goship/app/web/routenames"
+	routeNames "github.com/leomorpho/goship/app/web/routenames"
+	"github.com/leomorpho/goship/app/web/ui"
 	viewmodels "github.com/leomorpho/goship/app/web/viewmodels"
-	profilesvc "github.com/leomorpho/goship/modules/profile"
-	"log/slog"
-	)
+	"github.com/leomorpho/goship/config"
+	"github.com/leomorpho/goship/framework/context"
+	"github.com/leomorpho/goship/framework/domain"
+	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
+	"github.com/leomorpho/goship/framework/runtimeconfig"
 
+	"github.com/leomorpho/goship-modules/notifications"
+	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
+	profilesvc "github.com/leomorpho/goship/modules/profile"
+)
 
 type (
 	profilePrefsRoute struct {
@@ -248,12 +249,34 @@ func (g *preferences) getCurrPreferencesData(ctx echo.Context) (viewmodels.Prefe
 	data.ActiveSubscriptionPlanKey = activePlanKey
 	data.ActiveSubscriptionPlanIsPaid = isPaidPlanKey(activePlanKey)
 	data.IsTrial = isTrial
+	data.ManagedMode = g.ctr.Container.Config.Managed.RuntimeReport.Mode == runtimeconfig.ModeManaged
+	data.ManagedAuthority = g.ctr.Container.Config.Managed.RuntimeReport.Authority
+	data.ManagedSettings = managedSettingsViewData(g.ctr.Container.Config)
 
 	if subscriptionExpiredOn != nil {
 		data.HasMonthlySubscriptionExpiry = true
 		data.MonthlySybscriptionExpiration = subscriptionExpiredOn.Format("2006-01-02T15:04:05.999999999Z07:00")
 	}
 	return data, nil
+}
+
+func managedSettingsViewData(cfg *config.Config) []viewmodels.ManagedSettingControl {
+	if cfg == nil {
+		return []viewmodels.ManagedSettingControl{}
+	}
+
+	statuses := cfg.ManagedSettingStatuses()
+	controls := make([]viewmodels.ManagedSettingControl, 0, len(statuses))
+	for _, status := range statuses {
+		control := viewmodels.NewManagedSettingControl()
+		control.Key = status.Key
+		control.Label = status.Label
+		control.Value = status.Value
+		control.Source = string(status.Source)
+		control.Access = string(status.Access)
+		controls = append(controls, control)
+	}
+	return controls
 }
 
 func (p *preferences) GetPhoneComponent(ctx echo.Context) error {

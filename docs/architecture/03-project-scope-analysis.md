@@ -51,6 +51,10 @@ Key implementation choices:
 - Profile page in `profile.go`
 - Mark onboarding completion (`/welcome/finish-onboarding`)
 - Profile photo and gallery image routes (`profile_photo.go`, `upload_photo.go`)
+- Preferences now include a runtime settings control panel that surfaces managed-capable keys with explicit state:
+  - `editable` (standalone mode)
+  - `read-only` (managed mode, locally locked)
+  - `externally-managed` (managed override applied)
 
 ## 3) Payments and Subscription Lifecycle
 
@@ -143,6 +147,7 @@ Reflection-based administrative interface for managing database resources.
 
 - Resource registration and CRUD operations for Bob-generated models.
 - Embedded Backlite queue monitoring.
+- Managed settings status page at `/auth/admin/managed-settings` for operator visibility into effective value/source/access state.
 - Built-in Templ components for common admin UI patterns.
 
 ## Environments and Configuration
@@ -161,6 +166,7 @@ Runtime DB metadata contract:
 
 - `config.Config.RuntimeMetadata()` now provides a normalized DB metadata snapshot for status/reporting surfaces.
 - Metadata includes DB mode/driver, migration tracking table, portability profile, and SQLite-to-Postgres compatibility path (`sqlite-to-postgres-manual-v1`).
+- `config.Config.ManagedSettingStatuses()` provides normalized managed-setting access states for settings/admin surfaces.
 
 Security baseline:
 

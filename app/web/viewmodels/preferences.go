@@ -6,6 +6,14 @@ import (
 )
 
 type (
+	ManagedSettingControl struct {
+		Key    string
+		Label  string
+		Value  string
+		Source string
+		Access string
+	}
+
 	PreferencesData struct {
 		// Form data
 		Bio                     string
@@ -25,6 +33,9 @@ type (
 		HasMonthlySubscriptionExpiry  bool
 		MonthlySybscriptionExpiration string
 		TwoFactorEnabled              bool
+		ManagedMode                   bool
+		ManagedAuthority              string
+		ManagedSettings               []ManagedSettingControl
 
 		NotificationPermissionsData NotificationPermissionsData
 	}

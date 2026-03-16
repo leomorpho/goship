@@ -30,6 +30,7 @@ func registerRoutes(r core.Router, controller ui.Controller, db *sql.DB, auditLo
 	g.GET("", h.Index)
 	g.GET("/queues", h.Queues)
 	g.GET("/queues/*", h.Queues)
+	g.GET("/managed-settings", h.ManagedSettings)
 	g.GET("/audit-logs", h.AuditLogs)
 	g.GET("/:resource", h.List)
 	g.GET("/:resource/new", h.New)
@@ -42,10 +43,38 @@ func registerRoutes(r core.Router, controller ui.Controller, db *sql.DB, auditLo
 
 func (r *routes) Index(ctx echo.Context) error {
 	resources := RegisteredResources()
-	if len(resources) == 0 {
-		return echo.NewHTTPError(http.StatusNotFound, "no admin resources registered")
+	if len(resources) == 0 || resources[0].PluralName == "" {
+		return ctx.Redirect(http.StatusFound, "/admin/managed-settings")
 	}
 	return ctx.Redirect(http.StatusFound, "/admin/"+strings.ToLower(resources[0].PluralName))
+}
+
+func (r *routes) ManagedSettings(ctx echo.Context) error {
+	statuses := r.controller.Container.Config.ManagedSettingStatuses()
+	report := r.controller.Container.Config.Managed.RuntimeReport
+
+	var b strings.Builder
+	b.WriteString("<html><body><h1>Admin - Managed Runtime Settings</h1>")
+	if strings.EqualFold(string(report.Mode), "managed") {
+		b.WriteString("<p>Managed mode: enabled")
+		if strings.TrimSpace(report.Authority) != "" {
+			b.WriteString(" (authority: " + html.EscapeString(report.Authority) + ")")
+		}
+		b.WriteString("</p>")
+	} else {
+		b.WriteString("<p>Managed mode: disabled (standalone)</p>")
+	}
+	b.WriteString("<table><thead><tr><th>Setting</th><th>Value</th><th>State</th><th>Source</th></tr></thead><tbody>")
+	for _, status := range statuses {
+		b.WriteString("<tr>")
+		b.WriteString("<td>" + html.EscapeString(status.Label) + "</td>")
+		b.WriteString("<td>" + html.EscapeString(status.Value) + "</td>")
+		b.WriteString("<td>" + html.EscapeString(string(status.Access)) + "</td>")
+		b.WriteString("<td>" + html.EscapeString(string(status.Source)) + "</td>")
+		b.WriteString("</tr>")
+	}
+	b.WriteString("</tbody></table></body></html>")
+	return ctx.HTML(http.StatusOK, b.String())
 }
 
 func (r *routes) AuditLogs(ctx echo.Context) error {
@@ -74,6 +103,7 @@ func (r *routes) AuditLogs(ctx echo.Context) error {
 
 	var b strings.Builder
 	b.WriteString("<html><body><h1>Admin - Audit Logs</h1>")
+	b.WriteString(`<p><a href="/admin/managed-settings">Managed settings</a></p>`)
 	b.WriteString(`<form method="get" action="/admin/audit-logs">`)
 	b.WriteString(`User <input name="user_id" value="` + html.EscapeString(ctx.QueryParam("user_id")) + `">`)
 	b.WriteString(` Action <input name="action" value="` + html.EscapeString(filters.Action) + `">`)
@@ -121,6 +151,7 @@ func (r *routes) List(ctx echo.Context) error {
 	b.WriteString(res.PluralName)
 	b.WriteString("</h1>")
 	b.WriteString(`<a href="/admin/` + strings.ToLower(res.PluralName) + `/new">Add new</a>`)
+	b.WriteString(` | <a href="/admin/managed-settings">Managed settings</a>`)
 	b.WriteString("<ul>")
 	for _, row := range rows {
 		id := fmt.Sprint(row[res.IDField])

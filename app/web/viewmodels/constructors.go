@@ -128,7 +128,13 @@ func NewPricingPageData() PricingPageData {
 }
 
 func NewPreferencesData() PreferencesData {
-	return PreferencesData{}
+	return PreferencesData{
+		ManagedSettings: []ManagedSettingControl{},
+	}
+}
+
+func NewManagedSettingControl() ManagedSettingControl {
+	return ManagedSettingControl{}
 }
 
 func NewDeleteAccountData() *DeleteAccountData {

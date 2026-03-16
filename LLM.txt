@@ -826,6 +826,10 @@ Key implementation choices:
 - Profile page in `profile.go`
 - Mark onboarding completion (`/welcome/finish-onboarding`)
 - Profile photo and gallery image routes (`profile_photo.go`, `upload_photo.go`)
+- Preferences now include a runtime settings control panel that surfaces managed-capable keys with explicit state:
+  - `editable` (standalone mode)
+  - `read-only` (managed mode, locally locked)
+  - `externally-managed` (managed override applied)
 
 ## 3) Payments and Subscription Lifecycle
 
@@ -918,6 +922,7 @@ Reflection-based administrative interface for managing database resources.
 
 - Resource registration and CRUD operations for Bob-generated models.
 - Embedded Backlite queue monitoring.
+- Managed settings status page at `/auth/admin/managed-settings` for operator visibility into effective value/source/access state.
 - Built-in Templ components for common admin UI patterns.
 
 ## Environments and Configuration
@@ -936,6 +941,7 @@ Runtime DB metadata contract:
 
 - `config.Config.RuntimeMetadata()` now provides a normalized DB metadata snapshot for status/reporting surfaces.
 - Metadata includes DB mode/driver, migration tracking table, portability profile, and SQLite-to-Postgres compatibility path (`sqlite-to-postgres-manual-v1`).
+- `config.Config.ManagedSettingStatuses()` provides normalized managed-setting access states for settings/admin surfaces.
 
 Security baseline:
 
@@ -1054,6 +1060,20 @@ Fully onboarded-only routes (`/auth` with onboarding guard):
 - `POST /auth/payments/create-portal-session`
 - `GET /auth/payments/pricing`
 - `GET /auth/payments/success`
+
+Admin routes (`/auth/admin`, admin role required):
+
+- `GET /auth/admin`
+- `GET /auth/admin/queues`
+- `GET /auth/admin/queues/*`
+- `GET /auth/admin/managed-settings`
+- `GET /auth/admin/audit-logs`
+- `GET /auth/admin/:resource`
+- `GET /auth/admin/:resource/new`
+- `POST /auth/admin/:resource`
+- `GET /auth/admin/:resource/:id`
+- `PUT /auth/admin/:resource/:id`
+- `DELETE /auth/admin/:resource/:id`
 
 ## Auth-Adjacent Routes
 
@@ -3392,6 +3412,12 @@ Boundary rules:
 3. provider deployment logic must not become a required part of app runtime;
 4. managed overrides must be explicit, allowlisted, and inspectable.
 
+Current managed settings UX contract:
+
+1. managed-capable settings expose explicit local access states (`editable`, `read-only`, `externally-managed`);
+2. settings surface (`/welcome/preferences`) shows effective value, source layer, and authority metadata;
+3. admin surface (`/auth/admin/managed-settings`) shows the same access-state model for operators.
+
 ### SQLite-To-Postgres Promotion Contract (v1)
 
 Promotion target:
@@ -3437,11 +3463,11 @@ Minimum framework tooling/hooks to expose:
 
 Framework follow-up for this boundary is tracked in:
 
-- `TKT-110` managed-mode config authority
-- `TKT-111` backup capability contract and S3-compatible providers
-- `TKT-112` managed-mode settings lock/read-only admin surfaces
+- `TKT-110` managed-mode config authority (done)
+- `TKT-111` backup capability contract and S3-compatible providers (done)
+- `TKT-112` managed-mode settings lock/read-only admin surfaces (done)
 - `TKT-113` signed managed hooks for backup, restore, and runtime status
-- `TKT-114` SQLite-first promotion path to Postgres
+- `TKT-114` SQLite-first promotion path to Postgres (done)
 
 ## Documentation Quality Initiative
 
