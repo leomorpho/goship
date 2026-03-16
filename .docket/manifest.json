@@ -398,17 +398,17 @@
     },
     "TKT-080": {
       "title": "M06 T03 - Security headers middleware",
-      "state": "in-progress",
+      "state": "done",
       "priority": 5
     },
     "TKT-081": {
       "title": "M06 T04 - Expand health check endpoint",
-      "state": "in-progress",
+      "state": "done",
       "priority": 5
     },
     "TKT-082": {
       "title": "M06 U01 - Email provider interface and adapters",
-      "state": "in-progress",
+      "state": "done",
       "priority": 5
     },
     "TKT-083": {
@@ -513,7 +513,7 @@
     },
     "TKT-103": {
       "title": "M08 T02 - Write Style Guide",
-      "state": "todo",
+      "state": "done",
       "priority": 7
     },
     "TKT-104": {
@@ -523,17 +523,17 @@
     },
     "TKT-105": {
       "title": "M08 T06 - Apply `data-component` to Templ Component Roots",
-      "state": "todo",
+      "state": "done",
       "priority": 7
     },
     "TKT-106": {
       "title": "M08 T08 - Apply `data-slot` and `data-action` to Components",
-      "state": "todo",
+      "state": "done",
       "priority": 7
     },
     "TKT-107": {
       "title": "M08 T10 - Add Inline Visual Comments to Templ Functions",
-      "state": "todo",
+      "state": "done",
       "priority": 7
     },
     "TKT-108": {
@@ -573,7 +573,7 @@
     },
     "TKT-115": {
       "title": "Deprecate lecho and zerolog in favor of slog",
-      "state": "backlog",
+      "state": "done",
       "priority": 6
     },
     "TKT-143": {
@@ -640,6 +640,88 @@
       "title": "Strict CI profile for i18n-enabled apps",
       "state": "done",
       "priority": 5
+    },
+    "TKT-156": {
+      "title": "Doctor Zero-Failure Baseline EPIC",
+      "state": "todo",
+      "priority": 1
+    },
+    "TKT-157": {
+      "title": "Doctor Warning Burn-Down EPIC (DX027 + DX010)",
+      "state": "todo",
+      "priority": 4
+    },
+    "TKT-158": {
+      "title": "DX021: Extract inline SQL out of modules/admin/routes.go into store/query layer",
+      "state": "done",
+      "priority": 1,
+      "parent": "TKT-156"
+    },
+    "TKT-159": {
+      "title": "DX023: Make Renders/Route comment detection block-aware (order-agnostic)",
+      "state": "done",
+      "priority": 1,
+      "parent": "TKT-156"
+    },
+    "TKT-160": {
+      "title": "DX023 tests: add regression matrix for templ comment permutations",
+      "state": "done",
+      "priority": 2,
+      "parent": "TKT-156"
+    },
+    "TKT-161": {
+      "title": "DX013: Resolve top-level tmp policy mismatch with dev tooling",
+      "state": "done",
+      "priority": 1,
+      "parent": "TKT-156"
+    },
+    "TKT-162": {
+      "title": "Docs: publish canonical doctor policy for templ comments and tmp artifacts",
+      "state": "todo",
+      "priority": 3,
+      "parent": "TKT-156"
+    },
+    "TKT-163": {
+      "title": "DX027: migrate contact controller Bind payload to app/contracts type",
+      "state": "done",
+      "priority": 4,
+      "parent": "TKT-157"
+    },
+    "TKT-164": {
+      "title": "DX027: migrate email_subscribe controller Bind payload to app/contracts type",
+      "state": "done",
+      "priority": 4,
+      "parent": "TKT-157"
+    },
+    "TKT-165": {
+      "title": "DX027: migrate managed_hooks API request binding to app/contracts types",
+      "state": "done",
+      "priority": 4,
+      "parent": "TKT-157"
+    },
+    "TKT-166": {
+      "title": "DX027: migrate preferences controller Bind payloads to app/contracts types",
+      "state": "done",
+      "priority": 4,
+      "parent": "TKT-157"
+    },
+    "TKT-167": {
+      "title": "DX010: split doctor policy engine file by responsibility",
+      "state": "todo",
+      "priority": 5,
+      "parent": "TKT-157"
+    },
+    "TKT-168": {
+      "title": "DX010: split MCP ship server tools.go by tool domain",
+      "state": "todo",
+      "priority": 6,
+      "parent": "TKT-157"
+    },
+    "TKT-169": {
+      "title": "DX010: decompose config/config.go into modular config packages",
+      "state": "todo",
+      "priority": 6,
+      "parent": "TKT-157"
     }
   }
 }
