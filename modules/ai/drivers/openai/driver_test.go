@@ -117,3 +117,8 @@ func TestOpenAIDriverStream(t *testing.T) {
 	require.Equal(t, []string{"hel", "lo"}, parts)
 	require.True(t, done)
 }
+
+func TestNewWithConfig_DefaultModelFallback(t *testing.T) {
+	driver := NewWithConfig(openai.DefaultConfig("test-key"), "")
+	require.Equal(t, ai.GPT4oMini, driver.DefaultModel)
+}

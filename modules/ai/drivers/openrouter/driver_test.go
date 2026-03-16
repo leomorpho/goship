@@ -93,3 +93,32 @@ func TestOpenRouterDriverRequestBodyUsesProvidedModel(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, ai.ORGPTo4Mini, body["model"])
 }
+
+func TestOpenRouterDriverOmitsAttributionHeadersWhenBlankAndUsesDefaultModel(t *testing.T) {
+	var (
+		body        map[string]any
+		refererSeen string
+		titleSeen   string
+	)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		refererSeen = r.Header.Get("HTTP-Referer")
+		titleSeen = r.Header.Get("X-Title")
+		require.NoError(t, json.NewDecoder(r.Body).Decode(&body))
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = io.WriteString(w, `{"id":"chatcmpl-1","object":"chat.completion","created":1,"model":"anthropic/claude-haiku-4-5-20251001","choices":[{"index":0,"message":{"role":"assistant","content":"ok"},"finish_reason":"stop"}],"usage":{"prompt_tokens":1,"completion_tokens":1,"total_tokens":2}}`)
+	}))
+	defer server.Close()
+
+	config := openai.DefaultConfig("test-key")
+	config.BaseURL = server.URL + "/api/v1"
+	driver := New("test-key", "", " ", " ")
+	driver.Client = openai.NewClientWithConfig(config)
+
+	_, err := driver.Complete(context.Background(), ai.Request{
+		Messages: []ai.Message{{Role: "user", Content: "ping"}},
+	})
+	require.NoError(t, err)
+	require.Equal(t, "", refererSeen)
+	require.Equal(t, "", titleSeen)
+	require.Equal(t, ai.ORClaudeHaiku4, body["model"])
+}
