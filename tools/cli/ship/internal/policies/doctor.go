@@ -330,10 +330,6 @@ func checkI18nLiteralEnforcement(root string) []DoctorIssue {
 			Severity: "error",
 		}}
 	}
-	if len(findings) == 0 {
-		return nil
-	}
-
 	allowlist := loadI18nStrictAllowlist(filepath.Join(root, ".i18n-allowlist"))
 	severity := "warning"
 	if mode == "error" {
@@ -354,6 +350,29 @@ func checkI18nLiteralEnforcement(root string) []DoctorIssue {
 			Message:  fmt.Sprintf("i18n literal %s:%d:%d (%s)", finding.File, finding.Line, finding.Column, finding.ID),
 			Fix:      "replace with i18n key usage or add the issue ID/path:line to .i18n-allowlist",
 			File:     finding.File,
+			Severity: severity,
+		})
+	}
+
+	completenessIssues, err := collectI18nCompletenessIssues(root)
+	if err != nil {
+		issues = append(issues, DoctorIssue{
+			Code:     "DX029",
+			Message:  fmt.Sprintf("i18n completeness check failed: %v", err),
+			Fix:      "fix locale catalog parse issues before enabling strict mode",
+			Severity: "error",
+		})
+		return issues
+	}
+	for _, issue := range completenessIssues {
+		if _, ok := allowlist[issue.ID]; ok {
+			continue
+		}
+		issues = append(issues, DoctorIssue{
+			Code:     "DX029",
+			Message:  fmt.Sprintf("i18n completeness %s %s (%s)", issue.Locale, issue.Kind, issue.ID),
+			Fix:      "add required plural/select fallback keys or allowlist the issue ID in .i18n-allowlist",
+			File:     issue.File,
 			Severity: severity,
 		})
 	}

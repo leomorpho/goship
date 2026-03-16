@@ -211,6 +211,72 @@ func registerAuthRoutes() {
 		mustNotContainIssueCode(t, issues, "DX029")
 	})
 
+	t.Run("i18n strict mode warn surfaces plural/select completeness findings", func(t *testing.T) {
+		root := t.TempDir()
+		writeDoctorFixture(t, root)
+		if err := os.WriteFile(filepath.Join(root, ".env"), []byte("PAGODA_I18N_STRICT_MODE=warn\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.MkdirAll(filepath.Join(root, "locales"), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(root, "locales", "en.toml"), []byte(`"cart.items.one" = "{{.Count}} item"`+"\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		controllerPath := filepath.Join(root, "app", "web", "controllers", "sample.go")
+		controllerBody := "package controllers\nfunc demo() string {\n\t_ = container.I18n.TC(ctx, \"cart.items\", 2)\n\treturn \"\"\n}\n"
+		if err := os.WriteFile(controllerPath, []byte(controllerBody), 0o644); err != nil {
+			t.Fatal(err)
+		}
+
+		issues := RunDoctorChecks(root)
+		found := false
+		for _, issue := range issues {
+			if issue.Code == "DX029" && strings.Contains(issue.Message, "plural_missing_other") {
+				found = true
+				if issue.Severity != "warning" {
+					t.Fatalf("expected warning severity for completeness finding, got %+v", issue)
+				}
+			}
+		}
+		if !found {
+			t.Fatalf("expected DX029 plural completeness finding, issues=%+v", issues)
+		}
+	})
+
+	t.Run("i18n strict mode error blocks on completeness findings", func(t *testing.T) {
+		root := t.TempDir()
+		writeDoctorFixture(t, root)
+		if err := os.WriteFile(filepath.Join(root, ".env"), []byte("PAGODA_I18N_STRICT_MODE=error\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.MkdirAll(filepath.Join(root, "locales"), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(root, "locales", "en.toml"), []byte(`"profile.role.admin" = "Administrator"`+"\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		controllerPath := filepath.Join(root, "app", "web", "controllers", "sample.go")
+		controllerBody := "package controllers\nfunc demo() string {\n\t_ = container.I18n.TS(ctx, \"profile.role\", \"admin\")\n\treturn \"\"\n}\n"
+		if err := os.WriteFile(controllerPath, []byte(controllerBody), 0o644); err != nil {
+			t.Fatal(err)
+		}
+
+		issues := RunDoctorChecks(root)
+		found := false
+		for _, issue := range issues {
+			if issue.Code == "DX029" && strings.Contains(issue.Message, "select_missing_other") {
+				found = true
+				if issue.Severity != "error" {
+					t.Fatalf("expected error severity for completeness finding, got %+v", issue)
+				}
+			}
+		}
+		if !found {
+			t.Fatalf("expected DX029 select completeness finding, issues=%+v", issues)
+		}
+	})
+
 	t.Run("renders comment suppresses warning", func(t *testing.T) {
 		root := t.TempDir()
 		writeDoctorFixture(t, root)

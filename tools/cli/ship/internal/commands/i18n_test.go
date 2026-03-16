@@ -54,6 +54,50 @@ auth:
 	}
 }
 
+func TestRunI18nMissingIncludesPluralSelectCompletenessDiagnostics(t *testing.T) {
+	root := t.TempDir()
+	writeI18nFixture(t, root, map[string]string{
+		"locales/en.toml": `
+"cart.items.one" = "{{.Count}} item"
+"profile.role.admin" = "Administrator"
+`,
+		"app/web/controllers/sample.go": `package controllers
+func demo() string {
+	_ = container.I18n.TC(ctx, "cart.items", 2)
+	_ = container.I18n.TS(ctx, "profile.role", "admin")
+	return ""
+}
+`,
+		"go.mod": "module example.com/i18n-test\n\ngo 1.25\n",
+	})
+
+	prevWD, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(prevWD) })
+	if err := os.Chdir(root); err != nil {
+		t.Fatal(err)
+	}
+
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	code := RunI18n([]string{"missing"}, I18nDeps{
+		Out:          out,
+		Err:          errOut,
+		FindGoModule: findI18nGoModule,
+	})
+	if code != 0 {
+		t.Fatalf("code = %d, stderr = %s", code, errOut.String())
+	}
+	if !strings.Contains(out.String(), "en: cart.items (plural_missing_other)") {
+		t.Fatalf("stdout = %q, want plural completeness issue", out.String())
+	}
+	if !strings.Contains(out.String(), "en: profile.role (select_missing_other)") {
+		t.Fatalf("stdout = %q, want select completeness issue", out.String())
+	}
+}
+
 func TestRunI18nUnused(t *testing.T) {
 	root := t.TempDir()
 	writeI18nFixture(t, root, map[string]string{

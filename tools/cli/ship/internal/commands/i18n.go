@@ -195,6 +195,16 @@ func runI18nMissing(d I18nDeps, root string) int {
 		}
 	}
 
+	completenessIssues, err := CollectI18nCompletenessIssues(root)
+	if err != nil {
+		fmt.Fprintf(d.Err, "i18n:missing failed to evaluate plural/select completeness: %v\n", err)
+		return 1
+	}
+	for _, issue := range completenessIssues {
+		lines = append(lines, fmt.Sprintf("%s: %s (%s)", issue.Locale, issue.BaseKey, issue.Kind))
+	}
+	sort.Strings(lines)
+
 	if len(lines) == 0 {
 		fmt.Fprintln(d.Out, "All locale keys are translated.")
 		return 0
