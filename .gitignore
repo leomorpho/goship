@@ -2,6 +2,7 @@
 .idea
 .local/
 .cache/
+.worktrees/
 *.test
 /tmp/
 /frontend/vite.config.ts.timestamp-*.mjs

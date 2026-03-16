@@ -163,7 +163,7 @@ func defaultDescribeJSON(root string) (string, error) {
 	var errOut bytes.Buffer
 	var exitCode int
 	if err := withWorkingDir(root, func() error {
-		exitCode = RunDescribe([]string{"--json"}, DescribeDeps{
+		exitCode = RunDescribe([]string{}, DescribeDeps{
 			Out: &out,
 			Err: &errOut,
 			FindGoModule: func(start string) (string, string, error) {
