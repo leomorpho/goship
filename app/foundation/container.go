@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 	"log/slog"
-	"os"
 	"strings"
 
 	_ "github.com/jackc/pgx/v4/stdlib"
@@ -25,8 +24,8 @@ import (
 	eventtypes "github.com/leomorpho/goship/framework/events/types"
 	"github.com/leomorpho/goship/framework/logging"
 	"github.com/leomorpho/goship/framework/repos/mailer"
-	"github.com/leomorpho/goship/framework/sse"
 	pubsubrepo "github.com/leomorpho/goship/framework/repos/pubsub"
+	"github.com/leomorpho/goship/framework/sse"
 	"github.com/leomorpho/goship/modules/ai"
 	"github.com/leomorpho/goship/modules/auditlog"
 )
@@ -339,25 +338,6 @@ func (c *Container) initDatabase() {
 			panic(fmt.Sprintf("failed to enable pgvector: %v", err))
 		}
 	}
-}
-
-// openEmbeddedDB opens a database connection
-func openEmbeddedDB(driver, connection string) (*sql.DB, error) {
-	// Helper to automatically create the directories that the specified sqlite file
-	// should reside in, if one
-	if isSQLiteDriver(driver) {
-		d := strings.Split(connection, "/")
-
-		if len(d) > 1 {
-			path := strings.Join(d[:len(d)-1], "/")
-
-			if err := os.MkdirAll(path, 0755); err != nil {
-				return nil, err
-			}
-		}
-	}
-
-	return sql.Open(driver, connection)
 }
 
 // initSchema runs DB migrations for the app.

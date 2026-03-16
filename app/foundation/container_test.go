@@ -40,6 +40,11 @@ func TestNewContainer(t *testing.T) {
 	assert.NotEmpty(t, c.Adapters.Selection.Cache)
 	assert.NotEmpty(t, c.Adapters.Selection.Jobs)
 	assert.NotEmpty(t, c.Adapters.Selection.PubSub)
+	_, err := c.Database.Exec(`
+		INSERT INTO users (id, created_at, updated_at, name, email, password, verified)
+		VALUES (1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'tester', 'tester@example.com', 'password', 1)
+	`)
+	require.NoError(t, err)
 	assert.NoError(t, c.EventBus.Publish(context.Background(), types.UserLoggedIn{UserID: 1}))
 }
 
