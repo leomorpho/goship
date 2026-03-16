@@ -2,18 +2,19 @@ package middleware
 
 import (
 	"bytes"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
 	"github.com/labstack/echo/v4"
-	"github.com/ziflex/lecho/v3"
+	frameworklogging "github.com/leomorpho/goship/framework/logging"
 )
 
 func TestRecoverPanics_LogsAndKeepsServerAlive(t *testing.T) {
 	logOut := &bytes.Buffer{}
-	logger := lecho.New(logOut)
+	logger := frameworklogging.NewEchoLogger(slog.New(slog.NewJSONHandler(logOut, nil)))
 
 	e := echo.New()
 	e.Logger = logger

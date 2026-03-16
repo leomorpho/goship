@@ -35,13 +35,11 @@ require (
 	github.com/nyaruka/phonenumbers v1.3.4
 	github.com/orsinium-labs/enum v1.3.0
 	github.com/resend/resend-go/v2 v2.5.0
-	github.com/rs/zerolog v1.34.0
 	github.com/samber/slog-echo v1.12.1
 	github.com/stretchr/testify v1.11.1
 	github.com/stripe/stripe-go/v78 v78.6.0
 	github.com/testcontainers/testcontainers-go v0.29.1
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.29.1
-	github.com/ziflex/lecho/v3 v3.10.0
 	golang.org/x/crypto v0.45.0
 	golang.org/x/exp v0.0.0-20251023183803-a4bb9ffd2546
 	modernc.org/sqlite v1.46.1

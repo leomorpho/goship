@@ -35,7 +35,7 @@ Mark `[x]` before starting any dependent task.
 | Framework middleware | `app/web/middleware/` — existing middleware lives here |
 | App controllers | `app/web/controllers/` |
 | App views | `app/views/` |
-| Zerolog | Already wired: `container.go` uses `zerolog` + `lecho`. Container has `c.Logger *lecho.Logger`. Any T02 slog work must account for this existing setup. |
+| Logging stack | `framework/logging` is canonical: `slog` logger + Echo adapter (`app/foundation/container.go` wires `c.Logger`/`c.Web.Logger`). |
 | Templ generate | `make templ-gen` |
 | Test commands | `make test` (unit, no Docker), `make test-integration` (Docker), `make e2e` (Playwright) |
 | Procfile.dev | Check if it already exists at repo root before creating |
@@ -224,12 +224,12 @@ All pragma settings are applied on connection open. Test passes.
 
 ### T02 — Integrate `slog` structured logging into framework
 
-**Status:** `[ ] todo`
+**Status:** `[x] done`
 **Depends on:** nothing (parallel)
 **Files:** `framework/logging/` (new package), `framework/middleware/logging.go` (update),
 `app/foundation/container.go` (wire logger), `config/config.go` (log level config)
 
-**Context:** GoShip currently uses **zerolog** via `lecho` (not bare `log`). `app/foundation/container.go` initializes `c.Logger *lecho.Logger` using `zerolog.New(os.Stdout)` and stores it on `c.Web.Logger`. The router also creates a `slog.NewJSONHandler` logger directly in `BuildRouter`. Before implementing this task, read `app/foundation/container.go` and `app/router.go` to see exactly what's already wired. The task is to unify this under a single `slog`-based approach — but the existing zerolog setup must be accounted for, not blindly overwritten. Consider whether the goal is to replace zerolog with slog or wrap it. The Container already has a `Logger` field — update it rather than adding a duplicate.
+**Context:** Completed: GoShip now uses `framework/logging` + `slog` as the primary structured logging path. Legacy `lecho` and direct `zerolog` dependencies were removed from app/runtime imports.
 
 **Logger setup:**
 ```go
