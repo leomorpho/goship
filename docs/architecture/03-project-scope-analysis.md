@@ -176,7 +176,7 @@ Reflection-based administrative interface for managing database resources.
 - Canonical locale sources are TOML files in `locales/` (`*.toml`, dotted keys such as `auth.login.title`); runtime still dual-reads YAML during migration windows.
 - Runtime toggle: `PAGODA_I18N_ENABLED=false` disables i18n service initialization (safe English fallback path, no startup panic).
 - Runtime default language is configurable via `PAGODA_I18N_DEFAULT_LANGUAGE`.
-- Runtime enforcement mode is configurable via `PAGODA_I18N_STRICT_MODE=off|warn|error` and consumed by `ship doctor` (`DX029`), with optional `.i18n-allowlist`.
+- Runtime enforcement mode is configurable via `PAGODA_I18N_STRICT_MODE=off|warn|error` and consumed by `ship doctor` (`DX029`), with optional `.i18n-allowlist` (stable `I18N-S-*` selectors preferred; legacy `path:line` compatibility retained).
 - Canonical coverage scope, exclusions, and command-to-enforcement mapping are documented in `docs/guides/10-i18n-llm-migration-workflow.md`.
 - `ship make:locale <code>` scaffolds a new locale file from `locales/en.toml` (falls back to legacy YAML source when migrating).
 - `ship i18n:init` bootstraps baseline locale files (`en.toml`, `fr.toml`) for apps that started without i18n and prints a deterministic migration command loop.

@@ -2,6 +2,8 @@ package policies
 
 import (
 	"bufio"
+	"crypto/sha1"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -342,13 +344,16 @@ func checkI18nLiteralEnforcement(root string) []DoctorIssue {
 		if _, ok := allowlist[finding.ID]; ok {
 			continue
 		}
+		if _, ok := allowlist[finding.StableID]; ok {
+			continue
+		}
 		if _, ok := allowlist[locationKey]; ok {
 			continue
 		}
 		issues = append(issues, DoctorIssue{
 			Code:     "DX029",
-			Message:  fmt.Sprintf("i18n literal %s:%d:%d (%s)", finding.File, finding.Line, finding.Column, finding.ID),
-			Fix:      "replace with i18n key usage or add the issue ID/path:line to .i18n-allowlist",
+			Message:  fmt.Sprintf("i18n literal %s:%d:%d (%s, stable %s)", finding.File, finding.Line, finding.Column, finding.ID, finding.StableID),
+			Fix:      "replace with i18n key usage or add the stable issue ID (preferred), scan issue ID, or legacy path:line to .i18n-allowlist",
 			File:     finding.File,
 			Severity: severity,
 		})
@@ -429,10 +434,11 @@ func loadI18nStrictAllowlist(path string) map[string]struct{} {
 }
 
 type i18nStrictFinding struct {
-	ID     string
-	File   string
-	Line   int
-	Column int
+	ID       string
+	StableID string
+	File     string
+	Line     int
+	Column   int
 }
 
 func collectI18nStrictFindings(root string, relPaths []string) ([]i18nStrictFinding, error) {
@@ -557,10 +563,11 @@ func scanI18nStrictGo(rel string, raw []byte) ([]i18nStrictFinding, error) {
 		}
 		pos := fset.Position(lit.Pos())
 		findings = append(findings, i18nStrictFinding{
-			ID:     doctorI18nIssueID(rel, pos.Line, pos.Column, value),
-			File:   rel,
-			Line:   pos.Line,
-			Column: pos.Column,
+			ID:       doctorI18nIssueID(rel, pos.Line, pos.Column, value),
+			StableID: doctorI18nStableIssueID(rel, value),
+			File:     rel,
+			Line:     pos.Line,
+			Column:   pos.Column,
 		})
 		return true
 	})
@@ -592,10 +599,11 @@ func scanI18nStrictText(rel, ext, raw string) []i18nStrictFinding {
 					continue
 				}
 				findings = append(findings, i18nStrictFinding{
-					ID:     doctorI18nIssueID(rel, i+1, m[2]+1, value),
-					File:   rel,
-					Line:   i + 1,
-					Column: m[2] + 1,
+					ID:       doctorI18nIssueID(rel, i+1, m[2]+1, value),
+					StableID: doctorI18nStableIssueID(rel, value),
+					File:     rel,
+					Line:     i + 1,
+					Column:   m[2] + 1,
 				})
 			}
 			continue
@@ -611,10 +619,11 @@ func scanI18nStrictText(rel, ext, raw string) []i18nStrictFinding {
 				continue
 			}
 			findings = append(findings, i18nStrictFinding{
-				ID:     doctorI18nIssueID(rel, i+1, m[0]+1, value),
-				File:   rel,
-				Line:   i + 1,
-				Column: m[0] + 1,
+				ID:       doctorI18nIssueID(rel, i+1, m[0]+1, value),
+				StableID: doctorI18nStableIssueID(rel, value),
+				File:     rel,
+				Line:     i + 1,
+				Column:   m[0] + 1,
 			})
 		}
 	}
@@ -682,6 +691,12 @@ func doctorI18nIssueID(file string, line, column int, literal string) string {
 		sum = -sum
 	}
 	return fmt.Sprintf("I18N-%d", sum)
+}
+
+func doctorI18nStableIssueID(file, literal string) string {
+	base := fmt.Sprintf("%s|%s", file, strings.TrimSpace(literal))
+	sum := sha1.Sum([]byte(base))
+	return "I18N-S-" + strings.ToUpper(hex.EncodeToString(sum[:]))[:12]
 }
 
 func doctorCheckAPIRoutes(root string) []DoctorIssue {

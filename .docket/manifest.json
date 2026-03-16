@@ -600,6 +600,11 @@
       "title": "De-duplicate plural/select completeness logic across CLI and doctor",
       "state": "done",
       "priority": 6
+    },
+    "TKT-150": {
+      "title": "Harden i18n allowlist contract for stability",
+      "state": "done",
+      "priority": 5
     }
   }
 }

@@ -211,6 +211,53 @@ func registerAuthRoutes() {
 		mustNotContainIssueCode(t, issues, "DX029")
 	})
 
+	t.Run("i18n strict mode stable allowlist survives line shifts", func(t *testing.T) {
+		root := t.TempDir()
+		writeDoctorFixture(t, root)
+		if err := os.WriteFile(filepath.Join(root, ".env"), []byte("PAGODA_I18N_STRICT_MODE=error\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		controllerPath := filepath.Join(root, "app", "web", "controllers", "sample.go")
+		controllerBody := "package controllers\nfunc demo() string {\n\treturn \"Welcome users\"\n}\n"
+		if err := os.WriteFile(controllerPath, []byte(controllerBody), 0o644); err != nil {
+			t.Fatal(err)
+		}
+
+		initialIssues := RunDoctorChecks(root)
+		var stableID string
+		for _, issue := range initialIssues {
+			if issue.Code != "DX029" {
+				continue
+			}
+			marker := "stable "
+			start := strings.Index(issue.Message, marker)
+			if start < 0 {
+				continue
+			}
+			start += len(marker)
+			end := strings.Index(issue.Message[start:], ")")
+			if end < 0 {
+				continue
+			}
+			stableID = issue.Message[start : start+end]
+			break
+		}
+		if stableID == "" {
+			t.Fatalf("expected stable i18n issue ID in DX029 message, issues=%+v", initialIssues)
+		}
+		if err := os.WriteFile(filepath.Join(root, ".i18n-allowlist"), []byte(stableID+"\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+
+		shiftedControllerBody := "package controllers\n\nfunc demo() string {\n\treturn \"Welcome users\"\n}\n"
+		if err := os.WriteFile(controllerPath, []byte(shiftedControllerBody), 0o644); err != nil {
+			t.Fatal(err)
+		}
+
+		issues := RunDoctorChecks(root)
+		mustNotContainIssueCode(t, issues, "DX029")
+	})
+
 	t.Run("i18n strict mode warn surfaces plural/select completeness findings", func(t *testing.T) {
 		root := t.TempDir()
 		writeDoctorFixture(t, root)

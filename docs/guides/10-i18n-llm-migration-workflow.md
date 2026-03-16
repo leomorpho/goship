@@ -112,8 +112,9 @@ This guide defines the deterministic i18n migration loop for humans and LLM agen
 
 Use `.i18n-allowlist` for intentional exceptions:
 
-1. Add a finding ID (`I18N-...` or `I18N-C-...`), or
-2. Add a location key (`path/to/file.go:line`).
+1. Add a stable finding ID (`I18N-S-...`) for literal findings (preferred).
+2. Add a finding ID (`I18N-...` or `I18N-C-...`) for compatibility.
+3. Add a location key (`path/to/file.go:line`) only for legacy compatibility.
 
 ## I18n Coverage and Enforcement Policy
 
@@ -153,7 +154,7 @@ Enforcement mapping by command/policy:
 Current known enforcement gaps (explicit, temporary):
 
 1. Automatic rewrites are intentionally narrower than scanner detection coverage.
-2. `.i18n-allowlist` still permits legacy `path:line` selectors, which are less stable than finding IDs.
+2. `.i18n-allowlist` still permits legacy `path:line` selectors for migration safety, but stable IDs should be preferred.
 3. Scanner/doctor focus on application user copy, not operational/internal developer text.
 
 ## Recommended LLM Policy
