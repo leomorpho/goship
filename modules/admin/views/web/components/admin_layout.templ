@@ -1,0 +1,27 @@
+package components
+
+import (
+	"strings"
+
+	"github.com/leomorpho/goship/modules/admin"
+)
+
+// Renders: full-page admin shell with left sidebar listing all registered resources and top bar with "Admin" title
+templ AdminLayout(resources []admin.AdminResource, content templ.Component) {
+	<div data-component="admin-layout" class="min-h-screen grid grid-cols-1 md:grid-cols-[260px_1fr] bg-slate-50 text-slate-900">
+		<aside class="border-r border-slate-200 bg-white p-4">
+			<h1 class="text-lg font-bold mb-4">Admin</h1>
+			<nav class="space-y-2">
+				<a class="block rounded-md px-3 py-2 text-sm hover:bg-slate-100"
+					href="/admin/queues">Queue Monitor</a>
+				for _, res := range resources {
+					<a class="block rounded-md px-3 py-2 text-sm hover:bg-slate-100"
+						href={ templ.URL("/admin/" + strings.ToLower(res.PluralName)) }>{ res.PluralName }</a>
+				}
+			</nav>
+		</aside>
+		<main class="p-6">
+			@content
+		</main>
+	</div>
+}
