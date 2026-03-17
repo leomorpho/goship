@@ -237,6 +237,7 @@ func checkContractUsage(root string) []DoctorIssue {
 		}
 
 		contractAliases := doctorContractsImportAliases(file)
+		localStructTypes := doctorLocalStructTypeNames(file)
 		contractVars := map[string]struct{}{}
 		rawBind := false
 		rawFormValue := false
@@ -244,13 +245,13 @@ func checkContractUsage(root string) []DoctorIssue {
 		ast.Inspect(file, func(n ast.Node) bool {
 			switch node := n.(type) {
 			case *ast.ValueSpec:
-				if doctorExprUsesContractsType(node.Type, contractAliases) {
+				if doctorExprUsesContractsType(node.Type, contractAliases, localStructTypes) {
 					for _, name := range node.Names {
 						contractVars[name.Name] = struct{}{}
 					}
 				}
 				for i, value := range node.Values {
-					if doctorExprUsesContractsType(value, contractAliases) && i < len(node.Names) {
+					if doctorExprUsesContractsType(value, contractAliases, localStructTypes) && i < len(node.Names) {
 						contractVars[node.Names[i].Name] = struct{}{}
 					}
 				}
@@ -260,7 +261,7 @@ func checkContractUsage(root string) []DoctorIssue {
 					upper = len(node.Lhs)
 				}
 				for i := 0; i < upper; i++ {
-					if !doctorExprUsesContractsType(node.Rhs[i], contractAliases) {
+					if !doctorExprUsesContractsType(node.Rhs[i], contractAliases, localStructTypes) {
 						continue
 					}
 					if ident, ok := node.Lhs[i].(*ast.Ident); ok {
@@ -276,7 +277,7 @@ func checkContractUsage(root string) []DoctorIssue {
 				case "FormValue":
 					rawFormValue = true
 				case "Bind":
-					if len(node.Args) == 0 || !doctorBindArgUsesContractsType(node.Args[0], contractVars, contractAliases) {
+					if len(node.Args) == 0 || !doctorBindArgUsesContractsType(node.Args[0], contractVars, contractAliases, localStructTypes) {
 						rawBind = true
 					}
 				}
@@ -300,7 +301,7 @@ func checkContractUsage(root string) []DoctorIssue {
 			Code:     "DX027",
 			File:     filepath.ToSlash(mustRel(root, path)),
 			Message:  detail,
-			Fix:      "bind/parse request payloads into typed contract structs from owned contracts packages instead of raw FormValue/local ad-hoc structs",
+			Fix:      "bind/parse request payloads into typed request structs (local or owned contracts packages) instead of raw FormValue/untyped map payloads",
 			Severity: "warning",
 		})
 		return nil
@@ -347,20 +348,43 @@ func doctorIsContractsImportPath(path string) bool {
 	return strings.HasSuffix(clean, "/contracts") || strings.Contains(clean, "/contracts/")
 }
 
-func doctorExprUsesContractsType(expr ast.Expr, aliases map[string]struct{}) bool {
-	if expr == nil || len(aliases) == 0 {
+func doctorLocalStructTypeNames(file *ast.File) map[string]struct{} {
+	names := map[string]struct{}{}
+	if file == nil {
+		return names
+	}
+	for _, decl := range file.Decls {
+		gen, ok := decl.(*ast.GenDecl)
+		if !ok || gen.Tok != token.TYPE {
+			continue
+		}
+		for _, spec := range gen.Specs {
+			typeSpec, ok := spec.(*ast.TypeSpec)
+			if !ok || typeSpec.Name == nil {
+				continue
+			}
+			if _, ok := typeSpec.Type.(*ast.StructType); ok {
+				names[typeSpec.Name.Name] = struct{}{}
+			}
+		}
+	}
+	return names
+}
+
+func doctorExprUsesContractsType(expr ast.Expr, aliases map[string]struct{}, localStructTypes map[string]struct{}) bool {
+	if expr == nil {
 		return false
 	}
 
 	switch node := expr.(type) {
 	case *ast.ParenExpr:
-		return doctorExprUsesContractsType(node.X, aliases)
+		return doctorExprUsesContractsType(node.X, aliases, localStructTypes)
 	case *ast.StarExpr:
-		return doctorExprUsesContractsType(node.X, aliases)
+		return doctorExprUsesContractsType(node.X, aliases, localStructTypes)
 	case *ast.UnaryExpr:
-		return doctorExprUsesContractsType(node.X, aliases)
+		return doctorExprUsesContractsType(node.X, aliases, localStructTypes)
 	case *ast.CompositeLit:
-		return doctorExprUsesContractsType(node.Type, aliases)
+		return doctorExprUsesContractsType(node.Type, aliases, localStructTypes)
 	case *ast.SelectorExpr:
 		ident, ok := node.X.(*ast.Ident)
 		if !ok {
@@ -368,23 +392,26 @@ func doctorExprUsesContractsType(expr ast.Expr, aliases map[string]struct{}) boo
 		}
 		_, ok = aliases[ident.Name]
 		return ok
+	case *ast.Ident:
+		_, ok := localStructTypes[node.Name]
+		return ok
 	case *ast.IndexExpr:
-		return doctorExprUsesContractsType(node.X, aliases)
+		return doctorExprUsesContractsType(node.X, aliases, localStructTypes)
 	case *ast.IndexListExpr:
-		return doctorExprUsesContractsType(node.X, aliases)
+		return doctorExprUsesContractsType(node.X, aliases, localStructTypes)
 	default:
 		return false
 	}
 }
 
-func doctorBindArgUsesContractsType(arg ast.Expr, contractVars map[string]struct{}, aliases map[string]struct{}) bool {
-	if doctorExprUsesContractsType(arg, aliases) {
+func doctorBindArgUsesContractsType(arg ast.Expr, contractVars map[string]struct{}, aliases map[string]struct{}, localStructTypes map[string]struct{}) bool {
+	if doctorExprUsesContractsType(arg, aliases, localStructTypes) {
 		return true
 	}
 
 	switch node := arg.(type) {
 	case *ast.ParenExpr:
-		return doctorBindArgUsesContractsType(node.X, contractVars, aliases)
+		return doctorBindArgUsesContractsType(node.X, contractVars, aliases, localStructTypes)
 	case *ast.UnaryExpr:
 		ident, ok := node.X.(*ast.Ident)
 		if !ok {

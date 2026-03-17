@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/app/contracts"
 	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/config"
 	"github.com/leomorpho/goship/framework/backup"
@@ -25,6 +24,14 @@ type ManagedHooksDeps struct {
 	BackupDriver  core.BackupDriver
 	RestoreDriver core.RestoreDriver
 	Now           func() time.Time
+}
+
+type managedBackupRequest struct {
+	ObjectKey string `json:"object_key"`
+}
+
+type managedRestoreRequest struct {
+	Manifest backup.Manifest `json:"manifest"`
 }
 
 func NewManagedHooksRoute(ctr ui.Controller, deps ManagedHooksDeps) managedHooks {
@@ -63,7 +70,7 @@ func (m managedHooks) StartBackup(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusServiceUnavailable, "backup driver is not configured")
 	}
 
-	req := contracts.ManagedBackupRequest{}
+	req := managedBackupRequest{}
 	if ctx.Request().ContentLength > 0 {
 		if err := ctx.Bind(&req); err != nil {
 			return echo.NewHTTPError(http.StatusBadRequest, "invalid backup request payload")
@@ -105,7 +112,7 @@ func (m managedHooks) StartRestore(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusServiceUnavailable, "restore driver is not configured")
 	}
 
-	req := contracts.ManagedRestoreRequest{}
+	req := managedRestoreRequest{}
 	if err := ctx.Bind(&req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "invalid restore request payload")
 	}

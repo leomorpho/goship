@@ -7,7 +7,7 @@ import (
 )
 
 func TestRunDoctorChecks_ContractUsage(t *testing.T) {
-	t.Run("bind without contracts type emits warning", func(t *testing.T) {
+	t.Run("bind into untyped map emits warning", func(t *testing.T) {
 		root := t.TempDir()
 		writeDoctorFixture(t, root)
 
@@ -16,14 +16,10 @@ func TestRunDoctorChecks_ContractUsage(t *testing.T) {
 
 import "github.com/labstack/echo/v4"
 
-type rawForm struct {
-	Email string ` + "`form:\"email\"`" + `
-}
-
 type rawBindRoute struct{}
 
 func (rawBindRoute) Post(ctx echo.Context) error {
-	var form rawForm
+	form := map[string]any{}
 	if err := ctx.Bind(&form); err != nil {
 		return err
 	}
@@ -36,6 +32,41 @@ func (rawBindRoute) Post(ctx echo.Context) error {
 
 		issues := RunDoctorChecks(root)
 		mustContainIssueCode(t, issues, "DX027")
+	})
+
+	t.Run("bind with local typed request struct is allowed", func(t *testing.T) {
+		root := t.TempDir()
+		writeDoctorFixture(t, root)
+
+		controllerPath := filepath.Join(root, "app", "web", "controllers", "local_bind.go")
+		controllerContent := `package controllers
+
+import "github.com/labstack/echo/v4"
+
+type localSignupRequest struct {
+	Email string ` + "`form:\"email\" validate:\"required,email\"`" + `
+}
+
+type localRequestRoute struct{}
+
+func (localRequestRoute) Post(ctx echo.Context) error {
+	req := localSignupRequest{}
+	if err := ctx.Bind(&req); err != nil {
+		return err
+	}
+	return nil
+}
+`
+		if err := os.WriteFile(controllerPath, []byte(controllerContent), 0o644); err != nil {
+			t.Fatal(err)
+		}
+
+		issues := RunDoctorChecks(root)
+		for _, issue := range issues {
+			if issue.Code == "DX027" && issue.File == "app/web/controllers/local_bind.go" {
+				t.Fatalf("unexpected DX027 issue for local typed request binding: %+v", issue)
+			}
+		}
 	})
 
 	t.Run("bind with app/contracts type is allowed", func(t *testing.T) {

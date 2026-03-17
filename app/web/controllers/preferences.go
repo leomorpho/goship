@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/app/contracts"
 	"github.com/leomorpho/goship/app/views"
 	"github.com/leomorpho/goship/app/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/views/web/pages/gen"
@@ -31,6 +30,27 @@ type (
 		profileService *profilesvc.ProfileService
 	}
 )
+
+type updateBioRequest struct {
+	Bio        string `form:"bio" validate:"required"`
+	Submission ui.FormSubmission
+}
+
+type verifyPhoneRequest struct {
+	VerificationCode string `form:"verification_code" validate:"required"`
+	Submission       ui.FormSubmission
+}
+
+type updatePhoneRequest struct {
+	PhoneNumberE164Format string `form:"phone_number_e164" validate:"required"`
+	CountryCode           string `form:"country_code" validate:"required"`
+	Submission            ui.FormSubmission
+}
+
+type updateDisplayNameRequest struct {
+	DisplayName string `form:"name" validate:"required"`
+	Submission  ui.FormSubmission
+}
 
 func NewProfilePrefsRoute(ctr ui.Controller, profileService *profilesvc.ProfileService) profilePrefsRoute {
 	return profilePrefsRoute{
@@ -66,7 +86,7 @@ func (p *profilePrefsRoute) GetBio(ctx echo.Context) error {
 }
 
 func (p *profilePrefsRoute) UpdateBio(ctx echo.Context) error {
-	req := contracts.UpdateBioRequest{}
+	req := updateBioRequest{}
 	form := viewmodels.NewProfileBioFormData()
 	ctx.Set(context.FormKey, form)
 
@@ -335,7 +355,7 @@ func (p *preferences) GetPhoneVerificationComponent(ctx echo.Context) error {
 }
 
 func (p *preferences) SubmitPhoneVerificationCode(ctx echo.Context) error {
-	req := contracts.VerifyPhoneRequest{}
+	req := verifyPhoneRequest{}
 	form := viewmodels.NewPhoneNumberVerification()
 	ctx.Set(context.FormKey, form)
 
@@ -388,7 +408,7 @@ func (p *preferences) SubmitPhoneVerificationCode(ctx echo.Context) error {
 }
 
 func (p *preferences) SavePhoneInfo(ctx echo.Context) error {
-	req := contracts.UpdatePhoneRequest{}
+	req := updatePhoneRequest{}
 	ctx.Set(context.FormKey, &req)
 
 	if err := ctx.Bind(&req); err != nil {
@@ -443,7 +463,7 @@ func (p *preferences) GetDisplayName(ctx echo.Context) error {
 }
 
 func (p *preferences) SaveDisplayName(ctx echo.Context) error {
-	req := contracts.UpdateDisplayNameRequest{}
+	req := updateDisplayNameRequest{}
 	form := viewmodels.NewDisplayNameForm()
 	ctx.Set(context.FormKey, form)
 

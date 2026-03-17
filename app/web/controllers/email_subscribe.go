@@ -3,7 +3,7 @@ package controllers
 import (
 	"errors"
 	"fmt"
-	"github.com/leomorpho/goship/app/contracts"
+	"log/slog"
 
 	modemailsubscriptions "github.com/leomorpho/goship-modules/emailsubscriptions"
 	"github.com/leomorpho/goship/app/views"
@@ -15,7 +15,6 @@ import (
 	"github.com/leomorpho/goship/config"
 	"github.com/leomorpho/goship/framework/context"
 	"github.com/leomorpho/goship/framework/domain"
-	"log/slog"
 
 	"github.com/labstack/echo/v4"
 )
@@ -27,6 +26,13 @@ type (
 		config    config.Config
 	}
 )
+
+type emailSubscribeRequest struct {
+	Email      string  `form:"email" validate:"required,email"`
+	Latitude   float64 `form:"latitude"`
+	Longitude  float64 `form:"longitude"`
+	Submission ui.FormSubmission
+}
 
 func NewEmailSubscribeRoute(ctr ui.Controller, emailSubs modemailsubscriptions.Service, config config.Config) emailSubscribe {
 	return emailSubscribe{
@@ -55,7 +61,7 @@ func (c *emailSubscribe) Get(ctx echo.Context) error {
 }
 
 func (c *emailSubscribe) Post(ctx echo.Context) error {
-	req := contracts.EmailSubscribeRequest{}
+	req := emailSubscribeRequest{}
 	form := viewmodels.NewEmailSubscriptionForm()
 	ctx.Set(context.FormKey, form)
 

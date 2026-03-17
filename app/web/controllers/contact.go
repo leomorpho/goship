@@ -3,7 +3,6 @@ package controllers
 import (
 	"fmt"
 
-	"github.com/leomorpho/goship/app/contracts"
 	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/framework/context"
 	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
@@ -21,6 +20,12 @@ type (
 		ui.Controller
 	}
 )
+
+type contactRequest struct {
+	Email      string `form:"email" validate:"required,email"`
+	Message    string `form:"message" validate:"required"`
+	Submission ui.FormSubmission
+}
 
 func (c *contact) Get(ctx echo.Context) error {
 	page := ui.NewPage(ctx)
@@ -43,7 +48,7 @@ func (c *contact) Get(ctx echo.Context) error {
 }
 
 func (c *contact) Post(ctx echo.Context) error {
-	var req contracts.ContactRequest
+	var req contactRequest
 	form := viewmodels.NewContactForm()
 	ctx.Set(context.FormKey, form)
 
