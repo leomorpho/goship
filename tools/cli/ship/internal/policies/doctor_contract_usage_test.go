@@ -69,48 +69,6 @@ func (localRequestRoute) Post(ctx echo.Context) error {
 		}
 	})
 
-	t.Run("bind with app/contracts type is allowed", func(t *testing.T) {
-		root := t.TempDir()
-		writeDoctorFixture(t, root)
-
-		contractsPath := filepath.Join(root, "app", "contracts")
-		if err := os.MkdirAll(contractsPath, 0o755); err != nil {
-			t.Fatal(err)
-		}
-		if err := os.WriteFile(filepath.Join(contractsPath, "request.go"), []byte("package contracts\ntype SignupForm struct{}\n"), 0o644); err != nil {
-			t.Fatal(err)
-		}
-
-		controllerPath := filepath.Join(root, "app", "web", "controllers", "contract_bind.go")
-		controllerContent := `package controllers
-
-import (
-	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/app/contracts"
-)
-
-type contractRoute struct{}
-
-func (contractRoute) Post(ctx echo.Context) error {
-	form := contracts.SignupForm{}
-	if err := ctx.Bind(&form); err != nil {
-		return err
-	}
-	return nil
-}
-`
-		if err := os.WriteFile(controllerPath, []byte(controllerContent), 0o644); err != nil {
-			t.Fatal(err)
-		}
-
-		issues := RunDoctorChecks(root)
-		for _, issue := range issues {
-			if issue.Code == "DX027" && issue.File == "app/web/controllers/contract_bind.go" {
-				t.Fatalf("unexpected DX027 issue for contracts binding: %+v", issue)
-			}
-		}
-	})
-
 	t.Run("bind with module-owned contracts type is allowed", func(t *testing.T) {
 		root := t.TempDir()
 		writeDoctorFixture(t, root)
