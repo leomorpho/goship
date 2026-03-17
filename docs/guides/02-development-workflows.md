@@ -11,6 +11,7 @@ Primary commands:
 
 - `make dev`: starts auto development mode (single-binary default; full multiprocess when jobs adapter is `asynq`)
 - `make run`: single-binary web process with SQLite + Otter + Backlite
+- `make ship-install`: install the latest local `ship` binary to `GOBIN` (or `GOPATH/bin`)
 - `go run ./tools/cli/ship/cmd/ship dev`: CLI equivalent of `make dev`
 
 Recommended modes:

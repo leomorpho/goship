@@ -61,6 +61,10 @@ check-compile: ## Compile app/packages and route tests without running tests
 templ-gen: ## Generate templ code next to .templ files via ship CLI
 	go run ./tools/cli/ship/cmd/ship templ generate --path app
 
+.PHONY: ship-install
+ship-install: ## Install the latest local ship CLI binary into GOBIN (or GOPATH/bin)
+	go install ./tools/cli/ship/cmd/ship
+
 # Core workflow ------------------------------------------------------------------------------
 
 .PHONY: dev

@@ -38,6 +38,7 @@ Common commands:
 - `make test`: unit package set
 - `make test-integration`: integration package set
 - `make templ-gen`: generate templ Go files into sibling `gen/` dirs
+- `make ship-install`: install the latest local `ship` CLI binary to `GOBIN` (or `GOPATH/bin`)
 
 ## Motivation
 
