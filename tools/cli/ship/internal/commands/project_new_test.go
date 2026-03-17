@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"testing/fstest"
 
 	policies "github.com/leomorpho/goship/tools/cli/ship/internal/policies"
 )
@@ -231,5 +232,76 @@ func TestRunNewPromptsForI18nWhenInteractive(t *testing.T) {
 		if _, err := os.Stat(p); err != nil {
 			t.Fatalf("expected file %s: %v", p, err)
 		}
+	}
+}
+
+func TestRenderStarterTemplateFilesFromFS_MissingRoot(t *testing.T) {
+	opts := NewProjectOptions{
+		Name:    "demo",
+		Module:  "example.com/demo",
+		AppPath: "demo",
+	}
+
+	_, err := renderStarterTemplateFilesFromFS(opts, fstest.MapFS{}, starterTemplateRoot)
+	if err == nil {
+		t.Fatal("expected error for missing scaffold root")
+	}
+	if !strings.Contains(err.Error(), `missing template root "testdata/scaffold"`) {
+		t.Fatalf("err = %v, want missing root diagnostic", err)
+	}
+}
+
+func TestRenderStarterTemplateFilesFromFS_MissingRequiredFile(t *testing.T) {
+	opts := NewProjectOptions{
+		Name:    "demo",
+		Module:  "example.com/demo",
+		AppPath: "demo",
+	}
+
+	templateFS := fstest.MapFS{
+		"testdata/scaffold/README.md": {Data: []byte("# scaffold\n")},
+	}
+
+	_, err := renderStarterTemplateFilesFromFS(opts, templateFS, starterTemplateRoot)
+	if err == nil {
+		t.Fatal("expected error for missing required starter file")
+	}
+	if !strings.Contains(err.Error(), `missing required starter file "testdata/scaffold/app/foundation/container.go"`) {
+		t.Fatalf("err = %v, want missing required file diagnostic", err)
+	}
+}
+
+func TestRenderStarterTemplateFilesFromFS_ValidLayout(t *testing.T) {
+	opts := NewProjectOptions{
+		Name:    "demo",
+		Module:  "example.com/demo",
+		AppPath: "demo",
+	}
+
+	templateFS := fstest.MapFS{
+		"testdata/scaffold/app/foundation/container.go":           {Data: []byte("package foundation\n")},
+		"testdata/scaffold/app/router.go":                         {Data: []byte("package app\n")},
+		"testdata/scaffold/app/views/templates.go":                {Data: []byte("package views\n")},
+		"testdata/scaffold/app/web/routenames/routenames.go":      {Data: []byte("package routenames\n")},
+		"testdata/scaffold/cmd/web/main.go":                       {Data: []byte("package main\n")},
+		"testdata/scaffold/go.mod":                                {Data: []byte("module github.com/leomorpho/goship/starter\n")},
+		"testdata/scaffold/config/modules.yaml":                   {Data: []byte("modules: []\n")},
+		"testdata/scaffold/app/views/web/pages/landing.templ":     {Data: []byte("templ Landing(){<div>GoShip Starter</div>}")},
+	}
+
+	files, err := renderStarterTemplateFilesFromFS(opts, templateFS, starterTemplateRoot)
+	if err != nil {
+		t.Fatalf("renderStarterTemplateFilesFromFS error: %v", err)
+	}
+	if _, ok := files[filepath.Join("demo", "config", "modules.yaml")]; ok {
+		t.Fatal("config/modules.yaml should be skipped from starter templates")
+	}
+	gotGoMod := files[filepath.Join("demo", "go.mod")]
+	if !strings.Contains(gotGoMod, "module example.com/demo") {
+		t.Fatalf("go.mod rewrite missing module replacement:\n%s", gotGoMod)
+	}
+	gotLanding := files[filepath.Join("demo", "app", "views", "web", "pages", "landing.templ")]
+	if !strings.Contains(gotLanding, "Demo") {
+		t.Fatalf("landing rewrite missing starter display replacement:\n%s", gotLanding)
 	}
 }

@@ -1,10 +1,12 @@
 package commands
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -14,6 +16,16 @@ import (
 	policies "github.com/leomorpho/goship/tools/cli/ship/internal/policies"
 	startertemplate "github.com/leomorpho/goship/tools/cli/ship/internal/templates/starter"
 )
+
+const starterTemplateRoot = "testdata/scaffold"
+
+var requiredStarterTemplateFiles = []string{
+	"app/foundation/container.go",
+	"app/router.go",
+	"app/views/templates.go",
+	"app/web/routenames/routenames.go",
+	"cmd/web/main.go",
+}
 
 type NewProjectOptions struct {
 	Name              string
@@ -221,22 +233,30 @@ func baseScaffoldFiles(opts NewProjectOptions) map[string]string {
 }
 
 func renderStarterTemplateFiles(opts NewProjectOptions) (map[string]string, error) {
+	return renderStarterTemplateFilesFromFS(opts, startertemplate.Files, starterTemplateRoot)
+}
+
+func renderStarterTemplateFilesFromFS(opts NewProjectOptions, templateFS fs.FS, root string) (map[string]string, error) {
+	if err := validateStarterScaffoldLayout(templateFS, root); err != nil {
+		return nil, err
+	}
+
 	files := make(map[string]string)
-	err := fs.WalkDir(startertemplate.Files, "testdata/scaffold", func(path string, d fs.DirEntry, err error) error {
+	err := fs.WalkDir(templateFS, root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
 		if d.IsDir() {
 			return nil
 		}
-		relPath := strings.TrimPrefix(path, "testdata/scaffold/")
+		relPath := strings.TrimPrefix(path, root+"/")
 		if relPath == "config/modules.yaml" {
 			return nil
 		}
 
-		b, readErr := fs.ReadFile(startertemplate.Files, path)
+		b, readErr := fs.ReadFile(templateFS, path)
 		if readErr != nil {
-			return readErr
+			return fmt.Errorf("starter scaffold layout invalid: failed to read %q: %w", path, readErr)
 		}
 		content := rewriteStarterTemplate(string(b), opts)
 		content = rewriteStarterI18nTemplate(relPath, content, opts)
@@ -244,9 +264,33 @@ func renderStarterTemplateFiles(opts NewProjectOptions) (map[string]string, erro
 		return nil
 	})
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("starter scaffold layout invalid: failed to walk template root %q: %w", root, err)
 	}
 	return files, nil
+}
+
+func validateStarterScaffoldLayout(templateFS fs.FS, root string) error {
+	entries, err := fs.ReadDir(templateFS, root)
+	if err != nil {
+		if errors.Is(err, fs.ErrNotExist) {
+			return fmt.Errorf("starter scaffold layout invalid: missing template root %q", root)
+		}
+		return fmt.Errorf("starter scaffold layout invalid: unable to read template root %q: %w", root, err)
+	}
+	if len(entries) == 0 {
+		return fmt.Errorf("starter scaffold layout invalid: template root %q is empty", root)
+	}
+
+	for _, rel := range requiredStarterTemplateFiles {
+		requiredPath := path.Join(root, rel)
+		if _, statErr := fs.Stat(templateFS, requiredPath); statErr != nil {
+			if errors.Is(statErr, fs.ErrNotExist) {
+				return fmt.Errorf("starter scaffold layout invalid: missing required starter file %q", requiredPath)
+			}
+			return fmt.Errorf("starter scaffold layout invalid: unable to stat required starter file %q: %w", requiredPath, statErr)
+		}
+	}
+	return nil
 }
 
 func rewriteStarterTemplate(content string, opts NewProjectOptions) string {

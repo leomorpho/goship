@@ -166,6 +166,7 @@ Safety matrix:
 - `ship new <app>` -> create minimal deterministic project scaffold in a new directory from CLI-embedded starter templates (no network calls)
   - interactive terminals prompt for i18n starter enablement unless `--i18n`/`--no-i18n` is provided
   - when enabled, starter locale files are scaffolded at `locales/en.toml` and `locales/fr.toml`
+  - validates scaffold template layout before rendering and returns explicit diagnostics when required starter files are missing
   - when disabled, CLI prints a follow-up hint that i18n can be enabled/migrated later with `ship i18n:*` + doctor-driven loops
 - `ship agent:setup` -> generate per-agent allowlist artifacts from `tools/agent-policy/allowed-commands.yaml`
 - `ship agent:check` -> fail if generated artifacts drift from canonical allowlist (for pre-commit/CI parity)
@@ -258,6 +259,7 @@ Field syntax for `make:model`:
 5. If i18n is enabled during scaffold, writes starter locale files:
 `locales/en.toml`
 `locales/fr.toml`
+6. Fails with explicit scaffold layout diagnostics if embedded starter template root/files are missing or unreadable.
 
 Generated project workflow:
 
