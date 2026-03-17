@@ -21,14 +21,12 @@ func PrintRootHelp(w io.Writer) {
 	fmt.Fprintln(w, "  ship config:validate [--json]            Validate config contract")
 	fmt.Fprintln(w, "  ship routes [--json]                     Show route inventory")
 	fmt.Fprintln(w, "  ship describe [--pretty]                 Show runtime/module inventory")
-	fmt.Fprintln(w, "  ship api:spec [--out <path>] [--serve]   Generate or serve OpenAPI spec")
 	fmt.Fprintln(w, "  ship run:command <name> [-- <args...>]   Run app-defined CLI command")
 	fmt.Fprintln(w, "  ship module:add <name> [--dry-run]       Enable a module")
 	fmt.Fprintln(w, "  ship module:remove <name> [--dry-run]    Disable a module")
 	fmt.Fprintln(w, "  ship upgrade --to <version> [--dry-run]  Upgrade pinned CLI tooling")
 	fmt.Fprintln(w)
 	fmt.Fprintln(w, "Command Groups:")
-	fmt.Fprintln(w, "  ship api --help                          API/OpenAPI command help")
 	fmt.Fprintln(w, "  ship config --help                       Config command help")
 	fmt.Fprintln(w, "  ship i18n --help                         i18n command help")
 	fmt.Fprintln(w, "  ship agent --help                        Agent workflow command help")
@@ -42,7 +40,6 @@ func PrintRootHelp(w io.Writer) {
 	fmt.Fprintln(w, "  ship dev --all")
 	fmt.Fprintln(w, "  ship db:migrate")
 	fmt.Fprintln(w, "  ship make:resource contact")
-	fmt.Fprintln(w, "  ship api:spec --out openapi.json")
 }
 
 func PrintTemplHelp(w io.Writer) {

@@ -36,7 +36,6 @@ func TestPrintRootHelp_DirectCommandsDiscoverableNoAliases(t *testing.T) {
 		"  ship config:validate [--json]":           "Validate config contract",
 		"  ship routes [--json]":                    "Show route inventory",
 		"  ship describe [--pretty]":                "Show runtime/module inventory",
-		"  ship api:spec [--out <path>] [--serve]":  "Generate or serve OpenAPI spec",
 		"  ship run:command <name> [-- <args...>]":  "Run app-defined CLI command",
 		"  ship module:add <name> [--dry-run]":      "Enable a module",
 		"  ship module:remove <name> [--dry-run]":   "Disable a module",
@@ -62,7 +61,6 @@ func TestPrintRootHelp_CommandGroupsDiscoverable(t *testing.T) {
 	out := captureHelp(t, PrintRootHelp)
 
 	want := map[string]string{
-		"  ship api --help":    "API/OpenAPI command help",
 		"  ship config --help": "Config command help",
 		"  ship i18n --help":   "i18n command help",
 		"  ship agent --help":  "Agent workflow command help",
@@ -87,16 +85,16 @@ func TestPrintDBHelp_SubcommandsIncludeDescriptions(t *testing.T) {
 	out := captureHelp(t, PrintDBHelp)
 
 	want := map[string]string{
-		"  ship db:create [--dry-run]":                            "Validate DB connectivity",
+		"  ship db:create [--dry-run]":                           "Validate DB connectivity",
 		"  ship db:generate [--config <path>] [--dry-run]":       "Generate DB access code",
-		"  ship db:make <migration_name>":                         "Create a new SQL migration file",
-		"  ship db:migrate":                                       "Apply pending migrations",
-		"  ship db:status":                                        "Show migration status",
-		"  ship db:console":                                       "Open database shell client",
+		"  ship db:make <migration_name>":                        "Create a new SQL migration file",
+		"  ship db:migrate":                                      "Apply pending migrations",
+		"  ship db:status":                                       "Show migration status",
+		"  ship db:console":                                      "Open database shell client",
 		"  ship db:reset [--seed] [--force] [--yes] [--dry-run]": "Reset and re-apply migrations",
 		"  ship db:drop [--force] [--yes] [--dry-run]":           "Revert all migrations",
-		"  ship db:rollback [amount]":                             "Roll back one or more migration steps",
-		"  ship db:seed":                                          "Run database seed command",
+		"  ship db:rollback [amount]":                            "Roll back one or more migration steps",
+		"  ship db:seed":                                         "Run database seed command",
 	}
 
 	for prefix, desc := range want {
@@ -114,16 +112,16 @@ func TestPrintMakeHelp_SubcommandsIncludeDescriptions(t *testing.T) {
 	out := captureHelp(t, PrintMakeHelp)
 
 	want := map[string]string{
-		"  ship make:scaffold <Name>":   "Generate model + migration + controller/resource wiring",
-		"  ship make:controller <Name|NameController>": "Generate a controller with optional route wiring",
-		"  ship make:resource <name>":                  "Generate a route handler and optional page template",
-		"  ship make:model <Name> [fields...]":         "Generate a DB query/model scaffold",
-		"  ship make:factory <Name>":                   "Generate a test data factory",
-		"  ship make:locale <code>":                    "Generate locale file from baseline keys",
-		"  ship make:event <TypeName> [--force]":       "Generate a domain event type",
+		"  ship make:scaffold <Name>":                   "Generate model + migration + controller/resource wiring",
+		"  ship make:controller <Name|NameController>":  "Generate a controller with optional route wiring",
+		"  ship make:resource <name>":                   "Generate a route handler and optional page template",
+		"  ship make:model <Name> [fields...]":          "Generate a DB query/model scaffold",
+		"  ship make:factory <Name>":                    "Generate a test data factory",
+		"  ship make:locale <code>":                     "Generate locale file from baseline keys",
+		"  ship make:event <TypeName> [--force]":        "Generate a domain event type",
 		"  ship make:schedule <Name> --cron \"<expr>\"": "Insert a scheduled job entry",
-		"  ship make:command <Name>":                   "Generate an app CLI command",
-		"  ship make:module <Name>":                    "Generate a standalone module scaffold",
+		"  ship make:command <Name>":                    "Generate an app CLI command",
+		"  ship make:module <Name>":                     "Generate a standalone module scaffold",
 	}
 
 	for prefix, desc := range want {
@@ -141,15 +139,15 @@ func TestPrintI18nHelp_SubcommandsIncludeDescriptions(t *testing.T) {
 	out := captureHelp(t, PrintI18nHelp)
 
 	want := map[string]string{
-		"  ship i18n:init [--force]":                                     "Scaffold baseline locale files",
-		"  ship i18n:scan [--format json] [--paths <path1,path2,...>] [--limit <n>]":       "Scan code for hardcoded user-facing strings",
-		"  ship i18n:instrument [--apply] [--paths <path1,path2,...>] [--limit <n>]":        "Build/apply safe rewrites for high-confidence findings",
-		"  ship i18n:migrate [--force]":                                  "Migrate legacy locale formats to canonical TOML",
-		"  ship i18n:normalize":                                          "Canonicalize locale file ordering",
-		"  ship i18n:compile":                                            "Generate typed i18n key artifacts",
-		"  ship i18n:ci":                                                 "Run strict i18n CI profile checks",
-		"  ship i18n:missing":                                            "Report missing/empty translations",
-		"  ship i18n:unused":                                             "Report unused locale keys",
+		"  ship i18n:init [--force]": "Scaffold baseline locale files",
+		"  ship i18n:scan [--format json] [--paths <path1,path2,...>] [--limit <n>]": "Scan code for hardcoded user-facing strings",
+		"  ship i18n:instrument [--apply] [--paths <path1,path2,...>] [--limit <n>]": "Build/apply safe rewrites for high-confidence findings",
+		"  ship i18n:migrate [--force]":                                              "Migrate legacy locale formats to canonical TOML",
+		"  ship i18n:normalize":                                                      "Canonicalize locale file ordering",
+		"  ship i18n:compile":                                                        "Generate typed i18n key artifacts",
+		"  ship i18n:ci":                                                             "Run strict i18n CI profile checks",
+		"  ship i18n:missing":                                                        "Report missing/empty translations",
+		"  ship i18n:unused":                                                         "Report unused locale keys",
 	}
 
 	for prefix, desc := range want {
@@ -167,11 +165,11 @@ func TestPrintAgentHelp_SubcommandsIncludeDescriptions(t *testing.T) {
 	out := captureHelp(t, printAgentHelp)
 
 	want := map[string]string{
-		"  ship agent:setup": "Generate local agent allowlist artifacts from policy",
-		"  ship agent:setup --check": "Validate generated allowlist artifacts are in sync",
-		"  ship agent:start --task \"Add feature\" [--id ID]": "Create a scoped git worktree for an agent task",
+		"  ship agent:setup":                                           "Generate local agent allowlist artifacts from policy",
+		"  ship agent:setup --check":                                   "Validate generated allowlist artifacts are in sync",
+		"  ship agent:start --task \"Add feature\" [--id ID]":          "Create a scoped git worktree for an agent task",
 		"  ship agent:finish --id TASK --message \"feat(...)\" [--pr]": "Verify, commit, optionally open PR, and clean up worktree",
-		"  ship agent:check": "Run policy artifact drift checks",
+		"  ship agent:check":                                           "Run policy artifact drift checks",
 		"  ship agent:status [--codex-file <path>] [--claude-file <path>] [--gemini-file <path>]": "Inspect local Codex/Claude/Gemini policy sync state",
 	}
 
@@ -192,13 +190,6 @@ func TestPrintAdditionalScopedHelp_IncludeDescriptions(t *testing.T) {
 		out  string
 		want map[string]string
 	}{
-		{
-			name: "api",
-			out:  captureHelp(t, PrintAPIHelp),
-			want: map[string]string{
-				"  ship api:spec [--out <path>] [--serve]": "Generate OpenAPI JSON",
-			},
-		},
 		{
 			name: "config",
 			out:  captureHelp(t, PrintConfigHelp),
@@ -247,9 +238,9 @@ func TestPrintAdditionalScopedHelp_IncludeDescriptions(t *testing.T) {
 			name: "verify",
 			out:  captureHelp(t, PrintVerifyHelp),
 			want: map[string]string{
-				"  ship verify":               "Run full verification workflow",
-				"  ship verify --skip-tests":  "Skip final test step",
-				"  ship verify --json":        "Output verification result as JSON",
+				"  ship verify":              "Run full verification workflow",
+				"  ship verify --skip-tests": "Skip final test step",
+				"  ship verify --json":       "Output verification result as JSON",
 			},
 		},
 		{

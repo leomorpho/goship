@@ -144,10 +144,16 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			wantOut:  "ship config commands:",
 		},
 		{
-			name:     "api help",
+			name:     "api command removed",
 			args:     []string{"api", "--help"},
-			wantCode: 0,
-			wantOut:  "ship api commands:",
+			wantCode: 1,
+			wantErr:  "unknown command: api",
+		},
+		{
+			name:     "api namespaced command removed",
+			args:     []string{"api:spec"},
+			wantCode: 1,
+			wantErr:  "unknown command namespace: api",
 		},
 		{
 			name:     "i18n help",
