@@ -288,19 +288,19 @@ func checkContractUsage(root string) []DoctorIssue {
 			return nil
 		}
 
-		detail := "controller uses raw form parsing without app/contracts request types"
+		detail := "controller uses raw form parsing without typed request contract structs"
 		switch {
 		case rawBind && !rawFormValue:
-			detail = "controller uses Bind without app/contracts request types"
+			detail = "controller uses Bind without typed request contract structs"
 		case rawFormValue && !rawBind:
-			detail = "controller uses FormValue directly (prefer app/contracts request types)"
+			detail = "controller uses FormValue directly (prefer typed request contract structs)"
 		}
 
 		issues = append(issues, DoctorIssue{
 			Code:     "DX027",
 			File:     filepath.ToSlash(mustRel(root, path)),
 			Message:  detail,
-			Fix:      "bind/parse request payloads into types from app/contracts instead of raw FormValue/local ad-hoc structs",
+			Fix:      "bind/parse request payloads into typed contract structs from owned contracts packages instead of raw FormValue/local ad-hoc structs",
 			Severity: "warning",
 		})
 		return nil
@@ -320,7 +320,7 @@ func doctorContractsImportAliases(file *ast.File) map[string]struct{} {
 			continue
 		}
 		path := strings.Trim(imp.Path.Value, "\"")
-		if !strings.HasSuffix(path, "/app/contracts") && path != "app/contracts" {
+		if !doctorIsContractsImportPath(path) {
 			continue
 		}
 
@@ -334,6 +334,17 @@ func doctorContractsImportAliases(file *ast.File) map[string]struct{} {
 		aliases[alias] = struct{}{}
 	}
 	return aliases
+}
+
+func doctorIsContractsImportPath(path string) bool {
+	clean := strings.Trim(path, "/")
+	if clean == "" {
+		return false
+	}
+	if clean == "contracts" {
+		return true
+	}
+	return strings.HasSuffix(clean, "/contracts") || strings.Contains(clean, "/contracts/")
 }
 
 func doctorExprUsesContractsType(expr ast.Expr, aliases map[string]struct{}) bool {
