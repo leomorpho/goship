@@ -64,6 +64,6 @@ func runInfraUp(d InfraDeps) int {
 
 func PrintInfraHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship infra commands:")
-	fmt.Fprintln(w, "  ship infra:up")
-	fmt.Fprintln(w, "  ship infra:down")
+	fmt.Fprintln(w, "  ship infra:up    Start local infrastructure dependencies (cache, mailpit best-effort)")
+	fmt.Fprintln(w, "  ship infra:down  Stop local infrastructure dependencies")
 }

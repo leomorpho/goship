@@ -110,6 +110,5 @@ func RewriteGooseVersion(path, target string) (oldVersion string, rewritten stri
 
 func PrintUpgradeHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship upgrade commands:")
-	fmt.Fprintln(w, "  ship upgrade --to <version> [--dry-run]")
-	fmt.Fprintln(w, "  (currently upgrades goose pin only; no auto-latest)")
+	fmt.Fprintln(w, "  ship upgrade --to <version> [--dry-run]  Update pinned CLI tooling references (currently Goose only; no auto-latest)")
 }

@@ -195,9 +195,9 @@ func RunVerify(args []string, d VerifyDeps) int {
 
 func PrintVerifyHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship verify commands:")
-	fmt.Fprintln(w, "  ship verify")
-	fmt.Fprintln(w, "  ship verify --skip-tests")
-	fmt.Fprintln(w, "  ship verify --json")
+	fmt.Fprintln(w, "  ship verify               Run full verification workflow")
+	fmt.Fprintln(w, "  ship verify --skip-tests  Skip final test step")
+	fmt.Fprintln(w, "  ship verify --json        Output verification result as JSON")
 }
 
 func writeVerifyJSON(w io.Writer, ok bool, steps []verifyJSONStep) int {

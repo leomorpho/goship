@@ -134,7 +134,7 @@ func RunAPI(args []string, d APIDeps) int {
 
 func PrintAPIHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship api commands:")
-	fmt.Fprintln(w, "  ship api:spec [--out <path>] [--serve]")
+	fmt.Fprintln(w, "  ship api:spec [--out <path>] [--serve]  Generate OpenAPI JSON from route contracts, optionally write file or serve docs UI")
 }
 
 func runAPISpec(args []string, d APIDeps) int {

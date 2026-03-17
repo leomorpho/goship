@@ -45,7 +45,7 @@ func RunConfig(args []string, d ConfigDeps) int {
 
 func PrintConfigHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship config commands:")
-	fmt.Fprintln(w, "  ship config:validate [--json]")
+	fmt.Fprintln(w, "  ship config:validate [--json]  Validate known config variables and required env coverage")
 }
 
 func runConfigValidate(args []string, d ConfigDeps) int {

@@ -137,8 +137,8 @@ func RunDescribe(args []string, d DescribeDeps) int {
 
 func PrintDescribeHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship describe commands:")
-	fmt.Fprintln(w, "  ship describe")
-	fmt.Fprintln(w, "  ship describe --pretty")
+	fmt.Fprintln(w, "  ship describe           Print project inventory as JSON")
+	fmt.Fprintln(w, "  ship describe --pretty  Print project inventory as pretty JSON")
 }
 
 func buildDescribeResult(root string) (describeResult, error) {

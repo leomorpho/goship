@@ -137,11 +137,11 @@ func withWorkingDir(dir string, fn func() error) error {
 
 func PrintTestHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship test commands:")
-	fmt.Fprintln(w, "  ship test")
-	fmt.Fprintln(w, "  ship test --integration")
+	fmt.Fprintln(w, "  ship test                 Run default unit/stateless test suite")
+	fmt.Fprintln(w, "  ship test --integration   Include integration-tagged tests")
 }
 
 func PrintCheckHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship check commands:")
-	fmt.Fprintln(w, "  ship check")
+	fmt.Fprintln(w, "  ship check  Run fast compile/unit checks")
 }

@@ -94,7 +94,9 @@ func TestHandleToolsCall(t *testing.T) {
 		wantText string
 		wantErr  bool
 	}{
-		{name: "ship_help general", method: "ship_help", args: map[string]any{"topic": "general"}, wantText: "ship - GoShip CLI"},
+		{name: "ship_help general", method: "ship_help", args: map[string]any{"topic": "general"}, wantText: "Create a new app scaffold"},
+		{name: "ship_help db", method: "ship_help", args: map[string]any{"topic": "db"}, wantText: "ship db:create"},
+		{name: "ship_help test", method: "ship_help", args: map[string]any{"topic": "test"}, wantText: "Run default unit/stateless test suite"},
 		{name: "docs_get", method: "docs_get", args: map[string]any{"path": "reference/01-cli.md"}, wantText: "# reference/01-cli.md"},
 		{name: "docs_search", method: "docs_search", args: map[string]any{"query": "ship", "limit": 5}, wantText: "Matches for \"ship\""},
 		{name: "unknown", method: "nope", args: map[string]any{}, wantErr: true},

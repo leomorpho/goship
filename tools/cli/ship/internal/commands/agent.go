@@ -176,13 +176,12 @@ func runAgentStatus(args []string, d AgentDeps) int {
 
 func printAgentHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship agent commands:")
-	fmt.Fprintln(w, "  ship agent:setup")
-	fmt.Fprintln(w, "  ship agent:setup --check")
-	fmt.Fprintln(w, "  ship agent:start --task \"Add feature\" [--id ID]")
-	fmt.Fprintln(w, "  ship agent:finish --id TASK --message \"feat(...)\" [--pr]")
-	fmt.Fprintln(w, "  ship agent:check")
-	fmt.Fprintln(w, "  ship agent:status [--codex-file <path>] [--claude-file <path>] [--gemini-file <path>]")
-	fmt.Fprintln(w, "  (syncs/checks generated allowlist artifacts for Codex, Claude, and Gemini)")
+	fmt.Fprintln(w, "  ship agent:setup                                                          Generate local agent allowlist artifacts from policy")
+	fmt.Fprintln(w, "  ship agent:setup --check                                                  Validate generated allowlist artifacts are in sync")
+	fmt.Fprintln(w, "  ship agent:start --task \"Add feature\" [--id ID]                           Create a scoped git worktree for an agent task")
+	fmt.Fprintln(w, "  ship agent:finish --id TASK --message \"feat(...)\" [--pr]                  Verify, commit, optionally open PR, and clean up worktree")
+	fmt.Fprintln(w, "  ship agent:check                                                          Run policy artifact drift checks")
+	fmt.Fprintln(w, "  ship agent:status [--codex-file <path>] [--claude-file <path>] [--gemini-file <path>]  Inspect local Codex/Claude/Gemini policy sync state")
 }
 
 type toolStatus struct {

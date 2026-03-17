@@ -94,8 +94,8 @@ func RunRoutes(args []string, d RoutesDeps) int {
 
 func PrintRoutesHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship routes commands:")
-	fmt.Fprintln(w, "  ship routes")
-	fmt.Fprintln(w, "  ship routes --json")
+	fmt.Fprintln(w, "  ship routes         Print route inventory table")
+	fmt.Fprintln(w, "  ship routes --json  Print route inventory as JSON")
 }
 
 func routeAuthLabel(auth bool) string {

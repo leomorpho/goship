@@ -70,15 +70,15 @@ func RunI18n(args []string, d I18nDeps) int {
 
 func PrintI18nHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship i18n commands:")
-	fmt.Fprintln(w, "  ship i18n:init [--force]")
-	fmt.Fprintln(w, "  ship i18n:scan [--format json] [--paths <path1,path2,...>] [--limit <n>]")
-	fmt.Fprintln(w, "  ship i18n:instrument [--apply] [--paths <path1,path2,...>] [--limit <n>]")
-	fmt.Fprintln(w, "  ship i18n:migrate [--force]")
-	fmt.Fprintln(w, "  ship i18n:normalize")
-	fmt.Fprintln(w, "  ship i18n:compile")
-	fmt.Fprintln(w, "  ship i18n:ci")
-	fmt.Fprintln(w, "  ship i18n:missing")
-	fmt.Fprintln(w, "  ship i18n:unused")
+	fmt.Fprintln(w, "  ship i18n:init [--force]                                                Scaffold baseline locale files")
+	fmt.Fprintln(w, "  ship i18n:scan [--format json] [--paths <path1,path2,...>] [--limit <n>]       Scan code for hardcoded user-facing strings")
+	fmt.Fprintln(w, "  ship i18n:instrument [--apply] [--paths <path1,path2,...>] [--limit <n>]        Build/apply safe rewrites for high-confidence findings")
+	fmt.Fprintln(w, "  ship i18n:migrate [--force]                                             Migrate legacy locale formats to canonical TOML")
+	fmt.Fprintln(w, "  ship i18n:normalize                                                     Canonicalize locale file ordering")
+	fmt.Fprintln(w, "  ship i18n:compile                                                       Generate typed i18n key artifacts")
+	fmt.Fprintln(w, "  ship i18n:ci                                                            Run strict i18n CI profile checks")
+	fmt.Fprintln(w, "  ship i18n:missing                                                       Report missing/empty translations")
+	fmt.Fprintln(w, "  ship i18n:unused                                                        Report unused locale keys")
 }
 
 func runI18nInit(args []string, d I18nDeps, root string) int {

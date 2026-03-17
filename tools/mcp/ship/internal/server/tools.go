@@ -264,12 +264,12 @@ var (
 func shipHelpByTopic(topic string) string {
 	switch topic {
 	case "dev":
-		return "ship dev commands:\n  ship dev\n  ship dev worker\n  ship dev all\n  ship dev --worker\n  ship dev --all"
+		return "ship dev commands:\n  ship dev          Run auto dev mode\n  ship dev worker   Run worker-only dev mode\n  ship dev all      Run full dev mode (web + worker + js + css)\n  ship dev --worker Flag form of worker-only mode\n  ship dev --all    Flag form of full mode"
 	case "test":
-		return "ship test commands:\n  ship test\n  ship test --integration"
+		return "ship test commands:\n  ship test                 Run default unit/stateless test suite\n  ship test --integration   Include integration-tagged tests"
 	case "db":
-		return "ship db commands:\n  ship db create\n  ship db migrate\n  ship db rollback [amount]\n  ship db seed"
+		return "ship db commands:\n  ship db:create            Validate DB connectivity and migration table reachability\n  ship db:migrate           Apply pending migrations\n  ship db:rollback [amount] Roll back one or more migration steps\n  ship db:seed              Run database seed command"
 	default:
-		return "ship - GoShip CLI\n\nUsage:\n  ship dev [worker|all] [--worker|--all]\n  ship test [--integration]\n  ship db <create|migrate|rollback|seed>"
+		return "ship - GoShip CLI\n\nUsage:\n  ship <command> [options]\n\nDirect Commands:\n  ship new <app> [flags]                 Create a new app scaffold\n  ship dev [web|worker|all] [flags]      Run local runtime processes\n  ship test [--integration]              Run tests (unit by default)\n\nCommand Groups:\n  ship db --help                         Database command help\n  ship make --help                       Generator command help\n  ship i18n --help                       i18n command help\n  ship agent --help                      Agent workflow command help"
 	}
 }

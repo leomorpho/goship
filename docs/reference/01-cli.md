@@ -104,6 +104,8 @@ Command grammar policy:
 1. Canonical commands are namespaced via colon (`db:*`, `make:*`, `infra:*`).
 2. Bare namespace commands (`ship db`, `ship make`, `ship infra`) show scoped help.
 3. Space-form subcommands (for example `ship db migrate`) are intentionally rejected with a hint to use colon form.
+4. Root help is intentionally concise and grouped by command area; each direct top-level command includes a one-line purpose description for human/LLM discoverability.
+5. Scoped help (`ship db --help`, `ship make --help`, etc.) should also use one-line purpose descriptions per listed subcommand.
 
 ## Versioning Rules
 
