@@ -43,6 +43,9 @@ Last updated: 2026-03-04
 8. `G08` - `guides/08-building-an-api.md`: JSON response helpers, content negotiation, and versioned API route convention.
 9. `G09` - `guides/09-i18n-adapter-contract.md`: redirect stub to canonical i18n guide.
 10. `G10` - `guides/10-i18n-llm-migration-workflow.md`: canonical i18n guide (adapter contract, migration loop, coverage/enforcement policy, diagnostics schema, strict rollout, translator workflow, CI profile).
+11. `G11` - `guides/11-add-endpoint-workflow.md`: canonical workflow for adding a new endpoint with route wiring and validation.
+12. `G12` - `guides/12-add-module-workflow.md`: canonical workflow for adding or installing a module with isolation checks.
+13. `G13` - `guides/13-add-background-job-workflow.md`: canonical workflow for adding an app background job with `core.Jobs`-first wiring.
 
 ### Reference
 

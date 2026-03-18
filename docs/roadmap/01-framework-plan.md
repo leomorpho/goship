@@ -520,8 +520,8 @@ Mailer-generator contract tracked under `TKT-251` / `TKT-315` / `TKT-316`:
 - the scaffold now targets templ email views and wires the existing `/dev/mail/*` preview surface instead of introducing a parallel preview path.
 
 OSS workflow-docs contract tracked under `TKT-252` / `TKT-317` / `TKT-318`:
-- the executable spec now pins canonical task-oriented guides for add endpoint, add module, and add background job flows;
-- the docs index and how-to playbook are expected to surface those guides as the canonical contributor workflow set.
+- canonical task-oriented guides now exist for add endpoint, add module, and add background job flows;
+- the docs index and how-to playbook now surface those guides as the canonical contributor workflow set.
 3. ActiveStorage-like file attachments:
 - attach files to entities;
 - support local + S3 backends;

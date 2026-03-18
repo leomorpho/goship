@@ -2,6 +2,12 @@
 
 Task-focused guides for common GoShip workflows.
 
+## Canonical Workflow Set
+
+- `docs/guides/11-add-endpoint-workflow.md`
+- `docs/guides/12-add-module-workflow.md`
+- `docs/guides/13-add-background-job-workflow.md`
+
 ## 1) Add a New Endpoint (Resource + Route + Name)
 
 Goal:
