@@ -236,6 +236,15 @@ Impact:
 - Installable-module portability remains partially constrained by the remaining violating files, but they are now surfaced as blocking policy failures.
 - Structural repo-shape drift for unpaired markers (`DX005`) and raw controller form parsing (`DX027`) is now blocked by default verification instead of surfacing as warnings.
 
+## 22) Dedicated CI Lanes For Module Isolation And SQL Portability Are Missing (Medium)
+
+The repo currently enforces module isolation through local scripts and records SQL portability as runtime metadata, but CI does not yet expose those boundaries as dedicated, named suites.
+
+Impact:
+
+- portability regressions are harder to spot quickly because they are folded into broader jobs instead of surfacing as isolated failures;
+- SQL portability (`sql-core-v1`) lacks one canonical CI entrypoint, which makes future automation and downstream reuse less predictable.
+
 ## Suggested Priority Order
 
 1. Complete cache adapter coverage so page caching works consistently across supported backends.

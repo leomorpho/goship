@@ -321,6 +321,7 @@ Minimum framework tooling/hooks to expose:
 2. Data export hook with typed manifest (version + dialect + checksums).
 3. Data import hook with manifest validation.
 4. Post-import verification hook callable from CLI/control-plane adapters.
+5. Dedicated CI suites for module isolation and `sql-core-v1` portability so boundary regressions fail in named lanes instead of broad aggregate jobs.
 
 ## Docket Tracking
 
