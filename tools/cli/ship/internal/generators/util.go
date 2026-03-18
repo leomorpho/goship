@@ -1,6 +1,7 @@
 package generators
 
 import (
+	"fmt"
 	"strings"
 	"unicode"
 )
@@ -58,4 +59,32 @@ func toLowerCamel(pascal string) string {
 		return pascal
 	}
 	return strings.ToLower(pascal[:1]) + pascal[1:]
+}
+
+func insertAfterAnchor(src, anchor, snippet string) (string, bool, error) {
+	if strings.Contains(src, snippet) {
+		return src, false, nil
+	}
+	idx := strings.Index(src, anchor)
+	if idx == -1 {
+		return "", false, fmt.Errorf("anchor %q not found", anchor)
+	}
+	pos := idx + len(anchor)
+	insert := "\n" + snippet
+	return src[:pos] + insert + src[pos:], true, nil
+}
+
+func insertBeforeAnchor(src, anchor, snippet string) (string, bool, error) {
+	if strings.Contains(src, snippet) {
+		return src, false, nil
+	}
+	idx := strings.Index(src, anchor)
+	if idx == -1 {
+		return "", false, fmt.Errorf("anchor %q not found", anchor)
+	}
+	insert := snippet
+	if !strings.HasSuffix(insert, "\n") {
+		insert += "\n"
+	}
+	return src[:idx] + insert + src[idx:], true, nil
 }

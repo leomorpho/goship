@@ -198,15 +198,15 @@ Impact:
 - App teams can generate a consistent `app/jobs` baseline instead of hand-rolling job files and tests.
 - Future job-surface changes should extend the generator, jobs guide, and CLI contract together so the scaffold stays aligned with the runtime seam.
 
-## 18) Mailer Generator Contract Is Still Missing (Medium)
+## 18) Mailer Generator Contract Is Now Canonicalized (Low)
 
-The roadmap expects `ship make:mailer`, but the CLI surface still lacks a canonical scaffold
-contract for templ email views and `/dev/mail/*` preview wiring.
+`ship make:mailer <Name>` now exposes a canonical scaffold contract for templ email views and
+preview wiring under the existing `/dev/mail/*` surface.
 
 Impact:
 
-- Teams still have to hand-roll email view files, preview links, and baseline wiring.
-- The mail preview surface can drift from generated mailer conventions because there is no generator-backed contract yet.
+- Teams can generate a consistent email-template baseline instead of hand-rolling view and preview wiring.
+- Future mailer-surface changes should extend the generator, preview controller, and CLI docs together so generated mailers stay aligned with the dev preview contract.
 
 ## 16) No Built-In OpenAPI Generation Command (Informational)
 

@@ -125,6 +125,7 @@ func TestPrintMakeHelp_SubcommandsIncludeDescriptions(t *testing.T) {
 		"  ship make:locale <code>":                     "Generate locale file from baseline keys",
 		"  ship make:event <TypeName> [--force]":        "Generate a domain event type",
 		"  ship make:job <Name>":                        "Generate a background job scaffold",
+		"  ship make:mailer <Name>":                     "Generate a mailer scaffold",
 		"  ship make:schedule <Name> --cron \"<expr>\"": "Insert a scheduled job entry",
 		"  ship make:command <Name>":                    "Generate an app CLI command",
 		"  ship make:module <Name>":                     "Generate a standalone module scaffold",
