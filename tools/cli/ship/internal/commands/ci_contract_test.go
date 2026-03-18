@@ -11,12 +11,26 @@ func TestCIContract_DefinesDedicatedIsolationAndPortabilitySuites_RedSpec(t *tes
 
 	workflow := mustReadText(t, filepath.Join(root, ".github", "workflows", "test.yml"))
 	makefile := mustReadText(t, filepath.Join(root, "Makefile"))
+	moduleGate := mustReadText(t, filepath.Join(root, "tools", "scripts", "check-module-isolation.sh"))
+	devGuide := mustReadText(t, filepath.Join(root, "docs", "guides", "02-development-workflows.md"))
 
 	if !strings.Contains(workflow, "\n  module_isolation:\n") {
 		t.Fatal("test workflow should define a dedicated module_isolation job")
 	}
 	if !strings.Contains(workflow, "run: make test-module-isolation") {
 		t.Fatal("module isolation CI job should invoke make test-module-isolation")
+	}
+	if !strings.Contains(makefile, ".PHONY: test-module-isolation") {
+		t.Fatal("Makefile should expose a canonical test-module-isolation entrypoint for CI")
+	}
+	if !strings.Contains(moduleGate, "module=") {
+		t.Fatal("module isolation gate should report offending module context")
+	}
+	if !strings.Contains(moduleGate, "stale allowlist entry") {
+		t.Fatal("module isolation gate should reject stale allowlist entries")
+	}
+	if !strings.Contains(devGuide, "make test-module-isolation") {
+		t.Fatal("development workflow guide should document the module isolation gate")
 	}
 	if !strings.Contains(workflow, "\n  sql_portability:\n") {
 		t.Fatal("test workflow should define a dedicated sql_portability job")

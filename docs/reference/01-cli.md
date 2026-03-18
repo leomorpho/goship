@@ -137,7 +137,7 @@ These commands are implemented as wrappers over existing workflows:
 - `ship verify` -> rejects standalone-battery drift when root `go.mod` dependencies on installable modules are not the canonical local-dev shape (`v0.0.0` + local `replace` + matching `go.work use`), and enforces the canonical no-compatibility/no-deprecation wording invariant across the operator-facing docs set
 - `ship infra:up` -> detects `docker-compose`/`docker compose` and runs `up -d cache`, then attempts `up -d mailpit` (non-fatal if mailpit fails)
 - `ship infra:down` -> detects `docker-compose`/`docker compose` and runs `down`
-- `make test-module-isolation` -> dedicated CI lane for installable-module root import isolation
+- `make test-module-isolation` -> dedicated CI lane for installable-module root import isolation; reports offending module/file context and rejects stale allowlist entries
 - `make test-sql-portability` -> dedicated CI lane for `sql-core-v1` runtime metadata portability
 - `make test-generator-contracts` -> dedicated CI lane for shared generator-report snapshot and idempotency-matrix drift
 - `make test-generator-idempotency` -> focused local rerun for the duplicate-generation matrix without snapshot refresh

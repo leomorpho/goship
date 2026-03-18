@@ -450,14 +450,17 @@ Impact:
 - Installable-module portability remains partially constrained by the remaining violating files, but they are now surfaced as blocking policy failures.
 - Structural repo-shape drift for unpaired markers (`DX005`) and raw controller form parsing (`DX027`) is now blocked by default verification instead of surfacing as warnings.
 
-## 22) Dedicated CI Lanes For Module Isolation And SQL Portability Are Missing (Medium)
+## 22) Module Isolation Is Now Guarded By A Dedicated CI Lane (Low)
 
-The repo currently enforces module isolation through local scripts and records SQL portability as runtime metadata, but CI does not yet expose those boundaries as dedicated, named suites.
+The repo now exposes module isolation as a named CI lane via `make test-module-isolation`. The gate
+reports offending module/file context for direct root imports and rejects stale entries in the
+allowlist, while SQL portability remains tracked by its separate dedicated lane.
 
 Impact:
 
-- portability regressions are harder to spot quickly because they are folded into broader jobs instead of surfacing as isolated failures;
-- SQL portability (`sql-core-v1`) lacks one canonical CI entrypoint, which makes future automation and downstream reuse less predictable.
+- installable-module boundary regressions now fail in a named suite with actionable diagnostics;
+- allowlist entries can be trimmed as soon as temporary exceptions are removed, so drift is visible instead of silently accumulating;
+- SQL portability (`sql-core-v1`) continues to have one canonical CI entrypoint, which keeps future automation and downstream reuse predictable.
 
 ## 23) Cherie Compatibility Smoke Coverage Is Still Generic (Medium)
 
