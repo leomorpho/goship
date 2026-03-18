@@ -27,6 +27,40 @@ func TestManagedHookVerifier_SharedReplayStoreContract_RedSpec(t *testing.T) {
 	}
 }
 
+func TestManagedHookSignatureVectors_CanonicalPayloadLibrary_RedSpec(t *testing.T) {
+	root := repoRootForSecurityContractTest(t)
+
+	securitySource := mustReadSecurityContractText(t, filepath.Join(root, "framework", "security", "managed_hooks.go"))
+	managedDoc := mustReadSecurityContractText(t, filepath.Join(root, "docs", "architecture", "09-standalone-and-managed-mode.md"))
+	roadmapDoc := mustReadSecurityContractText(t, filepath.Join(root, "docs", "roadmap", "01-framework-plan.md"))
+	risksDoc := mustReadSecurityContractText(t, filepath.Join(root, "docs", "architecture", "06-known-gaps-and-risks.md"))
+
+	for _, token := range []string{
+		"ManagedHookSignatureVector",
+		"ManagedHookSignatureVectors",
+		"CanonicalManagedHookPayload",
+		"CanonicalManagedHookPayloadFromRequest",
+	} {
+		if !strings.Contains(securitySource, token) {
+			t.Fatalf("managed hook signing layer should expose canonical shared-vector token %q", token)
+		}
+	}
+	for _, token := range []string{
+		"shared signature vectors",
+		"canonical payload library",
+	} {
+		if !strings.Contains(managedDoc, token) {
+			t.Fatalf("managed-mode architecture doc should describe %q", token)
+		}
+		if !strings.Contains(roadmapDoc, token) {
+			t.Fatalf("roadmap should describe %q for the shared signing library", token)
+		}
+	}
+	if !strings.Contains(risksDoc, "canonical payload library") {
+		t.Fatal("known risks doc should mention the shared payload library follow-up for INT2-01")
+	}
+}
+
 func repoRootForSecurityContractTest(t *testing.T) string {
 	t.Helper()
 

@@ -107,6 +107,9 @@ Canonical signature payload:
 
 - `METHOD + "\n" + PATH_WITH_QUERY + "\n" + TIMESTAMP + "\n" + NONCE + "\n" + RAW_BODY`
 
+Shared signature vectors and the canonical payload library are tracked separately so both the
+runtime bridge and control-plane tooling can reuse the same signing fixtures.
+
 Verification/runtime rules:
 
 - shared secret: `PAGODA_MANAGED_HOOKS_SECRET`

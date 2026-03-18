@@ -324,6 +324,7 @@ Minimum framework tooling/hooks to expose:
 5. Dedicated CI suites for module isolation and `sql-core-v1` portability so boundary regressions fail in named lanes instead of broad aggregate jobs.
 6. Shared/distributed replay storage contract for managed hook nonce tracking so multi-replica managed mode rejects replays consistently.
 7. `backup-manifest-v1` is now locked to SQLite-first metadata plus SHA-256 checksum invariants, and managed restore responses return typed restore evidence.
+8. Shared signature vectors and a canonical payload library will be introduced for the INT2 bridge so runtime and control-plane signing fixtures stay aligned.
 
 ## Docket Tracking
 

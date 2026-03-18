@@ -494,3 +494,4 @@ Impact:
 4. Refresh e2e tests to match current GoShip flows.
 5. Align local stack docs with actual DB mode and compose services.
 6. Add shared/distributed replay storage for managed hook nonce tracking in multi-replica deployments.
+7. Publish shared signature vectors and a canonical payload library for the INT2 bridge so signing fixtures do not drift between runtime and control-plane consumers.
