@@ -808,7 +808,7 @@
     },
     "TKT-184": {
       "title": "Finalize minimal app boundary in allowlists, starter shape, and docs",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 6,
       "parent": "TKT-170"
     },
