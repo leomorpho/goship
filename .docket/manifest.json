@@ -790,7 +790,7 @@
     },
     "TKT-181": {
       "title": "Split app/foundation into minimal composition and extracted runtime bootstrap",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 5,
       "parent": "TKT-170"
     },
