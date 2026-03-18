@@ -254,6 +254,15 @@ Impact:
 - framework changes can keep the generic smoke green while still drifting from the narrower downstream compatibility baseline;
 - Cherie-specific upgrade confidence remains weaker than the roadmap policy requires until the smoke baseline is named and enforced in CI.
 
+## 24) Extension Zones Vs Protected Contract Zones Are Not Codified In One Manifest (Medium)
+
+The repo has boundary rules and marker checks, but it still lacks one canonical manifest that says where app/framework consumers can diverge freely and which contract seams are protected by doctor enforcement.
+
+Impact:
+
+- contributors must infer safe customization boundaries from several docs and policy checks instead of one source of truth;
+- new guardrails risk growing inconsistently because protected seams are not documented and enforced from the same manifest.
+
 ## Suggested Priority Order
 
 1. Complete cache adapter coverage so page caching works consistently across supported backends.
