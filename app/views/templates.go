@@ -6,7 +6,6 @@ type (
 
 const (
 	PageLanding                Page = "landing"
-	PageContact                Page = "contact"
 	PageError                  Page = "error"
 	PageForgotPassword         Page = "forgot-password"
 	PageHome                   Page = "home"
@@ -21,7 +20,6 @@ const (
 	PageInstallApp             Page = "install_app"
 	PageProfile                Page = "profile"
 	PageNotifications          Page = "notifications"
-	PageHealthcheck            Page = "healthcheck"
 	PagePricing                Page = "pricing"
 	PageSuccessfullySubscribed Page = "successfully_subscribed"
 	PageDeleteAccount          Page = "delete_account.page"

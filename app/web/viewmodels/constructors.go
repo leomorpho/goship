@@ -18,10 +18,6 @@ func NewUpdateInAppModeForm() *UpdateInAppModeForm {
 	return &UpdateInAppModeForm{}
 }
 
-func NewContactForm() *ContactForm {
-	return &ContactForm{}
-}
-
 func NewEmailSubscriptionData() EmailSubscriptionData {
 	return EmailSubscriptionData{}
 }
@@ -67,10 +63,6 @@ func NewHomeFeedButtonsData() HomeFeedButtonsData {
 
 func NewHomeFeedStatsData() HomeFeedStatsData {
 	return HomeFeedStatsData{}
-}
-
-func NewInvitationsData() InvitationsData {
-	return InvitationsData{}
 }
 
 func NewLandingPage() LandingPage {

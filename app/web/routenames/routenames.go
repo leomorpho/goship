@@ -15,8 +15,6 @@ const (
 	RouteNameResetPassword           = "reset_password"
 	RouteNameResetPasswordSubmit     = "reset_password.submit"
 	RouteNameVerifyEmail             = "verify_email"
-	RouteNameContact                 = "contact"
-	RouteNameContactSubmit           = "contact.submit"
 	RouteNameLandingPage             = "landing_page"
 	RouteNamePreferences             = "preferences"
 	RouteNameTwoFactorSetup          = "two_factor.setup"
