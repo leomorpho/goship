@@ -218,6 +218,16 @@ Impact:
 - New contributors and agents now have one indexed workflow set for common extension tasks.
 - Future contributor workflows should extend the canonical guide set and the docs index/playbook together.
 
+## 20) Shared-Infra Adoption Trend Reporting Is Still Missing (Low)
+
+GoShip does not yet expose a canonical shared-infra adoption summary showing how much functionality
+is riding shared modules/seams versus app-owned custom surfaces.
+
+Impact:
+
+- Module upstreaming decisions still rely on ad hoc repo inspection.
+- Contributors do not yet have one machine-readable place to inspect shared-vs-custom adoption drift.
+
 ## 16) No Built-In OpenAPI Generation Command (Informational)
 
 The `ship api:spec` command and `app/contracts`-based spec flow were removed in the app-minimalization cleanup stream.

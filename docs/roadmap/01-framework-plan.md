@@ -522,6 +522,10 @@ Mailer-generator contract tracked under `TKT-251` / `TKT-315` / `TKT-316`:
 OSS workflow-docs contract tracked under `TKT-252` / `TKT-317` / `TKT-318`:
 - canonical task-oriented guides now exist for add endpoint, add module, and add background job flows;
 - the docs index and how-to playbook now surface those guides as the canonical contributor workflow set.
+
+Shared-infra adoption reporting tracked under `TKT-238` / `TKT-355` / `TKT-356`:
+- the executable spec now pins a non-blocking shared-infra adoption summary on the `ship describe` surface;
+- the summary is intended to report shared module adoption alongside app-owned customization counts to guide upstreaming decisions.
 3. ActiveStorage-like file attachments:
 - attach files to entities;
 - support local + S3 backends;
