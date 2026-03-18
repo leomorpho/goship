@@ -24,6 +24,7 @@ import (
 	coreadapters "github.com/leomorpho/goship/framework/core/adapters"
 	"github.com/leomorpho/goship/framework/events"
 	eventtypes "github.com/leomorpho/goship/framework/events/types"
+	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
 	"github.com/leomorpho/goship/framework/logging"
 	"github.com/leomorpho/goship/framework/repos/mailer"
 	pubsubrepo "github.com/leomorpho/goship/framework/repos/pubsub"
@@ -305,7 +306,7 @@ func (c *Container) initDatabase() {
 			connection = c.Config.Database.EmbeddedConnection
 		}
 
-		c.Database, err = openEmbeddedDB(c.Config.Database.EmbeddedDriver, connection)
+		c.Database, err = frameworkbootstrap.OpenEmbeddedDB(c.Config.Database.EmbeddedDriver, connection)
 		if err != nil {
 			panic(err)
 		}
@@ -364,21 +365,21 @@ func (c *Container) initDatabase() {
 
 // initSchema runs DB migrations for the app.
 func (c *Container) initSchema() {
-	migrationsDir, err := resolveMigrationsDir()
+	migrationsDir, err := frameworkbootstrap.ResolveMigrationsDir()
 	if err != nil {
 		panic(fmt.Sprintf("failed to resolve migrations directory: %v", err))
 	}
 	driver := "postgres"
 	if c.Config.Database.DbMode == config.DBModeEmbedded {
-		driver = normalizeSQLiteDriver(c.Config.Database.EmbeddedDriver)
+		driver = frameworkbootstrap.NormalizeSQLiteDriver(c.Config.Database.EmbeddedDriver)
 	}
-	if isSQLiteDriver(driver) {
-		if err := ensureEmbeddedSQLiteSchema(c.Database); err != nil {
+	if frameworkbootstrap.IsSQLiteDriver(driver) {
+		if err := frameworkbootstrap.EnsureEmbeddedSQLiteSchema(c.Database); err != nil {
 			panic(fmt.Sprintf("failed to initialize embedded sqlite schema: %v", err))
 		}
 		return
 	}
-	if err := applySQLMigrations(c.Database, migrationsDir, driver); err != nil {
+	if err := frameworkbootstrap.ApplySQLMigrations(c.Database, migrationsDir, driver); err != nil {
 		panic(fmt.Sprintf("failed to run SQL migrations: %v", err))
 	}
 }

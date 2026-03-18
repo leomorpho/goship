@@ -1,4 +1,4 @@
-package foundation
+package bootstrap
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 
 func TestOpenEmbeddedDBConfiguresSQLitePragmas(t *testing.T) {
 	conn := filepath.Join(t.TempDir(), "db", "app.db") + "?_journal=WAL&_timeout=5000&_fk=true"
-	db, err := openEmbeddedDB("sqlite", conn)
+	db, err := OpenEmbeddedDB("sqlite", conn)
 	if err != nil {
 		t.Fatalf("open embedded sqlite: %v", err)
 	}
@@ -72,7 +72,7 @@ func TestOpenEmbeddedDBConfiguresSQLitePragmas(t *testing.T) {
 
 func TestOpenEmbeddedDBConcurrentWritesAvoidLockErrors(t *testing.T) {
 	conn := filepath.Join(t.TempDir(), "db", "writes.db") + "?_journal=WAL&_timeout=5000&_fk=true"
-	db, err := openEmbeddedDB("sqlite", conn)
+	db, err := OpenEmbeddedDB("sqlite", conn)
 	if err != nil {
 		t.Fatalf("open embedded sqlite: %v", err)
 	}

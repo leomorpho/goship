@@ -1,4 +1,4 @@
-package foundation
+package bootstrap
 
 import (
 	"database/sql"
@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	_ "modernc.org/sqlite"
 )
 
 var sqliteConnectionPragmas = []string{
@@ -17,11 +19,11 @@ var sqliteConnectionPragmas = []string{
 	"PRAGMA temp_store=MEMORY",
 }
 
-// openEmbeddedDB opens an embedded database connection.
+// OpenEmbeddedDB opens an embedded database connection.
 // For SQLite we apply WAL-mode safety pragmas and use a single pooled connection
 // to avoid SQLITE_BUSY lock contention in concurrent app workloads.
-func openEmbeddedDB(driver, connection string) (*sql.DB, error) {
-	if isSQLiteDriver(driver) {
+func OpenEmbeddedDB(driver, connection string) (*sql.DB, error) {
+	if IsSQLiteDriver(driver) {
 		if err := ensureSQLiteDataDir(connection); err != nil {
 			return nil, err
 		}
@@ -31,7 +33,7 @@ func openEmbeddedDB(driver, connection string) (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	if !isSQLiteDriver(driver) {
+	if !IsSQLiteDriver(driver) {
 		return db, nil
 	}
 	if err := configureSQLiteConnection(db); err != nil {
