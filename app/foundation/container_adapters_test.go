@@ -74,6 +74,10 @@ func TestContainerValidateAdapterPlan(t *testing.T) {
 	}
 }
 
+func TestContainerValidateAdapterPlan_StrictPubSubDependencyContract_RedSpec(t *testing.T) {
+	t.Skip("red-spec only (TKT-257): enable when redis pubsub requires startup failure instead of inproc fallback")
+}
+
 func didPanic(fn func()) (panicked bool) {
 	defer func() {
 		if recover() != nil {

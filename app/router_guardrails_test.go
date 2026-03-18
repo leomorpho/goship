@@ -37,3 +37,11 @@ func TestRegisterRealtimeRoutes_RequiresNotifier(t *testing.T) {
 	err := registerRealtimeRoutes(c, s, ctr)
 	require.EqualError(t, err, "cannot register realtime routes: notifier is nil")
 }
+
+func TestBuildRouter_InvalidRuntimePlanFailsStartup_RedSpec(t *testing.T) {
+	t.Skip("red-spec only (TKT-257): enable when invalid runtime plans return startup errors instead of safe fallback")
+}
+
+func TestBuildRouter_RealtimeDependencyMismatchFailsStartup_RedSpec(t *testing.T) {
+	t.Skip("red-spec only (TKT-257): enable when missing realtime dependencies fail startup instead of silently disabling routes")
+}

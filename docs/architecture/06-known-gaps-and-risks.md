@@ -23,6 +23,7 @@ Impact:
 
 - Realtime is unavailable unless runtime adapters are configured correctly.
 - Misconfigured environments can appear healthy while silently missing realtime endpoints.
+- Invalid runtime-plan resolution currently warns and falls back to safe web defaults instead of failing startup.
 
 ## 3) Notification Center Endpoints Partially Disabled (Medium)
 

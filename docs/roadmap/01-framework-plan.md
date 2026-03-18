@@ -728,6 +728,11 @@ Done when:
 Test evidence:
 - `go test ./framework/runtimeplan`
 
+Follow-up hardening tracked under `TKT-195` / `TKT-257` / `TKT-258`:
+- invalid runtime-plan resolution must fail startup instead of warning + fallback;
+- resolved realtime capability mismatches (for example notifier/pubsub startup gaps) must fail startup instead of silently disabling route surface;
+- adapter-backed dependency mismatches (for example `pubsub=redis` without its required runtime dependency) must fail at startup.
+
 4. `R0.4` Testing harness improvements so default `make test` is Docker-free and fast.
 Status: `completed`
 Done when:
