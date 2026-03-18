@@ -512,8 +512,8 @@ Create stable contracts in `core` so app code is backend-agnostic:
 - `ship module:add <name>`
 
 Job-generator contract tracked under `TKT-250` / `TKT-313` / `TKT-314`:
-- the executable spec now pins `ship make:job <Name>` as a first-class generator in help, docs, and CLI dispatch;
-- the scaffold is expected to follow `core.Jobs` / `core.JobHandler` conventions rather than introducing new app-level backend-specific job patterns.
+- `ship make:job <Name>` is now a first-class generator in help, docs, and CLI dispatch;
+- the scaffold now emits `app/jobs/<name>.go` and `app/jobs/<name>_test.go` around `core.Jobs` / `core.JobHandler` registration helpers instead of introducing new backend-specific processor patterns.
 3. ActiveStorage-like file attachments:
 - attach files to entities;
 - support local + S3 backends;

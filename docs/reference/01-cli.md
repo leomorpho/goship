@@ -92,6 +92,7 @@ Generation:
 - `ship make:factory <Name>`
 - `ship make:locale <code>`
 - `ship make:controller <Name|NameController> [--actions index,show,create,update,destroy] [--auth public|auth] [--domain <name>] [--wire]`
+- `ship make:job <Name>`
 - `ship make:schedule <Name> --cron "<expr>"`
 - `ship make:command <Name>`
 - `ship make:scaffold <Name> [fields...] [--path app] [--views templ|none] [--auth public|auth] [--api] [--migrate] [--dry-run] [--force]`
@@ -204,6 +205,7 @@ Safety matrix:
 - `ship make:controller <Name>` -> generate controller/handler scaffold in `app/web/controllers`
 - `ship make:controller <Name> --domain <name>` -> generate domain-aware constructor slot (`domainService any`) and route wiring using `nil` placeholder
 - `ship make:controller <Name> --actions ... --wire` -> wire generated routes into `app/router.go` markers
+- `ship make:job <Name>` -> Generate a background job scaffold at `app/jobs/<name>.go` plus `app/jobs/<name>_test.go` around `core.Jobs` / `core.JobHandler` registration helpers
 - `ship make:schedule <Name> --cron "<expr>"` -> insert a named cron entry into `app/schedules/schedules.go` between `ship:schedules` markers
 - `ship make:command <Name>` -> scaffold `app/commands/<name>.go` and register it in `cmd/cli/main.go` at `ship:commands` markers
 - `ship make:scaffold <Name> ...` -> orchestration command that composes `make:model`, `db:make`, `make:controller --domain <plural_model> --wire`, and optionally `make:resource --domain <plural_model>` / `db:migrate`

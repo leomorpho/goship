@@ -56,6 +56,7 @@ func PrintMakeHelp(w io.Writer) {
 	fmt.Fprintln(w, "  ship make:factory <Name>                                                                                                                     Generate a test data factory")
 	fmt.Fprintln(w, "  ship make:locale <code>                                                                                                                      Generate locale file from baseline keys")
 	fmt.Fprintln(w, "  ship make:event <TypeName> [--force]                                                                                                        Generate a domain event type")
+	fmt.Fprintln(w, "  ship make:job <Name>                                                                                                                         Generate a background job scaffold")
 	fmt.Fprintln(w, "  ship make:schedule <Name> --cron \"<expr>\"                                                                                                   Insert a scheduled job entry")
 	fmt.Fprintln(w, "  ship make:command <Name>                                                                                                                     Generate an app CLI command")
 	fmt.Fprintln(w, "  ship make:module <Name> [--path modules] [--module-base github.com/leomorpho/goship-modules] [--dry-run] [--force]                     Generate a standalone module scaffold")

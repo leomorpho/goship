@@ -276,6 +276,8 @@ func (c CLI) runMake(args []string) int {
 		return c.runGenerateEvent(args[1:])
 	case "command":
 		return c.runMakeCommand(args[1:])
+	case "job":
+		return c.runMakeJob(args[1:])
 	case "schedule":
 		return c.runMakeSchedule(args[1:])
 	case "resource":
@@ -393,6 +395,13 @@ func (c CLI) runMakeSchedule(args []string) int {
 
 func (c CLI) runMakeCommand(args []string) int {
 	return gen.RunMakeCommand(args, gen.MakeCommandDeps{
+		Out: c.Out,
+		Err: c.Err,
+	})
+}
+
+func (c CLI) runMakeJob(args []string) int {
+	return gen.RunMakeJob(args, gen.MakeJobDeps{
 		Out: c.Out,
 		Err: c.Err,
 	})

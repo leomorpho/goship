@@ -436,6 +436,12 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			wantErr:  "usage: ship make:controller",
 		},
 		{
+			name:     "make job missing name",
+			args:     []string{"make:job"},
+			wantCode: 1,
+			wantErr:  "usage: ship make:job <Name>",
+		},
+		{
 			name:     "make schedule missing args",
 			args:     []string{"make:schedule"},
 			wantCode: 1,
@@ -486,7 +492,7 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Setenv("APP_ENV", "local")
 
-			if len(tt.args) > 0 && (tt.args[0] == "dev" || tt.args[0] == "shipdev" || tt.args[0] == "test" || tt.args[0] == "check" || tt.args[0] == "make:model" || tt.args[0] == "make:resource") {
+			if len(tt.args) > 0 && (tt.args[0] == "dev" || tt.args[0] == "shipdev" || tt.args[0] == "test" || tt.args[0] == "check" || tt.args[0] == "make:model" || tt.args[0] == "make:resource" || tt.args[0] == "make:job") {
 				prevWD, err := os.Getwd()
 				if err != nil {
 					t.Fatal(err)
