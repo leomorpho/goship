@@ -809,6 +809,10 @@ Orchestration preflight contract tracked under `TKT-221` / `TKT-321` / `TKT-322`
 - `ship verify` will grow a named contract-mismatch preflight gate that rejects unsupported runtime/orchestration combinations before deploy, upgrade, or promote flows begin;
 - the preflight should reuse the runtime contract metadata surface rather than inventing a separate ad hoc probe.
 
+Cross-lane dependency matrix tracked under `TKT-246` / `TKT-351` / `TKT-352`:
+- the dependency matrix should explicitly mark must-finish-before contract map entries so GoShip, Interaction, and Control-plane tickets stay sequenced without ambiguity;
+- child work should stay in the documentation/coordination lane and avoid inventing new execution semantics.
+
 CLI-path reset tracked under `TKT-249` / `TKT-311` / `TKT-312`:
 - the executable spec now pins one canonical top-level quality path per concern;
 - `ship check` has been removed from help, docs, dispatch, and agent-policy surfaces;

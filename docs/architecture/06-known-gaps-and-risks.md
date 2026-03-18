@@ -152,6 +152,17 @@ Impact:
 - Operators and agents now have one canonical CLI report for runtime capability inspection.
 - Future runtime metadata additions should extend the report and its contract tests in the same change stream.
 
+## Cross-Lane Dependency Matrix Still Needs A Single Contract Map (Low)
+
+The GoShip, Interaction, and Control-plane ticket streams still rely on multiple docs and ticket
+parents to express sequencing. The cross-lane dependency matrix should explicitly name the
+must-finish-before contract map so ticket ordering stays deterministic.
+
+Impact:
+
+- Ticket sequencing remains readable, but it still depends on documentation discipline.
+- Future coordination tickets should extend the same matrix language instead of inventing a parallel map.
+
 ## 12) Domain Events Are In-Process Only (Low)
 
 `framework/events` now covers synchronous in-process publish/subscribe and a jobs enqueue helper, but it does not yet ship a generic async re-dispatch worker or delivery guarantees across processes.
