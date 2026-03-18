@@ -287,6 +287,8 @@ snapshots for the shared report shape with the consolidated generator idempotenc
 Impact:
 
 - Merge protection now catches generator output drift separately from the broader backend test lane.
+- Local reruns can isolate the duplicate-generation matrix through `make test-generator-idempotency`
+  without conflating it with snapshot refresh work.
 - Intentional report-format changes require an explicit snapshot refresh (`UPDATE_GENERATOR_SNAPSHOTS=1`)
   and snapshot commit instead of silently changing CI expectations.
 

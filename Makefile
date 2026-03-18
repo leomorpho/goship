@@ -235,6 +235,10 @@ test-sql-portability: ## Verify sql-core-v1 runtime portability contract
 test-generator-contracts: ## Verify generator snapshot and idempotency contracts
 	bash tools/scripts/check-generator-contracts.sh
 
+.PHONY: test-generator-idempotency
+test-generator-idempotency: ## Verify the standalone generator idempotency matrix runner
+	bash tools/scripts/check-generator-idempotency.sh
+
 .PHONY: test-alpha-contracts
 test-alpha-contracts: ## Verify frozen v0.1.0-alpha command and route contracts
 	bash tools/scripts/check-alpha-contracts.sh

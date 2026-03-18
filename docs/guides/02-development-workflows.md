@@ -165,6 +165,7 @@ Go tests:
 - `bash tools/scripts/test-unit.sh` (Docker-free unit package set)
 - `make test` (broader suite; may include Docker-backed packages depending on environment)
 - `make test-generator-contracts` (generator report snapshot + idempotency gate used by CI)
+- `make test-generator-idempotency` (standalone generator duplicate-run matrix without snapshot refresh)
 - `make test-alpha-contracts` (frozen `v0.1.0-alpha` root-help + route-inventory gate used by CI)
 - `make test-doc-sync` (route/scope documentation guard used by CI)
 - `make test-dead-routes` (route inventory regression guard used by CI)
@@ -207,6 +208,7 @@ The `verify_strict` CI job runs `ship verify --profile strict` and serves as the
 The Cherie compatibility lane runs `tests/e2e/tests/cherie_compatibility.spec.ts` with a web-only process env (`PAGODA_PROCESSES_WEB=true`, `PAGODA_PROCESSES_WORKER=false`, `PAGODA_PROCESSES_SCHEDULER=false`, `PAGODA_PROCESSES_COLOCATED=false`) so the baseline only measures boot, auth, and realtime route compatibility.
 Treat `verify_strict` and `cherie_compatibility_smoke` as the required status checks for Cherie-facing sync work.
 The `generator_contracts` CI job runs `make test-generator-contracts` and blocks merges on generator snapshot or idempotency drift.
+Use `make test-generator-idempotency` when only the duplicate-run matrix is relevant and you do not need to touch snapshots.
 When a generator output change is intentional, refresh the golden file locally with `UPDATE_GENERATOR_SNAPSHOTS=1 make test-generator-contracts` and commit the updated snapshot in the same change.
 The `alpha_contract` CI job runs `make test-alpha-contracts` and freezes the current root CLI help plus route inventory as the `v0.1.0-alpha` public surface.
 Only refresh those snapshots when the alpha surface change has approved review, then run `UPDATE_ALPHA_CONTRACTS=1 make test-alpha-contracts` and commit the snapshot update with the contract change.

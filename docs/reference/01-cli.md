@@ -140,6 +140,7 @@ These commands are implemented as wrappers over existing workflows:
 - `make test-module-isolation` -> dedicated CI lane for installable-module root import isolation
 - `make test-sql-portability` -> dedicated CI lane for `sql-core-v1` runtime metadata portability
 - `make test-generator-contracts` -> dedicated CI lane for shared generator-report snapshot and idempotency-matrix drift
+- `make test-generator-idempotency` -> focused local rerun for the duplicate-generation matrix without snapshot refresh
 - `make test-alpha-contracts` -> dedicated CI lane for the frozen `v0.1.0-alpha` root-help and route-inventory contract
 - `make test-bootstrap-budget` -> dedicated CI lane for the canonical starter bootstrap budget (`ship new` + starter `go run ./cmd/web`)
 - `npm --prefix tests/e2e run test:cherie-smoke` -> dedicated CI lane for the Cherie boot/auth/realtime compatibility baseline

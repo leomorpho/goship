@@ -35,6 +35,7 @@ func TestCIContract_DefinesGeneratorSnapshotAndIdempotencyGate_RedSpec(t *testin
 	workflow := mustReadText(t, filepath.Join(root, ".github", "workflows", "test.yml"))
 	makefile := mustReadText(t, filepath.Join(root, "Makefile"))
 	devGuide := mustReadText(t, filepath.Join(root, "docs", "guides", "02-development-workflows.md"))
+	gateScript := mustReadText(t, filepath.Join(root, "tools", "scripts", "check-generator-contracts.sh"))
 
 	if !strings.Contains(workflow, "\n  generator_contracts:\n") {
 		t.Fatal("test workflow should define a dedicated generator_contracts job")
@@ -44,6 +45,18 @@ func TestCIContract_DefinesGeneratorSnapshotAndIdempotencyGate_RedSpec(t *testin
 	}
 	if !strings.Contains(makefile, ".PHONY: test-generator-contracts") {
 		t.Fatal("Makefile should expose a canonical test-generator-contracts entrypoint for CI")
+	}
+	if !strings.Contains(makefile, ".PHONY: test-generator-idempotency") {
+		t.Fatal("Makefile should expose a canonical test-generator-idempotency entrypoint")
+	}
+	if !strings.Contains(gateScript, "bash tools/scripts/check-generator-snapshots.sh") {
+		t.Fatal("generator contract gate should invoke the snapshot runner explicitly")
+	}
+	if !strings.Contains(gateScript, "bash tools/scripts/check-generator-idempotency.sh") {
+		t.Fatal("generator contract gate should invoke the idempotency runner explicitly")
+	}
+	if !strings.Contains(devGuide, "make test-generator-idempotency") {
+		t.Fatal("development workflow guide should document the standalone idempotency runner")
 	}
 	if !strings.Contains(devGuide, "UPDATE_GENERATOR_SNAPSHOTS=1 make test-generator-contracts") {
 		t.Fatal("development workflow guide should document the explicit snapshot refresh path")

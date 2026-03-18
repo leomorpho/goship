@@ -883,6 +883,7 @@ Done when:
 Test evidence:
 - `go test ./tools/cli/ship/internal/commands -run TestCIContract_DefinesGeneratorSnapshotAndIdempotencyGate_RedSpec -count=1`
 - `make test-generator-contracts`
+- `make test-generator-idempotency`
 
 13. `R1.8` Freeze `v0.1.0-alpha` command and route contract.
 Status: `completed`

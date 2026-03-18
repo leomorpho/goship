@@ -5,5 +5,4 @@ if [[ "${UPDATE_GENERATOR_SNAPSHOTS:-0}" == "1" ]]; then
   echo "Updating generator snapshots before running the contract gate..."
 fi
 
-bash tools/scripts/check-generator-snapshots.sh
-bash tools/scripts/check-generator-idempotency.sh
+go test ./tools/cli/ship/internal/generators -run 'TestGeneratorOutputSnapshotContract$' -count=1
