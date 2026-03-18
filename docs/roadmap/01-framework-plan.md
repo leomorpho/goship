@@ -356,13 +356,18 @@ Initial guide set:
 
 ## Pagoda Intake TODOs
 
-- [ ] Create a recurring upstream review cadence (weekly or per-tag) for Pagoda.
-- [ ] Add a "Pagoda intake log" mapping upstream commit/tag -> GoShip decision (`adopt`, `adapt`, `skip`).
+- [x] Create a recurring upstream review cadence (weekly or per-tag) for Pagoda.
+- [x] Add a "Pagoda intake log" mapping upstream commit/tag -> GoShip decision (`adopt`, `adapt`, `skip`).
 - [ ] Evaluate Backlite-style DB-backed jobs as a GoShip jobs adapter candidate.
 - [ ] Port container lifecycle hardening patterns where applicable (startup/shutdown ordering and timeouts).
 - [ ] Port testability improvements that reduce Docker dependence.
 - [ ] Keep UI/component layer decisions independent from runtime/service layer intake.
 - [ ] Prefer LLM-assisted feature re-implementation over direct commit cherry-picks due codebase divergence.
+
+Governance cadence:
+
+- Review Pagoda upstream changes weekly or per-tag, whichever happens first.
+- Record each reviewed item in `docs/roadmap/09-pagoda-intake-log.md` with an explicit `adopt`, `adapt`, or `skip` decision and any follow-up ticket IDs.
 
 ## Cherie Sync Policy
 
