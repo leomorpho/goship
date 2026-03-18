@@ -778,7 +778,7 @@
     },
     "TKT-179": {
       "title": "Replace hardcoded plan-key branching with catalog/service predicates",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 7,
       "parent": "TKT-170"
     },
