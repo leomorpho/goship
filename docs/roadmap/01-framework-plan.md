@@ -768,6 +768,10 @@ Runtime-report contract tracked under `TKT-235` / `TKT-299` / `TKT-300`:
 - the runtime metadata/config primitives now feed `ship runtime:report --json`;
 - `ship runtime:report --json` is now the canonical machine-readable runtime capability surface for operators and agents.
 
+CLI-path reset tracked under `TKT-249` / `TKT-311` / `TKT-312`:
+- the executable spec now pins one canonical top-level quality path per concern;
+- `ship test` and `ship verify` are the intended quality surfaces, while the legacy `ship check` path is scheduled for removal from help, docs, and dispatch.
+
 4. `R0.4` Testing harness improvements so default `make test` is Docker-free and fast.
 Status: `completed`
 Done when:

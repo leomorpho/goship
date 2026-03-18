@@ -178,6 +178,16 @@ Impact:
 - Runtime can evaluate cached DB-backed flags today.
 - Operators can quickly enable/disable flags, but still need SQL/seed workflows for richer targeting updates.
 
+## 16) Quality CLI Surface Still Has A Duplicate Path (Low)
+
+The top-level quality surface still exposes `ship check` alongside the canonical `ship test` and
+`ship verify` commands, so the CLI contract does not yet enforce one command path per concern.
+
+Impact:
+
+- Humans and agents can infer that `ship check` is still a supported first-class workflow.
+- Help text and docs can drift because the duplicate path describes the same concern as the canonical test/verify commands.
+
 ## 16) No Built-In OpenAPI Generation Command (Informational)
 
 The `ship api:spec` command and `app/contracts`-based spec flow were removed in the app-minimalization cleanup stream.

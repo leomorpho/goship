@@ -460,10 +460,10 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			wantCalls: nil,
 		},
 		{
-			name:     "check help",
+			name:     "check command removed",
 			args:     []string{"check", "--help"},
-			wantCode: 0,
-			wantOut:  "ship check commands:",
+			wantCode: 1,
+			wantErr:  "unknown command: check",
 		},
 		{
 			name:       "runner exit code is propagated",

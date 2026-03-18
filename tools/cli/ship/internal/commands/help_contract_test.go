@@ -3,6 +3,8 @@ package commands
 import (
 	"bytes"
 	"io"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -29,7 +31,6 @@ func TestPrintRootHelp_DirectCommandsDiscoverableNoAliases(t *testing.T) {
 	want := map[string]string{
 		"  ship new <app> [flags]":                  "Create a new app scaffold",
 		"  ship dev [--web|--worker|--all]":         "Run local runtime processes",
-		"  ship check":                              "Run fast project checks",
 		"  ship test [--integration]":               "Run tests (unit by default)",
 		"  ship verify [--skip-tests] [--json]":     "Run full verification workflow",
 		"  ship doctor [--json]":                    "Run repository policy checks",
@@ -55,6 +56,9 @@ func TestPrintRootHelp_DirectCommandsDiscoverableNoAliases(t *testing.T) {
 
 	if strings.Contains(out, "shipdev") {
 		t.Fatalf("root help should not include alias shipdev: %q", out)
+	}
+	if strings.Contains(out, "  ship check") {
+		t.Fatalf("root help should not include legacy duplicate quality path ship check: %q", out)
 	}
 }
 
@@ -257,13 +261,6 @@ func TestPrintAdditionalScopedHelp_IncludeDescriptions(t *testing.T) {
 			},
 		},
 		{
-			name: "check",
-			out:  captureHelp(t, PrintCheckHelp),
-			want: map[string]string{
-				"  ship check": "Run fast compile/unit checks",
-			},
-		},
-		{
 			name: "templ",
 			out:  captureHelp(t, PrintTemplHelp),
 			want: map[string]string{
@@ -292,6 +289,31 @@ func TestPrintAdditionalScopedHelp_IncludeDescriptions(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestCLIReference_UsesCanonicalTopLevelQualityCommands_RedSpec(t *testing.T) {
+	wd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	root := filepath.Clean(filepath.Join(wd, "..", "..", "..", "..", ".."))
+	content, err := os.ReadFile(filepath.Join(root, "docs", "reference", "01-cli.md"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	out := string(content)
+
+	for _, canonical := range []string{
+		"`ship test`",
+		"`ship verify`",
+	} {
+		if !strings.Contains(out, canonical) {
+			t.Fatalf("cli reference should document canonical quality command %s", canonical)
+		}
+	}
+	if strings.Contains(out, "`ship check`") {
+		t.Fatalf("cli reference should not document legacy duplicate quality command `ship check`")
 	}
 }
 
