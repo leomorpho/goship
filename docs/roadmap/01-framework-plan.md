@@ -211,6 +211,7 @@ Non-goal:
 15. `app/controller` was removed; app page ownership is `app/web/ui.Page` with reusable framework-owned base fields/behavior extracted into `framework/web/page`.
 16. Legacy `app/subscriptions` was removed; plan catalog construction now lives in app runtime composition (`app/foundation/subscription_catalog.go`), and paidsubscriptions integration branches through catalog/service predicates instead of fixed free/pro key literals.
 17. Module source isolation temporary exceptions were reduced to a short allowlist focused on remaining notifications/paidsubscriptions bridge files; new exceptions should be treated as regressions by default.
+18. Remaining G1-03 hardening target: promote structural doctor warnings that define canonical repo shape (`DX005` unpaired markers, `DX027` raw controller form parsing) to blocking errors and remove the temporary `DX020` module-isolation allowlist.
 
 ## Upstream/Downstream Relationship
 

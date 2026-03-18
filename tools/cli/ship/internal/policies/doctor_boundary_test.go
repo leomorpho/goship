@@ -45,3 +45,7 @@ var _ = core.PubSub(nil)
 		mustContainIssueCode(t, issues, "DX020")
 	})
 }
+
+func TestRunDoctorChecks_ModuleIsolationAllowlistWillBeRemoved_RedSpec(t *testing.T) {
+	t.Skip("red-spec only (TKT-259): enable when DX020 no longer suppresses violations via module-isolation allowlist entries")
+}

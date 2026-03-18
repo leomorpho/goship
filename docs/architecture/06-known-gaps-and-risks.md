@@ -202,6 +202,7 @@ Impact:
 
 - Installable-module portability remains partially constrained by root import coupling.
 - Future extraction work must continue shrinking this allowlist toward zero.
+- Some structural doctor findings that protect canonical repo shape still remain warning-only (`DX005` unpaired markers, `DX027` raw controller form parsing), so repo drift can still pass default verification when it should eventually block.
 
 ## Suggested Priority Order
 

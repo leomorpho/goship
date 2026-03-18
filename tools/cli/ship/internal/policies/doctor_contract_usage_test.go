@@ -175,3 +175,7 @@ func (formValueRoute) Post(ctx echo.Context) error {
 		}
 	})
 }
+
+func TestRunDoctorChecks_RawFormParsingWillBecomeError_RedSpec(t *testing.T) {
+	t.Skip("red-spec only (TKT-259): enable when DX027 raw form parsing findings become blocking errors")
+}

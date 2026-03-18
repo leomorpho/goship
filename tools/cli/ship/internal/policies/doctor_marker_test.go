@@ -47,3 +47,7 @@ type Container struct{}
 		}
 	})
 }
+
+func TestRunDoctorChecks_UnpairedMarkerWillBecomeError_RedSpec(t *testing.T) {
+	t.Skip("red-spec only (TKT-259): enable when unpaired route/container markers become blocking DX005 errors")
+}
