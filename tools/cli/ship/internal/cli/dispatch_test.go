@@ -552,7 +552,3 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 		})
 	}
 }
-
-func TestRun_DevCanonicalPathContract_RedSpec(t *testing.T) {
-	t.Skip("red-spec only (TKT-255): enable in TKT-256 when shipdev/positional dev modes are removed")
-}

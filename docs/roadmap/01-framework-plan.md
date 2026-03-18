@@ -117,12 +117,6 @@ Primary command groups to match Rails ergonomics while staying Go-native:
 - `ship dev --all`
 - `ship test` (unit default)
 - `ship test --integration`
-
-Canonical dev command contract:
-
-- no `shipdev` alias;
-- no positional dev mode arguments (`ship dev web|worker|all`);
-- only explicit flags (`--web`, `--worker`, `--all`) for mode selection.
 3. Code generation:
 - `ship make:resource`
 - `ship make:model`

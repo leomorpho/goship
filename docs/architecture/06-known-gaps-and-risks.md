@@ -46,12 +46,10 @@ Impact:
 - Default base config now lives in `config/config.go` and can be overridden by `.env`.
 - Docker Compose currently starts Redis and Mailpit only; DB service is commented out.
 - Make targets include Postgres-dependent commands.
-- CLI still accepts transition-era dev command paths (`shipdev`, `ship dev worker`, `ship dev all`) even though the canonical contract is flag-only (`ship dev --worker|--all|--web`).
 
 Impact:
 
 - Contributors can experience confusion about canonical local dev DB path.
-- Duplicate dev command paths increase drift risk between docs/help output and automation.
 
 ## 6) Residual Dead UI Artifacts Can Reappear Without Reachability Audits (Low)
 

@@ -289,7 +289,3 @@ func TestPrintAdditionalScopedHelp_IncludeDescriptions(t *testing.T) {
 		})
 	}
 }
-
-func TestPrintDevHelp_CanonicalFlagsOnly_RedSpec(t *testing.T) {
-	t.Skip("red-spec only (TKT-255): enable in TKT-256 when positional dev help entries are removed")
-}
