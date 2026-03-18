@@ -761,6 +761,8 @@ Follow-up hardening tracked under `TKT-195` / `TKT-257` / `TKT-258`:
 - resolved realtime capability mismatches (for example notifier/pubsub startup gaps) now fail startup instead of silently disabling route surface;
 - adapter-backed dependency mismatches (for example `pubsub=redis` without its required runtime dependency) now fail at startup.
 - notification-center route inventory and canonical route-name cleanup are tracked under `TKT-197` / `TKT-261` / `TKT-262`.
+- startup failure-path contracts are now pinned by a dedicated suite covering nil-container, missing-module, invalid-profile, and realtime dependency mismatch cases.
+- `ship routes --json` now has explicit public/auth route-group contract coverage over method/path/auth/handler/file output.
 
 Default-topology hardening tracked under `TKT-198` / `TKT-263` / `TKT-264`:
 - local and dev defaults now normalize to `single-node`;

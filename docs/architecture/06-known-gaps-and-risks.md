@@ -52,6 +52,18 @@ Impact:
 - The route manifest and static asset surface are centralized today.
 - Future route extraction work should keep using route-composition contract tests to avoid reintroducing split registration styles.
 
+## Startup and Route Contract Suites Now Cover Failure Paths (Low)
+
+Startup failure cases now have a dedicated contract suite covering nil containers, missing module
+dependencies, invalid runtime profiles, and realtime capability mismatches. Route inventory output
+also has explicit public/auth contract coverage over `method`, `path`, `auth`, `handler`, and
+`file` metadata.
+
+Impact:
+
+- Startup regressions now fail through one executable contract instead of being spread across ad hoc tests.
+- CLI and agent consumers of `ship routes --json` now have an explicit grouped-route surface contract.
+
 ## Canonical Docs Now Enforce Hard-Cut Wording (Low)
 
 The canonical docs set is now guarded by doctor policy checks that reject selected legacy-cutover
