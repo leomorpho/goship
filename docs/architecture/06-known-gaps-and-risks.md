@@ -305,7 +305,7 @@ Impact:
 
 The managed backup/restore seam now locks `backup-manifest-v1` to SQLite-first metadata and a
 strict SHA-256 checksum contract, and managed restore responses now return machine-readable
-`restore_evidence`.
+`restore_evidence` with an explicit accepted-manifest field.
 
 Impact:
 

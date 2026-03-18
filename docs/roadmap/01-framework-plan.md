@@ -325,7 +325,7 @@ Minimum framework tooling/hooks to expose:
 4. Post-import verification hook callable from CLI/control-plane adapters.
 5. Dedicated CI suites for module isolation and `sql-core-v1` portability so boundary regressions fail in named lanes instead of broad aggregate jobs; the module-isolation lane reports module/file context and rejects stale allowlist entries.
 6. Shared/distributed replay storage contract for managed hook nonce tracking so multi-replica managed mode rejects replays consistently.
-7. `backup-manifest-v1` is now locked to SQLite-first metadata plus SHA-256 checksum invariants, and managed restore responses return typed restore evidence.
+7. `backup-manifest-v1` is now locked to SQLite-first metadata plus SHA-256 checksum invariants, and managed restore responses return typed restore evidence with an explicit accepted-manifest field.
 8. Shared signature vectors and a canonical payload library will be introduced for the INT2 bridge so runtime and control-plane signing fixtures stay aligned.
 9. Managed settings will need explicit drift detection and rollback semantics so the runtime can show when intended overrides and effective state have diverged.
 10. The managed-key registry will be versioned as a shared runtime/control-plane artifact so schema mapping stays authoritative instead of inferred from ad hoc key lists.

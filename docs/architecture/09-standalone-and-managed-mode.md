@@ -131,8 +131,9 @@ Response contract:
 - `404` when managed mode is disabled
 - `POST /managed/backup` returns a typed `backup-manifest-v1` payload with SQLite source metadata,
   SHA-256 artifact checksum, and storage target metadata
-- `POST /managed/restore` returns `restore_evidence` with the accepted manifest version, artifact
-  checksum, database descriptor, and named post-restore validation checks
+- `POST /managed/restore` returns `restore_evidence` with the accepted manifest version field
+  (`accepted_manifest_version`), artifact checksum, database descriptor, and named post-restore
+  validation checks
 
 Backup manifest v1 invariants:
 
