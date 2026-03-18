@@ -970,6 +970,7 @@ Current progress:
 - [ ] Create a developer-facing README + LLM-facing README/`llm.txt` split with one source of truth.
 - [ ] Define MCP server scope for GoShip (commands, module APIs, recipes, migration help).
 - [ ] Create a `CHERIE_SYNC.md` runbook (upgrade process + rollback + validation checklist).
+- [x] Add a named starter bootstrap budget gate for `ship new` plus starter boot.
 - [ ] Create a baseline compatibility test suite for Cherie critical paths.
 - [ ] Add a dedicated CI smoke lane that names and enforces the Cherie boot/auth/realtime baseline separately from the generic GoShip smoke test.
 - [ ] Publish one extension-zone manifest that distinguishes safe customization areas from protected framework contract seams and keep `ship doctor` aligned to it.

@@ -247,6 +247,10 @@ test-doc-sync: ## Verify route and scope docs stay aligned with canonical runtim
 test-dead-routes: ## Verify canonical route inventory guardrails stay green
 	bash tools/scripts/check-dead-routes.sh
 
+.PHONY: test-bootstrap-budget
+test-bootstrap-budget: ## Verify ship new scaffold plus starter boot stays within the canonical CI budget
+	bash tools/scripts/check-bootstrap-budget.sh
+
 .PHONY: test-integration
 test-integration: ## Run integration test package set (may require Docker/infra)
 	bash tools/scripts/test-integration.sh

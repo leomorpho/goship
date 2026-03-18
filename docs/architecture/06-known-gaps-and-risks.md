@@ -376,6 +376,19 @@ Impact:
 - Reviewers can distinguish this policy from other doc lint failures without reading the
   implementation details first.
 
+## 31) Starter Bootstrap Budget Is Now A Named Regression Gate (Low)
+
+GoShip now carries a dedicated bootstrap budget check for the canonical starter flow: scaffold a
+fresh app with `ship new`, then prove the generated `cmd/web` entrypoint runs within the named CI
+budget.
+
+Impact:
+
+- Starter DX regressions now show up in a specific lane instead of surfacing later as anecdotal
+  "ship new feels slower" feedback.
+- The budget and rerun knob are explicit, which keeps runner variance discussions separate from
+  actual bootstrap regressions.
+
 ## 16) No Built-In OpenAPI Generation Command (Informational)
 
 The `ship api:spec` command and `app/contracts`-based spec flow were removed in the app-minimalization cleanup stream.
