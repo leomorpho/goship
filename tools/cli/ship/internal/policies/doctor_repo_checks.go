@@ -313,8 +313,12 @@ type hardCutAllowlistEntry struct {
 }
 
 var hardCutCanonicalDocs = []string{
+	filepath.ToSlash(filepath.Join("docs", "architecture", "01-architecture.md")),
+	filepath.ToSlash(filepath.Join("docs", "architecture", "02-structure-and-boundaries.md")),
 	filepath.ToSlash(filepath.Join("docs", "architecture", "03-project-scope-analysis.md")),
 	filepath.ToSlash(filepath.Join("docs", "architecture", "04-http-routes.md")),
+	filepath.ToSlash(filepath.Join("docs", "architecture", "07-core-interfaces.md")),
+	filepath.ToSlash(filepath.Join("docs", "architecture", "09-standalone-and-managed-mode.md")),
 	filepath.ToSlash(filepath.Join("docs", "reference", "01-cli.md")),
 	filepath.ToSlash(filepath.Join("docs", "roadmap", "01-framework-plan.md")),
 }

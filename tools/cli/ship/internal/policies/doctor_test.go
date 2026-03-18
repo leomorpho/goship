@@ -550,7 +550,11 @@ func registerAuthRoutes() {
 		writeDoctorFixture(t, root)
 
 		for rel, content := range map[string]string{
+			filepath.Join("docs", "architecture", "01-architecture.md"):          "compatibility window\n",
+			filepath.Join("docs", "architecture", "02-structure-and-boundaries.md"): "deprecated alias\n",
 			filepath.Join("docs", "architecture", "03-project-scope-analysis.md"): "active transitional state\n",
+			filepath.Join("docs", "architecture", "07-core-interfaces.md"):       "deprecation period\n",
+			filepath.Join("docs", "architecture", "09-standalone-and-managed-mode.md"): "legacy compatibility path\n",
 			filepath.Join("docs", "reference", "01-cli.md"):                       "legacy compatibility path\n",
 			filepath.Join("docs", "roadmap", "01-framework-plan.md"):              "transition-era fallback\n",
 		} {
@@ -565,6 +569,9 @@ func registerAuthRoutes() {
 
 		issues := RunDoctorChecks(root)
 		mustContainIssueCode(t, issues, "DX030")
+		if !containsDoctorIssueMessage(issues, "docs/architecture/01-architecture.md:1") {
+			t.Fatalf("expected DX030 to cover canonical architecture docs, got %+v", issues)
+		}
 		if !containsDoctorIssueMessage(issues, "docs/architecture/03-project-scope-analysis.md:1") {
 			t.Fatalf("expected DX030 to include file:line diagnostics, got %+v", issues)
 		}

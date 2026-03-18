@@ -351,6 +351,18 @@ Impact:
 - Cherie-facing module version policy is now executable instead of living only in roadmap notes.
 - Local battery drift now fails in `ship verify` before it becomes downstream release confusion.
 
+## 29) Canonical Architecture Docs Now Share The Hard-Cut Lint (Low)
+
+The hard-cut wording lint now treats the canonical architecture set as one contract surface instead
+of checking only the scope/routes subset.
+
+Impact:
+
+- Transition-era wording drift in the primary architecture docs now fails through the same `DX030`
+  path as CLI and roadmap docs.
+- Historical references remain possible outside the canonical set through the existing allowlist,
+  keeping migration notes separate from the current architecture contract.
+
 ## 16) No Built-In OpenAPI Generation Command (Informational)
 
 The `ship api:spec` command and `app/contracts`-based spec flow were removed in the app-minimalization cleanup stream.
