@@ -319,6 +319,11 @@ e2e-smoke: ## Run Playwright smoke test with managed app startup
 	@echo "Running Playwright smoke test..."
 	@cd tests/e2e && npm install && npx playwright test tests/smoke.spec.ts
 
+.PHONY: e2e-admin-smoke
+e2e-admin-smoke: ## Run Playwright admin smoke test with managed app startup
+	@echo "Running Playwright admin smoke test..."
+	@cd tests/e2e && npm install && npx playwright test tests/admin_scaffold.spec.ts
+
 .PHONY: test-e2e
 e2eui: ## Run Playwright tests
 	@echo "Running end-to-end tests..."

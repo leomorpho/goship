@@ -127,15 +127,30 @@ func TestRequirementsFromConfig(t *testing.T) {
 			},
 		},
 		{
-			name: "scheduler requires cron",
+			name: "scheduler does not require backend cron",
 			cfg: &config.Config{
 				Processes: config.ProcessesConfig{Scheduler: true},
 			},
-			want: Requirements{
-				Jobs: core.JobCapabilities{
-					Cron: true,
+			want: Requirements{},
+		},
+		{
+			name: "single node backlite scheduler remains local-process compatible",
+			cfg: &config.Config{
+				Runtime: config.RuntimeConfig{Profile: config.RuntimeProfileSingleNode},
+				Processes: config.ProcessesConfig{
+					Web:       true,
+					Worker:    true,
+					Scheduler: true,
+					CoLocated: true,
+				},
+				Adapters: config.AdaptersConfig{
+					DB:     "sqlite",
+					Cache:  "otter",
+					Jobs:   "backlite",
+					PubSub: "inproc",
 				},
 			},
+			want: Requirements{},
 		},
 	}
 

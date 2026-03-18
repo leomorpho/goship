@@ -169,6 +169,7 @@ Reflection-based administrative interface for managing database resources.
 - Feature flags page at `/auth/admin/flags` with server-side toggle actions.
 - Trash page at `/auth/admin/trash` for operator visibility into soft-deleted row counts by table.
 - Built-in Templ components for common admin UI patterns.
+- Playwright baseline smoke coverage lives at `tests/e2e/tests/admin_scaffold.spec.ts` and protects the auth/managed-settings/flags/trash flow.
 
 ## 12) Feature Flags
 

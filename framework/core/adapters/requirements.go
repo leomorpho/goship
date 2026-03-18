@@ -10,10 +10,6 @@ func RequirementsFromConfig(cfg *config.Config) Requirements {
 
 	req := Requirements{}
 
-	if cfg.Processes.Scheduler {
-		req.Jobs.Cron = true
-	}
-
 	if cfg.Runtime.Profile == config.RuntimeProfileDistributed {
 		req.Jobs.Retries = true
 		req.Jobs.Delayed = true

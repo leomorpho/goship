@@ -202,10 +202,13 @@ HTTP integration test helpers:
 E2E tests:
 
 - `make e2e-smoke` (single happy-path smoke; Playwright starts `go run ./cmd/web` automatically via `webServer`)
+- `make e2e-admin-smoke` (admin auth and managed-surface smoke lane)
 - `make e2e`
 - `make e2eui`
 
 CI uses the smoke spec only (`tests/e2e/tests/smoke.spec.ts`) to validate startup and basic app serving.
+The admin scaffold lane lives at `tests/e2e/tests/admin_scaffold.spec.ts` and covers the
+critical admin auth/managed-settings/flags/trash surfaces as Playwright baseline smoke coverage.
 The `verify_strict` CI job runs `ship verify --profile strict` and serves as the precondition for the downstream Cherie compatibility gate.
 The Cherie compatibility lane runs `tests/e2e/tests/cherie_compatibility.spec.ts` with a web-only process env (`PAGODA_PROCESSES_WEB=true`, `PAGODA_PROCESSES_WORKER=false`, `PAGODA_PROCESSES_SCHEDULER=false`, `PAGODA_PROCESSES_COLOCATED=false`) so the baseline only measures boot, auth, and realtime route compatibility.
 Treat `verify_strict` and `cherie_compatibility_smoke` as the required status checks for Cherie-facing sync work.

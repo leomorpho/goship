@@ -1,0 +1,29 @@
+{
+  "ticket_id": "TKT-377",
+  "ticket_state": "backlog",
+  "created_at": "2026-03-18T22:56:52Z",
+  "ac_done": 2,
+  "ac_total": 3,
+  "changed_files": [
+    ".docket/tickets/TKT-203.md",
+    ".docket/tickets/TKT-230.md",
+    ".docket/tickets/TKT-273.md",
+    ".docket/tickets/TKT-274.md",
+    ".docket/tickets/TKT-339.md",
+    ".docket/tickets/TKT-367.md",
+    ".docket/tickets/TKT-368.md",
+    ".docket/tickets/TKT-377.md",
+    ".gitignore",
+    "AGENTS.md"
+  ],
+  "blockers": [
+    "TKT-376"
+  ],
+  "next_steps": [
+    "CLI/generator flow produces canonical auth setup with deterministic outputs."
+  ],
+  "last_comments": [],
+  "branch": "work/2026-refactor-main-snapshot",
+  "worktree_path": "/Users/leoaudibert/Workspace/2026/pagoda-based/goship",
+  "summary": "AC completion checkpoint"
+}

@@ -1,0 +1,9 @@
+{
+  "docket_version": "v0.1.0",
+  "installed_at": "2026-03-18T22:38:17Z",
+  "managed_artifacts": [
+    "/Users/leoaudibert/Workspace/2026/pagoda-based/goship/.git/hooks/commit-msg",
+    "/Users/leoaudibert/Workspace/2026/pagoda-based/goship/.git/hooks/pre-commit",
+    "/Users/leoaudibert/Workspace/2026/pagoda-based/goship/CLAUDE.md"
+  ]
+}

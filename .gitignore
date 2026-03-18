@@ -215,3 +215,7 @@ bubblewrap
 # private nested repos / planning workspaces
 /tools/private/
 .doombox/
+.docket/local/
+.docket/locks.json
+.docket/runtime/
+.docket/semantic/
