@@ -1435,6 +1435,9 @@ runtime metadata is added without extending the report.
 INT1-02 will add a named orchestration contract-mismatch preflight gate on top of `ship verify`
 so unsupported deploy/upgrade/promote combinations fail before the orchestration layer starts.
 
+Managed settings still need a dedicated drift/rollback surface so operator tooling can detect when a
+managed override has diverged from the intended runtime state and present a safe rollback path.
+
 Impact:
 
 - Operators and agents now have one canonical CLI report for runtime capability inspection.
@@ -1594,7 +1597,7 @@ Impact:
 
 The managed backup/restore seam now locks `backup-manifest-v1` to SQLite-first metadata and a
 strict SHA-256 checksum contract, and managed restore responses now return machine-readable
-`restore_evidence`.
+`restore_evidence` with an explicit accepted-manifest field.
 
 Impact:
 
@@ -2070,6 +2073,7 @@ Rules:
 - secrets stay out of the repo
 - managed overrides are allowlisted and inspectable
 - the runtime should be able to report both the effective value and the source of that value
+- managed settings should also surface drift detection and rollback semantics so operators can see when the runtime has diverged from the intended override state
 - the managed-key registry itself is a versioned artifact shared with the control plane, so runtime and orchestration tooling can agree on an authoritative schema mapping
 - `TKT-339` defines the next runtime-surface contract for per-module adoption metadata, so external
   control planes can track module identity, module path, version, and source without parsing repo
@@ -2114,8 +2118,9 @@ Response contract:
 - `404` when managed mode is disabled
 - `POST /managed/backup` returns a typed `backup-manifest-v1` payload with SQLite source metadata,
   SHA-256 artifact checksum, and storage target metadata
-- `POST /managed/restore` returns `restore_evidence` with the accepted manifest version, artifact
-  checksum, database descriptor, and named post-restore validation checks
+- `POST /managed/restore` returns `restore_evidence` with the accepted manifest version field
+  (`accepted_manifest_version`), artifact checksum, database descriptor, and named post-restore
+  validation checks
 
 Backup manifest v1 invariants:
 
@@ -4773,9 +4778,10 @@ Minimum framework tooling/hooks to expose:
 4. Post-import verification hook callable from CLI/control-plane adapters.
 5. Dedicated CI suites for module isolation and `sql-core-v1` portability so boundary regressions fail in named lanes instead of broad aggregate jobs; the module-isolation lane reports module/file context and rejects stale allowlist entries.
 6. Shared/distributed replay storage contract for managed hook nonce tracking so multi-replica managed mode rejects replays consistently.
-7. `backup-manifest-v1` is now locked to SQLite-first metadata plus SHA-256 checksum invariants, and managed restore responses return typed restore evidence.
+7. `backup-manifest-v1` is now locked to SQLite-first metadata plus SHA-256 checksum invariants, and managed restore responses return typed restore evidence with an explicit accepted-manifest field.
 8. Shared signature vectors and a canonical payload library will be introduced for the INT2 bridge so runtime and control-plane signing fixtures stay aligned.
-9. The managed-key registry will be versioned as a shared runtime/control-plane artifact so schema mapping stays authoritative instead of inferred from ad hoc key lists.
+9. Managed settings will need explicit drift detection and rollback semantics so the runtime can show when intended overrides and effective state have diverged.
+10. The managed-key registry will be versioned as a shared runtime/control-plane artifact so schema mapping stays authoritative instead of inferred from ad hoc key lists.
 
 ## Docket Tracking
 
