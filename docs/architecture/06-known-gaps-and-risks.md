@@ -135,7 +135,8 @@ Impact:
 
 `ship runtime:report --json` now exposes the effective profile, adapters, process plan, web
 features, DB runtime metadata, and managed-key sources in one machine-readable payload. The
-remaining risk is payload drift if future runtime metadata is added without extending the report.
+INT1-01 will extend that payload with a versioned handshake envelope for orchestration preflight.
+The remaining risk is payload drift if future runtime metadata is added without extending the report.
 
 Impact:
 

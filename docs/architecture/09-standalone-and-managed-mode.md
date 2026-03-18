@@ -169,6 +169,7 @@ SQL portability constraints (`sql-core-v1`):
 Minimum framework hook surface to support promotion:
 
 - Runtime metadata reporting hook.
+- The runtime metadata report is expected to be versioned and to carry a metadata handshake envelope for orchestration preflight.
 - Export hook with deterministic schema/version manifest output.
 - Import hook with manifest validation and idempotent apply behavior.
 - Post-import verification hook.

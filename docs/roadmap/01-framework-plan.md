@@ -795,6 +795,7 @@ Local-runtime alignment tracked under `TKT-234` / `TKT-297` / `TKT-298`:
 Runtime-report contract tracked under `TKT-235` / `TKT-299` / `TKT-300`:
 - the runtime metadata/config primitives now feed `ship runtime:report --json`;
 - `ship runtime:report --json` is now the canonical machine-readable runtime capability surface for operators and agents.
+- `TKT-220` / `TKT-319` / `TKT-320` will extend that report with a versioned metadata handshake envelope for orchestration preflight.
 
 CLI-path reset tracked under `TKT-249` / `TKT-311` / `TKT-312`:
 - the executable spec now pins one canonical top-level quality path per concern;

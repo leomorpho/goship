@@ -1,10 +1,15 @@
 package commands
 
 import (
+	"bytes"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/leomorpho/goship/config"
+	"github.com/leomorpho/goship/framework/runtimeconfig"
 )
 
 func TestPrintRootHelp_ListsRuntimeReport_RedSpec(t *testing.T) {
@@ -28,6 +33,93 @@ func TestRunRuntimeReport_JSONContract_RedSpec(t *testing.T) {
 	}
 	if !strings.Contains(helpSource, "ship runtime:report --json") {
 		t.Fatal("help output does not yet advertise ship runtime:report --json")
+	}
+}
+
+func TestRunRuntimeReport_EmitsVersionedHandshakeEnvelope_RedSpec(t *testing.T) {
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+
+	code := RunRuntimeReport([]string{"--json"}, RuntimeReportDeps{
+		Out: out,
+		Err: errOut,
+		LoadConfig: func() (config.Config, error) {
+			return config.Config{
+				Runtime: config.RuntimeConfig{Profile: config.RuntimeProfileSingleNode},
+				Adapters: config.AdaptersConfig{
+					DB:     "sqlite",
+					Cache:  "otter",
+					Jobs:   "backlite",
+					PubSub: "inproc",
+				},
+				Processes: config.ProcessesConfig{
+					Web:       true,
+					Worker:    true,
+					Scheduler: true,
+					CoLocated: true,
+				},
+				Database: config.DatabaseConfig{
+					DbMode: config.DBModeEmbedded,
+					Driver: config.DBDriverSQLite,
+				},
+				Managed: config.ManagedConfig{
+					RuntimeReport: runtimeconfig.Report{
+						Mode:      runtimeconfig.ModeManaged,
+						Authority: "control-plane",
+						Keys: map[string]runtimeconfig.KeyState{
+							"adapters.cache": {Value: "otter", Source: runtimeconfig.SourceFrameworkDefault},
+						},
+					},
+				},
+			}, nil
+		},
+	})
+	if code != 0 {
+		t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
+	}
+
+	var payload map[string]json.RawMessage
+	if err := json.Unmarshal(out.Bytes(), &payload); err != nil {
+		t.Fatalf("decode runtime report: %v\n%s", err, out.String())
+	}
+
+	var contractVersion string
+	if err := json.Unmarshal(payload["contract_version"], &contractVersion); err != nil {
+		t.Fatalf("contract_version should be present and decodable: %v\n%s", err, out.String())
+	}
+	if contractVersion != "runtime-contract-v1" {
+		t.Fatalf("contract_version = %q, want runtime-contract-v1", contractVersion)
+	}
+
+	handshakeRaw, ok := payload["handshake"]
+	if !ok {
+		t.Fatalf("runtime report missing handshake envelope:\n%s", out.String())
+	}
+
+	var handshake struct {
+		SchemaVersion string `json:"schema_version"`
+		Profile       string `json:"profile"`
+		Managed       struct {
+			Mode string `json:"mode"`
+		} `json:"managed"`
+		Database struct {
+			Driver string `json:"driver"`
+		} `json:"database"`
+	}
+	if err := json.Unmarshal(handshakeRaw, &handshake); err != nil {
+		t.Fatalf("handshake should decode: %v\n%s", err, out.String())
+	}
+	if handshake.SchemaVersion != "runtime-handshake-v1" {
+		t.Fatalf("handshake schema_version = %q, want runtime-handshake-v1", handshake.SchemaVersion)
+	}
+	if handshake.Profile != "single-node" {
+		t.Fatalf("handshake profile = %q, want single-node", handshake.Profile)
+	}
+	if handshake.Managed.Mode != "managed" {
+		t.Fatalf("handshake managed.mode = %q, want managed", handshake.Managed.Mode)
+	}
+	if handshake.Database.Driver != "sqlite" {
+		t.Fatalf("handshake database.driver = %q, want sqlite", handshake.Database.Driver)
 	}
 }
 
