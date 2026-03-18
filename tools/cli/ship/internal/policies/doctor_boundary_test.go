@@ -47,5 +47,31 @@ var _ = core.PubSub(nil)
 }
 
 func TestRunDoctorChecks_ModuleIsolationAllowlistWillBeRemoved_RedSpec(t *testing.T) {
-	t.Skip("red-spec only (TKT-259): enable when DX020 no longer suppresses violations via module-isolation allowlist entries")
+	root := t.TempDir()
+	writeDoctorFixture(t, root)
+
+	allowlistPath := filepath.Join(root, "tools", "scripts", "test")
+	if err := os.MkdirAll(allowlistPath, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	moduleDir := filepath.Join(root, "modules", "local")
+	if err := os.WriteFile(filepath.Join(moduleDir, "go.mod"), []byte("module example.com/local\n\ngo 1.23.0\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(moduleDir, "bad.go")
+	content := `package local
+
+import "github.com/leomorpho/goship/framework/core"
+
+var _ = core.PubSub(nil)
+`
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(allowlistPath, "module-isolation-allowlist.txt"), []byte("modules/local/bad.go\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	issues := RunDoctorChecks(root)
+	mustContainIssueCode(t, issues, "DX020")
 }

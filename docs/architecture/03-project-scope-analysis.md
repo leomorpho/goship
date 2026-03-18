@@ -166,7 +166,7 @@ Reflection-based administrative interface for managing database resources.
 ## 13) Request DTO Conventions
 
 - Controller request DTOs now live with their owning controllers/modules instead of a global `app/contracts` package.
-- `ship doctor` (`DX027`) enforces typed request binding patterns and warns on raw/untyped form parsing patterns.
+- `ship doctor` (`DX027`) enforces typed request binding patterns and now blocks raw/untyped form parsing patterns in controllers.
 - OpenAPI generation was removed from the core `ship` CLI surface in the app-minimalization cleanup stream.
 - `app/controller` was removed; canonical app page ownership is `app/web/ui.Page`, which now embeds reusable framework-owned base fields/behavior from `framework/web/page.Base`.
 

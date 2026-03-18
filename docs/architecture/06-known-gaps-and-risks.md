@@ -196,13 +196,12 @@ Impact:
 
 ## 21) Module Isolation Exceptions Still Exist for Installable Modules (Medium)
 
-`DX020` now runs with a much smaller temporary allowlist, but some installable module runtime files still import root app/framework packages directly (currently concentrated in `modules/notifications/*` and `modules/paidsubscriptions/routes/routes.go`).
+`DX020` now blocks direct root-package imports from installable module runtime code with no temporary allowlist escape hatch, so the remaining violations are explicit cleanup work instead of tolerated drift.
 
 Impact:
 
-- Installable-module portability remains partially constrained by root import coupling.
-- Future extraction work must continue shrinking this allowlist toward zero.
-- Some structural doctor findings that protect canonical repo shape still remain warning-only (`DX005` unpaired markers, `DX027` raw controller form parsing), so repo drift can still pass default verification when it should eventually block.
+- Installable-module portability remains partially constrained by the remaining violating files, but they are now surfaced as blocking policy failures.
+- Structural repo-shape drift for unpaired markers (`DX005`) and raw controller form parsing (`DX027`) is now blocked by default verification instead of surfacing as warnings.
 
 ## Suggested Priority Order
 

@@ -90,11 +90,10 @@ func checkMarkerIntegrity(root string) []DoctorIssue {
 				present = pair.start
 			}
 			issues = append(issues, DoctorIssue{
-				Code:     "DX005",
-				File:     pair.file,
-				Message:  fmt.Sprintf("unpaired marker in %s: missing %s for %s", pair.file, missing, present),
-				Fix:      pair.missingFix,
-				Severity: "warning",
+				Code:    "DX005",
+				File:    pair.file,
+				Message: fmt.Sprintf("unpaired marker in %s: missing %s for %s", pair.file, missing, present),
+				Fix:     pair.missingFix,
 			})
 		default:
 			startIdx := strings.Index(content, pair.start)
@@ -298,11 +297,10 @@ func checkContractUsage(root string) []DoctorIssue {
 		}
 
 		issues = append(issues, DoctorIssue{
-			Code:     "DX027",
-			File:     filepath.ToSlash(mustRel(root, path)),
-			Message:  detail,
-			Fix:      "bind/parse request payloads into typed request structs (local or owned contracts packages) instead of raw FormValue/untyped map payloads",
-			Severity: "warning",
+			Code:    "DX027",
+			File:    filepath.ToSlash(mustRel(root, path)),
+			Message: detail,
+			Fix:     "bind/parse request payloads into typed request structs (local or owned contracts packages) instead of raw FormValue/untyped map payloads",
 		})
 		return nil
 	})
@@ -433,7 +431,6 @@ func checkModuleSourceIsolation(root string) []DoctorIssue {
 	if !isDir(modulesRoot) {
 		return issues
 	}
-	allowlist := loadModuleIsolationAllowlist(filepath.Join(root, "tools", "scripts", "test", "module-isolation-allowlist.txt"))
 	entries, err := os.ReadDir(modulesRoot)
 	if err != nil {
 		return append(issues, DoctorIssue{
@@ -461,9 +458,6 @@ func checkModuleSourceIsolation(root string) []DoctorIssue {
 				return nil
 			}
 			rel := filepath.ToSlash(mustRel(root, path))
-			if _, ok := allowlist[rel]; ok {
-				return nil
-			}
 			b, readErr := os.ReadFile(path)
 			if readErr != nil {
 				issues = append(issues, DoctorIssue{
@@ -484,25 +478,6 @@ func checkModuleSourceIsolation(root string) []DoctorIssue {
 		})
 	}
 	return issues
-}
-
-func loadModuleIsolationAllowlist(path string) map[string]struct{} {
-	result := map[string]struct{}{}
-	if !hasFile(path) {
-		return result
-	}
-	b, err := os.ReadFile(path)
-	if err != nil {
-		return result
-	}
-	for _, raw := range strings.Split(string(b), "\n") {
-		line := strings.TrimSpace(raw)
-		if line == "" || strings.HasPrefix(line, "#") {
-			continue
-		}
-		result[filepath.ToSlash(line)] = struct{}{}
-	}
-	return result
 }
 
 func checkImportPrefixForbidden(dir string, forbiddenPrefix string, code string, message string, fix string) []DoctorIssue {

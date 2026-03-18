@@ -7,7 +7,7 @@ import (
 )
 
 func TestRunDoctorChecks_ContractUsage(t *testing.T) {
-	t.Run("bind into untyped map emits warning", func(t *testing.T) {
+	t.Run("bind into untyped map emits error", func(t *testing.T) {
 		root := t.TempDir()
 		writeDoctorFixture(t, root)
 
@@ -31,7 +31,10 @@ func (rawBindRoute) Post(ctx echo.Context) error {
 		}
 
 		issues := RunDoctorChecks(root)
-		mustContainIssueCode(t, issues, "DX027")
+		issue := mustFindIssueCode(t, issues, "DX027")
+		if doctorIssueSeverity(issue) != "error" {
+			t.Fatalf("severity = %q, want error", doctorIssueSeverity(issue))
+		}
 	})
 
 	t.Run("bind with local typed request struct is allowed", func(t *testing.T) {
@@ -111,7 +114,7 @@ func (moduleContractRoute) Post(ctx echo.Context) error {
 		}
 	})
 
-	t.Run("FormValue usage emits warning", func(t *testing.T) {
+	t.Run("FormValue usage emits error", func(t *testing.T) {
 		root := t.TempDir()
 		writeDoctorFixture(t, root)
 
@@ -132,7 +135,10 @@ func (formValueRoute) Post(ctx echo.Context) error {
 		}
 
 		issues := RunDoctorChecks(root)
-		mustContainIssueCode(t, issues, "DX027")
+		issue := mustFindIssueCode(t, issues, "DX027")
+		if doctorIssueSeverity(issue) != "error" {
+			t.Fatalf("severity = %q, want error", doctorIssueSeverity(issue))
+		}
 	})
 
 	t.Run("contact controller uses app contracts request type", func(t *testing.T) {
@@ -177,5 +183,28 @@ func (formValueRoute) Post(ctx echo.Context) error {
 }
 
 func TestRunDoctorChecks_RawFormParsingWillBecomeError_RedSpec(t *testing.T) {
-	t.Skip("red-spec only (TKT-259): enable when DX027 raw form parsing findings become blocking errors")
+	root := t.TempDir()
+	writeDoctorFixture(t, root)
+
+	path := filepath.Join(root, "app", "web", "controllers", "form_value.go")
+	content := `package controllers
+
+import "github.com/labstack/echo/v4"
+
+type formValueRoute struct{}
+
+func (formValueRoute) Post(ctx echo.Context) error {
+	_ = ctx.FormValue("email")
+	return nil
+}
+`
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	issues := RunDoctorChecks(root)
+	issue := mustFindIssueCode(t, issues, "DX027")
+	if doctorIssueSeverity(issue) != "error" {
+		t.Fatalf("severity = %q, want error", doctorIssueSeverity(issue))
+	}
 }
