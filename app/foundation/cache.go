@@ -175,13 +175,14 @@ func (c *cacheSet) Save(ctx context.Context) error {
 		return errors.New("no cache key specified")
 	}
 	cacheKey := c.client.cacheKey(c.group, c.key)
+	expiration := normalizeCacheTTL(c.expiration)
 
 	if c.client.otter != nil {
 		payload, err := json.Marshal(c.data)
 		if err != nil {
 			return err
 		}
-		if err := c.client.otter.Set(cacheKey, payload, c.expiration); err != nil {
+		if err := c.client.otter.Set(cacheKey, payload, expiration); err != nil {
 			return err
 		}
 		c.client.otter.SetTags(cacheKey, c.tags)
@@ -189,7 +190,7 @@ func (c *cacheSet) Save(ctx context.Context) error {
 	}
 
 	opts := &store.Options{
-		Expiration: c.expiration,
+		Expiration: expiration,
 		Tags:       c.tags,
 	}
 
@@ -316,6 +317,7 @@ func (c *CacheClient) SetBytes(ctx context.Context, key string, value []byte, tt
 	if c == nil {
 		return errors.New("cache client is not initialized")
 	}
+	ttl = normalizeCacheTTL(ttl)
 	if c.otter != nil {
 		return c.otter.Set(key, value, ttl)
 	}
@@ -365,4 +367,14 @@ func normalizeCacheAdapter(v string) string {
 	default:
 		return normalize
 	}
+}
+
+func normalizeCacheTTL(ttl time.Duration) time.Duration {
+	if ttl <= 0 {
+		return ttl
+	}
+	if ttl%time.Second == 0 {
+		return ttl
+	}
+	return ((ttl / time.Second) + 1) * time.Second
 }

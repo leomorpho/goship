@@ -6,14 +6,14 @@ This list is based on direct code inspection and is intended to guide contributo
 ## 1) Cache Adapter Coverage Is Incomplete (Medium)
 
 `app/foundation/container.go` now initializes the shared cache seam for both in-memory (`otter` /
-`memory`) and Redis-backed adapters, so page-cache middleware is no longer Redis-only. The
-remaining gap is executable parity coverage: grouped objects, tag invalidation, TTL expiry, and the
-raw byte/prefix seam are not yet pinned by one shared backend matrix.
+`memory`) and Redis-backed adapters, and the cache contract is now pinned by one shared backend
+matrix. Grouped objects, tag invalidation, TTL expiry, and the raw byte/prefix seam now run through
+the same executable coverage for both adapters.
 
 Impact:
 
 - Local/default runtime can exercise page-cache paths through the in-memory adapter.
-- Cache parity between `memory` and `redis` still depends on scattered tests instead of one shared contract suite.
+- Positive cache TTLs are normalized to second precision so `memory` and `redis` expire entries on the same schedule.
 
 ## 2) Realtime Dependency Requirements (High for distributed realtime features)
 

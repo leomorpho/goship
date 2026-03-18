@@ -745,8 +745,8 @@ Dev-loop convergence tracked under `TKT-199` / `TKT-265` / `TKT-266`:
 
 Cache-contract parity tracked under `TKT-200` / `TKT-267` / `TKT-268`:
 - in-memory page caching is now wired through the same cache seam as Redis;
-- executable red specs define one shared contract for grouped payloads, tag invalidation, TTL expiry, and raw byte/prefix operations across `memory` and `redis`;
-- follow-up implementation work still needs a Redis-backed test harness so the shared matrix runs in unit scope.
+- one shared contract suite now covers grouped payloads, tag invalidation, TTL expiry, and raw byte/prefix operations across `memory` and `redis`;
+- the shared cache seam normalizes positive TTLs to second precision so adapter choice does not change expiry semantics.
 
 4. `R0.4` Testing harness improvements so default `make test` is Docker-free and fast.
 Status: `completed`
