@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	policies "github.com/leomorpho/goship/tools/cli/ship/internal/policies"
+	"golang.org/x/mod/modfile"
 )
 
 type VerifyDeps struct {
@@ -150,6 +151,12 @@ func RunVerify(args []string, d VerifyDeps) int {
 		}
 		appendStep("hard-cut wording invariant", true, "canonical docs avoid transition/deprecation wording", "")
 
+		if modulePolicyErr := checkModuleCompatibilityPolicy("."); modulePolicyErr != nil {
+			appendStep("module compatibility policy", false, modulePolicyErr.Error(), "")
+			return nil
+		}
+		appendStep("module compatibility policy", true, "standalone batteries use the canonical local-workspace or tagged-release wiring policy", "")
+
 		runNilaway := *profile != verifyProfileFast
 		requireNilaway := *profile == verifyProfileStrict
 		if !runNilaway {
@@ -259,6 +266,115 @@ func mergeVerifyOutput(output string, err error) string {
 		return err.Error()
 	}
 	return output + "\n" + err.Error()
+}
+
+func checkModuleCompatibilityPolicy(root string) error {
+	goModPath := filepath.Join(root, "go.mod")
+	goModBody, err := os.ReadFile(goModPath)
+	if err != nil {
+		return fmt.Errorf("read go.mod: %w", err)
+	}
+	goModFile, err := modfile.Parse(goModPath, goModBody, nil)
+	if err != nil {
+		return fmt.Errorf("parse go.mod: %w", err)
+	}
+
+	goWorkPath := filepath.Join(root, "go.work")
+	goWorkBody, err := os.ReadFile(goWorkPath)
+	if err != nil {
+		return fmt.Errorf("read go.work: %w", err)
+	}
+	goWorkFile, err := modfile.ParseWork(goWorkPath, goWorkBody, nil)
+	if err != nil {
+		return fmt.Errorf("parse go.work: %w", err)
+	}
+
+	requiredVersions := map[string]string{}
+	for _, req := range goModFile.Require {
+		requiredVersions[req.Mod.Path] = req.Mod.Version
+	}
+
+	replacedPaths := map[string]string{}
+	for _, rep := range goModFile.Replace {
+		replacedPaths[rep.Old.Path] = rep.New.Path
+	}
+
+	workspaceUses := map[string]struct{}{}
+	for _, use := range goWorkFile.Use {
+		workspaceUses[filepath.Clean(filepath.FromSlash(use.Path))] = struct{}{}
+	}
+
+	for _, info := range standaloneModulePolicies() {
+		requiredVersion, hasRequire := requiredVersions[info.ModulePath]
+		replacedPath, hasReplace := replacedPaths[info.ModulePath]
+		usePath := filepath.Clean(filepath.Join(".", filepath.FromSlash(info.LocalPath)))
+		_, hasUse := workspaceUses[usePath]
+
+		localGoModPath := filepath.Join(root, info.LocalPath, "go.mod")
+		if _, statErr := os.Stat(localGoModPath); statErr != nil {
+			if os.IsNotExist(statErr) {
+				if !hasRequire && !hasReplace && !hasUse {
+					continue
+				}
+				return fmt.Errorf("standalone module %q is missing %s", info.ID, filepath.ToSlash(filepath.Join(info.LocalPath, "go.mod")))
+			}
+			return fmt.Errorf("stat %s: %w", filepath.ToSlash(filepath.Join(info.LocalPath, "go.mod")), statErr)
+		}
+
+		localBody, readErr := os.ReadFile(localGoModPath)
+		if readErr != nil {
+			return fmt.Errorf("read %s: %w", filepath.ToSlash(filepath.Join(info.LocalPath, "go.mod")), readErr)
+		}
+		localFile, parseErr := modfile.Parse(localGoModPath, localBody, nil)
+		if parseErr != nil {
+			return fmt.Errorf("parse %s: %w", filepath.ToSlash(filepath.Join(info.LocalPath, "go.mod")), parseErr)
+		}
+		if localFile.Module == nil || localFile.Module.Mod.Path != info.ModulePath {
+			got := ""
+			if localFile.Module != nil {
+				got = localFile.Module.Mod.Path
+			}
+			return fmt.Errorf(
+				"%s declares module %q; want %q",
+				filepath.ToSlash(filepath.Join(info.LocalPath, "go.mod")),
+				got,
+				info.ModulePath,
+			)
+		}
+
+		if !hasRequire && !hasReplace {
+			continue
+		}
+		if !hasRequire {
+			return fmt.Errorf("go.mod must require %s at v0.0.0 when using the local standalone module", info.ModulePath)
+		}
+		if requiredVersion != "v0.0.0" {
+			return fmt.Errorf("go.mod must require %s at v0.0.0 for local workspace development; found %s", info.ModulePath, requiredVersion)
+		}
+		if !hasReplace {
+			return fmt.Errorf("go.mod must replace %s => ./%s for local workspace development", info.ModulePath, filepath.ToSlash(info.LocalPath))
+		}
+		expectedReplace := "./" + filepath.ToSlash(info.LocalPath)
+		if filepath.ToSlash(replacedPath) != expectedReplace {
+			return fmt.Errorf("go.mod must replace %s => %s; found %s", info.ModulePath, expectedReplace, filepath.ToSlash(replacedPath))
+		}
+		if !hasUse {
+			return fmt.Errorf("go.work must include ./%s when go.mod depends on %s", filepath.ToSlash(info.LocalPath), info.ModulePath)
+		}
+	}
+
+	return nil
+}
+
+func standaloneModulePolicies() []moduleInfo {
+	policies := make([]moduleInfo, 0, len(moduleCatalog))
+	for _, info := range moduleCatalog {
+		if strings.TrimSpace(info.ModulePath) == "" || strings.TrimSpace(info.LocalPath) == "" {
+			continue
+		}
+		policies = append(policies, info)
+	}
+	return policies
 }
 
 func formatVerifyDoctorIssues(issues []policies.DoctorIssue) string {

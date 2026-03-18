@@ -115,7 +115,9 @@ Command grammar policy:
 3. `ship doctor` reports version drift and prints explicit fix commands.
 4. `ship doctor --json` emits `{"ok","issues":[{"type","file","detail","severity"}]}` for agent tooling.
 5. `ship routes --json` emits a JSON array of route objects (`method`, `path`, `auth`, `handler`, `file`).
-6. Only `ship upgrade` may intentionally bump pinned versions.
+6. Installable standalone batteries use `v0.0.0` plus a local `replace` and `go.work use` entry during in-repo development.
+7. Released consumers such as Cherie should consume tagged module versions instead of committing local-path replaces downstream.
+8. Only `ship upgrade` may intentionally bump pinned versions.
 
 ## Implementation Mapping (Current Repo)
 
@@ -132,6 +134,7 @@ These commands are implemented as wrappers over existing workflows:
 - `ship test --integration` -> `go test -tags=integration ./...`
 - `ship module:add <name>` -> updates `config/modules.yaml`, app marker snippets, root `go.mod` `require`/`replace` directives, and `go.work` `use` entries for standalone batteries with local `go.mod` files
 - `ship module:remove <name>` -> removes those managed entries when safe; fails with exact blocker file paths when the repo still imports the module outside managed wiring points
+- `ship verify` -> rejects standalone-battery drift when root `go.mod` dependencies on installable modules are not the canonical local-dev shape (`v0.0.0` + local `replace` + matching `go.work use`) or when module-local `go.mod` module paths no longer match the declared battery ID
 - `ship infra:up` -> detects `docker-compose`/`docker compose` and runs `up -d cache`, then attempts `up -d mailpit` (non-fatal if mailpit fails)
 - `ship infra:down` -> detects `docker-compose`/`docker compose` and runs `down`
 - `make test-module-isolation` -> dedicated CI lane for installable-module root import isolation

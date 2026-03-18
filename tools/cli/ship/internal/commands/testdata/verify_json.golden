@@ -22,6 +22,11 @@
       "output": "canonical docs avoid transition/deprecation wording"
     },
     {
+      "name": "module compatibility policy",
+      "ok": true,
+      "output": "standalone batteries use the canonical local-workspace or tagged-release wiring policy"
+    },
+    {
       "name": "nilaway ./...",
       "ok": true,
       "output": "nilaway ok"

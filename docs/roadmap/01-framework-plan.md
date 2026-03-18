@@ -966,7 +966,7 @@ Current progress:
 - [x] Choose CLI implementation approach (stdlib `flag` + explicit command dispatch in `tools/cli/ship`).
 - [x] Draft `core` interface contracts in a design doc and first package (`framework/core`).
 - [x] Define runtime config schema for adapter selection and add startup adapter validation registry.
-- [ ] Specify module compatibility/version policy.
+- [x] Specify module compatibility/version policy.
 - [ ] Create a developer-facing README + LLM-facing README/`llm.txt` split with one source of truth.
 - [ ] Define MCP server scope for GoShip (commands, module APIs, recipes, migration help).
 - [ ] Create a `CHERIE_SYNC.md` runbook (upgrade process + rollback + validation checklist).

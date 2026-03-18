@@ -339,6 +339,18 @@ Impact:
 - Route-inventory regressions and doc drift are isolated from broader backend failures, which makes
   remediation faster and more obvious.
 
+## 28) Module Compatibility Policy Is Now Enforced By Verify (Low)
+
+GoShip now treats installable standalone batteries as one canonical contract: if root `go.mod`
+depends on a local battery, that dependency must stay on `v0.0.0`, point at the repo-local
+`replace`, and keep the matching `go.work use` entry. Module-local `go.mod` files must also keep
+the declared module path aligned with the battery catalog.
+
+Impact:
+
+- Cherie-facing module version policy is now executable instead of living only in roadmap notes.
+- Local battery drift now fails in `ship verify` before it becomes downstream release confusion.
+
 ## 16) No Built-In OpenAPI Generation Command (Informational)
 
 The `ship api:spec` command and `app/contracts`-based spec flow were removed in the app-minimalization cleanup stream.
