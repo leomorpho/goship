@@ -124,7 +124,8 @@ func (m managedHooks) StartRestore(ctx echo.Context) error {
 	}
 
 	return ctx.JSON(http.StatusAccepted, map[string]any{
-		"status": "accepted",
+		"status":           "accepted",
+		"restore_evidence": backup.BuildRestoreEvidence(req.Manifest),
 	})
 }
 

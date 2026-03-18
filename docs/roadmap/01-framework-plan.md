@@ -323,6 +323,7 @@ Minimum framework tooling/hooks to expose:
 4. Post-import verification hook callable from CLI/control-plane adapters.
 5. Dedicated CI suites for module isolation and `sql-core-v1` portability so boundary regressions fail in named lanes instead of broad aggregate jobs.
 6. Shared/distributed replay storage contract for managed hook nonce tracking so multi-replica managed mode rejects replays consistently.
+7. `backup-manifest-v1` is now locked to SQLite-first metadata plus SHA-256 checksum invariants, and managed restore responses return typed restore evidence.
 
 ## Docket Tracking
 

@@ -62,7 +62,7 @@ func TestManagedHooksBackupAndRestoreSigned(t *testing.T) {
 				SourcePath:    ".local/db/main.db",
 			},
 			Artifact: backup.ArtifactDescriptor{
-				ChecksumSHA256: "abc123",
+				ChecksumSHA256: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
 				SizeBytes:      10,
 			},
 			Storage: backup.StorageLocation{
@@ -92,6 +92,19 @@ func TestManagedHooksBackupAndRestoreSigned(t *testing.T) {
 	e.ServeHTTP(restoreRec, restoreReq)
 	assert.Equal(t, http.StatusAccepted, restoreRec.Code)
 	assert.True(t, restoreDriver.called)
+
+	var payload map[string]any
+	require.NoError(t, json.Unmarshal(restoreRec.Body.Bytes(), &payload))
+	evidence, ok := payload["restore_evidence"].(map[string]any)
+	if !ok {
+		t.Fatalf("expected restore_evidence payload, got %v", payload)
+	}
+	assert.Equal(t, backup.ManifestVersionV1, evidence["manifest_version"])
+	assert.Equal(t, backupDriver.manifest.Artifact.ChecksumSHA256, evidence["artifact_checksum_sha256"])
+	checks, ok := evidence["post_restore_checks"].([]any)
+	if !ok || len(checks) == 0 {
+		t.Fatalf("expected post_restore_checks in restore evidence, got %v", evidence)
+	}
 }
 
 func newManagedHooksTestServer(t *testing.T) *echo.Echo {
@@ -107,7 +120,7 @@ func newManagedHooksTestServer(t *testing.T) *echo.Echo {
 				SourcePath:    ".local/db/main.db",
 			},
 			Artifact: backup.ArtifactDescriptor{
-				ChecksumSHA256: "abc123",
+				ChecksumSHA256: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
 				SizeBytes:      10,
 			},
 			Storage: backup.StorageLocation{

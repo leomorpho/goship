@@ -1,7 +1,9 @@
 package backup
 
 import (
+	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -50,4 +52,62 @@ func TestStorageLocationValidateS3MissingKey(t *testing.T) {
 	err := loc.Validate()
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "storage key")
+}
+
+func TestManifestValidate_V1SchemaAndChecksumInvariant_RedSpec(t *testing.T) {
+	valid := Manifest{
+		Version:   ManifestVersionV1,
+		CreatedAt: time.Date(2026, time.March, 18, 12, 0, 0, 0, time.UTC),
+		Database: DatabaseDescriptor{
+			Mode:          DBModeEmbedded,
+			Driver:        DBDriverSQLite,
+			SchemaVersion: "20260318_001",
+			SourcePath:    ".local/db/main.db",
+		},
+		Artifact: ArtifactDescriptor{
+			ChecksumSHA256: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+			SizeBytes:      4096,
+		},
+		Storage: StorageLocation{
+			Provider: ProviderLocal,
+			URI:      "file:///tmp/main.db",
+		},
+	}
+	require.NoError(t, valid.Validate())
+
+	invalidVersion := valid
+	invalidVersion.Version = "backup-manifest-v0"
+	err := invalidVersion.Validate()
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "unsupported manifest version")
+
+	invalidChecksum := valid
+	invalidChecksum.Artifact.ChecksumSHA256 = "not-hex"
+	err = invalidChecksum.Validate()
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "artifact checksum")
+}
+
+func TestRestoreEvidenceJSONContract_RedSpec(t *testing.T) {
+	evidence := RestoreEvidence{
+		Status:                 "accepted",
+		ManifestVersion:        ManifestVersionV1,
+		ArtifactChecksumSHA256: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+		Database: DatabaseDescriptor{
+			Mode:          DBModeEmbedded,
+			Driver:        DBDriverSQLite,
+			SchemaVersion: "20260318_001",
+			SourcePath:    ".local/db/main.db",
+		},
+		PostRestoreChecks: []string{
+			"manifest.validated",
+			"artifact.checksum.sha256",
+		},
+	}
+
+	payload, err := json.Marshal(evidence)
+	require.NoError(t, err)
+	text := string(payload)
+	assert.Contains(t, text, `"manifest_version":"backup-manifest-v1"`)
+	assert.Contains(t, text, `"post_restore_checks":["manifest.validated","artifact.checksum.sha256"]`)
 }

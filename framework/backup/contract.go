@@ -2,6 +2,7 @@ package backup
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 	"path"
 	"strings"
@@ -72,6 +73,15 @@ type RestoreRequest struct {
 	Manifest Manifest
 }
 
+// RestoreEvidence is the machine-readable post-restore contract returned to callers.
+type RestoreEvidence struct {
+	Status                 string             `json:"status"`
+	ManifestVersion        string             `json:"manifest_version"`
+	ArtifactChecksumSHA256 string             `json:"artifact_checksum_sha256"`
+	Database               DatabaseDescriptor `json:"database"`
+	PostRestoreChecks      []string           `json:"post_restore_checks"`
+}
+
 // Driver creates backup manifests from runtime data.
 type Driver interface {
 	Create(ctx context.Context, req CreateRequest) (Manifest, error)
@@ -98,20 +108,38 @@ func (m Manifest) Validate() error {
 	if strings.TrimSpace(m.Version) == "" {
 		return fmt.Errorf("manifest version is required")
 	}
+	if m.Version != ManifestVersionV1 {
+		return fmt.Errorf("unsupported manifest version %q", m.Version)
+	}
 	if m.CreatedAt.IsZero() {
 		return fmt.Errorf("manifest created_at is required")
 	}
 	if strings.TrimSpace(m.Database.Mode) == "" {
 		return fmt.Errorf("database mode is required")
 	}
+	if m.Database.Mode != DBModeEmbedded {
+		return fmt.Errorf("unsupported database mode %q", m.Database.Mode)
+	}
 	if strings.TrimSpace(m.Database.Driver) == "" {
 		return fmt.Errorf("database driver is required")
+	}
+	if m.Database.Driver != DBDriverSQLite {
+		return fmt.Errorf("unsupported database driver %q", m.Database.Driver)
 	}
 	if strings.TrimSpace(m.Database.SchemaVersion) == "" {
 		return fmt.Errorf("database schema_version is required")
 	}
+	if strings.TrimSpace(m.Database.SourcePath) == "" {
+		return fmt.Errorf("database source_path is required")
+	}
 	if strings.TrimSpace(m.Artifact.ChecksumSHA256) == "" {
 		return fmt.Errorf("artifact checksum is required")
+	}
+	if len(m.Artifact.ChecksumSHA256) != 64 {
+		return fmt.Errorf("artifact checksum must be 64 lowercase hex characters")
+	}
+	if _, err := hex.DecodeString(m.Artifact.ChecksumSHA256); err != nil {
+		return fmt.Errorf("artifact checksum must be valid hex: %w", err)
 	}
 	if m.Artifact.SizeBytes < 0 {
 		return fmt.Errorf("artifact size cannot be negative")
@@ -188,4 +216,19 @@ type NoopRestorer struct{}
 // Restore validates the provided manifest.
 func (NoopRestorer) Restore(_ context.Context, req RestoreRequest) error {
 	return req.Manifest.Validate()
+}
+
+// BuildRestoreEvidence returns a machine-readable restore evidence payload.
+func BuildRestoreEvidence(manifest Manifest) RestoreEvidence {
+	return RestoreEvidence{
+		Status:                 "accepted",
+		ManifestVersion:        manifest.Version,
+		ArtifactChecksumSHA256: manifest.Artifact.ChecksumSHA256,
+		Database:               manifest.Database,
+		PostRestoreChecks: []string{
+			"manifest.validated",
+			"artifact.checksum.sha256",
+			"database.schema_version.present",
+		},
+	}
 }

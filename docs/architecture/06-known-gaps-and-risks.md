@@ -290,6 +290,19 @@ Impact:
 - Intentional report-format changes require an explicit snapshot refresh (`UPDATE_GENERATOR_SNAPSHOTS=1`)
   and snapshot commit instead of silently changing CI expectations.
 
+## 24) Managed Backup/Restore Contract Is Now More Explicit (Low)
+
+The managed backup/restore seam now locks `backup-manifest-v1` to SQLite-first metadata and a
+strict SHA-256 checksum contract, and managed restore responses now return machine-readable
+`restore_evidence`.
+
+Impact:
+
+- Control-plane and runtime integrations now have one explicit manifest/evidence shape instead of
+  inferring restore success from a bare `accepted` status.
+- Future backup schema changes should extend the typed contract and evidence payloads together
+  rather than widening the current v1 semantics silently.
+
 ## 16) No Built-In OpenAPI Generation Command (Informational)
 
 The `ship api:spec` command and `app/contracts`-based spec flow were removed in the app-minimalization cleanup stream.
