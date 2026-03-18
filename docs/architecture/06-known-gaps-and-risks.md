@@ -209,6 +209,19 @@ Impact:
 - Teams can generate a consistent email-template baseline instead of hand-rolling view and preview wiring.
 - Future mailer-surface changes should extend the generator, preview controller, and CLI docs together so generated mailers stay aligned with the dev preview contract.
 
+## 19) Generator Output Drift Is Reduced But Matrix Coverage Must Keep Up (Low)
+
+`ship make:*` commands now share one stdout contract built around `Created:`, `Updated:`,
+`Preview:`, and `Next:` sections, and the generators package carries a consolidated idempotency
+matrix suite.
+
+Impact:
+
+- Humans and agents can parse generator results through one predictable report shape instead of
+  generator-specific wording.
+- Future generators still need to join the shared output contract and matrix tests when new scaffold
+  surfaces are added.
+
 ## 19) Task-Oriented OSS Workflow Docs Are Now Canonicalized (Low)
 
 GoShip now has a canonical OSS workflow-docs set for adding an endpoint, adding a module, and

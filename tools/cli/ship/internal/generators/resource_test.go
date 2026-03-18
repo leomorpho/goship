@@ -370,14 +370,251 @@ func registerPublicRoutes() {
 	if code != 0 {
 		t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
 	}
-	if !strings.Contains(out.String(), "Dry-run mode: no files were written.") {
-		t.Fatalf("expected dry-run message, stdout=%s", out.String())
+	for _, token := range []string{
+		"make:resource result (dry-run)",
+		"Created:",
+		"Preview:",
+		"Route name constant for app/web/routenames/routenames.go:",
+	} {
+		if !strings.Contains(out.String(), token) {
+			t.Fatalf("expected dry-run output token %q, stdout=%s", token, out.String())
+		}
 	}
 
 	handlerPath := filepath.Join(root, "app", "web", "controllers", "inbox.go")
 	if _, err := os.Stat(handlerPath); !os.IsNotExist(err) {
 		t.Fatalf("expected no handler file to be written in dry-run mode")
 	}
+}
+
+func TestMakeOutputContract_RedSpec(t *testing.T) {
+	t.Run("job output uses shared generator sections", func(t *testing.T) {
+		root := t.TempDir()
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+		if code := RunMakeJob([]string{"BackfillUserStats"}, MakeJobDeps{
+			Out: out,
+			Err: errOut,
+			Cwd: root,
+		}); code != 0 {
+			t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
+		}
+		for _, token := range []string{
+			"make:job result",
+			"Created:",
+			"Next:",
+		} {
+			if !strings.Contains(out.String(), token) {
+				t.Fatalf("job output missing %q:\n%s", token, out.String())
+			}
+		}
+	})
+
+	t.Run("command output uses shared generator sections", func(t *testing.T) {
+		root := t.TempDir()
+		mainPath := filepath.Join(root, "cmd", "cli", "main.go")
+		if err := os.MkdirAll(filepath.Dir(mainPath), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(mainPath, []byte("package main\n\nfunc main() {\n\t// ship:commands:start\n\t// ship:commands:end\n}\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+		if code := RunMakeCommand([]string{"BackfillUserStats"}, MakeCommandDeps{
+			Out: out,
+			Err: errOut,
+			Cwd: root,
+		}); code != 0 {
+			t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
+		}
+		for _, token := range []string{
+			"make:command result",
+			"Created:",
+			"Updated:",
+		} {
+			if !strings.Contains(out.String(), token) {
+				t.Fatalf("command output missing %q:\n%s", token, out.String())
+			}
+		}
+	})
+}
+
+func TestGeneratorIdempotencyMatrix_RedSpec(t *testing.T) {
+	t.Run("job duplicate generation fails cleanly", func(t *testing.T) {
+		root := t.TempDir()
+		deps := MakeJobDeps{Out: &bytes.Buffer{}, Err: &bytes.Buffer{}, Cwd: root}
+		if code := RunMakeJob([]string{"BackfillUserStats"}, deps); code != 0 {
+			t.Fatalf("first run failed: code=%d", code)
+		}
+		if code := RunMakeJob([]string{"BackfillUserStats"}, deps); code == 0 {
+			t.Fatal("expected duplicate job generation to fail")
+		}
+	})
+
+	t.Run("command duplicate generation fails cleanly", func(t *testing.T) {
+		root := t.TempDir()
+		mainPath := filepath.Join(root, "cmd", "cli", "main.go")
+		if err := os.MkdirAll(filepath.Dir(mainPath), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(mainPath, []byte("package main\n\nfunc main() {\n\t// ship:commands:start\n\t// ship:commands:end\n}\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+
+		deps := MakeCommandDeps{Out: &bytes.Buffer{}, Err: &bytes.Buffer{}, Cwd: root}
+		if code := RunMakeCommand([]string{"BackfillUserStats"}, deps); code != 0 {
+			t.Fatalf("first run failed: code=%d", code)
+		}
+		if code := RunMakeCommand([]string{"BackfillUserStats"}, deps); code == 0 {
+			t.Fatal("expected duplicate command generation to fail")
+		}
+	})
+
+	t.Run("controller duplicate generation fails cleanly", func(t *testing.T) {
+		root := t.TempDir()
+		prevWD, err := os.Getwd()
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Cleanup(func() { _ = os.Chdir(prevWD) })
+		if err := os.Chdir(root); err != nil {
+			t.Fatal(err)
+		}
+
+		deps := ControllerDeps{
+			Out:                    &bytes.Buffer{},
+			Err:                    &bytes.Buffer{},
+			HasFile:                testHasFile,
+			EnsureRouteNamesImport: EnsureRouteNamesImport,
+			WireRouteSnippet:       WireRouteSnippet,
+		}
+		if code := RunMakeController([]string{"Posts", "--actions", "index"}, deps); code != 0 {
+			t.Fatalf("first run failed: code=%d", code)
+		}
+		if code := RunMakeController([]string{"Posts", "--actions", "index"}, deps); code == 0 {
+			t.Fatal("expected duplicate controller generation to fail")
+		}
+	})
+
+	t.Run("resource duplicate generation fails cleanly", func(t *testing.T) {
+		root := t.TempDir()
+		prevWD, err := os.Getwd()
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Cleanup(func() { _ = os.Chdir(prevWD) })
+		if err := os.Chdir(root); err != nil {
+			t.Fatal(err)
+		}
+
+		routerPath := filepath.Join(root, "app", "router.go")
+		if err := os.MkdirAll(filepath.Dir(routerPath), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		routerContent := `package goship
+
+import (
+	routeNames "github.com/leomorpho/goship/app/web/routenames"
+)
+
+func registerPublicRoutes() {
+	// ship:routes:public:start
+	// ship:routes:public:end
+}
+`
+		if err := os.WriteFile(routerPath, []byte(routerContent), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		routeNamesPath := filepath.Join(root, "app", "web", "routenames", "routenames.go")
+		if err := os.MkdirAll(filepath.Dir(routeNamesPath), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(routeNamesPath, []byte("package routenames\n\nconst (\n)\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+		if code := RunGenerateResource([]string{"inbox", "--path", "app", "--wire", "--views", "none"}, out, errOut); code != 0 {
+			t.Fatalf("first run failed: code=%d stderr=%s", code, errOut.String())
+		}
+		out.Reset()
+		errOut.Reset()
+		if code := RunGenerateResource([]string{"inbox", "--path", "app", "--wire", "--views", "none"}, out, errOut); code == 0 {
+			t.Fatal("expected duplicate resource generation to fail")
+		}
+	})
+
+	t.Run("mailer duplicate generation fails cleanly", func(t *testing.T) {
+		root := t.TempDir()
+		if err := os.MkdirAll(filepath.Join(root, "app", "web", "controllers"), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.MkdirAll(filepath.Join(root, "app", "web", "routenames"), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.MkdirAll(filepath.Join(root, "app"), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		mailPreview := `package controllers
+
+import (
+	"net/http"
+	"strings"
+
+	"github.com/a-h/templ"
+	"github.com/labstack/echo/v4"
+	emailviews "github.com/leomorpho/goship/app/views/emails/gen"
+	"github.com/leomorpho/goship/app/web/ui"
+	"github.com/leomorpho/goship/app/web/viewmodels"
+	frameworkpage "github.com/leomorpho/goship/framework/web/page"
+)
+
+type mailPreview struct { ctr ui.Controller }
+func NewMailPreviewRoute(ctr ui.Controller) mailPreview { return mailPreview{ctr: ctr} }
+func (r *mailPreview) Index(ctx echo.Context) error {
+	links := []string{
+		"/dev/mail/welcome",
+		"/dev/mail/password-reset",
+		"/dev/mail/verify-email",
+	}
+	var b strings.Builder
+	b.WriteString("<html><body><h1>Email previews</h1><ul>")
+	for _, link := range links { b.WriteString(link) }
+	return ctx.HTML(http.StatusOK, b.String())
+}
+func (r *mailPreview) renderEmailPreview(ctx echo.Context, component templ.Component) error { return nil }
+`
+		if err := os.WriteFile(filepath.Join(root, "app", "web", "controllers", "mail_preview.go"), []byte(mailPreview), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		router := `package app
+func registerMailPreviewRoutes() {
+	mailGroup.GET("/verify-email", mailPreview.VerifyEmail).Name = routeNames.RouteNameMailPreviewVerifyEmail
+}
+`
+		if err := os.WriteFile(filepath.Join(root, "app", "router.go"), []byte(router), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		routeNames := `package routenames
+const (
+	RouteNameMailPreviewVerifyEmail    = "mail_preview.verify_email"
+)
+`
+		if err := os.WriteFile(filepath.Join(root, "app", "web", "routenames", "routenames.go"), []byte(routeNames), 0o644); err != nil {
+			t.Fatal(err)
+		}
+
+		deps := MakeMailerDeps{Out: &bytes.Buffer{}, Err: &bytes.Buffer{}, Cwd: root}
+		if code := RunMakeMailer([]string{"WelcomeDigest"}, deps); code != 0 {
+			t.Fatalf("first run failed: code=%d", code)
+		}
+		if code := RunMakeMailer([]string{"WelcomeDigest"}, deps); code == 0 {
+			t.Fatal("expected duplicate mailer generation to fail")
+		}
+	})
 }
 
 func TestRunGenerateResourceWireWritesExpected(t *testing.T) {

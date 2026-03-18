@@ -848,6 +848,15 @@ Done when:
 Test evidence:
 - `go test ./tools/cli/ship`
 
+10. `R1.5` Canonical generator output and idempotency matrix.
+Status: `completed`
+Done when:
+- `ship make:*` commands share one output contract built around `Created:`, `Updated:`, `Preview:`, and `Next:` sections;
+- dry-run generator output stays in the same report shape with explicit dry-run labeling;
+- generators package includes a consolidated idempotency matrix test for duplicate scaffold attempts.
+Test evidence:
+- `go test ./tools/cli/ship/internal/generators`
+
 ### Phase 1: Core Abstractions
 
 1. Define `core` interfaces for DB/cache/pubsub/jobs/storage.

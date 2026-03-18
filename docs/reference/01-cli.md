@@ -260,6 +260,11 @@ Field syntax for `make:model`:
 - supported types: `string`, `text`, `int`, `bool`, `time`, `float`, `email`, `url`
 - use `--force` to overwrite an existing schema file
 
+Generator output contract:
+
+- `ship make:*` commands now emit shared `Created:`, `Updated:`, `Preview:`, and `Next:` sections so generator results stay deterministic for humans and agent tooling
+- dry-run generator flows keep the same section layout and mark the report as `(dry-run)` instead of switching to a different prose format
+
 `ship new` v1 contract:
 
 1. Creates a local scaffold only (no external downloads or package installs).

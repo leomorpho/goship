@@ -2,9 +2,53 @@ package generators
 
 import (
 	"fmt"
+	"io"
 	"strings"
 	"unicode"
 )
+
+type generatorPreview struct {
+	Title string
+	Body  string
+}
+
+func writeGeneratorReport(w io.Writer, kind string, dryRun bool, created, updated []string, previews []generatorPreview, next []string) {
+	mode := ""
+	if dryRun {
+		mode = " (dry-run)"
+	}
+	fmt.Fprintf(w, "make:%s result%s\n", kind, mode)
+	writeGeneratorPathSection(w, "Created", created)
+	writeGeneratorPathSection(w, "Updated", updated)
+	for _, preview := range previews {
+		title := strings.TrimSpace(preview.Title)
+		if title == "" && strings.TrimSpace(preview.Body) == "" {
+			continue
+		}
+		fmt.Fprintln(w, "Preview:")
+		if title != "" {
+			fmt.Fprintf(w, "%s:\n", title)
+		}
+		body := strings.TrimSpace(preview.Body)
+		if body != "" {
+			fmt.Fprintln(w, body)
+		}
+	}
+	writeGeneratorPathSection(w, "Next", next)
+}
+
+func writeGeneratorPathSection(w io.Writer, heading string, values []string) {
+	if len(values) == 0 {
+		return
+	}
+	fmt.Fprintf(w, "%s:\n", heading)
+	for _, value := range values {
+		if strings.TrimSpace(value) == "" {
+			continue
+		}
+		fmt.Fprintf(w, "- %s\n", value)
+	}
+}
 
 func splitWords(input string) []string {
 	clean := strings.TrimSpace(input)

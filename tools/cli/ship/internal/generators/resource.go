@@ -64,26 +64,30 @@ func RunGenerateResource(args []string, out io.Writer, errOut io.Writer) int {
 		return 1
 	}
 
-	fmt.Fprintln(out, "Generated files:")
-	for _, f := range result.CreatedFiles {
-		fmt.Fprintf(out, "- %s\n", f)
-	}
-	fmt.Fprintln(out)
-	if parsed.DryRun {
-		fmt.Fprintln(out, "Dry-run mode: no files were written.")
-		fmt.Fprintf(out, "Would update route names in %s:\n", result.RouteNamePath)
-		fmt.Fprintf(out, "- %s = %q\n\n", result.RouteNameConst, result.RouteNameValue)
-	}
+	updated := []string{result.RouteNamePath}
+	previews := make([]generatorPreview, 0, 2)
 	if parsed.Wire {
-		fmt.Fprintf(out, "Wired route snippet into %s behind ship markers.\n", result.RouterPath)
+		if !parsed.DryRun {
+			updated = append(updated, result.RouterPath)
+		}
+		previews = append(previews, generatorPreview{
+			Title: "Router snippet for " + result.RouterPath,
+			Body:  result.RouteSnippet,
+		})
 	} else {
-		fmt.Fprintf(out, "Update %s with this snippet:\n\n", result.RouterPath)
-		fmt.Fprintln(out, result.RouteSnippet)
+		previews = append(previews, generatorPreview{
+			Title: "Router snippet for " + result.RouterPath,
+			Body:  result.RouteSnippet,
+		})
 	}
-	fmt.Fprintln(out)
-	if !parsed.DryRun {
-		fmt.Fprintf(out, "Route name constant ensured in %s.\n", result.RouteNamePath)
+	previews = append(previews, generatorPreview{
+		Title: "Route name constant for " + result.RouteNamePath,
+		Body:  fmt.Sprintf("%s = %q", result.RouteNameConst, result.RouteNameValue),
+	})
+	if parsed.DryRun {
+		updated = nil
 	}
+	writeGeneratorReport(out, "resource", parsed.DryRun, result.CreatedFiles, updated, previews, nil)
 
 	return 0
 }

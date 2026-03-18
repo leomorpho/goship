@@ -47,8 +47,15 @@ func TestMakeControllerIntegration_GeneratesControllerAndSnippet(t *testing.T) {
 	if !strings.Contains(text, "func (c *posts) Show") {
 		t.Fatalf("missing Show action:\n%s", text)
 	}
-	if !strings.Contains(out.String(), "Route snippet:") {
-		t.Fatalf("stdout missing route snippet:\n%s", out.String())
+	for _, token := range []string{
+		"make:controller result",
+		"Created:",
+		"Preview:",
+		"Router snippet for app/router.go:",
+	} {
+		if !strings.Contains(out.String(), token) {
+			t.Fatalf("stdout missing %q:\n%s", token, out.String())
+		}
 	}
 }
 

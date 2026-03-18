@@ -70,9 +70,15 @@ func RunMakeJob(args []string, d MakeJobDeps) int {
 		return 1
 	}
 
-	fmt.Fprintf(d.Out, "Generated job: %s\n", jobPath)
-	fmt.Fprintf(d.Out, "Generated job test: %s\n", testPath)
-	fmt.Fprintf(d.Out, "Next step: wire %s with Register%s(c.CoreJobs, Handle%s) where your runtime registers app jobs.\n", typeName, pascal, pascal)
+	writeGeneratorReport(
+		d.Out,
+		"job",
+		false,
+		[]string{jobPath, testPath},
+		nil,
+		nil,
+		[]string{fmt.Sprintf("wire %s with Register%s(c.CoreJobs, Handle%s) where your runtime registers app jobs", typeName, pascal, pascal)},
+	)
 	return 0
 }
 

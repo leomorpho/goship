@@ -84,8 +84,7 @@ func RunMakeCommand(args []string, d MakeCommandDeps) int {
 		}
 	}
 
-	fmt.Fprintf(d.Out, "Generated command: %s\n", commandPath)
-	fmt.Fprintf(d.Out, "Wired registration in: %s\n", mainPath)
+	writeGeneratorReport(d.Out, "command", false, []string{commandPath}, []string{mainPath}, nil, nil)
 	return 0
 }
 

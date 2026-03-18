@@ -77,9 +77,15 @@ func RunMakeMailer(args []string, d MakeMailerDeps) int {
 		return 1
 	}
 
-	fmt.Fprintf(d.Out, "Generated mailer template: %s\n", templatePath)
-	fmt.Fprintf(d.Out, "Wired mail preview controller: %s\n", mailPreviewPath)
-	fmt.Fprintf(d.Out, "Wired mail preview route: %s\n", routerPath)
+	writeGeneratorReport(
+		d.Out,
+		"mailer",
+		false,
+		[]string{templatePath},
+		[]string{mailPreviewPath, routerPath, routeNamesPath},
+		nil,
+		nil,
+	)
 	return 0
 }
 

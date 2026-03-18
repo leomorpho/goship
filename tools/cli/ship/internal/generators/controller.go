@@ -83,7 +83,7 @@ func RunMakeController(args []string, d ControllerDeps) int {
 		return 1
 	}
 
-	fmt.Fprintf(d.Out, "Generated controller: %s\n", controllerPath)
+	created := []string{controllerPath}
 
 	if opts.TestFirst {
 		testPath := filepath.Join(opts.Path, "web", "controllers", strings.TrimSuffix(names.FileName, ".go")+"_test.go")
@@ -97,10 +97,12 @@ func RunMakeController(args []string, d ControllerDeps) int {
 				fmt.Fprintf(d.Err, "failed to write controller test file: %v\n", err)
 				return 1
 			}
-			fmt.Fprintf(d.Out, "Generated test file: %s\n", testPath)
+			created = append(created, testPath)
 		}
 	}
 	routeSnippet := RenderControllerRouteSnippet(names, opts.Actions, opts.Auth, domain.Name != "")
+	updated := make([]string, 0, 1)
+	previews := make([]generatorPreview, 0, 1)
 	if opts.Wire {
 		routerPath := filepath.Join(opts.Path, "router.go")
 		if err := d.EnsureRouteNamesImport(routerPath, false); err != nil {
@@ -111,11 +113,14 @@ func RunMakeController(args []string, d ControllerDeps) int {
 			fmt.Fprintf(d.Err, "failed to wire controller routes: %v\n", err)
 			return 1
 		}
-		fmt.Fprintf(d.Out, "Wired routes into %s\n", routerPath)
+		updated = append(updated, routerPath)
 	} else {
-		fmt.Fprintln(d.Out, "Route snippet:")
-		fmt.Fprintln(d.Out, routeSnippet)
+		previews = append(previews, generatorPreview{
+			Title: "Router snippet for " + filepath.Join(opts.Path, "router.go"),
+			Body:  routeSnippet,
+		})
 	}
+	writeGeneratorReport(d.Out, "controller", false, created, updated, previews, nil)
 	return 0
 }
 
