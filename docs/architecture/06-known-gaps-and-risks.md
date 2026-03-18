@@ -51,14 +51,14 @@ Impact:
 
 - Contributors can experience confusion about canonical local dev DB path.
 
-## 6) Legacy Marketing/Docs UI Artifacts Still Exist In Source (Low)
+## 6) Residual Dead UI Artifacts Can Reappear Without Reachability Audits (Low)
 
-The public marketing/docs routes were removed, but some related templ source files/components remain in the tree and are no longer part of the active HTTP surface.
+Known unreachable artifacts from the app-minimalization stream (for example legacy contact/invitations/healthcheck page assets) were deleted, but dead page/template drift remains possible over time without explicit route/callsite audits.
 
 Impact:
 
-- Contributors can mistake dead UI assets for active runtime behavior.
-- Follow-up cleanup should remove or archive unreferenced page templates.
+- Contributors can still mistake unreferenced UI assets for active runtime behavior if drift accumulates.
+- Destructive cleanup streams should keep using route inventory + static reachability proof before deletions.
 
 ## 7) Some Feature Paths Still Use Placeholder Data (Low)
 
@@ -192,6 +192,15 @@ Impact:
 
 - running `ship dev` no longer creates a guaranteed `DX013` failure via `tmp/`;
 - templ comment annotations are less brittle to harmless ordering/spacing differences while preserving convention clarity.
+
+## 21) Module Isolation Exceptions Still Exist for Installable Modules (Medium)
+
+`DX020` now runs with a much smaller temporary allowlist, but some installable module runtime files still import root app/framework packages directly (currently concentrated in `modules/notifications/*` and `modules/paidsubscriptions/routes/routes.go`).
+
+Impact:
+
+- Installable-module portability remains partially constrained by root import coupling.
+- Future extraction work must continue shrinking this allowlist toward zero.
 
 ## Suggested Priority Order
 

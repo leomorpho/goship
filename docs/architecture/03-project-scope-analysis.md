@@ -61,7 +61,7 @@ Key implementation choices:
 
 - Stripe checkout + customer portal + webhook in `app/web/controllers/payments.go`
 - Local subscription state is handled by the paid subscriptions module and app jobs (`modules/paidsubscriptions`, `app/jobs/subscriptions.go`)
-- Product model currently centered on free vs pro (`framework/domain/enum.go`)
+- Product plans are catalog-driven from app runtime composition (`app/foundation/subscription_catalog.go`), with module/service predicates handling paid/free branching without fixed key assumptions.
 
 Webhook flow currently handles:
 
@@ -167,6 +167,7 @@ Reflection-based administrative interface for managing database resources.
 - Controller request DTOs now live with their owning controllers/modules instead of a global `app/contracts` package.
 - `ship doctor` (`DX027`) enforces typed request binding patterns and warns on raw/untyped form parsing patterns.
 - OpenAPI generation was removed from the core `ship` CLI surface in the app-minimalization cleanup stream.
+- `app/controller` was removed; canonical app page ownership is `app/web/ui.Page`, which now embeds reusable framework-owned base fields/behavior from `framework/web/page.Base`.
 
 ## 14) Internationalization Baseline
 

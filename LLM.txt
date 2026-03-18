@@ -839,7 +839,7 @@ Key implementation choices:
 
 - Stripe checkout + customer portal + webhook in `app/web/controllers/payments.go`
 - Local subscription state is handled by the paid subscriptions module and app jobs (`modules/paidsubscriptions`, `app/jobs/subscriptions.go`)
-- Product model currently centered on free vs pro (`framework/domain/enum.go`)
+- Product plans are catalog-driven from app runtime composition (`app/foundation/subscription_catalog.go`), with module/service predicates handling paid/free branching without fixed key assumptions.
 
 Webhook flow currently handles:
 
@@ -945,6 +945,7 @@ Reflection-based administrative interface for managing database resources.
 - Controller request DTOs now live with their owning controllers/modules instead of a global `app/contracts` package.
 - `ship doctor` (`DX027`) enforces typed request binding patterns and warns on raw/untyped form parsing patterns.
 - OpenAPI generation was removed from the core `ship` CLI surface in the app-minimalization cleanup stream.
+- `app/controller` was removed; canonical app page ownership is `app/web/ui.Page`, which now embeds reusable framework-owned base fields/behavior from `framework/web/page.Base`.
 
 ## 14) Internationalization Baseline
 
@@ -1331,14 +1332,14 @@ Impact:
 
 - Contributors can experience confusion about canonical local dev DB path.
 
-## 6) Legacy Marketing/Docs UI Artifacts Still Exist In Source (Low)
+## 6) Residual Dead UI Artifacts Can Reappear Without Reachability Audits (Low)
 
-The public marketing/docs routes were removed, but some related templ source files/components remain in the tree and are no longer part of the active HTTP surface.
+Known unreachable artifacts from the app-minimalization stream (for example legacy contact/invitations/healthcheck page assets) were deleted, but dead page/template drift remains possible over time without explicit route/callsite audits.
 
 Impact:
 
-- Contributors can mistake dead UI assets for active runtime behavior.
-- Follow-up cleanup should remove or archive unreferenced page templates.
+- Contributors can still mistake unreferenced UI assets for active runtime behavior if drift accumulates.
+- Destructive cleanup streams should keep using route inventory + static reachability proof before deletions.
 
 ## 7) Some Feature Paths Still Use Placeholder Data (Low)
 
@@ -1472,6 +1473,15 @@ Impact:
 
 - running `ship dev` no longer creates a guaranteed `DX013` failure via `tmp/`;
 - templ comment annotations are less brittle to harmless ordering/spacing differences while preserving convention clarity.
+
+## 21) Module Isolation Exceptions Still Exist for Installable Modules (Medium)
+
+`DX020` now runs with a much smaller temporary allowlist, but some installable module runtime files still import root app/framework packages directly (currently concentrated in `modules/notifications/*` and `modules/paidsubscriptions/routes/routes.go`).
+
+Impact:
+
+- Installable-module portability remains partially constrained by root import coupling.
+- Future extraction work must continue shrinking this allowlist toward zero.
 
 ## Suggested Priority Order
 
@@ -3465,6 +3475,7 @@ Safety matrix:
 - `ship config:validate --json` -> prints the same contract as JSON for agent tooling
 - `ship routes` -> prints a route inventory table from `app/router.go` AST parsing (`METHOD PATH AUTH HANDLER`)
 - `ship routes --json` -> prints the same route inventory as a JSON array
+- `ship api:spec` -> removed from the CLI surface; invocations return unknown command/help output
 - `ship i18n:init [--force]` -> scaffolds `locales/en.toml` and `locales/fr.toml` for existing apps, preserving existing files unless `--force` is passed; prints deterministic next-step migration loop commands
 - `ship i18n:scan [--format json] [--paths <path1,path2,...>] [--limit <n>]` -> scans Go/templ/islands sources (including `.js`, `.ts`, `.jsx`, `.tsx`, `.svelte`, `.vue` under `frontend/islands/`) for hardcoded user-facing literals and emits deterministic JSON diagnostics (`id`, `kind`, `severity`, `file`, `line`, `column`, `message`, `suggested_key`, `confidence`)
 - `ship i18n:instrument [--apply] [--paths <path1,path2,...>] [--limit <n>]` -> builds a deterministic rewrite plan for high-confidence findings; default mode is dry-run JSON report, `--apply` rewrites safe Go controller `*.String(..., "literal")` response sites (for example `c.String`, `ctx.String`) to i18n calls and appends missing baseline keys to `locales/en.toml` (falls back to legacy YAML when present)
@@ -3512,7 +3523,7 @@ Doctor checks (current):
 - validates required config env vars declared in `config.Config`
 - validates agent allowlist artifacts are in sync with `tools/agent-policy/allowed-commands.yaml`
 - validates enabled modules in `config/modules.yaml` include `db/migrate/migrations` and `db/bobgen.yaml`
-- validates cross-boundary import rules (controller `QueryProfile()` ban, jobs SQL coupling ban, notifications pubsub framework-core coupling ban, module source isolation ban for direct `github.com/leomorpho/goship/*` imports except explicit allowlist paths)
+- validates cross-boundary import rules (controller `QueryProfile()` ban, jobs SQL coupling ban, notifications pubsub framework-core coupling ban, module source isolation ban for direct `github.com/leomorpho/goship/*` imports except a deliberately short temporary allowlist)
 - warns when `/api/` routes appear to render HTML directly instead of using the standard JSON API helpers
 - warns when SQL queries in `db/queries/` reference soft-delete tables without an explicit `deleted_at` filter (`DX028`)
 - i18n strict-mode enforcement (`PAGODA_I18N_STRICT_MODE=off|warn|error`) for hardcoded literals in controllers/views/islands and plural/select locale completeness for `I18n.TC(...)`/`I18n.TS(...)`, with `.i18n-allowlist` support for intentional exceptions (stable `I18N-S-*` selectors preferred; legacy `path:line` still accepted) (`DX029`)
@@ -3565,7 +3576,7 @@ Markers:
 
 Generated handler behavior:
 
-- `--views templ`: generates a controller/page-rendering handler (`controller.NewPage`, layout assignment, `RenderPage`).
+- `--views templ`: generates a controller/page-rendering handler (`ui.NewPage`, layout assignment, `RenderPage`).
 - `--views none`: generates a minimal HTTP string handler for API/prototype paths.
 
 ## Generator test strategy
@@ -3965,6 +3976,9 @@ Non-goal:
 12. I18n baseline now lives in `modules/i18n` with canonical TOML locale files under `locales/` (temporary YAML dual-read migration support), runtime toggle support (`PAGODA_I18N_ENABLED` / `PAGODA_I18N_DEFAULT_LANGUAGE`), strict-mode doctor enforcement (`PAGODA_I18N_STRICT_MODE` + `.i18n-allowlist`), profile preference persistence (`profiles.preferred_language`), and CLI support for `make:locale`, `i18n:init`, `i18n:scan`, `i18n:instrument`, `i18n:migrate`, `i18n:normalize`, `i18n:missing`, and `i18n:unused`.
 13. `ship new` now asks (interactive) whether to enable i18n in the starter app, supports explicit `--i18n|--no-i18n` for non-interactive runs, and prints an explicit “enable later + migrate later” path.
 14. I18n operator DX is now documented in `docs/guides/10-i18n-llm-migration-workflow.md`, including canonical migration loop, deterministic diagnostics schema, issue-ID contract, and strict rollout (`off -> warn -> error`) guidance.
+15. `app/controller` was removed; app page ownership is `app/web/ui.Page` with reusable framework-owned base fields/behavior extracted into `framework/web/page`.
+16. Legacy `app/subscriptions` was removed; plan catalog construction now lives in app runtime composition (`app/foundation/subscription_catalog.go`), and paidsubscriptions integration branches through catalog/service predicates instead of fixed free/pro key literals.
+17. Module source isolation temporary exceptions were reduced to a short allowlist focused on remaining notifications/paidsubscriptions bridge files; new exceptions should be treated as regressions by default.
 
 ## Upstream/Downstream Relationship
 

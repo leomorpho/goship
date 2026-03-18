@@ -202,6 +202,9 @@ Non-goal:
 12. I18n baseline now lives in `modules/i18n` with canonical TOML locale files under `locales/` (temporary YAML dual-read migration support), runtime toggle support (`PAGODA_I18N_ENABLED` / `PAGODA_I18N_DEFAULT_LANGUAGE`), strict-mode doctor enforcement (`PAGODA_I18N_STRICT_MODE` + `.i18n-allowlist`), profile preference persistence (`profiles.preferred_language`), and CLI support for `make:locale`, `i18n:init`, `i18n:scan`, `i18n:instrument`, `i18n:migrate`, `i18n:normalize`, `i18n:missing`, and `i18n:unused`.
 13. `ship new` now asks (interactive) whether to enable i18n in the starter app, supports explicit `--i18n|--no-i18n` for non-interactive runs, and prints an explicit “enable later + migrate later” path.
 14. I18n operator DX is now documented in `docs/guides/10-i18n-llm-migration-workflow.md`, including canonical migration loop, deterministic diagnostics schema, issue-ID contract, and strict rollout (`off -> warn -> error`) guidance.
+15. `app/controller` was removed; app page ownership is `app/web/ui.Page` with reusable framework-owned base fields/behavior extracted into `framework/web/page`.
+16. Legacy `app/subscriptions` was removed; plan catalog construction now lives in app runtime composition (`app/foundation/subscription_catalog.go`), and paidsubscriptions integration branches through catalog/service predicates instead of fixed free/pro key literals.
+17. Module source isolation temporary exceptions were reduced to a short allowlist focused on remaining notifications/paidsubscriptions bridge files; new exceptions should be treated as regressions by default.
 
 ## Upstream/Downstream Relationship
 

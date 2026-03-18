@@ -1,36 +1,12 @@
-# Temporary exceptions: module adapters that still bind to app/framework internals.
-modules/notifications/notifier.go
-modules/notifications/notification_store.go
+# Temporary exceptions: installable modules that still bind to root app/framework packages.
+# Keep this list short and remove entries immediately once seams are extracted.
 modules/notifications/notification_store_sql.go
-modules/notifications/module.go
+modules/notifications/notifier.go
 modules/notifications/permissions.go
-modules/notifications/permissions_store_ent.go
 modules/notifications/permissions_store_sql.go
 modules/notifications/planned_notifications.go
-modules/notifications/planned_notifications_store_ent.go
 modules/notifications/planned_notifications_store_sql.go
 modules/notifications/push_notifications_fcm.go
-modules/notifications/push_notifications_fcm_store_ent.go
 modules/notifications/push_notifications_pwa.go
-modules/notifications/push_notifications_pwa_store_ent.go
 modules/notifications/routes/routes.go
-modules/notifications/sms_store_ent.go
-modules/auth/module.go
-modules/auth/routes.go
-modules/auth/service.go
-modules/auth/views/web/pages/gen/forgot_password_templ.go
-modules/auth/views/web/pages/gen/login_templ.go
-modules/auth/views/web/pages/gen/register_templ.go
-modules/auth/views/web/pages/gen/reset_password_templ.go
-modules/profile/module.go
-modules/profile/notification_count_store_bob.go
-modules/profile/notification_count_store_sql.go
-modules/profile/profile.go
-modules/profile/profile_media.go
-modules/profile/profile_settings.go
-modules/profile/profile_storage_cleanup.go
-modules/profile/register_flow.go
-modules/profile/routes.go
-modules/profile/storage_image_mapper.go
-modules/profile/views/web/pages/gen/profile_templ.go
 modules/paidsubscriptions/routes/routes.go

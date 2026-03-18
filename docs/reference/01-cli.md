@@ -179,6 +179,7 @@ Safety matrix:
 - `ship config:validate --json` -> prints the same contract as JSON for agent tooling
 - `ship routes` -> prints a route inventory table from `app/router.go` AST parsing (`METHOD PATH AUTH HANDLER`)
 - `ship routes --json` -> prints the same route inventory as a JSON array
+- `ship api:spec` -> removed from the CLI surface; invocations return unknown command/help output
 - `ship i18n:init [--force]` -> scaffolds `locales/en.toml` and `locales/fr.toml` for existing apps, preserving existing files unless `--force` is passed; prints deterministic next-step migration loop commands
 - `ship i18n:scan [--format json] [--paths <path1,path2,...>] [--limit <n>]` -> scans Go/templ/islands sources (including `.js`, `.ts`, `.jsx`, `.tsx`, `.svelte`, `.vue` under `frontend/islands/`) for hardcoded user-facing literals and emits deterministic JSON diagnostics (`id`, `kind`, `severity`, `file`, `line`, `column`, `message`, `suggested_key`, `confidence`)
 - `ship i18n:instrument [--apply] [--paths <path1,path2,...>] [--limit <n>]` -> builds a deterministic rewrite plan for high-confidence findings; default mode is dry-run JSON report, `--apply` rewrites safe Go controller `*.String(..., "literal")` response sites (for example `c.String`, `ctx.String`) to i18n calls and appends missing baseline keys to `locales/en.toml` (falls back to legacy YAML when present)
@@ -226,7 +227,7 @@ Doctor checks (current):
 - validates required config env vars declared in `config.Config`
 - validates agent allowlist artifacts are in sync with `tools/agent-policy/allowed-commands.yaml`
 - validates enabled modules in `config/modules.yaml` include `db/migrate/migrations` and `db/bobgen.yaml`
-- validates cross-boundary import rules (controller `QueryProfile()` ban, jobs SQL coupling ban, notifications pubsub framework-core coupling ban, module source isolation ban for direct `github.com/leomorpho/goship/*` imports except explicit allowlist paths)
+- validates cross-boundary import rules (controller `QueryProfile()` ban, jobs SQL coupling ban, notifications pubsub framework-core coupling ban, module source isolation ban for direct `github.com/leomorpho/goship/*` imports except a deliberately short temporary allowlist)
 - warns when `/api/` routes appear to render HTML directly instead of using the standard JSON API helpers
 - warns when SQL queries in `db/queries/` reference soft-delete tables without an explicit `deleted_at` filter (`DX028`)
 - i18n strict-mode enforcement (`PAGODA_I18N_STRICT_MODE=off|warn|error`) for hardcoded literals in controllers/views/islands and plural/select locale completeness for `I18n.TC(...)`/`I18n.TS(...)`, with `.i18n-allowlist` support for intentional exceptions (stable `I18N-S-*` selectors preferred; legacy `path:line` still accepted) (`DX029`)
@@ -279,7 +280,7 @@ Markers:
 
 Generated handler behavior:
 
-- `--views templ`: generates a controller/page-rendering handler (`controller.NewPage`, layout assignment, `RenderPage`).
+- `--views templ`: generates a controller/page-rendering handler (`ui.NewPage`, layout assignment, `RenderPage`).
 - `--views none`: generates a minimal HTTP string handler for API/prototype paths.
 
 ## Generator test strategy
