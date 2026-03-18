@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -11,12 +12,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/leomorpho/goship/config"
 	rt "github.com/leomorpho/goship/tools/cli/ship/internal/runtime"
 )
 
 type DBDeps struct {
 	Out             io.Writer
 	Err             io.Writer
+	LoadConfig      func() (config.Config, error)
 	ResolveDBURL    func() (string, error)
 	ResolveDBDriver func() (string, error)
 	RunGoose        func(args ...string) int
@@ -36,6 +39,8 @@ func RunDB(args []string, d DBDeps) int {
 		return runCreate(args[1:], d)
 	case "generate":
 		return runGenerate(args[1:], d)
+	case "promote":
+		return runPromote(args[1:], d)
 	case "make":
 		return runMake(args[1:], d)
 	case "migrate":
@@ -364,6 +369,106 @@ func runGenerate(args []string, d DBDeps) int {
 	return 0
 }
 
+type dbPromoteReport struct {
+	Database          config.DatabaseRuntimeMetadata `json:"database"`
+	Steps             []string                       `json:"steps"`
+	SuggestedCommands []string                       `json:"suggested_commands,omitempty"`
+	Note              string                         `json:"note,omitempty"`
+}
+
+func runPromote(args []string, d DBDeps) int {
+	for _, arg := range args {
+		if arg == "help" || arg == "-h" || arg == "--help" {
+			PrintDBHelp(d.Out)
+			return 0
+		}
+	}
+
+	fs := flag.NewFlagSet("db:promote", flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+	jsonOutput := fs.Bool("json", false, "print JSON output")
+	if err := fs.Parse(args); err != nil {
+		fmt.Fprintf(d.Err, "invalid db:promote arguments: %v\n", err)
+		fmt.Fprintln(d.Err, "usage: ship db:promote [--json]")
+		return 1
+	}
+	if fs.NArg() > 0 {
+		fmt.Fprintln(d.Err, "usage: ship db:promote [--json]")
+		return 1
+	}
+	if d.LoadConfig == nil {
+		fmt.Fprintln(d.Err, "db:promote requires config loader dependency")
+		return 1
+	}
+
+	cfg, err := d.LoadConfig()
+	if err != nil {
+		fmt.Fprintf(d.Err, "failed to load config: %v\n", err)
+		return 1
+	}
+
+	report := buildDBPromoteReport(cfg.RuntimeMetadata().Database)
+	if *jsonOutput {
+		enc := json.NewEncoder(d.Out)
+		enc.SetIndent("", "  ")
+		if err := enc.Encode(report); err != nil {
+			fmt.Fprintf(d.Err, "failed to encode db:promote output: %v\n", err)
+			return 1
+		}
+		return 0
+	}
+
+	printDBPromoteReport(d.Out, report)
+	return 0
+}
+
+func buildDBPromoteReport(md config.DatabaseRuntimeMetadata) dbPromoteReport {
+	report := dbPromoteReport{
+		Database: md,
+		Steps: []string{
+			"freeze writes for the source app",
+			"record runtime metadata and migration baseline",
+			"export data from SQLite through framework-supported export hooks",
+			"provision Postgres target and run canonical migrations",
+			"import exported data into Postgres through framework-supported import hooks",
+			"run framework verification checks for row counts, migration baseline, and key integrity",
+			"switch config to Postgres and unfreeze writes",
+		},
+		SuggestedCommands: []string{
+			"ship runtime:report --json",
+			"ship db:migrate",
+		},
+	}
+	if md.PromotionPath == "" {
+		report.Note = "no promotion path is defined for the current database driver"
+		return report
+	}
+	report.Note = "planning only; db:promote does not mutate files or run migrations yet"
+	return report
+}
+
+func printDBPromoteReport(w io.Writer, report dbPromoteReport) {
+	fmt.Fprintln(w, "DB promote plan:")
+	fmt.Fprintf(w, "- mode: %s\n", report.Database.Mode)
+	fmt.Fprintf(w, "- driver: %s\n", report.Database.Driver)
+	fmt.Fprintf(w, "- migration_portability: %s\n", report.Database.MigrationPortability)
+	if report.Database.PromotionPath != "" {
+		fmt.Fprintf(w, "- promotion_path: %s\n", report.Database.PromotionPath)
+	}
+	if len(report.Database.CompatibleTargets) > 0 {
+		fmt.Fprintf(w, "- compatible_targets: %s\n", strings.Join(report.Database.CompatibleTargets, ", "))
+	}
+	for _, step := range report.Steps {
+		fmt.Fprintf(w, "- step: %s\n", step)
+	}
+	for _, cmd := range report.SuggestedCommands {
+		fmt.Fprintf(w, "- next: %s\n", cmd)
+	}
+	if report.Note != "" {
+		fmt.Fprintf(w, "- note: %s\n", report.Note)
+	}
+}
+
 func runConsole(args []string, d DBDeps) int {
 	if len(args) != 0 {
 		fmt.Fprintln(d.Err, "usage: ship db:console")
@@ -614,6 +719,7 @@ func PrintDBHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship db commands:")
 	fmt.Fprintln(w, "  ship db:create [--dry-run]                                 Validate DB connectivity and migration table reachability")
 	fmt.Fprintln(w, "  ship db:generate [--config <path>] [--dry-run]            Generate DB access code from bobgen config")
+	fmt.Fprintln(w, "  ship db:promote [--json]                                  Show the manual SQLite-to-Postgres promotion plan")
 	fmt.Fprintln(w, "  ship db:make <migration_name>                              Create a new SQL migration file")
 	fmt.Fprintln(w, "  ship db:migrate                                            Apply pending migrations")
 	fmt.Fprintln(w, "  ship db:status                                             Show migration status")

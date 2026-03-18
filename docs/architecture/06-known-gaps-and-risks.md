@@ -114,12 +114,12 @@ Impact:
 
 ## 9) SQLite-To-Postgres Promotion Is Contracted But Still Manual (Medium)
 
-GoShip now has a documented promotion contract and runtime DB metadata model, but the export/import/verification hooks are not implemented yet.
+GoShip now surfaces the promotion contract through `ship db:promote` and runtime DB metadata, but the export/import/verification hooks are not implemented yet.
 
 Impact:
 
 - Promotion currently requires custom/manual tooling around the framework contract.
-- Operators can report compatibility and promotion path, but cannot run a one-command migration flow yet.
+- Operators can report compatibility and promotion path with `ship db:promote`, but cannot run a one-command migration flow yet.
 
 ## 10) AI Provider Coverage Is Still Narrow (Medium)
 

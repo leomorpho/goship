@@ -231,6 +231,7 @@ func (c CLI) runRuntime(args []string) int {
 func (c CLI) runDB(args []string) int {
 	return cmd.RunDB(args, cmd.DBDeps{
 		Out: c.Out, Err: c.Err,
+		LoadConfig:      config.GetConfig,
 		ResolveDBURL:    c.resolveDBURL,
 		ResolveDBDriver: c.resolveDBDriver,
 		RunGoose:        c.runGooseCmd,

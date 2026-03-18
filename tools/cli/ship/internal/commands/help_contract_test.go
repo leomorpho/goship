@@ -29,19 +29,19 @@ func TestPrintRootHelp_DirectCommandsDiscoverableNoAliases(t *testing.T) {
 	out := captureHelp(t, PrintRootHelp)
 
 	want := map[string]string{
-		"  ship new <app> [flags]":                  "Create a new app scaffold",
-		"  ship dev [--web|--worker|--all]":         "Run local runtime processes",
-		"  ship test [--integration]":               "Run canonical fast test workflow",
+		"  ship new <app> [flags]":                                               "Create a new app scaffold",
+		"  ship dev [--web|--worker|--all]":                                      "Run local runtime processes",
+		"  ship test [--integration]":                                            "Run canonical fast test workflow",
 		"  ship verify [--profile fast|standard|strict] [--skip-tests] [--json]": "Run full verification workflow",
-		"  ship doctor [--json]":                    "Run repository policy checks",
-		"  ship config:validate [--json]":           "Validate config contract",
-		"  ship routes [--json]":                    "Show route inventory",
-		"  ship describe [--pretty]":                "Show runtime/module inventory",
-		"  ship runtime:report --json":              "Show machine-readable runtime capability report",
-		"  ship run:command <name> [-- <args...>]":  "Run app-defined CLI command",
-		"  ship module:add <name> [--dry-run]":      "Enable a module",
-		"  ship module:remove <name> [--dry-run]":   "Disable a module",
-		"  ship upgrade --to <version> [--dry-run]": "Upgrade pinned CLI tooling",
+		"  ship doctor [--json]":                                                 "Run repository policy checks",
+		"  ship config:validate [--json]":                                        "Validate config contract",
+		"  ship routes [--json]":                                                 "Show route inventory",
+		"  ship describe [--pretty]":                                             "Show runtime/module inventory",
+		"  ship runtime:report --json":                                           "Show machine-readable runtime capability report",
+		"  ship run:command <name> [-- <args...>]":                               "Run app-defined CLI command",
+		"  ship module:add <name> [--dry-run]":                                   "Enable a module",
+		"  ship module:remove <name> [--dry-run]":                                "Disable a module",
+		"  ship upgrade --to <version> [--dry-run]":                              "Upgrade pinned CLI tooling",
 	}
 
 	for prefix, desc := range want {
@@ -92,6 +92,7 @@ func TestPrintDBHelp_SubcommandsIncludeDescriptions(t *testing.T) {
 	want := map[string]string{
 		"  ship db:create [--dry-run]":                           "Validate DB connectivity",
 		"  ship db:generate [--config <path>] [--dry-run]":       "Generate DB access code",
+		"  ship db:promote [--json]":                             "Show the manual SQLite-to-Postgres promotion plan",
 		"  ship db:make <migration_name>":                        "Create a new SQL migration file",
 		"  ship db:migrate":                                      "Apply pending migrations",
 		"  ship db:status":                                       "Show migration status",
@@ -249,11 +250,11 @@ func TestPrintAdditionalScopedHelp_IncludeDescriptions(t *testing.T) {
 			name: "verify",
 			out:  captureHelp(t, PrintVerifyHelp),
 			want: map[string]string{
-				"  ship verify":                    "Run the standard verification workflow",
-				"  ship verify --profile fast":    "Run the fast verification profile",
-				"  ship verify --profile strict":  "Run the strict verification profile",
-				"  ship verify --skip-tests":      "Skip final test step",
-				"  ship verify --json":            "Output verification result as JSON",
+				"  ship verify":                  "Run the standard verification workflow",
+				"  ship verify --profile fast":   "Run the fast verification profile",
+				"  ship verify --profile strict": "Run the strict verification profile",
+				"  ship verify --skip-tests":     "Skip final test step",
+				"  ship verify --json":           "Output verification result as JSON",
 			},
 		},
 		{
