@@ -248,6 +248,55 @@ func checkCLIDocsCoverage(root string) []DoctorIssue {
 	return issues
 }
 
+func checkExtensionZoneManifest(root string) []DoctorIssue {
+	issues := make([]DoctorIssue, 0)
+	rel := filepath.ToSlash(filepath.Join("docs", "architecture", "10-extension-zones.md"))
+	path := filepath.Join(root, filepath.FromSlash(rel))
+	if !hasFile(path) {
+		return append(issues, DoctorIssue{
+			Code:    "DX031",
+			File:    rel,
+			Message: "missing extension-zone manifest",
+			Fix:     "add docs/architecture/10-extension-zones.md with extension and protected contract zone definitions",
+		})
+	}
+
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return append(issues, DoctorIssue{
+			Code:    "DX031",
+			File:    rel,
+			Message: "failed to read extension-zone manifest",
+			Fix:     err.Error(),
+		})
+	}
+
+	text := string(b)
+	requiredTokens := []string{
+		"## Extension Zones",
+		"## Protected Contract Zones",
+		"`app/`",
+		"`framework/`",
+		"`app/router.go`",
+		"`app/foundation/container.go`",
+		"`config/modules.yaml`",
+		"`tools/agent-policy/allowed-commands.yaml`",
+	}
+	for _, token := range requiredTokens {
+		if strings.Contains(text, token) {
+			continue
+		}
+		issues = append(issues, DoctorIssue{
+			Code:    "DX031",
+			File:    rel,
+			Message: fmt.Sprintf("extension-zone manifest missing required token: %q", token),
+			Fix:     "restore the canonical extension-zone manifest sections and protected seam entries",
+		})
+	}
+
+	return issues
+}
+
 func checkCanonicalDocsHardReset(root string) []DoctorIssue {
 	issues := make([]DoctorIssue, 0)
 	canonicalDocs := []string{
