@@ -733,6 +733,7 @@ Follow-up hardening tracked under `TKT-195` / `TKT-257` / `TKT-258`:
 - invalid runtime-plan resolution now fails startup instead of warning + fallback;
 - resolved realtime capability mismatches (for example notifier/pubsub startup gaps) now fail startup instead of silently disabling route surface;
 - adapter-backed dependency mismatches (for example `pubsub=redis` without its required runtime dependency) now fail at startup.
+- notification-center route inventory and canonical route-name cleanup are tracked under `TKT-197` / `TKT-261` / `TKT-262`.
 
 4. `R0.4` Testing harness improvements so default `make test` is Docker-free and fast.
 Status: `completed`

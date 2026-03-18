@@ -24,14 +24,14 @@ Impact:
 - Realtime remains unavailable unless runtime adapters and notifier wiring are configured correctly.
 - Misconfigured environments now fail fast during startup rather than appearing healthy with missing realtime endpoints.
 
-## 3) Notification Center Endpoints Partially Disabled (Medium)
+## 3) Notification Surface Finalization Is Incomplete (Medium)
 
-Route handlers exist in `app/web/controllers/notifications.go`, but several are commented out during route wiring.
+The canonical router now wires the notification module route surface, but the route contract is still split between canonical route-name constants and legacy string literals in notification views/module code.
 
 Impact:
 
-- Notification center behavior is incomplete from an HTTP exposure perspective.
-- Some notifier capabilities are not reachable from active routes.
+- Notification center behavior is reachable, but route-surface consistency is still too implicit.
+- Doc drift and string-literal route references can obscure the actual notification HTTP contract until the remaining cleanup lands.
 
 ## 4) Stale/Inconsistent E2E Coverage (Medium)
 
