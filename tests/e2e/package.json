@@ -6,6 +6,7 @@
   "scripts": {
     "test": "playwright test",
     "test:smoke": "playwright test tests/smoke.spec.ts",
+    "test:admin-smoke": "playwright test tests/admin_scaffold.spec.ts",
     "test:cherie-smoke": "playwright test tests/cherie_compatibility.spec.ts",
     "test:dev": "NODE_ENV=development playwright test",
     "test:prod": "NODE_ENV=production playwright test"

@@ -951,6 +951,7 @@ Reflection-based administrative interface for managing database resources.
 - Feature flags page at `/auth/admin/flags` with server-side toggle actions.
 - Trash page at `/auth/admin/trash` for operator visibility into soft-deleted row counts by table.
 - Built-in Templ components for common admin UI patterns.
+- Playwright baseline smoke coverage lives at `tests/e2e/tests/admin_scaffold.spec.ts` and protects the auth/managed-settings/flags/trash flow.
 
 ## 12) Feature Flags
 
@@ -1414,7 +1415,8 @@ Impact:
 
 ## 9) SQLite-To-Postgres Promotion Is Contracted But Still Manual (Medium)
 
-GoShip now surfaces the promotion contract through `ship db:promote` and runtime DB metadata, including orchestration hints for the canonical profile and adapter follow-up commands, but the export/import/verification hooks are not implemented yet.
+GoShip now surfaces the promotion contract through `ship db:promote` and runtime DB metadata, including orchestration hints for the canonical profile and adapter follow-up commands, and the CLI now exposes separate `ship db:export --json`, `ship db:import --json`, and `ship db:verify-import --json` hooks for the export/import workflow.
+The underlying import/verification engine is still manual-first, so the next step is wiring those hooks to the actual framework path instead of just surfacing the CLI contract.
 
 Impact:
 
@@ -1450,6 +1452,17 @@ Impact:
 
 - Operators and agents now have one canonical CLI report for runtime capability inspection.
 - Future runtime metadata additions should extend the report and its contract tests in the same change stream.
+
+## Cross-Lane Dependency Matrix Still Needs A Single Contract Map (Low)
+
+The GoShip, Interaction, and Control-plane ticket streams still rely on multiple docs and ticket
+parents to express sequencing. The cross-lane dependency matrix should explicitly name the
+must-finish-before contract map so ticket ordering stays deterministic.
+
+Impact:
+
+- Ticket sequencing remains readable, but it still depends on documentation discipline.
+- Future coordination tickets should extend the same matrix language instead of inventing a parallel map.
 
 ## 12) Domain Events Are In-Process Only (Low)
 
@@ -2117,6 +2130,7 @@ Verification/runtime rules:
 - replay nonce TTL: `PAGODA_MANAGED_HOOKS_NONCE_TTL_SECONDS` (default `300`)
 - replay protection rejects reuse of the same nonce+timestamp tuple inside the TTL window
 - replay protection should run through a shared/distributed replay store contract in multi-replica deployments; process-local memory is only the default fallback implementation
+- the same signed-request pattern is expected for the control-plane cron entrypoint contract so scheduler-driven actions can reuse the replay/timestamp verification model
 
 Response contract:
 
@@ -2247,6 +2261,7 @@ These areas are intended for product-specific divergence:
 - `app/` for app behavior, routes, handlers, jobs, pages, and composition choices that belong to the first-party app
 - `framework/` for reusable infrastructure evolution, so long as changes preserve documented protected seams and stable interfaces
 - `modules/` for installable capability packages that expose stable module-owned contracts
+- `modules/admin/` for admin panel resources, routes, and baseline UI contracts that stay behind the canonical `/auth/admin` surface
 - `frontend/` and `app/views/` for UI implementation details that can vary without changing framework-owned contracts
 - `docs/guides/` and app-facing operational docs that explain local workflows and product behavior
 
@@ -2268,6 +2283,7 @@ Protected-zone expectations:
 
 - `app/router.go` must keep canonical route registration seams and generator markers intact
 - `app/foundation/container.go` must keep canonical container markers and framework/module wiring seams intact
+- `modules/admin/` should only couple to the app through the canonical router/container seams and the admin route surface
 - `config/modules.yaml` remains the canonical module enablement manifest
 - `docs/reference/01-cli.md` remains the living CLI contract for agents and operators
 - `tools/agent-policy/allowed-commands.yaml` remains the source of truth for generated agent allowlist artifacts
@@ -2637,10 +2653,13 @@ HTTP integration test helpers:
 E2E tests:
 
 - `make e2e-smoke` (single happy-path smoke; Playwright starts `go run ./cmd/web` automatically via `webServer`)
+- `make e2e-admin-smoke` (admin auth and managed-surface smoke lane)
 - `make e2e`
 - `make e2eui`
 
 CI uses the smoke spec only (`tests/e2e/tests/smoke.spec.ts`) to validate startup and basic app serving.
+The admin scaffold lane lives at `tests/e2e/tests/admin_scaffold.spec.ts` and covers the
+critical admin auth/managed-settings/flags/trash surfaces as Playwright baseline smoke coverage.
 The `verify_strict` CI job runs `ship verify --profile strict` and serves as the precondition for the downstream Cherie compatibility gate.
 The Cherie compatibility lane runs `tests/e2e/tests/cherie_compatibility.spec.ts` with a web-only process env (`PAGODA_PROCESSES_WEB=true`, `PAGODA_PROCESSES_WORKER=false`, `PAGODA_PROCESSES_SCHEDULER=false`, `PAGODA_PROCESSES_COLOCATED=false`) so the baseline only measures boot, auth, and realtime route compatibility.
 Treat `verify_strict` and `cherie_compatibility_smoke` as the required status checks for Cherie-facing sync work.
@@ -3992,9 +4011,12 @@ Database:
 
 - `ship db:create [--dry-run]` (or `ship db` for help)
 - `ship db:generate [--config <path>] [--dry-run]`
+- `ship db:export [--json]`
+- `ship db:import [--json]`
 - `ship db:make <migration_name> [--soft-delete --table <table>]` (or `ship db` for help)
 - `ship db:migrate`
 - `ship db:status`
+- `ship db:verify-import [--json]`
 - `ship db:reset [--seed] [--force] [--yes] [--dry-run]`
 - `ship db:drop [--force] [--yes] [--dry-run]`
 - `ship db:rollback`
@@ -4067,9 +4089,12 @@ These commands are implemented as wrappers over existing workflows:
 - `ship verify --profile strict` -> strict verify tier used as the precondition for the required Cherie sync gate
 - `ship db:create` -> validates that target database URL is reachable (`goose status`)
 - `ship db:generate [--config <path>] [--dry-run]` -> runs Bob generation via `bobgen-sql -c <config>` (default: core `db/bobgen.yaml`, then enabled module configs in deterministic sorted order from `config/modules.yaml`)
+- `ship db:export [--json]` -> reports the SQLite export manifest checksum contract from current runtime metadata; `--json` emits the typed backup manifest for agents/tooling
+- `ship db:import [--json]` -> reports the manual SQLite export/import plan from current runtime metadata and suggests the follow-up post-import verification command; `--json` emits machine-readable plan output for agents/tooling
 - `ship db:promote [--json]` -> reports the manual SQLite-to-Postgres promotion plan from current runtime metadata and suggests the canonical profile/adapter/db migration follow-up commands; `--json` emits machine-readable plan output for agents/tooling
 - `ship db:migrate` -> `goose up` for core migrations, then enabled module migrations in deterministic sorted order
 - `ship db:status` -> `goose status` for core migrations, then enabled module migrations in deterministic sorted order; output is sectioned by scope (`== core migrations ==`, `== module <name> migrations ==`)
+- `ship db:verify-import [--json]` -> reports the post-import verification checks from current runtime metadata; `--json` emits machine-readable verification output for agents/tooling
 - `ship db:reset [--seed] [--force] [--yes] [--dry-run]` -> prints plan, runs `goose reset`, then `goose up`; optional seed
 - `ship db:drop [--force] [--yes] [--dry-run]` -> prints plan, runs `goose reset` (reverts all applied migrations; does not physically drop the database)
 - `ship db:make <migration_name>` -> `goose create <migration_name> sql`
@@ -4789,12 +4814,14 @@ Minimum framework tooling/hooks to expose:
 2. Data export hook with typed manifest (version + dialect + checksums).
 3. Data import hook with manifest validation.
 4. Post-import verification hook callable from CLI/control-plane adapters.
+   - The CLI-facing contract now exists as `ship db:export --json`, `ship db:import --json`, and `ship db:verify-import --json`; the remaining work is wiring the actual framework path behind those hooks.
 5. Dedicated CI suites for module isolation and `sql-core-v1` portability so boundary regressions fail in named lanes instead of broad aggregate jobs; the module-isolation lane reports module/file context and rejects stale allowlist entries, and the SQL portability lane checks runtime metadata plus branch annotations and placeholder conventions in the canonical migration/query SQL sources.
 6. Shared/distributed replay storage contract for managed hook nonce tracking so multi-replica managed mode rejects replays consistently.
 7. `backup-manifest-v1` is now locked to SQLite-first metadata plus SHA-256 checksum invariants, and managed restore responses return typed restore evidence with an explicit accepted-manifest field.
 8. Shared signature vectors and a canonical payload library will be introduced for the INT2 bridge so runtime and control-plane signing fixtures stay aligned.
 9. Managed settings will need explicit drift detection and rollback semantics so the runtime can show when intended overrides and effective state have diverged.
 10. The managed-key registry will be versioned as a shared runtime/control-plane artifact so schema mapping stays authoritative instead of inferred from ad hoc key lists.
+11. Signed cron entrypoint verification should reuse the same replay/timestamp contract shape so control-plane schedulers can target runtime hooks deterministically.
 
 ## Docket Tracking
 
@@ -5271,6 +5298,10 @@ Runtime-report contract tracked under `TKT-235` / `TKT-299` / `TKT-300`:
 Orchestration preflight contract tracked under `TKT-221` / `TKT-321` / `TKT-322`:
 - `ship verify` will grow a named contract-mismatch preflight gate that rejects unsupported runtime/orchestration combinations before deploy, upgrade, or promote flows begin;
 - the preflight should reuse the runtime contract metadata surface rather than inventing a separate ad hoc probe.
+
+Cross-lane dependency matrix tracked under `TKT-246` / `TKT-351` / `TKT-352`:
+- the dependency matrix should explicitly mark must-finish-before contract map entries so GoShip, Interaction, and Control-plane tickets stay sequenced without ambiguity;
+- child work should stay in the documentation/coordination lane and avoid inventing new execution semantics.
 
 CLI-path reset tracked under `TKT-249` / `TKT-311` / `TKT-312`:
 - the executable spec now pins one canonical top-level quality path per concern;
