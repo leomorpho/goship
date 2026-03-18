@@ -1,13 +1,19 @@
 package ui
 
-import "testing"
+import (
+	"testing"
+
+	frameworkpage "github.com/leomorpho/goship/framework/web/page"
+)
 
 func TestIslandsDemoLabel_UsesBootstrapLabel(t *testing.T) {
 	page := &Page{
-		Data: IslandsDemoBootstrap{
-			Locale: "fr",
-			Labels: map[string]string{
-				"VanillaCounter": "Compteur Vanilla JS",
+		Base: frameworkpage.Base{
+			Data: IslandsDemoBootstrap{
+				Locale: "fr",
+				Labels: map[string]string{
+					"VanillaCounter": "Compteur Vanilla JS",
+				},
 			},
 		},
 	}
@@ -20,8 +26,10 @@ func TestIslandsDemoLabel_UsesBootstrapLabel(t *testing.T) {
 
 func TestIslandsDemoLabel_FallsBackWhenMissing(t *testing.T) {
 	page := &Page{
-		Data: IslandsDemoBootstrap{
-			Labels: map[string]string{},
+		Base: frameworkpage.Base{
+			Data: IslandsDemoBootstrap{
+				Labels: map[string]string{},
+			},
 		},
 	}
 
@@ -33,9 +41,11 @@ func TestIslandsDemoLabel_FallsBackWhenMissing(t *testing.T) {
 
 func TestIslandsDemoIslandProps_DefaultLocale(t *testing.T) {
 	page := &Page{
-		Data: IslandsDemoBootstrap{
-			Labels: map[string]string{
-				"ReactCounter": "React Counter",
+		Base: frameworkpage.Base{
+			Data: IslandsDemoBootstrap{
+				Labels: map[string]string{
+					"ReactCounter": "React Counter",
+				},
 			},
 		},
 	}

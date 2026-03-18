@@ -11,6 +11,7 @@ import (
 	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/app/web/viewmodels"
 	"github.com/leomorpho/goship/framework/repos/mailer"
+	frameworkpage "github.com/leomorpho/goship/framework/web/page"
 )
 
 func TestRenderEmailRequiresComponent(t *testing.T) {
@@ -54,30 +55,36 @@ func TestRenderEmailTemplatesReturnNonEmptyOutput(t *testing.T) {
 		{
 			name: "registration_confirmation",
 			component: emailviews.RegistrationConfirmation(&ui.Page{
-				Data: viewmodels.EmailDefaultData{
-					AppName:          "GoShip",
-					SupportEmail:     "support@example.com",
-					ConfirmationLink: "https://example.com/confirm",
+				Base: frameworkpage.Base{
+					Data: viewmodels.EmailDefaultData{
+						AppName:          "GoShip",
+						SupportEmail:     "support@example.com",
+						ConfirmationLink: "https://example.com/confirm",
+					},
 				},
 			}),
 		},
 		{
 			name: "password_reset",
 			component: emailviews.PasswordReset(&ui.Page{
-				Data: viewmodels.EmailPasswordResetData{
-					AppName:           "GoShip",
-					SupportEmail:      "support@example.com",
-					ProfileName:       "Test User",
-					PasswordResetLink: "https://example.com/reset",
+				Base: frameworkpage.Base{
+					Data: viewmodels.EmailPasswordResetData{
+						AppName:           "GoShip",
+						SupportEmail:      "support@example.com",
+						ProfileName:       "Test User",
+						PasswordResetLink: "https://example.com/reset",
+					},
 				},
 			}),
 		},
 		{
 			name: "email_update",
 			component: emailviews.EmailUpdate(&ui.Page{
-				Data: viewmodels.EmailUpdate{
-					AppName:      "GoShip",
-					SupportEmail: "support@example.com",
+				Base: frameworkpage.Base{
+					Data: viewmodels.EmailUpdate{
+						AppName:      "GoShip",
+						SupportEmail: "support@example.com",
+					},
 				},
 			}),
 		},

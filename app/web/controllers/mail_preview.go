@@ -10,6 +10,7 @@ import (
 	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/app/web/viewmodels"
 	"github.com/leomorpho/goship/framework/repos/mailer"
+	frameworkpage "github.com/leomorpho/goship/framework/web/page"
 )
 
 type mailPreview struct {
@@ -48,7 +49,9 @@ func (r *mailPreview) Welcome(ctx echo.Context) error {
 	data.ConfirmationLink = "https://example.test/confirm-email"
 
 	page := &ui.Page{
-		Data: data,
+		Base: frameworkpage.Base{
+			Data: data,
+		},
 	}
 	return r.renderEmailPreview(ctx, emailviews.RegistrationConfirmation(page))
 }
@@ -64,7 +67,9 @@ func (r *mailPreview) PasswordReset(ctx echo.Context) error {
 	data.BrowserName = "Firefox"
 
 	page := &ui.Page{
-		Data: data,
+		Base: frameworkpage.Base{
+			Data: data,
+		},
 	}
 	return r.renderEmailPreview(ctx, emailviews.PasswordReset(page))
 }
@@ -77,7 +82,9 @@ func (r *mailPreview) VerifyEmail(ctx echo.Context) error {
 	data.ConfirmationLink = "https://example.test/verify-email"
 
 	page := &ui.Page{
-		Data: data,
+		Base: frameworkpage.Base{
+			Data: data,
+		},
 	}
 	return r.renderEmailPreview(ctx, emailviews.RegistrationConfirmation(page))
 }
