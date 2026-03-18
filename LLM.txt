@@ -439,6 +439,9 @@ Last updated: 2026-03-04
 8. `G08` - `guides/08-building-an-api.md`: JSON response helpers, content negotiation, and versioned API route convention.
 9. `G09` - `guides/09-i18n-adapter-contract.md`: redirect stub to canonical i18n guide.
 10. `G10` - `guides/10-i18n-llm-migration-workflow.md`: canonical i18n guide (adapter contract, migration loop, coverage/enforcement policy, diagnostics schema, strict rollout, translator workflow, CI profile).
+11. `G11` - `guides/11-add-endpoint-workflow.md`: canonical workflow for adding a new endpoint with route wiring and validation.
+12. `G12` - `guides/12-add-module-workflow.md`: canonical workflow for adding or installing a module with isolation checks.
+13. `G13` - `guides/13-add-background-job-workflow.md`: canonical workflow for adding an app background job with `core.Jobs`-first wiring.
 
 ### Reference
 
@@ -464,6 +467,7 @@ Last updated: 2026-03-04
 6. `M06` - `roadmap/06-dx-and-infrastructure.md`: ship dev unified command, GitHub Actions CI/CD, SQLite multi-process safety, slog structured logging, security headers, health checks, email system (mailer interface, templ templates, dev previews), cron scheduling, app-level CLI commands.
 7. `M07` - `roadmap/07-modules-and-capabilities.md`: OAuth/social login, 2FA/TOTP, AI module (Anthropic + OpenAI + OpenRouter + streaming), domain events, soft deletes, feature flags, audit log, SSE, JSON API pattern, test data factories, HTTP test helpers, i18n.
 8. `M08` - `roadmap/08-ui-agent-context.md`: work order for applying UI agent convention (data-* attributes, templ comments, route annotations) across this repo.
+9. `M09` - `roadmap/09-pagoda-intake-log.md`: recurring Pagoda intake cadence and adopt/adapt/skip decision log.
 
 ## Primary Source Files Used For This Analysis
 
@@ -795,6 +799,10 @@ GoShip is a Go + Echo + Templ + HTMX starter application that ships with:
 
 GoShip is maintained as a single-app repository: one canonical runtime app under `app/` + `cmd/`, plus framework/modules/tooling packages.
 
+`ship describe --pretty` also exposes a shared-infra adoption summary so contributors can inspect
+installed shared modules versus app-owned controller/job/command counts as a non-blocking
+upstreaming metric.
+
 ## Runtime Programs
 
 - `cmd/web/main.go`: main HTTP application server
@@ -858,9 +866,11 @@ Implemented infrastructure includes:
 
 Status of exposure:
 
-- Some notification endpoints are active (count endpoint, permission/subscription management)
-- Several notification-center routes are currently commented out in router wiring
+- Notification-center routes are owned by `modules/notifications/routes` and wired through the canonical app router
+- Active surface includes notification list, unread-count badge, mark-all-read, mark read/unread, delete, and onboarding subscription management endpoints
 - SSE route wiring is runtime-gated and only enabled when notifier/pubsub dependencies are available
+- Invalid realtime/runtime-plan startup combinations now fail fast instead of silently falling back to a reduced route surface
+- CI now carries a dedicated Cherie compatibility smoke baseline for `/up`, `/user/login`, and auth-gated `/auth/realtime` behavior
 
 ## 5) Email Features
 
@@ -943,7 +953,7 @@ Reflection-based administrative interface for managing database resources.
 ## 13) Request DTO Conventions
 
 - Controller request DTOs now live with their owning controllers/modules instead of a global `app/contracts` package.
-- `ship doctor` (`DX027`) enforces typed request binding patterns and warns on raw/untyped form parsing patterns.
+- `ship doctor` (`DX027`) enforces typed request binding patterns and now blocks raw/untyped form parsing patterns in controllers.
 - OpenAPI generation was removed from the core `ship` CLI surface in the app-minimalization cleanup stream.
 - `app/controller` was removed; canonical app page ownership is `app/web/ui.Page`, which now embeds reusable framework-owned base fields/behavior from `framework/web/page.Base`.
 
@@ -988,6 +998,7 @@ Storage modes:
 Runtime DB metadata contract:
 
 - `config.Config.RuntimeMetadata()` now provides a normalized DB metadata snapshot for status/reporting surfaces.
+- `ship runtime:report --json` emits the canonical machine-readable runtime capability payload from config/runtime-plan metadata, including active profile, adapters, process plan, web features, DB runtime metadata, and managed-key sources.
 - Metadata includes DB mode/driver, migration tracking table, portability profile, and SQLite-to-Postgres compatibility path (`sqlite-to-postgres-manual-v1`).
 - `config.Config.ManagedSettingStatuses()` provides normalized managed-setting access states for settings/admin surfaces.
 - Managed mode now includes a signed control-plane bridge at `/managed/status`, `/managed/backup`, and `/managed/restore`.
@@ -1020,7 +1031,7 @@ Health endpoints:
 
 ## Practical Summary
 
-This codebase is a strong "production-ready starter" foundation with authentication, payments, notifications, storage, and worker primitives. It is also in an active transitional state where some features are scaffolded but not fully wired in the web runtime.
+This codebase is a strong "production-ready starter" foundation with authentication, payments, notifications, storage, and worker primitives. Some features remain intentionally scaffolded or partial, but the documented model is the current canonical runtime, not a migration bridge.
 
 ---
 FILE: docs/architecture/04-http-routes.md
@@ -1039,11 +1050,10 @@ Ergonomic routing rule:
 
 - `GET /` starter home page
 - `GET /demo/islands` framework islands demo (vanilla JS, React, Vue, Svelte)
-- `GET /up` liveness healthcheck (legacy alias)
+- `GET /up` liveness healthcheck alias
 - `GET /health` liveness healthcheck
 - `GET /health/ready` readiness healthcheck (returns `503` when a registered dependency check fails)
 - `GET /clear-cookie`
-- `GET /install-app`
 
 Email subscription:
 
@@ -1106,7 +1116,12 @@ Fully onboarded-only routes (`/auth` with onboarding guard):
 - `DELETE /auth/uploadPhoto/:image_id`
 - `GET /auth/currProfilePhoto`
 - `POST /auth/currProfilePhoto`
+- `GET /auth/notifications`
+- `GET /auth/notifications/mark-all-read`
+- `DELETE /auth/notifications/:notification_id`
 - `GET /auth/notifications/normalNotificationsCount`
+- `POST /auth/notifications/:notification_id/read`
+- `POST /auth/notifications/unread`
 - `GET /auth/payments/get-public-key`
 - `POST /auth/payments/create-checkout-session`
 - `POST /auth/payments/create-portal-session`
@@ -1169,15 +1184,11 @@ Registered only when `app.environment=dev`:
 Realtime is conditionally wired:
 
 - `GET /auth/realtime` is registered only when runtime web features enable realtime (notifier + pubsub available).
+- Invalid runtime-plan resolution or realtime dependency mismatch now fails startup instead of silently dropping the realtime route surface.
 - `GET /auth/ai-demo` and `GET /auth/ai-demo/stream` are registered only when the app environment is not production.
 - `/managed/*` routes are registered only when `PAGODA_MANAGED_MODE=true` and require valid `X-GoShip-*` signature headers.
 
-Notification center routes have implementations but are still not wired:
-
-- list notifications
-- mark all read
-- delete notification
-- mark read/unread endpoints
+Notification center routes are owned by `modules/notifications/routes` and registered through the canonical app router alongside the onboarding subscription-management routes under `/welcome`.
 
 ---
 FILE: docs/architecture/05-data-model.md
@@ -1286,33 +1297,33 @@ This list is based on direct code inspection and is intended to guide contributo
 
 ## 1) Cache Adapter Coverage Is Incomplete (Medium)
 
-`app/foundation/container.go` now initializes the legacy repo-level cache client only when the
-selected cache adapter is Redis. That avoids nil-pointer panics and accidental Redis dials in the
-default `memory` cache profile, but it also means page-cache middleware remains unavailable until a
-memory-backed cache implementation exists behind the same seam.
+`app/foundation/container.go` now initializes the shared cache seam for both in-memory (`otter` /
+`memory`) and Redis-backed adapters, and the cache contract is now pinned by one shared backend
+matrix. Grouped objects, tag invalidation, TTL expiry, and the raw byte/prefix seam now run through
+the same executable coverage for both adapters.
 
 Impact:
 
-- Local/default runtime does not currently exercise page-cache paths.
-- Cache behavior differs between `memory` and `redis` adapter selections beyond pure backend choice.
+- Local/default runtime can exercise page-cache paths through the in-memory adapter.
+- Positive cache TTLs are normalized to second precision so `memory` and `redis` expire entries on the same schedule.
 
 ## 2) Realtime Dependency Requirements (High for distributed realtime features)
 
-`GET /auth/realtime` is now conditionally registered based on resolved runtime web features. If notifier/pubsub dependencies are unavailable, realtime routes are intentionally disabled.
+`GET /auth/realtime` is now conditionally registered based on resolved runtime web features. Invalid runtime-plan resolution or missing realtime dependencies now fail startup instead of silently falling back.
 
 Impact:
 
-- Realtime is unavailable unless runtime adapters are configured correctly.
-- Misconfigured environments can appear healthy while silently missing realtime endpoints.
+- Realtime remains unavailable unless runtime adapters and notifier wiring are configured correctly.
+- Misconfigured environments now fail fast during startup rather than appearing healthy with missing realtime endpoints.
 
-## 3) Notification Center Endpoints Partially Disabled (Medium)
+## 3) Notification Surface Drift Still Needs Route Inventory Discipline (Low)
 
-Route handlers exist in `app/web/controllers/notifications.go`, but several are commented out during route wiring.
+The notification module route surface is now wired and canonicalized through shared route-name constants, but future module extractions can still drift if route inventories and view callsites are not kept in sync.
 
 Impact:
 
-- Notification center behavior is incomplete from an HTTP exposure perspective.
-- Some notifier capabilities are not reachable from active routes.
+- Notification-center behavior is reachable and documented today.
+- Future refactors should keep using route-inventory tests plus doc sync to avoid reintroducing hidden route-surface drift.
 
 ## 4) Stale/Inconsistent E2E Coverage (Medium)
 
@@ -1322,16 +1333,51 @@ Impact:
 
 - End-to-end test confidence for current GoShip behavior is limited.
 
+## Route Composition Style Still Needs Ongoing Discipline (Low)
+
+`app/router.go` now owns one canonical static-registration path through `appweb.RegisterStaticRoutes(c)`,
+and `BuildRouter` fails fast when the app container is nil. The remaining risk is drift from future
+route extractions if new registration styles are introduced outside that composition root.
+
+Impact:
+
+- The route manifest and static asset surface are centralized today.
+- Future route extraction work should keep using route-composition contract tests to avoid reintroducing split registration styles.
+
+## Startup and Route Contract Suites Now Cover Failure Paths (Low)
+
+Startup failure cases now have a dedicated contract suite covering nil containers, missing module
+dependencies, invalid runtime profiles, and realtime capability mismatches. Route inventory output
+also has explicit public/auth contract coverage over `method`, `path`, `auth`, `handler`, and
+`file` metadata.
+
+Impact:
+
+- Startup regressions now fail through one executable contract instead of being spread across ad hoc tests.
+- CLI and agent consumers of `ship routes --json` now have an explicit grouped-route surface contract.
+
+## Canonical Docs Now Enforce Hard-Cut Wording (Low)
+
+The canonical docs set is now guarded by doctor policy checks that reject selected legacy-cutover
+phrases in architecture, CLI, and roadmap docs, with file:line diagnostics and an allowlist for
+intentional historical references outside the canonical set. The remaining risk is scope drift if
+new docs are added to the canonical set without extending that policy.
+
+Impact:
+
+- The canonical docs now describe the current runtime model directly instead of migration-era ambiguity.
+- Future canonical-doc additions should extend the doctor check so the hard-cut wording rule stays comprehensive.
+
 ## 5) Dev Runtime Drift Between Config and Docker Compose (Medium)
 
 - Default base config now lives in `config/config.go` and can be overridden by `.env`.
 - Docker Compose currently starts Redis and Mailpit only; DB service is commented out.
-- Make targets include Postgres-dependent commands.
+- Makefile help and contributor docs now describe the same single-node default plus optional accessory-services contract.
 
 Impact:
 
-- Contributors can experience confusion about canonical local dev DB path.
-- Local runtime docs and automation still need tighter alignment around the single-node default versus the compose-backed workflow.
+- The default local story is now consistent: app-on single-node first, with optional Redis/Mailpit compose accessories.
+- Residual compose-backed Postgres helper commands remain optional escape hatches rather than the default local contract.
 
 ## 6) Residual Dead UI Artifacts Can Reappear Without Reachability Audits (Low)
 
@@ -1360,12 +1406,12 @@ Impact:
 
 ## 9) SQLite-To-Postgres Promotion Is Contracted But Still Manual (Medium)
 
-GoShip now has a documented promotion contract and runtime DB metadata model, but the export/import/verification hooks are not implemented yet.
+GoShip now surfaces the promotion contract through `ship db:promote` and runtime DB metadata, but the export/import/verification hooks are not implemented yet.
 
 Impact:
 
 - Promotion currently requires custom/manual tooling around the framework contract.
-- Operators can report compatibility and promotion path, but cannot run a one-command migration flow yet.
+- Operators can report compatibility and promotion path with `ship db:promote`, but cannot run a one-command migration flow yet.
 
 ## 10) AI Provider Coverage Is Still Narrow (Medium)
 
@@ -1377,7 +1423,19 @@ Impact:
 - Environments without matching provider credentials will keep a non-nil AI service that returns a clear provider-unavailable error at call time.
 - Conversation persistence exists at the module layer, but there is still no first-class app UI for browsing or resuming stored AI threads.
 
-## 11) Domain Events Are In-Process Only (Low)
+## 11) Runtime Capability Reporting Is Now Canonicalized (Low)
+
+`ship runtime:report --json` now exposes the effective profile, adapters, process plan, web
+features, DB runtime metadata, and managed-key sources in one machine-readable payload. The
+INT1-01 will extend that payload with a versioned handshake envelope for orchestration preflight.
+The remaining risk is payload drift if future runtime metadata is added without extending the report.
+
+Impact:
+
+- Operators and agents now have one canonical CLI report for runtime capability inspection.
+- Future runtime metadata additions should extend the report and its contract tests in the same change stream.
+
+## 12) Domain Events Are In-Process Only (Low)
 
 `framework/events` now covers synchronous in-process publish/subscribe and a jobs enqueue helper, but it does not yet ship a generic async re-dispatch worker or delivery guarantees across processes.
 
@@ -1386,7 +1444,7 @@ Impact:
 - Domain events are reliable inside a single process and easy to test.
 - Cross-process fanout still requires explicit jobs or pubsub integration by the caller.
 
-## 12) CSP Is Hardened But Still Allows Script Attributes (Low)
+## 13) CSP Is Hardened But Still Allows Script Attributes (Low)
 
 Default security headers and nonce-based CSP are now enabled for dynamic responses, but the default
 policy still allows `script-src-attr 'unsafe-inline'` to preserve existing `onload=...` usage in
@@ -1397,16 +1455,16 @@ Impact:
 - The app now blocks inline script blocks unless they carry the request nonce.
 - Inline script attributes remain permitted until those attributes are removed/refactored.
 
-## 13) Managed Hook Replay Cache Is Process-Local (Medium)
+## 14) Managed Hook Replay Cache Is Process-Local (Medium)
 
-Managed hook signatures now enforce nonce replay protection, but the nonce cache is currently in-memory per process.
+Managed hook signatures now expose a shared/distributed replay-store contract, but the active runtime still uses the default in-memory nonce store until app wiring adopts a shared backend.
 
 Impact:
 
 - Replays are blocked per process instance, but not across independently running replicas.
 - Process restarts clear replay history and reopen the short nonce window until entries are rebuilt.
 
-## 14) Soft-Delete Query Guardrail Is Warning-Only (Low)
+## 15) Soft-Delete Query Guardrail Is Warning-Only (Low)
 
 `ship doctor` now warns (`DX028`) when SQL queries in `db/queries/` reference soft-delete tables
 without a `deleted_at` filter, but this remains a warning and not a hard failure.
@@ -1425,6 +1483,206 @@ Impact:
 
 - Runtime can evaluate cached DB-backed flags today.
 - Operators can quickly enable/disable flags, but still need SQL/seed workflows for richer targeting updates.
+
+## 16) Quality CLI Surface Is Now Canonicalized (Low)
+
+The duplicate `ship check` path has been removed, and the top-level quality contract now funnels
+fast checks through `ship test` and tiered repository verification through
+`ship verify --profile fast|standard|strict`.
+
+Impact:
+
+- Humans and agents now have one canonical top-level command path per quality concern plus an
+  explicit verify tier selection.
+- Future quality-loop changes should update `ship test`, `ship verify`, and their contract docs/tests in the same change stream.
+
+## 17) Job Generator Contract Is Now Canonicalized (Low)
+
+`ship make:job <Name>` now exposes a canonical scaffold contract for app jobs built around
+`core.Jobs` and `core.JobHandler`.
+
+Impact:
+
+- App teams can generate a consistent `app/jobs` baseline instead of hand-rolling job files and tests.
+- Future job-surface changes should extend the generator, jobs guide, and CLI contract together so the scaffold stays aligned with the runtime seam.
+
+## 18) Mailer Generator Contract Is Now Canonicalized (Low)
+
+`ship make:mailer <Name>` now exposes a canonical scaffold contract for templ email views and
+preview wiring under the existing `/dev/mail/*` surface.
+
+Impact:
+
+- Teams can generate a consistent email-template baseline instead of hand-rolling view and preview wiring.
+- Future mailer-surface changes should extend the generator, preview controller, and CLI docs together so generated mailers stay aligned with the dev preview contract.
+
+## 19) Generator Output Drift Is Reduced But Matrix Coverage Must Keep Up (Low)
+
+`ship make:*` commands now share one stdout contract built around `Created:`, `Updated:`,
+`Preview:`, and `Next:` sections, and the generators package carries a consolidated idempotency
+matrix suite.
+
+Impact:
+
+- Humans and agents can parse generator results through one predictable report shape instead of
+  generator-specific wording.
+- Future generators still need to join the shared output contract and matrix tests when new scaffold
+  surfaces are added.
+
+## 19) Task-Oriented OSS Workflow Docs Are Now Canonicalized (Low)
+
+GoShip now has a canonical OSS workflow-docs set for adding an endpoint, adding a module, and
+adding a background job, with those guides surfaced from the docs hub and playbook.
+
+Impact:
+
+- New contributors and agents now have one indexed workflow set for common extension tasks.
+- Future contributor workflows should extend the canonical guide set and the docs index/playbook together.
+
+## 20) Shared-Infra Adoption Trend Reporting Is Now Canonicalized (Low)
+
+`ship describe --pretty` now exposes a shared-infra adoption summary showing shared module adoption
+alongside app-owned controller/job/command counts.
+
+Impact:
+
+- Module upstreaming decisions now have one machine-readable baseline metric.
+- Future shared-infra shifts should extend the describe payload and the scope/CLI docs in the same change stream.
+
+## 21) Pagoda Intake Governance Is Now Canonicalized (Low)
+
+GoShip now documents a recurring Pagoda intake cadence and exposes a canonical adopt/adapt/skip log.
+
+Impact:
+
+- Upstream review now has an explicit recurring process instead of memory-based drift.
+- Contributors have one canonical place to record intake outcomes and follow-up actions.
+
+## 22) Module Install/Remove Is Now Deterministic For Standalone Batteries (Low)
+
+`ship module:add` and `ship module:remove` now manage local standalone-battery wiring through
+structured `go.mod` / `go.work` edits plus `config/modules.yaml` and marker-based app snippets.
+The new `modules/storage` battery joins the first-class installable set around the canonical
+`core.BlobStorage` seam.
+
+Impact:
+
+- Installable batteries now have one deterministic local-workspace wiring path instead of ad hoc
+  manual `go.mod` / `go.work` edits.
+- Remove flows now fail with exact blocker file paths when app code still imports a module,
+  preventing partial unwiring.
+
+## 23) Generator Drift Is Now Guarded By A Dedicated CI Contract Lane (Low)
+
+GoShip now carries a dedicated generator contract lane that combines per-generator golden
+snapshots for the shared report shape with the consolidated generator idempotency matrix.
+
+Impact:
+
+- Merge protection now catches generator output drift separately from the broader backend test lane.
+- Local reruns can isolate the duplicate-generation matrix through `make test-generator-idempotency`
+  without conflating it with snapshot refresh work.
+- Intentional report-format changes require an explicit snapshot refresh (`UPDATE_GENERATOR_SNAPSHOTS=1`)
+  and snapshot commit instead of silently changing CI expectations.
+
+## 24) Managed Backup/Restore Contract Is Now More Explicit (Low)
+
+The managed backup/restore seam now locks `backup-manifest-v1` to SQLite-first metadata and a
+strict SHA-256 checksum contract, and managed restore responses now return machine-readable
+`restore_evidence`.
+
+Impact:
+
+- Control-plane and runtime integrations now have one explicit manifest/evidence shape instead of
+  inferring restore success from a bare `accepted` status.
+- Future backup schema changes should extend the typed contract and evidence payloads together
+  rather than widening the current v1 semantics silently.
+
+## 25) Alpha Surface Freeze Is Now Explicitly Gated (Low)
+
+GoShip now freezes the `v0.1.0-alpha` public surface through snapshots of root CLI help and route
+inventory, with a dedicated CI lane and an explicit approved-review refresh path.
+
+Impact:
+
+- Public command and route drift now fails in a named lane instead of surfacing later as release-note
+  cleanup or downstream integration breakage.
+- Intentional alpha-surface changes require an explicit snapshot refresh and review trail, which
+  keeps the freeze policy visible instead of implicit.
+
+## 26) Core CLI Output Contracts Now Carry Golden Coverage (Low)
+
+GoShip now snapshots stable command surfaces for `doctor`, `routes`, `describe`, and `verify`
+through in-package golden tests.
+
+Impact:
+
+- Human and JSON output drift for the main operator-facing CLI surfaces now shows up as direct test
+  failures instead of review-only formatting regressions.
+- Intentional output changes require an explicit `UPDATE_CLI_GOLDENS=1` refresh path, keeping
+  snapshot updates deliberate.
+
+## 27) Doc-Sync And Dead-Route Guardrails Are Now Named CI Lanes (Low)
+
+GoShip now runs separate CI lanes for route/scope doc sync and dead-route regression around the
+canonical route inventory.
+
+Impact:
+
+- Stale docs such as removed route entries now fail in a named lane instead of lingering until
+  humans notice the mismatch.
+- Route-inventory regressions and doc drift are isolated from broader backend failures, which makes
+  remediation faster and more obvious.
+
+## 28) Module Compatibility Policy Is Now Enforced By Verify (Low)
+
+GoShip now treats installable standalone batteries as one canonical contract: if root `go.mod`
+depends on a local battery, that dependency must stay on `v0.0.0`, point at the repo-local
+`replace`, and keep the matching `go.work use` entry. Module-local `go.mod` files must also keep
+the declared module path aligned with the battery catalog.
+
+Impact:
+
+- Cherie-facing module version policy is now executable instead of living only in roadmap notes.
+- Local battery drift now fails in `ship verify` before it becomes downstream release confusion.
+
+## 29) Canonical Architecture Docs Now Share The Hard-Cut Lint (Low)
+
+The hard-cut wording lint now treats the canonical architecture set as one contract surface instead
+of checking only the scope/routes subset.
+
+Impact:
+
+- Transition-era wording drift in the primary architecture docs now fails through the same `DX030`
+  path as CLI and roadmap docs.
+- Historical references remain possible outside the canonical set through the existing allowlist,
+  keeping migration notes separate from the current architecture contract.
+
+## 30) Verify And Doctor Now Expose The No-Compatibility/No-Deprecation Policy Explicitly (Low)
+
+The existing hard-cut wording checks are now named and reported as an explicit
+no-compatibility/no-deprecation invariant in the `ship verify` step output and `DX030`
+diagnostics.
+
+Impact:
+
+- Operator-facing quality output now describes the policy directly instead of hiding it behind
+  generic wording.
+- Reviewers can distinguish this policy from other doc lint failures without reading the
+  implementation details first.
+
+## 31) Starter Bootstrap Budget Is Now A Named Regression Gate (Low)
+
+GoShip now carries a dedicated bootstrap budget check for the canonical starter flow: scaffold a
+fresh app with `ship new`, then prove the generated `cmd/web` entrypoint runs within the named CI
+budget.
+
+Impact:
+
+- Starter DX regressions now show up in a specific lane instead of surfacing later as anecdotal
+  "ship new feels slower" feedback.
+- The budget and rerun knob are explicit, which keeps runner variance discussions separate from
+  actual bootstrap regressions.
 
 ## 16) No Built-In OpenAPI Generation Command (Informational)
 
@@ -1477,21 +1735,61 @@ Impact:
 
 ## 21) Module Isolation Exceptions Still Exist for Installable Modules (Medium)
 
-`DX020` now runs with a much smaller temporary allowlist, but some installable module runtime files still import root app/framework packages directly (currently concentrated in `modules/notifications/*` and `modules/paidsubscriptions/routes/routes.go`).
+`DX020` now blocks direct root-package imports from installable module runtime code with no temporary allowlist escape hatch, so the remaining violations are explicit cleanup work instead of tolerated drift.
 
 Impact:
 
-- Installable-module portability remains partially constrained by root import coupling.
-- Future extraction work must continue shrinking this allowlist toward zero.
+- Installable-module portability remains partially constrained by the remaining violating files, but they are now surfaced as blocking policy failures.
+- Structural repo-shape drift for unpaired markers (`DX005`) and raw controller form parsing (`DX027`) is now blocked by default verification instead of surfacing as warnings.
+
+## 22) Module Isolation Is Now Guarded By A Dedicated CI Lane (Low)
+
+The repo now exposes module isolation as a named CI lane via `make test-module-isolation`. The gate
+reports offending module/file context for direct root imports and rejects stale entries in the
+allowlist, while SQL portability remains tracked by its separate dedicated lane.
+
+Impact:
+
+- installable-module boundary regressions now fail in a named suite with actionable diagnostics;
+- allowlist entries can be trimmed as soon as temporary exceptions are removed, so drift is visible instead of silently accumulating;
+- SQL portability (`sql-core-v1`) continues to have one canonical CI entrypoint, which keeps future automation and downstream reuse predictable.
+
+## 23) Cherie Compatibility Smoke Coverage Is Still Generic (Medium)
+
+CI currently runs one generic Playwright smoke spec for startup and basic app serving, but it does not yet expose a dedicated Cherie-oriented compatibility lane for the downstream-critical boot, auth, and realtime path trio.
+
+Impact:
+
+- framework changes can keep the generic smoke green while still drifting from the narrower downstream compatibility baseline;
+- Cherie-specific upgrade confidence remains weaker than the roadmap policy requires until the smoke baseline is named and enforced in CI.
+
+## 24) Extension Zones Vs Protected Contract Zones Are Not Codified In One Manifest (Medium)
+
+The repo has boundary rules and marker checks, but it still lacks one canonical manifest that says where app/framework consumers can diverge freely and which contract seams are protected by doctor enforcement.
+
+Impact:
+
+- contributors must infer safe customization boundaries from several docs and policy checks instead of one source of truth;
+- new guardrails risk growing inconsistently because protected seams are not documented and enforced from the same manifest.
+
+## 25) Standalone Exportability Lacks A Named Verification Gate (Medium)
+
+The repo documents standalone capability, but `ship verify` does not yet expose a dedicated run-anywhere/exportability gate proving generated apps stay free of control-plane dependency assumptions.
+
+Impact:
+
+- standalone regression risk is spread across implicit docs and ad hoc review rather than one explicit release gate;
+- generated-app exportability can drift without a named verification step catching it early.
 
 ## Suggested Priority Order
 
 1. Complete cache adapter coverage so page caching works consistently across supported backends.
-2. Harden adapter/config validation so realtime capability mismatch is explicit at startup.
+2. Keep tightening adapter/config validation so additional startup capability mismatches fail before route registration.
 3. Re-enable or remove notification-center routes consistently.
 4. Refresh e2e tests to match current GoShip flows.
 5. Align local stack docs with actual DB mode and compose services.
 6. Add shared/distributed replay storage for managed hook nonce tracking in multi-replica deployments.
+7. Publish shared signature vectors and a canonical payload library for the INT2 bridge so signing fixtures do not drift between runtime and control-plane consumers.
 
 ---
 FILE: docs/architecture/07-core-interfaces.md
@@ -1767,6 +2065,9 @@ Rules:
 - secrets stay out of the repo
 - managed overrides are allowlisted and inspectable
 - the runtime should be able to report both the effective value and the source of that value
+- `TKT-339` defines the next runtime-surface contract for per-module adoption metadata, so external
+  control planes can track module identity, module path, version, and source without parsing repo
+  internals.
 
 The external control plane should not rely on mutating arbitrary config files in application repos as its normal operating mechanism.
 
@@ -1788,12 +2089,16 @@ Canonical signature payload:
 
 - `METHOD + "\n" + PATH_WITH_QUERY + "\n" + TIMESTAMP + "\n" + NONCE + "\n" + RAW_BODY`
 
+Shared signature vectors and the canonical payload library are tracked separately so both the
+runtime bridge and control-plane tooling can reuse the same signing fixtures.
+
 Verification/runtime rules:
 
 - shared secret: `PAGODA_MANAGED_HOOKS_SECRET`
 - max clock skew: `PAGODA_MANAGED_HOOKS_MAX_SKEW_SECONDS` (default `300`)
 - replay nonce TTL: `PAGODA_MANAGED_HOOKS_NONCE_TTL_SECONDS` (default `300`)
 - replay protection rejects reuse of the same nonce+timestamp tuple inside the TTL window
+- replay protection should run through a shared/distributed replay store contract in multi-replica deployments; process-local memory is only the default fallback implementation
 
 Response contract:
 
@@ -1801,6 +2106,17 @@ Response contract:
 - `409` for replayed nonce+timestamp
 - `503` when the managed hook secret is not configured
 - `404` when managed mode is disabled
+- `POST /managed/backup` returns a typed `backup-manifest-v1` payload with SQLite source metadata,
+  SHA-256 artifact checksum, and storage target metadata
+- `POST /managed/restore` returns `restore_evidence` with the accepted manifest version, artifact
+  checksum, database descriptor, and named post-restore validation checks
+
+Backup manifest v1 invariants:
+
+- version must be exactly `backup-manifest-v1`
+- current schema is SQLite-first: `database.mode=embedded`, `database.driver=sqlite`
+- `artifact.checksum_sha256` must be a 64-character hex SHA-256 digest
+- `database.schema_version`, `database.source_path`, and storage target metadata are required
 
 ## SQLite-First Promotion Contract (v1)
 
@@ -1838,6 +2154,7 @@ SQL portability constraints (`sql-core-v1`):
 Minimum framework hook surface to support promotion:
 
 - Runtime metadata reporting hook.
+- The runtime metadata report is expected to be versioned and to carry a metadata handshake envelope for orchestration preflight.
 - Export hook with deterministic schema/version manifest output.
 - Import hook with manifest validation and idempotent apply behavior.
 - Post-import verification hook.
@@ -1896,6 +2213,53 @@ The current follow-up work for this boundary is tracked in:
 - `.docket/tickets/TKT-112.md`
 - `.docket/tickets/TKT-113.md`
 - `.docket/tickets/TKT-114.md`
+
+---
+FILE: docs/architecture/10-extension-zones.md
+---
+# Extension Zones
+
+This document defines where GoShip consumers are expected to customize freely and which seams are protected framework contracts that must stay stable for generators, doctor checks, and downstream adopters.
+
+## Extension Zones
+
+These areas are intended for product-specific divergence:
+
+- `app/` for app behavior, routes, handlers, jobs, pages, and composition choices that belong to the first-party app
+- `framework/` for reusable infrastructure evolution, so long as changes preserve documented protected seams and stable interfaces
+- `modules/` for installable capability packages that expose stable module-owned contracts
+- `frontend/` and `app/views/` for UI implementation details that can vary without changing framework-owned contracts
+- `docs/guides/` and app-facing operational docs that explain local workflows and product behavior
+
+Rule:
+
+- changes inside an extension zone may diverge freely as long as they continue to satisfy any protected contract they touch.
+
+## Protected Contract Zones
+
+These seams are protected because generators, policy checks, or downstream adopters rely on them:
+
+- `app/router.go`
+- `app/foundation/container.go`
+- `config/modules.yaml`
+- `docs/reference/01-cli.md`
+- `tools/agent-policy/allowed-commands.yaml`
+
+Protected-zone expectations:
+
+- `app/router.go` must keep canonical route registration seams and generator markers intact
+- `app/foundation/container.go` must keep canonical container markers and framework/module wiring seams intact
+- `config/modules.yaml` remains the canonical module enablement manifest
+- `docs/reference/01-cli.md` remains the living CLI contract for agents and operators
+- `tools/agent-policy/allowed-commands.yaml` remains the source of truth for generated agent allowlist artifacts
+
+## Enforcement
+
+`ship doctor` validates this extension-zone manifest so protected seams stay documented in one place:
+
+- the manifest must keep the `Extension Zones` and `Protected Contract Zones` sections
+- the manifest must continue to list the canonical protected contract files above
+- CLI docs should describe this check as part of repo-shape enforcement
 
 ---
 FILE: docs/guides/01-ai-agent-guide.md
@@ -1976,7 +2340,7 @@ UI and rendering:
 
 ## Commands Commonly Used
 
-- `make dev` (default local dev: infra + web)
+- `make dev` (default local dev: canonical app-on loop)
 - `make dev-full` (web + worker + JS/CSS watchers)
 - `make test` (Go tests)
 - `make test-integration`
@@ -2061,7 +2425,7 @@ Copy `.env.example` to `.env` and fill in the values your environment needs. All
 
 Primary commands:
 
-- `make dev`: starts auto development mode (single-binary default; full multiprocess when jobs adapter is `asynq`)
+- `make dev`: starts the canonical app-on dev loop (single-node web loop; distributed full loop)
 - `make run`: single-binary web process with SQLite + Otter + Backlite
 - `make ship-install`: install the latest local `ship` binary to `GOBIN` (or `GOPATH/bin`)
 - `go run ./tools/cli/ship/cmd/ship dev`: CLI equivalent of `make dev`
@@ -2070,7 +2434,7 @@ Recommended modes:
 
 - Unified dev mode:
   `make dev` (or `ship dev`)
-  Runs in auto mode by convention: web-only for single-binary adapters, full mode when jobs adapter is `asynq`.
+  Runs the canonical app-on loop: web mode for `single-node` and full multiprocess mode for `distributed`.
   Web mode runs via `air -c .air.toml` so Go rebuilds and templ generation happen automatically on edits.
   In interactive terminals, `ship dev` prints the local URL and prompts to open it in your browser (`[Y/n]`, Enter = yes). Browser open is deferred until the URL is reachable.
 - Full multiprocess mode:
@@ -2118,6 +2482,8 @@ Notes:
 - **Postgres and Redis are optional.** The runtime can operate entirely with embedded SQLite, in-memory Otter cache, and Backlite jobs.
 - External database and cache services remain fully supported by configuration.
 - `make run` does not start Docker Compose or any accessory services; use `make dev` if you need the full infrastructure stack.
+- CI keeps dedicated boundary suites for `make test-module-isolation` and `make test-sql-portability`; run those targets directly when changing installable-module imports or SQL portability metadata/contracts.
+- `make test-module-isolation` reports module/file context for forbidden imports and fails when the allowlist contains stale entries; trim `tools/scripts/test/module-isolation-allowlist.txt` as soon as a temporary exception is removed.
 
 ## Assets
 
@@ -2215,6 +2581,11 @@ Go tests:
 - `make check-compile` (compile app/packages + route tests without execution)
 - `bash tools/scripts/test-unit.sh` (Docker-free unit package set)
 - `make test` (broader suite; may include Docker-backed packages depending on environment)
+- `make test-generator-contracts` (generator report snapshot + idempotency gate used by CI)
+- `make test-generator-idempotency` (standalone generator duplicate-run matrix without snapshot refresh)
+- `make test-alpha-contracts` (frozen `v0.1.0-alpha` root-help + route-inventory gate used by CI)
+- `make test-doc-sync` (route/scope documentation guard used by CI)
+- `make test-dead-routes` (route inventory regression guard used by CI)
 - `go run ./tools/cli/ship/cmd/ship test`
 - `make cover`
 - `bash tools/scripts/precommit-tests.sh` (full stateless gate used before commit/CI)
@@ -2250,6 +2621,23 @@ E2E tests:
 - `make e2eui`
 
 CI uses the smoke spec only (`tests/e2e/tests/smoke.spec.ts`) to validate startup and basic app serving.
+The `verify_strict` CI job runs `ship verify --profile strict` and serves as the precondition for the downstream Cherie compatibility gate.
+The Cherie compatibility lane runs `tests/e2e/tests/cherie_compatibility.spec.ts` with a web-only process env (`PAGODA_PROCESSES_WEB=true`, `PAGODA_PROCESSES_WORKER=false`, `PAGODA_PROCESSES_SCHEDULER=false`, `PAGODA_PROCESSES_COLOCATED=false`) so the baseline only measures boot, auth, and realtime route compatibility.
+Treat `verify_strict` and `cherie_compatibility_smoke` as the required status checks for Cherie-facing sync work.
+The `generator_contracts` CI job runs `make test-generator-contracts` and blocks merges on generator snapshot or idempotency drift.
+Use `make test-generator-idempotency` when only the duplicate-run matrix is relevant and you do not need to touch snapshots.
+When a generator output change is intentional, refresh the golden file locally with `UPDATE_GENERATOR_SNAPSHOTS=1 make test-generator-contracts` and commit the updated snapshot in the same change.
+The `alpha_contract` CI job runs `make test-alpha-contracts` and freezes the current root CLI help plus route inventory as the `v0.1.0-alpha` public surface.
+Only refresh those snapshots when the alpha surface change has approved review, then run `UPDATE_ALPHA_CONTRACTS=1 make test-alpha-contracts` and commit the snapshot update with the contract change.
+The `doc_sync` CI job runs `make test-doc-sync` and keeps the HTTP route map plus project-scope docs aligned with canonical managed/admin/realtime surfaces.
+The `dead_route_regression` CI job runs `make test-dead-routes` and keeps the canonical route inventory checks from silently regressing.
+The `bootstrap_budget` CI job runs `make test-bootstrap-budget` and measures the canonical starter flow as `ship new <app> --no-i18n` followed by `go run ./cmd/web` inside the generated scaffold.
+The default budget is 120 seconds via `BOOTSTRAP_BUDGET_SECONDS=120`; keep local reruns on comparable hardware or raise the variable only when investigating runner variance rather than changing the committed CI threshold.
+Use `BOOTSTRAP_BUDGET_SECONDS` only as a local rerun override; the committed CI contract keeps the 120-second threshold.
+If the Cherie lane breaks:
+1. Re-run the Playwright spec locally with `npm --prefix tests/e2e run test:cherie-smoke`.
+2. Compare `/up`, `/user/login`, and `/auth/realtime` behavior against the baseline before widening scope.
+3. Either land a framework fix or document the downstream breakage explicitly before merging.
 Note: broader legacy e2e specs are partially stale and should be treated as non-authoritative for GoShip behavior.
 
 ## Internationalization
@@ -2305,6 +2693,12 @@ FILE: docs/guides/03-how-to-playbook.md
 # How-To Playbook
 
 Task-focused guides for common GoShip workflows.
+
+## Canonical Workflow Set
+
+- `docs/guides/11-add-endpoint-workflow.md`
+- `docs/guides/12-add-module-workflow.md`
+- `docs/guides/13-add-background-job-workflow.md`
 
 ## 1) Add a New Endpoint (Resource + Route + Name)
 
@@ -2599,6 +2993,7 @@ Rules:
 
 CLI support:
 
+- `ship make:job <Name>` scaffolds `app/jobs/<name>.go` and `app/jobs/<name>_test.go` with `core.Jobs` / `core.JobHandler` registration helpers.
 - `ship make:schedule <Name> --cron "<expr>"` inserts a schedule entry at the marker block.
 
 ## Backend Selection Rules
@@ -3196,6 +3591,210 @@ Compatibility harness:
 3. Keep adapter behavior documented in one place (this guide) so LLM and human workflows stay aligned.
 
 ---
+FILE: docs/guides/11-add-endpoint-workflow.md
+---
+# Add Endpoint Workflow
+
+Canonical contributor workflow for adding a new endpoint to a GoShip app.
+
+## Goal
+
+Add a route, handler, route-name constant, and optional templ view using the canonical generator and router flow.
+
+## Use This Workflow When
+
+- You need a new page or handler under the app router.
+- You want `ship` to scaffold the controller/resource baseline.
+- You need route wiring that stays aligned with doctor and route inventory checks.
+
+## Preferred Path
+
+For a page/resource-style endpoint:
+
+```bash
+go run ./tools/cli/ship/cmd/ship make:resource contact_form --path app --auth public --views templ --wire
+```
+
+For a controller with explicit actions:
+
+```bash
+go run ./tools/cli/ship/cmd/ship make:controller Contact --actions index,create --auth public --wire
+```
+
+## What This Should Change
+
+- `app/web/controllers/*`
+- optional templ files under `app/views/**/*`
+- route-name constants under `app/web/routenames/routenames.go`
+- route wiring in `app/router.go`
+
+## Verification
+
+```bash
+go run ./tools/cli/ship/cmd/ship routes
+go run ./tools/cli/ship/cmd/ship doctor
+go test ./app ./tools/cli/ship/internal/generators -count=1
+```
+
+## Common Failure Modes
+
+1. Missing `ship:routes:*` markers in `app/router.go`: restore canonical marker blocks before wiring.
+2. Route-name drift: confirm `app/web/routenames/routenames.go` has the generated constant and the route uses it.
+3. Wrong placement: app-owned HTTP code belongs under `app/web/controllers`, not `framework/*`.
+
+## Related References
+
+- `docs/reference/01-cli.md`
+- `docs/architecture/02-structure-and-boundaries.md`
+- `docs/architecture/04-http-routes.md`
+- `docs/guides/08-building-an-api.md`
+
+---
+FILE: docs/guides/12-add-module-workflow.md
+---
+# Add Module Workflow
+
+Canonical contributor workflow for adding or installing a module in GoShip.
+
+## Goal
+
+Add a module with deterministic wiring and keep module boundaries isolated from app-core code.
+
+## Use This Workflow When
+
+- You are creating a new installable module scaffold.
+- You are enabling module-owned DB/runtime files.
+- You need to validate that module boundaries remain isolated.
+
+## Preferred Path
+
+Preview a new module scaffold:
+
+```bash
+go run ./tools/cli/ship/cmd/ship make:module Billing --path modules --dry-run
+```
+
+Generate the scaffold:
+
+```bash
+go run ./tools/cli/ship/cmd/ship make:module Billing --path modules
+```
+
+If the workflow is about enabling an already-existing module, follow the living CLI contract for:
+
+```bash
+go run ./tools/cli/ship/cmd/ship module:add storage
+```
+
+`ship module:add` now owns the deterministic local-workspace edits for installable batteries:
+
+- `config/modules.yaml`
+- root `go.mod` `require` / `replace`
+- root `go.work` `use`
+- canonical container/router marker snippets when the battery exposes app wiring hooks
+
+`ship module:remove` removes those managed edits only when the module is no longer referenced elsewhere. If app code still imports the module directly, the command fails with exact blocker file paths instead of partially unwiring the repo.
+
+## What This Should Change
+
+- `modules/<name>/*`
+- optional module DB assets under `modules/<name>/db/*`
+- module docs or contracts colocated with the module
+- app/runtime wiring only through approved module seams
+
+## Verification
+
+```bash
+go run ./tools/cli/ship/cmd/ship doctor
+bash tools/scripts/check-module-isolation.sh
+go test ./modules/... -count=1
+```
+
+If the module owns DB assets:
+
+```bash
+go run ./tools/cli/ship/cmd/ship db:migrate
+go run ./tools/cli/ship/cmd/ship db:generate
+```
+
+## Common Failure Modes
+
+1. Importing app packages from a module: keep module code isolated from `app/*`.
+2. Missing module DB layout: add `db/migrate/migrations`, `db/queries`, and `db/bobgen.yaml` under the module.
+3. Runtime wiring in the wrong place: compose modules from the canonical app/runtime seam, not ad hoc package globals.
+
+## Related References
+
+- `docs/reference/01-cli.md`
+- `docs/architecture/02-structure-and-boundaries.md`
+- `docs/architecture/07-core-interfaces.md`
+- `docs/guides/05-jobs-module.md`
+
+---
+FILE: docs/guides/13-add-background-job-workflow.md
+---
+# Add Background Job Workflow
+
+Canonical contributor workflow for adding a background job in GoShip.
+
+## Goal
+
+Add a job scaffold, register it through `core.Jobs`, and keep worker/runtime wiring aligned with the jobs module seam.
+
+## Use This Workflow When
+
+- You need a new app-owned background job.
+- You want the canonical `app/jobs` scaffold and baseline test file.
+- You need to validate worker/runtime wiring or scheduling changes.
+
+## Preferred Path
+
+Generate the job scaffold:
+
+```bash
+go run ./tools/cli/ship/cmd/ship make:job BackfillUserStats
+```
+
+If the job also needs a schedule entry:
+
+```bash
+go run ./tools/cli/ship/cmd/ship make:schedule BackfillUserStats --cron "0 0 * * *"
+```
+
+## What This Should Change
+
+- `app/jobs/<name>.go`
+- `app/jobs/<name>_test.go`
+- optional runtime registration where the app registers jobs against `core.Jobs`
+- optional schedule wiring under `app/schedules/schedules.go`
+
+## Verification
+
+```bash
+go test ./app/jobs ./tools/cli/ship/internal/generators -count=1
+go run ./tools/cli/ship/cmd/ship doctor
+```
+
+If runtime registration changed:
+
+```bash
+go test ./cmd/web ./cmd/worker -count=1
+```
+
+## Common Failure Modes
+
+1. Backend-specific drift: keep job registration on `core.Jobs` / `core.JobHandler`, not direct driver types.
+2. Missing runtime registration: generated job files are scaffolds, so register them where the app boots workers.
+3. Schedule callbacks doing too much: keep cron wiring thin and enqueue through the jobs seam.
+
+## Related References
+
+- `docs/reference/01-cli.md`
+- `docs/architecture/07-core-interfaces.md`
+- `docs/guides/05-jobs-module.md`
+- `docs/guides/02-development-workflows.md`
+
+---
 FILE: docs/policies/01-engineering-standards.md
 ---
 # Repository Requirements (Engineering Standards)
@@ -3360,7 +3959,6 @@ Local runtime:
 - `ship dev --web`
 - `ship dev --worker`
 - `ship dev --all`
-- `ship check`
 - `ship infra:up` (or `ship infra` for help)
 - `ship infra:down`
 - `ship run:command <name> [-- <args...>]`
@@ -3390,6 +3988,8 @@ Generation:
 - `ship make:factory <Name>`
 - `ship make:locale <code>`
 - `ship make:controller <Name|NameController> [--actions index,show,create,update,destroy] [--auth public|auth] [--domain <name>] [--wire]`
+- `ship make:job <Name>`
+- `ship make:mailer <Name>`
 - `ship make:schedule <Name> --cron "<expr>"`
 - `ship make:command <Name>`
 - `ship make:scaffold <Name> [fields...] [--path app] [--views templ|none] [--auth public|auth] [--api] [--migrate] [--dry-run] [--force]`
@@ -3411,26 +4011,39 @@ Command grammar policy:
 3. `ship doctor` reports version drift and prints explicit fix commands.
 4. `ship doctor --json` emits `{"ok","issues":[{"type","file","detail","severity"}]}` for agent tooling.
 5. `ship routes --json` emits a JSON array of route objects (`method`, `path`, `auth`, `handler`, `file`).
-6. Only `ship upgrade` may intentionally bump pinned versions.
+6. Installable standalone batteries use `v0.0.0` plus a local `replace` and `go.work use` entry during in-repo development.
+7. Released consumers such as Cherie should consume tagged module versions instead of committing local-path replaces downstream.
+8. Only `ship upgrade` may intentionally bump pinned versions.
 
 ## Implementation Mapping (Current Repo)
 
 These commands are implemented as wrappers over existing workflows:
 
-- `ship dev` -> auto mode:
-  - jobs adapter `asynq` => full mode (`ship dev --all`)
-  - other jobs adapters => `air -c .air.toml` (web with live reload + templ pre-generation)
+- `ship dev` -> canonical app-on loop:
+  - runtime profile `single-node` or `server-db` => web mode (`air -c .air.toml`)
+  - runtime profile `distributed` => full mode (`ship dev --all`)
 - in interactive terminals, prints the local URL and prompts to open it in a browser (`[Y/n]`, Enter = yes); browser launch waits until the URL is reachable
 - `ship dev --worker` -> `go run ./cmd/worker`
 - `ship dev --all` -> starts web (`air -c .air.toml`) and worker concurrently with prefixed logs (`[web]`, `[worker]`) and signal-aware shutdown
 - `ship run:command <name> [-- <args...>]` -> `go run ./cmd/cli/main.go <name> <args...>`
-- `ship check` -> `go test ./...` (compile + unit checks, no integration-tagged tests)
-- `ship test` -> `go test ./...` (integration-tagged tests are excluded by default)
+- `ship test` -> canonical fast quality loop: runs the curated unit package list from `scripts/test/unit-packages.txt`, then compile-only checks for `scripts/test/compile-packages.txt`; falls back to `go test ./...` when the package lists are absent
 - `ship test --integration` -> `go test -tags=integration ./...`
+- `ship module:add <name>` -> updates `config/modules.yaml`, app marker snippets, root `go.mod` `require`/`replace` directives, and `go.work` `use` entries for standalone batteries with local `go.mod` files
+- `ship module:remove <name>` -> removes those managed entries when safe; fails with exact blocker file paths when the repo still imports the module outside managed wiring points
+- `ship verify` -> rejects standalone-battery drift when root `go.mod` dependencies on installable modules are not the canonical local-dev shape (`v0.0.0` + local `replace` + matching `go.work use`), and enforces the canonical no-compatibility/no-deprecation wording invariant across the operator-facing docs set
 - `ship infra:up` -> detects `docker-compose`/`docker compose` and runs `up -d cache`, then attempts `up -d mailpit` (non-fatal if mailpit fails)
 - `ship infra:down` -> detects `docker-compose`/`docker compose` and runs `down`
+- `make test-module-isolation` -> dedicated CI lane for installable-module root import isolation; reports offending module/file context and rejects stale allowlist entries
+- `make test-sql-portability` -> dedicated CI lane for `sql-core-v1` runtime metadata portability
+- `make test-generator-contracts` -> dedicated CI lane for shared generator-report snapshot and idempotency-matrix drift
+- `make test-generator-idempotency` -> focused local rerun for the duplicate-generation matrix without snapshot refresh
+- `make test-alpha-contracts` -> dedicated CI lane for the frozen `v0.1.0-alpha` root-help and route-inventory contract
+- `make test-bootstrap-budget` -> dedicated CI lane for the canonical starter bootstrap budget (`ship new` + starter `go run ./cmd/web`)
+- `npm --prefix tests/e2e run test:cherie-smoke` -> dedicated CI lane for the Cherie boot/auth/realtime compatibility baseline
+- `ship verify --profile strict` -> strict verify tier used as the precondition for the required Cherie sync gate
 - `ship db:create` -> validates that target database URL is reachable (`goose status`)
 - `ship db:generate [--config <path>] [--dry-run]` -> runs Bob generation via `bobgen-sql -c <config>` (default: core `db/bobgen.yaml`, then enabled module configs in deterministic sorted order from `config/modules.yaml`)
+- `ship db:promote [--json]` -> reports the manual SQLite-to-Postgres promotion plan from current runtime metadata; `--json` emits machine-readable plan output for agents/tooling
 - `ship db:migrate` -> `goose up` for core migrations, then enabled module migrations in deterministic sorted order
 - `ship db:status` -> `goose status` for core migrations, then enabled module migrations in deterministic sorted order; output is sectioned by scope (`== core migrations ==`, `== module <name> migrations ==`)
 - `ship db:reset [--seed] [--force] [--yes] [--dry-run]` -> prints plan, runs `goose reset`, then `goose up`; optional seed
@@ -3473,6 +4086,8 @@ Safety matrix:
 - `ship agent:start --task ... [--id ...]` -> create `.worktrees/<id>` on branch `agent/<id>`, generate `TASK.md` with task text + `ship describe` JSON + discovered `CLAUDE.md` context
 - `ship agent:finish --id ... --message ... [--pr]` -> run `ship verify` in worktree, `git add -A`, validate conventional commit message, commit, optional `git push -u origin agent/<id>` + `gh pr create`, then `git worktree remove`
 - `ship doctor --json` -> machine-readable doctor result on stdout; exit code 0 when there are no errors, 1 when any error is reported
+- `ship runtime:report --json` -> machine-readable runtime capability report covering active profile, adapters, process plan, web features, DB runtime metadata, and managed-key sources; the INT1-01 follow-up will add a versioned handshake envelope for orchestration preflight
+- `ship describe --pretty` now includes a shared-infra adoption summary (`shared_modules`, `shared_module_ids`, `custom_app_controllers`, `custom_app_jobs`, `custom_app_commands`) as a non-blocking upstreaming metric
 - `ship config:validate` -> prints the known `PAGODA_*` config variables with type/default metadata and fails when any required variable is missing
 - `ship config:validate --json` -> prints the same contract as JSON for agent tooling
 - `ship routes` -> prints a route inventory table from `app/router.go` AST parsing (`METHOD PATH AUTH HANDLER`)
@@ -3499,10 +4114,13 @@ Safety matrix:
 - `ship make:controller <Name>` -> generate controller/handler scaffold in `app/web/controllers`
 - `ship make:controller <Name> --domain <name>` -> generate domain-aware constructor slot (`domainService any`) and route wiring using `nil` placeholder
 - `ship make:controller <Name> --actions ... --wire` -> wire generated routes into `app/router.go` markers
+- `ship make:job <Name>` -> Generate a background job scaffold at `app/jobs/<name>.go` plus `app/jobs/<name>_test.go` around `core.Jobs` / `core.JobHandler` registration helpers
+- `ship make:mailer <Name>` -> Generate a mailer scaffold at `app/views/emails/<name>.templ` and wire a `/dev/mail/<name>` preview into the existing mail preview controller and route surface
 - `ship make:schedule <Name> --cron "<expr>"` -> insert a named cron entry into `app/schedules/schedules.go` between `ship:schedules` markers
 - `ship make:command <Name>` -> scaffold `app/commands/<name>.go` and register it in `cmd/cli/main.go` at `ship:commands` markers
 - `ship make:scaffold <Name> ...` -> orchestration command that composes `make:model`, `db:make`, `make:controller --domain <plural_model> --wire`, and optionally `make:resource --domain <plural_model>` / `db:migrate`
 - `ship make:module <Name>` -> generate isolated module scaffold in `modules/<name>` with its own `go.mod`, module-facing types/contracts, and service tests
+- current first-class installable batteries include `notifications`, `paidsubscriptions`, `emailsubscriptions`, `jobs`, and `storage`; `storage` exposes the canonical `core.BlobStorage` seam as a standalone battery package under `modules/storage`
 - `ship upgrade --to <version>` -> upgrades the pinned Goose CLI go-run fallback version (`gooseGoRunRef` in `tools/cli/ship/internal/cli/cli.go`)
 - `ship upgrade --dry-run` -> prints planned pin change without writing files
 - current scope: Goose pin only (expandable later)
@@ -3522,19 +4140,40 @@ Doctor checks (current):
 - validates `.gitignore` includes root binary artifact ignore entries
 - enforces a line budget for non-generated human-authored `.go` files (target <= 500 lines)
 - validates CLI reference docs include core command tokens (`ship new`, `ship doctor`, `ship make:*`, `ship db:migrate`, `ship test --integration`)
+- validates the extension-zone manifest keeps one canonical list of extension zones and protected contract seams (`DX031`)
 - validates required config env vars declared in `config.Config`
 - validates agent allowlist artifacts are in sync with `tools/agent-policy/allowed-commands.yaml`
 - validates enabled modules in `config/modules.yaml` include `db/migrate/migrations` and `db/bobgen.yaml`
-- validates cross-boundary import rules (controller `QueryProfile()` ban, jobs SQL coupling ban, notifications pubsub framework-core coupling ban, module source isolation ban for direct `github.com/leomorpho/goship/*` imports except a deliberately short temporary allowlist)
+- validates cross-boundary import rules (controller `QueryProfile()` ban, jobs SQL coupling ban, notifications pubsub framework-core coupling ban, module source isolation ban for direct `github.com/leomorpho/goship/*` imports with no runtime allowlist escape hatch)
+- treats unpaired generator markers (`DX005`) and raw controller form parsing (`DX027`) as blocking structural errors
+- rejects canonical-doc transition/deprecation wording with file:line diagnostics and optional historical-reference allowlist support via `docs/policies/02-transition-wording-allowlist.txt` (`DX030`)
 - warns when `/api/` routes appear to render HTML directly instead of using the standard JSON API helpers
 - warns when SQL queries in `db/queries/` reference soft-delete tables without an explicit `deleted_at` filter (`DX028`)
 - i18n strict-mode enforcement (`PAGODA_I18N_STRICT_MODE=off|warn|error`) for hardcoded literals in controllers/views/islands and plural/select locale completeness for `I18n.TC(...)`/`I18n.TS(...)`, with `.i18n-allowlist` support for intentional exceptions (stable `I18N-S-*` selectors preferred; legacy `path:line` still accepted) (`DX029`)
+
+Managed hook replay contract:
+
+- `framework/security.ManagedHookVerifier` exposes a pluggable `NonceStore` seam via `WithNonceStore(...)`
+- default behavior remains process-local in-memory replay protection until app/runtime wiring provides a shared backend
+
+run-anywhere verification gate:
+
+- `ship verify --profile fast|standard|strict` selects the verification tier (`standard` default; `strict` requires `nilaway`; `fast` skips nilaway and `go test`)
+- `ship verify` includes a `standalone exportability gate` step
+- `ship verify` includes a `hard-cut wording invariant` step that re-checks canonical docs for transition/deprecation drift after `ship doctor --json`
+- the gate rejects control-plane dependency drift in standalone runtime/starter surfaces
 
 Field syntax for `make:model`:
 
 - `name:type` (for example: `title:string`, `published_at:time`, `is_live:bool`)
 - supported types: `string`, `text`, `int`, `bool`, `time`, `float`, `email`, `url`
 - use `--force` to overwrite an existing schema file
+
+Generator output contract:
+
+- `ship make:*` commands now emit shared `Created:`, `Updated:`, `Preview:`, and `Next:` sections so generator results stay deterministic for humans and agent tooling
+- dry-run generator flows keep the same section layout and mark the report as `(dry-run)` instead of switching to a different prose format
+- the generator contract lane snapshots the report shape for model, job, command, and dry-run resource flows so per-generator drift is explicit
 
 `ship new` v1 contract:
 
@@ -3560,7 +4199,7 @@ Field syntax for `make:model`:
 
 Generated project workflow:
 
-1. `ship` is the canonical interface for dev/test/check/generate flows.
+1. `ship` is the canonical interface for dev/test/verify/generate flows.
 2. Generated projects must not require a Makefile to use core workflows.
 3. Integration tests must use Go build tags (`//go:build integration`) instead of package list curation.
 
@@ -3772,6 +4411,32 @@ What gets published:
 3. Add cross-doc link graph output for faster agent navigation.
 
 ---
+FILE: docs/releases/01-v0.1.0-alpha.md
+---
+# v0.1.0 Alpha Contract
+
+This document freezes the current GoShip `v0.1.0-alpha` command and HTTP route surface.
+
+## Frozen Surfaces
+
+- root CLI help output from `ship`
+- route inventory emitted by `ship routes --json`
+
+These snapshots are enforced by `make test-alpha-contracts` in CI.
+
+## Change Policy
+
+Do not refresh the alpha snapshots as part of routine refactors.
+
+A snapshot update is only allowed when:
+
+1. the contract change is intentional and documented in the same PR
+2. the PR includes approved review for the alpha surface change
+3. the snapshot is refreshed explicitly with `UPDATE_ALPHA_CONTRACTS=1 make test-alpha-contracts`
+
+If the gate fails unexpectedly, treat it as contract drift until the review explicitly approves changing the frozen surface.
+
+---
 FILE: docs/roadmap/01-framework-plan.md
 ---
 # GoShip Framework Plan
@@ -3877,7 +4542,8 @@ CLI responsibilities:
 2. `ship profile:set <profile>` updates environment/process presets.
 3. `ship module:add <name>` updates module manifest + initializer wiring.
 4. `ship jobs:backend:set <backend>` updates adapter config with capability checks.
-5. `ship new` should install templ tooling pinned to the project-declared version and provide an explicit update path.
+5. `ship db:promote` reports the manual SQLite-to-Postgres promotion plan from runtime metadata and keeps the workflow deterministic before the export/import hooks exist.
+6. `ship new` should install templ tooling pinned to the project-declared version and provide an explicit update path.
 
 ### CLI Surface (Rails-Inspired)
 
@@ -3912,6 +4578,7 @@ Canonical dev command contract:
 5. Data/schema:
 - `ship db:make <name>`
 - `ship db:make <name> --soft-delete --table <table>`
+- `ship db:promote`
 - `ship db:migrate`
 - `ship db:rollback`
 - `ship db:seed`
@@ -3987,6 +4654,7 @@ Non-goal:
 15. `app/controller` was removed; app page ownership is `app/web/ui.Page` with reusable framework-owned base fields/behavior extracted into `framework/web/page`.
 16. Legacy `app/subscriptions` was removed; plan catalog construction now lives in app runtime composition (`app/foundation/subscription_catalog.go`), and paidsubscriptions integration branches through catalog/service predicates instead of fixed free/pro key literals.
 17. Module source isolation temporary exceptions were reduced to a short allowlist focused on remaining notifications/paidsubscriptions bridge files; new exceptions should be treated as regressions by default.
+18. G1-03 hardening now promotes structural doctor checks that define canonical repo shape (`DX005` unpaired markers, `DX027` raw controller form parsing) to blocking errors and removes the temporary `DX020` module-isolation allowlist.
 
 ## Upstream/Downstream Relationship
 
@@ -4096,6 +4764,10 @@ Minimum framework tooling/hooks to expose:
 2. Data export hook with typed manifest (version + dialect + checksums).
 3. Data import hook with manifest validation.
 4. Post-import verification hook callable from CLI/control-plane adapters.
+5. Dedicated CI suites for module isolation and `sql-core-v1` portability so boundary regressions fail in named lanes instead of broad aggregate jobs; the module-isolation lane reports module/file context and rejects stale allowlist entries.
+6. Shared/distributed replay storage contract for managed hook nonce tracking so multi-replica managed mode rejects replays consistently.
+7. `backup-manifest-v1` is now locked to SQLite-first metadata plus SHA-256 checksum invariants, and managed restore responses return typed restore evidence.
+8. Shared signature vectors and a canonical payload library will be introduced for the INT2 bridge so runtime and control-plane signing fixtures stay aligned.
 
 ## Docket Tracking
 
@@ -4129,13 +4801,18 @@ Initial guide set:
 
 ## Pagoda Intake TODOs
 
-- [ ] Create a recurring upstream review cadence (weekly or per-tag) for Pagoda.
-- [ ] Add a "Pagoda intake log" mapping upstream commit/tag -> GoShip decision (`adopt`, `adapt`, `skip`).
+- [x] Create a recurring upstream review cadence (weekly or per-tag) for Pagoda.
+- [x] Add a "Pagoda intake log" mapping upstream commit/tag -> GoShip decision (`adopt`, `adapt`, `skip`).
 - [ ] Evaluate Backlite-style DB-backed jobs as a GoShip jobs adapter candidate.
 - [ ] Port container lifecycle hardening patterns where applicable (startup/shutdown ordering and timeouts).
 - [ ] Port testability improvements that reduce Docker dependence.
 - [ ] Keep UI/component layer decisions independent from runtime/service layer intake.
 - [ ] Prefer LLM-assisted feature re-implementation over direct commit cherry-picks due codebase divergence.
+
+Governance cadence:
+
+- Review Pagoda upstream changes weekly or per-tag, whichever happens first.
+- Record each reviewed item in `docs/roadmap/09-pagoda-intake-log.md` with an explicit `adopt`, `adapt`, or `skip` decision and any follow-up ticket IDs.
 
 ## Cherie Sync Policy
 
@@ -4143,7 +4820,7 @@ Initial guide set:
 2. Breaking changes require:
 - migration notes;
 - codemods or scripted upgrade steps where possible;
-- a compatibility window policy.
+- direct hard-cut wording in canonical docs and CLI surfaces.
 3. Maintain a living "GoShip -> Cherie adoption board" with statuses:
 - `not started`
 - `in progress`
@@ -4283,6 +4960,26 @@ Create stable contracts in `core` so app code is backend-agnostic:
 - `ship make:job`
 - `ship make:mailer`
 - `ship module:add <name>`
+
+Job-generator contract tracked under `TKT-250` / `TKT-313` / `TKT-314`:
+- `ship make:job <Name>` is now a first-class generator in help, docs, and CLI dispatch;
+- the scaffold now emits `app/jobs/<name>.go` and `app/jobs/<name>_test.go` around `core.Jobs` / `core.JobHandler` registration helpers instead of introducing new backend-specific processor patterns.
+
+Mailer-generator contract tracked under `TKT-251` / `TKT-315` / `TKT-316`:
+- `ship make:mailer <Name>` is now a first-class generator in help, docs, and CLI dispatch;
+- the scaffold now targets templ email views and wires the existing `/dev/mail/*` preview surface instead of introducing a parallel preview path.
+
+OSS workflow-docs contract tracked under `TKT-252` / `TKT-317` / `TKT-318`:
+- canonical task-oriented guides now exist for add endpoint, add module, and add background job flows;
+- the docs index and how-to playbook now surface those guides as the canonical contributor workflow set.
+
+Shared-infra adoption reporting tracked under `TKT-238` / `TKT-355` / `TKT-356`:
+- `ship describe` now exposes a non-blocking shared-infra adoption summary;
+- the summary reports shared module adoption alongside app-owned controller/job/command counts to guide upstreaming decisions.
+
+Pagoda-intake governance tracked under `TKT-253` / `TKT-357` / `TKT-358`:
+- the executable spec now pins a recurring Pagoda intake cadence plus an adopt/adapt/skip decision log;
+- the docs set is expected to expose the cadence and a canonical intake table for follow-up actions.
 3. ActiveStorage-like file attachments:
 - attach files to entities;
 - support local + S3 backends;
@@ -4504,6 +5201,52 @@ Done when:
 Test evidence:
 - `go test ./framework/runtimeplan`
 
+Follow-up hardening tracked under `TKT-195` / `TKT-257` / `TKT-258`:
+- invalid runtime-plan resolution now fails startup instead of warning + fallback;
+- resolved realtime capability mismatches (for example notifier/pubsub startup gaps) now fail startup instead of silently disabling route surface;
+- adapter-backed dependency mismatches (for example `pubsub=redis` without its required runtime dependency) now fail at startup.
+- notification-center route inventory and canonical route-name cleanup are tracked under `TKT-197` / `TKT-261` / `TKT-262`.
+- startup failure-path contracts are now pinned by a dedicated suite covering nil-container, missing-module, invalid-profile, and realtime dependency mismatch cases.
+- `ship routes --json` now has explicit public/auth route-group contract coverage over method/path/auth/handler/file output.
+
+Default-topology hardening tracked under `TKT-198` / `TKT-263` / `TKT-264`:
+- local and dev defaults now normalize to `single-node`;
+- the canonical default local topology is colocated web/worker/scheduler with SQLite + Otter + Backlite + inproc pubsub semantics.
+
+Dev-loop convergence tracked under `TKT-199` / `TKT-265` / `TKT-266`:
+- `ship dev` still resolves default mode from jobs-adapter heuristics instead of the explicit runtime profile;
+- executable red specs now pin the intended contract: `single-node` should stay on the web/app-on loop by default, while `distributed` should opt into the full multiprocess loop.
+
+Cache-contract parity tracked under `TKT-200` / `TKT-267` / `TKT-268`:
+- in-memory page caching is now wired through the same cache seam as Redis;
+- one shared contract suite now covers grouped payloads, tag invalidation, TTL expiry, and raw byte/prefix operations across `memory` and `redis`;
+- the shared cache seam normalizes positive TTLs to second precision so adapter choice does not change expiry semantics.
+
+Route-composition hardening tracked under `TKT-232` / `TKT-293` / `TKT-294`:
+- `app/router.go` remains the canonical route composition root;
+- `BuildRouter` now rejects a nil container explicitly before route/module wiring;
+- static route registration now flows through one canonical `appweb.RegisterStaticRoutes(c)` path, including PWA assets.
+
+Docs hard-reset tracking under `TKT-233` / `TKT-295` / `TKT-296`:
+- doctor now flags selected migration-bridge wording in the canonical architecture, CLI, and roadmap docs set;
+- canonical docs have been rewritten to describe the current hard-cut model directly instead of relying on migration-era framing.
+
+Local-runtime alignment tracked under `TKT-234` / `TKT-297` / `TKT-298`:
+- config defaults now point to `single-node`, while compose-backed accessories remain optional Redis + Mailpit only;
+- Makefile help and contributor docs now describe the same local runtime story as config and compose;
+- the default local contract is app-on single-node first, with compose reserved for optional accessory services.
+
+Runtime-report contract tracked under `TKT-235` / `TKT-299` / `TKT-300`:
+- the runtime metadata/config primitives now feed `ship runtime:report --json`;
+- `ship runtime:report --json` is now the canonical machine-readable runtime capability surface for operators and agents.
+- `TKT-220` / `TKT-319` / `TKT-320` will extend that report with a versioned metadata handshake envelope for orchestration preflight.
+
+CLI-path reset tracked under `TKT-249` / `TKT-311` / `TKT-312`:
+- the executable spec now pins one canonical top-level quality path per concern;
+- `ship check` has been removed from help, docs, dispatch, and agent-policy surfaces;
+- `ship test` now owns the fast package-list quality loop, while `ship verify --profile fast|standard|strict` covers tiered repository verification.
+- `verify_strict` plus `cherie_compatibility_smoke` now define the required Cherie sync baseline in CI.
+
 4. `R0.4` Testing harness improvements so default `make test` is Docker-free and fast.
 Status: `completed`
 Done when:
@@ -4553,6 +5296,68 @@ Done when:
 - wiring/import/constant insertion paths are idempotent and tested.
 Test evidence:
 - `go test ./tools/cli/ship`
+
+10. `R1.5` Canonical generator output and idempotency matrix.
+Status: `completed`
+Done when:
+- `ship make:*` commands share one output contract built around `Created:`, `Updated:`, `Preview:`, and `Next:` sections;
+- dry-run generator output stays in the same report shape with explicit dry-run labeling;
+- generators package includes a consolidated idempotency matrix test for duplicate scaffold attempts.
+Test evidence:
+- `go test ./tools/cli/ship/internal/generators`
+
+11. `R1.6` Deterministic standalone module install/remove workflow.
+Status: `completed`
+Done when:
+- `ship module:add <name>` applies structured local-workspace wiring across `config/modules.yaml`,
+  root `go.mod`, and root `go.work`;
+- `ship module:remove <name>` removes only managed edits and fails with exact blocker file paths
+  when the repo still imports the target battery;
+- `modules/storage` is available as a first-class installable battery around the `core.BlobStorage`
+  seam.
+Test evidence:
+- `go test ./tools/cli/ship/internal/commands -run 'Test(ApplyModuleAdd_WiresLocalModuleDependencyContract_RedSpec|ApplyModuleRemove_FailsWithReferenceBlockers_RedSpec|ApplyModuleAdd_StorageBatteryContract_RedSpec|ApplyModuleRemove_RemovesSafeStorageDependencyContract_RedSpec)' -count=1`
+- `go test ./modules/storage -count=1`
+
+12. `R1.7` Generator snapshot + idempotency CI gate.
+Status: `completed`
+Done when:
+- CI defines a dedicated generator contract lane instead of burying generator drift in the broad backend suite;
+- the lane runs per-generator golden snapshots for the shared generator report contract plus the consolidated idempotency matrix;
+- docs describe the explicit snapshot-refresh path for intentional output changes.
+Test evidence:
+- `go test ./tools/cli/ship/internal/commands -run TestCIContract_DefinesGeneratorSnapshotAndIdempotencyGate_RedSpec -count=1`
+- `make test-generator-contracts`
+- `make test-generator-idempotency`
+
+13. `R1.8` Freeze `v0.1.0-alpha` command and route contract.
+Status: `completed`
+Done when:
+- root CLI help and route inventory are frozen as named alpha snapshots;
+- CI runs a dedicated alpha contract lane instead of treating release-surface drift as incidental;
+- release docs explain the approved-review path for intentional alpha-surface changes.
+Test evidence:
+- `make test-alpha-contracts`
+
+14. `R1.9` CLI golden contract suite for doctor/routes/describe/verify.
+Status: `completed`
+Done when:
+- key operator-facing CLI commands have stable golden coverage for human and JSON output where applicable;
+- the suite uses an explicit snapshot refresh flow instead of silent fixture rewrites;
+- drift shows up in targeted command/policy package tests.
+Test evidence:
+- `go test ./tools/cli/ship/internal/commands ./tools/cli/ship/internal/policies -run 'Test(CLIGoldenContractSuite_RedSpec|DoctorGoldenContract_RedSpec)$' -count=1`
+
+15. `R1.10` Named doc-sync and dead-route guardrails.
+Status: `completed`
+Done when:
+- CI defines dedicated doc-sync and dead-route regression lanes;
+- the route map no longer carries removed route entries such as `/install-app`;
+- local make targets mirror the CI guardrails so drift is reproducible before push.
+Test evidence:
+- `go test ./tools/cli/ship/internal/commands -run 'Test(DocsRouteContract_RedSpec|CIContract_DefinesDocSyncAndDeadRouteGuards_RedSpec)$' -count=1`
+- `make test-doc-sync`
+- `make test-dead-routes`
 
 ### Phase 1: Core Abstractions
 
@@ -4607,11 +5412,17 @@ Current progress:
 - [x] Choose CLI implementation approach (stdlib `flag` + explicit command dispatch in `tools/cli/ship`).
 - [x] Draft `core` interface contracts in a design doc and first package (`framework/core`).
 - [x] Define runtime config schema for adapter selection and add startup adapter validation registry.
-- [ ] Specify module compatibility/version policy.
+- [x] Specify module compatibility/version policy.
 - [ ] Create a developer-facing README + LLM-facing README/`llm.txt` split with one source of truth.
 - [ ] Define MCP server scope for GoShip (commands, module APIs, recipes, migration help).
 - [ ] Create a `CHERIE_SYNC.md` runbook (upgrade process + rollback + validation checklist).
+- [x] Add a named starter bootstrap budget gate for `ship new` plus starter boot.
 - [ ] Create a baseline compatibility test suite for Cherie critical paths.
+- [ ] Add a dedicated CI smoke lane that names and enforces the Cherie boot/auth/realtime baseline separately from the generic GoShip smoke test.
+- [ ] Publish one extension-zone manifest that distinguishes safe customization areas from protected framework contract seams and keep `ship doctor` aligned to it.
+- [ ] Add a run-anywhere verification gate that proves generated apps remain standalone-exportable with no control-plane dependency assumptions.
+- [x] Extend the hard-cut wording lint across the canonical architecture docs, not only CLI/routes subsets.
+- [x] Expose the no-compatibility/no-deprecation invariant explicitly in `ship verify` and `ship doctor`.
 - [ ] Define testing standards doc: what must be unit-testable and where table tests are required.
 - [ ] Add doc-sync guardrails in pre-commit/CI for framework-impacting changes.
 - [ ] Add Cherie-sync guardrails in pre-commit/CI (or mandatory checklist gate).
@@ -9886,6 +10697,34 @@ Do NOT run `make templ-gen` for comment-only changes — comments in `.templ` fi
 ```
 
 To resume: T02, T06, T10 are all unblocked and independent of each other. T08 requires T06 first.
+
+---
+FILE: docs/roadmap/09-pagoda-intake-log.md
+---
+# Pagoda Intake Log
+
+Canonical adopt/adapt/skip decision log for recurring Pagoda upstream intake.
+
+## Cadence
+
+- Review Pagoda upstream changes weekly or per-tag, whichever happens first.
+- Record each reviewed upstream item here even when the decision is `skip`.
+- Link follow-up GoShip tickets when an item is adopted or adapted.
+
+## Decision Meanings
+
+- `adopt`: bring the upstream idea into GoShip substantially as-is.
+- `adapt`: port the idea with GoShip-specific changes to fit current architecture.
+- `skip`: explicitly decline the idea for now.
+
+## Intake Table
+
+| Upstream Ref | Area | Decision | Follow-Up | Notes |
+|---|---|---|---|---|
+| Pagoda SQLite-first local runtime shift | local runtime | adapt | `TKT-198`, `TKT-199` | Aligns with GoShip single-node-first direction, but through GoShip adapter boundaries. |
+| Pagoda Backlite jobs direction | jobs backend | adapt | `TKT-200`, `TKT-250` | Reused as a GoShip jobs backend candidate instead of a one-to-one runtime copy. |
+| Pagoda in-memory cache default | cache | adapt | `TKT-200` | Matches GoShip single-binary ergonomics while preserving adapter portability. |
+| Pagoda gomponents UI stack | UI rendering | skip | none | Conflicts with GoShip Templ + HTMX direction. |
 
 ---
 FILE: docs/ui/convention.md

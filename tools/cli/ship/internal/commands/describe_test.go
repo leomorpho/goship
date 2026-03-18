@@ -80,6 +80,46 @@ func TestRunDescribe(t *testing.T) {
 		}
 	})
 
+	t.Run("pretty json includes module adoption metadata", func(t *testing.T) {
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+		if code := RunDescribe([]string{"--pretty"}, DescribeDeps{Out: out, Err: errOut, FindGoModule: findDescribeGoModule}); code != 0 {
+			t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
+		}
+
+		var payload struct {
+			ModuleAdoption []struct {
+				ID         string `json:"id"`
+				ModulePath string `json:"module_path"`
+				Version    string `json:"version"`
+				Source     string `json:"source"`
+				Installed  bool   `json:"installed"`
+			} `json:"module_adoption"`
+		}
+		if err := json.Unmarshal(out.Bytes(), &payload); err != nil {
+			t.Fatalf("decode json: %v", err)
+		}
+		if len(payload.ModuleAdoption) != 1 {
+			t.Fatalf("module adoption len = %d, want 1", len(payload.ModuleAdoption))
+		}
+		adoption := payload.ModuleAdoption[0]
+		if adoption.ID != "notifications" {
+			t.Fatalf("module adoption id = %q, want notifications", adoption.ID)
+		}
+		if adoption.ModulePath != "github.com/leomorpho/goship-modules/notifications" {
+			t.Fatalf("module path = %q, want notifications module path", adoption.ModulePath)
+		}
+		if adoption.Version != "v0.0.0" {
+			t.Fatalf("version = %q, want v0.0.0", adoption.Version)
+		}
+		if adoption.Source != "local-replace" {
+			t.Fatalf("source = %q, want local-replace", adoption.Source)
+		}
+		if !adoption.Installed {
+			t.Fatal("installed = false, want true")
+		}
+	})
+
 	t.Run("help", func(t *testing.T) {
 		out := &bytes.Buffer{}
 		if code := RunDescribe([]string{"--help"}, DescribeDeps{Out: out, Err: &bytes.Buffer{}, FindGoModule: findDescribeGoModule}); code != 0 {
@@ -102,6 +142,7 @@ func writeDescribeFixture(t *testing.T, root string) {
 		filepath.Join(root, "config"),
 		filepath.Join(root, "db", "queries"),
 		filepath.Join(root, "db", "migrate", "migrations"),
+		filepath.Join(root, "modules", "notifications"),
 		filepath.Join(root, "modules", "notifications", "db", "migrate", "migrations"),
 	}
 	for _, dir := range dirs {
@@ -171,6 +212,7 @@ CREATE TABLE users (
 SELECT id FROM users;
 `,
 		filepath.Join(root, "db", "migrate", "migrations", "20260101000000_init.sql"):                        "-- init\n",
+		filepath.Join(root, "modules", "notifications", "go.mod"):                                            "module github.com/leomorpho/goship-modules/notifications\n\ngo 1.23.0\n",
 		filepath.Join(root, "modules", "notifications", "db", "migrate", "migrations", "20260102000000.sql"): "-- init\n",
 	}
 	for path, content := range files {

@@ -86,6 +86,9 @@ Rules:
 - secrets stay out of the repo
 - managed overrides are allowlisted and inspectable
 - the runtime should be able to report both the effective value and the source of that value
+- `TKT-339` defines the next runtime-surface contract for per-module adoption metadata, so external
+  control planes can track module identity, module path, version, and source without parsing repo
+  internals.
 
 The external control plane should not rely on mutating arbitrary config files in application repos as its normal operating mechanism.
 
