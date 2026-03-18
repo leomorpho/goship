@@ -754,7 +754,7 @@
     },
     "TKT-175": {
       "title": "Delete app/contracts and remove all hard references",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 5,
       "parent": "TKT-170"
     },
