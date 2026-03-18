@@ -760,7 +760,7 @@
     },
     "TKT-176": {
       "title": "Decide and implement final ownership for Page type alias usage",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 7,
       "parent": "TKT-170"
     },

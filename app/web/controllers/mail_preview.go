@@ -6,7 +6,6 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/app/controller"
 	emailviews "github.com/leomorpho/goship/app/views/emails/gen"
 	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/app/web/viewmodels"
@@ -48,7 +47,7 @@ func (r *mailPreview) Welcome(ctx echo.Context) error {
 	data.Domain = r.ctr.Container.Config.HTTP.Domain
 	data.ConfirmationLink = "https://example.test/confirm-email"
 
-	page := &controller.Page{
+	page := &ui.Page{
 		Data: data,
 	}
 	return r.renderEmailPreview(ctx, emailviews.RegistrationConfirmation(page))
@@ -64,7 +63,7 @@ func (r *mailPreview) PasswordReset(ctx echo.Context) error {
 	data.OperatingSystem = "macOS"
 	data.BrowserName = "Firefox"
 
-	page := &controller.Page{
+	page := &ui.Page{
 		Data: data,
 	}
 	return r.renderEmailPreview(ctx, emailviews.PasswordReset(page))
@@ -77,7 +76,7 @@ func (r *mailPreview) VerifyEmail(ctx echo.Context) error {
 	data.Domain = r.ctr.Container.Config.HTTP.Domain
 	data.ConfirmationLink = "https://example.test/verify-email"
 
-	page := &controller.Page{
+	page := &ui.Page{
 		Data: data,
 	}
 	return r.renderEmailPreview(ctx, emailviews.RegistrationConfirmation(page))

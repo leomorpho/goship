@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/a-h/templ"
-	"github.com/leomorpho/goship/app/controller"
 	emailviews "github.com/leomorpho/goship/app/views/emails/gen"
+	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/app/web/viewmodels"
 	"github.com/leomorpho/goship/framework/repos/mailer"
 )
@@ -50,10 +50,10 @@ func TestRenderEmailTemplatesReturnNonEmptyOutput(t *testing.T) {
 		component templ.Component
 	}{
 		{name: "test", component: emailviews.TestEmail()},
-		{name: "subscription_confirmation", component: emailviews.SubscriptionConfirmation(&controller.Page{})},
+		{name: "subscription_confirmation", component: emailviews.SubscriptionConfirmation(&ui.Page{})},
 		{
 			name: "registration_confirmation",
-			component: emailviews.RegistrationConfirmation(&controller.Page{
+			component: emailviews.RegistrationConfirmation(&ui.Page{
 				Data: viewmodels.EmailDefaultData{
 					AppName:          "GoShip",
 					SupportEmail:     "support@example.com",
@@ -63,7 +63,7 @@ func TestRenderEmailTemplatesReturnNonEmptyOutput(t *testing.T) {
 		},
 		{
 			name: "password_reset",
-			component: emailviews.PasswordReset(&controller.Page{
+			component: emailviews.PasswordReset(&ui.Page{
 				Data: viewmodels.EmailPasswordResetData{
 					AppName:           "GoShip",
 					SupportEmail:      "support@example.com",
@@ -74,7 +74,7 @@ func TestRenderEmailTemplatesReturnNonEmptyOutput(t *testing.T) {
 		},
 		{
 			name: "email_update",
-			component: emailviews.EmailUpdate(&controller.Page{
+			component: emailviews.EmailUpdate(&ui.Page{
 				Data: viewmodels.EmailUpdate{
 					AppName:      "GoShip",
 					SupportEmail: "support@example.com",
