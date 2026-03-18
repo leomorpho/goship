@@ -1428,7 +1428,12 @@ Impact:
 `ship runtime:report --json` now exposes the effective profile, adapters, process plan, web
 features, DB runtime metadata, and managed-key sources in one machine-readable payload. The
 INT1-01 will extend that payload with a versioned handshake envelope for orchestration preflight.
-The remaining risk is payload drift if future runtime metadata is added without extending the report.
+The managed-key registry still needs an explicit versioned schema contract so runtime and control-plane
+consumers can agree on the authoritative key mapping. The remaining risk is payload drift if future
+runtime metadata is added without extending the report.
+
+INT1-02 will add a named orchestration contract-mismatch preflight gate on top of `ship verify`
+so unsupported deploy/upgrade/promote combinations fail before the orchestration layer starts.
 
 Impact:
 
@@ -2065,6 +2070,7 @@ Rules:
 - secrets stay out of the repo
 - managed overrides are allowlisted and inspectable
 - the runtime should be able to report both the effective value and the source of that value
+- the managed-key registry itself is a versioned artifact shared with the control plane, so runtime and orchestration tooling can agree on an authoritative schema mapping
 - `TKT-339` defines the next runtime-surface contract for per-module adoption metadata, so external
   control planes can track module identity, module path, version, and source without parsing repo
   internals.
@@ -4031,6 +4037,7 @@ These commands are implemented as wrappers over existing workflows:
 - `ship module:add <name>` -> updates `config/modules.yaml`, app marker snippets, root `go.mod` `require`/`replace` directives, and `go.work` `use` entries for standalone batteries with local `go.mod` files
 - `ship module:remove <name>` -> removes those managed entries when safe; fails with exact blocker file paths when the repo still imports the module outside managed wiring points
 - `ship verify` -> rejects standalone-battery drift when root `go.mod` dependencies on installable modules are not the canonical local-dev shape (`v0.0.0` + local `replace` + matching `go.work use`), and enforces the canonical no-compatibility/no-deprecation wording invariant across the operator-facing docs set
+- `ship verify` will also grow an orchestration contract-mismatch preflight step before deploy/upgrade/promote flows so unsupported runtime combinations fail before orchestration starts
 - `ship infra:up` -> detects `docker-compose`/`docker compose` and runs `up -d cache`, then attempts `up -d mailpit` (non-fatal if mailpit fails)
 - `ship infra:down` -> detects `docker-compose`/`docker compose` and runs `down`
 - `make test-module-isolation` -> dedicated CI lane for installable-module root import isolation; reports offending module/file context and rejects stale allowlist entries
@@ -4768,6 +4775,7 @@ Minimum framework tooling/hooks to expose:
 6. Shared/distributed replay storage contract for managed hook nonce tracking so multi-replica managed mode rejects replays consistently.
 7. `backup-manifest-v1` is now locked to SQLite-first metadata plus SHA-256 checksum invariants, and managed restore responses return typed restore evidence.
 8. Shared signature vectors and a canonical payload library will be introduced for the INT2 bridge so runtime and control-plane signing fixtures stay aligned.
+9. The managed-key registry will be versioned as a shared runtime/control-plane artifact so schema mapping stays authoritative instead of inferred from ad hoc key lists.
 
 ## Docket Tracking
 
@@ -5240,6 +5248,10 @@ Runtime-report contract tracked under `TKT-235` / `TKT-299` / `TKT-300`:
 - the runtime metadata/config primitives now feed `ship runtime:report --json`;
 - `ship runtime:report --json` is now the canonical machine-readable runtime capability surface for operators and agents.
 - `TKT-220` / `TKT-319` / `TKT-320` will extend that report with a versioned metadata handshake envelope for orchestration preflight.
+
+Orchestration preflight contract tracked under `TKT-221` / `TKT-321` / `TKT-322`:
+- `ship verify` will grow a named contract-mismatch preflight gate that rejects unsupported runtime/orchestration combinations before deploy, upgrade, or promote flows begin;
+- the preflight should reuse the runtime contract metadata surface rather than inventing a separate ad hoc probe.
 
 CLI-path reset tracked under `TKT-249` / `TKT-311` / `TKT-312`:
 - the executable spec now pins one canonical top-level quality path per concern;

@@ -327,6 +327,7 @@ Minimum framework tooling/hooks to expose:
 6. Shared/distributed replay storage contract for managed hook nonce tracking so multi-replica managed mode rejects replays consistently.
 7. `backup-manifest-v1` is now locked to SQLite-first metadata plus SHA-256 checksum invariants, and managed restore responses return typed restore evidence.
 8. Shared signature vectors and a canonical payload library will be introduced for the INT2 bridge so runtime and control-plane signing fixtures stay aligned.
+9. The managed-key registry will be versioned as a shared runtime/control-plane artifact so schema mapping stays authoritative instead of inferred from ad hoc key lists.
 
 ## Docket Tracking
 

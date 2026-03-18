@@ -1,9 +1,11 @@
 package config
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestRuntimeMetadataSQLitePromotionContract(t *testing.T) {
@@ -35,4 +37,14 @@ func TestRuntimeMetadataPostgresHasNoPromotionPath(t *testing.T) {
 	assert.Equal(t, string(DBDriverPostgres), md.MigrationDialect)
 	assert.Empty(t, md.CompatibleTargets)
 	assert.Empty(t, md.PromotionPath)
+}
+
+func TestRuntimeMetadataManagedKeyRegistryVersionContract(t *testing.T) {
+	cfg := defaultConfig()
+
+	raw, err := json.Marshal(cfg.RuntimeMetadata().Managed)
+	require.NoError(t, err)
+
+	assert.Contains(t, string(raw), `"registry_version":"managed-key-registry-v1"`)
+	assert.Contains(t, string(raw), `"schema_version":"managed-key-schema-v1"`)
 }
