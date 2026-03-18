@@ -2,6 +2,7 @@ package commands
 
 import (
 	"bytes"
+	"encoding/json"
 	"strings"
 	"testing"
 
@@ -46,6 +47,81 @@ func TestDBImportContract_DefinesImportAndVerificationHooks_RedSpec(t *testing.T
 		} {
 			if !strings.Contains(out, token) {
 				t.Fatalf("db help missing %q:\n%s", token, out)
+			}
+		}
+	})
+
+	t.Run("db import reports an import plan", func(t *testing.T) {
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+
+		code := RunDB([]string{"import", "--json"}, DBDeps{
+			Out: out,
+			Err: errOut,
+			LoadConfig: func() (config.Config, error) {
+				cfg := config.Config{}
+				cfg.Database.DbMode = config.DBModeEmbedded
+				cfg.Database.Driver = config.DBDriverSQLite
+				return cfg, nil
+			},
+		})
+		if code != 0 {
+			t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
+		}
+
+		var payload struct {
+			Database struct {
+				PromotionPath string `json:"promotion_path"`
+			} `json:"database"`
+			Steps             []string `json:"steps"`
+			SuggestedCommands []string `json:"suggested_commands"`
+		}
+		if err := json.Unmarshal(out.Bytes(), &payload); err != nil {
+			t.Fatalf("decode json: %v\n%s", err, out.String())
+		}
+		for _, token := range []string{
+			"load export manifest and validate version, driver, and checksums",
+			"import exported data into Postgres through framework-supported import hooks",
+			"ship db:verify-import --json",
+		} {
+			if !containsString(payload.Steps, token) && !containsString(payload.SuggestedCommands, token) {
+				t.Fatalf("import plan missing %q:\n%s", token, out.String())
+			}
+		}
+	})
+
+	t.Run("db verify-import reports post-import checks", func(t *testing.T) {
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+
+		code := RunDB([]string{"verify-import", "--json"}, DBDeps{
+			Out: out,
+			Err: errOut,
+			LoadConfig: func() (config.Config, error) {
+				cfg := config.Config{}
+				cfg.Database.DbMode = config.DBModeEmbedded
+				cfg.Database.Driver = config.DBDriverSQLite
+				return cfg, nil
+			},
+		})
+		if code != 0 {
+			t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
+		}
+
+		var payload struct {
+			PostImportChecks []string `json:"post_import_checks"`
+		}
+		if err := json.Unmarshal(out.Bytes(), &payload); err != nil {
+			t.Fatalf("decode json: %v\n%s", err, out.String())
+		}
+		for _, token := range []string{
+			"manifest.validated",
+			"row.counts.checked",
+			"migration.baseline.checked",
+			"key.integrity.checked",
+		} {
+			if !containsString(payload.PostImportChecks, token) {
+				t.Fatalf("verify-import checks missing %q:\n%s", token, out.String())
 			}
 		}
 	})

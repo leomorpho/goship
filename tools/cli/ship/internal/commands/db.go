@@ -39,6 +39,8 @@ func RunDB(args []string, d DBDeps) int {
 		return runCreate(args[1:], d)
 	case "generate":
 		return runGenerate(args[1:], d)
+	case "import":
+		return runImport(args[1:], d)
 	case "promote":
 		return runPromote(args[1:], d)
 	case "make":
@@ -56,6 +58,8 @@ func RunDB(args []string, d DBDeps) int {
 		return runGooseUpAll(d, dbURL)
 	case "status":
 		return runStatus(args[1:], d)
+	case "verify-import":
+		return runVerifyImport(args[1:], d)
 	case "reset":
 		return runReset(args[1:], d)
 	case "drop":
@@ -376,6 +380,20 @@ type dbPromoteReport struct {
 	Note              string                         `json:"note,omitempty"`
 }
 
+type dbImportReport struct {
+	Database          config.DatabaseRuntimeMetadata `json:"database"`
+	Steps             []string                       `json:"steps"`
+	SuggestedCommands []string                       `json:"suggested_commands,omitempty"`
+	Note              string                         `json:"note,omitempty"`
+}
+
+type dbVerifyImportReport struct {
+	Database          config.DatabaseRuntimeMetadata `json:"database"`
+	PostImportChecks  []string                       `json:"post_import_checks"`
+	SuggestedCommands []string                       `json:"suggested_commands,omitempty"`
+	Note              string                         `json:"note,omitempty"`
+}
+
 func runPromote(args []string, d DBDeps) int {
 	for _, arg := range args {
 		if arg == "help" || arg == "-h" || arg == "--help" {
@@ -439,6 +457,8 @@ func buildDBPromoteReport(md config.DatabaseRuntimeMetadata) dbPromoteReport {
 			"ship profile:set standard",
 			"ship adapter:set db=postgres cache=redis jobs=asynq",
 			"ship db:migrate",
+			"ship db:import --json",
+			"ship db:verify-import --json",
 		},
 	}
 	if md.PromotionPath == "" {
@@ -447,6 +467,177 @@ func buildDBPromoteReport(md config.DatabaseRuntimeMetadata) dbPromoteReport {
 	}
 	report.Note = "planning only; db:promote does not mutate files or run migrations yet"
 	return report
+}
+
+func runImport(args []string, d DBDeps) int {
+	for _, arg := range args {
+		if arg == "help" || arg == "-h" || arg == "--help" {
+			PrintDBHelp(d.Out)
+			return 0
+		}
+	}
+
+	fs := flag.NewFlagSet("db:import", flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+	jsonOutput := fs.Bool("json", false, "print JSON output")
+	if err := fs.Parse(args); err != nil {
+		fmt.Fprintf(d.Err, "invalid db:import arguments: %v\n", err)
+		fmt.Fprintln(d.Err, "usage: ship db:import [--json]")
+		return 1
+	}
+	if fs.NArg() > 0 {
+		fmt.Fprintln(d.Err, "usage: ship db:import [--json]")
+		return 1
+	}
+	if d.LoadConfig == nil {
+		fmt.Fprintln(d.Err, "db:import requires config loader dependency")
+		return 1
+	}
+
+	cfg, err := d.LoadConfig()
+	if err != nil {
+		fmt.Fprintf(d.Err, "failed to load config: %v\n", err)
+		return 1
+	}
+
+	report := buildDBImportReport(cfg.RuntimeMetadata().Database)
+	if *jsonOutput {
+		enc := json.NewEncoder(d.Out)
+		enc.SetIndent("", "  ")
+		if err := enc.Encode(report); err != nil {
+			fmt.Fprintf(d.Err, "failed to encode db:import output: %v\n", err)
+			return 1
+		}
+		return 0
+	}
+
+	printDBImportReport(d.Out, report)
+	return 0
+}
+
+func buildDBImportReport(md config.DatabaseRuntimeMetadata) dbImportReport {
+	report := dbImportReport{
+		Database: md,
+		Steps: []string{
+			"load export manifest and validate version, driver, and checksums",
+			"import exported data into Postgres through framework-supported import hooks",
+			"record import evidence for post-import verification",
+		},
+		SuggestedCommands: []string{
+			"ship db:verify-import --json",
+		},
+	}
+	if md.PromotionPath == "" {
+		report.Note = "no import path is defined for the current database driver"
+		return report
+	}
+	report.Note = "planning only; db:import does not mutate files or import data yet"
+	return report
+}
+
+func printDBImportReport(w io.Writer, report dbImportReport) {
+	fmt.Fprintln(w, "DB import plan:")
+	fmt.Fprintf(w, "- mode: %s\n", report.Database.Mode)
+	fmt.Fprintf(w, "- driver: %s\n", report.Database.Driver)
+	fmt.Fprintf(w, "- migration_portability: %s\n", report.Database.MigrationPortability)
+	if report.Database.PromotionPath != "" {
+		fmt.Fprintf(w, "- promotion_path: %s\n", report.Database.PromotionPath)
+	}
+	if len(report.Database.CompatibleTargets) > 0 {
+		fmt.Fprintf(w, "- compatible_targets: %s\n", strings.Join(report.Database.CompatibleTargets, ", "))
+	}
+	for _, step := range report.Steps {
+		fmt.Fprintf(w, "- step: %s\n", step)
+	}
+	for _, cmd := range report.SuggestedCommands {
+		fmt.Fprintf(w, "- next: %s\n", cmd)
+	}
+	if report.Note != "" {
+		fmt.Fprintf(w, "- note: %s\n", report.Note)
+	}
+}
+
+func runVerifyImport(args []string, d DBDeps) int {
+	for _, arg := range args {
+		if arg == "help" || arg == "-h" || arg == "--help" {
+			PrintDBHelp(d.Out)
+			return 0
+		}
+	}
+
+	fs := flag.NewFlagSet("db:verify-import", flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+	jsonOutput := fs.Bool("json", false, "print JSON output")
+	if err := fs.Parse(args); err != nil {
+		fmt.Fprintf(d.Err, "invalid db:verify-import arguments: %v\n", err)
+		fmt.Fprintln(d.Err, "usage: ship db:verify-import [--json]")
+		return 1
+	}
+	if fs.NArg() > 0 {
+		fmt.Fprintln(d.Err, "usage: ship db:verify-import [--json]")
+		return 1
+	}
+	if d.LoadConfig == nil {
+		fmt.Fprintln(d.Err, "db:verify-import requires config loader dependency")
+		return 1
+	}
+
+	cfg, err := d.LoadConfig()
+	if err != nil {
+		fmt.Fprintf(d.Err, "failed to load config: %v\n", err)
+		return 1
+	}
+
+	report := buildDBVerifyImportReport(cfg.RuntimeMetadata().Database)
+	if *jsonOutput {
+		enc := json.NewEncoder(d.Out)
+		enc.SetIndent("", "  ")
+		if err := enc.Encode(report); err != nil {
+			fmt.Fprintf(d.Err, "failed to encode db:verify-import output: %v\n", err)
+			return 1
+		}
+		return 0
+	}
+
+	printDBVerifyImportReport(d.Out, report)
+	return 0
+}
+
+func buildDBVerifyImportReport(md config.DatabaseRuntimeMetadata) dbVerifyImportReport {
+	report := dbVerifyImportReport{
+		Database: md,
+		PostImportChecks: []string{
+			"manifest.validated",
+			"row.counts.checked",
+			"migration.baseline.checked",
+			"key.integrity.checked",
+		},
+	}
+	if md.PromotionPath == "" {
+		report.Note = "no verification path is defined for the current database driver"
+		return report
+	}
+	report.Note = "planning only; db:verify-import does not mutate files or databases yet"
+	return report
+}
+
+func printDBVerifyImportReport(w io.Writer, report dbVerifyImportReport) {
+	fmt.Fprintln(w, "DB verify-import plan:")
+	fmt.Fprintf(w, "- mode: %s\n", report.Database.Mode)
+	fmt.Fprintf(w, "- driver: %s\n", report.Database.Driver)
+	fmt.Fprintf(w, "- migration_portability: %s\n", report.Database.MigrationPortability)
+	if report.Database.PromotionPath != "" {
+		fmt.Fprintf(w, "- promotion_path: %s\n", report.Database.PromotionPath)
+	}
+	if len(report.Database.CompatibleTargets) > 0 {
+		fmt.Fprintf(w, "- compatible_targets: %s\n", strings.Join(report.Database.CompatibleTargets, ", "))
+	}
+	for _, check := range report.PostImportChecks {
+		fmt.Fprintf(w, "- check: %s\n", check)
+	}
+	if report.Note != "" {
+		fmt.Fprintf(w, "- note: %s\n", report.Note)
+	}
 }
 
 func printDBPromoteReport(w io.Writer, report dbPromoteReport) {
@@ -721,10 +912,12 @@ func PrintDBHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship db commands:")
 	fmt.Fprintln(w, "  ship db:create [--dry-run]                                 Validate DB connectivity and migration table reachability")
 	fmt.Fprintln(w, "  ship db:generate [--config <path>] [--dry-run]            Generate DB access code from bobgen config")
+	fmt.Fprintln(w, "  ship db:import [--json]                                   Show the manual SQLite export import plan")
 	fmt.Fprintln(w, "  ship db:promote [--json]                                  Show the manual SQLite-to-Postgres promotion plan")
 	fmt.Fprintln(w, "  ship db:make <migration_name>                              Create a new SQL migration file")
 	fmt.Fprintln(w, "  ship db:migrate                                            Apply pending migrations")
 	fmt.Fprintln(w, "  ship db:status                                             Show migration status")
+	fmt.Fprintln(w, "  ship db:verify-import [--json]                             Show post-import verification checks")
 	fmt.Fprintln(w, "  ship db:console                                            Open database shell client")
 	fmt.Fprintln(w, "  ship db:reset [--seed] [--force] [--yes] [--dry-run]      Reset and re-apply migrations (destructive)")
 	fmt.Fprintln(w, "  ship db:drop [--force] [--yes] [--dry-run]                Revert all migrations (destructive)")

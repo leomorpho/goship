@@ -94,11 +94,13 @@ func TestPrintDBHelp_SubcommandsIncludeDescriptions(t *testing.T) {
 	want := map[string]string{
 		"  ship db:create [--dry-run]":                           "Validate DB connectivity",
 		"  ship db:generate [--config <path>] [--dry-run]":       "Generate DB access code",
+		"  ship db:import [--json]":                              "Show the manual SQLite export import plan",
 		"  ship db:promote [--json]":                             "Show the manual SQLite-to-Postgres promotion plan",
 		"  ship db:make <migration_name>":                        "Create a new SQL migration file",
 		"  ship db:migrate":                                      "Apply pending migrations",
 		"  ship db:status":                                       "Show migration status",
 		"  ship db:console":                                      "Open database shell client",
+		"  ship db:verify-import [--json]":                       "Show post-import verification checks",
 		"  ship db:reset [--seed] [--force] [--yes] [--dry-run]": "Reset and re-apply migrations",
 		"  ship db:drop [--force] [--yes] [--dry-run]":           "Revert all migrations",
 		"  ship db:rollback [amount]":                            "Roll back one or more migration steps",
