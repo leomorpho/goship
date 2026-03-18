@@ -1,0 +1,22 @@
+{
+  "ticket_id": "TKT-255",
+  "created_at": "2026-03-18T15:29:04Z",
+  "ac_done": 3,
+  "ac_total": 3,
+  "changed_files": [
+    ".docket/manifest.json",
+    ".docket/tickets/TKT-194.md",
+    ".docket/tickets/TKT-255.md",
+    "AGENTS.md",
+    "docs/architecture/06-known-gaps-and-risks.md",
+    "docs/roadmap/01-framework-plan.md",
+    "tools/cli/ship/internal/cli/dispatch_test.go",
+    "tools/cli/ship/internal/commands/help_contract_test.go"
+  ],
+  "last_comments": [
+    "Defined executable contract for canonical dev command path and added red tests only. Evidence: go test ./tools/cli/ship/internal/cli ./tools/cli/ship/internal/commands fails on shipdev alias and positional dev args (expected red phase). Failing cases: TestRun_DispatchAndArgs/shipdev_alias_removed, /dev_worker_positional_removed, /dev_all_positional_removed, plus root/scoped help contract mismatch. Blocker is intentional and handed to TKT-256 implementation."
+  ],
+  "branch": "work/2026-refactor-main-snapshot",
+  "worktree_path": "/workspace/project",
+  "summary": "AC completion checkpoint"
+}

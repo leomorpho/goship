@@ -867,7 +867,7 @@
     },
     "TKT-194": {
       "title": "G1-01: Purge transition-era runtime and CLI dual paths",
-      "state": "todo",
+      "state": "in-progress",
       "priority": 5,
       "parent": "TKT-188"
     },
@@ -1232,7 +1232,7 @@
     },
     "TKT-255": {
       "title": "G1-01-A: Define executable spec and red tests",
-      "state": "backlog",
+      "state": "in-progress",
       "priority": 4,
       "parent": "TKT-194"
     },
