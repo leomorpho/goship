@@ -67,7 +67,7 @@ Impact:
 
 - Default base config now lives in `config/config.go` and can be overridden by `.env`.
 - Docker Compose currently starts Redis and Mailpit only; DB service is commented out.
-- Make targets include Postgres-dependent commands.
+- Make targets still include some Postgres-oriented helper commands and wording.
 
 Impact:
 
