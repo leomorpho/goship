@@ -34,6 +34,11 @@ var (
 	ErrManagedReplayDetected      = errors.New("managed hook nonce already used")
 )
 
+// NonceStore records managed-hook nonce+timestamp tuples for replay protection.
+type NonceStore interface {
+	Consume(key string, now time.Time, ttl time.Duration) bool
+}
+
 // ManagedHookVerifier verifies signed managed hook requests with replay protection.
 type ManagedHookVerifier struct {
 	secret   []byte
@@ -41,8 +46,7 @@ type ManagedHookVerifier struct {
 	nonceTTL time.Duration
 	now      func() time.Time
 
-	mu         sync.Mutex
-	seenNonces map[string]time.Time
+	nonceStore NonceStore
 }
 
 // NewManagedHookVerifier constructs a verifier for managed hook requests.
@@ -59,8 +63,17 @@ func NewManagedHookVerifier(secret string, maxSkew, nonceTTL time.Duration) *Man
 		maxSkew:    maxSkew,
 		nonceTTL:   nonceTTL,
 		now:        time.Now,
-		seenNonces: map[string]time.Time{},
+		nonceStore: newInMemoryNonceStore(),
 	}
+}
+
+// WithNonceStore overrides the replay-protection store, allowing shared/distributed implementations.
+func (v *ManagedHookVerifier) WithNonceStore(store NonceStore) *ManagedHookVerifier {
+	if v == nil || store == nil {
+		return v
+	}
+	v.nonceStore = store
+	return v
 }
 
 // VerifyRequest validates signature headers, timestamp skew, and replay constraints.
@@ -143,20 +156,39 @@ func managedRequestPath(r *http.Request) string {
 }
 
 func (v *ManagedHookVerifier) consumeNonce(nonce string, timestamp, now time.Time) bool {
-	v.mu.Lock()
-	defer v.mu.Unlock()
+	key := strings.TrimSpace(nonce) + ":" + strconv.FormatInt(timestamp.Unix(), 10)
+	store := v.nonceStore
+	if store == nil {
+		store = newInMemoryNonceStore()
+		v.nonceStore = store
+	}
+	return store.Consume(key, now, v.nonceTTL)
+}
 
-	for key, expiresAt := range v.seenNonces {
+type inMemoryNonceStore struct {
+	mu         sync.Mutex
+	seenNonces map[string]time.Time
+}
+
+func newInMemoryNonceStore() *inMemoryNonceStore {
+	return &inMemoryNonceStore{
+		seenNonces: map[string]time.Time{},
+	}
+}
+
+func (s *inMemoryNonceStore) Consume(key string, now time.Time, ttl time.Duration) bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	for seenKey, expiresAt := range s.seenNonces {
 		if !expiresAt.After(now) {
-			delete(v.seenNonces, key)
+			delete(s.seenNonces, seenKey)
 		}
 	}
-
-	key := strings.TrimSpace(nonce) + ":" + strconv.FormatInt(timestamp.Unix(), 10)
-	if expiry, exists := v.seenNonces[key]; exists && expiry.After(now) {
+	if expiry, exists := s.seenNonces[key]; exists && expiry.After(now) {
 		return false
 	}
 
-	v.seenNonces[key] = now.Add(v.nonceTTL)
+	s.seenNonces[key] = now.Add(ttl)
 	return true
 }

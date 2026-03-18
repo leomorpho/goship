@@ -239,6 +239,11 @@ Doctor checks (current):
 - warns when SQL queries in `db/queries/` reference soft-delete tables without an explicit `deleted_at` filter (`DX028`)
 - i18n strict-mode enforcement (`PAGODA_I18N_STRICT_MODE=off|warn|error`) for hardcoded literals in controllers/views/islands and plural/select locale completeness for `I18n.TC(...)`/`I18n.TS(...)`, with `.i18n-allowlist` support for intentional exceptions (stable `I18N-S-*` selectors preferred; legacy `path:line` still accepted) (`DX029`)
 
+Managed hook replay contract:
+
+- `framework/security.ManagedHookVerifier` exposes a pluggable `NonceStore` seam via `WithNonceStore(...)`
+- default behavior remains process-local in-memory replay protection until app/runtime wiring provides a shared backend
+
 Field syntax for `make:model`:
 
 - `name:type` (for example: `title:string`, `published_at:time`, `is_live:bool`)

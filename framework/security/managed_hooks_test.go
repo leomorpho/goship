@@ -55,6 +55,35 @@ func TestManagedHookVerifierRejectsReplay(t *testing.T) {
 	assert.ErrorIs(t, err, ErrManagedReplayDetected)
 }
 
+func TestManagedHookVerifierRejectsReplayAcrossVerifiersWhenNonceStoreIsShared(t *testing.T) {
+	store := newInMemoryNonceStore()
+
+	now := time.Date(2026, time.March, 16, 1, 20, 0, 0, time.UTC)
+	verifierA := NewManagedHookVerifier("secret", 5*time.Minute, 5*time.Minute).WithNonceStore(store)
+	verifierB := NewManagedHookVerifier("secret", 5*time.Minute, 5*time.Minute).WithNonceStore(store)
+	verifierA.now = func() time.Time { return now }
+	verifierB.now = func() time.Time { return now }
+
+	body := []byte(`{}`)
+	ts := now.Unix()
+	nonce := "shared-nonce"
+
+	req1 := httptest.NewRequest("GET", "/managed/status", nil)
+	sig := SignManagedHookRequest("secret", req1.Method, "/managed/status", ts, nonce, body)
+	req1.Header.Set(HeaderManagedTimestamp, strconv.FormatInt(ts, 10))
+	req1.Header.Set(HeaderManagedNonce, nonce)
+	req1.Header.Set(HeaderManagedSignature, sig)
+	require.NoError(t, verifierA.VerifyRequest(req1, body))
+
+	req2 := httptest.NewRequest("GET", "/managed/status", nil)
+	req2.Header.Set(HeaderManagedTimestamp, strconv.FormatInt(ts, 10))
+	req2.Header.Set(HeaderManagedNonce, nonce)
+	req2.Header.Set(HeaderManagedSignature, sig)
+	err := verifierB.VerifyRequest(req2, body)
+	require.Error(t, err)
+	assert.ErrorIs(t, err, ErrManagedReplayDetected)
+}
+
 func TestManagedHookVerifierRejectsClockSkew(t *testing.T) {
 	verifier := NewManagedHookVerifier("secret", 1*time.Minute, 1*time.Minute)
 	now := time.Date(2026, time.March, 16, 1, 20, 0, 0, time.UTC)
