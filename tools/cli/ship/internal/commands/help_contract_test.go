@@ -201,7 +201,7 @@ func TestPrintAdditionalScopedHelp_IncludeDescriptions(t *testing.T) {
 			name: "dev",
 			out:  captureHelp(t, PrintDevHelp),
 			want: map[string]string{
-				"  ship dev":          "Run auto dev mode",
+				"  ship dev":          "Run canonical app-on loop",
 				"  ship dev --web":    "Run explicit web-only dev mode",
 				"  ship dev --worker": "Flag form of worker-only mode",
 				"  ship dev --all":    "Flag form of full mode",
@@ -311,10 +311,8 @@ func TestPrintDevHelp_CanonicalFlagsOnly_RedSpec(t *testing.T) {
 	}
 }
 
-func TestPrintDevHelp_WillDescribeCanonicalAppOnLoop_RedSpec(t *testing.T) {
+func TestPrintDevHelp_DescribesCanonicalAppOnLoop(t *testing.T) {
 	out := captureHelp(t, PrintDevHelp)
-
-	t.Skip("red spec: TKT-266 will describe ship dev as the canonical app-on loop driven by runtime profile semantics")
 
 	if strings.Contains(out, "jobs backend is asynq") {
 		t.Fatalf("dev help should not describe default mode in terms of jobs adapter heuristics\n%s", out)

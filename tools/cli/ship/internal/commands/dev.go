@@ -106,7 +106,7 @@ func RunDev(args []string, d DevDeps) int {
 
 func PrintDevHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship dev commands:")
-	fmt.Fprintln(w, "  ship dev          Run auto dev mode (default web mode; full mode when jobs backend is asynq)")
+	fmt.Fprintln(w, "  ship dev          Run canonical app-on loop (single-node => web, distributed => full multiprocess)")
 	fmt.Fprintln(w, "  ship dev --web    Run explicit web-only dev mode")
 	fmt.Fprintln(w, "  ship dev --worker Flag form of worker-only mode")
 	fmt.Fprintln(w, "  ship dev --all    Flag form of full mode")

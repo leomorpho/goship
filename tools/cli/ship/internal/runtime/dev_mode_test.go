@@ -17,7 +17,7 @@ func TestResolveDevDefaultMode(t *testing.T) {
 	}
 }
 
-func TestResolveDevDefaultMode_RuntimeProfileWillDriveCanonicalLoop_RedSpec(t *testing.T) {
+func TestResolveDevDefaultMode_RuntimeProfileDrivesCanonicalLoop(t *testing.T) {
 	tests := []struct {
 		name        string
 		environment string
@@ -52,8 +52,6 @@ func TestResolveDevDefaultMode_RuntimeProfileWillDriveCanonicalLoop_RedSpec(t *t
 			if err != nil {
 				t.Fatalf("ResolveDevDefaultMode() error = %v", err)
 			}
-
-			t.Skip("red spec: TKT-266 will make ship dev follow runtime profile semantics instead of inferring from jobs adapter alone")
 
 			if mode != tt.want {
 				t.Fatalf("mode = %q, want %q", mode, tt.want)

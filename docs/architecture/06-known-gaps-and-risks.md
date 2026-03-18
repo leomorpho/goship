@@ -46,7 +46,6 @@ Impact:
 - Default base config now lives in `config/config.go` and can be overridden by `.env`.
 - Docker Compose currently starts Redis and Mailpit only; DB service is commented out.
 - Make targets include Postgres-dependent commands.
-- `ship dev` auto-mode selection still keys off the jobs adapter instead of the resolved runtime profile, so the canonical single-node app-on loop is not yet enforced by one rule.
 
 Impact:
 

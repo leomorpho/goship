@@ -9,7 +9,7 @@ Copy `.env.example` to `.env` and fill in the values your environment needs. All
 
 Primary commands:
 
-- `make dev`: starts auto development mode (single-binary default; full multiprocess when jobs adapter is `asynq`)
+- `make dev`: starts the canonical app-on dev loop (single-node web loop; distributed full loop)
 - `make run`: single-binary web process with SQLite + Otter + Backlite
 - `make ship-install`: install the latest local `ship` binary to `GOBIN` (or `GOPATH/bin`)
 - `go run ./tools/cli/ship/cmd/ship dev`: CLI equivalent of `make dev`
@@ -18,7 +18,7 @@ Recommended modes:
 
 - Unified dev mode:
   `make dev` (or `ship dev`)
-  Runs in auto mode by convention: web-only for single-binary adapters, full mode when jobs adapter is `asynq`.
+  Runs the canonical app-on loop: web mode for `single-node` and full multiprocess mode for `distributed`.
   Web mode runs via `air -c .air.toml` so Go rebuilds and templ generation happen automatically on edits.
   In interactive terminals, `ship dev` prints the local URL and prompts to open it in your browser (`[Y/n]`, Enter = yes). Browser open is deferred until the URL is reachable.
 - Full multiprocess mode:

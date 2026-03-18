@@ -68,7 +68,7 @@ ship-install: ## Install the latest local ship CLI binary into GOBIN (or GOPATH/
 # Core workflow ------------------------------------------------------------------------------
 
 .PHONY: dev
-dev: ## Start local development in auto mode (single-binary default; full mode when jobs adapter is asynq)
+dev: ## Start the canonical app-on dev loop (single-node web loop; distributed uses full mode)
 	go run ./tools/cli/ship/cmd/ship dev
 
 .PHONY: run
