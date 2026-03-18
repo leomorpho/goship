@@ -784,7 +784,7 @@
     },
     "TKT-180": {
       "title": "Delete app/subscriptions and move plan wiring to app runtime composition",
-      "state": "backlog",
+      "state": "in-progress",
       "priority": 6,
       "parent": "TKT-170"
     },
