@@ -873,7 +873,7 @@
     },
     "TKT-195": {
       "title": "G1-02: Enforce strict startup capability contracts",
-      "state": "in-progress",
+      "state": "in-review",
       "priority": 5,
       "parent": "TKT-188"
     },
