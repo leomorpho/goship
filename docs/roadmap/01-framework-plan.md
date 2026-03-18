@@ -324,7 +324,7 @@ Minimum framework tooling/hooks to expose:
 2. Data export hook with typed manifest (version + dialect + checksums).
 3. Data import hook with manifest validation.
 4. Post-import verification hook callable from CLI/control-plane adapters.
-   - The CLI-facing contract now exists as `ship db:import --json` and `ship db:verify-import --json`; the remaining work is wiring the actual framework import path behind those hooks.
+   - The CLI-facing contract now exists as `ship db:export --json`, `ship db:import --json`, and `ship db:verify-import --json`; the remaining work is wiring the actual framework path behind those hooks.
 5. Dedicated CI suites for module isolation and `sql-core-v1` portability so boundary regressions fail in named lanes instead of broad aggregate jobs; the module-isolation lane reports module/file context and rejects stale allowlist entries, and the SQL portability lane checks runtime metadata plus branch annotations and placeholder conventions in the canonical migration/query SQL sources.
 6. Shared/distributed replay storage contract for managed hook nonce tracking so multi-replica managed mode rejects replays consistently.
 7. `backup-manifest-v1` is now locked to SQLite-first metadata plus SHA-256 checksum invariants, and managed restore responses return typed restore evidence with an explicit accepted-manifest field.
