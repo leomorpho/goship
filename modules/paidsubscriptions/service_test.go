@@ -122,3 +122,41 @@ func TestService_ForwardStoreErrors(t *testing.T) {
 	err := svc.ActivatePlan(context.Background(), 1, "pro")
 	require.EqualError(t, err, "boom")
 }
+
+func TestService_DefaultPaidPlanKey_UsesCatalogKey(t *testing.T) {
+	t.Parallel()
+
+	catalog, err := paidsubscriptions.NewStaticPlanCatalog(
+		[]paidsubscriptions.Plan{
+			{Key: "free", Paid: false},
+			{Key: "business", Paid: true},
+		},
+		"free",
+		"business",
+	)
+	require.NoError(t, err)
+
+	svc := paidsubscriptions.NewServiceWithCatalog(&stubStore{}, catalog)
+	key, err := svc.DefaultPaidPlanKey()
+	require.NoError(t, err)
+	require.Equal(t, "business", key)
+}
+
+func TestService_IsPaidPlanKey_UsesCatalogSemantics(t *testing.T) {
+	t.Parallel()
+
+	catalog, err := paidsubscriptions.NewStaticPlanCatalog(
+		[]paidsubscriptions.Plan{
+			{Key: "starter", Paid: false},
+			{Key: "enterprise", Paid: true},
+		},
+		"starter",
+		"enterprise",
+	)
+	require.NoError(t, err)
+
+	svc := paidsubscriptions.NewServiceWithCatalog(&stubStore{}, catalog)
+	require.Equal(t, "starter", svc.FreePlanKey())
+	require.True(t, svc.IsPaidPlanKey("enterprise"))
+	require.False(t, svc.IsPaidPlanKey("starter"))
+}

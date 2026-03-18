@@ -65,6 +65,33 @@ func (s *Service) UpdateToPaidPro(ctx context.Context, profileID int) error {
 	return s.ActivatePlan(ctx, profileID, ProductTypePro.Value)
 }
 
+// FreePlanKey returns the catalog-defined free plan key.
+func (s *Service) FreePlanKey() string {
+	return s.catalog.FreePlanKey()
+}
+
+// IsPaidPlanKey reports whether a plan key resolves to a paid plan in the catalog.
+func (s *Service) IsPaidPlanKey(planKey string) bool {
+	plan, ok := s.catalog.PlanByKey(planKey)
+	if !ok {
+		return false
+	}
+	return plan.Paid
+}
+
+// DefaultPaidPlanKey returns the catalog default trial plan when it is paid.
+func (s *Service) DefaultPaidPlanKey() (string, error) {
+	key := s.catalog.DefaultTrialPlanKey()
+	plan, ok := s.catalog.PlanByKey(key)
+	if !ok {
+		return "", ErrPlanNotFound(key)
+	}
+	if !plan.Paid {
+		return "", ErrNoDefaultPaidPlan(key)
+	}
+	return plan.Key, nil
+}
+
 func (s *Service) GetCurrentlyActiveProduct(ctx context.Context, profileID int) (*ProductType, *time.Time, bool, error) {
 	return s.store.GetCurrentlyActiveProduct(ctx, profileID)
 }

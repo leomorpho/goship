@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"log/slog"
 	"net/http"
 	"time"
 
 	"github.com/labstack/echo/v4"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
-	appsubscriptions "github.com/leomorpho/goship/app/subscriptions"
 	"github.com/leomorpho/goship/app/views"
 	"github.com/leomorpho/goship/app/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/views/web/pages/gen"
@@ -20,7 +20,6 @@ import (
 	customctx "github.com/leomorpho/goship/framework/context"
 	"github.com/leomorpho/goship/framework/core"
 	"github.com/leomorpho/goship/framework/domain"
-	"log/slog"
 	"github.com/stripe/stripe-go/v78"
 	portalsession "github.com/stripe/stripe-go/v78/billingportal/session"
 	"github.com/stripe/stripe-go/v78/checkout/session"
@@ -219,7 +218,11 @@ func (m *RouteModule) HandleWebhook(ctx echo.Context) error {
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError)
 		}
-		if err := m.service.ActivatePlan(ctx.Request().Context(), profileID, appsubscriptions.PlanProKey); err != nil {
+		planKey, err := m.service.DefaultPaidPlanKey()
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+		if err := m.service.ActivatePlan(ctx.Request().Context(), profileID, planKey); err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError)
 		}
 
@@ -286,13 +289,13 @@ func (m *RouteModule) PricingPage(ctx echo.Context) error {
 	if err != nil {
 		return err
 	}
-	activePlanKey := activePlanKey(activePlan)
+	activePlanKey := m.activePlanKey(activePlan)
 
 	data := viewmodels.NewPricingPageData()
 	data.ProductProCode = m.controller.Container.Config.App.OperationalConstants.ProductProCode
 	data.ProductProPrice = fmt.Sprintf("%.2f", m.controller.Container.Config.App.OperationalConstants.ProductProPrice)
 	data.ActivePlanKey = activePlanKey
-	data.ActivePlanIsPaid = isPaidPlanKey(activePlanKey)
+	data.ActivePlanIsPaid = m.isPaidPlanKey(activePlanKey)
 	data.HasSubscriptionExpiry = subscriptionExpiredOn != nil
 	data.IsTrial = isTrial
 	productDescription := viewmodels.NewProductDescription()
@@ -316,15 +319,15 @@ func (m *RouteModule) SuccessfullySubscribed(ctx echo.Context) error {
 	return m.controller.RenderPage(ctx, page)
 }
 
-func activePlanKey(pt *paidsubscriptions.ProductType) string {
+func (m *RouteModule) activePlanKey(pt *paidsubscriptions.ProductType) string {
 	if pt == nil || pt.Value == "" {
-		return appsubscriptions.PlanFreeKey
+		return m.service.FreePlanKey()
 	}
 	return pt.Value
 }
 
-func isPaidPlanKey(planKey string) bool {
-	return planKey != appsubscriptions.PlanFreeKey
+func (m *RouteModule) isPaidPlanKey(planKey string) bool {
+	return m.service.IsPaidPlanKey(planKey)
 }
 
 func authenticatedProfileID(ctx echo.Context) (int, error) {
