@@ -589,7 +589,7 @@ func applyRuntimeDefaults(c *Config) {
 	case EnvProduction:
 		c.Runtime.Profile = RuntimeProfileDistributed
 	default:
-		c.Runtime.Profile = RuntimeProfileServerDB
+		c.Runtime.Profile = RuntimeProfileSingleNode
 	}
 }
 

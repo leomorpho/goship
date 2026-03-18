@@ -735,9 +735,9 @@ Follow-up hardening tracked under `TKT-195` / `TKT-257` / `TKT-258`:
 - adapter-backed dependency mismatches (for example `pubsub=redis` without its required runtime dependency) now fail at startup.
 - notification-center route inventory and canonical route-name cleanup are tracked under `TKT-197` / `TKT-261` / `TKT-262`.
 
-Follow-up default-topology hardening tracked under `TKT-198` / `TKT-263` / `TKT-264`:
-- local/default config still resolves `runtime.profile` to `server-db` while the actual adapter defaults already match a single-node SQLite/Otter/Backlite/inproc topology;
-- executable red specs now pin the intended outcome: local and dev defaults should normalize to `single-node` with colocated web/worker/scheduler semantics.
+Default-topology hardening tracked under `TKT-198` / `TKT-263` / `TKT-264`:
+- local and dev defaults now normalize to `single-node`;
+- the canonical default local topology is colocated web/worker/scheduler with SQLite + Otter + Backlite + inproc pubsub semantics.
 
 4. `R0.4` Testing harness improvements so default `make test` is Docker-free and fast.
 Status: `completed`

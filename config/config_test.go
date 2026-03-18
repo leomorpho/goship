@@ -21,8 +21,11 @@ func TestGetConfig(t *testing.T) {
 	cfg, err := GetConfig()
 	require.NoError(t, err)
 	assert.Equal(t, EnvLocal, cfg.App.Environment)
-	assert.Equal(t, RuntimeProfileServerDB, cfg.Runtime.Profile)
+	assert.Equal(t, RuntimeProfileSingleNode, cfg.Runtime.Profile)
 	assert.True(t, cfg.Processes.Web)
+	assert.True(t, cfg.Processes.Worker)
+	assert.True(t, cfg.Processes.Scheduler)
+	assert.True(t, cfg.Processes.CoLocated)
 	assert.Equal(t, "sqlite", cfg.Adapters.DB)
 	assert.Equal(t, "otter", cfg.Adapters.Cache)
 	assert.Equal(t, "backlite", cfg.Adapters.Jobs)
@@ -31,14 +34,12 @@ func TestGetConfig(t *testing.T) {
 	assert.False(t, cfg.Security.Headers.HSTS)
 }
 
-func TestGetConfig_LocalDefaultsWillUseSingleNodeProfile_RedSpec(t *testing.T) {
+func TestGetConfig_LocalDefaultsUseSingleNodeProfile(t *testing.T) {
 	useIsolatedWorkingDir(t)
 	t.Setenv("PAGODA_APP_ENVIRONMENT", "")
 
 	cfg, err := GetConfig()
 	require.NoError(t, err)
-
-	t.Skip("red spec: TKT-264 will make local/default runtime resolve to the single-node profile")
 
 	assert.Equal(t, EnvLocal, cfg.App.Environment)
 	assert.Equal(t, RuntimeProfileSingleNode, cfg.Runtime.Profile)
@@ -89,20 +90,19 @@ func TestGetConfig_UsesProcessProfile(t *testing.T) {
 
 	cfg, err := GetConfig()
 	require.NoError(t, err)
-	assert.Equal(t, RuntimeProfileServerDB, cfg.Runtime.Profile)
+	assert.Equal(t, RuntimeProfileSingleNode, cfg.Runtime.Profile)
 	assert.True(t, cfg.Processes.Web)
-	assert.False(t, cfg.Processes.Worker)
-	assert.False(t, cfg.Processes.Scheduler)
+	assert.True(t, cfg.Processes.Worker)
+	assert.True(t, cfg.Processes.Scheduler)
+	assert.True(t, cfg.Processes.CoLocated)
 }
 
-func TestGetConfig_DevDefaultsWillUseSingleNodeProfile_RedSpec(t *testing.T) {
+func TestGetConfig_DevDefaultsUseSingleNodeProfile(t *testing.T) {
 	useIsolatedWorkingDir(t)
 	t.Setenv("PAGODA_APP_ENVIRONMENT", string(EnvDevelop))
 
 	cfg, err := GetConfig()
 	require.NoError(t, err)
-
-	t.Skip("red spec: TKT-264 will align non-production dev defaults with explicit single-node semantics")
 
 	assert.Equal(t, EnvDevelop, cfg.App.Environment)
 	assert.Equal(t, RuntimeProfileSingleNode, cfg.Runtime.Profile)

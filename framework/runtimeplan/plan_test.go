@@ -38,7 +38,7 @@ func TestResolve(t *testing.T) {
 			},
 		},
 		{
-			name: "empty profile normalizes to server db",
+			name: "empty profile falls back to server db when topology is not explicit single node",
 			cfg: &config.Config{
 				Processes: config.ProcessesConfig{
 					Web: true,
@@ -156,7 +156,7 @@ func TestResolve(t *testing.T) {
 	}
 }
 
-func TestResolve_LocalDefaultConfigWillNormalizeToSingleNode_RedSpec(t *testing.T) {
+func TestResolve_LocalDefaultConfigNormalizesToSingleNode(t *testing.T) {
 	cfg := &config.Config{
 		Runtime: config.RuntimeConfig{},
 		Processes: config.ProcessesConfig{
@@ -175,8 +175,6 @@ func TestResolve_LocalDefaultConfigWillNormalizeToSingleNode_RedSpec(t *testing.
 
 	plan, err := Resolve(cfg)
 	require.NoError(t, err)
-
-	t.Skip("red spec: TKT-264 will treat the default local adapter/process topology as single-node rather than server-db")
 
 	assert.Equal(t, "single-node", plan.Profile)
 }

@@ -29,18 +29,15 @@ func Resolve(cfg *config.Config) (Plan, error) {
 	if cfg == nil {
 		return Plan{}, fmt.Errorf("nil config")
 	}
-
-	profile := string(cfg.Runtime.Profile)
-	switch cfg.Runtime.Profile {
-	case "", config.RuntimeProfileServerDB:
-		profile = string(config.RuntimeProfileServerDB)
-	case config.RuntimeProfileSingleNode, config.RuntimeProfileDistributed:
-	default:
+	if cfg.Runtime.Profile != "" && normalizeProfile(cfg) == string(cfg.Runtime.Profile) &&
+		cfg.Runtime.Profile != config.RuntimeProfileServerDB &&
+		cfg.Runtime.Profile != config.RuntimeProfileSingleNode &&
+		cfg.Runtime.Profile != config.RuntimeProfileDistributed {
 		return Plan{}, fmt.Errorf("unknown runtime profile: %s", cfg.Runtime.Profile)
 	}
 
 	p := Plan{
-		Profile:      profile,
+		Profile:      normalizeProfile(cfg),
 		RunWeb:       cfg.Processes.Web,
 		RunWorker:    cfg.Processes.Worker,
 		RunScheduler: cfg.Processes.Scheduler,
@@ -58,9 +55,42 @@ func Resolve(cfg *config.Config) (Plan, error) {
 	}
 
 	// Capability guardrails for current scaffold.
-	if cfg.Runtime.Profile == config.RuntimeProfileDistributed && p.Adapters.Jobs == "inproc" {
+	if p.Profile == string(config.RuntimeProfileDistributed) && p.Adapters.Jobs == "inproc" {
 		return Plan{}, fmt.Errorf("invalid distributed jobs backend: inproc")
 	}
 
 	return p, nil
+}
+
+func normalizeProfile(cfg *config.Config) string {
+	switch cfg.Runtime.Profile {
+	case config.RuntimeProfileServerDB:
+		return string(config.RuntimeProfileServerDB)
+	case config.RuntimeProfileSingleNode:
+		return string(config.RuntimeProfileSingleNode)
+	case config.RuntimeProfileDistributed:
+		return string(config.RuntimeProfileDistributed)
+	case "":
+		if looksLikeSingleNodeDefault(cfg) {
+			return string(config.RuntimeProfileSingleNode)
+		}
+		return string(config.RuntimeProfileServerDB)
+	default:
+		return string(cfg.Runtime.Profile)
+	}
+}
+
+func looksLikeSingleNodeDefault(cfg *config.Config) bool {
+	if cfg == nil {
+		return false
+	}
+
+	return cfg.Processes.Web &&
+		cfg.Processes.Worker &&
+		cfg.Processes.Scheduler &&
+		cfg.Processes.CoLocated &&
+		cfg.Adapters.DB == "sqlite" &&
+		cfg.Adapters.Cache == "otter" &&
+		cfg.Adapters.Jobs == "backlite" &&
+		cfg.Adapters.PubSub == "inproc"
 }

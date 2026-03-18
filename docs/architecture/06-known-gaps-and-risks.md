@@ -46,12 +46,11 @@ Impact:
 - Default base config now lives in `config/config.go` and can be overridden by `.env`.
 - Docker Compose currently starts Redis and Mailpit only; DB service is commented out.
 - Make targets include Postgres-dependent commands.
-- Runtime defaults still label local/non-prod as `server-db` even though the adapter/process defaults already describe a SQLite/Otter/Backlite/inproc single-node topology.
 
 Impact:
 
 - Contributors can experience confusion about canonical local dev DB path.
-- Local runtime docs and automation still need tighter alignment around the single-node default versus the compose-backed workflow.
+- Local runtime still needs tighter alignment around the single-node default versus the compose-backed workflow, especially in developer docs and automation outside config resolution.
 
 ## 6) Residual Dead UI Artifacts Can Reappear Without Reachability Audits (Low)
 
