@@ -12,7 +12,7 @@ Generated files in this directory are for local tool import.
 - `docker build -f infra/docker/Dockerfile` - Build the app Docker image using the canonical Dockerfile.
 - `git add` - Stage changes.
 - `git commit` - Create commits.
-- `ship check` - Run the ship check command.
+- `ship test` - Run the ship test command.
 - `ship doctor` - Run the ship doctor command.
 - `ship agent:setup` - Sync agent allowlist artifacts.
 - `ship agent:check` - Verify generated agent artifacts are up to date.

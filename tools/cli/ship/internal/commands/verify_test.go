@@ -150,11 +150,14 @@ func TestRunVerify(t *testing.T) {
 		if !payload.OK {
 			t.Fatalf("payload.OK = false, want true")
 		}
-		if len(payload.Steps) != 5 {
-			t.Fatalf("steps len = %d, want 5", len(payload.Steps))
+		if len(payload.Steps) != 6 {
+			t.Fatalf("steps len = %d, want 6", len(payload.Steps))
 		}
 		if payload.Steps[2].Name != "ship doctor --json" {
 			t.Fatalf("doctor step name = %q, want ship doctor --json", payload.Steps[2].Name)
+		}
+		if payload.Steps[5].Name != "standalone exportability gate" {
+			t.Fatalf("final step name = %q, want standalone exportability gate", payload.Steps[5].Name)
 		}
 	})
 

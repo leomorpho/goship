@@ -80,7 +80,7 @@ import "example.com/test/app/demo/views/web/components"
 	}
 }
 
-func TestRunCheck_UsesProjectPackageLists(t *testing.T) {
+func TestRunTest_UsesProjectPackageLists(t *testing.T) {
 	root := t.TempDir()
 	prevWD, err := os.Getwd()
 	if err != nil {
@@ -106,9 +106,9 @@ func TestRunCheck_UsesProjectPackageLists(t *testing.T) {
 	errOut := &bytes.Buffer{}
 	cli := CLI{Out: out, Err: errOut, Runner: runner}
 
-	code := cli.Run([]string{"check"})
+	code := cli.Run([]string{"test"})
 	if code != 0 {
-		t.Fatalf("check exit code = %d, stderr=%s", code, errOut.String())
+		t.Fatalf("test exit code = %d, stderr=%s", code, errOut.String())
 	}
 
 	want := []fakeCall{
@@ -127,7 +127,7 @@ func TestRunCheck_UsesProjectPackageLists(t *testing.T) {
 	}
 }
 
-func TestRunCheck_FallbackToGoTestAll(t *testing.T) {
+func TestRunTest_FallbackToGoTestAll(t *testing.T) {
 	root := t.TempDir()
 	prevWD, err := os.Getwd()
 	if err != nil {
@@ -142,9 +142,9 @@ func TestRunCheck_FallbackToGoTestAll(t *testing.T) {
 	out := &bytes.Buffer{}
 	errOut := &bytes.Buffer{}
 	cli := CLI{Out: out, Err: errOut, Runner: runner}
-	code := cli.Run([]string{"check"})
+	code := cli.Run([]string{"test"})
 	if code != 0 {
-		t.Fatalf("check exit code = %d, stderr=%s", code, errOut.String())
+		t.Fatalf("test exit code = %d, stderr=%s", code, errOut.String())
 	}
 	if len(runner.calls) != 1 {
 		t.Fatalf("calls len=%d want=1 calls=%v", len(runner.calls), runner.calls)

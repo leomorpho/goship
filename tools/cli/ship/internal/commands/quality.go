@@ -16,50 +16,6 @@ type QualityDeps struct {
 	HasFile func(path string) bool
 }
 
-func RunCheck(args []string, d QualityDeps) int {
-	for _, arg := range args {
-		if arg == "-h" || arg == "--help" || arg == "help" {
-			PrintCheckHelp(d.Out)
-			return 0
-		}
-	}
-	if len(args) > 0 {
-		fmt.Fprintf(d.Err, "unexpected check arguments: %v\n", args)
-		return 1
-	}
-
-	root, hasLists := findProjectRootWithCheckLists(d.HasFile)
-	if hasLists {
-		if err := withWorkingDir(root, func() error {
-			unitPkgs, err := readPackageList(filepath.Join("scripts", "test", "unit-packages.txt"))
-			if err != nil {
-				return err
-			}
-			for _, pkg := range unitPkgs {
-				if code := d.RunCmd("go", "test", pkg); code != 0 {
-					return fmt.Errorf("go test %s failed with exit code %d", pkg, code)
-				}
-			}
-
-			compilePkgs, err := readPackageList(filepath.Join("scripts", "test", "compile-packages.txt"))
-			if err != nil {
-				return err
-			}
-			for _, pkg := range compilePkgs {
-				if code := d.RunCmd("go", "test", "-run", "^$", pkg); code != 0 {
-					return fmt.Errorf("compile check for %s failed with exit code %d", pkg, code)
-				}
-			}
-			return nil
-		}); err != nil {
-			fmt.Fprintf(d.Err, "ship check failed: %v\n", err)
-			return 1
-		}
-		return 0
-	}
-	return d.RunCmd("go", "test", "./...")
-}
-
 func RunTest(args []string, d QualityDeps) int {
 	for _, arg := range args {
 		if arg == "-h" || arg == "--help" || arg == "help" {
@@ -83,7 +39,51 @@ func RunTest(args []string, d QualityDeps) int {
 	if *integration {
 		return d.RunCmd("go", "test", "-tags=integration", "./...")
 	}
-	return d.RunCmd("go", "test", "./...")
+	if err := runDefaultTestSuite(d); err != nil {
+		fmt.Fprintf(d.Err, "ship test failed: %v\n", err)
+		return 1
+	}
+	return 0
+}
+
+func runDefaultTestSuite(d QualityDeps) error {
+	if d.HasFile == nil {
+		d.HasFile = fileExists
+	}
+	root, hasLists := findProjectRootWithCheckLists(d.HasFile)
+	if hasLists {
+		return withWorkingDir(root, func() error {
+			unitPkgs, err := readPackageList(filepath.Join("scripts", "test", "unit-packages.txt"))
+			if err != nil {
+				return err
+			}
+			for _, pkg := range unitPkgs {
+				if code := d.RunCmd("go", "test", pkg); code != 0 {
+					return fmt.Errorf("go test %s failed with exit code %d", pkg, code)
+				}
+			}
+
+			compilePkgs, err := readPackageList(filepath.Join("scripts", "test", "compile-packages.txt"))
+			if err != nil {
+				return err
+			}
+			for _, pkg := range compilePkgs {
+				if code := d.RunCmd("go", "test", "-run", "^$", pkg); code != 0 {
+					return fmt.Errorf("compile check for %s failed with exit code %d", pkg, code)
+				}
+			}
+			return nil
+		})
+	}
+	if code := d.RunCmd("go", "test", "./..."); code != 0 {
+		return fmt.Errorf("go test ./... failed with exit code %d", code)
+	}
+	return nil
+}
+
+func fileExists(path string) bool {
+	_, err := os.Stat(path)
+	return err == nil
 }
 
 func findProjectRootWithCheckLists(hasFile func(path string) bool) (string, bool) {
@@ -137,11 +137,6 @@ func withWorkingDir(dir string, fn func() error) error {
 
 func PrintTestHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship test commands:")
-	fmt.Fprintln(w, "  ship test                 Run default unit/stateless test suite")
+	fmt.Fprintln(w, "  ship test                 Run canonical fast unit/compile suite")
 	fmt.Fprintln(w, "  ship test --integration   Include integration-tagged tests")
-}
-
-func PrintCheckHelp(w io.Writer) {
-	fmt.Fprintln(w, "ship check commands:")
-	fmt.Fprintln(w, "  ship check  Run fast compile/unit checks")
 }

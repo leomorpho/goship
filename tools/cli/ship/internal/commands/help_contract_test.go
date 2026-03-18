@@ -31,7 +31,7 @@ func TestPrintRootHelp_DirectCommandsDiscoverableNoAliases(t *testing.T) {
 	want := map[string]string{
 		"  ship new <app> [flags]":                  "Create a new app scaffold",
 		"  ship dev [--web|--worker|--all]":         "Run local runtime processes",
-		"  ship test [--integration]":               "Run tests (unit by default)",
+		"  ship test [--integration]":               "Run canonical fast test workflow",
 		"  ship verify [--skip-tests] [--json]":     "Run full verification workflow",
 		"  ship doctor [--json]":                    "Run repository policy checks",
 		"  ship config:validate [--json]":           "Validate config contract",
@@ -256,7 +256,7 @@ func TestPrintAdditionalScopedHelp_IncludeDescriptions(t *testing.T) {
 			name: "test",
 			out:  captureHelp(t, PrintTestHelp),
 			want: map[string]string{
-				"  ship test":               "Run default unit/stateless test suite",
+				"  ship test":               "Run canonical fast unit/compile suite",
 				"  ship test --integration": "Include integration-tagged tests",
 			},
 		},

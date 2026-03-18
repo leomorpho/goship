@@ -63,7 +63,6 @@ Local runtime:
 - `ship dev --web`
 - `ship dev --worker`
 - `ship dev --all`
-- `ship check`
 - `ship infra:up` (or `ship infra` for help)
 - `ship infra:down`
 - `ship run:command <name> [-- <args...>]`
@@ -127,8 +126,7 @@ These commands are implemented as wrappers over existing workflows:
 - `ship dev --worker` -> `go run ./cmd/worker`
 - `ship dev --all` -> starts web (`air -c .air.toml`) and worker concurrently with prefixed logs (`[web]`, `[worker]`) and signal-aware shutdown
 - `ship run:command <name> [-- <args...>]` -> `go run ./cmd/cli/main.go <name> <args...>`
-- `ship check` -> `go test ./...` (compile + unit checks, no integration-tagged tests)
-- `ship test` -> `go test ./...` (integration-tagged tests are excluded by default)
+- `ship test` -> canonical fast quality loop: runs the curated unit package list from `scripts/test/unit-packages.txt`, then compile-only checks for `scripts/test/compile-packages.txt`; falls back to `go test ./...` when the package lists are absent
 - `ship test --integration` -> `go test -tags=integration ./...`
 - `ship infra:up` -> detects `docker-compose`/`docker compose` and runs `up -d cache`, then attempts `up -d mailpit` (non-fatal if mailpit fails)
 - `ship infra:down` -> detects `docker-compose`/`docker compose` and runs `down`
@@ -279,7 +277,7 @@ Field syntax for `make:model`:
 
 Generated project workflow:
 
-1. `ship` is the canonical interface for dev/test/check/generate flows.
+1. `ship` is the canonical interface for dev/test/verify/generate flows.
 2. Generated projects must not require a Makefile to use core workflows.
 3. Integration tests must use Go build tags (`//go:build integration`) instead of package list curation.
 
