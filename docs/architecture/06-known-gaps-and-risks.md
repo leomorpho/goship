@@ -138,6 +138,9 @@ features, DB runtime metadata, and managed-key sources in one machine-readable p
 INT1-01 will extend that payload with a versioned handshake envelope for orchestration preflight.
 The remaining risk is payload drift if future runtime metadata is added without extending the report.
 
+INT1-02 will add a named orchestration contract-mismatch preflight gate on top of `ship verify`
+so unsupported deploy/upgrade/promote combinations fail before the orchestration layer starts.
+
 Impact:
 
 - Operators and agents now have one canonical CLI report for runtime capability inspection.

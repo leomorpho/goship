@@ -357,6 +357,49 @@ use (
 		}
 	})
 
+	t.Run("includes orchestration contract mismatch preflight", func(t *testing.T) {
+		root := t.TempDir()
+		writeVerifyGoMod(t, root)
+		writeVerifyGoWork(t, root)
+
+		prevWD := chdirVerifyRoot(t, root)
+		t.Cleanup(func() { _ = os.Chdir(prevWD) })
+
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+		code := RunVerify([]string{"--json", "--skip-tests"}, VerifyDeps{
+			Out:          out,
+			Err:          errOut,
+			FindGoModule: findVerifyGoModule,
+			RelocateTempl: func(rootPath string) error {
+				return nil
+			},
+			RunStep: func(name string, args ...string) (int, string, error) {
+				return 0, "ok", nil
+			},
+			LookPath: func(file string) (string, error) {
+				return "/usr/bin/" + file, nil
+			},
+			RunDoctor: func() (int, string, error) {
+				return 0, `{"ok":true,"issues":[]}`, nil
+			},
+		})
+		if code != 0 {
+			t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
+		}
+
+		var payload verifyJSONResult
+		if err := json.Unmarshal(out.Bytes(), &payload); err != nil {
+			t.Fatalf("decode json: %v", err)
+		}
+		for _, step := range payload.Steps {
+			if step.Name == "orchestration contract mismatch preflight" {
+				return
+			}
+		}
+		t.Fatalf("verify JSON missing orchestration contract mismatch preflight step:\n%s", out.String())
+	})
+
 	t.Run("fails when templ relocation fails", func(t *testing.T) {
 		root := t.TempDir()
 		writeVerifyGoMod(t, root)

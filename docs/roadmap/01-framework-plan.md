@@ -101,7 +101,8 @@ CLI responsibilities:
 2. `ship profile:set <profile>` updates environment/process presets.
 3. `ship module:add <name>` updates module manifest + initializer wiring.
 4. `ship jobs:backend:set <backend>` updates adapter config with capability checks.
-5. `ship new` should install templ tooling pinned to the project-declared version and provide an explicit update path.
+5. `ship db:promote` reports the manual SQLite-to-Postgres promotion plan from runtime metadata and keeps the workflow deterministic before the export/import hooks exist.
+6. `ship new` should install templ tooling pinned to the project-declared version and provide an explicit update path.
 
 ### CLI Surface (Rails-Inspired)
 
@@ -136,6 +137,7 @@ Canonical dev command contract:
 5. Data/schema:
 - `ship db:make <name>`
 - `ship db:make <name> --soft-delete --table <table>`
+- `ship db:promote`
 - `ship db:migrate`
 - `ship db:rollback`
 - `ship db:seed`
@@ -321,7 +323,7 @@ Minimum framework tooling/hooks to expose:
 2. Data export hook with typed manifest (version + dialect + checksums).
 3. Data import hook with manifest validation.
 4. Post-import verification hook callable from CLI/control-plane adapters.
-5. Dedicated CI suites for module isolation and `sql-core-v1` portability so boundary regressions fail in named lanes instead of broad aggregate jobs.
+5. Dedicated CI suites for module isolation and `sql-core-v1` portability so boundary regressions fail in named lanes instead of broad aggregate jobs; the module-isolation lane reports module/file context and rejects stale allowlist entries.
 6. Shared/distributed replay storage contract for managed hook nonce tracking so multi-replica managed mode rejects replays consistently.
 7. `backup-manifest-v1` is now locked to SQLite-first metadata plus SHA-256 checksum invariants, and managed restore responses return typed restore evidence.
 8. Shared signature vectors and a canonical payload library will be introduced for the INT2 bridge so runtime and control-plane signing fixtures stay aligned.
@@ -797,6 +799,10 @@ Runtime-report contract tracked under `TKT-235` / `TKT-299` / `TKT-300`:
 - the runtime metadata/config primitives now feed `ship runtime:report --json`;
 - `ship runtime:report --json` is now the canonical machine-readable runtime capability surface for operators and agents.
 - `TKT-220` / `TKT-319` / `TKT-320` will extend that report with a versioned metadata handshake envelope for orchestration preflight.
+
+Orchestration preflight contract tracked under `TKT-221` / `TKT-321` / `TKT-322`:
+- `ship verify` will grow a named contract-mismatch preflight gate that rejects unsupported runtime/orchestration combinations before deploy, upgrade, or promote flows begin;
+- the preflight should reuse the runtime contract metadata surface rather than inventing a separate ad hoc probe.
 
 CLI-path reset tracked under `TKT-249` / `TKT-311` / `TKT-312`:
 - the executable spec now pins one canonical top-level quality path per concern;
