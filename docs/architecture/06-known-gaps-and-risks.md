@@ -41,6 +41,17 @@ Impact:
 
 - End-to-end test confidence for current GoShip behavior is limited.
 
+## Route Composition Style Is Still Partially Split (Medium)
+
+`app/router.go` is the canonical app router entrypoint, but static route registration is still split
+between `appweb.RegisterStaticRoutes(c)` and module-level static registration calls inside domain
+helpers.
+
+Impact:
+
+- The route manifest remains centralized, but static-route composition still has more than one style.
+- Future route extraction work can drift unless the composition root owns one explicit static registration path.
+
 ## 5) Dev Runtime Drift Between Config and Docker Compose (Medium)
 
 - Default base config now lives in `config/config.go` and can be overridden by `.env`.

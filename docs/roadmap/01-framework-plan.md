@@ -748,6 +748,10 @@ Cache-contract parity tracked under `TKT-200` / `TKT-267` / `TKT-268`:
 - one shared contract suite now covers grouped payloads, tag invalidation, TTL expiry, and raw byte/prefix operations across `memory` and `redis`;
 - the shared cache seam normalizes positive TTLs to second precision so adapter choice does not change expiry semantics.
 
+Route-composition hardening tracked under `TKT-232` / `TKT-293` / `TKT-294`:
+- `app/router.go` remains the canonical route composition root, but static route registration is still split between the app-level registrar and module-level static calls;
+- executable red specs now pin the intended contract: `BuildRouter` should reject a nil container explicitly, and the composition root should own one static registration path.
+
 4. `R0.4` Testing harness improvements so default `make test` is Docker-free and fast.
 Status: `completed`
 Done when:
