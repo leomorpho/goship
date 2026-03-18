@@ -68,7 +68,7 @@ func (c CLI) Run(args []string) int {
 	case "help", "-h", "--help":
 		cmd.PrintRootHelp(c.Out)
 		return 0
-	case "dev", "shipdev":
+	case "dev":
 		return c.runDev(args[1:])
 	case "new":
 		return c.runNew(args[1:])

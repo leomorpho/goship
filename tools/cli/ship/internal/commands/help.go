@@ -13,7 +13,7 @@ func PrintRootHelp(w io.Writer) {
 	fmt.Fprintln(w)
 	fmt.Fprintln(w, "Direct Commands:")
 	fmt.Fprintln(w, "  ship new <app> [flags]                   Create a new app scaffold")
-	fmt.Fprintln(w, "  ship dev [web|worker|all] [flags]        Run local runtime processes")
+	fmt.Fprintln(w, "  ship dev [--web|--worker|--all]          Run local runtime processes")
 	fmt.Fprintln(w, "  ship check                               Run fast project checks")
 	fmt.Fprintln(w, "  ship test [--integration]                Run tests (unit by default)")
 	fmt.Fprintln(w, "  ship verify [--skip-tests] [--json]      Run full verification workflow")

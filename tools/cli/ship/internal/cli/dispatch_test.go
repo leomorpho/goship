@@ -48,24 +48,22 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			wantCalls: []fakeCall{{name: "air", args: []string{"-c", ".air.toml"}}},
 		},
 		{
-			name:      "shipdev alias",
-			args:      []string{"shipdev"},
-			wantCode:  0,
-			wantCalls: []fakeCall{{name: "air", args: []string{"-c", ".air.toml"}}},
+			name:     "shipdev alias removed",
+			args:     []string{"shipdev"},
+			wantCode: 1,
+			wantErr:  "unknown command: shipdev",
 		},
 		{
-			name:      "dev worker positional",
-			args:      []string{"dev", "worker"},
-			wantCode:  0,
-			wantCalls: []fakeCall{{name: "go", args: []string{"run", "./cmd/worker"}}},
+			name:     "dev worker positional removed",
+			args:     []string{"dev", "worker"},
+			wantCode: 1,
+			wantErr:  "unexpected dev arguments",
 		},
 		{
-			name:            "dev all positional",
-			args:            []string{"dev", "all"},
-			wantCode:        0,
-			wantCalls:       nil,
-			useDevAllRunner: true,
-			devAllCode:      0,
+			name:     "dev all positional removed",
+			args:     []string{"dev", "all"},
+			wantCode: 1,
+			wantErr:  "unexpected dev arguments",
 		},
 		{
 			name:      "dev worker flag",
@@ -83,7 +81,7 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 		},
 		{
 			name:            "dev all runner exit code is propagated",
-			args:            []string{"dev", "all"},
+			args:            []string{"dev", "--all"},
 			wantCode:        9,
 			wantCalls:       nil,
 			useDevAllRunner: true,
@@ -469,14 +467,14 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 		},
 		{
 			name:       "runner exit code is propagated",
-			args:       []string{"dev", "web"},
+			args:       []string{"dev", "--web"},
 			wantCode:   7,
 			wantCalls:  []fakeCall{{name: "air", args: []string{"-c", ".air.toml"}}},
 			runnerCode: 7,
 		},
 		{
 			name:      "runner error prints message",
-			args:      []string{"dev", "web"},
+			args:      []string{"dev", "--web"},
 			wantCode:  1,
 			wantCalls: []fakeCall{{name: "air", args: []string{"-c", ".air.toml"}}},
 			wantErr:   "failed to run command",
@@ -554,5 +552,58 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 }
 
 func TestRun_DevCanonicalPathContract_RedSpec(t *testing.T) {
-	t.Skip("red-spec only (TKT-255): enable in TKT-256 when shipdev/positional dev modes are removed")
+	t.Helper()
+
+	tests := []struct {
+		name    string
+		args    []string
+		wantCode int
+		wantErr string
+	}{
+		{
+			name:     "shipdev alias rejected",
+			args:     []string{"shipdev"},
+			wantCode: 1,
+			wantErr:  "unknown command: shipdev",
+		},
+		{
+			name:     "positional worker mode rejected",
+			args:     []string{"dev", "worker"},
+			wantCode: 1,
+			wantErr:  "unexpected dev arguments",
+		},
+		{
+			name:     "positional all mode rejected",
+			args:     []string{"dev", "all"},
+			wantCode: 1,
+			wantErr:  "unexpected dev arguments",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Setenv("APP_ENV", "local")
+
+			prevWD, err := os.Getwd()
+			if err != nil {
+				t.Fatal(err)
+			}
+			tmp := t.TempDir()
+			if err := os.Chdir(tmp); err != nil {
+				t.Fatal(err)
+			}
+			t.Cleanup(func() { _ = os.Chdir(prevWD) })
+
+			out := &bytes.Buffer{}
+			errOut := &bytes.Buffer{}
+			cli := CLI{Out: out, Err: errOut, Runner: &fakeRunner{}}
+
+			if got := cli.Run(tt.args); got != tt.wantCode {
+				t.Fatalf("exit code = %d, want %d", got, tt.wantCode)
+			}
+			if !strings.Contains(errOut.String(), tt.wantErr) {
+				t.Fatalf("stderr = %q, want contains %q", errOut.String(), tt.wantErr)
+			}
+		})
+	}
 }

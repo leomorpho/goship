@@ -60,6 +60,7 @@ Project lifecycle:
 Local runtime:
 
 - `ship dev` (auto default: web-only for single-binary adapters; full mode when jobs adapter is `asynq`)
+- `ship dev --web`
 - `ship dev --worker`
 - `ship dev --all`
 - `ship check`

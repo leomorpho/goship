@@ -39,7 +39,7 @@ func TestRunDev_DefaultModeUsesResolver(t *testing.T) {
 	}
 }
 
-func TestRunDev_ExplicitModeOverridesResolver(t *testing.T) {
+func TestRunDev_ExplicitFlagOverridesResolver(t *testing.T) {
 	t.Parallel()
 
 	out := &bytes.Buffer{}
@@ -48,7 +48,7 @@ func TestRunDev_ExplicitModeOverridesResolver(t *testing.T) {
 	gotName := ""
 	gotArgs := []string{}
 
-	code := RunDev([]string{"web"}, DevDeps{
+	code := RunDev([]string{"--web"}, DevDeps{
 		Out: out,
 		Err: errOut,
 		RunCmd: func(name string, args ...string) int {

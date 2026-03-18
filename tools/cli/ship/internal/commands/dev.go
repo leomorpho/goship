@@ -30,22 +30,6 @@ func RunDev(args []string, d DevDeps) int {
 
 	mode := "web"
 	explicitMode := false
-	if len(args) > 0 {
-		switch args[0] {
-		case "web":
-			mode = "web"
-			args = args[1:]
-			explicitMode = true
-		case "worker":
-			mode = "worker"
-			args = args[1:]
-			explicitMode = true
-		case "all":
-			mode = "all"
-			args = args[1:]
-			explicitMode = true
-		}
-	}
 
 	fs := flag.NewFlagSet("dev", flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
@@ -123,10 +107,7 @@ func RunDev(args []string, d DevDeps) int {
 func PrintDevHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship dev commands:")
 	fmt.Fprintln(w, "  ship dev          Run auto dev mode (default web mode; full mode when jobs backend is asynq)")
-	fmt.Fprintln(w, "  ship dev web      Run web-only dev mode")
-	fmt.Fprintln(w, "  ship dev worker   Run worker-only dev mode")
-	fmt.Fprintln(w, "  ship dev all      Run full dev mode (web + worker + js + css)")
-	fmt.Fprintln(w, "  ship dev --web    Flag form of web-only mode")
+	fmt.Fprintln(w, "  ship dev --web    Run explicit web-only dev mode")
 	fmt.Fprintln(w, "  ship dev --worker Flag form of worker-only mode")
 	fmt.Fprintln(w, "  ship dev --all    Flag form of full mode")
 	fmt.Fprintln(w, "  note: full mode multiplexes processes via overmind/goreman and Procfile.dev")

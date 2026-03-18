@@ -28,7 +28,7 @@ func TestPrintRootHelp_DirectCommandsDiscoverableNoAliases(t *testing.T) {
 
 	want := map[string]string{
 		"  ship new <app> [flags]":                  "Create a new app scaffold",
-		"  ship dev [web|worker|all] [flags]":       "Run local runtime processes",
+		"  ship dev [--web|--worker|--all]":         "Run local runtime processes",
 		"  ship check":                              "Run fast project checks",
 		"  ship test [--integration]":               "Run tests (unit by default)",
 		"  ship verify [--skip-tests] [--json]":     "Run full verification workflow",
@@ -202,10 +202,7 @@ func TestPrintAdditionalScopedHelp_IncludeDescriptions(t *testing.T) {
 			out:  captureHelp(t, PrintDevHelp),
 			want: map[string]string{
 				"  ship dev":          "Run auto dev mode",
-				"  ship dev web":      "Run web-only dev mode",
-				"  ship dev worker":   "Run worker-only dev mode",
-				"  ship dev all":      "Run full dev mode",
-				"  ship dev --web":    "Flag form of web-only mode",
+				"  ship dev --web":    "Run explicit web-only dev mode",
 				"  ship dev --worker": "Flag form of worker-only mode",
 				"  ship dev --all":    "Flag form of full mode",
 			},
@@ -291,5 +288,25 @@ func TestPrintAdditionalScopedHelp_IncludeDescriptions(t *testing.T) {
 }
 
 func TestPrintDevHelp_CanonicalFlagsOnly_RedSpec(t *testing.T) {
-	t.Skip("red-spec only (TKT-255): enable in TKT-256 when positional dev help entries are removed")
+	out := captureHelp(t, PrintDevHelp)
+
+	for _, legacy := range []string{
+		"ship dev web",
+		"ship dev worker",
+		"ship dev all",
+	} {
+		if strings.Contains(out, legacy) {
+			t.Fatalf("dev help should not include legacy positional form %q\n%s", legacy, out)
+		}
+	}
+
+	for _, canonical := range []string{
+		"ship dev --web",
+		"ship dev --worker",
+		"ship dev --all",
+	} {
+		if !strings.Contains(out, canonical) {
+			t.Fatalf("dev help missing canonical flag form %q\n%s", canonical, out)
+		}
+	}
 }
