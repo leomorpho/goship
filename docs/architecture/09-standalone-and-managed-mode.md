@@ -86,6 +86,7 @@ Rules:
 - secrets stay out of the repo
 - managed overrides are allowlisted and inspectable
 - the runtime should be able to report both the effective value and the source of that value
+- managed settings should also surface drift detection and rollback semantics so operators can see when the runtime has diverged from the intended override state
 - the managed-key registry itself is a versioned artifact shared with the control plane, so runtime and orchestration tooling can agree on an authoritative schema mapping
 - `TKT-339` defines the next runtime-surface contract for per-module adoption metadata, so external
   control planes can track module identity, module path, version, and source without parsing repo

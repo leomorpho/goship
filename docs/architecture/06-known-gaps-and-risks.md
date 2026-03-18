@@ -143,6 +143,9 @@ runtime metadata is added without extending the report.
 INT1-02 will add a named orchestration contract-mismatch preflight gate on top of `ship verify`
 so unsupported deploy/upgrade/promote combinations fail before the orchestration layer starts.
 
+Managed settings still need a dedicated drift/rollback surface so operator tooling can detect when a
+managed override has diverged from the intended runtime state and present a safe rollback path.
+
 Impact:
 
 - Operators and agents now have one canonical CLI report for runtime capability inspection.

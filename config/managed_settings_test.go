@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/leomorpho/goship/framework/runtimeconfig"
@@ -51,6 +52,33 @@ func TestManagedSettingStatuses_ManagedModeMapsReadOnlyAndExternallyManaged(t *t
 	jobsStatus := findManagedSettingStatus(t, statuses, "adapters.jobs")
 	assert.Equal(t, SettingAccessReadOnly, jobsStatus.Access)
 	assert.NotEqual(t, runtimeconfig.SourceManagedOverride, jobsStatus.Source)
+}
+
+func TestManagedSettingStatuses_DetectsDriftAndRollbackContract_RedSpec(t *testing.T) {
+	cfg := defaultConfig()
+	cfg.Managed.Enabled = true
+	cfg.Managed.Authority = "control-plane"
+	cfg.Adapters.Cache = "managed-cache"
+
+	cfg.Managed.RuntimeReport = runtimeconfig.BuildReport(runtimeconfig.LayerInputs{
+		Defaults:        managedKeyValues(defaultConfig()),
+		EffectiveValues: managedKeyValues(cfg),
+		RepoSet:         map[string]bool{},
+		EnvSet:          map[string]bool{},
+		ManagedSet: map[string]bool{
+			"adapters.cache": true,
+		},
+		ManagedEnabled: true,
+		Authority:      cfg.Managed.Authority,
+	})
+
+	cfg.Adapters.Cache = "rolled-back-cache"
+
+	raw, err := json.Marshal(cfg.ManagedSettingStatuses())
+	require.NoError(t, err)
+
+	assert.Contains(t, string(raw), `"drift":true`)
+	assert.Contains(t, string(raw), `"rollback_target":"framework-default"`)
 }
 
 func findManagedSettingStatus(t *testing.T, statuses []ManagedSettingStatus, key string) ManagedSettingStatus {
