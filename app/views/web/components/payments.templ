@@ -2,7 +2,6 @@ package components
 
 import (
 	controller "github.com/leomorpho/goship/app/web/ui"
-	appsubscriptions "github.com/leomorpho/goship/app/subscriptions"
 	"github.com/leomorpho/goship/app/web/routenames"
 )
 
@@ -11,7 +10,7 @@ import (
 
 templ ManageSubscriptionButton(page *controller.Page, subscriptionPlanKey string, isTrial bool, isPaidPlan bool) {
 	<div data-component="manage-subscription-button" data-slot="plan-card">
-		if !isPaidPlan || (isPaidPlan && isTrial) || subscriptionPlanKey == appsubscriptions.PlanFreeKey {
+		if !isPaidPlan || isTrial {
 			@PricingPage(page)
 		} else {
 			// This is an existing customer

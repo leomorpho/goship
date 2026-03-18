@@ -10,7 +10,6 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	controller "github.com/leomorpho/goship/app/web/ui"
-	appsubscriptions "github.com/leomorpho/goship/app/subscriptions"
 	"github.com/leomorpho/goship/app/web/routenames"
 )
 
@@ -40,7 +39,7 @@ func ManageSubscriptionButton(page *controller.Page, subscriptionPlanKey string,
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if !isPaidPlan || (isPaidPlan && isTrial) || subscriptionPlanKey == appsubscriptions.PlanFreeKey {
+		if !isPaidPlan || isTrial {
 			templ_7745c5c3_Err = PricingPage(page).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err

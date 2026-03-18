@@ -13,7 +13,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/leomorpho/goship-modules/notifications"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
-	appsubscriptions "github.com/leomorpho/goship/app/subscriptions"
 	"github.com/leomorpho/goship/app/web/routenames"
 	dbqueries "github.com/leomorpho/goship/db/queries"
 	"github.com/leomorpho/goship/framework/core"
@@ -160,7 +159,7 @@ func (d *DailyConvoNotificationsProcessor) ProcessTask(
 		}
 		var title string
 
-		if prod != nil && prod.Value == appsubscriptions.PlanFreeKey {
+		if !d.subscriptionRepo.IsPaidProduct(prod) {
 			title = "🌤 Today's free question!"
 		} else {
 			title = "🌤 Today's question!"

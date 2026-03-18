@@ -79,6 +79,19 @@ func (s *Service) IsPaidPlanKey(planKey string) bool {
 	return plan.Paid
 }
 
+// ActivePlanKey resolves a potentially empty product into the catalog free key.
+func (s *Service) ActivePlanKey(pt *ProductType) string {
+	if pt == nil || pt.Value == "" {
+		return s.FreePlanKey()
+	}
+	return pt.Value
+}
+
+// IsPaidProduct reports whether a product resolves to a paid catalog plan.
+func (s *Service) IsPaidProduct(pt *ProductType) bool {
+	return s.IsPaidPlanKey(s.ActivePlanKey(pt))
+}
+
 // DefaultPaidPlanKey returns the catalog default trial plan when it is paid.
 func (s *Service) DefaultPaidPlanKey() (string, error) {
 	key := s.catalog.DefaultTrialPlanKey()

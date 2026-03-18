@@ -252,7 +252,7 @@ func (g *preferences) getCurrPreferencesData(ctx echo.Context) (viewmodels.Prefe
 	if err != nil {
 		return viewmodels.NewPreferencesData(), err
 	}
-	activePlanKey := activePlanKey(activePlan)
+	activePlanKey := activePlanKey(g.subscriptionsService, activePlan)
 
 	data := viewmodels.NewPreferencesData()
 	data.Bio = profile.Bio
@@ -264,7 +264,7 @@ func (g *preferences) getCurrPreferencesData(ctx echo.Context) (viewmodels.Prefe
 	data.DefaultBirthdate = domain.DefaultBirthdate.Format("2006-01-02")
 	data.IsPaymentsEnabled = g.ctr.Container.Config.App.OperationalConstants.PaymentsEnabled
 	data.ActiveSubscriptionPlanKey = activePlanKey
-	data.ActiveSubscriptionPlanIsPaid = isPaidPlanKey(activePlanKey)
+	data.ActiveSubscriptionPlanIsPaid = isPaidPlanKey(g.subscriptionsService, activePlanKey)
 	data.IsTrial = isTrial
 	data.ManagedMode = g.ctr.Container.Config.Managed.RuntimeReport.Mode == runtimeconfig.ModeManaged
 	data.ManagedAuthority = g.ctr.Container.Config.Managed.RuntimeReport.Authority

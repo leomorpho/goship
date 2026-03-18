@@ -22,6 +22,8 @@ type (
 	PricingPageData struct {
 		ProductProCode        string
 		ProductProPrice       string
+		FreePlanKey           string
+		DefaultPaidPlanKey    string
 		ActivePlanKey         string
 		ActivePlanIsPaid      bool
 		IsTrial               bool

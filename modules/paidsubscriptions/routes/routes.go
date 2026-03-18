@@ -289,11 +289,17 @@ func (m *RouteModule) PricingPage(ctx echo.Context) error {
 	if err != nil {
 		return err
 	}
+	defaultPaidPlanKey, err := m.service.DefaultPaidPlanKey()
+	if err != nil {
+		return err
+	}
 	activePlanKey := m.activePlanKey(activePlan)
 
 	data := viewmodels.NewPricingPageData()
 	data.ProductProCode = m.controller.Container.Config.App.OperationalConstants.ProductProCode
 	data.ProductProPrice = fmt.Sprintf("%.2f", m.controller.Container.Config.App.OperationalConstants.ProductProPrice)
+	data.FreePlanKey = m.service.FreePlanKey()
+	data.DefaultPaidPlanKey = defaultPaidPlanKey
 	data.ActivePlanKey = activePlanKey
 	data.ActivePlanIsPaid = m.isPaidPlanKey(activePlanKey)
 	data.HasSubscriptionExpiry = subscriptionExpiredOn != nil
@@ -320,10 +326,7 @@ func (m *RouteModule) SuccessfullySubscribed(ctx echo.Context) error {
 }
 
 func (m *RouteModule) activePlanKey(pt *paidsubscriptions.ProductType) string {
-	if pt == nil || pt.Value == "" {
-		return m.service.FreePlanKey()
-	}
-	return pt.Value
+	return m.service.ActivePlanKey(pt)
 }
 
 func (m *RouteModule) isPaidPlanKey(planKey string) bool {

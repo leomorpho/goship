@@ -160,3 +160,41 @@ func TestService_IsPaidPlanKey_UsesCatalogSemantics(t *testing.T) {
 	require.True(t, svc.IsPaidPlanKey("enterprise"))
 	require.False(t, svc.IsPaidPlanKey("starter"))
 }
+
+func TestService_ActivePlanKey_FallsBackToCatalogFreePlan(t *testing.T) {
+	t.Parallel()
+
+	catalog, err := paidsubscriptions.NewStaticPlanCatalog(
+		[]paidsubscriptions.Plan{
+			{Key: "starter", Paid: false},
+			{Key: "enterprise", Paid: true},
+		},
+		"starter",
+		"enterprise",
+	)
+	require.NoError(t, err)
+
+	svc := paidsubscriptions.NewServiceWithCatalog(&stubStore{}, catalog)
+	require.Equal(t, "starter", svc.ActivePlanKey(nil))
+	require.Equal(t, "starter", svc.ActivePlanKey(&paidsubscriptions.ProductType{Value: ""}))
+	require.Equal(t, "enterprise", svc.ActivePlanKey(&paidsubscriptions.ProductType{Value: "enterprise"}))
+}
+
+func TestService_IsPaidProduct_UsesCatalogSemantics(t *testing.T) {
+	t.Parallel()
+
+	catalog, err := paidsubscriptions.NewStaticPlanCatalog(
+		[]paidsubscriptions.Plan{
+			{Key: "starter", Paid: false},
+			{Key: "enterprise", Paid: true},
+		},
+		"starter",
+		"enterprise",
+	)
+	require.NoError(t, err)
+
+	svc := paidsubscriptions.NewServiceWithCatalog(&stubStore{}, catalog)
+	require.False(t, svc.IsPaidProduct(nil))
+	require.False(t, svc.IsPaidProduct(&paidsubscriptions.ProductType{Value: "starter"}))
+	require.True(t, svc.IsPaidProduct(&paidsubscriptions.ProductType{Value: "enterprise"}))
+}
