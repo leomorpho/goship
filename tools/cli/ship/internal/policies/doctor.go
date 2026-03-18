@@ -285,6 +285,7 @@ func RunDoctorChecks(root string) []DoctorIssue {
 	issues = append(issues, checkTopLevelDirs(root)...)
 	issues = append(issues, checkFileSizes(root)...)
 	issues = append(issues, checkCLIDocsCoverage(root)...)
+	issues = append(issues, checkCanonicalDocsHardReset(root)...)
 	issues = append(issues, checkGoWorkModules(root)...)
 	issues = append(issues, checkDockerIgnoreCoverage(root)...)
 	issues = append(issues, checkDockerLocalReplaceOrder(root)...)

@@ -243,4 +243,4 @@ Health endpoints:
 
 ## Practical Summary
 
-This codebase is a strong "production-ready starter" foundation with authentication, payments, notifications, storage, and worker primitives. It is also in an active transitional state where some features are scaffolded but not fully wired in the web runtime.
+This codebase is a strong "production-ready starter" foundation with authentication, payments, notifications, storage, and worker primitives. Some features remain intentionally scaffolded or partial, but the documented model is the current canonical runtime, not a migration bridge.

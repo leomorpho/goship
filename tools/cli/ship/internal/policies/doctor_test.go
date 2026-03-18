@@ -546,8 +546,6 @@ func registerAuthRoutes() {
 	})
 
 	t.Run("canonical docs reject transition-era wording red spec", func(t *testing.T) {
-		t.Skip("red spec: enable once doctor rejects transition-era wording in canonical architecture and CLI docs")
-
 		root := t.TempDir()
 		writeDoctorFixture(t, root)
 

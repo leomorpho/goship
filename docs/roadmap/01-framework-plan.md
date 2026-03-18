@@ -754,8 +754,8 @@ Route-composition hardening tracked under `TKT-232` / `TKT-293` / `TKT-294`:
 - static route registration now flows through one canonical `appweb.RegisterStaticRoutes(c)` path, including PWA assets.
 
 Docs hard-reset tracking under `TKT-233` / `TKT-295` / `TKT-296`:
-- canonical architecture, CLI, and roadmap docs still contain some transition-era wording;
-- executable red specs now pin the intended contract: doctor should flag transition-era language inside the canonical docs set instead of relying on manual review.
+- doctor now flags selected migration-bridge wording in the canonical architecture, CLI, and roadmap docs set;
+- canonical docs have been rewritten to describe the current hard-cut model directly instead of relying on migration-era framing.
 
 4. `R0.4` Testing harness improvements so default `make test` is Docker-free and fast.
 Status: `completed`

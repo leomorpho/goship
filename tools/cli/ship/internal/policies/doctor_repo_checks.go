@@ -248,6 +248,51 @@ func checkCLIDocsCoverage(root string) []DoctorIssue {
 	return issues
 }
 
+func checkCanonicalDocsHardReset(root string) []DoctorIssue {
+	issues := make([]DoctorIssue, 0)
+	canonicalDocs := []string{
+		filepath.Join("docs", "architecture", "03-project-scope-analysis.md"),
+		filepath.Join("docs", "architecture", "04-http-routes.md"),
+		filepath.Join("docs", "reference", "01-cli.md"),
+		filepath.Join("docs", "roadmap", "01-framework-plan.md"),
+	}
+	forbiddenPhrases := []string{
+		"active transitional state",
+		"transition-era",
+		"legacy compatibility path",
+	}
+
+	for _, rel := range canonicalDocs {
+		path := filepath.Join(root, rel)
+		if !hasFile(path) {
+			continue
+		}
+		content, err := os.ReadFile(path)
+		if err != nil {
+			issues = append(issues, DoctorIssue{
+				Code:    "DX030",
+				File:    filepath.ToSlash(rel),
+				Message: fmt.Sprintf("failed to read canonical doc %s", filepath.ToSlash(rel)),
+				Fix:     err.Error(),
+			})
+			continue
+		}
+		text := strings.ToLower(string(content))
+		for _, phrase := range forbiddenPhrases {
+			if strings.Contains(text, phrase) {
+				issues = append(issues, DoctorIssue{
+					Code:    "DX030",
+					File:    filepath.ToSlash(rel),
+					Message: fmt.Sprintf("canonical docs contain transition-era wording %q", phrase),
+					Fix:     "rewrite canonical docs to describe the current hard-cut model only",
+				})
+			}
+		}
+	}
+
+	return issues
+}
+
 func checkGoWorkModules(root string) []DoctorIssue {
 	issues := make([]DoctorIssue, 0)
 	goWorkPath := filepath.Join(root, "go.work")

@@ -12,7 +12,7 @@ Ergonomic routing rule:
 
 - `GET /` starter home page
 - `GET /demo/islands` framework islands demo (vanilla JS, React, Vue, Svelte)
-- `GET /up` liveness healthcheck (legacy alias)
+- `GET /up` liveness healthcheck alias
 - `GET /health` liveness healthcheck
 - `GET /health/ready` readiness healthcheck (returns `503` when a registered dependency check fails)
 - `GET /clear-cookie`

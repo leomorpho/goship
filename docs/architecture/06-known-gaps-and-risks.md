@@ -52,16 +52,16 @@ Impact:
 - The route manifest and static asset surface are centralized today.
 - Future route extraction work should keep using route-composition contract tests to avoid reintroducing split registration styles.
 
-## Canonical Docs Still Need Transition-Era Wording Purged (Low)
+## Canonical Docs Now Enforce Hard-Cut Wording (Low)
 
-The canonical docs set still contains some transition-language remnants, especially in architecture,
-CLI, and roadmap narratives. The remaining gap is executable enforcement: those docs are not yet
-guarded by a doctor policy that rejects transition-era wording directly.
+The canonical docs set is now guarded by doctor policy checks that reject selected transition-era
+phrases in architecture, CLI, and roadmap docs. The remaining risk is scope drift if new docs are
+added to the canonical set without extending that policy.
 
 Impact:
 
-- The implementation now follows the hard-cut canonical model, but some docs can still imply migration-era ambiguity.
-- A docs-only cleanup can regress unless the canonical doc set is covered by an explicit lint contract.
+- The canonical docs now describe the current runtime model directly instead of migration-era ambiguity.
+- Future canonical-doc additions should extend the doctor check so the hard-cut wording rule stays comprehensive.
 
 ## 5) Dev Runtime Drift Between Config and Docker Compose (Medium)
 
