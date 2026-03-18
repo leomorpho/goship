@@ -796,7 +796,7 @@
     },
     "TKT-182": {
       "title": "Move bridge adapters out of app/foundation and deduplicate jobs wiring",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 6,
       "parent": "TKT-170"
     },
