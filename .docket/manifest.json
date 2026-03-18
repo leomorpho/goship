@@ -748,7 +748,7 @@
     },
     "TKT-174": {
       "title": "Migrate live DTOs out of app/contracts and delete unused contract types",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 6,
       "parent": "TKT-170"
     },
@@ -802,7 +802,7 @@
     },
     "TKT-183": {
       "title": "Delete unregistered/unreachable app routes, controllers, views, and assets",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 7,
       "parent": "TKT-170"
     },
