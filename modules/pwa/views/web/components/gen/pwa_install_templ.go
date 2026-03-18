@@ -8,7 +8,7 @@ package components
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "github.com/leomorpho/goship/app/controller"
+import controller "github.com/leomorpho/goship/app/web/ui"
 import "github.com/leomorpho/goship/app/web/routenames"
 
 // Renders: gradient pill button with a download cloud icon and "Install App" label

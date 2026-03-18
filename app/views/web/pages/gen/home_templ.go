@@ -11,7 +11,7 @@ import templruntime "github.com/a-h/templ/runtime"
 import (
 	"fmt"
 
-	"github.com/leomorpho/goship/app/controller"
+	controller "github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/app/views/web/helpers/gen"
 	"github.com/leomorpho/goship/app/web/viewmodels"
 )

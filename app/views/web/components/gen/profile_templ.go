@@ -10,7 +10,7 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"fmt"
-	"github.com/leomorpho/goship/app/controller"
+	controller "github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/framework/domain"
 )

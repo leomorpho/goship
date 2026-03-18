@@ -8,7 +8,7 @@ package pages
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "github.com/leomorpho/goship/app/controller"
+import controller "github.com/leomorpho/goship/app/web/ui"
 
 // Renders: full-screen green page stating service is up and running
 func HealthCheck(page *controller.Page) templ.Component {

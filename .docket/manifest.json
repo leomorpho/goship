@@ -766,7 +766,7 @@
     },
     "TKT-177": {
       "title": "Migrate templ imports off app/controller and delete alias package",
-      "state": "backlog",
+      "state": "in-progress",
       "priority": 6,
       "parent": "TKT-170"
     },

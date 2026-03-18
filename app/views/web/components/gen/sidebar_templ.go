@@ -9,7 +9,7 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	"github.com/leomorpho/goship/app/controller"
+	controller "github.com/leomorpho/goship/app/web/ui"
 )
 
 // Renders: sidebar with navigation links and logo, sticky and vertically centered

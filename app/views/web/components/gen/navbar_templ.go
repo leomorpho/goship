@@ -9,7 +9,7 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	"github.com/leomorpho/goship/app/controller"
+	controller "github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/app/web/routenames"
 	i18nmodule "github.com/leomorpho/goship/modules/i18n"
 	i18nviews "github.com/leomorpho/goship/modules/i18n/views/gen"
