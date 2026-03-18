@@ -238,6 +238,7 @@ Doctor checks (current):
 - validates enabled modules in `config/modules.yaml` include `db/migrate/migrations` and `db/bobgen.yaml`
 - validates cross-boundary import rules (controller `QueryProfile()` ban, jobs SQL coupling ban, notifications pubsub framework-core coupling ban, module source isolation ban for direct `github.com/leomorpho/goship/*` imports with no runtime allowlist escape hatch)
 - treats unpaired generator markers (`DX005`) and raw controller form parsing (`DX027`) as blocking structural errors
+- rejects canonical-doc transition/deprecation wording with file:line diagnostics and optional historical-reference allowlist support via `docs/policies/02-transition-wording-allowlist.txt` (`DX030`)
 - warns when `/api/` routes appear to render HTML directly instead of using the standard JSON API helpers
 - warns when SQL queries in `db/queries/` reference soft-delete tables without an explicit `deleted_at` filter (`DX028`)
 - i18n strict-mode enforcement (`PAGODA_I18N_STRICT_MODE=off|warn|error`) for hardcoded literals in controllers/views/islands and plural/select locale completeness for `I18n.TC(...)`/`I18n.TS(...)`, with `.i18n-allowlist` support for intentional exceptions (stable `I18N-S-*` selectors preferred; legacy `path:line` still accepted) (`DX029`)
@@ -250,6 +251,7 @@ Managed hook replay contract:
 run-anywhere verification gate:
 
 - `ship verify` includes a `standalone exportability gate` step
+- `ship verify` includes a `hard-cut wording invariant` step that re-checks canonical docs for transition/deprecation drift after `ship doctor --json`
 - the gate rejects control-plane dependency drift in standalone runtime/starter surfaces
 
 Field syntax for `make:model`:

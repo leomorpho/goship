@@ -150,14 +150,61 @@ func TestRunVerify(t *testing.T) {
 		if !payload.OK {
 			t.Fatalf("payload.OK = false, want true")
 		}
-		if len(payload.Steps) != 6 {
-			t.Fatalf("steps len = %d, want 6", len(payload.Steps))
+		if len(payload.Steps) != 7 {
+			t.Fatalf("steps len = %d, want 7", len(payload.Steps))
 		}
 		if payload.Steps[2].Name != "ship doctor --json" {
 			t.Fatalf("doctor step name = %q, want ship doctor --json", payload.Steps[2].Name)
 		}
-		if payload.Steps[5].Name != "standalone exportability gate" {
-			t.Fatalf("final step name = %q, want standalone exportability gate", payload.Steps[5].Name)
+		if payload.Steps[3].Name != "hard-cut wording invariant" {
+			t.Fatalf("hard-cut wording step name = %q, want hard-cut wording invariant", payload.Steps[3].Name)
+		}
+		if payload.Steps[6].Name != "standalone exportability gate" {
+			t.Fatalf("final step name = %q, want standalone exportability gate", payload.Steps[6].Name)
+		}
+	})
+
+	t.Run("fails on hard-cut wording invariant drift", func(t *testing.T) {
+		root := t.TempDir()
+		writeVerifyGoMod(t, root)
+		canonicalDoc := filepath.Join(root, "docs", "reference", "01-cli.md")
+		if err := os.MkdirAll(filepath.Dir(canonicalDoc), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(canonicalDoc, []byte("deprecated alias\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+
+		prevWD := chdirVerifyRoot(t, root)
+		t.Cleanup(func() { _ = os.Chdir(prevWD) })
+
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+		code := RunVerify([]string{"--skip-tests"}, VerifyDeps{
+			Out:          out,
+			Err:          errOut,
+			FindGoModule: findVerifyGoModule,
+			RelocateTempl: func(rootPath string) error {
+				return nil
+			},
+			RunStep: func(name string, args ...string) (int, string, error) {
+				return 0, "ok", nil
+			},
+			LookPath: func(file string) (string, error) {
+				return "/usr/bin/" + file, nil
+			},
+			RunDoctor: func() (int, string, error) {
+				return 0, `{"ok":true,"issues":[]}`, nil
+			},
+		})
+		if code != 1 {
+			t.Fatalf("exit code = %d, want 1", code)
+		}
+		if !strings.Contains(errOut.String(), "verify failed at hard-cut wording invariant") {
+			t.Fatalf("stderr = %q, want hard-cut wording invariant failure", errOut.String())
+		}
+		if !strings.Contains(errOut.String(), "docs/reference/01-cli.md:1") {
+			t.Fatalf("stderr = %q, want file:line diagnostic", errOut.String())
 		}
 	})
 

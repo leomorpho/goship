@@ -375,7 +375,7 @@ Governance cadence:
 2. Breaking changes require:
 - migration notes;
 - codemods or scripted upgrade steps where possible;
-- a compatibility window policy.
+- direct hard-cut wording in canonical docs and CLI surfaces.
 3. Maintain a living "GoShip -> Cherie adoption board" with statuses:
 - `not started`
 - `in progress`

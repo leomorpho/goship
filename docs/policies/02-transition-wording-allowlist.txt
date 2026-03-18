@@ -1,0 +1,2 @@
+# Format: docs/path.md|phrase
+# Use this only for intentional historical references outside the canonical hard-cut docs.

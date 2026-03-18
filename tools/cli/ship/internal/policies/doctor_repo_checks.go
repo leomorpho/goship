@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -298,48 +299,192 @@ func checkExtensionZoneManifest(root string) []DoctorIssue {
 }
 
 func checkCanonicalDocsHardReset(root string) []DoctorIssue {
+	return CheckHardCutDocWording(root)
+}
+
+type hardCutPhraseRule struct {
+	Phrase  string
+	Replace string
+}
+
+type hardCutAllowlistEntry struct {
+	Path   string
+	Phrase string
+}
+
+var hardCutCanonicalDocs = []string{
+	filepath.ToSlash(filepath.Join("docs", "architecture", "03-project-scope-analysis.md")),
+	filepath.ToSlash(filepath.Join("docs", "architecture", "04-http-routes.md")),
+	filepath.ToSlash(filepath.Join("docs", "reference", "01-cli.md")),
+	filepath.ToSlash(filepath.Join("docs", "roadmap", "01-framework-plan.md")),
+}
+
+var hardCutPhraseRules = []hardCutPhraseRule{
+	{
+		Phrase:  "active transitional state",
+		Replace: "describe the current hard-cut model directly",
+	},
+	{
+		Phrase:  "transition-era",
+		Replace: "describe the current hard-cut model directly",
+	},
+	{
+		Phrase:  "legacy compatibility path",
+		Replace: "describe the single canonical command/runtime path",
+	},
+	{
+		Phrase:  "compatibility window",
+		Replace: "document upgrade guidance or migration notes instead of a dual-path window",
+	},
+	{
+		Phrase:  "deprecation period",
+		Replace: "describe the current canonical behavior without transition language",
+	},
+	{
+		Phrase:  "deprecated alias",
+		Replace: "remove alias wording and document the canonical command only",
+	},
+}
+
+func CheckHardCutDocWording(root string) []DoctorIssue {
 	issues := make([]DoctorIssue, 0)
-	canonicalDocs := []string{
-		filepath.Join("docs", "architecture", "03-project-scope-analysis.md"),
-		filepath.Join("docs", "architecture", "04-http-routes.md"),
-		filepath.Join("docs", "reference", "01-cli.md"),
-		filepath.Join("docs", "roadmap", "01-framework-plan.md"),
-	}
-	forbiddenPhrases := []string{
-		"active transitional state",
-		"transition-era",
-		"legacy compatibility path",
+	docsRoot := filepath.Join(root, "docs")
+	if !isDir(docsRoot) {
+		return issues
 	}
 
-	for _, rel := range canonicalDocs {
-		path := filepath.Join(root, rel)
-		if !hasFile(path) {
-			continue
-		}
-		content, err := os.ReadFile(path)
+	allowlist, allowlistIssues := readHardCutAllowlist(root)
+	issues = append(issues, allowlistIssues...)
+
+	_ = filepath.WalkDir(docsRoot, func(currentPath string, d os.DirEntry, err error) error {
 		if err != nil {
+			rel := filepath.ToSlash(strings.TrimPrefix(currentPath, root+string(filepath.Separator)))
 			issues = append(issues, DoctorIssue{
 				Code:    "DX030",
-				File:    filepath.ToSlash(rel),
-				Message: fmt.Sprintf("failed to read canonical doc %s", filepath.ToSlash(rel)),
+				File:    rel,
+				Message: fmt.Sprintf("failed to walk docs path %s", rel),
 				Fix:     err.Error(),
+			})
+			return nil
+		}
+		if d.IsDir() || filepath.Ext(currentPath) != ".md" {
+			return nil
+		}
+		rel, relErr := filepath.Rel(root, currentPath)
+		if relErr != nil {
+			issues = append(issues, DoctorIssue{
+				Code:    "DX030",
+				Message: "failed to resolve docs path for hard-cut wording check",
+				Fix:     relErr.Error(),
+			})
+			return nil
+		}
+		issues = append(issues, scanHardCutDocFile(root, filepath.ToSlash(rel), allowlist)...)
+		return nil
+	})
+
+	return issues
+}
+
+func scanHardCutDocFile(root, rel string, allowlist []hardCutAllowlistEntry) []DoctorIssue {
+	path := filepath.Join(root, filepath.FromSlash(rel))
+	content, err := os.ReadFile(path)
+	if err != nil {
+		return []DoctorIssue{{
+			Code:    "DX030",
+			File:    rel,
+			Message: fmt.Sprintf("failed to read docs file %s", rel),
+			Fix:     err.Error(),
+		}}
+	}
+
+	isCanonical := false
+	for _, canonical := range hardCutCanonicalDocs {
+		if canonical == rel {
+			isCanonical = true
+			break
+		}
+	}
+
+	lines := strings.Split(string(content), "\n")
+	issues := make([]DoctorIssue, 0)
+	for i, raw := range lines {
+		line := strings.ToLower(raw)
+		for _, rule := range hardCutPhraseRules {
+			if !strings.Contains(line, rule.Phrase) {
+				continue
+			}
+			if !isCanonical && allowHardCutPhrase(rel, rule.Phrase, allowlist) {
+				continue
+			}
+			location := fmt.Sprintf("%s:%d", rel, i+1)
+			issues = append(issues, DoctorIssue{
+				Code:    "DX030",
+				File:    location,
+				Message: fmt.Sprintf("%s contains forbidden transition/deprecation wording %q", location, rule.Phrase),
+				Fix:     fmt.Sprintf("%s; %s", rule.Replace, hardCutAllowlistFix(rel, rule.Phrase, isCanonical)),
+			})
+		}
+	}
+	return issues
+}
+
+func hardCutAllowlistFix(rel, phrase string, isCanonical bool) string {
+	if isCanonical {
+		return "rewrite canonical docs to describe the current hard-cut model only"
+	}
+	return fmt.Sprintf("if this is an intentional historical reference outside the canonical docs, add %q to docs/policies/02-transition-wording-allowlist.txt", rel+"|"+phrase)
+}
+
+func allowHardCutPhrase(rel, phrase string, allowlist []hardCutAllowlistEntry) bool {
+	for _, entry := range allowlist {
+		if path.Clean(entry.Path) == path.Clean(rel) && strings.EqualFold(entry.Phrase, phrase) {
+			return true
+		}
+	}
+	return false
+}
+
+func readHardCutAllowlist(root string) ([]hardCutAllowlistEntry, []DoctorIssue) {
+	rel := filepath.ToSlash(filepath.Join("docs", "policies", "02-transition-wording-allowlist.txt"))
+	path := filepath.Join(root, filepath.FromSlash(rel))
+	if !hasFile(path) {
+		return nil, nil
+	}
+
+	content, err := os.ReadFile(path)
+	if err != nil {
+		return nil, []DoctorIssue{{
+			Code:    "DX030",
+			File:    rel,
+			Message: "failed to read hard-cut wording allowlist",
+			Fix:     err.Error(),
+		}}
+	}
+
+	entries := make([]hardCutAllowlistEntry, 0)
+	issues := make([]DoctorIssue, 0)
+	for idx, raw := range strings.Split(string(content), "\n") {
+		line := strings.TrimSpace(raw)
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		pathPart, phrasePart, ok := strings.Cut(line, "|")
+		if !ok || strings.TrimSpace(pathPart) == "" || strings.TrimSpace(phrasePart) == "" {
+			issues = append(issues, DoctorIssue{
+				Code:    "DX030",
+				File:    fmt.Sprintf("%s:%d", rel, idx+1),
+				Message: "invalid hard-cut wording allowlist entry",
+				Fix:     `use "docs/path.md|phrase" entries`,
 			})
 			continue
 		}
-		text := strings.ToLower(string(content))
-		for _, phrase := range forbiddenPhrases {
-			if strings.Contains(text, phrase) {
-				issues = append(issues, DoctorIssue{
-					Code:    "DX030",
-					File:    filepath.ToSlash(rel),
-					Message: fmt.Sprintf("canonical docs contain transition-era wording %q", phrase),
-					Fix:     "rewrite canonical docs to describe the current hard-cut model only",
-				})
-			}
-		}
+		entries = append(entries, hardCutAllowlistEntry{
+			Path:   filepath.ToSlash(strings.TrimSpace(pathPart)),
+			Phrase: strings.ToLower(strings.TrimSpace(phrasePart)),
+		})
 	}
-
-	return issues
+	return entries, issues
 }
 
 func checkGoWorkModules(root string) []DoctorIssue {

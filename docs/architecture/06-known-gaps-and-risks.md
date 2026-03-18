@@ -54,9 +54,10 @@ Impact:
 
 ## Canonical Docs Now Enforce Hard-Cut Wording (Low)
 
-The canonical docs set is now guarded by doctor policy checks that reject selected transition-era
-phrases in architecture, CLI, and roadmap docs. The remaining risk is scope drift if new docs are
-added to the canonical set without extending that policy.
+The canonical docs set is now guarded by doctor policy checks that reject selected legacy-cutover
+phrases in architecture, CLI, and roadmap docs, with file:line diagnostics and an allowlist for
+intentional historical references outside the canonical set. The remaining risk is scope drift if
+new docs are added to the canonical set without extending that policy.
 
 Impact:
 

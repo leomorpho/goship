@@ -133,6 +133,12 @@ func RunVerify(args []string, d VerifyDeps) int {
 			return nil
 		}
 
+		if issues := policies.CheckHardCutDocWording("."); len(issues) > 0 {
+			appendStep("hard-cut wording invariant", false, formatVerifyDoctorIssues(issues), "")
+			return nil
+		}
+		appendStep("hard-cut wording invariant", true, "canonical docs avoid transition/deprecation wording", "")
+
 		if _, err := lookPath("nilaway"); err != nil {
 			appendStep("nilaway ./...", true, "nilaway not installed; skipping", "warning")
 		} else {
@@ -227,6 +233,18 @@ func mergeVerifyOutput(output string, err error) string {
 		return err.Error()
 	}
 	return output + "\n" + err.Error()
+}
+
+func formatVerifyDoctorIssues(issues []policies.DoctorIssue) string {
+	lines := make([]string, 0, len(issues))
+	for _, issue := range issues {
+		line := fmt.Sprintf("[%s] %s", issue.Code, issue.Message)
+		if issue.Fix != "" {
+			line += "\nfix: " + issue.Fix
+		}
+		lines = append(lines, line)
+	}
+	return strings.Join(lines, "\n")
 }
 
 func defaultVerifyRunStep(name string, args ...string) (int, string, error) {

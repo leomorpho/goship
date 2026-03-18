@@ -565,6 +565,34 @@ func registerAuthRoutes() {
 
 		issues := RunDoctorChecks(root)
 		mustContainIssueCode(t, issues, "DX030")
+		if !containsDoctorIssueMessage(issues, "docs/architecture/03-project-scope-analysis.md:1") {
+			t.Fatalf("expected DX030 to include file:line diagnostics, got %+v", issues)
+		}
+	})
+
+	t.Run("noncanonical historical references can be allowlisted", func(t *testing.T) {
+		root := t.TempDir()
+		writeDoctorFixture(t, root)
+
+		historyDoc := filepath.Join(root, "docs", "guides", "99-history.md")
+		if err := os.MkdirAll(filepath.Dir(historyDoc), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(historyDoc, []byte("This guide keeps a transition-era note.\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		allowlistPath := filepath.Join(root, "docs", "policies", "02-transition-wording-allowlist.txt")
+		if err := os.MkdirAll(filepath.Dir(allowlistPath), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(allowlistPath, []byte("docs/guides/99-history.md|transition-era\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+
+		issues := RunDoctorChecks(root)
+		if containsDoctorIssueMessage(issues, "docs/guides/99-history.md:1") {
+			t.Fatalf("allowlisted historical reference should not produce DX030, got %+v", issues)
+		}
 	})
 
 	t.Run("go.work references missing module", func(t *testing.T) {
@@ -734,6 +762,18 @@ type Container struct{}
 		filepath.Join(root, "config", "modules.yaml"):                        "modules: []\n",
 		filepath.Join(root, "docs", "00-index.md"):                           "# Index\n",
 		filepath.Join(root, "docs", "architecture", "01-architecture.md"):    "# Architecture\n",
+		filepath.Join(root, "docs", "architecture", "10-extension-zones.md"): strings.Join([]string{
+			"## Extension Zones",
+			"- `app/`",
+			"",
+			"## Protected Contract Zones",
+			"- `framework/`",
+			"- `app/router.go`",
+			"- `app/foundation/container.go`",
+			"- `config/modules.yaml`",
+			"- `tools/agent-policy/allowed-commands.yaml`",
+			"",
+		}, "\n"),
 		filepath.Join(root, "docs", "architecture", "08-cognitive-model.md"): "# Cognitive Model\n",
 		filepath.Join(root, "docs", "reference", "01-cli.md"): strings.Join([]string{
 			"## Minimal V1 Command Set",
@@ -860,6 +900,15 @@ func mustContainIssueCode(t *testing.T, issues []DoctorIssue, code string) {
 		}
 	}
 	t.Fatalf("expected issue code %s, got %+v", code, issues)
+}
+
+func containsDoctorIssueMessage(issues []DoctorIssue, needle string) bool {
+	for _, issue := range issues {
+		if strings.Contains(issue.Message, needle) || strings.Contains(issue.File, needle) {
+			return true
+		}
+	}
+	return false
 }
 
 func mustNotContainIssueCode(t *testing.T, issues []DoctorIssue, code string) {
