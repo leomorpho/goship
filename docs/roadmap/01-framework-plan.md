@@ -526,6 +526,10 @@ OSS workflow-docs contract tracked under `TKT-252` / `TKT-317` / `TKT-318`:
 Shared-infra adoption reporting tracked under `TKT-238` / `TKT-355` / `TKT-356`:
 - `ship describe` now exposes a non-blocking shared-infra adoption summary;
 - the summary reports shared module adoption alongside app-owned controller/job/command counts to guide upstreaming decisions.
+
+Pagoda-intake governance tracked under `TKT-253` / `TKT-357` / `TKT-358`:
+- the executable spec now pins a recurring Pagoda intake cadence plus an adopt/adapt/skip decision log;
+- the docs set is expected to expose the cadence and a canonical intake table for follow-up actions.
 3. ActiveStorage-like file attachments:
 - attach files to entities;
 - support local + S3 backends;

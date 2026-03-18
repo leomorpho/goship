@@ -228,6 +228,16 @@ Impact:
 - Module upstreaming decisions now have one machine-readable baseline metric.
 - Future shared-infra shifts should extend the describe payload and the scope/CLI docs in the same change stream.
 
+## 21) Pagoda Intake Governance Is Still Implicit (Low)
+
+GoShip documents Pagoda-inspired ideas, but the repo still lacks a canonical cadence and explicit
+adopt/adapt/skip decision log for recurring upstream intake.
+
+Impact:
+
+- Upstream review can drift into ad hoc, memory-based decisions.
+- Contributors do not yet have one canonical place to record intake outcomes and follow-up actions.
+
 ## 16) No Built-In OpenAPI Generation Command (Informational)
 
 The `ship api:spec` command and `app/contracts`-based spec flow were removed in the app-minimalization cleanup stream.
