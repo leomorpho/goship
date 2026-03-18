@@ -823,6 +823,1210 @@
       "state": "done",
       "priority": 7,
       "parent": "TKT-170"
+    },
+    "TKT-187": {
+      "title": "Program: GoShip canonical hard-cutover and DX-first productization",
+      "state": "backlog",
+      "priority": 4
+    },
+    "TKT-188": {
+      "title": "Phase G1: Hard reset and canonicalization",
+      "state": "backlog",
+      "priority": 5,
+      "parent": "TKT-187"
+    },
+    "TKT-189": {
+      "title": "Phase G2: Single-binary golden path",
+      "state": "backlog",
+      "priority": 5,
+      "parent": "TKT-187"
+    },
+    "TKT-190": {
+      "title": "Phase G3: Growth path and promotion tooling",
+      "state": "backlog",
+      "priority": 5,
+      "parent": "TKT-187"
+    },
+    "TKT-191": {
+      "title": "Phase G4: CLI and generators as product surface",
+      "state": "backlog",
+      "priority": 6,
+      "parent": "TKT-187"
+    },
+    "TKT-192": {
+      "title": "Phase G5: Test strategy rebuild and CI strictness",
+      "state": "backlog",
+      "priority": 6,
+      "parent": "TKT-187"
+    },
+    "TKT-193": {
+      "title": "Phase G6: Batteries, compatibility policy, and alpha gate",
+      "state": "backlog",
+      "priority": 6,
+      "parent": "TKT-187"
+    },
+    "TKT-194": {
+      "title": "G1-01: Purge transition-era runtime and CLI dual paths",
+      "state": "todo",
+      "priority": 5,
+      "parent": "TKT-188"
+    },
+    "TKT-195": {
+      "title": "G1-02: Enforce strict startup capability contracts",
+      "state": "todo",
+      "priority": 5,
+      "parent": "TKT-188"
+    },
+    "TKT-196": {
+      "title": "G1-03: Promote structural warnings to hard errors and close DX020 allowlists",
+      "state": "todo",
+      "priority": 5,
+      "parent": "TKT-188"
+    },
+    "TKT-197": {
+      "title": "G1-04: Finalize notification surface and remove unreachable web artifacts",
+      "state": "todo",
+      "priority": 6,
+      "parent": "TKT-188"
+    },
+    "TKT-198": {
+      "title": "G2-01: Make single-node runtime profile the default local truth",
+      "state": "todo",
+      "priority": 5,
+      "parent": "TKT-189"
+    },
+    "TKT-199": {
+      "title": "G2-02: Converge ship dev and make dev to one-command app-on loop",
+      "state": "todo",
+      "priority": 5,
+      "parent": "TKT-189"
+    },
+    "TKT-200": {
+      "title": "G2-03: Unify cache contract behavior across memory and redis paths",
+      "state": "todo",
+      "priority": 5,
+      "parent": "TKT-189"
+    },
+    "TKT-201": {
+      "title": "G3-01: Implement SQLite export hook with manifest checksum contract",
+      "state": "todo",
+      "priority": 5,
+      "parent": "TKT-190"
+    },
+    "TKT-202": {
+      "title": "G3-02: Implement import and post-import verification hooks",
+      "state": "todo",
+      "priority": 5,
+      "parent": "TKT-190"
+    },
+    "TKT-203": {
+      "title": "G3-03: Ship db:promote orchestration and profile/adapter mutation commands",
+      "state": "todo",
+      "priority": 6,
+      "parent": "TKT-190"
+    },
+    "TKT-204": {
+      "title": "G4-01: Implement ship destroy MVP reverse scaffolding",
+      "state": "todo",
+      "priority": 6,
+      "parent": "TKT-191"
+    },
+    "TKT-205": {
+      "title": "G4-02: Implement ship make:island with mount/test contract",
+      "state": "todo",
+      "priority": 6,
+      "parent": "TKT-191"
+    },
+    "TKT-206": {
+      "title": "G4-03: Opinionate make:* outputs and enforce generator idempotency matrix",
+      "state": "todo",
+      "priority": 6,
+      "parent": "TKT-191"
+    },
+    "TKT-207": {
+      "title": "G5-01: Rewrite Playwright suite to current GoShip golden flows",
+      "state": "todo",
+      "priority": 6,
+      "parent": "TKT-192"
+    },
+    "TKT-208": {
+      "title": "G5-02: Add startup/HTTP/CLI contract test suites",
+      "state": "todo",
+      "priority": 6,
+      "parent": "TKT-192"
+    },
+    "TKT-209": {
+      "title": "G5-03: Add CI guardrails for doc-sync and dead-route regression",
+      "state": "todo",
+      "priority": 6,
+      "parent": "TKT-192"
+    },
+    "TKT-210": {
+      "title": "G6-01: Deliver core module batteries (storage/auth/admin ergonomics)",
+      "state": "todo",
+      "priority": 6,
+      "parent": "TKT-193"
+    },
+    "TKT-211": {
+      "title": "G6-02: Define module compatibility/version policy and enforce via verify",
+      "state": "todo",
+      "priority": 6,
+      "parent": "TKT-193"
+    },
+    "TKT-212": {
+      "title": "G6-03: Finalize verify profiles, Cherie sync baseline, and alpha contract gate",
+      "state": "backlog",
+      "priority": 7,
+      "parent": "TKT-193"
+    },
+    "TKT-213": {
+      "title": "Program: Interaction contract between GoShip runtime and Control Plane authority",
+      "state": "backlog",
+      "priority": 4
+    },
+    "TKT-214": {
+      "title": "Phase INT1: Contract handshake and compatibility gating",
+      "state": "backlog",
+      "priority": 5,
+      "parent": "TKT-213"
+    },
+    "TKT-215": {
+      "title": "Phase INT2: Signed control-surface hardening",
+      "state": "backlog",
+      "priority": 5,
+      "parent": "TKT-213"
+    },
+    "TKT-216": {
+      "title": "Phase INT3: Managed override authority synchronization",
+      "state": "backlog",
+      "priority": 5,
+      "parent": "TKT-213"
+    },
+    "TKT-217": {
+      "title": "Phase INT4: Backup/restore/promotion interoperability",
+      "state": "backlog",
+      "priority": 5,
+      "parent": "TKT-213"
+    },
+    "TKT-218": {
+      "title": "Phase INT5: Deployment and upgrade safety interoperability",
+      "state": "backlog",
+      "priority": 6,
+      "parent": "TKT-213"
+    },
+    "TKT-219": {
+      "title": "Phase INT6: Module divergence and operations telemetry interoperability",
+      "state": "backlog",
+      "priority": 6,
+      "parent": "TKT-213"
+    },
+    "TKT-220": {
+      "title": "INT1-01: Add runtime contract version + metadata handshake schema",
+      "state": "todo",
+      "priority": 5,
+      "parent": "TKT-214"
+    },
+    "TKT-221": {
+      "title": "INT1-02: Add orchestration preflight that blocks contract mismatches",
+      "state": "todo",
+      "priority": 5,
+      "parent": "TKT-214"
+    },
+    "TKT-222": {
+      "title": "INT2-01: Publish shared signature vectors and canonical payload library",
+      "state": "todo",
+      "priority": 5,
+      "parent": "TKT-215"
+    },
+    "TKT-223": {
+      "title": "INT2-02: Implement distributed replay defense and managed hook key rotation",
+      "state": "todo",
+      "priority": 5,
+      "parent": "TKT-215"
+    },
+    "TKT-224": {
+      "title": "INT3-01: Version managed key registry shared between runtime and control plane",
+      "state": "todo",
+      "priority": 5,
+      "parent": "TKT-216"
+    },
+    "TKT-225": {
+      "title": "INT3-02: Add effective-source drift detection and rollback semantics",
+      "state": "todo",
+      "priority": 5,
+      "parent": "TKT-216"
+    },
+    "TKT-226": {
+      "title": "INT4-01: Lock backup manifest v1 and restore evidence contract",
+      "state": "todo",
+      "priority": 5,
+      "parent": "TKT-217"
+    },
+    "TKT-227": {
+      "title": "INT4-02: Bridge promotion orchestration contract to runtime hooks",
+      "state": "todo",
+      "priority": 5,
+      "parent": "TKT-217"
+    },
+    "TKT-228": {
+      "title": "INT5-01: Add upgrade readiness report and blocker schema",
+      "state": "todo",
+      "priority": 6,
+      "parent": "TKT-218"
+    },
+    "TKT-229": {
+      "title": "INT5-02: Define rollback/canary contract for orchestrated upgrades",
+      "state": "todo",
+      "priority": 6,
+      "parent": "TKT-218"
+    },
+    "TKT-230": {
+      "title": "INT6-01: Emit module adoption metadata from runtime surfaces",
+      "state": "todo",
+      "priority": 6,
+      "parent": "TKT-219"
+    },
+    "TKT-231": {
+      "title": "INT6-02: Add divergence classification and escalation workflow contract",
+      "state": "todo",
+      "priority": 6,
+      "parent": "TKT-219"
+    },
+    "TKT-232": {
+      "title": "G1-05: Canonicalize route registration and composition lifecycle contracts",
+      "state": "todo",
+      "priority": 6,
+      "parent": "TKT-188"
+    },
+    "TKT-233": {
+      "title": "G1-06: Hard-reset docs to canonical model only",
+      "state": "todo",
+      "priority": 6,
+      "parent": "TKT-188"
+    },
+    "TKT-234": {
+      "title": "G2-04: Align local runtime contract across config, compose, make, and docs",
+      "state": "todo",
+      "priority": 6,
+      "parent": "TKT-189"
+    },
+    "TKT-235": {
+      "title": "G2-05: Implement ship runtime:report --json capability report",
+      "state": "todo",
+      "priority": 6,
+      "parent": "TKT-189"
+    },
+    "TKT-236": {
+      "title": "G5-04: Add dedicated module-isolation and SQL portability CI suites",
+      "state": "todo",
+      "priority": 6,
+      "parent": "TKT-192"
+    },
+    "TKT-237": {
+      "title": "G6-04: Add Cherie compatibility smoke-test CI baseline",
+      "state": "todo",
+      "priority": 6,
+      "parent": "TKT-193"
+    },
+    "TKT-238": {
+      "title": "G6-05: Add shared-infra adoption trend reporting",
+      "state": "backlog",
+      "priority": 7,
+      "parent": "TKT-193"
+    },
+    "TKT-239": {
+      "title": "INT2-03: Define signed cron entrypoint contract and verification suite",
+      "state": "todo",
+      "priority": 5,
+      "parent": "TKT-215"
+    },
+    "TKT-240": {
+      "title": "INT4-03: Add promotion state machine contract with partial-transition blocking",
+      "state": "todo",
+      "priority": 5,
+      "parent": "TKT-217"
+    },
+    "TKT-241": {
+      "title": "INT5-03: Enforce deploy and upgrade policy by contract version",
+      "state": "todo",
+      "priority": 6,
+      "parent": "TKT-218"
+    },
+    "TKT-242": {
+      "title": "INT6-03: Link incident and recovery metadata across runtime and control-plane records",
+      "state": "todo",
+      "priority": 6,
+      "parent": "TKT-219"
+    },
+    "TKT-243": {
+      "title": "G1-07: Define and enforce extension zones vs protected contract zones",
+      "state": "todo",
+      "priority": 6,
+      "parent": "TKT-188"
+    },
+    "TKT-244": {
+      "title": "G3-04: Move managed hook replay protection to shared/distributed store",
+      "state": "todo",
+      "priority": 6,
+      "parent": "TKT-190"
+    },
+    "TKT-245": {
+      "title": "G6-06: Add standalone exportability and run-anywhere verification gate",
+      "state": "todo",
+      "priority": 6,
+      "parent": "TKT-193"
+    },
+    "TKT-246": {
+      "title": "INT1-03: Add cross-lane dependency matrix and must-finish-before contract map",
+      "state": "backlog",
+      "priority": 6,
+      "parent": "TKT-214"
+    },
+    "TKT-247": {
+      "title": "INT5-04: Define staged rollout and canary decision contract",
+      "state": "todo",
+      "priority": 6,
+      "parent": "TKT-218"
+    },
+    "TKT-248": {
+      "title": "Roadmap Hygiene: Normalize new epic tickets with scope, likely paths, and verify commands",
+      "state": "backlog",
+      "priority": 7,
+      "parent": "TKT-187"
+    },
+    "TKT-249": {
+      "title": "G1-08: Hard API and CLI reset to one canonical command path per concern",
+      "state": "todo",
+      "priority": 6,
+      "parent": "TKT-188"
+    },
+    "TKT-250": {
+      "title": "G4-04: Implement ship make:job generator with core.Jobs-first conventions",
+      "state": "todo",
+      "priority": 6,
+      "parent": "TKT-191"
+    },
+    "TKT-251": {
+      "title": "G4-05: Implement ship make:mailer generator with templ preview wiring",
+      "state": "todo",
+      "priority": 6,
+      "parent": "TKT-191"
+    },
+    "TKT-252": {
+      "title": "G6-07: Publish task-oriented OSS docs set as canonical workflows",
+      "state": "todo",
+      "priority": 6,
+      "parent": "TKT-193"
+    },
+    "TKT-253": {
+      "title": "G6-08: Add Pagoda intake governance cadence and adopt/adapt/skip log",
+      "state": "backlog",
+      "priority": 7,
+      "parent": "TKT-193"
+    },
+    "TKT-254": {
+      "title": "Roadmap Hygiene: Enforce atomic ticket decomposition and TDD/UI verification standards",
+      "state": "backlog",
+      "priority": 3,
+      "parent": "TKT-248"
+    },
+    "TKT-255": {
+      "title": "G1-01-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-194"
+    },
+    "TKT-256": {
+      "title": "G1-01-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-194"
+    },
+    "TKT-257": {
+      "title": "G1-02-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-195"
+    },
+    "TKT-258": {
+      "title": "G1-02-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-195"
+    },
+    "TKT-259": {
+      "title": "G1-03-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-196"
+    },
+    "TKT-260": {
+      "title": "G1-03-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-196"
+    },
+    "TKT-261": {
+      "title": "G1-04-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-197"
+    },
+    "TKT-262": {
+      "title": "G1-04-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-197"
+    },
+    "TKT-263": {
+      "title": "G2-01-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-198"
+    },
+    "TKT-264": {
+      "title": "G2-01-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-198"
+    },
+    "TKT-265": {
+      "title": "G2-02-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-199"
+    },
+    "TKT-266": {
+      "title": "G2-02-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-199"
+    },
+    "TKT-267": {
+      "title": "G2-03-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-200"
+    },
+    "TKT-268": {
+      "title": "G2-03-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-200"
+    },
+    "TKT-269": {
+      "title": "G3-01-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-201"
+    },
+    "TKT-270": {
+      "title": "G3-01-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-201"
+    },
+    "TKT-271": {
+      "title": "G3-02-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-202"
+    },
+    "TKT-272": {
+      "title": "G3-02-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-202"
+    },
+    "TKT-273": {
+      "title": "G3-03-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-203"
+    },
+    "TKT-274": {
+      "title": "G3-03-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-203"
+    },
+    "TKT-275": {
+      "title": "G4-01-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-204"
+    },
+    "TKT-276": {
+      "title": "G4-01-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-204"
+    },
+    "TKT-277": {
+      "title": "G4-02-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-205"
+    },
+    "TKT-278": {
+      "title": "G4-02-B: Implement, verify, and sync docs (UI + Playwright)",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-205"
+    },
+    "TKT-279": {
+      "title": "G4-03-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-206"
+    },
+    "TKT-280": {
+      "title": "G4-03-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-206"
+    },
+    "TKT-281": {
+      "title": "G5-01-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-207"
+    },
+    "TKT-282": {
+      "title": "G5-01-B: Implement, verify, and sync docs (UI + Playwright)",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-207"
+    },
+    "TKT-283": {
+      "title": "G5-02-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-208"
+    },
+    "TKT-284": {
+      "title": "G5-02-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-208"
+    },
+    "TKT-285": {
+      "title": "G5-03-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-209"
+    },
+    "TKT-286": {
+      "title": "G5-03-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-209"
+    },
+    "TKT-287": {
+      "title": "G6-01-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-210"
+    },
+    "TKT-288": {
+      "title": "G6-01-B: Implement, verify, and sync docs (UI + Playwright)",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-210"
+    },
+    "TKT-289": {
+      "title": "G6-02-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-211"
+    },
+    "TKT-290": {
+      "title": "G6-02-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-211"
+    },
+    "TKT-291": {
+      "title": "G6-03-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-212"
+    },
+    "TKT-292": {
+      "title": "G6-03-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-212"
+    },
+    "TKT-293": {
+      "title": "G1-05-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-232"
+    },
+    "TKT-294": {
+      "title": "G1-05-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-232"
+    },
+    "TKT-295": {
+      "title": "G1-06-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-233"
+    },
+    "TKT-296": {
+      "title": "G1-06-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-233"
+    },
+    "TKT-297": {
+      "title": "G2-04-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-234"
+    },
+    "TKT-298": {
+      "title": "G2-04-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-234"
+    },
+    "TKT-299": {
+      "title": "G2-05-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-235"
+    },
+    "TKT-300": {
+      "title": "G2-05-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-235"
+    },
+    "TKT-301": {
+      "title": "G5-04-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-236"
+    },
+    "TKT-302": {
+      "title": "G5-04-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-236"
+    },
+    "TKT-303": {
+      "title": "G6-04-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-237"
+    },
+    "TKT-304": {
+      "title": "G6-04-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-237"
+    },
+    "TKT-305": {
+      "title": "G1-07-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-243"
+    },
+    "TKT-306": {
+      "title": "G1-07-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-243"
+    },
+    "TKT-307": {
+      "title": "G3-04-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-244"
+    },
+    "TKT-308": {
+      "title": "G3-04-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-244"
+    },
+    "TKT-309": {
+      "title": "G6-06-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-245"
+    },
+    "TKT-310": {
+      "title": "G6-06-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-245"
+    },
+    "TKT-311": {
+      "title": "G1-08-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-249"
+    },
+    "TKT-312": {
+      "title": "G1-08-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-249"
+    },
+    "TKT-313": {
+      "title": "G4-04-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-250"
+    },
+    "TKT-314": {
+      "title": "G4-04-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-250"
+    },
+    "TKT-315": {
+      "title": "G4-05-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-251"
+    },
+    "TKT-316": {
+      "title": "G4-05-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-251"
+    },
+    "TKT-317": {
+      "title": "G6-07-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-252"
+    },
+    "TKT-318": {
+      "title": "G6-07-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-252"
+    },
+    "TKT-319": {
+      "title": "INT1-01-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-220"
+    },
+    "TKT-320": {
+      "title": "INT1-01-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-220"
+    },
+    "TKT-321": {
+      "title": "INT1-02-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-221"
+    },
+    "TKT-322": {
+      "title": "INT1-02-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-221"
+    },
+    "TKT-323": {
+      "title": "INT2-01-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-222"
+    },
+    "TKT-324": {
+      "title": "INT2-01-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-222"
+    },
+    "TKT-325": {
+      "title": "INT2-02-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-223"
+    },
+    "TKT-326": {
+      "title": "INT2-02-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-223"
+    },
+    "TKT-327": {
+      "title": "INT3-01-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-224"
+    },
+    "TKT-328": {
+      "title": "INT3-01-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-224"
+    },
+    "TKT-329": {
+      "title": "INT3-02-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-225"
+    },
+    "TKT-330": {
+      "title": "INT3-02-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-225"
+    },
+    "TKT-331": {
+      "title": "INT4-01-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-226"
+    },
+    "TKT-332": {
+      "title": "INT4-01-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-226"
+    },
+    "TKT-333": {
+      "title": "INT4-02-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-227"
+    },
+    "TKT-334": {
+      "title": "INT4-02-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-227"
+    },
+    "TKT-335": {
+      "title": "INT5-01-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-228"
+    },
+    "TKT-336": {
+      "title": "INT5-01-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-228"
+    },
+    "TKT-337": {
+      "title": "INT5-02-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-229"
+    },
+    "TKT-338": {
+      "title": "INT5-02-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-229"
+    },
+    "TKT-339": {
+      "title": "INT6-01-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-230"
+    },
+    "TKT-340": {
+      "title": "INT6-01-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-230"
+    },
+    "TKT-341": {
+      "title": "INT6-02-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-231"
+    },
+    "TKT-342": {
+      "title": "INT6-02-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-231"
+    },
+    "TKT-343": {
+      "title": "INT2-03-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-239"
+    },
+    "TKT-344": {
+      "title": "INT2-03-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-239"
+    },
+    "TKT-345": {
+      "title": "INT4-03-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-240"
+    },
+    "TKT-346": {
+      "title": "INT4-03-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-240"
+    },
+    "TKT-347": {
+      "title": "INT5-03-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-241"
+    },
+    "TKT-348": {
+      "title": "INT5-03-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-241"
+    },
+    "TKT-349": {
+      "title": "INT6-03-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-242"
+    },
+    "TKT-350": {
+      "title": "INT6-03-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-242"
+    },
+    "TKT-351": {
+      "title": "INT1-03-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-246"
+    },
+    "TKT-352": {
+      "title": "INT1-03-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-246"
+    },
+    "TKT-353": {
+      "title": "INT5-04-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-247"
+    },
+    "TKT-354": {
+      "title": "INT5-04-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-247"
+    },
+    "TKT-355": {
+      "title": "G6-05-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-238"
+    },
+    "TKT-356": {
+      "title": "G6-05-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-238"
+    },
+    "TKT-357": {
+      "title": "G6-08-A: Define executable spec and red tests",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-253"
+    },
+    "TKT-358": {
+      "title": "G6-08-B: Implement, verify, and sync docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-253"
+    },
+    "TKT-359": {
+      "title": "G1-09: Enforce no-compatibility and no-deprecation invariant in verify and doctor",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-188"
+    },
+    "TKT-360": {
+      "title": "G6-09: Add ship new under-two-minute bootstrap benchmark and CI regression gate",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-193"
+    },
+    "TKT-361": {
+      "title": "G4-08: Implement ship module:add deterministic install and wiring workflow",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-191"
+    },
+    "TKT-362": {
+      "title": "G4-09: Implement ship module:remove hard cleanup workflow",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-191"
+    },
+    "TKT-363": {
+      "title": "G5-06: Enforce UI change verification policy in CI (Playwright + browser evidence)",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-192"
+    },
+    "TKT-364": {
+      "title": "G1-10: Add docs lint to reject transition-era wording in canonical architecture docs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-233"
+    },
+    "TKT-365": {
+      "title": "INT3-03: Add managed override UX contract tests for effective source and local read-only behavior",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-216"
+    },
+    "TKT-366": {
+      "title": "INT5-05: Enforce PR-only AI deploy guard in orchestration policy",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-218"
+    },
+    "TKT-367": {
+      "title": "G3-03.1: Implement ship db:promote command contract and UX",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-203"
+    },
+    "TKT-368": {
+      "title": "G3-03.2: Implement ship profile:set deterministic topology presets",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-203"
+    },
+    "TKT-369": {
+      "title": "G3-03.3: Implement ship adapter:set validation and invalid-combo rejection",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-203"
+    },
+    "TKT-370": {
+      "title": "G4-03.4: Define canonical make output contract per generator type",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-206"
+    },
+    "TKT-371": {
+      "title": "G4-03.5: Implement generator idempotency matrix runner",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-206"
+    },
+    "TKT-372": {
+      "title": "G4-03.6: Add CI gate for generator snapshot and idempotency drift",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-206"
+    },
+    "TKT-373": {
+      "title": "G5-02.4: Add startup failure-path contract suite",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-208"
+    },
+    "TKT-374": {
+      "title": "G5-02.5: Add HTTP contract suite for public and auth route groups",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-208"
+    },
+    "TKT-375": {
+      "title": "G5-02.6: Add CLI golden contract suite for doctor/routes/describe/verify",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-208"
+    },
+    "TKT-376": {
+      "title": "G6-01.6: Ship modules/storage as first-class installable module",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-210"
+    },
+    "TKT-377": {
+      "title": "G6-01.7: Ship modules/auth ergonomics pass with convention-first defaults",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-210"
+    },
+    "TKT-378": {
+      "title": "G6-01.8: Ship admin scaffolding MVP with strict module boundaries",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-210"
+    },
+    "TKT-379": {
+      "title": "G6-01.9: Ship jobs inspector surface via core.JobsInspector only",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-210"
+    },
+    "TKT-380": {
+      "title": "G6-01.10: Ship events async bridge with explicit delivery contract",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-210"
+    },
+    "TKT-381": {
+      "title": "G6-03.4: Implement verify profile tiers (fast, standard, strict)",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-212"
+    },
+    "TKT-382": {
+      "title": "G6-03.5: Add Cherie compatibility sync baseline and smoke gate",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-212"
+    },
+    "TKT-383": {
+      "title": "G6-03.6: Freeze v0.1.0-alpha command and API contract gate",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-212"
+    },
+    "TKT-384": {
+      "title": "INT4-01.3: Define backup manifest v1 schema and checksum invariants",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-226"
+    },
+    "TKT-385": {
+      "title": "INT4-01.4: Define restore evidence payload and post-restore validation contract",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-226"
+    },
+    "TKT-386": {
+      "title": "G5-04.3: Add CI suite for module-isolation boundary enforcement",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-236"
+    },
+    "TKT-387": {
+      "title": "G5-04.4: Add CI suite for sql-core-v1 portability constraints",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-236"
     }
   }
 }
