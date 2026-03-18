@@ -1232,7 +1232,7 @@
     },
     "TKT-255": {
       "title": "G1-01-A: Define executable spec and red tests",
-      "state": "in-progress",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-194"
     },
