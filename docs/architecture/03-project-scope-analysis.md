@@ -25,6 +25,10 @@ upstreaming metric.
 profile and process preset values deterministically, giving the CLI a first-class way to move
 between the canonical topology modes.
 
+`ship adapter:set <db|cache|jobs|pubsub|storage|mailer>=<impl>...` now rewrites canonical adapter
+env vars in the local `.env` file and rejects invalid runtime selections before they can drift into
+an unsupported runtime plan.
+
 ## Runtime Programs
 
 - `cmd/web/main.go`: main HTTP application server

@@ -84,6 +84,13 @@ func (c CLI) Run(args []string) int {
 		}
 		fmt.Fprintf(c.Err, "use namespaced profile commands, e.g. ship profile:%s\n", args[1])
 		return 1
+	case "adapter":
+		if len(args) == 1 || args[1] == "help" || args[1] == "-h" || args[1] == "--help" {
+			cmd.PrintAdapterHelp(c.Out)
+			return 0
+		}
+		fmt.Fprintf(c.Err, "use namespaced adapter commands, e.g. ship adapter:%s\n", args[1])
+		return 1
 	case "i18n":
 		if len(args) == 1 || args[1] == "help" || args[1] == "-h" || args[1] == "--help" {
 			cmd.PrintI18nHelp(c.Out)
@@ -163,6 +170,8 @@ func (c CLI) runNamespaced(args []string) (int, bool) {
 		return c.runConfig(rest), true
 	case "profile":
 		return c.runProfile(rest), true
+	case "adapter":
+		return c.runAdapter(rest), true
 	case "i18n":
 		return c.runI18n(rest), true
 	case "run":
@@ -336,6 +345,10 @@ func (c CLI) runConfig(args []string) int {
 
 func (c CLI) runProfile(args []string) int {
 	return cmd.RunProfile(args, cmd.ProfileDeps{Out: c.Out, Err: c.Err})
+}
+
+func (c CLI) runAdapter(args []string) int {
+	return cmd.RunAdapter(args, cmd.AdapterDeps{Out: c.Out, Err: c.Err, LoadConfig: config.GetConfig})
 }
 
 func (c CLI) runI18n(args []string) int {

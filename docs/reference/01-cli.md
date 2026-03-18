@@ -133,6 +133,8 @@ These commands are implemented as wrappers over existing workflows:
 - `ship run:command <name> [-- <args...>]` -> `go run ./cmd/cli/main.go <name> <args...>`
 - `ship test` -> canonical fast quality loop: runs the curated unit package list from `scripts/test/unit-packages.txt`, then compile-only checks for `scripts/test/compile-packages.txt`; falls back to `go test ./...` when the package lists are absent
 - `ship test --integration` -> `go test -tags=integration ./...`
+- `ship profile:set <single-binary|standard|distributed>` -> rewrites the project `.env` runtime profile and process preset values so the canonical topology can be selected deterministically
+- `ship adapter:set <db|cache|jobs|pubsub|storage|mailer>=<impl>...` -> rewrites canonical adapter env vars in the project `.env` and rejects invalid runtime selections before they drift into an unsupported plan
 - `ship module:add <name>` -> updates `config/modules.yaml`, app marker snippets, root `go.mod` `require`/`replace` directives, and `go.work` `use` entries for standalone batteries with local `go.mod` files
 - `ship module:remove <name>` -> removes those managed entries when safe; fails with exact blocker file paths when the repo still imports the module outside managed wiring points
 - `ship verify` -> rejects standalone-battery drift when root `go.mod` dependencies on installable modules are not the canonical local-dev shape (`v0.0.0` + local `replace` + matching `go.work use`), and enforces the canonical no-compatibility/no-deprecation wording invariant across the operator-facing docs set
