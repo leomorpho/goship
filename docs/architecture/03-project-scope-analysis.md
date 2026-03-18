@@ -211,6 +211,7 @@ Storage modes:
 Runtime DB metadata contract:
 
 - `config.Config.RuntimeMetadata()` now provides a normalized DB metadata snapshot for status/reporting surfaces.
+- `ship runtime:report --json` emits the canonical machine-readable runtime capability payload from config/runtime-plan metadata, including active profile, adapters, process plan, web features, DB runtime metadata, and managed-key sources.
 - Metadata includes DB mode/driver, migration tracking table, portability profile, and SQLite-to-Postgres compatibility path (`sqlite-to-postgres-manual-v1`).
 - `config.Config.ManagedSettingStatuses()` provides normalized managed-setting access states for settings/admin surfaces.
 - Managed mode now includes a signed control-plane bridge at `/managed/status`, `/managed/backup`, and `/managed/restore`.

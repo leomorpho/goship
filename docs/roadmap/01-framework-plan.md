@@ -763,8 +763,8 @@ Local-runtime alignment tracked under `TKT-234` / `TKT-297` / `TKT-298`:
 - the default local contract is app-on single-node first, with compose reserved for optional accessory services.
 
 Runtime-report contract tracked under `TKT-235` / `TKT-299` / `TKT-300`:
-- the runtime metadata/config primitives already exist in code;
-- executable red specs now pin the intended CLI contract: `ship runtime:report --json` should become the canonical machine-readable runtime capability surface.
+- the runtime metadata/config primitives now feed `ship runtime:report --json`;
+- `ship runtime:report --json` is now the canonical machine-readable runtime capability surface for operators and agents.
 
 4. `R0.4` Testing harness improvements so default `make test` is Docker-free and fast.
 Status: `completed`

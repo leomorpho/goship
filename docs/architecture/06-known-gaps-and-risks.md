@@ -118,16 +118,16 @@ Impact:
 - Environments without matching provider credentials will keep a non-nil AI service that returns a clear provider-unavailable error at call time.
 - Conversation persistence exists at the module layer, but there is still no first-class app UI for browsing or resuming stored AI threads.
 
-## 11) Runtime Capability Reporting Is Not Yet Exposed In CLI Form (Low)
+## 11) Runtime Capability Reporting Is Now Canonicalized (Low)
 
-The runtime config/reporting primitives already exist, but there is not yet a dedicated
-`ship runtime:report --json` command that exposes the effective profile, adapters, features, and
-managed-key sources in one machine-readable payload.
+`ship runtime:report --json` now exposes the effective profile, adapters, process plan, web
+features, DB runtime metadata, and managed-key sources in one machine-readable payload. The
+remaining risk is payload drift if future runtime metadata is added without extending the report.
 
 Impact:
 
-- Operators and agents can infer runtime state from config and metadata helpers, but not from one canonical CLI report.
-- Runtime inspection remains more fragmented than the intended single-command contract.
+- Operators and agents now have one canonical CLI report for runtime capability inspection.
+- Future runtime metadata additions should extend the report and its contract tests in the same change stream.
 
 ## 12) Domain Events Are In-Process Only (Low)
 

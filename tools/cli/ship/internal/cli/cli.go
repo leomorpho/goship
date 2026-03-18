@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/leomorpho/goship/config"
 	cmd "github.com/leomorpho/goship/tools/cli/ship/internal/commands"
 	gen "github.com/leomorpho/goship/tools/cli/ship/internal/generators"
 	policies "github.com/leomorpho/goship/tools/cli/ship/internal/policies"
@@ -89,6 +90,13 @@ func (c CLI) Run(args []string) int {
 		return c.runRoutes(args[1:])
 	case "describe":
 		return c.runDescribe(args[1:])
+	case "runtime":
+		if len(args) == 1 || args[1] == "help" || args[1] == "-h" || args[1] == "--help" {
+			cmd.PrintRuntimeReportHelp(c.Out)
+			return 0
+		}
+		fmt.Fprintf(c.Err, "use namespaced runtime commands, e.g. ship runtime:%s\n", args[1])
+		return 1
 	case "verify":
 		return c.runVerify(args[1:])
 	case "test":
@@ -152,6 +160,8 @@ func (c CLI) runNamespaced(args []string) (int, bool) {
 		return c.runI18n(rest), true
 	case "run":
 		return c.runRun(rest), true
+	case "runtime":
+		return c.runRuntime(rest), true
 	default:
 		fmt.Fprintf(c.Err, "unknown command namespace: %s\n\n", ns)
 		cmd.PrintRootHelp(c.Err)
@@ -213,6 +223,14 @@ func (c CLI) runRoutes(args []string) int {
 		Out:          c.Out,
 		Err:          c.Err,
 		FindGoModule: findGoModule,
+	})
+}
+
+func (c CLI) runRuntime(args []string) int {
+	return cmd.RunRuntimeReport(args, cmd.RuntimeReportDeps{
+		Out:        c.Out,
+		Err:        c.Err,
+		LoadConfig: config.GetConfig,
 	})
 }
 

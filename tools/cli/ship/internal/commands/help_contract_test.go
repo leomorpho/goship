@@ -36,6 +36,7 @@ func TestPrintRootHelp_DirectCommandsDiscoverableNoAliases(t *testing.T) {
 		"  ship config:validate [--json]":           "Validate config contract",
 		"  ship routes [--json]":                    "Show route inventory",
 		"  ship describe [--pretty]":                "Show runtime/module inventory",
+		"  ship runtime:report --json":              "Show machine-readable runtime capability report",
 		"  ship run:command <name> [-- <args...>]":  "Run app-defined CLI command",
 		"  ship module:add <name> [--dry-run]":      "Enable a module",
 		"  ship module:remove <name> [--dry-run]":   "Disable a module",
@@ -229,6 +230,13 @@ func TestPrintAdditionalScopedHelp_IncludeDescriptions(t *testing.T) {
 			want: map[string]string{
 				"  ship describe":          "Print project inventory as JSON",
 				"  ship describe --pretty": "Print project inventory as pretty JSON",
+			},
+		},
+		{
+			name: "runtime",
+			out:  captureHelp(t, PrintRuntimeReportHelp),
+			want: map[string]string{
+				"  ship runtime:report --json": "Print machine-readable runtime capability report",
 			},
 		},
 		{

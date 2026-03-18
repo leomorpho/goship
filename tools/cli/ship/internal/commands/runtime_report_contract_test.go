@@ -8,8 +8,6 @@ import (
 )
 
 func TestPrintRootHelp_ListsRuntimeReport_RedSpec(t *testing.T) {
-	t.Skip("red spec: enable once ship runtime:report is part of the canonical CLI help surface")
-
 	out := captureHelp(t, PrintRootHelp)
 	line := findLineByPrefix(out, "  ship runtime:report --json")
 	if line == "" {
@@ -21,8 +19,6 @@ func TestPrintRootHelp_ListsRuntimeReport_RedSpec(t *testing.T) {
 }
 
 func TestRunRuntimeReport_JSONContract_RedSpec(t *testing.T) {
-	t.Skip("red spec: enable once ship runtime:report --json is wired through CLI dispatch and command help")
-
 	root := repoRootForRuntimeReportTest(t)
 	cliSource := mustReadRuntimeReportText(t, filepath.Join(root, "tools", "cli", "ship", "internal", "cli", "cli.go"))
 	helpSource := mustReadRuntimeReportText(t, filepath.Join(root, "tools", "cli", "ship", "internal", "commands", "help.go"))

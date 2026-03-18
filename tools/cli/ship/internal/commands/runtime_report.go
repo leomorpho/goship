@@ -1,0 +1,122 @@
+package commands
+
+import (
+	"encoding/json"
+	"flag"
+	"fmt"
+	"io"
+	"strings"
+
+	"github.com/leomorpho/goship/config"
+	"github.com/leomorpho/goship/framework/runtimeplan"
+)
+
+type RuntimeReportDeps struct {
+	Out        io.Writer
+	Err        io.Writer
+	LoadConfig func() (config.Config, error)
+}
+
+type runtimeReport struct {
+	Profile   string                         `json:"profile"`
+	Adapters  runtimeReportAdapters          `json:"adapters"`
+	Processes runtimeReportProcesses         `json:"processes"`
+	Web       runtimeplan.WebFeatures        `json:"web"`
+	Database  config.DatabaseRuntimeMetadata `json:"database"`
+	Managed   config.ManagedRuntimeMetadata  `json:"managed"`
+}
+
+type runtimeReportAdapters struct {
+	DB     string `json:"db"`
+	Cache  string `json:"cache"`
+	Jobs   string `json:"jobs"`
+	PubSub string `json:"pubsub"`
+}
+
+type runtimeReportProcesses struct {
+	Web       bool `json:"web"`
+	Worker    bool `json:"worker"`
+	Scheduler bool `json:"scheduler"`
+	CoLocated bool `json:"co_located"`
+}
+
+func RunRuntimeReport(args []string, d RuntimeReportDeps) int {
+	for _, arg := range args {
+		if arg == "-h" || arg == "--help" || arg == "help" {
+			PrintRuntimeReportHelp(d.Out)
+			return 0
+		}
+	}
+
+	fs := flag.NewFlagSet("runtime:report", flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+	jsonOutput := fs.Bool("json", false, "print JSON output")
+	if err := fs.Parse(args); err != nil {
+		fmt.Fprintf(d.Err, "invalid runtime:report arguments: %v\n", err)
+		return 1
+	}
+	if fs.NArg() > 0 {
+		fmt.Fprintf(d.Err, "unexpected runtime:report arguments: %v\n", fs.Args())
+		return 1
+	}
+	if !*jsonOutput {
+		fmt.Fprintln(d.Err, "runtime:report currently requires --json")
+		return 1
+	}
+	if d.LoadConfig == nil {
+		fmt.Fprintln(d.Err, "runtime:report requires config loader dependency")
+		return 1
+	}
+
+	cfg, err := d.LoadConfig()
+	if err != nil {
+		fmt.Fprintf(d.Err, "runtime:report failed to load config: %v\n", err)
+		return 1
+	}
+
+	plan, err := runtimeplan.Resolve(&cfg)
+	if err != nil {
+		fmt.Fprintf(d.Err, "runtime:report failed to resolve runtime plan: %v\n", err)
+		return 1
+	}
+
+	report := runtimeReport{
+		Profile: string(cfg.Runtime.Profile),
+		Adapters: runtimeReportAdapters{
+			DB:     cfg.Adapters.DB,
+			Cache:  cfg.Adapters.Cache,
+			Jobs:   cfg.Adapters.Jobs,
+			PubSub: cfg.Adapters.PubSub,
+		},
+		Processes: runtimeReportProcesses{
+			Web:       plan.RunWeb,
+			Worker:    plan.RunWorker,
+			Scheduler: plan.RunScheduler,
+			CoLocated: cfg.Processes.CoLocated,
+		},
+		Web: runtimeplan.ResolveWebFeatures(
+			plan,
+			stringsTrim(cfg.Adapters.Cache) != "",
+			stringsTrim(cfg.Adapters.PubSub) != "",
+		),
+		Database: cfg.RuntimeMetadata().Database,
+		Managed:  cfg.RuntimeMetadata().Managed,
+	}
+
+	enc := json.NewEncoder(d.Out)
+	enc.SetIndent("", "  ")
+	if err := enc.Encode(report); err != nil {
+		fmt.Fprintf(d.Err, "failed to encode runtime report: %v\n", err)
+		return 1
+	}
+	return 0
+}
+
+func PrintRuntimeReportHelp(w io.Writer) {
+	fmt.Fprintln(w, "ship runtime:report commands:")
+	fmt.Fprintln(w, "  ship runtime:report --json  Print machine-readable runtime capability report")
+}
+
+func stringsTrim(v string) string {
+	return strings.TrimSpace(v)
+}
