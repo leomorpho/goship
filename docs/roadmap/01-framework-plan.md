@@ -875,6 +875,7 @@ Current progress:
 - [ ] Define MCP server scope for GoShip (commands, module APIs, recipes, migration help).
 - [ ] Create a `CHERIE_SYNC.md` runbook (upgrade process + rollback + validation checklist).
 - [ ] Create a baseline compatibility test suite for Cherie critical paths.
+- [ ] Add a dedicated CI smoke lane that names and enforces the Cherie boot/auth/realtime baseline separately from the generic GoShip smoke test.
 - [ ] Define testing standards doc: what must be unit-testable and where table tests are required.
 - [ ] Add doc-sync guardrails in pre-commit/CI for framework-impacting changes.
 - [ ] Add Cherie-sync guardrails in pre-commit/CI (or mandatory checklist gate).

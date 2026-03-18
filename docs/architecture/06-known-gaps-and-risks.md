@@ -245,6 +245,15 @@ Impact:
 - portability regressions are harder to spot quickly because they are folded into broader jobs instead of surfacing as isolated failures;
 - SQL portability (`sql-core-v1`) lacks one canonical CI entrypoint, which makes future automation and downstream reuse less predictable.
 
+## 23) Cherie Compatibility Smoke Coverage Is Still Generic (Medium)
+
+CI currently runs one generic Playwright smoke spec for startup and basic app serving, but it does not yet expose a dedicated Cherie-oriented compatibility lane for the downstream-critical boot, auth, and realtime path trio.
+
+Impact:
+
+- framework changes can keep the generic smoke green while still drifting from the narrower downstream compatibility baseline;
+- Cherie-specific upgrade confidence remains weaker than the roadmap policy requires until the smoke baseline is named and enforced in CI.
+
 ## Suggested Priority Order
 
 1. Complete cache adapter coverage so page caching works consistently across supported backends.
