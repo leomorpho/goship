@@ -1,0 +1,4 @@
+METHOD  PATH       AUTH    HANDLER
+GET     "/login"   public  login.Get
+POST    "/login"   auth    login.Post
+DELETE  "/logout"  public  login.Delete

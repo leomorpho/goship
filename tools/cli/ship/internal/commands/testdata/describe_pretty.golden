@@ -1,0 +1,84 @@
+{
+  "routes": [
+    {
+      "method": "GET",
+      "path": "\"/login\"",
+      "handler": "login.Get",
+      "auth": false,
+      "file": "app/router.go:11"
+    },
+    {
+      "method": "POST",
+      "path": "\"/login\"",
+      "handler": "login.Post",
+      "auth": true,
+      "file": "app/router.go:16"
+    },
+    {
+      "method": "DELETE",
+      "path": "\"/logout\"",
+      "handler": "login.Delete",
+      "auth": false,
+      "file": "app/router.go:21"
+    }
+  ],
+  "modules": [
+    {
+      "id": "notifications",
+      "installed": true,
+      "routes": 0,
+      "migrations": 1
+    }
+  ],
+  "controllers": [
+    {
+      "name": "login",
+      "file": "app/web/controllers/login.go",
+      "handlers": [
+        "Get",
+        "Post"
+      ]
+    }
+  ],
+  "viewmodels": [
+    {
+      "name": "LoginPage",
+      "file": "app/web/viewmodels/login.go",
+      "fields": [
+        "Email",
+        "Error"
+      ]
+    }
+  ],
+  "components": [
+    {
+      "name": "Navbar",
+      "file": "app/views/web/components/navbar.templ",
+      "data_component": "navbar"
+    }
+  ],
+  "islands": null,
+  "db_tables": [
+    "users"
+  ],
+  "migrations": [
+    {
+      "file": "db/migrate/migrations/20260101000000_init.sql",
+      "applied": null
+    },
+    {
+      "file": "modules/notifications/db/migrate/migrations/20260102000000.sql",
+      "applied": null
+    }
+  ],
+  "shared_infra": {
+    "shared_modules": 1,
+    "shared_module_ids": [
+      "notifications"
+    ],
+    "custom_app_controllers": 1,
+    "custom_app_jobs": 1,
+    "custom_app_commands": 1
+  }
+}
+

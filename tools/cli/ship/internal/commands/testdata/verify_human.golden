@@ -1,0 +1,2 @@
+! go test ./...: skipped via --skip-tests
+✓ verify passed

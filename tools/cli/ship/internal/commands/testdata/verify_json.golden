@@ -1,0 +1,41 @@
+{
+  "ok": true,
+  "steps": [
+    {
+      "name": "templ generate",
+      "ok": true,
+      "output": "templ ok"
+    },
+    {
+      "name": "go build ./...",
+      "ok": true,
+      "output": "go ok"
+    },
+    {
+      "name": "ship doctor --json",
+      "ok": true,
+      "output": "{\"ok\":true,\"issues\":[]}"
+    },
+    {
+      "name": "hard-cut wording invariant",
+      "ok": true,
+      "output": "canonical docs avoid transition/deprecation wording"
+    },
+    {
+      "name": "nilaway ./...",
+      "ok": true,
+      "output": "nilaway ok"
+    },
+    {
+      "name": "go test ./...",
+      "ok": true,
+      "output": "go ok"
+    },
+    {
+      "name": "standalone exportability gate",
+      "ok": true,
+      "output": "starter/runtime surfaces remain free of control-plane dependency drift"
+    }
+  ]
+}
+

@@ -893,6 +893,15 @@ Done when:
 Test evidence:
 - `make test-alpha-contracts`
 
+14. `R1.9` CLI golden contract suite for doctor/routes/describe/verify.
+Status: `completed`
+Done when:
+- key operator-facing CLI commands have stable golden coverage for human and JSON output where applicable;
+- the suite uses an explicit snapshot refresh flow instead of silent fixture rewrites;
+- drift shows up in targeted command/policy package tests.
+Test evidence:
+- `go test ./tools/cli/ship/internal/commands ./tools/cli/ship/internal/policies -run 'Test(CLIGoldenContractSuite_RedSpec|DoctorGoldenContract_RedSpec)$' -count=1`
+
 ### Phase 1: Core Abstractions
 
 1. Define `core` interfaces for DB/cache/pubsub/jobs/storage.

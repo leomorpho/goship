@@ -315,6 +315,18 @@ Impact:
 - Intentional alpha-surface changes require an explicit snapshot refresh and review trail, which
   keeps the freeze policy visible instead of implicit.
 
+## 26) Core CLI Output Contracts Now Carry Golden Coverage (Low)
+
+GoShip now snapshots stable command surfaces for `doctor`, `routes`, `describe`, and `verify`
+through in-package golden tests.
+
+Impact:
+
+- Human and JSON output drift for the main operator-facing CLI surfaces now shows up as direct test
+  failures instead of review-only formatting regressions.
+- Intentional output changes require an explicit `UPDATE_CLI_GOLDENS=1` refresh path, keeping
+  snapshot updates deliberate.
+
 ## 16) No Built-In OpenAPI Generation Command (Informational)
 
 The `ship api:spec` command and `app/contracts`-based spec flow were removed in the app-minimalization cleanup stream.

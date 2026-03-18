@@ -1,0 +1,24 @@
+[
+  {
+    "method": "GET",
+    "path": "\"/login\"",
+    "auth": "public",
+    "handler": "login.Get",
+    "file": "app/router.go:11"
+  },
+  {
+    "method": "POST",
+    "path": "\"/login\"",
+    "auth": "auth",
+    "handler": "login.Post",
+    "file": "app/router.go:16"
+  },
+  {
+    "method": "DELETE",
+    "path": "\"/logout\"",
+    "auth": "public",
+    "handler": "login.Delete",
+    "file": "app/router.go:21"
+  }
+]
+
