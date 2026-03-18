@@ -227,6 +227,10 @@ test: ## Run Docker-free unit test package set
 test-module-isolation: ## Ensure extracted modules do not import goship internals
 	bash tools/scripts/check-module-isolation.sh
 
+.PHONY: test-sql-portability
+test-sql-portability: ## Verify sql-core-v1 runtime portability contract
+	bash tools/scripts/check-sql-portability.sh
+
 .PHONY: test-integration
 test-integration: ## Run integration test package set (may require Docker/infra)
 	bash tools/scripts/test-integration.sh

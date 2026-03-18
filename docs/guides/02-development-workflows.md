@@ -66,6 +66,7 @@ Notes:
 - **Postgres and Redis are optional.** The runtime can operate entirely with embedded SQLite, in-memory Otter cache, and Backlite jobs.
 - External database and cache services remain fully supported by configuration.
 - `make run` does not start Docker Compose or any accessory services; use `make dev` if you need the full infrastructure stack.
+- CI keeps dedicated boundary suites for `make test-module-isolation` and `make test-sql-portability`; run those targets directly when changing installable-module imports or SQL portability metadata/contracts.
 
 ## Assets
 
