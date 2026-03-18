@@ -164,6 +164,7 @@ Go tests:
 - `make check-compile` (compile app/packages + route tests without execution)
 - `bash tools/scripts/test-unit.sh` (Docker-free unit package set)
 - `make test` (broader suite; may include Docker-backed packages depending on environment)
+- `make test-generator-contracts` (generator report snapshot + idempotency gate used by CI)
 - `go run ./tools/cli/ship/cmd/ship test`
 - `make cover`
 - `bash tools/scripts/precommit-tests.sh` (full stateless gate used before commit/CI)
@@ -202,6 +203,8 @@ CI uses the smoke spec only (`tests/e2e/tests/smoke.spec.ts`) to validate startu
 The `verify_strict` CI job runs `ship verify --profile strict` and serves as the precondition for the downstream Cherie compatibility gate.
 The Cherie compatibility lane runs `tests/e2e/tests/cherie_compatibility.spec.ts` with a web-only process env (`PAGODA_PROCESSES_WEB=true`, `PAGODA_PROCESSES_WORKER=false`, `PAGODA_PROCESSES_SCHEDULER=false`, `PAGODA_PROCESSES_COLOCATED=false`) so the baseline only measures boot, auth, and realtime route compatibility.
 Treat `verify_strict` and `cherie_compatibility_smoke` as the required status checks for Cherie-facing sync work.
+The `generator_contracts` CI job runs `make test-generator-contracts` and blocks merges on generator snapshot or idempotency drift.
+When a generator output change is intentional, refresh the golden file locally with `UPDATE_GENERATOR_SNAPSHOTS=1 make test-generator-contracts` and commit the updated snapshot in the same change.
 If the Cherie lane breaks:
 1. Re-run the Playwright spec locally with `npm --prefix tests/e2e run test:cherie-smoke`.
 2. Compare `/up`, `/user/login`, and `/auth/realtime` behavior against the baseline before widening scope.

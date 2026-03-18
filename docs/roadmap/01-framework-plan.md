@@ -873,6 +873,16 @@ Test evidence:
 - `go test ./tools/cli/ship/internal/commands -run 'Test(ApplyModuleAdd_WiresLocalModuleDependencyContract_RedSpec|ApplyModuleRemove_FailsWithReferenceBlockers_RedSpec|ApplyModuleAdd_StorageBatteryContract_RedSpec|ApplyModuleRemove_RemovesSafeStorageDependencyContract_RedSpec)' -count=1`
 - `go test ./modules/storage -count=1`
 
+12. `R1.7` Generator snapshot + idempotency CI gate.
+Status: `completed`
+Done when:
+- CI defines a dedicated generator contract lane instead of burying generator drift in the broad backend suite;
+- the lane runs a golden snapshot for the shared generator report contract plus the consolidated idempotency matrix;
+- docs describe the explicit snapshot-refresh path for intentional output changes.
+Test evidence:
+- `go test ./tools/cli/ship/internal/commands -run TestCIContract_DefinesGeneratorSnapshotAndIdempotencyGate_RedSpec -count=1`
+- `make test-generator-contracts`
+
 ### Phase 1: Core Abstractions
 
 1. Define `core` interfaces for DB/cache/pubsub/jobs/storage.

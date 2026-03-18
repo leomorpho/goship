@@ -231,6 +231,10 @@ test-module-isolation: ## Ensure extracted modules do not import goship internal
 test-sql-portability: ## Verify sql-core-v1 runtime portability contract
 	bash tools/scripts/check-sql-portability.sh
 
+.PHONY: test-generator-contracts
+test-generator-contracts: ## Verify generator snapshot and idempotency contracts
+	bash tools/scripts/check-generator-contracts.sh
+
 .PHONY: test-integration
 test-integration: ## Run integration test package set (may require Docker/infra)
 	bash tools/scripts/test-integration.sh

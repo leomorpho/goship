@@ -1,0 +1,11 @@
+make:job result
+Created:
+- app/jobs/backfill_user_stats.go
+- app/jobs/backfill_user_stats_test.go
+Updated:
+- docs/reference/01-cli.md
+Preview:
+Registration snippet:
+core.Jobs.Register("jobs.backfill_user_stats", appjobs.NewBackfillUserStatsJob(nil))
+Next:
+- go test ./app/jobs -count=1

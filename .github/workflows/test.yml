@@ -78,6 +78,28 @@ jobs:
       - name: SQL portability
         run: make test-sql-portability
 
+  generator_contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.x"
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Generator contracts
+        run: make test-generator-contracts
+
   verify_strict:
     runs-on: ubuntu-latest
     steps:

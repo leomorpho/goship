@@ -279,6 +279,17 @@ Impact:
 - Remove flows now fail with exact blocker file paths when app code still imports a module,
   preventing partial unwiring.
 
+## 23) Generator Drift Is Now Guarded By A Dedicated CI Contract Lane (Low)
+
+GoShip now carries a dedicated generator contract lane that combines a golden snapshot for the
+shared generator report shape with the consolidated generator idempotency matrix.
+
+Impact:
+
+- Merge protection now catches generator output drift separately from the broader backend test lane.
+- Intentional report-format changes require an explicit snapshot refresh (`UPDATE_GENERATOR_SNAPSHOTS=1`)
+  and snapshot commit instead of silently changing CI expectations.
+
 ## 16) No Built-In OpenAPI Generation Command (Informational)
 
 The `ship api:spec` command and `app/contracts`-based spec flow were removed in the app-minimalization cleanup stream.
