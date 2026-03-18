@@ -545,6 +545,30 @@ func registerAuthRoutes() {
 		mustContainIssueCode(t, issues, "DX012")
 	})
 
+	t.Run("canonical docs reject transition-era wording red spec", func(t *testing.T) {
+		t.Skip("red spec: enable once doctor rejects transition-era wording in canonical architecture and CLI docs")
+
+		root := t.TempDir()
+		writeDoctorFixture(t, root)
+
+		for rel, content := range map[string]string{
+			filepath.Join("docs", "architecture", "03-project-scope-analysis.md"): "active transitional state\n",
+			filepath.Join("docs", "reference", "01-cli.md"):                       "legacy compatibility path\n",
+			filepath.Join("docs", "roadmap", "01-framework-plan.md"):              "transition-era fallback\n",
+		} {
+			path := filepath.Join(root, rel)
+			if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+				t.Fatal(err)
+			}
+		}
+
+		issues := RunDoctorChecks(root)
+		mustContainIssueCode(t, issues, "DX030")
+	})
+
 	t.Run("go.work references missing module", func(t *testing.T) {
 		root := t.TempDir()
 		writeDoctorFixture(t, root)

@@ -52,6 +52,17 @@ Impact:
 - The route manifest and static asset surface are centralized today.
 - Future route extraction work should keep using route-composition contract tests to avoid reintroducing split registration styles.
 
+## Canonical Docs Still Need Transition-Era Wording Purged (Low)
+
+The canonical docs set still contains some transition-language remnants, especially in architecture,
+CLI, and roadmap narratives. The remaining gap is executable enforcement: those docs are not yet
+guarded by a doctor policy that rejects transition-era wording directly.
+
+Impact:
+
+- The implementation now follows the hard-cut canonical model, but some docs can still imply migration-era ambiguity.
+- A docs-only cleanup can regress unless the canonical doc set is covered by an explicit lint contract.
+
 ## 5) Dev Runtime Drift Between Config and Docker Compose (Medium)
 
 - Default base config now lives in `config/config.go` and can be overridden by `.env`.
