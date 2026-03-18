@@ -118,7 +118,18 @@ Impact:
 - Environments without matching provider credentials will keep a non-nil AI service that returns a clear provider-unavailable error at call time.
 - Conversation persistence exists at the module layer, but there is still no first-class app UI for browsing or resuming stored AI threads.
 
-## 11) Domain Events Are In-Process Only (Low)
+## 11) Runtime Capability Reporting Is Not Yet Exposed In CLI Form (Low)
+
+The runtime config/reporting primitives already exist, but there is not yet a dedicated
+`ship runtime:report --json` command that exposes the effective profile, adapters, features, and
+managed-key sources in one machine-readable payload.
+
+Impact:
+
+- Operators and agents can infer runtime state from config and metadata helpers, but not from one canonical CLI report.
+- Runtime inspection remains more fragmented than the intended single-command contract.
+
+## 12) Domain Events Are In-Process Only (Low)
 
 `framework/events` now covers synchronous in-process publish/subscribe and a jobs enqueue helper, but it does not yet ship a generic async re-dispatch worker or delivery guarantees across processes.
 
@@ -127,7 +138,7 @@ Impact:
 - Domain events are reliable inside a single process and easy to test.
 - Cross-process fanout still requires explicit jobs or pubsub integration by the caller.
 
-## 12) CSP Is Hardened But Still Allows Script Attributes (Low)
+## 13) CSP Is Hardened But Still Allows Script Attributes (Low)
 
 Default security headers and nonce-based CSP are now enabled for dynamic responses, but the default
 policy still allows `script-src-attr 'unsafe-inline'` to preserve existing `onload=...` usage in
@@ -138,7 +149,7 @@ Impact:
 - The app now blocks inline script blocks unless they carry the request nonce.
 - Inline script attributes remain permitted until those attributes are removed/refactored.
 
-## 13) Managed Hook Replay Cache Is Process-Local (Medium)
+## 14) Managed Hook Replay Cache Is Process-Local (Medium)
 
 Managed hook signatures now enforce nonce replay protection, but the nonce cache is currently in-memory per process.
 
@@ -147,7 +158,7 @@ Impact:
 - Replays are blocked per process instance, but not across independently running replicas.
 - Process restarts clear replay history and reopen the short nonce window until entries are rebuilt.
 
-## 14) Soft-Delete Query Guardrail Is Warning-Only (Low)
+## 15) Soft-Delete Query Guardrail Is Warning-Only (Low)
 
 `ship doctor` now warns (`DX028`) when SQL queries in `db/queries/` reference soft-delete tables
 without a `deleted_at` filter, but this remains a warning and not a hard failure.
