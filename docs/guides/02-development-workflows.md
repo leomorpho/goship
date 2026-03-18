@@ -166,6 +166,8 @@ Go tests:
 - `make test` (broader suite; may include Docker-backed packages depending on environment)
 - `make test-generator-contracts` (generator report snapshot + idempotency gate used by CI)
 - `make test-alpha-contracts` (frozen `v0.1.0-alpha` root-help + route-inventory gate used by CI)
+- `make test-doc-sync` (route/scope documentation guard used by CI)
+- `make test-dead-routes` (route inventory regression guard used by CI)
 - `go run ./tools/cli/ship/cmd/ship test`
 - `make cover`
 - `bash tools/scripts/precommit-tests.sh` (full stateless gate used before commit/CI)
@@ -208,6 +210,8 @@ The `generator_contracts` CI job runs `make test-generator-contracts` and blocks
 When a generator output change is intentional, refresh the golden file locally with `UPDATE_GENERATOR_SNAPSHOTS=1 make test-generator-contracts` and commit the updated snapshot in the same change.
 The `alpha_contract` CI job runs `make test-alpha-contracts` and freezes the current root CLI help plus route inventory as the `v0.1.0-alpha` public surface.
 Only refresh those snapshots when the alpha surface change has approved review, then run `UPDATE_ALPHA_CONTRACTS=1 make test-alpha-contracts` and commit the snapshot update with the contract change.
+The `doc_sync` CI job runs `make test-doc-sync` and keeps the HTTP route map plus project-scope docs aligned with canonical managed/admin/realtime surfaces.
+The `dead_route_regression` CI job runs `make test-dead-routes` and keeps the canonical route inventory checks from silently regressing.
 If the Cherie lane breaks:
 1. Re-run the Playwright spec locally with `npm --prefix tests/e2e run test:cherie-smoke`.
 2. Compare `/up`, `/user/login`, and `/auth/realtime` behavior against the baseline before widening scope.

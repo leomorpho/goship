@@ -16,7 +16,6 @@ Ergonomic routing rule:
 - `GET /health` liveness healthcheck
 - `GET /health/ready` readiness healthcheck (returns `503` when a registered dependency check fails)
 - `GET /clear-cookie`
-- `GET /install-app`
 
 Email subscription:
 

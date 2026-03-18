@@ -239,6 +239,14 @@ test-generator-contracts: ## Verify generator snapshot and idempotency contracts
 test-alpha-contracts: ## Verify frozen v0.1.0-alpha command and route contracts
 	bash tools/scripts/check-alpha-contracts.sh
 
+.PHONY: test-doc-sync
+test-doc-sync: ## Verify route and scope docs stay aligned with canonical runtime surfaces
+	bash tools/scripts/check-doc-sync.sh
+
+.PHONY: test-dead-routes
+test-dead-routes: ## Verify canonical route inventory guardrails stay green
+	bash tools/scripts/check-dead-routes.sh
+
 .PHONY: test-integration
 test-integration: ## Run integration test package set (may require Docker/infra)
 	bash tools/scripts/test-integration.sh

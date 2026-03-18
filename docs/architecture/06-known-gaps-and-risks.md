@@ -327,6 +327,18 @@ Impact:
 - Intentional output changes require an explicit `UPDATE_CLI_GOLDENS=1` refresh path, keeping
   snapshot updates deliberate.
 
+## 27) Doc-Sync And Dead-Route Guardrails Are Now Named CI Lanes (Low)
+
+GoShip now runs separate CI lanes for route/scope doc sync and dead-route regression around the
+canonical route inventory.
+
+Impact:
+
+- Stale docs such as removed route entries now fail in a named lane instead of lingering until
+  humans notice the mismatch.
+- Route-inventory regressions and doc drift are isolated from broader backend failures, which makes
+  remediation faster and more obvious.
+
 ## 16) No Built-In OpenAPI Generation Command (Informational)
 
 The `ship api:spec` command and `app/contracts`-based spec flow were removed in the app-minimalization cleanup stream.

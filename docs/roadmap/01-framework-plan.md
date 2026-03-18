@@ -902,6 +902,17 @@ Done when:
 Test evidence:
 - `go test ./tools/cli/ship/internal/commands ./tools/cli/ship/internal/policies -run 'Test(CLIGoldenContractSuite_RedSpec|DoctorGoldenContract_RedSpec)$' -count=1`
 
+15. `R1.10` Named doc-sync and dead-route guardrails.
+Status: `completed`
+Done when:
+- CI defines dedicated doc-sync and dead-route regression lanes;
+- the route map no longer carries removed route entries such as `/install-app`;
+- local make targets mirror the CI guardrails so drift is reproducible before push.
+Test evidence:
+- `go test ./tools/cli/ship/internal/commands -run 'Test(DocsRouteContract_RedSpec|CIContract_DefinesDocSyncAndDeadRouteGuards_RedSpec)$' -count=1`
+- `make test-doc-sync`
+- `make test-dead-routes`
+
 ### Phase 1: Core Abstractions
 
 1. Define `core` interfaces for DB/cache/pubsub/jobs/storage.
