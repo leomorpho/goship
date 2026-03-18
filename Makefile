@@ -235,6 +235,10 @@ test-sql-portability: ## Verify sql-core-v1 runtime portability contract
 test-generator-contracts: ## Verify generator snapshot and idempotency contracts
 	bash tools/scripts/check-generator-contracts.sh
 
+.PHONY: test-alpha-contracts
+test-alpha-contracts: ## Verify frozen v0.1.0-alpha command and route contracts
+	bash tools/scripts/check-alpha-contracts.sh
+
 .PHONY: test-integration
 test-integration: ## Run integration test package set (may require Docker/infra)
 	bash tools/scripts/test-integration.sh

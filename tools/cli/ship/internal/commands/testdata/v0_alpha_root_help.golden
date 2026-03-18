@@ -1,0 +1,34 @@
+ship - GoShip CLI
+
+Usage:
+  ship <command> [options]
+
+Direct Commands:
+  ship new <app> [flags]                   Create a new app scaffold
+  ship dev [--web|--worker|--all]          Run local runtime processes
+  ship test [--integration]                Run canonical fast test workflow
+  ship verify [--profile fast|standard|strict] [--skip-tests] [--json]  Run full verification workflow
+  ship doctor [--json]                     Run repository policy checks
+  ship config:validate [--json]            Validate config contract
+  ship routes [--json]                     Show route inventory
+  ship describe [--pretty]                 Show runtime/module inventory
+  ship runtime:report --json               Show machine-readable runtime capability report
+  ship run:command <name> [-- <args...>]   Run app-defined CLI command
+  ship module:add <name> [--dry-run]       Enable a module
+  ship module:remove <name> [--dry-run]    Disable a module
+  ship upgrade --to <version> [--dry-run]  Upgrade pinned CLI tooling
+
+Command Groups:
+  ship config --help                       Config command help
+  ship i18n --help                         i18n command help
+  ship agent --help                        Agent workflow command help
+  ship db --help                           Database command help
+  ship make --help                         Generator command help
+  ship infra --help                        Local infrastructure command help
+  ship templ --help                        Templ command help
+
+Examples:
+  ship new demo
+  ship dev --all
+  ship db:migrate
+  ship make:resource contact

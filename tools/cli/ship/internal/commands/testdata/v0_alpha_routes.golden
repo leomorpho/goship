@@ -1,0 +1,297 @@
+[
+  {
+    "method": "GET",
+    "path": "\"\"",
+    "auth": "public",
+    "handler": "mailPreview.Index",
+    "file": "app/router.go:187"
+  },
+  {
+    "method": "GET",
+    "path": "\"/\"",
+    "auth": "public",
+    "handler": "landingPage.Get",
+    "file": "app/router.go:129"
+  },
+  {
+    "method": "GET",
+    "path": "\"/ai-demo\"",
+    "auth": "auth",
+    "handler": "aiDemo.Get",
+    "file": "app/router.go:292"
+  },
+  {
+    "method": "GET",
+    "path": "\"/ai-demo/stream\"",
+    "auth": "auth",
+    "handler": "aiDemo.Stream",
+    "file": "app/router.go:293"
+  },
+  {
+    "method": "POST",
+    "path": "\"/backup\"",
+    "auth": "public",
+    "handler": "managedHooks.StartBackup",
+    "file": "app/router.go:321"
+  },
+  {
+    "method": "GET",
+    "path": "\"/clear-cookie\"",
+    "auth": "public",
+    "handler": "clearCookie.Get",
+    "file": "app/router.go:132"
+  },
+  {
+    "method": "GET",
+    "path": "\"/demo/islands\"",
+    "auth": "public",
+    "handler": "islandsDemo.Get",
+    "file": "app/router.go:135"
+  },
+  {
+    "method": "GET",
+    "path": "\"/email/subscription/:token\"",
+    "auth": "public",
+    "handler": "verifyEmailSubscription.Get",
+    "file": "app/router.go:152"
+  },
+  {
+    "method": "GET",
+    "path": "\"/emailSubscribe\"",
+    "auth": "public",
+    "handler": "emailSubscribe.Get",
+    "file": "app/router.go:148"
+  },
+  {
+    "method": "POST",
+    "path": "\"/emailSubscribe\"",
+    "auth": "public",
+    "handler": "emailSubscribe.Post",
+    "file": "app/router.go:149"
+  },
+  {
+    "method": "GET",
+    "path": "\"/error/400\"",
+    "auth": "public",
+    "handler": "errHandler.GetHttp400BadRequest",
+    "file": "app/router.go:161"
+  },
+  {
+    "method": "GET",
+    "path": "\"/error/401\"",
+    "auth": "public",
+    "handler": "errHandler.GetHttp401Unauthorized",
+    "file": "app/router.go:162"
+  },
+  {
+    "method": "GET",
+    "path": "\"/error/403\"",
+    "auth": "public",
+    "handler": "errHandler.GetHttp403Forbidden",
+    "file": "app/router.go:163"
+  },
+  {
+    "method": "GET",
+    "path": "\"/error/404\"",
+    "auth": "public",
+    "handler": "errHandler.GetHttp404NotFound",
+    "file": "app/router.go:164"
+  },
+  {
+    "method": "GET",
+    "path": "\"/error/500\"",
+    "auth": "public",
+    "handler": "errHandler.GetHttp500InternalServerError",
+    "file": "app/router.go:165"
+  },
+  {
+    "method": "GET",
+    "path": "\"/examples/shared-counter\"",
+    "auth": "public",
+    "handler": "sharedCounter.Get",
+    "file": "app/router.go:168"
+  },
+  {
+    "method": "POST",
+    "path": "\"/examples/shared-counter/increment\"",
+    "auth": "public",
+    "handler": "sharedCounter.Increment",
+    "file": "app/router.go:170"
+  },
+  {
+    "method": "GET",
+    "path": "\"/examples/shared-counter/stream\"",
+    "auth": "public",
+    "handler": "sharedCounter.Stream",
+    "file": "app/router.go:169"
+  },
+  {
+    "method": "GET",
+    "path": "\"/finish-onboarding\"",
+    "auth": "auth",
+    "handler": "finishOnboarding.Get",
+    "file": "app/router.go:232"
+  },
+  {
+    "method": "GET",
+    "path": "\"/health\"",
+    "auth": "public",
+    "handler": "healthcheck.GetLiveness",
+    "file": "app/router.go:139"
+  },
+  {
+    "method": "GET",
+    "path": "\"/health/ready\"",
+    "auth": "public",
+    "handler": "healthcheck.GetReadiness",
+    "file": "app/router.go:140"
+  },
+  {
+    "method": "GET",
+    "path": "\"/homeFeed\"",
+    "auth": "auth",
+    "handler": "homeFeed.Get",
+    "file": "app/router.go:249"
+  },
+  {
+    "method": "GET",
+    "path": "\"/homeFeed/buttons\"",
+    "auth": "auth",
+    "handler": "homeFeed.GetHomeButtons",
+    "file": "app/router.go:250"
+  },
+  {
+    "method": "GET",
+    "path": "\"/password-reset\"",
+    "auth": "public",
+    "handler": "mailPreview.PasswordReset",
+    "file": "app/router.go:189"
+  },
+  {
+    "method": "GET",
+    "path": "\"/preferences\"",
+    "auth": "auth",
+    "handler": "preferences.Get",
+    "file": "app/router.go:219"
+  },
+  {
+    "method": "GET",
+    "path": "\"/preferences/delete-account\"",
+    "auth": "auth",
+    "handler": "deleteAccountRoute.DeleteAccountPage",
+    "file": "app/router.go:228"
+  },
+  {
+    "method": "GET",
+    "path": "\"/preferences/delete-account/now\"",
+    "auth": "auth",
+    "handler": "deleteAccountRoute.DeleteAccountRequest",
+    "file": "app/router.go:229"
+  },
+  {
+    "method": "GET",
+    "path": "\"/preferences/display-name/get\"",
+    "auth": "auth",
+    "handler": "preferences.GetDisplayName",
+    "file": "app/router.go:224"
+  },
+  {
+    "method": "POST",
+    "path": "\"/preferences/display-name/save\"",
+    "auth": "auth",
+    "handler": "preferences.SaveDisplayName",
+    "file": "app/router.go:225"
+  },
+  {
+    "method": "GET",
+    "path": "\"/preferences/phone\"",
+    "auth": "auth",
+    "handler": "preferences.GetPhoneComponent",
+    "file": "app/router.go:220"
+  },
+  {
+    "method": "POST",
+    "path": "\"/preferences/phone/save\"",
+    "auth": "auth",
+    "handler": "preferences.SavePhoneInfo",
+    "file": "app/router.go:223"
+  },
+  {
+    "method": "GET",
+    "path": "\"/preferences/phone/verification\"",
+    "auth": "auth",
+    "handler": "preferences.GetPhoneVerificationComponent",
+    "file": "app/router.go:221"
+  },
+  {
+    "method": "POST",
+    "path": "\"/preferences/phone/verification\"",
+    "auth": "auth",
+    "handler": "preferences.SubmitPhoneVerificationCode",
+    "file": "app/router.go:222"
+  },
+  {
+    "method": "GET",
+    "path": "\"/profileBio\"",
+    "auth": "auth",
+    "handler": "profilePrefs.GetBio",
+    "file": "app/router.go:235"
+  },
+  {
+    "method": "POST",
+    "path": "\"/profileBio/update\"",
+    "auth": "auth",
+    "handler": "profilePrefs.UpdateBio",
+    "file": "app/router.go:236"
+  },
+  {
+    "method": "GET",
+    "path": "\"/realtime\"",
+    "auth": "auth",
+    "handler": "realtime.Get",
+    "file": "app/router.go:338"
+  },
+  {
+    "method": "POST",
+    "path": "\"/restore\"",
+    "auth": "public",
+    "handler": "managedHooks.StartRestore",
+    "file": "app/router.go:322"
+  },
+  {
+    "method": "GET",
+    "path": "\"/status\"",
+    "auth": "public",
+    "handler": "managedHooks.GetRuntimeStatus",
+    "file": "app/router.go:320"
+  },
+  {
+    "method": "GET",
+    "path": "\"/up\"",
+    "auth": "public",
+    "handler": "healthcheck.GetLiveness",
+    "file": "app/router.go:138"
+  },
+  {
+    "method": "GET",
+    "path": "\"/verify-email\"",
+    "auth": "public",
+    "handler": "mailPreview.VerifyEmail",
+    "file": "app/router.go:190"
+  },
+  {
+    "method": "GET",
+    "path": "\"/welcome\"",
+    "auth": "public",
+    "handler": "mailPreview.Welcome",
+    "file": "app/router.go:188"
+  },
+  {
+    "method": "GET",
+    "path": "c.Config.App.TestSentryUrl",
+    "auth": "public",
+    "handler": "func(ctx echo.Context) error {\n\tpanic(\"Test error for Sentry\")\n}",
+    "file": "app/router.go:143"
+  }
+]
+

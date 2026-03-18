@@ -303,6 +303,18 @@ Impact:
 - Future backup schema changes should extend the typed contract and evidence payloads together
   rather than widening the current v1 semantics silently.
 
+## 25) Alpha Surface Freeze Is Now Explicitly Gated (Low)
+
+GoShip now freezes the `v0.1.0-alpha` public surface through snapshots of root CLI help and route
+inventory, with a dedicated CI lane and an explicit approved-review refresh path.
+
+Impact:
+
+- Public command and route drift now fails in a named lane instead of surfacing later as release-note
+  cleanup or downstream integration breakage.
+- Intentional alpha-surface changes require an explicit snapshot refresh and review trail, which
+  keeps the freeze policy visible instead of implicit.
+
 ## 16) No Built-In OpenAPI Generation Command (Informational)
 
 The `ship api:spec` command and `app/contracts`-based spec flow were removed in the app-minimalization cleanup stream.

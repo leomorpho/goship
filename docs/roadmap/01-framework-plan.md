@@ -884,6 +884,15 @@ Test evidence:
 - `go test ./tools/cli/ship/internal/commands -run TestCIContract_DefinesGeneratorSnapshotAndIdempotencyGate_RedSpec -count=1`
 - `make test-generator-contracts`
 
+13. `R1.8` Freeze `v0.1.0-alpha` command and route contract.
+Status: `completed`
+Done when:
+- root CLI help and route inventory are frozen as named alpha snapshots;
+- CI runs a dedicated alpha contract lane instead of treating release-surface drift as incidental;
+- release docs explain the approved-review path for intentional alpha-surface changes.
+Test evidence:
+- `make test-alpha-contracts`
+
 ### Phase 1: Core Abstractions
 
 1. Define `core` interfaces for DB/cache/pubsub/jobs/storage.

@@ -165,6 +165,7 @@ Go tests:
 - `bash tools/scripts/test-unit.sh` (Docker-free unit package set)
 - `make test` (broader suite; may include Docker-backed packages depending on environment)
 - `make test-generator-contracts` (generator report snapshot + idempotency gate used by CI)
+- `make test-alpha-contracts` (frozen `v0.1.0-alpha` root-help + route-inventory gate used by CI)
 - `go run ./tools/cli/ship/cmd/ship test`
 - `make cover`
 - `bash tools/scripts/precommit-tests.sh` (full stateless gate used before commit/CI)
@@ -205,6 +206,8 @@ The Cherie compatibility lane runs `tests/e2e/tests/cherie_compatibility.spec.ts
 Treat `verify_strict` and `cherie_compatibility_smoke` as the required status checks for Cherie-facing sync work.
 The `generator_contracts` CI job runs `make test-generator-contracts` and blocks merges on generator snapshot or idempotency drift.
 When a generator output change is intentional, refresh the golden file locally with `UPDATE_GENERATOR_SNAPSHOTS=1 make test-generator-contracts` and commit the updated snapshot in the same change.
+The `alpha_contract` CI job runs `make test-alpha-contracts` and freezes the current root CLI help plus route inventory as the `v0.1.0-alpha` public surface.
+Only refresh those snapshots when the alpha surface change has approved review, then run `UPDATE_ALPHA_CONTRACTS=1 make test-alpha-contracts` and commit the snapshot update with the contract change.
 If the Cherie lane breaks:
 1. Re-run the Playwright spec locally with `npm --prefix tests/e2e run test:cherie-smoke`.
 2. Compare `/up`, `/user/login`, and `/auth/realtime` behavior against the baseline before widening scope.
