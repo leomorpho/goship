@@ -16,6 +16,7 @@ import (
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/app/foundation"
 	appmiddleware "github.com/leomorpho/goship/app/web/middleware"
+	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/config"
 	"github.com/leomorpho/goship/framework/logging"
 	"github.com/leomorpho/goship/framework/middleware"
@@ -23,6 +24,7 @@ import (
 	"github.com/leomorpho/goship/framework/runtimeplan"
 	i18nmodule "github.com/leomorpho/goship/modules/i18n"
 	profilesvc "github.com/leomorpho/goship/modules/profile"
+	pwamodule "github.com/leomorpho/goship/modules/pwa"
 	slogecho "github.com/samber/slog-echo"
 )
 
@@ -90,7 +92,7 @@ func activeDatabaseDialect(cfg *config.Config) string {
 	return "postgres"
 }
 
-func RegisterStaticRoutes(c *foundation.Container) {
+func RegisterStaticRoutes(c *foundation.Container) error {
 	// Static files with proper cache control.
 	c.Web.Group("", appmiddleware.CacheControl(c.Config.Cache.Expiration.StaticFile), echomw.Gzip()).
 		Static(config.StaticPrefix, config.StaticDir)
@@ -104,6 +106,13 @@ func RegisterStaticRoutes(c *foundation.Container) {
 		ctx.Response().Header().Set("Cache-Control", fmt.Sprintf("public, max-age=%d", c.Config.Cache.Expiration.StaticFile))
 		return ctx.File("./pwabuilder-android-wrapper/assetlinks.json")
 	})
+
+	pwaModule := pwamodule.NewModule(pwamodule.NewRouteService(ui.Controller{}))
+	if err := pwaModule.RegisterStaticRoutes(c.Web, c.Config.Cache.Expiration.StaticFile); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func ApplyTLSRedirect(groups ...*echo.Group) {

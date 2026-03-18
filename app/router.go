@@ -36,6 +36,9 @@ type RouterModules struct {
 
 // BuildRouter is the canonical app-level router entrypoint.
 func BuildRouter(c *foundation.Container, modules RouterModules) error {
+	if c == nil {
+		return errors.New("invalid router container: nil")
+	}
 	if modules.PaidSubscriptions == nil {
 		return errors.New("missing paid subscriptions module")
 	}
@@ -56,7 +59,9 @@ func BuildRouter(c *foundation.Container, modules RouterModules) error {
 	// Create a slog logger.
 	logger := logging.NewLogger(c.Config.Log)
 
-	appweb.RegisterStaticRoutes(c)
+	if err := appweb.RegisterStaticRoutes(c); err != nil {
+		return err
+	}
 
 	// Non static file route groups.
 	g := c.Web.Group("")
@@ -147,9 +152,6 @@ func registerPublicRoutes(c *foundation.Container, g *echo.Group, ctr ui.Control
 	g.GET("/email/subscription/:token", verifyEmailSubscription.Get).Name = routeNames.RouteNameVerifyEmailSubscription
 
 	pwaModule := pwamodule.NewModule(pwamodule.NewRouteService(ctr))
-	if err := pwaModule.RegisterStaticRoutes(c.Web, c.Config.Cache.Expiration.StaticFile); err != nil {
-		return err
-	}
 	if err := pwaModule.RegisterRoutes(g); err != nil {
 		return err
 	}

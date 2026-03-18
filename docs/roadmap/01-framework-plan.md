@@ -749,8 +749,9 @@ Cache-contract parity tracked under `TKT-200` / `TKT-267` / `TKT-268`:
 - the shared cache seam normalizes positive TTLs to second precision so adapter choice does not change expiry semantics.
 
 Route-composition hardening tracked under `TKT-232` / `TKT-293` / `TKT-294`:
-- `app/router.go` remains the canonical route composition root, but static route registration is still split between the app-level registrar and module-level static calls;
-- executable red specs now pin the intended contract: `BuildRouter` should reject a nil container explicitly, and the composition root should own one static registration path.
+- `app/router.go` remains the canonical route composition root;
+- `BuildRouter` now rejects a nil container explicitly before route/module wiring;
+- static route registration now flows through one canonical `appweb.RegisterStaticRoutes(c)` path, including PWA assets.
 
 4. `R0.4` Testing harness improvements so default `make test` is Docker-free and fast.
 Status: `completed`

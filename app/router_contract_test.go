@@ -11,8 +11,6 @@ import (
 )
 
 func TestBuildRouter_RequiresContainer_RedSpec(t *testing.T) {
-	t.Skip("red spec: enable once BuildRouter rejects a nil container before route/module wiring")
-
 	err := BuildRouter(nil, RouterModules{
 		PaidSubscriptions: &paidsubscriptions.Service{},
 		Notifications:     &notifications.Services{},
@@ -26,8 +24,6 @@ func TestBuildRouter_RequiresContainer_RedSpec(t *testing.T) {
 }
 
 func TestRouterComposition_UsesSingleStaticRegistrationPath_RedSpec(t *testing.T) {
-	t.Skip("red spec: enable once app/router.go routes all static registration through appweb.RegisterStaticRoutes")
-
 	content, err := os.ReadFile(filepath.Join("router.go"))
 	if err != nil {
 		t.Fatalf("read router.go: %v", err)

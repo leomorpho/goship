@@ -15,14 +15,14 @@ import (
 func TestBuildRouter_RequiresPaidSubscriptionsModule(t *testing.T) {
 	t.Parallel()
 
-	err := BuildRouter(nil, RouterModules{})
+	err := BuildRouter(&foundation.Container{}, RouterModules{})
 	require.EqualError(t, err, "missing paid subscriptions module")
 }
 
 func TestBuildRouter_RequiresNotificationsModule(t *testing.T) {
 	t.Parallel()
 
-	err := BuildRouter(nil, RouterModules{
+	err := BuildRouter(&foundation.Container{}, RouterModules{
 		PaidSubscriptions: &paidsubscriptions.Service{},
 	})
 	require.EqualError(t, err, "missing notifications module")
