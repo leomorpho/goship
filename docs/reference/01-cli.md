@@ -134,6 +134,7 @@ These commands are implemented as wrappers over existing workflows:
 - `ship infra:down` -> detects `docker-compose`/`docker compose` and runs `down`
 - `make test-module-isolation` -> dedicated CI lane for installable-module root import isolation
 - `make test-sql-portability` -> dedicated CI lane for `sql-core-v1` runtime metadata portability
+- `npm --prefix tests/e2e run test:cherie-smoke` -> dedicated CI lane for the Cherie boot/auth/realtime compatibility baseline
 - `ship db:create` -> validates that target database URL is reachable (`goose status`)
 - `ship db:generate [--config <path>] [--dry-run]` -> runs Bob generation via `bobgen-sql -c <config>` (default: core `db/bobgen.yaml`, then enabled module configs in deterministic sorted order from `config/modules.yaml`)
 - `ship db:migrate` -> `goose up` for core migrations, then enabled module migrations in deterministic sorted order

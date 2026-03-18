@@ -84,6 +84,7 @@ Status of exposure:
 - Active surface includes notification list, unread-count badge, mark-all-read, mark read/unread, delete, and onboarding subscription management endpoints
 - SSE route wiring is runtime-gated and only enabled when notifier/pubsub dependencies are available
 - Invalid realtime/runtime-plan startup combinations now fail fast instead of silently falling back to a reduced route surface
+- CI now carries a dedicated Cherie compatibility smoke baseline for `/up`, `/user/login`, and auth-gated `/auth/realtime` behavior
 
 ## 5) Email Features
 

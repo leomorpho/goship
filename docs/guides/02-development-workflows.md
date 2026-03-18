@@ -199,6 +199,7 @@ E2E tests:
 - `make e2eui`
 
 CI uses the smoke spec only (`tests/e2e/tests/smoke.spec.ts`) to validate startup and basic app serving.
+The Cherie compatibility lane runs `tests/e2e/tests/cherie_compatibility.spec.ts` with a web-only process env (`PAGODA_PROCESSES_WEB=true`, `PAGODA_PROCESSES_WORKER=false`, `PAGODA_PROCESSES_SCHEDULER=false`, `PAGODA_PROCESSES_COLOCATED=false`) so the baseline only measures boot, auth, and realtime route compatibility.
 Note: broader legacy e2e specs are partially stale and should be treated as non-authoritative for GoShip behavior.
 
 ## Internationalization

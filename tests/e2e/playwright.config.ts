@@ -27,6 +27,10 @@ export default defineConfig({
     env: {
       ...process.env,
       PAGODA_HTTP_PORT: port,
+      PAGODA_PROCESSES_WEB: "true",
+      PAGODA_PROCESSES_WORKER: "false",
+      PAGODA_PROCESSES_SCHEDULER: "false",
+      PAGODA_PROCESSES_COLOCATED: "false",
     },
   },
 });
