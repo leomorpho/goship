@@ -17,7 +17,6 @@ import (
 	"github.com/leomorpho/goship/app"
 	"github.com/leomorpho/goship/app/foundation"
 	tasks "github.com/leomorpho/goship/app/jobs"
-	appsubscriptions "github.com/leomorpho/goship/app/subscriptions"
 	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
 	profilesvc "github.com/leomorpho/goship/modules/profile"
 )
@@ -47,7 +46,7 @@ func main() {
 		}
 	}()
 
-	plansCatalog, err := appsubscriptions.BuildPlanCatalog()
+	plansCatalog, err := foundation.BuildSubscriptionPlanCatalog()
 	if err != nil {
 		c.Web.Logger.Fatalf("failed to build subscription plans catalog: %v", err)
 	}
