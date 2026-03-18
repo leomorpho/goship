@@ -16,6 +16,7 @@ import (
 	goship "github.com/leomorpho/goship/app"
 	"github.com/leomorpho/goship/app/foundation"
 	"github.com/leomorpho/goship/config"
+	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
 	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
 	profilesvc "github.com/leomorpho/goship/modules/profile"
 )
@@ -62,7 +63,7 @@ func NewTestServer(t testing.TB) *TestServer {
 	notificationServices, err := notifications.New(notifications.RuntimeDeps{
 		DB:                                  c.Database,
 		DBDialect:                           c.Config.Adapters.DB,
-		PubSub:                              foundation.AdaptNotificationsPubSub(c.CorePubSub),
+		PubSub:                              frameworkbootstrap.AdaptNotificationsPubSub(c.CorePubSub),
 		SubscriptionService:                 paidSubscriptions,
 		VapidPublicKey:                      c.Config.App.VapidPublicKey,
 		VapidPrivateKey:                     c.Config.App.VapidPrivateKey,

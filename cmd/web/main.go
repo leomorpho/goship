@@ -11,12 +11,12 @@ import (
 	"time"
 
 	"github.com/hibiken/asynq"
-	jobsmodule "github.com/leomorpho/goship-modules/jobs"
 	"github.com/leomorpho/goship-modules/notifications"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/app"
 	"github.com/leomorpho/goship/app/foundation"
 	tasks "github.com/leomorpho/goship/app/jobs"
+	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
 	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
 	profilesvc "github.com/leomorpho/goship/modules/profile"
 )
@@ -76,7 +76,7 @@ func main() {
 	notificationServices, err := notifications.New(notifications.RuntimeDeps{
 		DB:                                  c.Database,
 		DBDialect:                           c.Config.Adapters.DB,
-		PubSub:                              foundation.AdaptNotificationsPubSub(c.CorePubSub),
+		PubSub:                              frameworkbootstrap.AdaptNotificationsPubSub(c.CorePubSub),
 		SubscriptionService:                 paidSubscriptionsService,
 		VapidPublicKey:                      c.Config.App.VapidPublicKey,
 		VapidPrivateKey:                     c.Config.App.VapidPrivateKey,
@@ -192,47 +192,13 @@ func main() {
 }
 
 func wireJobsModule(c *foundation.Container) error {
-	switch c.Config.Adapters.Jobs {
-	case "asynq":
-		mod, err := jobsmodule.New(jobsmodule.Config{
-			Backend: jobsmodule.BackendRedis,
-			Redis: jobsmodule.RedisConfig{
-				Addr:     fmt.Sprintf("%s:%d", c.Config.Cache.Hostname, c.Config.Cache.Port),
-				Password: c.Config.Cache.Password,
-				DB:       c.Config.Cache.Database,
-			},
-		})
-		if err != nil {
-			return err
-		}
-		c.CoreJobs = foundation.AdaptModuleJobs(mod.Jobs())
-		c.CoreJobsInspector = foundation.AdaptModuleJobsInspector(mod.Inspector())
-		return nil
-	case "dbqueue":
-		mod, err := jobsmodule.New(jobsmodule.Config{
-			Backend: jobsmodule.BackendSQL,
-			SQLDB:   c.Database,
-		})
-		if err == nil {
-			c.CoreJobs = foundation.AdaptModuleJobs(mod.Jobs())
-			c.CoreJobsInspector = foundation.AdaptModuleJobsInspector(mod.Inspector())
-		}
+	runtime, err := frameworkbootstrap.WireJobsRuntime(c.Config, c.Database, frameworkbootstrap.JobsProcessWeb)
+	if err != nil {
 		return err
-	case "backlite":
-		mod, err := jobsmodule.New(jobsmodule.Config{
-			Backend: jobsmodule.BackendBacklite,
-			SQLDB:   c.Database,
-		})
-		if err == nil {
-			c.CoreJobs = foundation.AdaptModuleJobs(mod.Jobs())
-			c.CoreJobsInspector = foundation.AdaptModuleJobsInspector(mod.Inspector())
-		}
-		return err
-	case "inproc":
-		return nil
-	default:
-		return fmt.Errorf("unsupported jobs adapter %q", c.Config.Adapters.Jobs)
 	}
+	c.CoreJobs = runtime.Jobs
+	c.CoreJobsInspector = runtime.Inspector
+	return nil
 }
 
 type asynqProcessor interface {
