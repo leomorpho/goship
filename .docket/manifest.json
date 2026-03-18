@@ -814,7 +814,7 @@
     },
     "TKT-185": {
       "title": "Add runtime behavior guardrails for destructive cleanup stream",
-      "state": "backlog",
+      "state": "in-progress",
       "priority": 5,
       "parent": "TKT-170"
     },
