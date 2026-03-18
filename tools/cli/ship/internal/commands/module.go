@@ -7,9 +7,11 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	rt "github.com/leomorpho/goship/tools/cli/ship/internal/runtime"
+	"golang.org/x/mod/modfile"
 )
 
 const modulesManifestHeader = `# Workspace-level module enablement for the monolith.
@@ -27,13 +29,17 @@ type ModuleDeps struct {
 // moduleInfo describes how a module should update the app markers.
 type moduleInfo struct {
 	ID               string
+	ModulePath       string
+	LocalPath        string
 	ContainerSnippet string
 	RouterSnippets   map[string]string
 }
 
 var moduleCatalog = map[string]moduleInfo{
 	"notifications": {
-		ID: "notifications",
+		ID:         "notifications",
+		ModulePath: "github.com/leomorpho/goship-modules/notifications",
+		LocalPath:  filepath.Join("modules", "notifications"),
 		ContainerSnippet: `
 	// ship:module:notifications
 	// TODO: wire the notifications module (db, pubsub, push, sms) here.
@@ -46,7 +52,9 @@ var moduleCatalog = map[string]moduleInfo{
 		},
 	},
 	"paidsubscriptions": {
-		ID: "paidsubscriptions",
+		ID:         "paidsubscriptions",
+		ModulePath: "github.com/leomorpho/goship-modules/paidsubscriptions",
+		LocalPath:  filepath.Join("modules", "paidsubscriptions"),
 		ContainerSnippet: `
 	// ship:module:paidsubscriptions
 	// TODO: wire the paid subscriptions module (plans catalog, subscription store) here.
@@ -63,7 +71,9 @@ var moduleCatalog = map[string]moduleInfo{
 		},
 	},
 	"emailsubscriptions": {
-		ID: "emailsubscriptions",
+		ID:         "emailsubscriptions",
+		ModulePath: "github.com/leomorpho/goship-modules/emailsubscriptions",
+		LocalPath:  filepath.Join("modules", "emailsubscriptions"),
 		ContainerSnippet: `
 	// ship:module:emailsubscriptions
 	// TODO: wire the email subscriptions module (store, confirmation) here.
@@ -76,7 +86,9 @@ var moduleCatalog = map[string]moduleInfo{
 		},
 	},
 	"jobs": {
-		ID: "jobs",
+		ID:         "jobs",
+		ModulePath: "github.com/leomorpho/goship-modules/jobs",
+		LocalPath:  filepath.Join("modules", "jobs"),
 		ContainerSnippet: `
 	// ship:module:jobs
 	// TODO: wire background job processors via modules/jobs.
@@ -121,6 +133,16 @@ var moduleCatalog = map[string]moduleInfo{
 	// TODO: register admin routes via modules/admin/routes.go.
 `,
 		},
+	},
+	"storage": {
+		ID:         "storage",
+		ModulePath: "github.com/leomorpho/goship-modules/storage",
+		LocalPath:  filepath.Join("modules", "storage"),
+		ContainerSnippet: `
+	// ship:module:storage
+	// TODO: wire the storage battery around framework/core.BlobStorage.
+`,
+		RouterSnippets: map[string]string{},
 	},
 }
 
@@ -225,6 +247,12 @@ func parseModuleArgs(args []string) (string, bool, error) {
 func applyModuleAdd(root string, info moduleInfo, dryRun bool, out io.Writer) error {
 	var changed bool
 
+	if dependencyChanged, err := syncLocalModuleDependency(root, info, dryRun, out); err != nil {
+		return err
+	} else if dependencyChanged {
+		changed = true
+	}
+
 	manifestPath := filepath.Join(root, "config", "modules.yaml")
 	manifestChanged, manifestContent, err := buildModulesManifest(manifestPath, info.ID)
 	if err != nil {
@@ -293,6 +321,20 @@ func applyModuleAdd(root string, info moduleInfo, dryRun bool, out io.Writer) er
 
 func applyModuleRemove(root string, info moduleInfo, dryRun bool, out io.Writer) error {
 	var changed bool
+
+	blockers, err := findModuleRemovalBlockers(root, info)
+	if err != nil {
+		return err
+	}
+	if len(blockers) > 0 {
+		return fmt.Errorf("module remove blocked: %s", strings.Join(blockers, ", "))
+	}
+
+	if dependencyChanged, err := removeLocalModuleDependency(root, info, dryRun, out); err != nil {
+		return err
+	} else if dependencyChanged {
+		changed = true
+	}
 
 	manifestPath := filepath.Join(root, "config", "modules.yaml")
 	removed, manifestContent, err := removeModuleFromManifest(manifestPath, info.ID)
@@ -541,4 +583,197 @@ func routeMarkerPair(auth string) (string, string, error) {
 	default:
 		return "", "", fmt.Errorf("unknown router group %q", auth)
 	}
+}
+
+func syncLocalModuleDependency(root string, info moduleInfo, dryRun bool, out io.Writer) (bool, error) {
+	if strings.TrimSpace(info.ModulePath) == "" || strings.TrimSpace(info.LocalPath) == "" {
+		return false, nil
+	}
+
+	var changed bool
+
+	goModPath := filepath.Join(root, "go.mod")
+	goModChanged, goModContent, err := updateGoModDependency(goModPath, info.ModulePath, info.LocalPath, true)
+	if err != nil {
+		return false, err
+	}
+	if goModChanged {
+		if err := writeOrDiff(goModPath, goModContent, dryRun, out); err != nil {
+			return false, err
+		}
+		changed = true
+	}
+
+	goWorkPath := filepath.Join(root, "go.work")
+	goWorkChanged, goWorkContent, err := updateGoWorkUse(goWorkPath, info.LocalPath, info.ModulePath, true)
+	if err != nil {
+		return false, err
+	}
+	if goWorkChanged {
+		if err := writeOrDiff(goWorkPath, goWorkContent, dryRun, out); err != nil {
+			return false, err
+		}
+		changed = true
+	}
+
+	return changed, nil
+}
+
+func removeLocalModuleDependency(root string, info moduleInfo, dryRun bool, out io.Writer) (bool, error) {
+	if strings.TrimSpace(info.ModulePath) == "" || strings.TrimSpace(info.LocalPath) == "" {
+		return false, nil
+	}
+
+	var changed bool
+
+	goModPath := filepath.Join(root, "go.mod")
+	goModChanged, goModContent, err := updateGoModDependency(goModPath, info.ModulePath, info.LocalPath, false)
+	if err != nil {
+		return false, err
+	}
+	if goModChanged {
+		if err := writeOrDiff(goModPath, goModContent, dryRun, out); err != nil {
+			return false, err
+		}
+		changed = true
+	}
+
+	goWorkPath := filepath.Join(root, "go.work")
+	goWorkChanged, goWorkContent, err := updateGoWorkUse(goWorkPath, info.LocalPath, info.ModulePath, false)
+	if err != nil {
+		return false, err
+	}
+	if goWorkChanged {
+		if err := writeOrDiff(goWorkPath, goWorkContent, dryRun, out); err != nil {
+			return false, err
+		}
+		changed = true
+	}
+
+	return changed, nil
+}
+
+func updateGoModDependency(path, modulePath, localPath string, add bool) (bool, string, error) {
+	body, err := os.ReadFile(path)
+	if err != nil {
+		return false, "", fmt.Errorf("read %s: %w", path, err)
+	}
+
+	file, err := modfile.Parse(path, body, nil)
+	if err != nil {
+		return false, "", fmt.Errorf("parse %s: %w", path, err)
+	}
+
+	before, err := file.Format()
+	if err != nil {
+		return false, "", fmt.Errorf("format %s: %w", path, err)
+	}
+
+	if add {
+		file.AddNewRequire(modulePath, "v0.0.0", false)
+		if err := file.AddReplace(modulePath, "", "./"+filepath.ToSlash(localPath), ""); err != nil {
+			return false, "", fmt.Errorf("update %s replace: %w", path, err)
+		}
+	} else {
+		if err := file.DropRequire(modulePath); err != nil {
+			return false, "", fmt.Errorf("drop require %s: %w", modulePath, err)
+		}
+		if err := file.DropReplace(modulePath, ""); err != nil {
+			return false, "", fmt.Errorf("drop replace %s: %w", modulePath, err)
+		}
+	}
+
+	file.Cleanup()
+	file.SortBlocks()
+	after, err := file.Format()
+	if err != nil {
+		return false, "", fmt.Errorf("format %s: %w", path, err)
+	}
+	if string(before) == string(after) {
+		return false, string(before), nil
+	}
+	return true, string(after), nil
+}
+
+func updateGoWorkUse(path, localPath, modulePath string, add bool) (bool, string, error) {
+	body, err := os.ReadFile(path)
+	if err != nil {
+		return false, "", fmt.Errorf("read %s: %w", path, err)
+	}
+
+	file, err := modfile.ParseWork(path, body, nil)
+	if err != nil {
+		return false, "", fmt.Errorf("parse %s: %w", path, err)
+	}
+
+	before := string(modfile.Format(file.Syntax))
+	usePath := "./" + filepath.ToSlash(localPath)
+	if add {
+		if err := file.AddUse(usePath, modulePath); err != nil {
+			return false, "", fmt.Errorf("add use %s: %w", usePath, err)
+		}
+	} else {
+		if err := file.DropUse(usePath); err != nil {
+			return false, "", fmt.Errorf("drop use %s: %w", usePath, err)
+		}
+	}
+
+	file.Cleanup()
+	file.SortBlocks()
+	after := string(modfile.Format(file.Syntax))
+	if before == after {
+		return false, before, nil
+	}
+	return true, after, nil
+}
+
+func findModuleRemovalBlockers(root string, info moduleInfo) ([]string, error) {
+	if strings.TrimSpace(info.ModulePath) == "" {
+		return nil, nil
+	}
+
+	managed := map[string]struct{}{
+		filepath.Clean(filepath.Join(root, "go.mod")):                            {},
+		filepath.Clean(filepath.Join(root, "go.work")):                           {},
+		filepath.Clean(filepath.Join(root, "config", "modules.yaml")):            {},
+		filepath.Clean(filepath.Join(root, "app", "foundation", "container.go")): {},
+	}
+
+	blockers := []string{}
+	err := filepath.WalkDir(root, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() {
+			switch d.Name() {
+			case ".git", ".docket", ".worktrees", "node_modules":
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		if filepath.Ext(path) != ".go" {
+			return nil
+		}
+		if _, ok := managed[filepath.Clean(path)]; ok {
+			return nil
+		}
+		body, readErr := os.ReadFile(path)
+		if readErr != nil {
+			return readErr
+		}
+		if strings.Contains(string(body), info.ModulePath) {
+			rel, relErr := filepath.Rel(root, path)
+			if relErr != nil {
+				return relErr
+			}
+			blockers = append(blockers, rel)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	sort.Strings(blockers)
+	return blockers, nil
 }

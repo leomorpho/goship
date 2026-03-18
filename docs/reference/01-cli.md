@@ -130,6 +130,8 @@ These commands are implemented as wrappers over existing workflows:
 - `ship run:command <name> [-- <args...>]` -> `go run ./cmd/cli/main.go <name> <args...>`
 - `ship test` -> canonical fast quality loop: runs the curated unit package list from `scripts/test/unit-packages.txt`, then compile-only checks for `scripts/test/compile-packages.txt`; falls back to `go test ./...` when the package lists are absent
 - `ship test --integration` -> `go test -tags=integration ./...`
+- `ship module:add <name>` -> updates `config/modules.yaml`, app marker snippets, root `go.mod` `require`/`replace` directives, and `go.work` `use` entries for standalone batteries with local `go.mod` files
+- `ship module:remove <name>` -> removes those managed entries when safe; fails with exact blocker file paths when the repo still imports the module outside managed wiring points
 - `ship infra:up` -> detects `docker-compose`/`docker compose` and runs `up -d cache`, then attempts `up -d mailpit` (non-fatal if mailpit fails)
 - `ship infra:down` -> detects `docker-compose`/`docker compose` and runs `down`
 - `make test-module-isolation` -> dedicated CI lane for installable-module root import isolation
@@ -214,6 +216,7 @@ Safety matrix:
 - `ship make:command <Name>` -> scaffold `app/commands/<name>.go` and register it in `cmd/cli/main.go` at `ship:commands` markers
 - `ship make:scaffold <Name> ...` -> orchestration command that composes `make:model`, `db:make`, `make:controller --domain <plural_model> --wire`, and optionally `make:resource --domain <plural_model>` / `db:migrate`
 - `ship make:module <Name>` -> generate isolated module scaffold in `modules/<name>` with its own `go.mod`, module-facing types/contracts, and service tests
+- current first-class installable batteries include `notifications`, `paidsubscriptions`, `emailsubscriptions`, `jobs`, and `storage`; `storage` exposes the canonical `core.BlobStorage` seam as a standalone battery package under `modules/storage`
 - `ship upgrade --to <version>` -> upgrades the pinned Goose CLI go-run fallback version (`gooseGoRunRef` in `tools/cli/ship/internal/cli/cli.go`)
 - `ship upgrade --dry-run` -> prints planned pin change without writing files
 - current scope: Goose pin only (expandable later)

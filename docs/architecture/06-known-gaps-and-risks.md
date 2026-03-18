@@ -265,6 +265,20 @@ Impact:
 - Upstream review now has an explicit recurring process instead of memory-based drift.
 - Contributors have one canonical place to record intake outcomes and follow-up actions.
 
+## 22) Module Install/Remove Is Now Deterministic For Standalone Batteries (Low)
+
+`ship module:add` and `ship module:remove` now manage local standalone-battery wiring through
+structured `go.mod` / `go.work` edits plus `config/modules.yaml` and marker-based app snippets.
+The new `modules/storage` battery joins the first-class installable set around the canonical
+`core.BlobStorage` seam.
+
+Impact:
+
+- Installable batteries now have one deterministic local-workspace wiring path instead of ad hoc
+  manual `go.mod` / `go.work` edits.
+- Remove flows now fail with exact blocker file paths when app code still imports a module,
+  preventing partial unwiring.
+
 ## 16) No Built-In OpenAPI Generation Command (Informational)
 
 The `ship api:spec` command and `app/contracts`-based spec flow were removed in the app-minimalization cleanup stream.

@@ -860,6 +860,19 @@ Done when:
 Test evidence:
 - `go test ./tools/cli/ship/internal/generators`
 
+11. `R1.6` Deterministic standalone module install/remove workflow.
+Status: `completed`
+Done when:
+- `ship module:add <name>` applies structured local-workspace wiring across `config/modules.yaml`,
+  root `go.mod`, and root `go.work`;
+- `ship module:remove <name>` removes only managed edits and fails with exact blocker file paths
+  when the repo still imports the target battery;
+- `modules/storage` is available as a first-class installable battery around the `core.BlobStorage`
+  seam.
+Test evidence:
+- `go test ./tools/cli/ship/internal/commands -run 'Test(ApplyModuleAdd_WiresLocalModuleDependencyContract_RedSpec|ApplyModuleRemove_FailsWithReferenceBlockers_RedSpec|ApplyModuleAdd_StorageBatteryContract_RedSpec|ApplyModuleRemove_RemovesSafeStorageDependencyContract_RedSpec)' -count=1`
+- `go test ./modules/storage -count=1`
+
 ### Phase 1: Core Abstractions
 
 1. Define `core` interfaces for DB/cache/pubsub/jobs/storage.

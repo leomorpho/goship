@@ -189,3 +189,173 @@ func registerExternalRoutes() {
 		t.Fatalf("expected 2fa in modules manifest, got:\n%s", string(manifest))
 	}
 }
+
+func TestApplyModuleAdd_WiresLocalModuleDependencyContract_RedSpec(t *testing.T) {
+	root := t.TempDir()
+	writeModuleFixtureFiles(t, root)
+
+	info, ok := moduleCatalog["notifications"]
+	if !ok {
+		t.Fatal("expected notifications in module catalog")
+	}
+	if err := applyModuleAdd(root, info, false, io.Discard); err != nil {
+		t.Fatalf("applyModuleAdd error: %v", err)
+	}
+
+	goMod := readTestFile(t, filepath.Join(root, "go.mod"))
+	if !strings.Contains(goMod, "github.com/leomorpho/goship-modules/notifications v0.0.0") {
+		t.Fatalf("expected notifications require in go.mod, got:\n%s", goMod)
+	}
+	if !strings.Contains(goMod, "replace github.com/leomorpho/goship-modules/notifications => ./modules/notifications") {
+		t.Fatalf("expected notifications replace in go.mod, got:\n%s", goMod)
+	}
+
+	goWork := readTestFile(t, filepath.Join(root, "go.work"))
+	if !strings.Contains(goWork, "./modules/notifications") {
+		t.Fatalf("expected notifications in go.work use list, got:\n%s", goWork)
+	}
+}
+
+func TestApplyModuleRemove_FailsWithReferenceBlockers_RedSpec(t *testing.T) {
+	root := t.TempDir()
+	writeModuleFixtureFiles(t, root)
+
+	info, ok := moduleCatalog["notifications"]
+	if !ok {
+		t.Fatal("expected notifications in module catalog")
+	}
+	err := applyModuleRemove(root, info, false, io.Discard)
+	if err == nil {
+		t.Fatal("expected remove blocker error")
+	}
+	if !strings.Contains(err.Error(), "module remove blocked") {
+		t.Fatalf("expected blocker error, got %v", err)
+	}
+	if !strings.Contains(err.Error(), "app/router.go") {
+		t.Fatalf("expected router blocker in error, got %v", err)
+	}
+}
+
+func TestApplyModuleAdd_StorageBatteryContract_RedSpec(t *testing.T) {
+	root := t.TempDir()
+	writeModuleFixtureFiles(t, root)
+	if err := os.MkdirAll(filepath.Join(root, "modules", "storage"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, "modules", "storage", "go.mod"), []byte("module github.com/leomorpho/goship-modules/storage\n\ngo 1.24.0\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	info, ok := moduleCatalog["storage"]
+	if !ok {
+		t.Fatal("expected storage in module catalog")
+	}
+	if err := applyModuleAdd(root, info, false, io.Discard); err != nil {
+		t.Fatalf("applyModuleAdd error: %v", err)
+	}
+
+	manifest := readTestFile(t, filepath.Join(root, "config", "modules.yaml"))
+	if !strings.Contains(manifest, "- storage") {
+		t.Fatalf("expected storage in modules manifest, got:\n%s", manifest)
+	}
+	goMod := readTestFile(t, filepath.Join(root, "go.mod"))
+	if !strings.Contains(goMod, "github.com/leomorpho/goship-modules/storage v0.0.0") {
+		t.Fatalf("expected storage require in go.mod, got:\n%s", goMod)
+	}
+}
+
+func TestApplyModuleRemove_RemovesSafeStorageDependencyContract_RedSpec(t *testing.T) {
+	root := t.TempDir()
+	writeModuleFixtureFiles(t, root)
+	if err := os.MkdirAll(filepath.Join(root, "modules", "storage"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, "modules", "storage", "go.mod"), []byte("module github.com/leomorpho/goship-modules/storage\n\ngo 1.24.0\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	info := moduleCatalog["storage"]
+	if err := applyModuleAdd(root, info, false, io.Discard); err != nil {
+		t.Fatalf("applyModuleAdd error: %v", err)
+	}
+	if err := applyModuleRemove(root, info, false, io.Discard); err != nil {
+		t.Fatalf("applyModuleRemove error: %v", err)
+	}
+
+	goMod := readTestFile(t, filepath.Join(root, "go.mod"))
+	if strings.Contains(goMod, "github.com/leomorpho/goship-modules/storage") {
+		t.Fatalf("expected storage dependency removed from go.mod, got:\n%s", goMod)
+	}
+	manifest := readTestFile(t, filepath.Join(root, "config", "modules.yaml"))
+	if strings.Contains(manifest, "- storage") {
+		t.Fatalf("expected storage removed from modules manifest, got:\n%s", manifest)
+	}
+}
+
+func writeModuleFixtureFiles(t *testing.T, root string) {
+	t.Helper()
+	files := map[string]string{
+		filepath.Join(root, "app", "foundation", "container.go"): `package foundation
+
+func NewContainer() *Container {
+	c := &Container{}
+	// ship:container:start
+	// ship:container:end
+	return c
+}
+
+type Container struct{}
+`,
+		filepath.Join(root, "app", "router.go"): `package goship
+
+import _ "github.com/leomorpho/goship-modules/notifications"
+
+func registerPublicRoutes() {
+	// ship:routes:public:start
+	// ship:routes:public:end
+}
+
+func registerAuthRoutes() {
+	// ship:routes:auth:start
+	// ship:routes:auth:end
+}
+
+func registerExternalRoutes() {
+	// ship:routes:external:start
+	// ship:routes:external:end
+}
+`,
+		filepath.Join(root, "config", "modules.yaml"): modulesManifestHeader,
+		filepath.Join(root, "go.mod"): `module example.com/demo
+
+go 1.24.0
+`,
+		filepath.Join(root, "go.work"): `go 1.25.6
+
+use (
+	.
+)
+`,
+		filepath.Join(root, "modules", "notifications", "go.mod"): `module github.com/leomorpho/goship-modules/notifications
+
+go 1.24.0
+`,
+	}
+	for path, content := range files {
+		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
+func readTestFile(t *testing.T, path string) string {
+	t.Helper()
+	b, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return string(b)
+}

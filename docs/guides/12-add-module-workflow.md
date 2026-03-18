@@ -29,8 +29,17 @@ go run ./tools/cli/ship/cmd/ship make:module Billing --path modules
 If the workflow is about enabling an already-existing module, follow the living CLI contract for:
 
 ```bash
-go run ./tools/cli/ship/cmd/ship module:add Billing
+go run ./tools/cli/ship/cmd/ship module:add storage
 ```
+
+`ship module:add` now owns the deterministic local-workspace edits for installable batteries:
+
+- `config/modules.yaml`
+- root `go.mod` `require` / `replace`
+- root `go.work` `use`
+- canonical container/router marker snippets when the battery exposes app wiring hooks
+
+`ship module:remove` removes those managed edits only when the module is no longer referenced elsewhere. If app code still imports the module directly, the command fails with exact blocker file paths instead of partially unwiring the repo.
 
 ## What This Should Change
 
