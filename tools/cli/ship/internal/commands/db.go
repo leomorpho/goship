@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -13,6 +14,7 @@ import (
 	"time"
 
 	"github.com/leomorpho/goship/config"
+	"github.com/leomorpho/goship/framework/backup"
 	rt "github.com/leomorpho/goship/tools/cli/ship/internal/runtime"
 )
 
@@ -39,6 +41,8 @@ func RunDB(args []string, d DBDeps) int {
 		return runCreate(args[1:], d)
 	case "generate":
 		return runGenerate(args[1:], d)
+	case "export":
+		return runExport(args[1:], d)
 	case "import":
 		return runImport(args[1:], d)
 	case "promote":
@@ -380,6 +384,12 @@ type dbPromoteReport struct {
 	Note              string                         `json:"note,omitempty"`
 }
 
+type dbExportReport struct {
+	Manifest          backup.Manifest `json:"manifest"`
+	SuggestedCommands []string        `json:"suggested_commands,omitempty"`
+	Note              string          `json:"note,omitempty"`
+}
+
 type dbImportReport struct {
 	Database          config.DatabaseRuntimeMetadata `json:"database"`
 	Steps             []string                       `json:"steps"`
@@ -457,6 +467,7 @@ func buildDBPromoteReport(md config.DatabaseRuntimeMetadata) dbPromoteReport {
 			"ship profile:set standard",
 			"ship adapter:set db=postgres cache=redis jobs=asynq",
 			"ship db:migrate",
+			"ship db:export --json",
 			"ship db:import --json",
 			"ship db:verify-import --json",
 		},
@@ -467,6 +478,115 @@ func buildDBPromoteReport(md config.DatabaseRuntimeMetadata) dbPromoteReport {
 	}
 	report.Note = "planning only; db:promote does not mutate files or run migrations yet"
 	return report
+}
+
+func runExport(args []string, d DBDeps) int {
+	for _, arg := range args {
+		if arg == "help" || arg == "-h" || arg == "--help" {
+			PrintDBHelp(d.Out)
+			return 0
+		}
+	}
+
+	fs := flag.NewFlagSet("db:export", flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+	jsonOutput := fs.Bool("json", false, "print JSON output")
+	if err := fs.Parse(args); err != nil {
+		fmt.Fprintf(d.Err, "invalid db:export arguments: %v\n", err)
+		fmt.Fprintln(d.Err, "usage: ship db:export [--json]")
+		return 1
+	}
+	if fs.NArg() > 0 {
+		fmt.Fprintln(d.Err, "usage: ship db:export [--json]")
+		return 1
+	}
+	if d.LoadConfig == nil {
+		fmt.Fprintln(d.Err, "db:export requires config loader dependency")
+		return 1
+	}
+
+	cfg, err := d.LoadConfig()
+	if err != nil {
+		fmt.Fprintf(d.Err, "failed to load config: %v\n", err)
+		return 1
+	}
+
+	report, err := buildDBExportReport(cfg)
+	if err != nil {
+		fmt.Fprintf(d.Err, "failed to build db export manifest: %v\n", err)
+		return 1
+	}
+
+	if *jsonOutput {
+		enc := json.NewEncoder(d.Out)
+		enc.SetIndent("", "  ")
+		if err := enc.Encode(report); err != nil {
+			fmt.Fprintf(d.Err, "failed to encode db:export output: %v\n", err)
+			return 1
+		}
+		return 0
+	}
+
+	printDBExportReport(d.Out, report)
+	return 0
+}
+
+func buildDBExportReport(cfg config.Config) (dbExportReport, error) {
+	md := cfg.RuntimeMetadata().Database
+	if md.Driver != string(config.DBDriverSQLite) {
+		return dbExportReport{}, fmt.Errorf("db:export requires a sqlite source, got %s", md.Driver)
+	}
+
+	sqlitePath := strings.TrimSpace(cfg.Backup.SQLitePath)
+	if sqlitePath == "" {
+		sqlitePath = strings.TrimSpace(cfg.Database.Path)
+	}
+	if sqlitePath == "" {
+		return dbExportReport{}, fmt.Errorf("db:export requires a sqlite source path")
+	}
+
+	driver := backup.NewSQLiteDriver()
+	manifest, err := driver.Create(context.Background(), backup.CreateRequest{
+		SQLitePath:    sqlitePath,
+		SchemaVersion: cfg.Backup.SchemaVersion,
+		Storage: backup.StorageLocation{
+			Provider: backup.ProviderLocal,
+			URI:      "file://" + filepath.ToSlash(sqlitePath),
+		},
+	})
+	if err != nil {
+		return dbExportReport{}, err
+	}
+
+	return dbExportReport{
+		Manifest: manifest,
+		SuggestedCommands: []string{
+			"ship db:import --json",
+		},
+		Note: "planning only; db:export reports manifest checksums and does not mutate runtime state yet",
+	}, nil
+}
+
+func printDBExportReport(w io.Writer, report dbExportReport) {
+	fmt.Fprintln(w, "DB export manifest:")
+	fmt.Fprintf(w, "- version: %s\n", report.Manifest.Version)
+	fmt.Fprintf(w, "- created_at: %s\n", report.Manifest.CreatedAt.UTC().Format(time.RFC3339))
+	fmt.Fprintf(w, "- database_mode: %s\n", report.Manifest.Database.Mode)
+	fmt.Fprintf(w, "- database_driver: %s\n", report.Manifest.Database.Driver)
+	fmt.Fprintf(w, "- schema_version: %s\n", report.Manifest.Database.SchemaVersion)
+	fmt.Fprintf(w, "- source_path: %s\n", report.Manifest.Database.SourcePath)
+	fmt.Fprintf(w, "- checksum_sha256: %s\n", report.Manifest.Artifact.ChecksumSHA256)
+	fmt.Fprintf(w, "- artifact_size_bytes: %d\n", report.Manifest.Artifact.SizeBytes)
+	fmt.Fprintf(w, "- storage_provider: %s\n", report.Manifest.Storage.Provider)
+	if report.Manifest.Storage.URI != "" {
+		fmt.Fprintf(w, "- storage_uri: %s\n", report.Manifest.Storage.URI)
+	}
+	for _, cmd := range report.SuggestedCommands {
+		fmt.Fprintf(w, "- next: %s\n", cmd)
+	}
+	if report.Note != "" {
+		fmt.Fprintf(w, "- note: %s\n", report.Note)
+	}
 }
 
 func runImport(args []string, d DBDeps) int {
@@ -912,6 +1032,7 @@ func PrintDBHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship db commands:")
 	fmt.Fprintln(w, "  ship db:create [--dry-run]                                 Validate DB connectivity and migration table reachability")
 	fmt.Fprintln(w, "  ship db:generate [--config <path>] [--dry-run]            Generate DB access code from bobgen config")
+	fmt.Fprintln(w, "  ship db:export [--json]                                   Show the SQLite export manifest")
 	fmt.Fprintln(w, "  ship db:import [--json]                                   Show the manual SQLite export import plan")
 	fmt.Fprintln(w, "  ship db:promote [--json]                                  Show the manual SQLite-to-Postgres promotion plan")
 	fmt.Fprintln(w, "  ship db:make <migration_name>                              Create a new SQL migration file")

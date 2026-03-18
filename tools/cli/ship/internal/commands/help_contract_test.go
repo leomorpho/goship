@@ -94,6 +94,7 @@ func TestPrintDBHelp_SubcommandsIncludeDescriptions(t *testing.T) {
 	want := map[string]string{
 		"  ship db:create [--dry-run]":                           "Validate DB connectivity",
 		"  ship db:generate [--config <path>] [--dry-run]":       "Generate DB access code",
+		"  ship db:export [--json]":                              "Show the SQLite export manifest",
 		"  ship db:import [--json]":                              "Show the manual SQLite export import plan",
 		"  ship db:promote [--json]":                             "Show the manual SQLite-to-Postgres promotion plan",
 		"  ship db:make <migration_name>":                        "Create a new SQL migration file",

@@ -114,8 +114,8 @@ Impact:
 
 ## 9) SQLite-To-Postgres Promotion Is Contracted But Still Manual (Medium)
 
-GoShip now surfaces the promotion contract through `ship db:promote` and runtime DB metadata, including orchestration hints for the canonical profile and adapter follow-up commands, and the CLI now exposes separate `ship db:import --json` plus `ship db:verify-import --json` planning hooks for the import workflow.
-The export side still needs the corresponding `ship db:export --json` manifest hook and the underlying import/verification engine is manual-first, so the next step is wiring those hooks to the actual framework path instead of just surfacing the CLI contract.
+GoShip now surfaces the promotion contract through `ship db:promote` and runtime DB metadata, including orchestration hints for the canonical profile and adapter follow-up commands, and the CLI now exposes separate `ship db:export --json`, `ship db:import --json`, and `ship db:verify-import --json` hooks for the export/import workflow.
+The underlying import/verification engine is still manual-first, so the next step is wiring those hooks to the actual framework path instead of just surfacing the CLI contract.
 
 Impact:
 
