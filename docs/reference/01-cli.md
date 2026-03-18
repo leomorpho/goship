@@ -148,7 +148,7 @@ These commands are implemented as wrappers over existing workflows:
 - `ship verify --profile strict` -> strict verify tier used as the precondition for the required Cherie sync gate
 - `ship db:create` -> validates that target database URL is reachable (`goose status`)
 - `ship db:generate [--config <path>] [--dry-run]` -> runs Bob generation via `bobgen-sql -c <config>` (default: core `db/bobgen.yaml`, then enabled module configs in deterministic sorted order from `config/modules.yaml`)
-- `ship db:promote [--json]` -> reports the manual SQLite-to-Postgres promotion plan from current runtime metadata; `--json` emits machine-readable plan output for agents/tooling
+- `ship db:promote [--json]` -> reports the manual SQLite-to-Postgres promotion plan from current runtime metadata and suggests the canonical profile/adapter/db migration follow-up commands; `--json` emits machine-readable plan output for agents/tooling
 - `ship db:migrate` -> `goose up` for core migrations, then enabled module migrations in deterministic sorted order
 - `ship db:status` -> `goose status` for core migrations, then enabled module migrations in deterministic sorted order; output is sectioned by scope (`== core migrations ==`, `== module <name> migrations ==`)
 - `ship db:reset [--seed] [--force] [--yes] [--dry-run]` -> prints plan, runs `goose reset`, then `goose up`; optional seed

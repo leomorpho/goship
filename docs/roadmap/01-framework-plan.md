@@ -101,7 +101,7 @@ CLI responsibilities:
 2. `ship profile:set <profile>` updates environment/process presets.
 3. `ship module:add <name>` updates module manifest + initializer wiring.
 4. `ship jobs:backend:set <backend>` updates adapter config with capability checks.
-5. `ship db:promote` reports the manual SQLite-to-Postgres promotion plan from runtime metadata and keeps the workflow deterministic before the export/import hooks exist.
+5. `ship db:promote` reports the manual SQLite-to-Postgres promotion plan from runtime metadata, suggests the canonical `ship profile:set`/`ship adapter:set` follow-up commands, and keeps the workflow deterministic before the export/import hooks exist.
 6. `ship new` should install templ tooling pinned to the project-declared version and provide an explicit update path.
 
 ### CLI Surface (Rails-Inspired)

@@ -436,6 +436,8 @@ func buildDBPromoteReport(md config.DatabaseRuntimeMetadata) dbPromoteReport {
 		},
 		SuggestedCommands: []string{
 			"ship runtime:report --json",
+			"ship profile:set standard",
+			"ship adapter:set db=postgres cache=redis jobs=asynq",
 			"ship db:migrate",
 		},
 	}

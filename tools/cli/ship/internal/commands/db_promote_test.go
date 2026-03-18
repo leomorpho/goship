@@ -33,6 +33,8 @@ func TestRunDBPromote(t *testing.T) {
 			"compatible_targets: postgres",
 			"step: freeze writes for the source app",
 			"step: switch config to Postgres and unfreeze writes",
+			"next: ship profile:set standard",
+			"next: ship adapter:set db=postgres cache=redis jobs=asynq",
 			"planning only; db:promote does not mutate files or run migrations yet",
 		} {
 			if !strings.Contains(out.String(), token) {
@@ -66,7 +68,8 @@ func TestRunDBPromote(t *testing.T) {
 				CompatibleTargets []string `json:"compatible_targets"`
 				PromotionPath     string   `json:"promotion_path"`
 			} `json:"database"`
-			Steps []string `json:"steps"`
+			Steps             []string `json:"steps"`
+			SuggestedCommands []string `json:"suggested_commands"`
 		}
 		if err := json.Unmarshal(out.Bytes(), &payload); err != nil {
 			t.Fatalf("decode json: %v\n%s", err, out.String())
@@ -76,6 +79,16 @@ func TestRunDBPromote(t *testing.T) {
 		}
 		if len(payload.Steps) == 0 {
 			t.Fatalf("expected steps in %s", out.String())
+		}
+		for _, token := range []string{
+			"ship runtime:report --json",
+			"ship profile:set standard",
+			"ship adapter:set db=postgres cache=redis jobs=asynq",
+			"ship db:migrate",
+		} {
+			if !containsString(payload.SuggestedCommands, token) {
+				t.Fatalf("suggested commands missing %q:\n%s", token, out.String())
+			}
 		}
 	})
 }
