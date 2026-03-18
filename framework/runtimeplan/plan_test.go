@@ -52,6 +52,35 @@ func TestResolve(t *testing.T) {
 			},
 		},
 		{
+			name: "single node keeps colocated local topology",
+			cfg: &config.Config{
+				Runtime: config.RuntimeConfig{
+					Profile: config.RuntimeProfileSingleNode,
+				},
+				Processes: config.ProcessesConfig{
+					Web:       true,
+					Worker:    true,
+					Scheduler: true,
+					CoLocated: true,
+				},
+				Adapters: config.AdaptersConfig{
+					DB:     "sqlite",
+					Cache:  "otter",
+					Jobs:   "backlite",
+					PubSub: "inproc",
+				},
+			},
+			assertion: func(t *testing.T, p Plan) {
+				assert.Equal(t, "single-node", p.Profile)
+				assert.True(t, p.RunWeb)
+				assert.True(t, p.RunWorker)
+				assert.True(t, p.RunScheduler)
+				assert.True(t, p.CoLocated)
+				assert.Equal(t, "sqlite", p.Adapters.DB)
+				assert.Equal(t, "backlite", p.Adapters.Jobs)
+			},
+		},
+		{
 			name: "invalid when no processes enabled",
 			cfg: &config.Config{
 				Runtime: config.RuntimeConfig{
@@ -125,4 +154,29 @@ func TestResolve(t *testing.T) {
 			tt.assertion(t, plan)
 		})
 	}
+}
+
+func TestResolve_LocalDefaultConfigWillNormalizeToSingleNode_RedSpec(t *testing.T) {
+	cfg := &config.Config{
+		Runtime: config.RuntimeConfig{},
+		Processes: config.ProcessesConfig{
+			Web:       true,
+			Worker:    true,
+			Scheduler: true,
+			CoLocated: true,
+		},
+		Adapters: config.AdaptersConfig{
+			DB:     "sqlite",
+			Cache:  "otter",
+			Jobs:   "backlite",
+			PubSub: "inproc",
+		},
+	}
+
+	plan, err := Resolve(cfg)
+	require.NoError(t, err)
+
+	t.Skip("red spec: TKT-264 will treat the default local adapter/process topology as single-node rather than server-db")
+
+	assert.Equal(t, "single-node", plan.Profile)
 }
