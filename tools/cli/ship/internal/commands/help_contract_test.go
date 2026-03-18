@@ -310,3 +310,16 @@ func TestPrintDevHelp_CanonicalFlagsOnly_RedSpec(t *testing.T) {
 		}
 	}
 }
+
+func TestPrintDevHelp_WillDescribeCanonicalAppOnLoop_RedSpec(t *testing.T) {
+	out := captureHelp(t, PrintDevHelp)
+
+	t.Skip("red spec: TKT-266 will describe ship dev as the canonical app-on loop driven by runtime profile semantics")
+
+	if strings.Contains(out, "jobs backend is asynq") {
+		t.Fatalf("dev help should not describe default mode in terms of jobs adapter heuristics\n%s", out)
+	}
+	if !strings.Contains(out, "canonical app-on loop") {
+		t.Fatalf("dev help should describe ship dev as the canonical app-on loop\n%s", out)
+	}
+}

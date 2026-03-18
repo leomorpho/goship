@@ -739,6 +739,10 @@ Default-topology hardening tracked under `TKT-198` / `TKT-263` / `TKT-264`:
 - local and dev defaults now normalize to `single-node`;
 - the canonical default local topology is colocated web/worker/scheduler with SQLite + Otter + Backlite + inproc pubsub semantics.
 
+Dev-loop convergence tracked under `TKT-199` / `TKT-265` / `TKT-266`:
+- `ship dev` still resolves default mode from jobs-adapter heuristics instead of the explicit runtime profile;
+- executable red specs now pin the intended contract: `single-node` should stay on the web/app-on loop by default, while `distributed` should opt into the full multiprocess loop.
+
 4. `R0.4` Testing harness improvements so default `make test` is Docker-free and fast.
 Status: `completed`
 Done when:
