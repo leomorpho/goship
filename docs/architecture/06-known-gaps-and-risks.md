@@ -208,6 +208,16 @@ Impact:
 - Teams can generate a consistent email-template baseline instead of hand-rolling view and preview wiring.
 - Future mailer-surface changes should extend the generator, preview controller, and CLI docs together so generated mailers stay aligned with the dev preview contract.
 
+## 19) Task-Oriented OSS Workflow Docs Are Still Incomplete (Medium)
+
+GoShip has internal architecture and CLI references, but it still lacks a canonical OSS docs set for
+core contributor flows like adding an endpoint, adding a module, and adding a background job.
+
+Impact:
+
+- New contributors and agents still have to synthesize workflows from multiple internal docs.
+- The repo lacks one clearly indexed task-oriented guide set for common extension work.
+
 ## 16) No Built-In OpenAPI Generation Command (Informational)
 
 The `ship api:spec` command and `app/contracts`-based spec flow were removed in the app-minimalization cleanup stream.
