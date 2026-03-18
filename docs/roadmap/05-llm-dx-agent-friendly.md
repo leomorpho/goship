@@ -524,11 +524,11 @@ creating framework-level code in the app layer.
 > Route contracts define the typed shape of every request and response. They act as a spec
 > that agents implement against, and as validation that the implementation matches the intent.
 
-### O01 — Define route contract types for all existing routes
+### O01 — Define typed request contract structs for all existing routes
 
 **Status:** `[ ] todo`
 **Depends on:** nothing (parallel)
-**Files:** `app/contracts/` (new directory), one file per route group
+**Files:** owning route/controller packages (or module-local `contracts` packages)
 
 **Context:** Currently, request parsing is scattered — form values plucked inline in handler
 functions, response shape implicit in the viewmodel. Route contracts make the intent explicit:
@@ -537,7 +537,7 @@ know exactly what to build.
 
 **Contract type convention:**
 ```go
-// in app/contracts/auth.go
+// in modules/auth/contracts/auth.go
 package contracts
 
 // LoginRequest is the form submission contract for POST /login.
@@ -554,16 +554,16 @@ type LoginPage struct {
 ```
 
 **What to do:**
-1. Create `app/contracts/` directory.
-2. For each existing route group (auth, profile, preferences, home), create a contracts file.
+1. For each existing route group (auth, profile, preferences, home), define explicit typed request structs near the owning route/controller package.
+2. Use module-local `contracts` packages where shared contracts are useful.
 3. Extract or document the request shape from the handler's form parsing calls.
 4. Extract or copy the existing viewmodel struct into the contracts file if it's currently
    defined inline in the controller.
 5. Handlers are NOT changed in this task — contracts are documentation and type anchors.
 6. Add a `// Route: METHOD /path` comment above each type.
 
-**Done when:** `app/contracts/` exists with one file per route group. All existing public request
-types and viewmodels are represented. No handler logic is changed.
+**Done when:** typed request contracts are explicit and colocated with owning route/module code.
+No handler logic is changed.
 
 ---
 
@@ -576,13 +576,13 @@ types and viewmodels are represented. No handler logic is changed.
 **Context:** After O01, contracts exist but handlers may not use them. This check catches handlers
 that parse form values directly without a contract type.
 
-**Rule:** Any handler that calls `c.FormValue()` or `c.Bind()` without assigning to a type defined
-in `app/contracts/` package is a warning.
+**Rule:** Any handler that calls `c.FormValue()` or `c.Bind()` without assigning to an explicit typed
+request struct is a warning.
 
 **What to do:**
 1. Add `checkContractUsage()` to doctor.
 2. Walk `app/web/controllers/*.go`, detect calls to `c.FormValue(` or `c.Bind(`.
-3. Check if the bound type is in the `contracts` package (import alias check).
+3. Check if the bound payload is an explicit typed struct (local or imported contracts package).
 4. Warn (not error) if direct form parsing is used without a contract.
 
 **Done when:** `ship doctor` warns on handlers using raw form parsing. Existing contract-using

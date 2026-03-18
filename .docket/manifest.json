@@ -736,7 +736,7 @@
     },
     "TKT-172": {
       "title": "Purge residual api:spec and API-contract references",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 7,
       "parent": "TKT-170"
     },

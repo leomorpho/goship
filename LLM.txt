@@ -462,7 +462,7 @@ Last updated: 2026-03-04
 4. `M04` - `roadmap/04-pagoda-and-dx-improvements.md`: ideas from Pagoda and Rails/Laravel — single binary mode, Backlite, Otter, admin panel, and more.
 5. `M05` - `roadmap/05-llm-dx-agent-friendly.md`: convention-over-configuration enforcement, ship verify, ship describe, hierarchical CLAUDE.md, route contracts, test-first scaffolding, agent worktree workflow, MCP tool expansion.
 6. `M06` - `roadmap/06-dx-and-infrastructure.md`: ship dev unified command, GitHub Actions CI/CD, SQLite multi-process safety, slog structured logging, security headers, health checks, email system (mailer interface, templ templates, dev previews), cron scheduling, app-level CLI commands.
-7. `M07` - `roadmap/07-modules-and-capabilities.md`: OAuth/social login, 2FA/TOTP, AI module (Anthropic + OpenAI + OpenRouter + streaming), domain events, soft deletes, feature flags, audit log, SSE, JSON API pattern, OpenAPI spec generation, test data factories, HTTP test helpers, i18n.
+7. `M07` - `roadmap/07-modules-and-capabilities.md`: OAuth/social login, 2FA/TOTP, AI module (Anthropic + OpenAI + OpenRouter + streaming), domain events, soft deletes, feature flags, audit log, SSE, JSON API pattern, test data factories, HTTP test helpers, i18n.
 8. `M08` - `roadmap/08-ui-agent-context.md`: work order for applying UI agent convention (data-* attributes, templ comments, route annotations) across this repo.
 
 ## Primary Source Files Used For This Analysis
@@ -940,11 +940,11 @@ Reflection-based administrative interface for managing database resources.
 - `container.Flags` exposes flag evaluation (`Enabled`) to application code.
 - Rollout checks are deterministic per `(flag key, user id)` hash bucket.
 
-## 13) API Contract Specs
+## 13) Request DTO Conventions
 
-- `app/contracts/*.go` `// Route: METHOD /path` comments now act as the OpenAPI source-of-truth contract.
-- `ship api:spec` generates an OpenAPI 3.0 JSON document from those typed contracts.
-- The generator supports stdout output, file output (`--out`), and local Swagger UI serving (`--serve`).
+- Controller request DTOs now live with their owning controllers/modules instead of a global `app/contracts` package.
+- `ship doctor` (`DX027`) enforces typed request binding patterns and warns on raw/untyped form parsing patterns.
+- OpenAPI generation was removed from the core `ship` CLI surface in the app-minimalization cleanup stream.
 
 ## 14) Internationalization Baseline
 
@@ -1424,14 +1424,14 @@ Impact:
 - Runtime can evaluate cached DB-backed flags today.
 - Operators can quickly enable/disable flags, but still need SQL/seed workflows for richer targeting updates.
 
-## 16) OpenAPI Generation Is Contract-First Baseline (Low)
+## 16) No Built-In OpenAPI Generation Command (Informational)
 
-`ship api:spec` now generates valid OpenAPI 3.0 output from `app/contracts` route comments, but the first pass intentionally keeps response envelopes and security details generic.
+The `ship api:spec` command and `app/contracts`-based spec flow were removed in the app-minimalization cleanup stream.
 
 Impact:
 
-- API docs are now auto-generated and drift-resistant for route/path/request schema shape.
-- Teams still need follow-up refinement for richer per-operation responses/examples/auth scopes when publishing external API docs.
+- CLI surface is smaller and no longer implies framework-owned OpenAPI generation.
+- Teams that need OpenAPI must use an external/spec-specific workflow for now.
 
 ## 17) Factory Scaffolding Is Intentional Baseline (Low)
 
@@ -3959,7 +3959,7 @@ Non-goal:
 6. Redis is optional capability, not a hard requirement.
 7. GoShip must remain fully standalone; any hosted control plane consumes stable runtime hooks and managed overrides but does not become a framework dependency.
 8. Feature flags baseline is framework-owned (`modules/flags` + `container.Flags`) with admin toggle access at `/auth/admin/flags`.
-9. Route contracts in `app/contracts` are now consumable by `ship api:spec` for generated OpenAPI 3.0 output.
+9. The prior `app/contracts` + `ship api:spec` approach was removed during app-minimalization cleanup; request DTO ownership is now local to controllers/modules.
 10. Test-data factory baseline now lives in `framework/factory` with `ship make:factory` scaffold support.
 11. Typed HTTP integration helpers now live in `framework/testutil` (`NewTestServer`, `PostForm` CSRF automation, `AsUser`, fluent response assertions).
 12. I18n baseline now lives in `modules/i18n` with canonical TOML locale files under `locales/` (temporary YAML dual-read migration support), runtime toggle support (`PAGODA_I18N_ENABLED` / `PAGODA_I18N_DEFAULT_LANGUAGE`), strict-mode doctor enforcement (`PAGODA_I18N_STRICT_MODE` + `.i18n-allowlist`), profile preference persistence (`profiles.preferred_language`), and CLI support for `make:locale`, `i18n:init`, `i18n:scan`, `i18n:instrument`, `i18n:migrate`, `i18n:normalize`, `i18n:missing`, and `i18n:unused`.
@@ -7185,11 +7185,11 @@ creating framework-level code in the app layer.
 > Route contracts define the typed shape of every request and response. They act as a spec
 > that agents implement against, and as validation that the implementation matches the intent.
 
-### O01 — Define route contract types for all existing routes
+### O01 — Define typed request contract structs for all existing routes
 
 **Status:** `[ ] todo`
 **Depends on:** nothing (parallel)
-**Files:** `app/contracts/` (new directory), one file per route group
+**Files:** owning route/controller packages (or module-local `contracts` packages)
 
 **Context:** Currently, request parsing is scattered — form values plucked inline in handler
 functions, response shape implicit in the viewmodel. Route contracts make the intent explicit:
@@ -7198,7 +7198,7 @@ know exactly what to build.
 
 **Contract type convention:**
 ```go
-// in app/contracts/auth.go
+// in modules/auth/contracts/auth.go
 package contracts
 
 // LoginRequest is the form submission contract for POST /login.
@@ -7215,16 +7215,16 @@ type LoginPage struct {
 ```
 
 **What to do:**
-1. Create `app/contracts/` directory.
-2. For each existing route group (auth, profile, preferences, home), create a contracts file.
+1. For each existing route group (auth, profile, preferences, home), define explicit typed request structs near the owning route/controller package.
+2. Use module-local `contracts` packages where shared contracts are useful.
 3. Extract or document the request shape from the handler's form parsing calls.
 4. Extract or copy the existing viewmodel struct into the contracts file if it's currently
    defined inline in the controller.
 5. Handlers are NOT changed in this task — contracts are documentation and type anchors.
 6. Add a `// Route: METHOD /path` comment above each type.
 
-**Done when:** `app/contracts/` exists with one file per route group. All existing public request
-types and viewmodels are represented. No handler logic is changed.
+**Done when:** typed request contracts are explicit and colocated with owning route/module code.
+No handler logic is changed.
 
 ---
 
@@ -7237,13 +7237,13 @@ types and viewmodels are represented. No handler logic is changed.
 **Context:** After O01, contracts exist but handlers may not use them. This check catches handlers
 that parse form values directly without a contract type.
 
-**Rule:** Any handler that calls `c.FormValue()` or `c.Bind()` without assigning to a type defined
-in `app/contracts/` package is a warning.
+**Rule:** Any handler that calls `c.FormValue()` or `c.Bind()` without assigning to an explicit typed
+request struct is a warning.
 
 **What to do:**
 1. Add `checkContractUsage()` to doctor.
 2. Walk `app/web/controllers/*.go`, detect calls to `c.FormValue(` or `c.Bind(`.
-3. Check if the bound type is in the `contracts` package (import alias check).
+3. Check if the bound payload is an explicit typed struct (local or imported contracts package).
 4. Warn (not error) if direct form parsing is used without a contract.
 
 **Done when:** `ship doctor` warns on handlers using raw form parsing. Existing contract-using
@@ -9297,7 +9297,7 @@ Client disconnect cleanup works (no goroutine leak). The shared counter example 
 
 **Status:** `[ ] todo`
 **Depends on:** M05 O01 (route contracts)
-**Files:** `framework/api/` (new package), `app/contracts/` (update to include response types)
+**Files:** `framework/api/` (new package), owning module/controller DTO/response packages
 
 **Context:** Many GoShip apps need both HTML views (for the web UI) and JSON responses (for
 mobile clients or third-party integrations). The pattern should be: one handler, two representations,
@@ -9380,58 +9380,17 @@ API clients. Common error responses use the standard error format. `ship verify`
 
 ### Z03 — OpenAPI spec generation from route contracts
 
-**Status:** `[ ] todo`
-**Depends on:** M05 O01 (route contracts), Z02 (JSON API pattern)
-**Files:** `tools/cli/ship/internal/commands/api_spec.go` (new), `tools/cli/ship/internal/cli/cli.go`
+**Status:** `[x] removed`
+**Depends on:** none
+**Files:** n/a
 
-**Context:** Route contracts (from M05 O01) define typed Go structs with `// Route: METHOD /path`
-comments. From these, generate a valid OpenAPI 3.0 spec automatically. Zero manual maintenance —
-change the contract, the spec updates on next `ship api:spec`.
+**Context:** The prior `ship api:spec` and `app/contracts`-driven OpenAPI flow was intentionally
+removed during the app-minimalization cleanup stream.
 
-**Generation approach:**
-1. Parse `app/contracts/*.go` using `go/ast`.
-2. Find structs with `// Route:` comment: extract method + path.
-3. For request types: reflect on struct fields → JSON schema (string, int, bool, nested struct).
-4. For response types: same.
-5. Detect `validate:"required"` tags → mark field as required in schema.
-6. Output OpenAPI 3.0 JSON.
-
-**Output:**
-```json
-{
-  "openapi": "3.0.0",
-  "info": {"title": "GoShip App", "version": "1.0.0"},
-  "paths": {
-    "/login": {
-      "post": {
-        "operationId": "Login",
-        "requestBody": {
-          "content": {"application/json": {"schema": {"$ref": "#/components/schemas/LoginRequest"}}}
-        },
-        "responses": {"200": {"description": "Success"}}
-      }
-    }
-  },
-  "components": {"schemas": {"LoginRequest": {...}}}
-}
-```
-
-**Ship CLI command:**
-```
-ship api:spec              → outputs OpenAPI JSON to stdout
-ship api:spec --out openapi.json  → writes to file
-ship api:spec --serve      → serves Swagger UI at /api/docs (dev only)
-```
-
-**What to do:**
-1. Create `tools/cli/ship/internal/commands/api_spec.go`.
-2. Implement Go AST parser: walk `app/contracts/`, find `// Route:` comments, extract type info.
-3. Implement OpenAPI 3.0 serializer.
-4. Register `api:spec` command in `cli.go`.
-5. For `--serve`: embed Swagger UI HTML (inline or via `embed.FS`), serve from the running app.
-
-**Done when:** `ship api:spec` outputs valid OpenAPI 3.0 JSON that passes validation
-(`npx @redocly/cli lint openapi.json`). All contract types with `// Route:` comments are included.
+**Current direction:**
+1. Keep request DTO ownership local to controllers/modules.
+2. Keep core `ship` surface focused on runtime/dev tooling.
+3. Revisit OpenAPI generation only if a new dedicated design is approved.
 
 ---
 
@@ -9713,7 +9672,7 @@ lists untranslated keys. `ship verify` passes.
 - X04 (conversation history — needs X01)
 - Y03 (feature flags — needs M03 I03 for Otter cache)
 - Y04 (audit log — needs Y01 domain events)
-- Z03 (OpenAPI spec — needs M05 O01 + Z02)
+- Z03 removed from core roadmap (legacy `api:spec` flow retired)
 - AA02 (HTTP test helpers — needs AA01)
 
 **Layer 2:**
@@ -9724,7 +9683,6 @@ lists untranslated keys. `ship verify` passes.
 - M03 D01 (auth module) before W01, W02
 - M03 I03 (Otter) before Y03
 - M03 I04 (in-memory test DB) before AA01, AA02
-- M05 O01 (route contracts) before Z03
 
 ---
 FILE: docs/roadmap/08-ui-agent-context.md

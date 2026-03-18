@@ -144,14 +144,14 @@ Impact:
 - Runtime can evaluate cached DB-backed flags today.
 - Operators can quickly enable/disable flags, but still need SQL/seed workflows for richer targeting updates.
 
-## 16) OpenAPI Generation Is Contract-First Baseline (Low)
+## 16) No Built-In OpenAPI Generation Command (Informational)
 
-`ship api:spec` now generates valid OpenAPI 3.0 output from `app/contracts` route comments, but the first pass intentionally keeps response envelopes and security details generic.
+The `ship api:spec` command and `app/contracts`-based spec flow were removed in the app-minimalization cleanup stream.
 
 Impact:
 
-- API docs are now auto-generated and drift-resistant for route/path/request schema shape.
-- Teams still need follow-up refinement for richer per-operation responses/examples/auth scopes when publishing external API docs.
+- CLI surface is smaller and no longer implies framework-owned OpenAPI generation.
+- Teams that need OpenAPI must use an external/spec-specific workflow for now.
 
 ## 17) Factory Scaffolding Is Intentional Baseline (Low)
 

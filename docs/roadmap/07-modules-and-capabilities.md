@@ -921,7 +921,7 @@ Client disconnect cleanup works (no goroutine leak). The shared counter example 
 
 **Status:** `[ ] todo`
 **Depends on:** M05 O01 (route contracts)
-**Files:** `framework/api/` (new package), `app/contracts/` (update to include response types)
+**Files:** `framework/api/` (new package), owning module/controller DTO/response packages
 
 **Context:** Many GoShip apps need both HTML views (for the web UI) and JSON responses (for
 mobile clients or third-party integrations). The pattern should be: one handler, two representations,
@@ -1004,58 +1004,17 @@ API clients. Common error responses use the standard error format. `ship verify`
 
 ### Z03 — OpenAPI spec generation from route contracts
 
-**Status:** `[ ] todo`
-**Depends on:** M05 O01 (route contracts), Z02 (JSON API pattern)
-**Files:** `tools/cli/ship/internal/commands/api_spec.go` (new), `tools/cli/ship/internal/cli/cli.go`
+**Status:** `[x] removed`
+**Depends on:** none
+**Files:** n/a
 
-**Context:** Route contracts (from M05 O01) define typed Go structs with `// Route: METHOD /path`
-comments. From these, generate a valid OpenAPI 3.0 spec automatically. Zero manual maintenance —
-change the contract, the spec updates on next `ship api:spec`.
+**Context:** The prior `ship api:spec` and `app/contracts`-driven OpenAPI flow was intentionally
+removed during the app-minimalization cleanup stream.
 
-**Generation approach:**
-1. Parse `app/contracts/*.go` using `go/ast`.
-2. Find structs with `// Route:` comment: extract method + path.
-3. For request types: reflect on struct fields → JSON schema (string, int, bool, nested struct).
-4. For response types: same.
-5. Detect `validate:"required"` tags → mark field as required in schema.
-6. Output OpenAPI 3.0 JSON.
-
-**Output:**
-```json
-{
-  "openapi": "3.0.0",
-  "info": {"title": "GoShip App", "version": "1.0.0"},
-  "paths": {
-    "/login": {
-      "post": {
-        "operationId": "Login",
-        "requestBody": {
-          "content": {"application/json": {"schema": {"$ref": "#/components/schemas/LoginRequest"}}}
-        },
-        "responses": {"200": {"description": "Success"}}
-      }
-    }
-  },
-  "components": {"schemas": {"LoginRequest": {...}}}
-}
-```
-
-**Ship CLI command:**
-```
-ship api:spec              → outputs OpenAPI JSON to stdout
-ship api:spec --out openapi.json  → writes to file
-ship api:spec --serve      → serves Swagger UI at /api/docs (dev only)
-```
-
-**What to do:**
-1. Create `tools/cli/ship/internal/commands/api_spec.go`.
-2. Implement Go AST parser: walk `app/contracts/`, find `// Route:` comments, extract type info.
-3. Implement OpenAPI 3.0 serializer.
-4. Register `api:spec` command in `cli.go`.
-5. For `--serve`: embed Swagger UI HTML (inline or via `embed.FS`), serve from the running app.
-
-**Done when:** `ship api:spec` outputs valid OpenAPI 3.0 JSON that passes validation
-(`npx @redocly/cli lint openapi.json`). All contract types with `// Route:` comments are included.
+**Current direction:**
+1. Keep request DTO ownership local to controllers/modules.
+2. Keep core `ship` surface focused on runtime/dev tooling.
+3. Revisit OpenAPI generation only if a new dedicated design is approved.
 
 ---
 
@@ -1337,7 +1296,7 @@ lists untranslated keys. `ship verify` passes.
 - X04 (conversation history — needs X01)
 - Y03 (feature flags — needs M03 I03 for Otter cache)
 - Y04 (audit log — needs Y01 domain events)
-- Z03 (OpenAPI spec — needs M05 O01 + Z02)
+- Z03 removed from core roadmap (legacy `api:spec` flow retired)
 - AA02 (HTTP test helpers — needs AA01)
 
 **Layer 2:**
@@ -1348,4 +1307,3 @@ lists untranslated keys. `ship verify` passes.
 - M03 D01 (auth module) before W01, W02
 - M03 I03 (Otter) before Y03
 - M03 I04 (in-memory test DB) before AA01, AA02
-- M05 O01 (route contracts) before Z03
