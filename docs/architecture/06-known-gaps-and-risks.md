@@ -263,6 +263,15 @@ Impact:
 - contributors must infer safe customization boundaries from several docs and policy checks instead of one source of truth;
 - new guardrails risk growing inconsistently because protected seams are not documented and enforced from the same manifest.
 
+## 25) Standalone Exportability Lacks A Named Verification Gate (Medium)
+
+The repo documents standalone capability, but `ship verify` does not yet expose a dedicated run-anywhere/exportability gate proving generated apps stay free of control-plane dependency assumptions.
+
+Impact:
+
+- standalone regression risk is spread across implicit docs and ad hoc review rather than one explicit release gate;
+- generated-app exportability can drift without a named verification step catching it early.
+
 ## Suggested Priority Order
 
 1. Complete cache adapter coverage so page caching works consistently across supported backends.
