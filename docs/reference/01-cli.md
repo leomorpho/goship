@@ -139,7 +139,7 @@ These commands are implemented as wrappers over existing workflows:
 - `ship infra:up` -> detects `docker-compose`/`docker compose` and runs `up -d cache`, then attempts `up -d mailpit` (non-fatal if mailpit fails)
 - `ship infra:down` -> detects `docker-compose`/`docker compose` and runs `down`
 - `make test-module-isolation` -> dedicated CI lane for installable-module root import isolation; reports offending module/file context and rejects stale allowlist entries
-- `make test-sql-portability` -> dedicated CI lane for `sql-core-v1` runtime metadata portability
+- `make test-sql-portability` -> dedicated CI lane for `sql-core-v1` runtime metadata plus migration/query portability; diagnostics call out missing branch handling and placeholder drift
 - `make test-generator-contracts` -> dedicated CI lane for shared generator-report snapshot and idempotency-matrix drift
 - `make test-generator-idempotency` -> focused local rerun for the duplicate-generation matrix without snapshot refresh
 - `make test-alpha-contracts` -> dedicated CI lane for the frozen `v0.1.0-alpha` root-help and route-inventory contract

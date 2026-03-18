@@ -1760,7 +1760,7 @@ Impact:
 
 - installable-module boundary regressions now fail in a named suite with actionable diagnostics;
 - allowlist entries can be trimmed as soon as temporary exceptions are removed, so drift is visible instead of silently accumulating;
-- SQL portability (`sql-core-v1`) continues to have one canonical CI entrypoint, which keeps future automation and downstream reuse predictable.
+- SQL portability (`sql-core-v1`) continues to have one canonical CI entrypoint, which keeps future automation and downstream reuse predictable. That lane now checks the runtime metadata contract plus branch annotations and placeholder conventions in the canonical migration/query SQL sources, so portability drift fails with file/query diagnostics instead of generic test noise.
 
 ## 23) Cherie Compatibility Smoke Coverage Is Still Generic (Medium)
 
@@ -2494,6 +2494,7 @@ Notes:
 - External database and cache services remain fully supported by configuration.
 - `make run` does not start Docker Compose or any accessory services; use `make dev` if you need the full infrastructure stack.
 - CI keeps dedicated boundary suites for `make test-module-isolation` and `make test-sql-portability`; run those targets directly when changing installable-module imports or SQL portability metadata/contracts.
+- `make test-sql-portability` now checks `sql-core-v1` runtime metadata plus the branch annotations and placeholder conventions in the canonical migration/query SQL sources, so portability drift fails in a named lane instead of hiding in broad test output.
 - `make test-module-isolation` reports module/file context for forbidden imports and fails when the allowlist contains stale entries; trim `tools/scripts/test/module-isolation-allowlist.txt` as soon as a temporary exception is removed.
 
 ## Assets
@@ -4046,7 +4047,7 @@ These commands are implemented as wrappers over existing workflows:
 - `ship infra:up` -> detects `docker-compose`/`docker compose` and runs `up -d cache`, then attempts `up -d mailpit` (non-fatal if mailpit fails)
 - `ship infra:down` -> detects `docker-compose`/`docker compose` and runs `down`
 - `make test-module-isolation` -> dedicated CI lane for installable-module root import isolation; reports offending module/file context and rejects stale allowlist entries
-- `make test-sql-portability` -> dedicated CI lane for `sql-core-v1` runtime metadata portability
+- `make test-sql-portability` -> dedicated CI lane for `sql-core-v1` runtime metadata plus migration/query portability; diagnostics call out missing branch handling and placeholder drift
 - `make test-generator-contracts` -> dedicated CI lane for shared generator-report snapshot and idempotency-matrix drift
 - `make test-generator-idempotency` -> focused local rerun for the duplicate-generation matrix without snapshot refresh
 - `make test-alpha-contracts` -> dedicated CI lane for the frozen `v0.1.0-alpha` root-help and route-inventory contract
@@ -4776,7 +4777,7 @@ Minimum framework tooling/hooks to expose:
 2. Data export hook with typed manifest (version + dialect + checksums).
 3. Data import hook with manifest validation.
 4. Post-import verification hook callable from CLI/control-plane adapters.
-5. Dedicated CI suites for module isolation and `sql-core-v1` portability so boundary regressions fail in named lanes instead of broad aggregate jobs; the module-isolation lane reports module/file context and rejects stale allowlist entries.
+5. Dedicated CI suites for module isolation and `sql-core-v1` portability so boundary regressions fail in named lanes instead of broad aggregate jobs; the module-isolation lane reports module/file context and rejects stale allowlist entries, and the SQL portability lane checks runtime metadata plus branch annotations and placeholder conventions in the canonical migration/query SQL sources.
 6. Shared/distributed replay storage contract for managed hook nonce tracking so multi-replica managed mode rejects replays consistently.
 7. `backup-manifest-v1` is now locked to SQLite-first metadata plus SHA-256 checksum invariants, and managed restore responses return typed restore evidence with an explicit accepted-manifest field.
 8. Shared signature vectors and a canonical payload library will be introduced for the INT2 bridge so runtime and control-plane signing fixtures stay aligned.

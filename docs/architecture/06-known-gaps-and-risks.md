@@ -468,7 +468,7 @@ Impact:
 
 - installable-module boundary regressions now fail in a named suite with actionable diagnostics;
 - allowlist entries can be trimmed as soon as temporary exceptions are removed, so drift is visible instead of silently accumulating;
-- SQL portability (`sql-core-v1`) continues to have one canonical CI entrypoint, which keeps future automation and downstream reuse predictable.
+- SQL portability (`sql-core-v1`) continues to have one canonical CI entrypoint, which keeps future automation and downstream reuse predictable. That lane now checks the runtime metadata contract plus branch annotations and placeholder conventions in the canonical migration/query SQL sources, so portability drift fails with file/query diagnostics instead of generic test noise.
 
 ## 23) Cherie Compatibility Smoke Coverage Is Still Generic (Medium)
 
