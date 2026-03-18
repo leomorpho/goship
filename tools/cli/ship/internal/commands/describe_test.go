@@ -57,6 +57,21 @@ func TestRunDescribe(t *testing.T) {
 		if len(payload.Modules) != 1 || payload.Modules[0].ID != "notifications" {
 			t.Fatalf("modules = %+v, want notifications module", payload.Modules)
 		}
+		if payload.SharedInfra.SharedModules != 1 {
+			t.Fatalf("shared modules = %d, want 1", payload.SharedInfra.SharedModules)
+		}
+		if len(payload.SharedInfra.SharedModuleIDs) != 1 || payload.SharedInfra.SharedModuleIDs[0] != "notifications" {
+			t.Fatalf("shared module ids = %+v, want notifications", payload.SharedInfra.SharedModuleIDs)
+		}
+		if payload.SharedInfra.CustomAppControllers != 1 {
+			t.Fatalf("custom app controllers = %d, want 1", payload.SharedInfra.CustomAppControllers)
+		}
+		if payload.SharedInfra.CustomAppJobs != 1 {
+			t.Fatalf("custom app jobs = %d, want 1", payload.SharedInfra.CustomAppJobs)
+		}
+		if payload.SharedInfra.CustomAppCommands != 1 {
+			t.Fatalf("custom app commands = %d, want 1", payload.SharedInfra.CustomAppCommands)
+		}
 		if len(payload.Migrations) != 2 {
 			t.Fatalf("migrations len = %d, want 2", len(payload.Migrations))
 		}
@@ -82,6 +97,8 @@ func writeDescribeFixture(t *testing.T, root string) {
 		filepath.Join(root, "app", "web", "controllers"),
 		filepath.Join(root, "app", "web", "viewmodels"),
 		filepath.Join(root, "app", "views", "web", "components"),
+		filepath.Join(root, "app", "jobs"),
+		filepath.Join(root, "app", "commands"),
 		filepath.Join(root, "config"),
 		filepath.Join(root, "db", "queries"),
 		filepath.Join(root, "db", "migrate", "migrations"),
@@ -136,6 +153,14 @@ type LoginPage struct {
 }
 `,
 		filepath.Join(root, "app", "views", "web", "components", "navbar.templ"): `<nav data-component="navbar"></nav>
+`,
+		filepath.Join(root, "app", "jobs", "backfill.go"): `package tasks
+
+func ExampleJob() {}
+`,
+		filepath.Join(root, "app", "commands", "demo.go"): `package commands
+
+func ExampleCommand() {}
 `,
 		filepath.Join(root, "db", "queries", "auth.sql"): `-- name: create_users
 CREATE TABLE users (

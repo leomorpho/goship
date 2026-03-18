@@ -68,6 +68,14 @@ type describeMigration struct {
 	Applied *bool  `json:"applied"`
 }
 
+type describeSharedInfra struct {
+	SharedModules        int      `json:"shared_modules"`
+	SharedModuleIDs      []string `json:"shared_module_ids"`
+	CustomAppControllers int      `json:"custom_app_controllers"`
+	CustomAppJobs        int      `json:"custom_app_jobs"`
+	CustomAppCommands    int      `json:"custom_app_commands"`
+}
+
 type describeResult struct {
 	Routes      []describeRoute      `json:"routes"`
 	Modules     []describeModule     `json:"modules"`
@@ -77,6 +85,7 @@ type describeResult struct {
 	Islands     []describeIsland     `json:"islands"`
 	DBTables    []string             `json:"db_tables"`
 	Migrations  []describeMigration  `json:"migrations"`
+	SharedInfra describeSharedInfra  `json:"shared_infra"`
 }
 
 func RunDescribe(args []string, d DescribeDeps) int {
@@ -174,6 +183,10 @@ func buildDescribeResult(root string) (describeResult, error) {
 	if err != nil {
 		return describeResult{}, err
 	}
+	sharedInfra, err := collectDescribeSharedInfra(root, modules, controllers)
+	if err != nil {
+		return describeResult{}, err
+	}
 
 	return describeResult{
 		Routes:      routes,
@@ -184,7 +197,46 @@ func buildDescribeResult(root string) (describeResult, error) {
 		Islands:     islands,
 		DBTables:    dbTables,
 		Migrations:  migrations,
+		SharedInfra: sharedInfra,
 	}, nil
+}
+
+func collectDescribeSharedInfra(root string, modules []describeModule, controllers []describeController) (describeSharedInfra, error) {
+	report := describeSharedInfra{
+		SharedModuleIDs: make([]string, 0, len(modules)),
+	}
+	for _, module := range modules {
+		if module.Installed {
+			report.SharedModules++
+			report.SharedModuleIDs = append(report.SharedModuleIDs, module.ID)
+		}
+	}
+	sort.Strings(report.SharedModuleIDs)
+	report.CustomAppControllers = len(controllers)
+
+	jobFiles, err := filepath.Glob(filepath.Join(root, "app", "jobs", "*.go"))
+	if err != nil {
+		return describeSharedInfra{}, err
+	}
+	for _, path := range jobFiles {
+		if strings.HasSuffix(path, "_test.go") {
+			continue
+		}
+		report.CustomAppJobs++
+	}
+
+	commandFiles, err := filepath.Glob(filepath.Join(root, "app", "commands", "*.go"))
+	if err != nil {
+		return describeSharedInfra{}, err
+	}
+	for _, path := range commandFiles {
+		if strings.HasSuffix(path, "_test.go") {
+			continue
+		}
+		report.CustomAppCommands++
+	}
+
+	return report, nil
 }
 
 func collectDescribeRoutes(root string) ([]describeRoute, error) {

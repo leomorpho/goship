@@ -17,6 +17,10 @@ GoShip is a Go + Echo + Templ + HTMX starter application that ships with:
 
 GoShip is maintained as a single-app repository: one canonical runtime app under `app/` + `cmd/`, plus framework/modules/tooling packages.
 
+`ship describe --pretty` also exposes a shared-infra adoption summary so contributors can inspect
+installed shared modules versus app-owned controller/job/command counts as a non-blocking
+upstreaming metric.
+
 ## Runtime Programs
 
 - `cmd/web/main.go`: main HTTP application server
