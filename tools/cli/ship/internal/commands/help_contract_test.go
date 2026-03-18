@@ -39,6 +39,7 @@ func TestPrintRootHelp_DirectCommandsDiscoverableNoAliases(t *testing.T) {
 		"  ship describe [--pretty]":                                             "Show runtime/module inventory",
 		"  ship runtime:report --json":                                           "Show machine-readable runtime capability report",
 		"  ship run:command <name> [-- <args...>]":                               "Run app-defined CLI command",
+		"  ship profile --help":                                                  "Runtime profile command help",
 		"  ship module:add <name> [--dry-run]":                                   "Enable a module",
 		"  ship module:remove <name> [--dry-run]":                                "Disable a module",
 		"  ship upgrade --to <version> [--dry-run]":                              "Upgrade pinned CLI tooling",
@@ -203,6 +204,13 @@ func TestPrintAdditionalScopedHelp_IncludeDescriptions(t *testing.T) {
 			out:  captureHelp(t, PrintConfigHelp),
 			want: map[string]string{
 				"  ship config:validate [--json]": "Validate known config variables",
+			},
+		},
+		{
+			name: "profile",
+			out:  captureHelp(t, PrintProfileHelp),
+			want: map[string]string{
+				"  ship profile:set <single-binary|standard|distributed>": "Rewrite the local runtime profile and process preset",
 			},
 		},
 		{

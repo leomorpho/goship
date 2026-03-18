@@ -98,7 +98,7 @@ To decide what runs in parallel (web/worker/scheduler) and with which adapters, 
 CLI responsibilities:
 
 1. `ship new` writes initial config set with sane defaults.
-2. `ship profile:set <profile>` updates environment/process presets.
+2. `ship profile:set <single-binary|standard|distributed>` rewrites the `.env` runtime profile and process presets deterministically.
 3. `ship module:add <name>` updates module manifest + initializer wiring.
 4. `ship jobs:backend:set <backend>` updates adapter config with capability checks.
 5. `ship db:promote` reports the manual SQLite-to-Postgres promotion plan from runtime metadata, suggests the canonical `ship profile:set`/`ship adapter:set` follow-up commands, and keeps the workflow deterministic before the export/import hooks exist.

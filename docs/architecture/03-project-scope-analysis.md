@@ -21,6 +21,10 @@ GoShip is maintained as a single-app repository: one canonical runtime app under
 installed shared modules versus app-owned controller/job/command counts as a non-blocking
 upstreaming metric.
 
+`ship profile:set <single-binary|standard|distributed>` now rewrites the local `.env` runtime
+profile and process preset values deterministically, giving the CLI a first-class way to move
+between the canonical topology modes.
+
 ## Runtime Programs
 
 - `cmd/web/main.go`: main HTTP application server

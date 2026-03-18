@@ -127,6 +127,7 @@ These commands are implemented as wrappers over existing workflows:
   - runtime profile `single-node` or `server-db` => web mode (`air -c .air.toml`)
   - runtime profile `distributed` => full mode (`ship dev --all`)
 - in interactive terminals, prints the local URL and prompts to open it in a browser (`[Y/n]`, Enter = yes); browser launch waits until the URL is reachable
+- `ship profile:set <single-binary|standard|distributed>` -> rewrites the project `.env` runtime profile and process preset values so the canonical topology can be selected deterministically
 - `ship dev --worker` -> `go run ./cmd/worker`
 - `ship dev --all` -> starts web (`air -c .air.toml`) and worker concurrently with prefixed logs (`[web]`, `[worker]`) and signal-aware shutdown
 - `ship run:command <name> [-- <args...>]` -> `go run ./cmd/cli/main.go <name> <args...>`
