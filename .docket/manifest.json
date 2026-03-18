@@ -722,6 +722,107 @@
       "state": "done",
       "priority": 6,
       "parent": "TKT-157"
+    },
+    "TKT-170": {
+      "title": "Program: purge legacy app artifacts with safe destructive sequencing",
+      "state": "backlog",
+      "priority": 5
+    },
+    "TKT-171": {
+      "title": "Remove ship api:spec command and implementation",
+      "state": "in-review",
+      "priority": 6,
+      "parent": "TKT-170"
+    },
+    "TKT-172": {
+      "title": "Purge residual api:spec and API-contract references",
+      "state": "backlog",
+      "priority": 7,
+      "parent": "TKT-170"
+    },
+    "TKT-173": {
+      "title": "Decouple doctor DX027 from app/contracts path",
+      "state": "in-review",
+      "priority": 7,
+      "parent": "TKT-170"
+    },
+    "TKT-174": {
+      "title": "Migrate live DTOs out of app/contracts and delete unused contract types",
+      "state": "backlog",
+      "priority": 6,
+      "parent": "TKT-170"
+    },
+    "TKT-175": {
+      "title": "Delete app/contracts and remove all hard references",
+      "state": "backlog",
+      "priority": 5,
+      "parent": "TKT-170"
+    },
+    "TKT-176": {
+      "title": "Decide and implement final ownership for Page type alias usage",
+      "state": "backlog",
+      "priority": 7,
+      "parent": "TKT-170"
+    },
+    "TKT-177": {
+      "title": "Migrate templ imports off app/controller and delete alias package",
+      "state": "backlog",
+      "priority": 6,
+      "parent": "TKT-170"
+    },
+    "TKT-178": {
+      "title": "Make paidsubscriptions integration key-agnostic",
+      "state": "backlog",
+      "priority": 6,
+      "parent": "TKT-170"
+    },
+    "TKT-179": {
+      "title": "Replace hardcoded plan-key branching with catalog/service predicates",
+      "state": "backlog",
+      "priority": 7,
+      "parent": "TKT-170"
+    },
+    "TKT-180": {
+      "title": "Delete app/subscriptions and move plan wiring to app runtime composition",
+      "state": "backlog",
+      "priority": 6,
+      "parent": "TKT-170"
+    },
+    "TKT-181": {
+      "title": "Split app/foundation into minimal composition and extracted runtime bootstrap",
+      "state": "backlog",
+      "priority": 5,
+      "parent": "TKT-170"
+    },
+    "TKT-182": {
+      "title": "Move bridge adapters out of app/foundation and deduplicate jobs wiring",
+      "state": "backlog",
+      "priority": 6,
+      "parent": "TKT-170"
+    },
+    "TKT-183": {
+      "title": "Delete unregistered/unreachable app routes, controllers, views, and assets",
+      "state": "backlog",
+      "priority": 7,
+      "parent": "TKT-170"
+    },
+    "TKT-184": {
+      "title": "Finalize minimal app boundary in allowlists, starter shape, and docs",
+      "state": "backlog",
+      "priority": 6,
+      "parent": "TKT-170"
+    },
+    "TKT-185": {
+      "title": "Add runtime behavior guardrails for destructive cleanup stream",
+      "state": "backlog",
+      "priority": 5,
+      "parent": "TKT-170"
+    },
+    "TKT-186": {
+      "title": "Extract framework-level reusable page base types from app UI layer",
+      "state": "backlog",
+      "priority": 7,
+      "parent": "TKT-170"
     }
   }
 }

@@ -1,0 +1,179 @@
+{
+  "relations": [
+    {
+      "from": "TKT-171",
+      "to": "TKT-172",
+      "relation": "blocks"
+    },
+    {
+      "from": "TKT-171",
+      "to": "TKT-175",
+      "relation": "blocks"
+    },
+    {
+      "from": "TKT-171",
+      "to": "TKT-176",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-171",
+      "to": "TKT-178",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-171",
+      "to": "TKT-181",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-172",
+      "to": "TKT-175",
+      "relation": "blocks"
+    },
+    {
+      "from": "TKT-172",
+      "to": "TKT-184",
+      "relation": "blocks"
+    },
+    {
+      "from": "TKT-173",
+      "to": "TKT-157",
+      "relation": "depends-on"
+    },
+    {
+      "from": "TKT-173",
+      "to": "TKT-174",
+      "relation": "blocks"
+    },
+    {
+      "from": "TKT-173",
+      "to": "TKT-176",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-173",
+      "to": "TKT-178",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-173",
+      "to": "TKT-181",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-174",
+      "to": "TKT-163",
+      "relation": "depends-on"
+    },
+    {
+      "from": "TKT-174",
+      "to": "TKT-164",
+      "relation": "depends-on"
+    },
+    {
+      "from": "TKT-174",
+      "to": "TKT-165",
+      "relation": "depends-on"
+    },
+    {
+      "from": "TKT-174",
+      "to": "TKT-166",
+      "relation": "depends-on"
+    },
+    {
+      "from": "TKT-174",
+      "to": "TKT-175",
+      "relation": "blocks"
+    },
+    {
+      "from": "TKT-175",
+      "to": "TKT-172",
+      "relation": "blocks"
+    },
+    {
+      "from": "TKT-175",
+      "to": "TKT-183",
+      "relation": "blocks"
+    },
+    {
+      "from": "TKT-175",
+      "to": "TKT-184",
+      "relation": "blocks"
+    },
+    {
+      "from": "TKT-176",
+      "to": "TKT-177",
+      "relation": "blocks"
+    },
+    {
+      "from": "TKT-176",
+      "to": "TKT-186",
+      "relation": "blocks"
+    },
+    {
+      "from": "TKT-177",
+      "to": "TKT-183",
+      "relation": "blocks"
+    },
+    {
+      "from": "TKT-177",
+      "to": "TKT-184",
+      "relation": "blocks"
+    },
+    {
+      "from": "TKT-177",
+      "to": "TKT-186",
+      "relation": "blocks"
+    },
+    {
+      "from": "TKT-178",
+      "to": "TKT-179",
+      "relation": "blocks"
+    },
+    {
+      "from": "TKT-179",
+      "to": "TKT-180",
+      "relation": "blocks"
+    },
+    {
+      "from": "TKT-180",
+      "to": "TKT-183",
+      "relation": "blocks"
+    },
+    {
+      "from": "TKT-180",
+      "to": "TKT-184",
+      "relation": "blocks"
+    },
+    {
+      "from": "TKT-181",
+      "to": "TKT-169",
+      "relation": "depends-on"
+    },
+    {
+      "from": "TKT-181",
+      "to": "TKT-182",
+      "relation": "blocks"
+    },
+    {
+      "from": "TKT-182",
+      "to": "TKT-184",
+      "relation": "blocks"
+    },
+    {
+      "from": "TKT-183",
+      "to": "TKT-184",
+      "relation": "blocks"
+    },
+    {
+      "from": "TKT-185",
+      "to": "TKT-183",
+      "relation": "blocks"
+    },
+    {
+      "from": "TKT-185",
+      "to": "TKT-184",
+      "relation": "blocks"
+    }
+  ]
+}
