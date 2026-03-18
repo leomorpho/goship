@@ -759,7 +759,8 @@ Docs hard-reset tracking under `TKT-233` / `TKT-295` / `TKT-296`:
 
 Local-runtime alignment tracked under `TKT-234` / `TKT-297` / `TKT-298`:
 - config defaults now point to `single-node`, while compose-backed accessories remain optional Redis + Mailpit only;
-- executable red specs now pin the intended contract: Makefile help and contributor docs should describe the same local runtime story as config and compose.
+- Makefile help and contributor docs now describe the same local runtime story as config and compose;
+- the default local contract is app-on single-node first, with compose reserved for optional accessory services.
 
 4. `R0.4` Testing harness improvements so default `make test` is Docker-free and fast.
 Status: `completed`

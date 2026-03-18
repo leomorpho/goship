@@ -8,8 +8,6 @@ import (
 )
 
 func TestLocalRuntimeContract_DocsAndMakefileStayAligned_RedSpec(t *testing.T) {
-	t.Skip("red spec: enable once local-runtime guidance is aligned across Makefile help and contributor docs")
-
 	root := repoRootFromCommandsTest(t)
 
 	makefile := mustReadText(t, filepath.Join(root, "Makefile"))
@@ -42,8 +40,10 @@ func repoRootFromCommandsTest(t *testing.T) string {
 		t.Fatalf("getwd: %v", err)
 	}
 	for {
-		if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
-			return dir
+		if _, err := os.Stat(filepath.Join(dir, "Makefile")); err == nil {
+			if _, err := os.Stat(filepath.Join(dir, ".docket")); err == nil {
+				return dir
+			}
 		}
 		parent := filepath.Dir(dir)
 		if parent == dir {

@@ -67,12 +67,12 @@ Impact:
 
 - Default base config now lives in `config/config.go` and can be overridden by `.env`.
 - Docker Compose currently starts Redis and Mailpit only; DB service is commented out.
-- Make targets still include some Postgres-oriented helper commands and wording.
+- Makefile help and contributor docs now describe the same single-node default plus optional accessory-services contract.
 
 Impact:
 
-- Contributors can experience confusion about canonical local dev DB path.
-- Local runtime still needs tighter alignment around the single-node default versus the compose-backed workflow, especially in developer docs and automation outside config resolution.
+- The default local story is now consistent: app-on single-node first, with optional Redis/Mailpit compose accessories.
+- Residual compose-backed Postgres helper commands remain optional escape hatches rather than the default local contract.
 
 ## 6) Residual Dead UI Artifacts Can Reappear Without Reachability Audits (Low)
 

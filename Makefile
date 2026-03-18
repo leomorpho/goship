@@ -90,11 +90,11 @@ dev-full: ## Start local development including web, worker, and JS/CSS watchers
 dev-reset: reset deps-js build-js build-css seed watch ## Full reset then start dev (destructive to local DB state)
 
 .PHONY: db
-db: ## Connect to the primary database
+db: ## Connect to the optional compose-backed Postgres helper, if enabled
 	docker exec -it goship_db psql postgresql://admin:admin@localhost:5432/goship_db
 
 .PHONY: db-test
-db-test: ## Connect to the test database (you must run tests first before running this)
+db-test: ## Connect to the optional compose-backed Postgres test DB helper
 	docker exec -it goship_db psql postgresql://admin:admin@localhost:5432/goship_db_test
 
 

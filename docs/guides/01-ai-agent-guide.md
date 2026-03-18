@@ -74,7 +74,7 @@ UI and rendering:
 
 ## Commands Commonly Used
 
-- `make dev` (default local dev: infra + web)
+- `make dev` (default local dev: canonical app-on loop)
 - `make dev-full` (web + worker + JS/CSS watchers)
 - `make test` (Go tests)
 - `make test-integration`
