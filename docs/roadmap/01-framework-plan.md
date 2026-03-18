@@ -322,6 +322,7 @@ Minimum framework tooling/hooks to expose:
 3. Data import hook with manifest validation.
 4. Post-import verification hook callable from CLI/control-plane adapters.
 5. Dedicated CI suites for module isolation and `sql-core-v1` portability so boundary regressions fail in named lanes instead of broad aggregate jobs.
+6. Shared/distributed replay storage contract for managed hook nonce tracking so multi-replica managed mode rejects replays consistently.
 
 ## Docket Tracking
 

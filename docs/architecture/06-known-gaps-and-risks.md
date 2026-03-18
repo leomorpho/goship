@@ -151,7 +151,7 @@ Impact:
 
 ## 14) Managed Hook Replay Cache Is Process-Local (Medium)
 
-Managed hook signatures now enforce nonce replay protection, but the nonce cache is currently in-memory per process.
+Managed hook signatures now enforce nonce replay protection, but the canonical shared/distributed replay-store contract is not implemented yet and the active runtime still relies on process-local nonce memory.
 
 Impact:
 
