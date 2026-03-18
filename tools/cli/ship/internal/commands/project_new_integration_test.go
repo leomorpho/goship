@@ -67,6 +67,9 @@ func TestNewProjectIntegration_SupportsMakeModelQueryScaffold(t *testing.T) {
 	}); code != 0 {
 		t.Fatalf("ship doctor failed on fresh scaffold: code=%d stderr=%s", code, errOut.String())
 	}
+	if err := checkStandaloneExportability(projectRoot); err != nil {
+		t.Fatalf("fresh scaffold should remain free of control-plane dependency drift: %v", err)
+	}
 
 	out.Reset()
 	errOut.Reset()

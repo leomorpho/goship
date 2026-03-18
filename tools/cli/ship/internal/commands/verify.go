@@ -153,6 +153,12 @@ func RunVerify(args []string, d VerifyDeps) int {
 			return nil
 		}
 
+		if exportabilityErr := checkStandaloneExportability("."); exportabilityErr != nil {
+			appendStep("standalone exportability gate", false, exportabilityErr.Error(), "")
+			return nil
+		}
+		appendStep("standalone exportability gate", true, "starter/runtime surfaces remain free of control-plane dependency drift", "")
+
 		scaffoldSkips, scanErr := findScaffoldSkippedTests(".")
 		if scanErr != nil {
 			appendStep("scaffold skip checks", true, fmt.Sprintf("Warning: failed to scan scaffold skips: %v", scanErr), "warning")
@@ -299,4 +305,54 @@ func findScaffoldSkippedTests(root string) ([]string, error) {
 		return nil, err
 	}
 	return results, nil
+}
+
+func checkStandaloneExportability(root string) error {
+	scanRoots := []string{
+		filepath.Join(root, "app"),
+		filepath.Join(root, "cmd"),
+		filepath.Join(root, "config"),
+		filepath.Join(root, "framework"),
+		filepath.Join(root, "modules"),
+	}
+	starterRoot := filepath.Join(root, "tools", "cli", "ship", "internal", "templates", "starter", "testdata", "scaffold")
+	if info, err := os.Stat(starterRoot); err == nil && info.IsDir() {
+		scanRoots = append(scanRoots, starterRoot)
+	}
+
+	forbidden := []string{
+		"tools/private/control-plane",
+		"control-plane dependency",
+	}
+
+	for _, scanRoot := range scanRoots {
+		info, err := os.Stat(scanRoot)
+		if err != nil || !info.IsDir() {
+			continue
+		}
+		err = filepath.WalkDir(scanRoot, func(path string, d os.DirEntry, walkErr error) error {
+			if walkErr != nil {
+				return walkErr
+			}
+			if d.IsDir() {
+				return nil
+			}
+			b, readErr := os.ReadFile(path)
+			if readErr != nil {
+				return readErr
+			}
+			text := string(b)
+			for _, token := range forbidden {
+				if strings.Contains(strings.ToLower(text), strings.ToLower(token)) {
+					return fmt.Errorf("control-plane dependency drift detected in %s via %q", path, token)
+				}
+			}
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

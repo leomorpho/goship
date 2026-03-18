@@ -244,6 +244,11 @@ Managed hook replay contract:
 - `framework/security.ManagedHookVerifier` exposes a pluggable `NonceStore` seam via `WithNonceStore(...)`
 - default behavior remains process-local in-memory replay protection until app/runtime wiring provides a shared backend
 
+run-anywhere verification gate:
+
+- `ship verify` includes a `standalone exportability gate` step
+- the gate rejects control-plane dependency drift in standalone runtime/starter surfaces
+
 Field syntax for `make:model`:
 
 - `name:type` (for example: `title:string`, `published_at:time`, `is_live:bool`)

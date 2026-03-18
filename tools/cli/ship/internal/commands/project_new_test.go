@@ -109,6 +109,7 @@ func TestScaffoldNewProject(t *testing.T) {
 		filepath.Join(opts.AppPath, "docs", "00-index.md"),
 		filepath.Join(opts.AppPath, "docs", "architecture", "01-architecture.md"),
 		filepath.Join(opts.AppPath, "docs", "architecture", "08-cognitive-model.md"),
+		filepath.Join(opts.AppPath, "docs", "architecture", "10-extension-zones.md"),
 		filepath.Join(opts.AppPath, "cmd", "web", "main.go"),
 	}
 	for _, p := range checkFiles {
