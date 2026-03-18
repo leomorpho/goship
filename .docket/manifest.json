@@ -820,7 +820,7 @@
     },
     "TKT-186": {
       "title": "Extract framework-level reusable page base types from app UI layer",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 7,
       "parent": "TKT-170"
     }
