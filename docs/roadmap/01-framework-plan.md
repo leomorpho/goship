@@ -796,7 +796,8 @@ Runtime-report contract tracked under `TKT-235` / `TKT-299` / `TKT-300`:
 CLI-path reset tracked under `TKT-249` / `TKT-311` / `TKT-312`:
 - the executable spec now pins one canonical top-level quality path per concern;
 - `ship check` has been removed from help, docs, dispatch, and agent-policy surfaces;
-- `ship test` now owns the fast package-list quality loop, while `ship verify` remains the full verification workflow.
+- `ship test` now owns the fast package-list quality loop, while `ship verify --profile fast|standard|strict` covers tiered repository verification.
+- `verify_strict` plus `cherie_compatibility_smoke` now define the required Cherie sync baseline in CI.
 
 4. `R0.4` Testing harness improvements so default `make test` is Docker-free and fast.
 Status: `completed`

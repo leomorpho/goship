@@ -32,7 +32,7 @@ func TestPrintRootHelp_DirectCommandsDiscoverableNoAliases(t *testing.T) {
 		"  ship new <app> [flags]":                  "Create a new app scaffold",
 		"  ship dev [--web|--worker|--all]":         "Run local runtime processes",
 		"  ship test [--integration]":               "Run canonical fast test workflow",
-		"  ship verify [--skip-tests] [--json]":     "Run full verification workflow",
+		"  ship verify [--profile fast|standard|strict] [--skip-tests] [--json]": "Run full verification workflow",
 		"  ship doctor [--json]":                    "Run repository policy checks",
 		"  ship config:validate [--json]":           "Validate config contract",
 		"  ship routes [--json]":                    "Show route inventory",
@@ -249,9 +249,11 @@ func TestPrintAdditionalScopedHelp_IncludeDescriptions(t *testing.T) {
 			name: "verify",
 			out:  captureHelp(t, PrintVerifyHelp),
 			want: map[string]string{
-				"  ship verify":              "Run full verification workflow",
-				"  ship verify --skip-tests": "Skip final test step",
-				"  ship verify --json":       "Output verification result as JSON",
+				"  ship verify":                    "Run the standard verification workflow",
+				"  ship verify --profile fast":    "Run the fast verification profile",
+				"  ship verify --profile strict":  "Run the strict verification profile",
+				"  ship verify --skip-tests":      "Skip final test step",
+				"  ship verify --json":            "Output verification result as JSON",
 			},
 		},
 		{

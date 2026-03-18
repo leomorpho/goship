@@ -60,6 +60,50 @@ func TestRunVerify(t *testing.T) {
 		}
 	})
 
+	t.Run("fast profile skips nilaway and tests", func(t *testing.T) {
+		root := t.TempDir()
+		writeVerifyGoMod(t, root)
+		prevWD := chdirVerifyRoot(t, root)
+		t.Cleanup(func() { _ = os.Chdir(prevWD) })
+
+		calls := make([]string, 0)
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+		code := RunVerify([]string{"--profile", "fast"}, VerifyDeps{
+			Out:          out,
+			Err:          errOut,
+			FindGoModule: findVerifyGoModule,
+			RelocateTempl: func(rootPath string) error {
+				return nil
+			},
+			RunStep: func(name string, args ...string) (int, string, error) {
+				calls = append(calls, name+" "+strings.Join(args, " "))
+				return 0, "ok", nil
+			},
+			LookPath: func(file string) (string, error) {
+				t.Fatalf("fast profile should not resolve %s", file)
+				return "", nil
+			},
+			RunDoctor: func() (int, string, error) {
+				return 0, `{"ok":true,"issues":[]}`, nil
+			},
+		})
+		if code != 0 {
+			t.Fatalf("exit code = %d, want 0", code)
+		}
+		if errOut.Len() != 0 {
+			t.Fatalf("stderr = %q, want empty", errOut.String())
+		}
+		if len(calls) != 2 {
+			t.Fatalf("calls len = %d, want 2", len(calls))
+		}
+		for _, token := range []string{"skipped in fast profile", "verify passed"} {
+			if !strings.Contains(out.String(), token) {
+				t.Fatalf("stdout missing %q:\n%s", token, out.String())
+			}
+		}
+	})
+
 	t.Run("fails fast on subprocess failure", func(t *testing.T) {
 		root := t.TempDir()
 		writeVerifyGoMod(t, root)
@@ -161,6 +205,42 @@ func TestRunVerify(t *testing.T) {
 		}
 		if payload.Steps[6].Name != "standalone exportability gate" {
 			t.Fatalf("final step name = %q, want standalone exportability gate", payload.Steps[6].Name)
+		}
+	})
+
+	t.Run("strict profile requires nilaway", func(t *testing.T) {
+		root := t.TempDir()
+		writeVerifyGoMod(t, root)
+		prevWD := chdirVerifyRoot(t, root)
+		t.Cleanup(func() { _ = os.Chdir(prevWD) })
+
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+		code := RunVerify([]string{"--profile", "strict"}, VerifyDeps{
+			Out:          out,
+			Err:          errOut,
+			FindGoModule: findVerifyGoModule,
+			RelocateTempl: func(rootPath string) error {
+				return nil
+			},
+			RunStep: func(name string, args ...string) (int, string, error) {
+				return 0, "ok", nil
+			},
+			LookPath: func(file string) (string, error) {
+				return "", errors.New("missing")
+			},
+			RunDoctor: func() (int, string, error) {
+				return 0, `{"ok":true,"issues":[]}`, nil
+			},
+		})
+		if code != 1 {
+			t.Fatalf("exit code = %d, want 1", code)
+		}
+		if !strings.Contains(errOut.String(), "verify failed at nilaway ./...") {
+			t.Fatalf("stderr = %q, want strict nilaway failure", errOut.String())
+		}
+		if !strings.Contains(errOut.String(), "nilaway is required in strict profile") {
+			t.Fatalf("stderr = %q, want strict nilaway message", errOut.String())
 		}
 	})
 

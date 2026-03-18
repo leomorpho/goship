@@ -38,6 +38,12 @@ type verifyJSONResult struct {
 	Steps []verifyJSONStep `json:"steps"`
 }
 
+const (
+	verifyProfileFast     = "fast"
+	verifyProfileStandard = "standard"
+	verifyProfileStrict   = "strict"
+)
+
 func RunVerify(args []string, d VerifyDeps) int {
 	for _, arg := range args {
 		if arg == "-h" || arg == "--help" || arg == "help" {
@@ -50,12 +56,17 @@ func RunVerify(args []string, d VerifyDeps) int {
 	fs.SetOutput(io.Discard)
 	skipTests := fs.Bool("skip-tests", false, "skip go test ./...")
 	jsonOutput := fs.Bool("json", false, "output verify results as JSON")
+	profile := fs.String("profile", verifyProfileStandard, "verification profile: fast, standard, or strict")
 	if err := fs.Parse(args); err != nil {
 		fmt.Fprintf(d.Err, "invalid verify arguments: %v\n", err)
 		return 1
 	}
 	if fs.NArg() > 0 {
 		fmt.Fprintf(d.Err, "unexpected verify arguments: %v\n", fs.Args())
+		return 1
+	}
+	if *profile != verifyProfileFast && *profile != verifyProfileStandard && *profile != verifyProfileStrict {
+		fmt.Fprintf(d.Err, "invalid verify profile %q (expected fast|standard|strict)\n", *profile)
 		return 1
 	}
 
@@ -139,7 +150,15 @@ func RunVerify(args []string, d VerifyDeps) int {
 		}
 		appendStep("hard-cut wording invariant", true, "canonical docs avoid transition/deprecation wording", "")
 
-		if _, err := lookPath("nilaway"); err != nil {
+		runNilaway := *profile != verifyProfileFast
+		requireNilaway := *profile == verifyProfileStrict
+		if !runNilaway {
+			appendStep("nilaway ./...", true, "skipped in fast profile", "warning")
+		} else if _, err := lookPath("nilaway"); err != nil {
+			if requireNilaway {
+				appendStep("nilaway ./...", false, "nilaway is required in strict profile", "")
+				return nil
+			}
 			appendStep("nilaway ./...", true, "nilaway not installed; skipping", "warning")
 		} else {
 			code, output, runErr = runStep("nilaway", "./...")
@@ -149,8 +168,12 @@ func RunVerify(args []string, d VerifyDeps) int {
 			}
 		}
 
-		if *skipTests {
-			appendStep("go test ./...", true, "skipped via --skip-tests", "warning")
+		if *skipTests || *profile == verifyProfileFast {
+			reason := "skipped via --skip-tests"
+			if *profile == verifyProfileFast && !*skipTests {
+				reason = "skipped in fast profile"
+			}
+			appendStep("go test ./...", true, reason, "warning")
 		} else {
 			code, output, runErr = runStep("go", "test", "./...")
 			appendStep("go test ./...", code == 0 && runErr == nil, mergeVerifyOutput(output, runErr), "")
@@ -207,9 +230,12 @@ func RunVerify(args []string, d VerifyDeps) int {
 
 func PrintVerifyHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship verify commands:")
-	fmt.Fprintln(w, "  ship verify               Run full verification workflow")
-	fmt.Fprintln(w, "  ship verify --skip-tests  Skip final test step")
-	fmt.Fprintln(w, "  ship verify --json        Output verification result as JSON")
+	fmt.Fprintln(w, "  ship verify                                          Run the standard verification workflow")
+	fmt.Fprintln(w, "  ship verify --profile fast                           Run the fast verification profile (skip nilaway and tests)")
+	fmt.Fprintln(w, "  ship verify --profile standard                       Run the default verification profile")
+	fmt.Fprintln(w, "  ship verify --profile strict                         Run the strict verification profile (requires nilaway)")
+	fmt.Fprintln(w, "  ship verify --skip-tests                             Skip final test step")
+	fmt.Fprintln(w, "  ship verify --json                                   Output verification result as JSON")
 }
 
 func writeVerifyJSON(w io.Writer, ok bool, steps []verifyJSONStep) int {

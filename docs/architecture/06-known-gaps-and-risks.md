@@ -182,11 +182,13 @@ Impact:
 ## 16) Quality CLI Surface Is Now Canonicalized (Low)
 
 The duplicate `ship check` path has been removed, and the top-level quality contract now funnels
-fast checks through `ship test` and full repository verification through `ship verify`.
+fast checks through `ship test` and tiered repository verification through
+`ship verify --profile fast|standard|strict`.
 
 Impact:
 
-- Humans and agents now have one canonical top-level command path per quality concern.
+- Humans and agents now have one canonical top-level command path per quality concern plus an
+  explicit verify tier selection.
 - Future quality-loop changes should update `ship test`, `ship verify`, and their contract docs/tests in the same change stream.
 
 ## 17) Job Generator Contract Is Now Canonicalized (Low)

@@ -15,7 +15,7 @@ func PrintRootHelp(w io.Writer) {
 	fmt.Fprintln(w, "  ship new <app> [flags]                   Create a new app scaffold")
 	fmt.Fprintln(w, "  ship dev [--web|--worker|--all]          Run local runtime processes")
 	fmt.Fprintln(w, "  ship test [--integration]                Run canonical fast test workflow")
-	fmt.Fprintln(w, "  ship verify [--skip-tests] [--json]      Run full verification workflow")
+	fmt.Fprintln(w, "  ship verify [--profile fast|standard|strict] [--skip-tests] [--json]  Run full verification workflow")
 	fmt.Fprintln(w, "  ship doctor [--json]                     Run repository policy checks")
 	fmt.Fprintln(w, "  ship config:validate [--json]            Validate config contract")
 	fmt.Fprintln(w, "  ship routes [--json]                     Show route inventory")

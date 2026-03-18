@@ -199,7 +199,13 @@ E2E tests:
 - `make e2eui`
 
 CI uses the smoke spec only (`tests/e2e/tests/smoke.spec.ts`) to validate startup and basic app serving.
+The `verify_strict` CI job runs `ship verify --profile strict` and serves as the precondition for the downstream Cherie compatibility gate.
 The Cherie compatibility lane runs `tests/e2e/tests/cherie_compatibility.spec.ts` with a web-only process env (`PAGODA_PROCESSES_WEB=true`, `PAGODA_PROCESSES_WORKER=false`, `PAGODA_PROCESSES_SCHEDULER=false`, `PAGODA_PROCESSES_COLOCATED=false`) so the baseline only measures boot, auth, and realtime route compatibility.
+Treat `verify_strict` and `cherie_compatibility_smoke` as the required status checks for Cherie-facing sync work.
+If the Cherie lane breaks:
+1. Re-run the Playwright spec locally with `npm --prefix tests/e2e run test:cherie-smoke`.
+2. Compare `/up`, `/user/login`, and `/auth/realtime` behavior against the baseline before widening scope.
+3. Either land a framework fix or document the downstream breakage explicitly before merging.
 Note: broader legacy e2e specs are partially stale and should be treated as non-authoritative for GoShip behavior.
 
 ## Internationalization

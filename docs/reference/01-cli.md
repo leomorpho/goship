@@ -135,6 +135,7 @@ These commands are implemented as wrappers over existing workflows:
 - `make test-module-isolation` -> dedicated CI lane for installable-module root import isolation
 - `make test-sql-portability` -> dedicated CI lane for `sql-core-v1` runtime metadata portability
 - `npm --prefix tests/e2e run test:cherie-smoke` -> dedicated CI lane for the Cherie boot/auth/realtime compatibility baseline
+- `ship verify --profile strict` -> strict verify tier used as the precondition for the required Cherie sync gate
 - `ship db:create` -> validates that target database URL is reachable (`goose status`)
 - `ship db:generate [--config <path>] [--dry-run]` -> runs Bob generation via `bobgen-sql -c <config>` (default: core `db/bobgen.yaml`, then enabled module configs in deterministic sorted order from `config/modules.yaml`)
 - `ship db:migrate` -> `goose up` for core migrations, then enabled module migrations in deterministic sorted order
@@ -250,6 +251,7 @@ Managed hook replay contract:
 
 run-anywhere verification gate:
 
+- `ship verify --profile fast|standard|strict` selects the verification tier (`standard` default; `strict` requires `nilaway`; `fast` skips nilaway and `go test`)
 - `ship verify` includes a `standalone exportability gate` step
 - `ship verify` includes a `hard-cut wording invariant` step that re-checks canonical docs for transition/deprecation drift after `ship doctor --json`
 - the gate rejects control-plane dependency drift in standalone runtime/starter surfaces

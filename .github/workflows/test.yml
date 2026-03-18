@@ -78,6 +78,31 @@ jobs:
       - name: SQL portability
         run: make test-sql-portability
 
+  verify_strict:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.x"
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Install nilaway
+        run: go install go.uber.org/nilaway/cmd/nilaway@latest
+
+      - name: Strict verify
+        run: go run ./tools/cli/ship/cmd/ship verify --profile strict
+
   cleanroom_bob_verification:
     needs: backend_tests
     runs-on: ubuntu-latest
@@ -142,7 +167,7 @@ jobs:
           retention-days: 7
 
   cherie_compatibility_smoke:
-    needs: backend_tests
+    needs: verify_strict
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:

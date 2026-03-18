@@ -523,7 +523,7 @@ jobs:
         with: { node-version: '22' }
       - run: go install github.com/a-h/templ/cmd/templ@latest
       - run: npm install --prefix frontend
-      - run: go run ./tools/cli/ship/cmd/ship verify --skip-tests
+      - run: go run ./tools/cli/ship/cmd/ship verify --profile fast
       - run: go test ./...
 `
 }
