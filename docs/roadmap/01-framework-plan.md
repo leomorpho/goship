@@ -975,6 +975,7 @@ Current progress:
 - [ ] Publish one extension-zone manifest that distinguishes safe customization areas from protected framework contract seams and keep `ship doctor` aligned to it.
 - [ ] Add a run-anywhere verification gate that proves generated apps remain standalone-exportable with no control-plane dependency assumptions.
 - [x] Extend the hard-cut wording lint across the canonical architecture docs, not only CLI/routes subsets.
+- [x] Expose the no-compatibility/no-deprecation invariant explicitly in `ship verify` and `ship doctor`.
 - [ ] Define testing standards doc: what must be unit-testable and where table tests are required.
 - [ ] Add doc-sync guardrails in pre-commit/CI for framework-impacting changes.
 - [ ] Add Cherie-sync guardrails in pre-commit/CI (or mandatory checklist gate).

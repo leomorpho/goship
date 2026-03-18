@@ -17,9 +17,9 @@
       "output": "{\"ok\":true,\"issues\":[]}"
     },
     {
-      "name": "hard-cut wording invariant",
+      "name": "no-compatibility/deprecation invariant",
       "ok": true,
-      "output": "canonical docs avoid transition/deprecation wording"
+      "output": "canonical docs avoid compatibility-window and deprecation wording"
     },
     {
       "name": "module compatibility policy",

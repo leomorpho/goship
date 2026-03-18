@@ -363,6 +363,19 @@ Impact:
 - Historical references remain possible outside the canonical set through the existing allowlist,
   keeping migration notes separate from the current architecture contract.
 
+## 30) Verify And Doctor Now Expose The No-Compatibility/No-Deprecation Policy Explicitly (Low)
+
+The existing hard-cut wording checks are now named and reported as an explicit
+no-compatibility/no-deprecation invariant in the `ship verify` step output and `DX030`
+diagnostics.
+
+Impact:
+
+- Operator-facing quality output now describes the policy directly instead of hiding it behind
+  generic wording.
+- Reviewers can distinguish this policy from other doc lint failures without reading the
+  implementation details first.
+
 ## 16) No Built-In OpenAPI Generation Command (Informational)
 
 The `ship api:spec` command and `app/contracts`-based spec flow were removed in the app-minimalization cleanup stream.

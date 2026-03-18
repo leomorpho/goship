@@ -201,8 +201,8 @@ func TestRunVerify(t *testing.T) {
 		if payload.Steps[2].Name != "ship doctor --json" {
 			t.Fatalf("doctor step name = %q, want ship doctor --json", payload.Steps[2].Name)
 		}
-		if payload.Steps[3].Name != "hard-cut wording invariant" {
-			t.Fatalf("hard-cut wording step name = %q, want hard-cut wording invariant", payload.Steps[3].Name)
+		if payload.Steps[3].Name != "no-compatibility/deprecation invariant" {
+			t.Fatalf("wording step name = %q, want no-compatibility/deprecation invariant", payload.Steps[3].Name)
 		}
 		if payload.Steps[4].Name != "module compatibility policy" {
 			t.Fatalf("module compatibility step name = %q, want module compatibility policy", payload.Steps[4].Name)
@@ -285,8 +285,8 @@ func TestRunVerify(t *testing.T) {
 		if code != 1 {
 			t.Fatalf("exit code = %d, want 1", code)
 		}
-		if !strings.Contains(errOut.String(), "verify failed at hard-cut wording invariant") {
-			t.Fatalf("stderr = %q, want hard-cut wording invariant failure", errOut.String())
+		if !strings.Contains(errOut.String(), "verify failed at no-compatibility/deprecation invariant") {
+			t.Fatalf("stderr = %q, want wording invariant failure", errOut.String())
 		}
 		if !strings.Contains(errOut.String(), "docs/reference/01-cli.md:1") {
 			t.Fatalf("stderr = %q, want file:line diagnostic", errOut.String())

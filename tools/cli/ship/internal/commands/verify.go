@@ -146,10 +146,10 @@ func RunVerify(args []string, d VerifyDeps) int {
 		}
 
 		if issues := policies.CheckHardCutDocWording("."); len(issues) > 0 {
-			appendStep("hard-cut wording invariant", false, formatVerifyDoctorIssues(issues), "")
+			appendStep("no-compatibility/deprecation invariant", false, formatVerifyDoctorIssues(issues), "")
 			return nil
 		}
-		appendStep("hard-cut wording invariant", true, "canonical docs avoid transition/deprecation wording", "")
+		appendStep("no-compatibility/deprecation invariant", true, "canonical docs avoid compatibility-window and deprecation wording", "")
 
 		if modulePolicyErr := checkModuleCompatibilityPolicy("."); modulePolicyErr != nil {
 			appendStep("module compatibility policy", false, modulePolicyErr.Error(), "")

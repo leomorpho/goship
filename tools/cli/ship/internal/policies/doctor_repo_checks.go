@@ -425,7 +425,7 @@ func scanHardCutDocFile(root, rel string, allowlist []hardCutAllowlistEntry) []D
 			issues = append(issues, DoctorIssue{
 				Code:    "DX030",
 				File:    location,
-				Message: fmt.Sprintf("%s contains forbidden transition/deprecation wording %q", location, rule.Phrase),
+				Message: fmt.Sprintf("%s contains forbidden compatibility/deprecation wording %q", location, rule.Phrase),
 				Fix:     fmt.Sprintf("%s; %s", rule.Replace, hardCutAllowlistFix(rel, rule.Phrase, isCanonical)),
 			})
 		}
