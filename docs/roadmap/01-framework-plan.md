@@ -149,6 +149,7 @@ Rules for versioned tooling in generated apps:
 2. CLI does not auto-upgrade tools to latest on dev/test commands.
 3. `ship doctor` reports drift (e.g., templ CLI older/newer than project version) and provides fix commands.
 4. `ship upgrade` is the only command that intentionally bumps pinned tool/module versions.
+5. `ship upgrade` will also surface a machine-readable upgrade readiness report and blocker schema before it mutates pinned versions.
 
 ## Core Product Goals
 

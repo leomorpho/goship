@@ -56,6 +56,7 @@ Project lifecycle:
 - `ship agent:start --task "<description>" [--id TASK-001]`
 - `ship agent:finish --id TASK-001 --message "feat(scope): summary" [--pr]`
 - `ship upgrade --to <version> [--dry-run]`
+- `ship upgrade` will surface an upgrade readiness report and blocker schema for orchestration preflight before future automation mutates pinned versions.
 
 Local runtime:
 

@@ -1453,6 +1453,17 @@ Impact:
 - Operators and agents now have one canonical CLI report for runtime capability inspection.
 - Future runtime metadata additions should extend the report and its contract tests in the same change stream.
 
+## Upgrade Readiness Report Still Needs a Blocker Schema (Low)
+
+`ship upgrade` still needs a machine-readable readiness report that carries the upgrade target,
+blocking conditions, and remediation hints in a shared blocker schema. The remaining risk is that
+upgrade orchestration tooling cannot yet preflight version bumps with one canonical contract.
+
+Impact:
+
+- Operators will have a single preflight report for upgrade safety once the contract lands.
+- Future upgrade automation should extend the same blocker schema instead of inventing a parallel plan format.
+
 ## Cross-Lane Dependency Matrix Still Needs A Single Contract Map (Low)
 
 The GoShip, Interaction, and Control-plane ticket streams still rely on multiple docs and ticket
@@ -3991,6 +4002,7 @@ Project lifecycle:
 - `ship agent:start --task "<description>" [--id TASK-001]`
 - `ship agent:finish --id TASK-001 --message "feat(scope): summary" [--pr]`
 - `ship upgrade --to <version> [--dry-run]`
+- `ship upgrade` will surface an upgrade readiness report and blocker schema for orchestration preflight before future automation mutates pinned versions.
 
 Local runtime:
 
@@ -4639,6 +4651,7 @@ Rules for versioned tooling in generated apps:
 2. CLI does not auto-upgrade tools to latest on dev/test commands.
 3. `ship doctor` reports drift (e.g., templ CLI older/newer than project version) and provides fix commands.
 4. `ship upgrade` is the only command that intentionally bumps pinned tool/module versions.
+5. `ship upgrade` will also surface a machine-readable upgrade readiness report and blocker schema before it mutates pinned versions.
 
 ## Core Product Goals
 
