@@ -1,0 +1,18 @@
+{
+  "ticket_id": "TKT-196",
+  "created_at": "2026-03-18T15:56:59Z",
+  "ac_done": 1,
+  "ac_total": 3,
+  "changed_files": [
+    ".docket/manifest.json",
+    ".docket/tickets/TKT-196.md"
+  ],
+  "next_steps": [
+    "Child tickets include explicit likely paths, verify commands, and out-of-scope sections.",
+    "Execution topology and parallelization guidance in handoff is accurate and actionable."
+  ],
+  "last_comments": [],
+  "branch": "docket/TKT-196",
+  "worktree_path": "/home/developer/.cache/docket/worktrees/project/TKT-196",
+  "summary": "AC completion checkpoint"
+}
