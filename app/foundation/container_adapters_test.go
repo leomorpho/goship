@@ -74,8 +74,23 @@ func TestContainerValidateAdapterPlan(t *testing.T) {
 	}
 }
 
-func TestContainerValidateAdapterPlan_StrictPubSubDependencyContract_RedSpec(t *testing.T) {
-	t.Skip("red-spec only (TKT-257): enable when redis pubsub requires startup failure instead of inproc fallback")
+func TestContainerValidateAdapterPlan_StrictPubSubDependencyContract(t *testing.T) {
+	t.Parallel()
+
+	c := &Container{
+		Config: &config.Config{
+			Adapters: config.AdaptersConfig{
+				DB:     "postgres",
+				Cache:  "memory",
+				Jobs:   "inproc",
+				PubSub: "redis",
+			},
+		},
+	}
+
+	if !didPanic(func() { c.validateAdapterPlan() }) {
+		t.Fatal("expected panic when redis pubsub is configured without redis cache backing")
+	}
 }
 
 func didPanic(fn func()) (panicked bool) {

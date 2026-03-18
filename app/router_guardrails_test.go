@@ -4,9 +4,11 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v4"
+	"github.com/leomorpho/goship-modules/notifications"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/app/foundation"
 	"github.com/leomorpho/goship/app/web/ui"
+	"github.com/leomorpho/goship/config"
 	"github.com/stretchr/testify/require"
 )
 
@@ -38,10 +40,43 @@ func TestRegisterRealtimeRoutes_RequiresNotifier(t *testing.T) {
 	require.EqualError(t, err, "cannot register realtime routes: notifier is nil")
 }
 
-func TestBuildRouter_InvalidRuntimePlanFailsStartup_RedSpec(t *testing.T) {
-	t.Skip("red-spec only (TKT-257): enable when invalid runtime plans return startup errors instead of safe fallback")
+func TestResolveStartupWebFeatures_InvalidRuntimePlanFailsStartup(t *testing.T) {
+	t.Parallel()
+
+	cfg := testConfigForDevelop()
+	cfg.Runtime.Profile = "broken"
+	cfg.Processes.Web = true
+	cfg.Adapters.PubSub = "inproc"
+
+	_, _, err := resolveStartupWebFeatures(&foundation.Container{Config: cfg})
+	require.EqualError(t, err, "invalid runtime plan: unknown runtime profile: broken")
 }
 
-func TestBuildRouter_RealtimeDependencyMismatchFailsStartup_RedSpec(t *testing.T) {
-	t.Skip("red-spec only (TKT-257): enable when missing realtime dependencies fail startup instead of silently disabling routes")
+func TestResolveStartupWebFeatures_RealtimeDependencyMismatchFailsStartup(t *testing.T) {
+	t.Parallel()
+
+	cfg := testConfigForDevelop()
+	cfg.Runtime.Profile = config.RuntimeProfileServerDB
+	cfg.Processes.Web = true
+	cfg.Adapters.PubSub = "inproc"
+
+	_, _, err := resolveStartupWebFeatures(&foundation.Container{Config: cfg})
+	require.EqualError(t, err, "invalid startup capability contract: realtime requires notifier service")
+}
+
+func TestResolveStartupWebFeatures_ValidRealtimeConfig(t *testing.T) {
+	t.Parallel()
+
+	cfg := testConfigForDevelop()
+	cfg.Runtime.Profile = config.RuntimeProfileServerDB
+	cfg.Processes.Web = true
+	cfg.Adapters.PubSub = "inproc"
+
+	plan, features, err := resolveStartupWebFeatures(&foundation.Container{
+		Config:   cfg,
+		Notifier: &notifications.NotifierService{},
+	})
+	require.NoError(t, err)
+	require.True(t, plan.RunWeb)
+	require.True(t, features.EnableRealtime)
 }

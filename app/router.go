@@ -2,6 +2,7 @@ package goship
 
 import (
 	"errors"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -42,24 +43,15 @@ func BuildRouter(c *foundation.Container, modules RouterModules) error {
 		return errors.New("missing notifications module")
 	}
 
+	c.Notifier = modules.Notifications.Notifier
+	_, webFeatures, err := resolveStartupWebFeatures(c)
+	if err != nil {
+		return err
+	}
 	deps, err := appweb.NewRouteDeps(c, modules.PaidSubscriptions, modules.Notifications)
 	if err != nil {
 		return err
 	}
-	c.Notifier = modules.Notifications.Notifier
-
-	plan, err := runtimeplan.Resolve(c.Config)
-	if err != nil {
-		slog.Warn("invalid runtime plan configuration, falling back to safe web defaults", "error", err)
-		plan = runtimeplan.Plan{
-			Profile: string(c.Config.Runtime.Profile),
-			RunWeb:  true,
-			Adapters: runtimeplan.Adapters{
-				PubSub: c.Config.Adapters.PubSub,
-			},
-		}
-	}
-	webFeatures := runtimeplan.ResolveWebFeatures(plan, c.Cache != nil, c.Notifier != nil)
 
 	// Create a slog logger.
 	logger := logging.NewLogger(c.Config.Log)
@@ -107,6 +99,24 @@ func BuildRouter(c *foundation.Container, modules RouterModules) error {
 	}
 
 	return nil
+}
+
+func resolveStartupWebFeatures(c *foundation.Container) (runtimeplan.Plan, runtimeplan.WebFeatures, error) {
+	if c == nil || c.Config == nil {
+		return runtimeplan.Plan{}, runtimeplan.WebFeatures{}, errors.New("invalid runtime container: config is nil")
+	}
+
+	plan, err := runtimeplan.Resolve(c.Config)
+	if err != nil {
+		return runtimeplan.Plan{}, runtimeplan.WebFeatures{}, fmt.Errorf("invalid runtime plan: %w", err)
+	}
+
+	if plan.RunWeb && c.Notifier == nil {
+		return runtimeplan.Plan{}, runtimeplan.WebFeatures{}, errors.New("invalid startup capability contract: realtime requires notifier service")
+	}
+
+	features := runtimeplan.ResolveWebFeatures(plan, c.Cache != nil, c.Notifier != nil)
+	return plan, features, nil
 }
 
 func registerPublicRoutes(c *foundation.Container, g *echo.Group, ctr ui.Controller, deps *appweb.RouteDeps) error {

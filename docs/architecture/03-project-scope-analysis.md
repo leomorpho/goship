@@ -83,6 +83,7 @@ Status of exposure:
 - Some notification endpoints are active (count endpoint, permission/subscription management)
 - Several notification-center routes are currently commented out in router wiring
 - SSE route wiring is runtime-gated and only enabled when notifier/pubsub dependencies are available
+- Invalid realtime/runtime-plan startup combinations now fail fast instead of silently falling back to a reduced route surface
 
 ## 5) Email Features
 

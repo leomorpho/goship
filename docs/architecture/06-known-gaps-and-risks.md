@@ -17,13 +17,12 @@ Impact:
 
 ## 2) Realtime Dependency Requirements (High for distributed realtime features)
 
-`GET /auth/realtime` is now conditionally registered based on resolved runtime web features. If notifier/pubsub dependencies are unavailable, realtime routes are intentionally disabled.
+`GET /auth/realtime` is now conditionally registered based on resolved runtime web features. Invalid runtime-plan resolution or missing realtime dependencies now fail startup instead of silently falling back.
 
 Impact:
 
-- Realtime is unavailable unless runtime adapters are configured correctly.
-- Misconfigured environments can appear healthy while silently missing realtime endpoints.
-- Invalid runtime-plan resolution currently warns and falls back to safe web defaults instead of failing startup.
+- Realtime remains unavailable unless runtime adapters and notifier wiring are configured correctly.
+- Misconfigured environments now fail fast during startup rather than appearing healthy with missing realtime endpoints.
 
 ## 3) Notification Center Endpoints Partially Disabled (Medium)
 
@@ -207,7 +206,7 @@ Impact:
 ## Suggested Priority Order
 
 1. Complete cache adapter coverage so page caching works consistently across supported backends.
-2. Harden adapter/config validation so realtime capability mismatch is explicit at startup.
+2. Keep tightening adapter/config validation so additional startup capability mismatches fail before route registration.
 3. Re-enable or remove notification-center routes consistently.
 4. Refresh e2e tests to match current GoShip flows.
 5. Align local stack docs with actual DB mode and compose services.

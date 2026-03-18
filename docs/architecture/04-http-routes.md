@@ -142,6 +142,7 @@ Registered only when `app.environment=dev`:
 Realtime is conditionally wired:
 
 - `GET /auth/realtime` is registered only when runtime web features enable realtime (notifier + pubsub available).
+- Invalid runtime-plan resolution or realtime dependency mismatch now fails startup instead of silently dropping the realtime route surface.
 - `GET /auth/ai-demo` and `GET /auth/ai-demo/stream` are registered only when the app environment is not production.
 - `/managed/*` routes are registered only when `PAGODA_MANAGED_MODE=true` and require valid `X-GoShip-*` signature headers.
 

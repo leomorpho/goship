@@ -30,6 +30,9 @@ func ResolveFromConfig(cfg *config.Config) (Resolved, error) {
 	if err := reg.ValidateSelection(sel); err != nil {
 		return Resolved{}, err
 	}
+	if err := validateSelectionDependencies(sel); err != nil {
+		return Resolved{}, err
+	}
 
 	req := RequirementsFromConfig(cfg)
 	if err := reg.ValidateRequirements(sel, req); err != nil {
@@ -46,4 +49,11 @@ func ResolveFromConfig(cfg *config.Config) (Resolved, error) {
 		Requirements:     req,
 		JobsCapabilities: cap,
 	}, nil
+}
+
+func validateSelectionDependencies(sel Selection) error {
+	if sel.PubSub == "redis" && sel.Cache != "redis" {
+		return fmt.Errorf("pubsub adapter %q requires cache adapter %q", sel.PubSub, "redis")
+	}
+	return nil
 }

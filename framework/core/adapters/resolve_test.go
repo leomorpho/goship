@@ -61,6 +61,18 @@ func TestResolveFromConfig(t *testing.T) {
 			},
 			wantErr: "",
 		},
+		{
+			name: "redis pubsub requires redis cache",
+			cfg: &config.Config{
+				Adapters: config.AdaptersConfig{
+					DB:     "postgres",
+					Cache:  "memory",
+					Jobs:   "inproc",
+					PubSub: "redis",
+				},
+			},
+			wantErr: "pubsub adapter \"redis\" requires cache adapter \"redis\"",
+		},
 	}
 
 	for _, tt := range tests {

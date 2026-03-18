@@ -70,7 +70,7 @@ func TestNewCoreJobsAdapterFromConfig(t *testing.T) {
 	cfg := &config.Config{
 		Adapters: config.AdaptersConfig{
 			DB:     "postgres",
-			Cache:  "memory",
+			Cache:  "redis",
 			Jobs:   "asynq",
 			PubSub: "redis",
 		},
