@@ -89,6 +89,15 @@ func TestRunGenerateModel_WithFieldsWritesSchema(t *testing.T) {
 	if len(runner.calls) != 0 {
 		t.Fatalf("runner calls len = %d, want 0", len(runner.calls))
 	}
+	for _, token := range []string{
+		"make:model result",
+		"Created:",
+		"Next:",
+	} {
+		if !strings.Contains(out.String(), token) {
+			t.Fatalf("stdout missing %q:\n%s", token, out.String())
+		}
+	}
 }
 
 func TestRunGenerateModel_RefuseOverwriteWithoutForce(t *testing.T) {

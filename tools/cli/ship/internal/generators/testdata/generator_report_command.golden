@@ -1,0 +1,5 @@
+make:command result
+Created:
+- app/commands/backfill_user_stats.go
+Updated:
+- cmd/cli/main.go

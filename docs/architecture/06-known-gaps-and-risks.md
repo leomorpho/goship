@@ -281,8 +281,8 @@ Impact:
 
 ## 23) Generator Drift Is Now Guarded By A Dedicated CI Contract Lane (Low)
 
-GoShip now carries a dedicated generator contract lane that combines a golden snapshot for the
-shared generator report shape with the consolidated generator idempotency matrix.
+GoShip now carries a dedicated generator contract lane that combines per-generator golden
+snapshots for the shared report shape with the consolidated generator idempotency matrix.
 
 Impact:
 

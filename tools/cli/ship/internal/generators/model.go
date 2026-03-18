@@ -55,14 +55,21 @@ func RunGenerateModel(args []string, d GenerateModelDeps) int {
 		fmt.Fprintf(d.Err, "failed to write model query file: %v\n", err)
 		return 1
 	}
-	fmt.Fprintf(d.Out, "Wrote model query scaffold: %s\n", queryPath)
-
 	tableName := ModelFileName(name) + "s"
-	fmt.Fprintln(d.Out, "Next:")
-	fmt.Fprintf(d.Out, "- ship db:make create_%s_table\n", tableName)
-	fmt.Fprintf(d.Out, "- edit db/migrate/migrations/*_create_%s_table.sql\n", tableName)
-	fmt.Fprintln(d.Out, "- ship db:migrate")
-	fmt.Fprintln(d.Out, "- ship db:generate")
+	writeGeneratorReport(
+		d.Out,
+		"model",
+		false,
+		[]string{queryPath},
+		nil,
+		nil,
+		[]string{
+			fmt.Sprintf("ship db:make create_%s_table", tableName),
+			fmt.Sprintf("edit db/migrate/migrations/*_create_%s_table.sql", tableName),
+			"ship db:migrate",
+			"ship db:generate",
+		},
+	)
 	return 0
 }
 

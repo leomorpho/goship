@@ -1,0 +1,10 @@
+make:resource result (dry-run)
+Created:
+- app/web/controllers/inbox.go
+- app/views/web/pages/inbox.templ
+Preview:
+Route name constant for app/web/routenames/routenames.go:
+RouteNameInbox = "inbox"
+Preview:
+Router snippet for app/router.go:
+g.GET("/inbox", inbox.Get).Name = routeNames.RouteNameInbox

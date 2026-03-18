@@ -878,7 +878,7 @@ Test evidence:
 Status: `completed`
 Done when:
 - CI defines a dedicated generator contract lane instead of burying generator drift in the broad backend suite;
-- the lane runs a golden snapshot for the shared generator report contract plus the consolidated idempotency matrix;
+- the lane runs per-generator golden snapshots for the shared generator report contract plus the consolidated idempotency matrix;
 - docs describe the explicit snapshot-refresh path for intentional output changes.
 Test evidence:
 - `go test ./tools/cli/ship/internal/commands -run TestCIContract_DefinesGeneratorSnapshotAndIdempotencyGate_RedSpec -count=1`

@@ -275,6 +275,7 @@ Generator output contract:
 
 - `ship make:*` commands now emit shared `Created:`, `Updated:`, `Preview:`, and `Next:` sections so generator results stay deterministic for humans and agent tooling
 - dry-run generator flows keep the same section layout and mark the report as `(dry-run)` instead of switching to a different prose format
+- the generator contract lane snapshots the report shape for model, job, command, and dry-run resource flows so per-generator drift is explicit
 
 `ship new` v1 contract:
 

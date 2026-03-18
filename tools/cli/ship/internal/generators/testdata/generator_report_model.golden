@@ -1,0 +1,8 @@
+make:model result
+Created:
+- db/queries/blog_post.sql
+Next:
+- ship db:make create_blog_posts_table
+- edit db/migrate/migrations/*_create_blog_posts_table.sql
+- ship db:migrate
+- ship db:generate
