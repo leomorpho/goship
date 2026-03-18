@@ -188,6 +188,16 @@ Impact:
 - Humans and agents now have one canonical top-level command path per quality concern.
 - Future quality-loop changes should update `ship test`, `ship verify`, and their contract docs/tests in the same change stream.
 
+## 17) Job Generator Contract Is Still Missing (Medium)
+
+The roadmap expects `ship make:job`, but the CLI surface and jobs guide do not yet expose a
+canonical generator contract for scaffolding app jobs against `core.Jobs`.
+
+Impact:
+
+- App teams still have to hand-roll job files and registration patterns.
+- The jobs surface remains prone to drifting back toward backend-specific processor conventions instead of a `core.Jobs`-first scaffold.
+
 ## 16) No Built-In OpenAPI Generation Command (Informational)
 
 The `ship api:spec` command and `app/contracts`-based spec flow were removed in the app-minimalization cleanup stream.
