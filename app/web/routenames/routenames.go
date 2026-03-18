@@ -57,9 +57,12 @@ const (
 	RouteNameUploadPhotoDelete         = "upload_photo.delete"
 	RouteNameCurrentProfilePhoto       = "current_profile_photo"
 	RouteNameCurrentProfilePhotoSubmit = "current_profile_photo.submit"
+	RouteNameNotifications             = "notifications"
+	RouteNameDeleteNotification        = "notifications.delete"
 	RouteNameNormalNotificationsCount  = "normal_notifications_count"
 
 	RouteNameMarkNotificationsAsRead    = "markNormalNotificationRead"
+	RouteNameMarkNotificationsAsUnread  = "notifications.unread"
 	RouteNameMarkAllNotificationsAsRead = "normalNotificationsMarkAllAsRead"
 
 	RouteNameRealtime = "realtime"

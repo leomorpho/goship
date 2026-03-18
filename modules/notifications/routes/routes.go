@@ -71,9 +71,9 @@ func (m *RouteModule) Migrations() fs.FS {
 
 func (m *RouteModule) RegisterRoutes(r core.Router) error {
 	normalNotifications := NewNormalNotificationsRoute(m.controller, m.notifierService)
-	r.GET("/notifications", normalNotifications.Get).Name = "normalNotifications"
+	r.GET("/notifications", normalNotifications.Get).Name = routeNames.RouteNameNotifications
 	r.GET("/notifications/mark-all-read", normalNotifications.MarkAllAsRead).Name = routeNames.RouteNameMarkAllNotificationsAsRead
-	r.DELETE("/notifications/:notification_id", normalNotifications.Delete)
+	r.DELETE("/notifications/:notification_id", normalNotifications.Delete).Name = routeNames.RouteNameDeleteNotification
 
 	normalNotificationsCount := NewNormalNotificationsCountRoute(m.controller, m.profileService)
 	r.GET("/notifications/normalNotificationsCount", normalNotificationsCount.Get).Name = routeNames.RouteNameNormalNotificationsCount
@@ -82,7 +82,7 @@ func (m *RouteModule) RegisterRoutes(r core.Router) error {
 	r.POST("/notifications/:notification_id/read", markRead.Post).Name = routeNames.RouteNameMarkNotificationsAsRead
 
 	markUnread := NewMarkNormalNotificationUnreadRoute(m.controller, m.notifierService)
-	r.POST("/notifications/unread", markUnread.Post).Name = "markNormalNotificationUnread"
+	r.POST("/notifications/unread", markUnread.Post).Name = routeNames.RouteNameMarkNotificationsAsUnread
 
 	return nil
 }
@@ -196,7 +196,7 @@ func (r *NormalNotificationsRoute) Get(ctx echo.Context) error {
 	var nextPageURL string
 	if len(notifications) > 0 {
 		oldestTimestamp := notifications[len(notifications)-1].CreatedAt
-		nextPageURL = ctx.Echo().Reverse("normalNotifications") + "?timestamp=" + oldestTimestamp.Format(time.RFC3339Nano)
+		nextPageURL = ctx.Echo().Reverse(routeNames.RouteNameNotifications) + "?timestamp=" + oldestTimestamp.Format(time.RFC3339Nano)
 	}
 
 	data := viewmodels.NewNormalNotificationsPageData()
@@ -299,7 +299,7 @@ func (r *MarkNormalNotificationUnreadRoute) Post(ctx echo.Context) error {
 		return err
 	}
 
-	return r.controller.Redirect(ctx, "normalNotifications")
+	return r.controller.Redirect(ctx, routeNames.RouteNameNotifications)
 }
 
 type OutgoingNotificationsRoute struct {

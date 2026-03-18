@@ -72,7 +72,7 @@ templ BottomNav(page *controller.Page) {
 			<button
 				id="bottom-navbar-notifications-button"
 				data-slot="notifications-nav-item"
-				hx-get={ page.ToURL("normalNotifications") }
+				hx-get={ page.ToURL(routenames.RouteNameNotifications) }
 				type="button"
 				class="inline-flex flex-col items-center justify-center px-5 hover:bg-gray-100 dark:hover:bg-gray-800 group rounded-xl m-2"
 				@click="selected = 'notifications';"
@@ -102,7 +102,7 @@ templ BottomNav(page *controller.Page) {
 					</svg>
 					<span hx-disinherit="*">
 						<span
-							hx-get={ page.ToURL("normalNotificationsCount") }
+							hx-get={ page.ToURL(routenames.RouteNameNormalNotificationsCount) }
 							if page.IsFullyOnboarded {
 								hx-trigger="sse:update_num_notifs,load"
 							}

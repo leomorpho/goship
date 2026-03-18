@@ -76,7 +76,7 @@ templ Navbar(page *controller.Page) {
 							id="notifications-navbar"
 							data-slot="notification-bell"
 							class="w-10 h-10 bg-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600 dark:bg-slate-500 rounded-full mx-2 flex items-center justify-center relative cursor-pointer"
-							hx-get={ page.ToURL("normalNotifications") }
+							hx-get={ page.ToURL(routenames.RouteNameNotifications) }
 						>
 							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-6 h-6">
 								<path
@@ -89,7 +89,7 @@ templ Navbar(page *controller.Page) {
 								hx-disinherit="*"
 							>
 								<span
-									hx-get={ page.ToURL("normalNotificationsCount") }
+									hx-get={ page.ToURL(routenames.RouteNameNormalNotificationsCount) }
 									hx-trigger="sse:update_num_notifs,load"
 									hx-swap="innerHTML"
 									hx-target="this"

@@ -24,14 +24,14 @@ Impact:
 - Realtime remains unavailable unless runtime adapters and notifier wiring are configured correctly.
 - Misconfigured environments now fail fast during startup rather than appearing healthy with missing realtime endpoints.
 
-## 3) Notification Surface Finalization Is Incomplete (Medium)
+## 3) Notification Surface Drift Still Needs Route Inventory Discipline (Low)
 
-The canonical router now wires the notification module route surface, but the route contract is still split between canonical route-name constants and legacy string literals in notification views/module code.
+The notification module route surface is now wired and canonicalized through shared route-name constants, but future module extractions can still drift if route inventories and view callsites are not kept in sync.
 
 Impact:
 
-- Notification center behavior is reachable, but route-surface consistency is still too implicit.
-- Doc drift and string-literal route references can obscure the actual notification HTTP contract until the remaining cleanup lands.
+- Notification-center behavior is reachable and documented today.
+- Future refactors should keep using route-inventory tests plus doc sync to avoid reintroducing hidden route-surface drift.
 
 ## 4) Stale/Inconsistent E2E Coverage (Medium)
 

@@ -80,8 +80,8 @@ Implemented infrastructure includes:
 
 Status of exposure:
 
-- Some notification endpoints are active (count endpoint, permission/subscription management)
-- Several notification-center routes are currently commented out in router wiring
+- Notification-center routes are owned by `modules/notifications/routes` and wired through the canonical app router
+- Active surface includes notification list, unread-count badge, mark-all-read, mark read/unread, delete, and onboarding subscription management endpoints
 - SSE route wiring is runtime-gated and only enabled when notifier/pubsub dependencies are available
 - Invalid realtime/runtime-plan startup combinations now fail fast instead of silently falling back to a reduced route surface
 

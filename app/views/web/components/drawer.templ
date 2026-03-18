@@ -69,7 +69,7 @@ templ drawerButtonToggle(page *controller.Page) {
 			</svg>
 			<span hx-disinherit="*">
 				<span
-					hx-get={ page.ToURL("normalNotificationsCount") }
+					hx-get={ page.ToURL(routenames.RouteNameNormalNotificationsCount) }
 					if page.IsFullyOnboarded {
 						hx-trigger="sse:update_num_notifs,load"
 					}
@@ -218,7 +218,7 @@ templ SidebarSharedFields(page *controller.Page) {
 	</li>
 	<li>
 		<a
-			hx-get={ page.ToURL("normalNotifications") }
+			hx-get={ page.ToURL(routenames.RouteNameNotifications) }
 			@click="conditionalToggle()"
 			class="flex items-center p-2 rounded-lg hover-brightness hover:dark:bg-gray-700 group cursor-pointer"
 		>
@@ -228,7 +228,7 @@ templ SidebarSharedFields(page *controller.Page) {
 			<span class="flex-1 ms-3 whitespace-nowrap">Notifications</span>
 			<span hx-disinherit="*">
 				<span
-					hx-get={ page.ToURL("normalNotificationsCount") }
+					hx-get={ page.ToURL(routenames.RouteNameNormalNotificationsCount) }
 					if page.IsFullyOnboarded {
 						hx-trigger="sse:update_num_notifs,load"
 					}

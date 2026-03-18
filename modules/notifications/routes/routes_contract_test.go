@@ -30,12 +30,12 @@ func TestRouteModule_RegisterRoutes_CanonicalNotificationSurface(t *testing.T) {
 		"POST /welcome/subscription/:platform":                           stringPtr(routeNames.RouteNameRegisterSubscription),
 		"DELETE /welcome/subscription/:platform":                         stringPtr(routeNames.RouteNameDeleteSubscription),
 		"GET /welcome/email-subscription/unsubscribe/:permission/:token": stringPtr(routeNames.RouteNameDeleteEmailSubscriptionWithToken),
-		"GET /auth/notifications":                                        stringPtr("normalNotifications"),
+		"GET /auth/notifications":                                        stringPtr(routeNames.RouteNameNotifications),
 		"GET /auth/notifications/mark-all-read":                          stringPtr(routeNames.RouteNameMarkAllNotificationsAsRead),
-		"DELETE /auth/notifications/:notification_id":                    nil,
+		"DELETE /auth/notifications/:notification_id":                    stringPtr(routeNames.RouteNameDeleteNotification),
 		"GET /auth/notifications/normalNotificationsCount":               stringPtr(routeNames.RouteNameNormalNotificationsCount),
 		"POST /auth/notifications/:notification_id/read":                 stringPtr(routeNames.RouteNameMarkNotificationsAsRead),
-		"POST /auth/notifications/unread":                                stringPtr("markNormalNotificationUnread"),
+		"POST /auth/notifications/unread":                                stringPtr(routeNames.RouteNameMarkNotificationsAsUnread),
 	}
 
 	got := make(map[string]string, len(e.Routes()))
@@ -57,9 +57,7 @@ func TestRouteModule_RegisterRoutes_CanonicalNotificationSurface(t *testing.T) {
 	}
 }
 
-func TestNotificationRouteSurface_UsesCanonicalRouteNameConstants_RedSpec(t *testing.T) {
-	t.Skip("red spec: TKT-262 will replace raw notification route-name strings with canonical routenames constants")
-
+func TestNotificationRouteSurface_UsesCanonicalRouteNameConstants(t *testing.T) {
 	for _, rel := range []string{
 		filepath.Join("modules", "notifications", "routes", "routes.go"),
 		filepath.Join("app", "views", "web", "components", "navbar.templ"),

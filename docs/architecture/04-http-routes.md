@@ -79,7 +79,12 @@ Fully onboarded-only routes (`/auth` with onboarding guard):
 - `DELETE /auth/uploadPhoto/:image_id`
 - `GET /auth/currProfilePhoto`
 - `POST /auth/currProfilePhoto`
+- `GET /auth/notifications`
+- `GET /auth/notifications/mark-all-read`
+- `DELETE /auth/notifications/:notification_id`
 - `GET /auth/notifications/normalNotificationsCount`
+- `POST /auth/notifications/:notification_id/read`
+- `POST /auth/notifications/unread`
 - `GET /auth/payments/get-public-key`
 - `POST /auth/payments/create-checkout-session`
 - `POST /auth/payments/create-portal-session`
@@ -146,9 +151,4 @@ Realtime is conditionally wired:
 - `GET /auth/ai-demo` and `GET /auth/ai-demo/stream` are registered only when the app environment is not production.
 - `/managed/*` routes are registered only when `PAGODA_MANAGED_MODE=true` and require valid `X-GoShip-*` signature headers.
 
-Notification center routes have implementations but are still not wired:
-
-- list notifications
-- mark all read
-- delete notification
-- mark read/unread endpoints
+Notification center routes are owned by `modules/notifications/routes` and registered through the canonical app router alongside the onboarding subscription-management routes under `/welcome`.
