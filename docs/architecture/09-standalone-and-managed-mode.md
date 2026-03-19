@@ -184,6 +184,64 @@ Minimum framework hook surface to support promotion:
 - Import hook with manifest validation and idempotent apply behavior.
 - Post-import verification hook.
 
+## Staged Rollout And Canary Decision Contract (v1)
+
+GoShip defines one canonical decision payload for staged rollout and canary evaluation:
+`staged-rollout-decision-v1`.
+
+This payload is owned jointly by the runtime/control-plane seam:
+
+- `ship runtime:report --json` supplies runtime facts such as active profile, adapters, DB metadata,
+  managed-key sources, and handshake/version identifiers.
+- control-plane policy supplies rollout intent such as cohort rules, target percentage, promotion
+  guardrails, and rollback thresholds.
+- the decision payload composes those two inputs into one externalized verdict so downstream
+  tooling does not need a second runtime-specific format.
+
+Canonical payload fields:
+
+- `schema_version`: must equal `staged-rollout-decision-v1`
+- `runtime_contract_version`: version token echoed from the runtime report contract consumed for the decision
+- `policy_input_version`: version token for the control-plane policy bundle that produced the decision
+- `generated_at`: RFC3339 timestamp for the decision artifact
+- `target`: object naming the deployment unit under evaluation (`app`, `environment`, optional `module`)
+- `readiness`: summarized runtime readiness facts copied from the runtime report without renaming their meaning
+- `policy`: summarized control-plane policy inputs copied without restating runtime facts
+- `decision`: one of `hold`, `canary`, `promote`, or `rollback`
+- `canary`: object describing the selected canary cohort, percentage, and exit criteria when `decision=canary`
+- `blockers`: ordered list of machine-readable reasons preventing promotion
+- `verification`: minimum evidence that downstream tooling must check before acting on the decision
+
+Versioning rules:
+
+- A new `schema_version` is required when field meaning changes, required fields change, or enum
+  semantics change.
+- Additive optional fields may ship within `staged-rollout-decision-v1` as long as existing field
+  meaning stays stable.
+- `runtime_contract_version` and `policy_input_version` must be preserved verbatim so audit tools
+  can trace which runtime facts and control-plane policy produced the decision.
+
+Minimum verification semantics:
+
+- verify `schema_version == staged-rollout-decision-v1`
+- verify the referenced `runtime_contract_version` is the exact runtime report version consumed for the decision
+- verify the runtime report indicated readiness for the evaluated action instead of re-deriving that state from scratch
+- verify the referenced `policy_input_version` matches the policy bundle approved by the external authority
+- verify `blockers` is empty before acting on `promote`
+- verify `canary` is present and complete before acting on `canary`
+
+Composition rule:
+
+- runtime facts answer what the app can safely do right now
+- control-plane policy answers what the operator wants to do
+- `staged-rollout-decision-v1` answers what action is authorized after those two inputs are checked
+
+Out of scope for v1:
+
+- a built-in rollout engine inside GoShip
+- traffic shaping or request-splitting infrastructure
+- vendor-specific deployment-controller adapters
+
 ## Backup Boundary
 
 Backups are a good example of the split.

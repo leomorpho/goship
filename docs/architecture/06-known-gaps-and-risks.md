@@ -173,6 +173,19 @@ Impact:
 - Operators and orchestration tooling now have one canonical preflight report for upgrade safety.
 - Future upgrade automation should extend the same blocker schema instead of inventing a parallel plan format.
 
+## Staged Rollout Decision Schema Is Defined But Not Executed Yet (Low)
+
+`staged-rollout-decision-v1` is now the canonical schema for hold/canary/promote/rollback verdicts
+that compose runtime readiness metadata from `ship runtime:report --json` with external
+control-plane policy inputs. The remaining gap is execution: GoShip still does not ship a rollout engine,
+canary traffic shaping, or vendor-specific deployment automation that consumes that schema.
+
+Impact:
+
+- Downstream tooling now has one named decision artifact to rely on for staged rollout coordination.
+- Runtime/control-plane consumers should extend the same schema instead of inventing a parallel canary payload.
+- Operators should still treat rollout execution and traffic shaping as external responsibilities for now.
+
 ## Cross-Lane Dependency Matrix Still Needs A Single Contract Map (Low)
 
 The GoShip, Interaction, and Control-plane ticket streams still rely on multiple docs and ticket
