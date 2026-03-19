@@ -1698,7 +1698,7 @@ of checking only the scope/routes subset.
 
 Impact:
 
-- Transition-era wording drift in the primary architecture docs now fails through the same `DX030`
+- Migration-bridge wording drift in the primary architecture docs now fails through the same `DX030`
   path as CLI and roadmap docs.
 - Historical references remain possible outside the canonical set through the existing allowlist,
   keeping migration notes separate from the current architecture contract.
