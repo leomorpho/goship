@@ -10,16 +10,17 @@
         "backlog"
       ]
     },
-    "backlog": {
-      "label": "Backlog",
-      "open": true,
-      "column": 0,
-      "next": [
-        "todo",
-        "archived"
-      ],
-      "startable": true
-    },
+  "backlog": {
+    "label": "Backlog",
+    "open": true,
+    "column": 0,
+    "next": [
+      "todo",
+      "in-progress",
+      "archived"
+    ],
+    "startable": true
+  },
     "done": {
       "label": "Done",
       "open": false,
