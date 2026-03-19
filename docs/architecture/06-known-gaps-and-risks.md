@@ -190,6 +190,19 @@ Impact:
 - Runtime/control-plane consumers should extend the same schema instead of inventing a parallel canary payload.
 - Operators should still treat rollout execution and traffic shaping as external responsibilities for now.
 
+## Managed Hook Signing Library Follow-Through Still Needs Control-Plane Adoption (Low)
+
+`framework/security/managed_hooks.go` now exposes the shared signature vectors and canonical payload
+library used by the managed hook and cron signing contract. The remaining gap is downstream
+adoption: the external control-plane docs and operators still need to treat that canonical payload
+library as the only supported signing payload definition for INT2-01 follow-through.
+
+Impact:
+
+- Runtime-side signing and verification now share one canonical payload library.
+- Control-plane docs and tooling should keep referencing that canonical payload library instead of
+  copying a second payload definition.
+
 ## Cross-Lane Dependency Matrix Still Needs A Single Contract Map (Low)
 
 The GoShip, Interaction, and Control-plane ticket streams still rely on multiple docs and ticket
