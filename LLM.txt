@@ -811,6 +811,10 @@ between the canonical topology modes.
 env vars in the local `.env` file and rejects invalid runtime selections before they can drift into
 an unsupported runtime plan.
 
+`ship db:promote [--dry-run] [--json]` now turns the first SQLite-to-Postgres promotion step into an
+executable config change by applying the canonical `.env` mutation set for the standard profile and
+Postgres/Redis/Asynq adapters; export/import/verification remain explicit manual follow-up steps.
+
 ## Runtime Programs
 
 - `cmd/web/main.go`: main HTTP application server
@@ -1416,13 +1420,13 @@ Impact:
 
 ## 9) SQLite-To-Postgres Promotion Is Contracted But Still Manual (Medium)
 
-GoShip now surfaces the promotion contract through `ship db:promote` and runtime DB metadata, including orchestration hints for the canonical profile and adapter follow-up commands, and the CLI now exposes separate `ship db:export --json`, `ship db:import --json`, and `ship db:verify-import --json` hooks for the export/import workflow.
+GoShip now surfaces the promotion contract through `ship db:promote` and runtime DB metadata. The command now applies the canonical `.env` mutation step for SQLite-to-Postgres promotion (`standard` profile plus `db=postgres cache=redis jobs=asynq`) and supports `--dry-run` / `--json` previews of that exact mutation plan. The CLI still exposes separate `ship db:export --json`, `ship db:import --json`, and `ship db:verify-import --json` hooks for the remaining export/import workflow.
 The underlying import/verification engine is still manual-first, so the next step is wiring those hooks to the actual framework path instead of just surfacing the CLI contract.
 
 Impact:
 
-- Promotion currently requires custom/manual tooling around the framework contract.
-- Operators can report compatibility and promotion path with `ship db:promote`, but cannot run a one-command migration flow yet.
+- Promotion still requires manual export/import orchestration around the framework contract.
+- Operators can apply the canonical config flip with `ship db:promote`, but the data move and post-import verification are not a one-command migration flow yet.
 
 ## 10) AI Provider Coverage Is Still Narrow (Medium)
 
@@ -2137,8 +2141,8 @@ Canonical signature payload:
 
 - `METHOD + "\n" + PATH_WITH_QUERY + "\n" + TIMESTAMP + "\n" + NONCE + "\n" + RAW_BODY`
 
-shared signature vectors and the canonical payload library are tracked separately so both the
-runtime bridge and control-plane tooling can reuse the same signing fixtures.
+shared signature vectors and the canonical payload library now live on the shared security seam so
+both the runtime bridge and control-plane tooling can reuse the same signing fixtures.
 
 Verification/runtime rules:
 
@@ -2147,7 +2151,7 @@ Verification/runtime rules:
 - replay nonce TTL: `PAGODA_MANAGED_HOOKS_NONCE_TTL_SECONDS` (default `300`)
 - replay protection rejects reuse of the same nonce+timestamp tuple inside the TTL window
 - replay protection should run through a shared/distributed replay store contract in multi-replica deployments; process-local memory is only the default fallback implementation
-- the same signed-request pattern is expected for the control-plane cron entrypoint contract so scheduler-driven actions can reuse the replay/timestamp verification model
+- the same signed-request pattern is used for the control-plane cron entrypoint contract so scheduler-driven actions reuse the replay/timestamp verification model
 
 Response contract:
 
@@ -4094,7 +4098,7 @@ These commands are implemented as wrappers over existing workflows:
 - `ship module:add <name>` -> updates `config/modules.yaml`, app marker snippets, root `go.mod` `require`/`replace` directives, and `go.work` `use` entries for standalone batteries with local `go.mod` files
 - `ship module:remove <name>` -> removes those managed entries when safe; fails with exact blocker file paths when the repo still imports the module outside managed wiring points
 - `ship verify` -> rejects standalone-battery drift when root `go.mod` dependencies on installable modules are not the canonical local-dev shape (`v0.0.0` + local `replace` + matching `go.work use`), and enforces the canonical no-compatibility/no-deprecation wording invariant across the operator-facing docs set
-- `ship verify` will also grow an orchestration contract-mismatch preflight step before deploy/upgrade/promote flows so unsupported runtime combinations fail before orchestration starts
+- `ship verify` includes an orchestration contract-mismatch preflight step before deploy/upgrade/promote flows so unsupported runtime combinations fail before orchestration starts
 - `ship infra:up` -> detects `docker-compose`/`docker compose` and runs `up -d cache`, then attempts `up -d mailpit` (non-fatal if mailpit fails)
 - `ship infra:down` -> detects `docker-compose`/`docker compose` and runs `down`
 - `make test-module-isolation` -> dedicated CI lane for installable-module root import isolation; reports offending module/file context and rejects stale allowlist entries
@@ -4109,7 +4113,7 @@ These commands are implemented as wrappers over existing workflows:
 - `ship db:generate [--config <path>] [--dry-run]` -> runs Bob generation via `bobgen-sql -c <config>` (default: core `db/bobgen.yaml`, then enabled module configs in deterministic sorted order from `config/modules.yaml`)
 - `ship db:export [--json]` -> reports the SQLite export manifest checksum contract from current runtime metadata; `--json` emits the typed backup manifest for agents/tooling
 - `ship db:import [--json]` -> reports the manual SQLite export/import plan from current runtime metadata and suggests the follow-up post-import verification command; `--json` emits machine-readable plan output for agents/tooling
-- `ship db:promote [--json]` -> reports the manual SQLite-to-Postgres promotion plan from current runtime metadata and suggests the canonical profile/adapter/db migration follow-up commands; `--json` emits machine-readable plan output for agents/tooling
+- `ship db:promote [--dry-run] [--json]` -> builds the canonical SQLite-to-Postgres config mutation plan from current runtime metadata; default mode rewrites the local `.env` to the standard profile plus `db=postgres cache=redis jobs=asynq`, `--dry-run` previews the exact mutation set without writing files, and `--json` emits the same mutation payload for agents/tooling; export/import/verification steps remain manual follow-up commands
 - `ship db:migrate` -> `goose up` for core migrations, then enabled module migrations in deterministic sorted order
 - `ship db:status` -> `goose status` for core migrations, then enabled module migrations in deterministic sorted order; output is sectioned by scope (`== core migrations ==`, `== module <name> migrations ==`)
 - `ship db:verify-import [--json]` -> reports the post-import verification checks from current runtime metadata; `--json` emits machine-readable verification output for agents/tooling
@@ -4550,6 +4554,7 @@ Primary framing:
 - GoShip aims to be a Ruby on Rails alternative in Go, with comparable batteries-included productivity and developer ergonomics.
 - Product aspiration: be a deeply loved framework by developers by putting developer joy, speed, and clarity first.
 - Rails inspiration applies to the entire framework experience (not only environment settings): app structure, conventions, generators, batteries, defaults, testing, and deployment workflows.
+- The roadmap also needs one explicit cross-lane dependency matrix plus a must-finish-before contract map so ticket sequencing stays deterministic across runtime, docs, and control-plane work.
 
 ### Rails-Inspired Framework Pillars
 
@@ -4610,7 +4615,7 @@ CLI responsibilities:
 3. `ship module:add <name>` updates module manifest + initializer wiring.
 4. `ship jobs:backend:set <backend>` updates adapter config with capability checks.
 5. `ship adapter:set <db|cache|jobs|pubsub|storage|mailer> <impl>` rewrites adapter env vars deterministically and rejects invalid runtime combinations.
-6. `ship db:promote` reports the manual SQLite-to-Postgres promotion plan from runtime metadata, suggests the canonical `ship profile:set`/`ship adapter:set` follow-up commands, and keeps the workflow deterministic before the export/import hooks exist.
+6. `ship db:promote` now applies the canonical SQLite-to-Postgres config mutation step from runtime metadata (with `--dry-run` / `--json` preview support) and keeps the remaining export/import hooks as explicit manual follow-up steps.
 7. `ship new` should install templ tooling pinned to the project-declared version and provide an explicit update path.
 
 ### CLI Surface (Rails-Inspired)

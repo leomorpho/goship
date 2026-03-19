@@ -42,6 +42,7 @@ Primary framing:
 - GoShip aims to be a Ruby on Rails alternative in Go, with comparable batteries-included productivity and developer ergonomics.
 - Product aspiration: be a deeply loved framework by developers by putting developer joy, speed, and clarity first.
 - Rails inspiration applies to the entire framework experience (not only environment settings): app structure, conventions, generators, batteries, defaults, testing, and deployment workflows.
+- The roadmap also needs one explicit cross-lane dependency matrix plus a must-finish-before contract map so ticket sequencing stays deterministic across runtime, docs, and control-plane work.
 
 ### Rails-Inspired Framework Pillars
 
@@ -102,7 +103,7 @@ CLI responsibilities:
 3. `ship module:add <name>` updates module manifest + initializer wiring.
 4. `ship jobs:backend:set <backend>` updates adapter config with capability checks.
 5. `ship adapter:set <db|cache|jobs|pubsub|storage|mailer> <impl>` rewrites adapter env vars deterministically and rejects invalid runtime combinations.
-6. `ship db:promote` reports the manual SQLite-to-Postgres promotion plan from runtime metadata, suggests the canonical `ship profile:set`/`ship adapter:set` follow-up commands, and keeps the workflow deterministic before the export/import hooks exist.
+6. `ship db:promote` now applies the canonical SQLite-to-Postgres config mutation step from runtime metadata (with `--dry-run` / `--json` preview support) and keeps the remaining export/import hooks as explicit manual follow-up steps.
 7. `ship new` should install templ tooling pinned to the project-declared version and provide an explicit update path.
 
 ### CLI Surface (Rails-Inspired)

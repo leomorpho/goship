@@ -3,6 +3,8 @@ package commands
 import (
 	"bytes"
 	"encoding/json"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -10,7 +12,113 @@ import (
 )
 
 func TestRunDBPromote(t *testing.T) {
-	t.Run("prints manual promotion plan for sqlite sources", func(t *testing.T) {
+	t.Run("prints dry-run mutation plan for sqlite sources", func(t *testing.T) {
+		root := t.TempDir()
+		envPath := filepath.Join(root, ".env")
+		initial := strings.Join([]string{
+			"PAGODA_RUNTIME_PROFILE=single-node",
+			"PAGODA_PROCESSES_WEB=true",
+			"PAGODA_PROCESSES_WORKER=true",
+			"PAGODA_PROCESSES_SCHEDULER=true",
+			"PAGODA_PROCESSES_COLOCATED=true",
+			"PAGODA_ADAPTERS_DB=sqlite",
+			"PAGODA_DATABASE_DRIVER=sqlite",
+			"PAGODA_DB_DRIVER=sqlite",
+			"PAGODA_DATABASE_DBMODE=embedded",
+			"PAGODA_ADAPTERS_CACHE=otter",
+			"PAGODA_CACHE_DRIVER=otter",
+			"PAGODA_ADAPTERS_JOBS=backlite",
+			"PAGODA_JOBS_DRIVER=backlite",
+			"",
+		}, "\n")
+		if err := os.WriteFile(envPath, []byte(initial), 0o644); err != nil {
+			t.Fatalf("write env: %v", err)
+		}
+
+		prevWD, err := os.Getwd()
+		if err != nil {
+			t.Fatalf("getwd: %v", err)
+		}
+		if err := os.Chdir(root); err != nil {
+			t.Fatalf("chdir %s: %v", root, err)
+		}
+		t.Cleanup(func() { _ = os.Chdir(prevWD) })
+
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+
+		code := RunDB([]string{"promote", "--dry-run"}, DBDeps{
+			Out: out,
+			Err: errOut,
+			LoadConfig: func() (config.Config, error) {
+				cfg := config.Config{}
+				cfg.Database.DbMode = config.DBModeEmbedded
+				cfg.Database.Driver = config.DBDriverSQLite
+				return cfg, nil
+			},
+		})
+		if code != 0 {
+			t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
+		}
+		for _, token := range []string{
+			"DB promote plan:",
+			"- mode: dry-run (no files changed)",
+			"promotion_path: sqlite-to-postgres-manual-v1",
+			"compatible_targets: postgres",
+			"step: freeze writes for the source app",
+			"step: switch config to Postgres and unfreeze writes",
+			"set: PAGODA_RUNTIME_PROFILE=server-db",
+			"set: PAGODA_ADAPTERS_DB=postgres",
+			"set: PAGODA_ADAPTERS_CACHE=redis",
+			"set: PAGODA_ADAPTERS_JOBS=asynq",
+			"note: dry-run only; rerun without --dry-run to update .env",
+		} {
+			if !strings.Contains(out.String(), token) {
+				t.Fatalf("stdout missing %q:\n%s", token, out.String())
+			}
+		}
+
+		body, err := os.ReadFile(envPath)
+		if err != nil {
+			t.Fatalf("read env: %v", err)
+		}
+		if string(body) != initial {
+			t.Fatalf("dry-run should not modify .env\nbefore:\n%s\nafter:\n%s", initial, string(body))
+		}
+	})
+
+	t.Run("applies canonical promotion config mutations", func(t *testing.T) {
+		root := t.TempDir()
+		envPath := filepath.Join(root, ".env")
+		initial := strings.Join([]string{
+			"PAGODA_RUNTIME_PROFILE=single-node",
+			"PAGODA_PROCESSES_WEB=true",
+			"PAGODA_PROCESSES_WORKER=true",
+			"PAGODA_PROCESSES_SCHEDULER=true",
+			"PAGODA_PROCESSES_COLOCATED=true",
+			"PAGODA_ADAPTERS_DB=sqlite",
+			"PAGODA_DATABASE_DRIVER=sqlite",
+			"PAGODA_DB_DRIVER=sqlite",
+			"PAGODA_DATABASE_DBMODE=embedded",
+			"PAGODA_ADAPTERS_CACHE=otter",
+			"PAGODA_CACHE_DRIVER=otter",
+			"PAGODA_ADAPTERS_JOBS=backlite",
+			"PAGODA_JOBS_DRIVER=backlite",
+			"",
+		}, "\n")
+		if err := os.WriteFile(envPath, []byte(initial), 0o644); err != nil {
+			t.Fatalf("write env: %v", err)
+		}
+
+		prevWD, err := os.Getwd()
+		if err != nil {
+			t.Fatalf("getwd: %v", err)
+		}
+		if err := os.Chdir(root); err != nil {
+			t.Fatalf("chdir %s: %v", root, err)
+		}
+		t.Cleanup(func() { _ = os.Chdir(prevWD) })
+
 		out := &bytes.Buffer{}
 		errOut := &bytes.Buffer{}
 
@@ -27,15 +135,36 @@ func TestRunDBPromote(t *testing.T) {
 		if code != 0 {
 			t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
 		}
+
+		body, err := os.ReadFile(envPath)
+		if err != nil {
+			t.Fatalf("read env: %v", err)
+		}
+		for _, want := range []string{
+			"PAGODA_RUNTIME_PROFILE=server-db",
+			"PAGODA_PROCESSES_WEB=true",
+			"PAGODA_PROCESSES_WORKER=false",
+			"PAGODA_PROCESSES_SCHEDULER=false",
+			"PAGODA_PROCESSES_COLOCATED=false",
+			"PAGODA_ADAPTERS_DB=postgres",
+			"PAGODA_DATABASE_DRIVER=postgres",
+			"PAGODA_DB_DRIVER=postgres",
+			"PAGODA_DATABASE_DBMODE=standalone",
+			"PAGODA_ADAPTERS_CACHE=redis",
+			"PAGODA_CACHE_DRIVER=redis",
+			"PAGODA_ADAPTERS_JOBS=asynq",
+			"PAGODA_JOBS_DRIVER=asynq",
+		} {
+			if !strings.Contains(string(body), want) {
+				t.Fatalf("env missing %q:\n%s", want, string(body))
+			}
+		}
 		for _, token := range []string{
-			"DB promote plan:",
-			"promotion_path: sqlite-to-postgres-manual-v1",
-			"compatible_targets: postgres",
-			"step: freeze writes for the source app",
-			"step: switch config to Postgres and unfreeze writes",
-			"next: ship profile:set standard",
-			"next: ship adapter:set db=postgres cache=redis jobs=asynq",
-			"planning only; db:promote does not mutate files or run migrations yet",
+			"applied canonical promotion config in",
+			"next: ship db:migrate",
+			"next: ship db:export --json",
+			"next: ship db:import --json",
+			"next: ship db:verify-import --json",
 		} {
 			if !strings.Contains(out.String(), token) {
 				t.Fatalf("stdout missing %q:\n%s", token, out.String())
@@ -47,7 +176,7 @@ func TestRunDBPromote(t *testing.T) {
 		out := &bytes.Buffer{}
 		errOut := &bytes.Buffer{}
 
-		code := RunDB([]string{"promote", "--json"}, DBDeps{
+		code := RunDB([]string{"promote", "--json", "--dry-run"}, DBDeps{
 			Out: out,
 			Err: errOut,
 			LoadConfig: func() (config.Config, error) {
@@ -70,6 +199,10 @@ func TestRunDBPromote(t *testing.T) {
 			} `json:"database"`
 			Steps             []string `json:"steps"`
 			SuggestedCommands []string `json:"suggested_commands"`
+			MutationPlan      struct {
+				DryRun bool              `json:"dry_run"`
+				Values map[string]string `json:"values"`
+			} `json:"mutation_plan"`
 		}
 		if err := json.Unmarshal(out.Bytes(), &payload); err != nil {
 			t.Fatalf("decode json: %v\n%s", err, out.String())
@@ -80,10 +213,20 @@ func TestRunDBPromote(t *testing.T) {
 		if len(payload.Steps) == 0 {
 			t.Fatalf("expected steps in %s", out.String())
 		}
+		if !payload.MutationPlan.DryRun {
+			t.Fatalf("expected dry_run mutation plan in %s", out.String())
+		}
+		for key, want := range map[string]string{
+			"PAGODA_RUNTIME_PROFILE": "server-db",
+			"PAGODA_ADAPTERS_DB":     "postgres",
+			"PAGODA_ADAPTERS_CACHE":  "redis",
+			"PAGODA_ADAPTERS_JOBS":   "asynq",
+		} {
+			if got := payload.MutationPlan.Values[key]; got != want {
+				t.Fatalf("mutation_plan.values[%q] = %q, want %q\n%s", key, got, want, out.String())
+			}
+		}
 		for _, token := range []string{
-			"ship runtime:report --json",
-			"ship profile:set standard",
-			"ship adapter:set db=postgres cache=redis jobs=asynq",
 			"ship db:migrate",
 		} {
 			if !containsString(payload.SuggestedCommands, token) {

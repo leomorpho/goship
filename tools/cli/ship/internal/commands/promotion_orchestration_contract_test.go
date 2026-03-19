@@ -3,17 +3,16 @@ package commands
 import (
 	"bytes"
 	"encoding/json"
-	"strings"
 	"testing"
 
 	"github.com/leomorpho/goship/config"
 )
 
-func TestRunDBPromote_OrchestrationHints_RedSpec(t *testing.T) {
+func TestRunDBPromote_JsonMutationPlanContract(t *testing.T) {
 	out := &bytes.Buffer{}
 	errOut := &bytes.Buffer{}
 
-	code := RunDB([]string{"promote", "--json"}, DBDeps{
+	code := RunDB([]string{"promote", "--json", "--dry-run"}, DBDeps{
 		Out: out,
 		Err: errOut,
 		LoadConfig: func() (config.Config, error) {
@@ -28,24 +27,27 @@ func TestRunDBPromote_OrchestrationHints_RedSpec(t *testing.T) {
 	}
 
 	var payload struct {
-		SuggestedCommands []string `json:"suggested_commands"`
+		MutationPlan struct {
+			DryRun bool              `json:"dry_run"`
+			Values map[string]string `json:"values"`
+		} `json:"mutation_plan"`
 	}
 	if err := json.Unmarshal(out.Bytes(), &payload); err != nil {
 		t.Fatalf("decode json: %v\n%s", err, out.String())
 	}
 
-	want := []string{
-		"ship profile:set standard",
-		"ship adapter:set db=postgres cache=redis jobs=asynq",
+	if !payload.MutationPlan.DryRun {
+		t.Fatalf("expected dry-run mutation plan in %s", out.String())
 	}
-	for _, token := range want {
-		if !containsString(payload.SuggestedCommands, token) {
-			t.Fatalf("suggested commands missing %q:\n%s", token, out.String())
+	for key, want := range map[string]string{
+		"PAGODA_RUNTIME_PROFILE": "server-db",
+		"PAGODA_ADAPTERS_DB":     "postgres",
+		"PAGODA_ADAPTERS_CACHE":  "redis",
+		"PAGODA_ADAPTERS_JOBS":   "asynq",
+	} {
+		if got := payload.MutationPlan.Values[key]; got != want {
+			t.Fatalf("mutation_plan.values[%q] = %q, want %q\n%s", key, got, want, out.String())
 		}
-	}
-
-	if !strings.Contains(out.String(), "ship profile:set standard") || !strings.Contains(out.String(), "ship adapter:set db=postgres cache=redis jobs=asynq") {
-		t.Fatalf("stdout missing orchestration hints:\n%s", out.String())
 	}
 }
 

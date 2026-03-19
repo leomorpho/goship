@@ -3,6 +3,8 @@ package commands
 import (
 	"bytes"
 	"encoding/json"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -11,6 +13,20 @@ import (
 
 func TestDBImportContract_DefinesImportAndVerificationHooks_RedSpec(t *testing.T) {
 	t.Run("promotion report points at import hooks", func(t *testing.T) {
+		root := t.TempDir()
+		envPath := filepath.Join(root, ".env")
+		if err := os.WriteFile(envPath, []byte("PAGODA_RUNTIME_PROFILE=single-node\n"), 0o644); err != nil {
+			t.Fatalf("write env: %v", err)
+		}
+		prevWD, err := os.Getwd()
+		if err != nil {
+			t.Fatalf("getwd: %v", err)
+		}
+		if err := os.Chdir(root); err != nil {
+			t.Fatalf("chdir %s: %v", root, err)
+		}
+		t.Cleanup(func() { _ = os.Chdir(prevWD) })
+
 		out := &bytes.Buffer{}
 		errOut := &bytes.Buffer{}
 

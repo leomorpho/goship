@@ -16,6 +16,20 @@ import (
 
 func TestDBExportContract_DefinesManifestChecksumHook_RedSpec(t *testing.T) {
 	t.Run("promotion report points at export hook", func(t *testing.T) {
+		root := t.TempDir()
+		envPath := filepath.Join(root, ".env")
+		if err := os.WriteFile(envPath, []byte("PAGODA_RUNTIME_PROFILE=single-node\n"), 0o644); err != nil {
+			t.Fatalf("write env: %v", err)
+		}
+		prevWD, err := os.Getwd()
+		if err != nil {
+			t.Fatalf("getwd: %v", err)
+		}
+		if err := os.Chdir(root); err != nil {
+			t.Fatalf("chdir %s: %v", root, err)
+		}
+		t.Cleanup(func() { _ = os.Chdir(prevWD) })
+
 		out := &bytes.Buffer{}
 		errOut := &bytes.Buffer{}
 

@@ -142,7 +142,7 @@ These commands are implemented as wrappers over existing workflows:
 - `ship module:add <name>` -> updates `config/modules.yaml`, app marker snippets, root `go.mod` `require`/`replace` directives, and `go.work` `use` entries for standalone batteries with local `go.mod` files
 - `ship module:remove <name>` -> removes those managed entries when safe; fails with exact blocker file paths when the repo still imports the module outside managed wiring points
 - `ship verify` -> rejects standalone-battery drift when root `go.mod` dependencies on installable modules are not the canonical local-dev shape (`v0.0.0` + local `replace` + matching `go.work use`), and enforces the canonical no-compatibility/no-deprecation wording invariant across the operator-facing docs set
-- `ship verify` will also grow an orchestration contract-mismatch preflight step before deploy/upgrade/promote flows so unsupported runtime combinations fail before orchestration starts
+- `ship verify` includes an orchestration contract-mismatch preflight step before deploy/upgrade/promote flows so unsupported runtime combinations fail before orchestration starts
 - `ship infra:up` -> detects `docker-compose`/`docker compose` and runs `up -d cache`, then attempts `up -d mailpit` (non-fatal if mailpit fails)
 - `ship infra:down` -> detects `docker-compose`/`docker compose` and runs `down`
 - `make test-module-isolation` -> dedicated CI lane for installable-module root import isolation; reports offending module/file context and rejects stale allowlist entries
@@ -157,7 +157,7 @@ These commands are implemented as wrappers over existing workflows:
 - `ship db:generate [--config <path>] [--dry-run]` -> runs Bob generation via `bobgen-sql -c <config>` (default: core `db/bobgen.yaml`, then enabled module configs in deterministic sorted order from `config/modules.yaml`)
 - `ship db:export [--json]` -> reports the SQLite export manifest checksum contract from current runtime metadata; `--json` emits the typed backup manifest for agents/tooling
 - `ship db:import [--json]` -> reports the manual SQLite export/import plan from current runtime metadata and suggests the follow-up post-import verification command; `--json` emits machine-readable plan output for agents/tooling
-- `ship db:promote [--json]` -> reports the manual SQLite-to-Postgres promotion plan from current runtime metadata and suggests the canonical profile/adapter/db migration follow-up commands; `--json` emits machine-readable plan output for agents/tooling
+- `ship db:promote [--dry-run] [--json]` -> builds the canonical SQLite-to-Postgres config mutation plan from current runtime metadata; default mode rewrites the local `.env` to the standard profile plus `db=postgres cache=redis jobs=asynq`, `--dry-run` previews the exact mutation set without writing files, and `--json` emits the same mutation payload for agents/tooling; export/import/verification steps remain manual follow-up commands
 - `ship db:migrate` -> `goose up` for core migrations, then enabled module migrations in deterministic sorted order
 - `ship db:status` -> `goose status` for core migrations, then enabled module migrations in deterministic sorted order; output is sectioned by scope (`== core migrations ==`, `== module <name> migrations ==`)
 - `ship db:verify-import [--json]` -> reports the post-import verification checks from current runtime metadata; `--json` emits machine-readable verification output for agents/tooling

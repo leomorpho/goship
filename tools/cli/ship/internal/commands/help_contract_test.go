@@ -96,7 +96,7 @@ func TestPrintDBHelp_SubcommandsIncludeDescriptions(t *testing.T) {
 		"  ship db:generate [--config <path>] [--dry-run]":       "Generate DB access code",
 		"  ship db:export [--json]":                              "Show the SQLite export manifest",
 		"  ship db:import [--json]":                              "Show the manual SQLite export import plan",
-		"  ship db:promote [--json]":                             "Show the manual SQLite-to-Postgres promotion plan",
+		"  ship db:promote [--dry-run] [--json]":                 "Apply or preview the canonical SQLite-to-Postgres config mutation plan",
 		"  ship db:make <migration_name>":                        "Create a new SQL migration file",
 		"  ship db:migrate":                                      "Apply pending migrations",
 		"  ship db:status":                                       "Show migration status",

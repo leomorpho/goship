@@ -29,6 +29,10 @@ between the canonical topology modes.
 env vars in the local `.env` file and rejects invalid runtime selections before they can drift into
 an unsupported runtime plan.
 
+`ship db:promote [--dry-run] [--json]` now turns the first SQLite-to-Postgres promotion step into an
+executable config change by applying the canonical `.env` mutation set for the standard profile and
+Postgres/Redis/Asynq adapters; export/import/verification remain explicit manual follow-up steps.
+
 ## Runtime Programs
 
 - `cmd/web/main.go`: main HTTP application server
