@@ -897,7 +897,7 @@
     },
     "TKT-199": {
       "title": "G2-02: Converge ship dev and make dev to one-command app-on loop",
-      "state": "todo",
+      "state": "in-progress",
       "priority": 5,
       "parent": "TKT-189"
     },
@@ -1292,7 +1292,7 @@
     },
     "TKT-265": {
       "title": "G2-02-A: Define executable spec and red tests",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-199"
     },
@@ -1856,7 +1856,7 @@
     },
     "TKT-359": {
       "title": "G1-09: Enforce no-compatibility and no-deprecation invariant in verify and doctor",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-188"
     },

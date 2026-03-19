@@ -1,0 +1,19 @@
+{
+  "ticket_id": "TKT-265",
+  "ticket_state": "in-progress",
+  "created_at": "2026-03-19T03:43:14Z",
+  "ac_done": 3,
+  "ac_total": 3,
+  "changed_files": [
+    ".docket/manifest.json",
+    ".docket/tickets/TKT-199.md",
+    ".docket/tickets/TKT-265.md",
+    ".docket/tickets/TKT-359.md"
+  ],
+  "last_comments": [
+    "Added red-spec coverage for dev-loop convergence: runtime tests now pin the intended default-mode contract to runtime profiles (`single-node` =\u003e web/app-on loop, `distributed` =\u003e full multiprocess loop) rather than jobs-adapter heuristics, and help-contract tests now stage the matching CLI wording cleanup. Updated roadmap and known-gaps docs to record the current resolver mismatch."
+  ],
+  "branch": "work/2026-refactor-main-snapshot",
+  "worktree_path": "/Users/leoaudibert/Workspace/2026/pagoda-based/goship",
+  "summary": "AC completion checkpoint"
+}
