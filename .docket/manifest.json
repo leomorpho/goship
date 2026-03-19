@@ -1022,7 +1022,7 @@
     },
     "TKT-220": {
       "title": "INT1-01: Add runtime contract version + metadata handshake schema",
-      "state": "todo",
+      "state": "in-review",
       "priority": 5,
       "parent": "TKT-214"
     },
