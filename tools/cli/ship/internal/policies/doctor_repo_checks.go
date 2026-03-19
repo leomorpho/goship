@@ -137,6 +137,7 @@ func checkTopLevelDirs(root string) []DoctorIssue {
 		".githooks":  {},
 		".kamal":     {},
 		".local":     {},
+		".worktrees": {},
 		".vscode":    {},
 		"app":        {},
 		"db":         {},

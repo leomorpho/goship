@@ -168,6 +168,7 @@ Impact:
 The GoShip, Interaction, and Control-plane ticket streams still rely on multiple docs and ticket
 parents to express sequencing. The cross-lane dependency matrix should explicitly name the
 must-finish-before contract map so ticket ordering stays deterministic.
+This cross-lane dependency matrix language is the canonical coordination contract for the docs lane.
 
 Impact:
 
@@ -392,7 +393,7 @@ of checking only the scope/routes subset.
 
 Impact:
 
-- Transition-era wording drift in the primary architecture docs now fails through the same `DX030`
+- Historical wording drift in the primary architecture docs now fails through the same `DX030`
   path as CLI and roadmap docs.
 - Historical references remain possible outside the canonical set through the existing allowlist,
   keeping migration notes separate from the current architecture contract.

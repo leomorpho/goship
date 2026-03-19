@@ -195,6 +195,12 @@ func RunVerify(args []string, d VerifyDeps) int {
 		}
 		appendStep("standalone exportability gate", true, "starter/runtime surfaces remain free of control-plane dependency drift", "")
 
+		if preflightErr := checkOrchestrationContractMismatch("."); preflightErr != nil {
+			appendStep("orchestration contract mismatch preflight", false, preflightErr.Error(), "")
+			return nil
+		}
+		appendStep("orchestration contract mismatch preflight", true, "runtime and orchestration metadata remain on the canonical shared contract surface", "")
+
 		scaffoldSkips, scanErr := findScaffoldSkippedTests(".")
 		if scanErr != nil {
 			appendStep("scaffold skip checks", true, fmt.Sprintf("Warning: failed to scan scaffold skips: %v", scanErr), "warning")
@@ -514,5 +520,23 @@ func checkStandaloneExportability(root string) error {
 		}
 	}
 
+	return nil
+}
+
+func checkOrchestrationContractMismatch(root string) error {
+	runtimeReportPath := filepath.Join(root, "tools", "cli", "ship", "internal", "commands", "runtime_report.go")
+	content, err := os.ReadFile(runtimeReportPath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return fmt.Errorf("read %s: %w", filepath.ToSlash(runtimeReportPath), err)
+	}
+	text := string(content)
+	for _, token := range []string{"runtime-contract-v1", "runtime-handshake-v1"} {
+		if !strings.Contains(text, token) {
+			return fmt.Errorf("%s is missing %q", filepath.ToSlash(runtimeReportPath), token)
+		}
+	}
 	return nil
 }

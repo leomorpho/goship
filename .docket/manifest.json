@@ -891,7 +891,7 @@
     },
     "TKT-198": {
       "title": "G2-01: Make single-node runtime profile the default local truth",
-      "state": "todo",
+      "state": "in-progress",
       "priority": 5,
       "parent": "TKT-189"
     },

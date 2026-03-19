@@ -40,6 +40,11 @@
       "name": "standalone exportability gate",
       "ok": true,
       "output": "starter/runtime surfaces remain free of control-plane dependency drift"
+    },
+    {
+      "name": "orchestration contract mismatch preflight",
+      "ok": true,
+      "output": "runtime and orchestration metadata remain on the canonical shared contract surface"
     }
   ]
 }

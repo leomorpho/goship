@@ -813,6 +813,7 @@ Orchestration preflight contract tracked under `TKT-221` / `TKT-321` / `TKT-322`
 Cross-lane dependency matrix tracked under `TKT-246` / `TKT-351` / `TKT-352`:
 - the dependency matrix should explicitly mark must-finish-before contract map entries so GoShip, Interaction, and Control-plane tickets stay sequenced without ambiguity;
 - child work should stay in the documentation/coordination lane and avoid inventing new execution semantics.
+- this cross-lane dependency matrix naming is the canonical coordination contract for follow-on planning work.
 
 CLI-path reset tracked under `TKT-249` / `TKT-311` / `TKT-312`:
 - the executable spec now pins one canonical top-level quality path per concern;

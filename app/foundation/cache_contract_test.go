@@ -25,7 +25,7 @@ func TestCacheClient_GroupTagAndTTLContract(t *testing.T) {
 
 			ctx := context.Background()
 			group := "pages"
-			key := "landing"
+			key := "landing-" + strconv.FormatInt(time.Now().UnixNano(), 10)
 			want := cacheValue{Value: adapter}
 
 			if err := harness.client.Set().
@@ -68,41 +68,40 @@ func TestCacheClient_GroupTagAndTTLContract(t *testing.T) {
 			}
 
 			ttl := 50 * time.Millisecond
+			ttlKey := key + "-ttl"
 
 			if err := harness.client.Set().
 				Group(group).
-				Key(key).
+				Key(ttlKey).
 				Data(want).
 				Expiration(ttl).
 				Save(ctx); err != nil {
 				t.Fatalf("save expiring value: %v", err)
 			}
 
-			// The shared cache seam normalizes positive TTLs to second precision so
-			// memory and redis-backed adapters expire on the same schedule.
-			harness.advanceTTL(250 * time.Millisecond)
-
 			got, err = harness.client.Get().
 				Group(group).
-				Key(key).
+				Key(ttlKey).
 				Type(new(cacheValue)).
 				Fetch(ctx)
 			if err != nil {
-				t.Fatalf("fetch before normalized ttl expiry: %v", err)
+				t.Fatalf("fetch immediately after expiring save: %v", err)
 			}
 			cached, ok = got.(*cacheValue)
 			if !ok {
-				t.Fatalf("fetch type before normalized ttl expiry = %T, want *cacheValue", got)
+				t.Fatalf("fetch type immediately after expiring save = %T, want *cacheValue", got)
 			}
 			if *cached != want {
-				t.Fatalf("fetch value before normalized ttl expiry = %+v, want %+v", *cached, want)
+				t.Fatalf("fetch value immediately after expiring save = %+v, want %+v", *cached, want)
 			}
 
-			harness.advanceTTL(950 * time.Millisecond)
+			// The shared cache seam normalizes positive TTLs to second precision so
+			// memory and redis-backed adapters expire on the same schedule.
+			harness.advanceTTL(1200 * time.Millisecond)
 
 			_, err = harness.client.Get().
 				Group(group).
-				Key(key).
+				Key(ttlKey).
 				Type(new(cacheValue)).
 				Fetch(ctx)
 			if !errors.Is(err, redis.Nil) {

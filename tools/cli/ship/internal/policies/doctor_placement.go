@@ -309,7 +309,7 @@ func checkMigrationPlacement(root string) []DoctorIssue {
 		}
 		if d.IsDir() {
 			rel := filepath.ToSlash(mustRel(root, path))
-			if rel == ".git" || rel == "node_modules" || rel == ".cache" || strings.Contains(rel, "/.cache/") {
+			if rel == ".git" || rel == ".worktrees" || rel == "node_modules" || rel == ".cache" || strings.Contains(rel, "/.cache/") {
 				return filepath.SkipDir
 			}
 			return nil

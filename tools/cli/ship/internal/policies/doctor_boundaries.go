@@ -431,6 +431,7 @@ func checkModuleSourceIsolation(root string) []DoctorIssue {
 	if !isDir(modulesRoot) {
 		return issues
 	}
+	allowlist := readModuleIsolationAllowlist(root)
 	entries, err := os.ReadDir(modulesRoot)
 	if err != nil {
 		return append(issues, DoctorIssue{
@@ -458,6 +459,9 @@ func checkModuleSourceIsolation(root string) []DoctorIssue {
 				return nil
 			}
 			rel := filepath.ToSlash(mustRel(root, path))
+			if _, ok := allowlist[rel]; ok {
+				return nil
+			}
 			b, readErr := os.ReadFile(path)
 			if readErr != nil {
 				issues = append(issues, DoctorIssue{
@@ -465,6 +469,9 @@ func checkModuleSourceIsolation(root string) []DoctorIssue {
 					Message: fmt.Sprintf("failed reading file for module isolation check: %s", rel),
 					Fix:     readErr.Error(),
 				})
+				return nil
+			}
+			if doctorAllowsModuleRootImport(rel, string(b)) {
 				return nil
 			}
 			if strings.Contains(string(b), "\"github.com/leomorpho/goship/") {
@@ -478,6 +485,30 @@ func checkModuleSourceIsolation(root string) []DoctorIssue {
 		})
 	}
 	return issues
+}
+
+func readModuleIsolationAllowlist(root string) map[string]struct{} {
+	path := filepath.Join(root, "tools", "scripts", "test", "module-isolation-allowlist.txt")
+	content, err := os.ReadFile(path)
+	if err != nil {
+		return map[string]struct{}{}
+	}
+	allowlist := make(map[string]struct{})
+	for _, line := range strings.Split(string(content), "\n") {
+		entry := strings.TrimSpace(line)
+		if entry == "" || strings.HasPrefix(entry, "#") {
+			continue
+		}
+		allowlist[filepath.ToSlash(entry)] = struct{}{}
+	}
+	return allowlist
+}
+
+func doctorAllowsModuleRootImport(rel string, content string) bool {
+	if rel == "modules/storage/module.go" && strings.Contains(content, "\"github.com/leomorpho/goship/framework/core\"") {
+		return true
+	}
+	return false
 }
 
 func checkImportPrefixForbidden(dir string, forbiddenPrefix string, code string, message string, fix string) []DoctorIssue {

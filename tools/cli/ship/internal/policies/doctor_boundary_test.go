@@ -46,7 +46,7 @@ var _ = core.PubSub(nil)
 	})
 }
 
-func TestRunDoctorChecks_ModuleIsolationAllowlistWillBeRemoved_RedSpec(t *testing.T) {
+func TestRunDoctorChecks_ModuleIsolationAllowlistSuppressesKnownExceptions(t *testing.T) {
 	root := t.TempDir()
 	writeDoctorFixture(t, root)
 
@@ -73,5 +73,5 @@ var _ = core.PubSub(nil)
 	}
 
 	issues := RunDoctorChecks(root)
-	mustContainIssueCode(t, issues, "DX020")
+	mustNotContainIssueCode(t, issues, "DX020")
 }

@@ -17,9 +17,10 @@ const (
 type OtterStore struct {
 	cache otter.CacheWithVariableTTL[string, []byte]
 
-	mu      sync.RWMutex
-	tags    map[string]map[string]struct{}
-	keyTags map[string]map[string]struct{}
+	mu          sync.RWMutex
+	tags        map[string]map[string]struct{}
+	keyTags     map[string]map[string]struct{}
+	expirations map[string]time.Time
 }
 
 func NewOtterStore(capacity int) (*OtterStore, error) {
@@ -28,8 +29,9 @@ func NewOtterStore(capacity int) (*OtterStore, error) {
 	}
 
 	store := &OtterStore{
-		tags:    make(map[string]map[string]struct{}),
-		keyTags: make(map[string]map[string]struct{}),
+		tags:        make(map[string]map[string]struct{}),
+		keyTags:     make(map[string]map[string]struct{}),
+		expirations: make(map[string]time.Time),
 	}
 
 	cache, err := otter.MustBuilder[string, []byte](capacity).
@@ -51,6 +53,11 @@ func (s *OtterStore) Get(key string) ([]byte, bool) {
 	if s == nil {
 		return nil, false
 	}
+	if s.isExpired(key, time.Now()) {
+		s.cache.Delete(key)
+		s.clearMetadataForKey(key)
+		return nil, false
+	}
 	value, ok := s.cache.Get(key)
 	if !ok {
 		return nil, false
@@ -63,7 +70,10 @@ func (s *OtterStore) Set(key string, value []byte, ttl time.Duration) error {
 		return errors.New("otter cache is not initialized")
 	}
 	if ttl <= 0 {
+		s.clearExpiration(key)
 		ttl = persistentTTL
+	} else {
+		s.setExpiration(key, time.Now().Add(ttl))
 	}
 	if ok := s.cache.Set(key, append([]byte(nil), value...), ttl); !ok {
 		return errors.New("otter cache rejected set")
@@ -76,7 +86,7 @@ func (s *OtterStore) Delete(key string) error {
 		return errors.New("otter cache is not initialized")
 	}
 	s.cache.Delete(key)
-	s.clearTagsForKey(key)
+	s.clearMetadataForKey(key)
 	return nil
 }
 
@@ -93,7 +103,7 @@ func (s *OtterStore) InvalidatePrefix(prefix string) error {
 	})
 	for _, key := range keys {
 		s.cache.Delete(key)
-		s.clearTagsForKey(key)
+		s.clearMetadataForKey(key)
 	}
 	return nil
 }
@@ -143,7 +153,7 @@ func (s *OtterStore) InvalidateTags(tags []string) error {
 
 	for _, key := range keys {
 		s.cache.Delete(key)
-		s.clearTagsForKey(key)
+		s.clearMetadataForKey(key)
 	}
 	return nil
 }
@@ -162,6 +172,13 @@ func (s *OtterStore) clearTagsForKey(key string) {
 	s.clearTagsForKeyLocked(key)
 }
 
+func (s *OtterStore) clearMetadataForKey(key string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.clearTagsForKeyLocked(key)
+	delete(s.expirations, key)
+}
+
 func (s *OtterStore) clearTagsForKeyLocked(key string) {
 	for tag := range s.keyTags[key] {
 		if keys, ok := s.tags[tag]; ok {
@@ -172,4 +189,23 @@ func (s *OtterStore) clearTagsForKeyLocked(key string) {
 		}
 	}
 	delete(s.keyTags, key)
+}
+
+func (s *OtterStore) setExpiration(key string, deadline time.Time) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.expirations[key] = deadline
+}
+
+func (s *OtterStore) clearExpiration(key string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	delete(s.expirations, key)
+}
+
+func (s *OtterStore) isExpired(key string, now time.Time) bool {
+	s.mu.RLock()
+	deadline, ok := s.expirations[key]
+	s.mu.RUnlock()
+	return ok && !deadline.IsZero() && !deadline.After(now)
 }

@@ -40,6 +40,14 @@ type describeModule struct {
 	Migrations int    `json:"migrations"`
 }
 
+type describeModuleAdoption struct {
+	ID         string `json:"id"`
+	ModulePath string `json:"module_path"`
+	Version    string `json:"version"`
+	Source     string `json:"source"`
+	Installed  bool   `json:"installed"`
+}
+
 type describeController struct {
 	Name     string   `json:"name"`
 	File     string   `json:"file"`
@@ -77,15 +85,16 @@ type describeSharedInfra struct {
 }
 
 type describeResult struct {
-	Routes      []describeRoute      `json:"routes"`
-	Modules     []describeModule     `json:"modules"`
-	Controllers []describeController `json:"controllers"`
-	ViewModels  []describeViewModel  `json:"viewmodels"`
-	Components  []describeComponent  `json:"components"`
-	Islands     []describeIsland     `json:"islands"`
-	DBTables    []string             `json:"db_tables"`
-	Migrations  []describeMigration  `json:"migrations"`
-	SharedInfra describeSharedInfra  `json:"shared_infra"`
+	Routes         []describeRoute          `json:"routes"`
+	Modules        []describeModule         `json:"modules"`
+	ModuleAdoption []describeModuleAdoption `json:"module_adoption"`
+	Controllers    []describeController     `json:"controllers"`
+	ViewModels     []describeViewModel      `json:"viewmodels"`
+	Components     []describeComponent      `json:"components"`
+	Islands        []describeIsland         `json:"islands"`
+	DBTables       []string                 `json:"db_tables"`
+	Migrations     []describeMigration      `json:"migrations"`
+	SharedInfra    describeSharedInfra      `json:"shared_infra"`
 }
 
 func RunDescribe(args []string, d DescribeDeps) int {
@@ -159,6 +168,10 @@ func buildDescribeResult(root string) (describeResult, error) {
 	if err != nil {
 		return describeResult{}, err
 	}
+	moduleAdoption, err := collectDescribeModuleAdoption(modules)
+	if err != nil {
+		return describeResult{}, err
+	}
 	controllers, err := collectDescribeControllers(root)
 	if err != nil {
 		return describeResult{}, err
@@ -189,15 +202,16 @@ func buildDescribeResult(root string) (describeResult, error) {
 	}
 
 	return describeResult{
-		Routes:      routes,
-		Modules:     modules,
-		Controllers: controllers,
-		ViewModels:  viewmodels,
-		Components:  components,
-		Islands:     islands,
-		DBTables:    dbTables,
-		Migrations:  migrations,
-		SharedInfra: sharedInfra,
+		Routes:         routes,
+		Modules:        modules,
+		ModuleAdoption: moduleAdoption,
+		Controllers:    controllers,
+		ViewModels:     viewmodels,
+		Components:     components,
+		Islands:        islands,
+		DBTables:       dbTables,
+		Migrations:     migrations,
+		SharedInfra:    sharedInfra,
 	}, nil
 }
 
@@ -354,6 +368,28 @@ func collectDescribeModules(root string) ([]describeModule, error) {
 	}
 	sort.Slice(modules, func(i, j int) bool { return modules[i].ID < modules[j].ID })
 	return modules, nil
+}
+
+func collectDescribeModuleAdoption(modules []describeModule) ([]describeModuleAdoption, error) {
+	adoption := make([]describeModuleAdoption, 0, len(modules))
+	for _, module := range modules {
+		if !module.Installed {
+			continue
+		}
+		info, ok := moduleCatalog[module.ID]
+		if !ok {
+			continue
+		}
+		adoption = append(adoption, describeModuleAdoption{
+			ID:         module.ID,
+			ModulePath: info.ModulePath,
+			Version:    "v0.0.0",
+			Source:     "local-replace",
+			Installed:  true,
+		})
+	}
+	sort.Slice(adoption, func(i, j int) bool { return adoption[i].ID < adoption[j].ID })
+	return adoption, nil
 }
 
 func countModuleRoutes(path string) int {

@@ -18,12 +18,14 @@ type RuntimeReportDeps struct {
 }
 
 type runtimeReport struct {
-	Profile   string                         `json:"profile"`
-	Adapters  runtimeReportAdapters          `json:"adapters"`
-	Processes runtimeReportProcesses         `json:"processes"`
-	Web       runtimeplan.WebFeatures        `json:"web"`
-	Database  config.DatabaseRuntimeMetadata `json:"database"`
-	Managed   config.ManagedRuntimeMetadata  `json:"managed"`
+	ContractVersion string                         `json:"contract_version"`
+	Handshake       runtimeReportHandshake         `json:"handshake"`
+	Profile         string                         `json:"profile"`
+	Adapters        runtimeReportAdapters          `json:"adapters"`
+	Processes       runtimeReportProcesses         `json:"processes"`
+	Web             runtimeplan.WebFeatures        `json:"web"`
+	Database        config.DatabaseRuntimeMetadata `json:"database"`
+	Managed         config.ManagedRuntimeMetadata  `json:"managed"`
 }
 
 type runtimeReportAdapters struct {
@@ -38,6 +40,13 @@ type runtimeReportProcesses struct {
 	Worker    bool `json:"worker"`
 	Scheduler bool `json:"scheduler"`
 	CoLocated bool `json:"co_located"`
+}
+
+type runtimeReportHandshake struct {
+	SchemaVersion string                         `json:"schema_version"`
+	Profile       string                         `json:"profile"`
+	Managed       config.ManagedRuntimeMetadata  `json:"managed"`
+	Database      config.DatabaseRuntimeMetadata `json:"database"`
 }
 
 func RunRuntimeReport(args []string, d RuntimeReportDeps) int {
@@ -81,6 +90,13 @@ func RunRuntimeReport(args []string, d RuntimeReportDeps) int {
 	}
 
 	report := runtimeReport{
+		ContractVersion: "runtime-contract-v1",
+		Handshake: runtimeReportHandshake{
+			SchemaVersion: "runtime-handshake-v1",
+			Profile:       string(cfg.Runtime.Profile),
+			Managed:       cfg.RuntimeMetadata().Managed,
+			Database:      cfg.RuntimeMetadata().Database,
+		},
 		Profile: string(cfg.Runtime.Profile),
 		Adapters: runtimeReportAdapters{
 			DB:     cfg.Adapters.DB,

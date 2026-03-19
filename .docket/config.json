@@ -42,6 +42,7 @@
       "label": "In Review",
       "open": true,
       "column": 3,
+      "blocks_dependents": false,
       "next": [
         "done",
         "in-progress",

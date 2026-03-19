@@ -18,11 +18,13 @@ const (
 
 // ManagedSettingStatus reports effective state for one managed-capable setting key.
 type ManagedSettingStatus struct {
-	Key    string
-	Label  string
-	Value  string
-	Source runtimeconfig.Source
-	Access SettingAccess
+	Key            string               `json:"key"`
+	Label          string               `json:"label"`
+	Value          string               `json:"value"`
+	Source         runtimeconfig.Source `json:"source"`
+	Access         SettingAccess        `json:"access"`
+	Drift          bool                 `json:"drift,omitempty"`
+	RollbackTarget string               `json:"rollback_target,omitempty"`
 }
 
 var managedSettingLabels = map[string]string{
@@ -72,12 +74,17 @@ func (c Config) ManagedSettingStatuses() []ManagedSettingStatus {
 			}
 		}
 
+		effectiveValue := strings.TrimSpace(effective[key])
+		drift := report.Mode == runtimeconfig.ModeManaged && effectiveValue != strings.TrimSpace(keyState.Value)
+
 		statuses = append(statuses, ManagedSettingStatus{
-			Key:    key,
-			Label:  managedSettingLabel(key),
-			Value:  strings.TrimSpace(keyState.Value),
-			Source: keyState.Source,
-			Access: managedSettingAccess(report.Mode, keyState.Source),
+			Key:            key,
+			Label:          managedSettingLabel(key),
+			Value:          effectiveValue,
+			Source:         keyState.Source,
+			Access:         managedSettingAccess(report.Mode, keyState.Source),
+			Drift:          drift,
+			RollbackTarget: managedSettingRollbackTarget(report.Mode, keyState.Source, drift),
 		})
 	}
 
@@ -99,4 +106,14 @@ func managedSettingLabel(key string) string {
 		return label
 	}
 	return key
+}
+
+func managedSettingRollbackTarget(mode runtimeconfig.Mode, source runtimeconfig.Source, drift bool) string {
+	if mode != runtimeconfig.ModeManaged || !drift {
+		return ""
+	}
+	if source == runtimeconfig.SourceManagedOverride {
+		return string(runtimeconfig.SourceFrameworkDefault)
+	}
+	return string(source)
 }

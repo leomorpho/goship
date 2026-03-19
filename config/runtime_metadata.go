@@ -13,6 +13,10 @@ const (
 	MigrationPortabilitySQLCoreV1 = "sql-core-v1"
 	// PromotionPathSQLiteToPostgresManualV1 identifies the first supported promotion workflow.
 	PromotionPathSQLiteToPostgresManualV1 = "sqlite-to-postgres-manual-v1"
+	// ManagedKeyRegistryVersion is the versioned contract identifier for managed-key metadata.
+	ManagedKeyRegistryVersion = "managed-key-registry-v1"
+	// ManagedKeySchemaVersion is the schema version for the managed-key registry payload.
+	ManagedKeySchemaVersion = "managed-key-schema-v1"
 )
 
 // RuntimeMetadata reports normalized runtime capability metadata for status/reporting surfaces.
@@ -23,9 +27,11 @@ type RuntimeMetadata struct {
 
 // ManagedRuntimeMetadata reports effective managed keys and their source layers.
 type ManagedRuntimeMetadata struct {
-	Mode      string                        `json:"mode"`
-	Authority string                        `json:"authority,omitempty"`
-	Keys      map[string]ManagedKeyMetadata `json:"keys"`
+	Mode            string                        `json:"mode"`
+	Authority       string                        `json:"authority,omitempty"`
+	RegistryVersion string                        `json:"registry_version"`
+	SchemaVersion   string                        `json:"schema_version"`
+	Keys            map[string]ManagedKeyMetadata `json:"keys"`
 }
 
 // ManagedKeyMetadata reports the effective value and source for one managed key.
@@ -71,9 +77,11 @@ func (c Config) RuntimeMetadata() RuntimeMetadata {
 	return RuntimeMetadata{
 		Database: c.Database.RuntimeMetadata(),
 		Managed: ManagedRuntimeMetadata{
-			Mode:      string(report.Mode),
-			Authority: report.Authority,
-			Keys:      keys,
+			Mode:            string(report.Mode),
+			Authority:       report.Authority,
+			RegistryVersion: ManagedKeyRegistryVersion,
+			SchemaVersion:   ManagedKeySchemaVersion,
+			Keys:            keys,
 		},
 	}
 }
