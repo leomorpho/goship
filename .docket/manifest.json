@@ -1622,7 +1622,7 @@
     },
     "TKT-320": {
       "title": "INT1-01-B: Implement, verify, and sync docs",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-220"
     },
