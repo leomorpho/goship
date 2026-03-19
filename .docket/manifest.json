@@ -879,7 +879,7 @@
     },
     "TKT-196": {
       "title": "G1-03: Promote structural warnings to hard errors and close DX020 allowlists",
-      "state": "todo",
+      "state": "in-progress",
       "priority": 5,
       "parent": "TKT-188"
     },
