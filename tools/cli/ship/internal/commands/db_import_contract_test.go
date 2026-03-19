@@ -90,6 +90,37 @@ func TestDBImportContract_DefinesImportAndVerificationHooks_RedSpec(t *testing.T
 		}
 	})
 
+	t.Run("db import text output highlights manifest validation path", func(t *testing.T) {
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+
+		code := RunDB([]string{"import"}, DBDeps{
+			Out: out,
+			Err: errOut,
+			LoadConfig: func() (config.Config, error) {
+				cfg := config.Config{}
+				cfg.Database.DbMode = config.DBModeEmbedded
+				cfg.Database.Driver = config.DBDriverSQLite
+				return cfg, nil
+			},
+		})
+		if code != 0 {
+			t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
+		}
+
+		for _, token := range []string{
+			"DB import plan:",
+			"- step: load export manifest and validate version, driver, and checksums",
+			"- step: import exported data into Postgres through framework-supported import hooks",
+			"- next: ship db:verify-import --json",
+			"- note: planning only; db:import does not mutate files or import data yet",
+		} {
+			if !strings.Contains(out.String(), token) {
+				t.Fatalf("stdout missing %q:\n%s", token, out.String())
+			}
+		}
+	})
+
 	t.Run("db verify-import reports post-import checks", func(t *testing.T) {
 		out := &bytes.Buffer{}
 		errOut := &bytes.Buffer{}
@@ -122,6 +153,38 @@ func TestDBImportContract_DefinesImportAndVerificationHooks_RedSpec(t *testing.T
 		} {
 			if !containsString(payload.PostImportChecks, token) {
 				t.Fatalf("verify-import checks missing %q:\n%s", token, out.String())
+			}
+		}
+	})
+
+	t.Run("db verify-import text output highlights post-import checks", func(t *testing.T) {
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+
+		code := RunDB([]string{"verify-import"}, DBDeps{
+			Out: out,
+			Err: errOut,
+			LoadConfig: func() (config.Config, error) {
+				cfg := config.Config{}
+				cfg.Database.DbMode = config.DBModeEmbedded
+				cfg.Database.Driver = config.DBDriverSQLite
+				return cfg, nil
+			},
+		})
+		if code != 0 {
+			t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
+		}
+
+		for _, token := range []string{
+			"DB verify-import plan:",
+			"- check: manifest.validated",
+			"- check: row.counts.checked",
+			"- check: migration.baseline.checked",
+			"- check: key.integrity.checked",
+			"- note: planning only; db:verify-import does not mutate files or databases yet",
+		} {
+			if !strings.Contains(out.String(), token) {
+				t.Fatalf("stdout missing %q:\n%s", token, out.String())
 			}
 		}
 	})

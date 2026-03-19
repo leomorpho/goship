@@ -324,6 +324,7 @@ Minimum framework tooling/hooks to expose:
 1. Runtime metadata report contract (read-only).
 2. Data export hook with typed manifest (version + dialect + checksums).
 3. Data import hook with manifest validation.
+   - Both the JSON payloads and the human-readable `ship db:import` / `ship db:verify-import` reports now pin the manifest-validation and post-import verification contract.
 4. Post-import verification hook callable from CLI/control-plane adapters.
    - The CLI-facing contract now exists as `ship db:export --json`, `ship db:import --json`, and `ship db:verify-import --json`; the remaining work is wiring the actual framework path behind those hooks.
 5. Dedicated CI suites for module isolation and `sql-core-v1` portability so boundary regressions fail in named lanes instead of broad aggregate jobs; the module-isolation lane reports module/file context and rejects stale allowlist entries, and the SQL portability lane checks runtime metadata plus branch annotations and placeholder conventions in the canonical migration/query SQL sources.
