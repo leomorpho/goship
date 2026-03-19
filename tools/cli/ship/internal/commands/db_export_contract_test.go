@@ -103,4 +103,47 @@ func TestDBExportContract_DefinesManifestChecksumHook_RedSpec(t *testing.T) {
 			t.Fatalf("expected export to suggest db:import:\n%s", out.String())
 		}
 	})
+
+	t.Run("db export text output highlights checksum contract", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		dbPath := filepath.Join(tmpDir, "main.db")
+		dbBytes := []byte("sqlite-export-content")
+		if err := os.WriteFile(dbPath, dbBytes, 0o644); err != nil {
+			t.Fatalf("write sqlite file: %v", err)
+		}
+
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+		code := RunDB([]string{"export"}, DBDeps{
+			Out: out,
+			Err: errOut,
+			LoadConfig: func() (config.Config, error) {
+				cfg := config.Config{}
+				cfg.Backup.SchemaVersion = "20260318_001"
+				cfg.Backup.SQLitePath = dbPath
+				cfg.Database.Path = dbPath
+				cfg.Database.DbMode = config.DBModeEmbedded
+				cfg.Database.Driver = config.DBDriverSQLite
+				return cfg, nil
+			},
+		})
+		if code != 0 {
+			t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
+		}
+
+		sum := sha256.Sum256(dbBytes)
+		for _, token := range []string{
+			"DB export manifest:",
+			"- version: backup-manifest-v1",
+			"- schema_version: 20260318_001",
+			"- source_path: " + dbPath,
+			"- checksum_sha256: " + hex.EncodeToString(sum[:]),
+			"- next: ship db:import --json",
+			"- note: planning only; db:export reports manifest checksums and does not mutate runtime state yet",
+		} {
+			if !strings.Contains(out.String(), token) {
+				t.Fatalf("stdout missing %q:\n%s", token, out.String())
+			}
+		}
+	})
 }

@@ -323,6 +323,7 @@ Minimum framework tooling/hooks to expose:
 
 1. Runtime metadata report contract (read-only).
 2. Data export hook with typed manifest (version + dialect + checksums).
+   - Both the JSON payload and the human-readable `ship db:export` report now pin the manifest checksum contract and follow-up import step.
 3. Data import hook with manifest validation.
 4. Post-import verification hook callable from CLI/control-plane adapters.
    - The CLI-facing contract now exists as `ship db:export --json`, `ship db:import --json`, and `ship db:verify-import --json`; the remaining work is wiring the actual framework path behind those hooks.
