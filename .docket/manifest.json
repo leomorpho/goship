@@ -908,7 +908,7 @@
       "parent": "TKT-189"
     },
     "TKT-201": {
-      "title": "G3-01: Implement SQLite export hook with manifest checksum contract",
+      "title": "G3-01: Coordinate SQLite export hook with manifest checksum contract",
       "state": "todo",
       "priority": 5,
       "parent": "TKT-190"
