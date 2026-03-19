@@ -867,7 +867,7 @@
     },
     "TKT-194": {
       "title": "G1-01: Purge transition-era runtime and CLI dual paths",
-      "state": "todo",
+      "state": "in-progress",
       "priority": 5,
       "parent": "TKT-188"
     },
