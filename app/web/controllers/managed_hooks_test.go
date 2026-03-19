@@ -99,7 +99,7 @@ func TestManagedHooksBackupAndRestoreSigned(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected restore_evidence payload, got %v", payload)
 	}
-	assert.Equal(t, backup.ManifestVersionV1, evidence["manifest_version"])
+	assert.Equal(t, backup.ManifestVersionV1, evidence["accepted_manifest_version"])
 	assert.Equal(t, backupDriver.manifest.Artifact.ChecksumSHA256, evidence["artifact_checksum_sha256"])
 	checks, ok := evidence["post_restore_checks"].([]any)
 	if !ok || len(checks) == 0 {

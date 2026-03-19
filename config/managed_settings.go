@@ -75,12 +75,17 @@ func (c Config) ManagedSettingStatuses() []ManagedSettingStatus {
 		}
 
 		effectiveValue := strings.TrimSpace(effective[key])
-		drift := report.Mode == runtimeconfig.ModeManaged && effectiveValue != strings.TrimSpace(keyState.Value)
+		reportedValue := strings.TrimSpace(keyState.Value)
+		displayValue := effectiveValue
+		if displayValue == "" {
+			displayValue = reportedValue
+		}
+		drift := report.Mode == runtimeconfig.ModeManaged && effectiveValue != reportedValue
 
 		statuses = append(statuses, ManagedSettingStatus{
 			Key:            key,
 			Label:          managedSettingLabel(key),
-			Value:          effectiveValue,
+			Value:          displayValue,
 			Source:         keyState.Source,
 			Access:         managedSettingAccess(report.Mode, keyState.Source),
 			Drift:          drift,

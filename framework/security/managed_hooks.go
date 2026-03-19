@@ -34,6 +34,28 @@ var (
 	ErrManagedReplayDetected      = errors.New("managed hook nonce already used")
 )
 
+// ManagedHookSignatureVector captures a canonical managed-hook signing fixture.
+type ManagedHookSignatureVector struct {
+	Method            string `json:"method"`
+	Path              string `json:"path"`
+	Timestamp         int64  `json:"timestamp"`
+	Nonce             string `json:"nonce"`
+	Body              []byte `json:"body,omitempty"`
+	ExpectedSignature string `json:"expected_signature"`
+}
+
+// ManagedHookSignatureVectors is the shared vector registry for managed-hook signing fixtures.
+var ManagedHookSignatureVectors = []ManagedHookSignatureVector{}
+
+// CronRequest captures the signed internal cron endpoint(s) request contract.
+type CronRequest struct {
+	Method    string
+	Path      string
+	Timestamp int64
+	Nonce     string
+	Body      []byte
+}
+
 // NonceStore records managed-hook nonce+timestamp tuples for replay protection.
 type NonceStore interface {
 	Consume(key string, now time.Time, ttl time.Duration) bool
@@ -47,6 +69,11 @@ type ManagedHookVerifier struct {
 	now      func() time.Time
 
 	nonceStore NonceStore
+}
+
+// CronRequestVerifier verifies signed cron entrypoint contract requests.
+type CronRequestVerifier struct {
+	managed *ManagedHookVerifier
 }
 
 // NewManagedHookVerifier constructs a verifier for managed hook requests.
@@ -67,12 +94,28 @@ func NewManagedHookVerifier(secret string, maxSkew, nonceTTL time.Duration) *Man
 	}
 }
 
+// NewCronRequestVerifier constructs a verifier for signed cron entrypoint requests.
+func NewCronRequestVerifier(secret string, maxSkew, nonceTTL time.Duration) *CronRequestVerifier {
+	return &CronRequestVerifier{
+		managed: NewManagedHookVerifier(secret, maxSkew, nonceTTL),
+	}
+}
+
 // WithNonceStore overrides the replay-protection store, allowing shared/distributed implementations.
 func (v *ManagedHookVerifier) WithNonceStore(store NonceStore) *ManagedHookVerifier {
 	if v == nil || store == nil {
 		return v
 	}
 	v.nonceStore = store
+	return v
+}
+
+// WithNonceStore overrides the replay-protection store for cron request verification.
+func (v *CronRequestVerifier) WithNonceStore(store NonceStore) *CronRequestVerifier {
+	if v == nil || v.managed == nil {
+		return v
+	}
+	v.managed.WithNonceStore(store)
 	return v
 }
 
@@ -125,11 +168,52 @@ func (v *ManagedHookVerifier) VerifyRequest(r *http.Request, body []byte) error 
 	return nil
 }
 
+// VerifyCronRequest validates a signed cron request using the shared managed-hook verifier contract.
+func (v *CronRequestVerifier) VerifyCronRequest(r *http.Request, body []byte) error {
+	if v == nil || v.managed == nil {
+		return ErrManagedSecretNotConfigured
+	}
+	return v.managed.VerifyRequest(r, body)
+}
+
+// VerifyCronRequest validates a signed cron request through the provided verifier.
+func VerifyCronRequest(v *CronRequestVerifier, r *http.Request, body []byte) error {
+	if v == nil {
+		return ErrManagedSecretNotConfigured
+	}
+	return v.VerifyCronRequest(r, body)
+}
+
 // SignManagedHookRequest signs a managed hook request payload with HMAC-SHA256.
 func SignManagedHookRequest(secret, method, path string, timestamp int64, nonce string, body []byte) string {
 	mac := hmac.New(sha256.New, []byte(secret))
-	_, _ = mac.Write(canonicalManagedRequest(method, path, timestamp, nonce, body))
+	_, _ = mac.Write(CanonicalManagedHookPayload(method, path, timestamp, nonce, body))
 	return hex.EncodeToString(mac.Sum(nil))
+}
+
+// SignCronRequest signs a cron entrypoint request using the shared canonical payload library.
+func SignCronRequest(secret string, req CronRequest) string {
+	return SignManagedHookRequest(secret, req.Method, req.Path, req.Timestamp, req.Nonce, req.Body)
+}
+
+// CanonicalManagedHookPayload returns the canonical payload bytes for shared signature vectors.
+func CanonicalManagedHookPayload(method, path string, timestamp int64, nonce string, body []byte) []byte {
+	return canonicalManagedRequest(method, path, timestamp, nonce, body)
+}
+
+// CanonicalManagedHookPayloadFromRequest builds the canonical payload for a live request.
+func CanonicalManagedHookPayloadFromRequest(r *http.Request, body []byte) []byte {
+	if r == nil {
+		return CanonicalManagedHookPayload("", "", 0, "", body)
+	}
+	timestamp, _ := strconv.ParseInt(strings.TrimSpace(r.Header.Get(HeaderManagedTimestamp)), 10, 64)
+	return CanonicalManagedHookPayload(
+		r.Method,
+		managedRequestPath(r),
+		timestamp,
+		strings.TrimSpace(r.Header.Get(HeaderManagedNonce)),
+		body,
+	)
 }
 
 func canonicalManagedRequest(method, path string, timestamp int64, nonce string, body []byte) []byte {

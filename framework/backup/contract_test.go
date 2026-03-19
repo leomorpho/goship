@@ -90,9 +90,9 @@ func TestManifestValidate_V1SchemaAndChecksumInvariant_RedSpec(t *testing.T) {
 
 func TestRestoreEvidenceJSONContract_RedSpec(t *testing.T) {
 	evidence := RestoreEvidence{
-		Status:                 "accepted",
-		ManifestVersion:        ManifestVersionV1,
-		ArtifactChecksumSHA256: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+		Status:                  "accepted",
+		AcceptedManifestVersion: ManifestVersionV1,
+		ArtifactChecksumSHA256:  "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
 		Database: DatabaseDescriptor{
 			Mode:          DBModeEmbedded,
 			Driver:        DBDriverSQLite,
@@ -108,15 +108,15 @@ func TestRestoreEvidenceJSONContract_RedSpec(t *testing.T) {
 	payload, err := json.Marshal(evidence)
 	require.NoError(t, err)
 	text := string(payload)
-	assert.Contains(t, text, `"manifest_version":"backup-manifest-v1"`)
+	assert.Contains(t, text, `"accepted_manifest_version":"backup-manifest-v1"`)
 	assert.Contains(t, text, `"post_restore_checks":["manifest.validated","artifact.checksum.sha256"]`)
 }
 
 func TestRestoreEvidenceJSONContract_UsesAcceptedManifestVersionField_RedSpec(t *testing.T) {
 	evidence := RestoreEvidence{
-		Status:                 "accepted",
-		ManifestVersion:        ManifestVersionV1,
-		ArtifactChecksumSHA256: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+		Status:                  "accepted",
+		AcceptedManifestVersion: ManifestVersionV1,
+		ArtifactChecksumSHA256:  "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
 		Database: DatabaseDescriptor{
 			Mode:          DBModeEmbedded,
 			Driver:        DBDriverSQLite,

@@ -75,11 +75,11 @@ type RestoreRequest struct {
 
 // RestoreEvidence is the machine-readable post-restore contract returned to callers.
 type RestoreEvidence struct {
-	Status                 string             `json:"status"`
-	ManifestVersion        string             `json:"manifest_version"`
-	ArtifactChecksumSHA256 string             `json:"artifact_checksum_sha256"`
-	Database               DatabaseDescriptor `json:"database"`
-	PostRestoreChecks      []string           `json:"post_restore_checks"`
+	Status                  string             `json:"status"`
+	AcceptedManifestVersion string             `json:"accepted_manifest_version"`
+	ArtifactChecksumSHA256  string             `json:"artifact_checksum_sha256"`
+	Database                DatabaseDescriptor `json:"database"`
+	PostRestoreChecks       []string           `json:"post_restore_checks"`
 }
 
 // Driver creates backup manifests from runtime data.
@@ -221,10 +221,10 @@ func (NoopRestorer) Restore(_ context.Context, req RestoreRequest) error {
 // BuildRestoreEvidence returns a machine-readable restore evidence payload.
 func BuildRestoreEvidence(manifest Manifest) RestoreEvidence {
 	return RestoreEvidence{
-		Status:                 "accepted",
-		ManifestVersion:        manifest.Version,
-		ArtifactChecksumSHA256: manifest.Artifact.ChecksumSHA256,
-		Database:               manifest.Database,
+		Status:                  "accepted",
+		AcceptedManifestVersion: manifest.Version,
+		ArtifactChecksumSHA256:  manifest.Artifact.ChecksumSHA256,
+		Database:                manifest.Database,
 		PostRestoreChecks: []string{
 			"manifest.validated",
 			"artifact.checksum.sha256",
