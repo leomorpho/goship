@@ -1,0 +1,18 @@
+{
+  "ticket_id": "TKT-263",
+  "ticket_state": "in-progress",
+  "created_at": "2026-03-19T04:16:04Z",
+  "ac_done": 3,
+  "ac_total": 3,
+  "changed_files": [
+    ".docket/manifest.json",
+    ".docket/tickets/TKT-198.md",
+    ".docket/tickets/TKT-263.md"
+  ],
+  "last_comments": [
+    "Added red-spec coverage for the intended single-node local truth: config tests now pin local and dev defaults to a future `single-node` profile with colocated web/worker/scheduler semantics, and runtimeplan tests pin the matching normalized plan for the SQLite/Otter/Backlite/inproc adapter set. Updated roadmap and known-gaps docs to record the current `server-db` label mismatch and the intended follow-up."
+  ],
+  "branch": "work/2026-refactor-main-snapshot",
+  "worktree_path": "/Users/leoaudibert/Workspace/2026/pagoda-based/goship",
+  "summary": "AC completion checkpoint"
+}
