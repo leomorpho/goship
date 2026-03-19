@@ -909,13 +909,13 @@
     },
     "TKT-201": {
       "title": "G3-01: Coordinate SQLite export hook with manifest checksum contract",
-      "state": "todo",
+      "state": "in-review",
       "priority": 5,
       "parent": "TKT-190"
     },
     "TKT-202": {
       "title": "G3-02: Implement import and post-import verification hooks",
-      "state": "todo",
+      "state": "in-review",
       "priority": 5,
       "parent": "TKT-190"
     },
