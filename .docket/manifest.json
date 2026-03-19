@@ -891,19 +891,19 @@
     },
     "TKT-198": {
       "title": "G2-01: Make single-node runtime profile the default local truth",
-      "state": "in-progress",
+      "state": "in-review",
       "priority": 5,
       "parent": "TKT-189"
     },
     "TKT-199": {
       "title": "G2-02: Converge ship dev and make dev to one-command app-on loop",
-      "state": "todo",
+      "state": "in-progress",
       "priority": 5,
       "parent": "TKT-189"
     },
     "TKT-200": {
       "title": "G2-03: Unify cache contract behavior across memory and redis paths",
-      "state": "todo",
+      "state": "in-progress",
       "priority": 5,
       "parent": "TKT-189"
     },
