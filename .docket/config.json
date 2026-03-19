@@ -13,6 +13,7 @@
     "backlog": {
       "label": "Backlog",
       "open": true,
+      "startable": true,
       "column": 0,
       "next": [
         "todo",
@@ -52,6 +53,7 @@
     "todo": {
       "label": "To Do",
       "open": true,
+      "startable": true,
       "column": 1,
       "next": [
         "in-progress",
