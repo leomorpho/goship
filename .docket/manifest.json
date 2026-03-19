@@ -1274,7 +1274,7 @@
     },
     "TKT-262": {
       "title": "G1-04-B: Implement, verify, and sync docs",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-197"
     },

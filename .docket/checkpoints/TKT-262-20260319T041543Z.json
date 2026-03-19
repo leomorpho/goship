@@ -1,0 +1,20 @@
+{
+  "ticket_id": "TKT-262",
+  "ticket_state": "in-progress",
+  "created_at": "2026-03-19T04:15:43Z",
+  "ac_done": 3,
+  "ac_total": 3,
+  "changed_files": [
+    ".docket/manifest.json",
+    ".docket/tickets/TKT-262.md"
+  ],
+  "blockers": [
+    "TKT-261"
+  ],
+  "last_comments": [
+    "Canonicalized the notification route surface by adding shared route-name constants, updating notification route registration and reverse-call sites, and syncing architecture route docs to the actual wired `/welcome` + `/auth/notifications` surface. Verified with `make templ-gen` and `go test ./modules/notifications/routes ./app/...`."
+  ],
+  "branch": "work/2026-refactor-main-snapshot",
+  "worktree_path": "/Users/leoaudibert/Workspace/2026/pagoda-based/goship",
+  "summary": "AC completion checkpoint"
+}
