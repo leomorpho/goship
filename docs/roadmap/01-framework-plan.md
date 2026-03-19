@@ -599,7 +599,7 @@ No manual edits should be required for:
 - [ ] Support HTMX swap lifecycle: mount/unmount Svelte instances safely after partial swaps.
 - [ ] Benchmark before/after page payload and interaction latency.
 - [ ] Document "when to use Svelte vs Alpine vs vanilla vs pure HTMX" as framework guidance.
-- [ ] Add `ship make:island <Name>` to generate component + entrypoint + registration with zero manual edits.
+- [x] Add `ship make:island <Name>` to generate the first canonical island module + templ mount seam; future work can reduce the remaining explicit `templ generate` / `build-js` follow-up steps.
 - [ ] Support colocated islands and central-library islands with the same discovery pipeline.
 - [ ] Add a watch mode that re-generates island manifest/registry automatically during development.
 

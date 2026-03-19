@@ -58,6 +58,7 @@ func PrintMakeHelp(w io.Writer) {
 	fmt.Fprintln(w, "  ship make:factory <Name>                                                                                                                     Generate a test data factory")
 	fmt.Fprintln(w, "  ship make:locale <code>                                                                                                                      Generate locale file from baseline keys")
 	fmt.Fprintln(w, "  ship make:event <TypeName> [--force]                                                                                                        Generate a domain event type")
+	fmt.Fprintln(w, "  ship make:island <Name>                                                                                                                      Generate a frontend island scaffold")
 	fmt.Fprintln(w, "  ship make:job <Name>                                                                                                                         Generate a background job scaffold")
 	fmt.Fprintln(w, "  ship make:mailer <Name>                                                                                                                      Generate a mailer scaffold")
 	fmt.Fprintln(w, "  ship make:schedule <Name> --cron \"<expr>\"                                                                                                   Insert a scheduled job entry")

@@ -293,6 +293,8 @@ func (c CLI) runMake(args []string) int {
 		return c.runGenerateModel(args[1:])
 	case "event":
 		return c.runGenerateEvent(args[1:])
+	case "island":
+		return c.runMakeIsland(args[1:])
 	case "command":
 		return c.runMakeCommand(args[1:])
 	case "job":
@@ -424,6 +426,13 @@ func (c CLI) runMakeSchedule(args []string) int {
 
 func (c CLI) runMakeCommand(args []string) int {
 	return gen.RunMakeCommand(args, gen.MakeCommandDeps{
+		Out: c.Out,
+		Err: c.Err,
+	})
+}
+
+func (c CLI) runMakeIsland(args []string) int {
+	return gen.RunMakeIsland(args, gen.MakeIslandDeps{
 		Out: c.Out,
 		Err: c.Err,
 	})

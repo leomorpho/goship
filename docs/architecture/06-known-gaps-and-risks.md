@@ -255,6 +255,19 @@ Impact:
 `ship make:mailer <Name>` now exposes a canonical scaffold contract for templ email views and
 preview wiring under the existing `/dev/mail/*` surface.
 
+## 19) Island Generator Contract Is Now Canonicalized (Low)
+
+`ship make:island <Name>` now exposes a canonical frontend island scaffold contract built around
+`frontend/islands/<Name>.js` and `app/views/web/components/<name>_island.templ`. The scaffold
+locks the current runtime seam in place: generated island modules export `mount(el, props)`, and
+the templ mount component renders the matching `data-island` / `data-props` target.
+
+Intentional manual follow-up remains explicit:
+
+- `ship templ generate --file app/views/web/components/<name>_island.templ`
+- `make build-js`
+- render the generated `@components.<Name>Island(...)` seam from the page/component that should host the island
+
 Impact:
 
 - Teams can generate a consistent email-template baseline instead of hand-rolling view and preview wiring.
