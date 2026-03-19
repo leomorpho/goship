@@ -33,13 +33,21 @@ Impact:
 - Notification-center behavior is reachable and documented today.
 - Future refactors should keep using route-inventory tests plus doc sync to avoid reintroducing hidden route-surface drift.
 
-## 4) Stale/Inconsistent E2E Coverage (Medium)
+## 4) Golden E2E Coverage Stays Intentionally Narrow (Low)
 
-`tests/e2e/tests/goship.spec.ts` is marked with TODO and contains stale product/domain assumptions.
+`tests/e2e/tests/goship.spec.ts` now covers the current scaffolded GoShip golden paths: boot
+health (`/up`), anonymous public/auth entrypoints (`/`, `/user/register`, `/user/login`),
+anonymous redirects at protected seams (`/auth/realtime`, `/auth/admin`), and the framework
+islands runtime contract (`/demo/islands` plus mounted counters for vanilla JS, React, Vue, and
+Svelte). Focused follow-on specs still cover the admin scaffold lane and the Cherie compatibility
+baseline separately.
 
 Impact:
 
-- End-to-end test confidence for current GoShip behavior is limited.
+- The canonical browser suite now fails on named public/auth/runtime seams instead of stale
+  product-domain journeys.
+- The suite still stays intentionally small: broad visual regression coverage and a full optional
+  module matrix remain out of scope until the scaffold contract expands.
 
 ## Route Composition Style Still Needs Ongoing Discipline (Low)
 

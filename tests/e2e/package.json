@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "playwright test",
+    "test:golden": "playwright test tests/goship.spec.ts",
     "test:smoke": "playwright test tests/smoke.spec.ts",
     "test:admin-smoke": "playwright test tests/admin_scaffold.spec.ts",
     "test:cherie-smoke": "playwright test tests/cherie_compatibility.spec.ts",

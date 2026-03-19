@@ -13,6 +13,7 @@ test("smoke: server starts and serves landing page", async ({ page, request }) =
   expect(login.ok()).toBeTruthy();
 
   await page.goto("/user/login");
-  await expect(page.locator('[data-component="login"]')).toBeVisible();
-  await expect(page.getByRole("button", { name: "Log in" })).toBeVisible();
+  const loginForm = page.locator('[data-component="login"]');
+  await expect(loginForm).toBeVisible();
+  await expect(loginForm.getByRole("button", { name: "Log in" })).toBeVisible();
 });

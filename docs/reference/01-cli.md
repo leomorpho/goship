@@ -151,6 +151,7 @@ These commands are implemented as wrappers over existing workflows:
 - `make test-generator-idempotency` -> focused local rerun for the duplicate-generation matrix without snapshot refresh
 - `make test-alpha-contracts` -> dedicated CI lane for the frozen `v0.1.0-alpha` root-help and route-inventory contract
 - `make test-bootstrap-budget` -> dedicated CI lane for the canonical starter bootstrap budget (`ship new` + starter `go run ./cmd/web`)
+- `npm --prefix tests/e2e run test:golden` -> canonical Playwright golden-flow lane for current GoShip scaffold behavior (`/up`, landing/register/login entrypoints, anonymous auth redirects, `/demo/islands` runtime mount contract)
 - `npm --prefix tests/e2e run test:cherie-smoke` -> dedicated CI lane for the Cherie boot/auth/realtime compatibility baseline
 - `ship verify --profile strict` -> strict verify tier used as the precondition for the required Cherie sync gate
 - `ship db:create` -> validates that target database URL is reachable (`goose status`)

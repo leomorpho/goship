@@ -201,12 +201,15 @@ HTTP integration test helpers:
 
 E2E tests:
 
+- `npm --prefix tests/e2e run test:golden` (canonical GoShip golden browser contract: boot, landing/register/login entrypoints, anonymous protected-route redirects, and `/demo/islands` runtime mounts)
 - `make e2e-smoke` (single happy-path smoke; Playwright starts `go run ./cmd/web` automatically via `webServer`)
 - `make e2e-admin-smoke` (admin auth and managed-surface smoke lane)
 - `make e2e`
 - `make e2eui`
 
 CI uses the smoke spec only (`tests/e2e/tests/smoke.spec.ts`) to validate startup and basic app serving.
+The current GoShip golden-flow browser contract lives at `tests/e2e/tests/goship.spec.ts` and is the
+authoritative suite for scaffolded public/auth/islands coverage.
 The admin scaffold lane lives at `tests/e2e/tests/admin_scaffold.spec.ts` and covers the
 critical admin auth/managed-settings/flags/trash surfaces as Playwright baseline smoke coverage.
 The `verify_strict` CI job runs `ship verify --profile strict` and serves as the precondition for the downstream Cherie compatibility gate.
@@ -226,7 +229,8 @@ If the Cherie lane breaks:
 1. Re-run the Playwright spec locally with `npm --prefix tests/e2e run test:cherie-smoke`.
 2. Compare `/up`, `/user/login`, and `/auth/realtime` behavior against the baseline before widening scope.
 3. Either land a framework fix or document the downstream breakage explicitly before merging.
-Note: broader legacy e2e specs are partially stale and should be treated as non-authoritative for GoShip behavior.
+The golden suite is intentionally narrow: visual regression coverage and a full optional-module browser
+matrix remain out of scope for now.
 
 ## Internationalization
 

@@ -18,20 +18,22 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
   ],
-    webServer: {
-      command: "go run ./cmd/web",
-      cwd: "../..",
-      url: `${baseURL}/up`,
-      timeout: 120_000,
-      reuseExistingServer: !process.env.CI,
-      env: {
-        ...process.env,
-        PAGODA_ADMIN_EMAILS: process.env.PAGODA_ADMIN_EMAILS ?? "admin@goship.test",
-        PAGODA_HTTP_PORT: port,
-        PAGODA_PROCESSES_WEB: "true",
-        PAGODA_PROCESSES_WORKER: "false",
-        PAGODA_PROCESSES_SCHEDULER: "false",
-        PAGODA_PROCESSES_COLOCATED: "false",
+  webServer: {
+    command:
+      "bash -lc 'mkdir -p tests/e2e/.tmp && rm -f tests/e2e/.tmp/e2e.db tests/e2e/.tmp/e2e.db-shm tests/e2e/.tmp/e2e.db-wal && go run ./cmd/web'",
+    cwd: "../..",
+    url: `${baseURL}/up`,
+    timeout: 120_000,
+    reuseExistingServer: !process.env.CI,
+    env: {
+      ...process.env,
+      PAGODA_ADMIN_EMAILS: process.env.PAGODA_ADMIN_EMAILS ?? "admin@goship.test",
+      PAGODA_DB_PATH: process.env.PAGODA_DB_PATH ?? "tests/e2e/.tmp/e2e.db",
+      PAGODA_HTTP_PORT: port,
+      PAGODA_PROCESSES_WEB: "true",
+      PAGODA_PROCESSES_WORKER: "false",
+      PAGODA_PROCESSES_SCHEDULER: "false",
+      PAGODA_PROCESSES_COLOCATED: "false",
     },
   },
 });
