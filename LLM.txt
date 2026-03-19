@@ -1366,17 +1366,19 @@ Impact:
 - The route manifest and static asset surface are centralized today.
 - Future route extraction work should keep using route-composition contract tests to avoid reintroducing split registration styles.
 
-## Startup and Route Contract Suites Now Cover Failure Paths (Low)
+## Startup, Route, and CLI Contract Suites Now Cover Fast Failure Paths (Low)
 
 Startup failure cases now have a dedicated contract suite covering nil containers, missing module
 dependencies, invalid runtime profiles, and realtime capability mismatches. Route inventory output
 also has explicit public/auth contract coverage over `method`, `path`, `auth`, `handler`, and
-`file` metadata.
+`file` metadata. Operator-facing CLI surfaces such as `ship verify`, `ship routes`, and
+`ship describe --pretty` also have stateless golden-contract coverage in the default test loop.
 
 Impact:
 
 - Startup regressions now fail through one executable contract instead of being spread across ad hoc tests.
 - CLI and agent consumers of `ship routes --json` now have an explicit grouped-route surface contract.
+- Selected operator-facing CLI outputs now drift through targeted golden tests instead of incidental broad-suite failures.
 
 ## Canonical Docs Now Enforce Hard-Cut Wording (Low)
 
@@ -1449,14 +1451,15 @@ Impact:
 ## 11) Runtime Capability Reporting Is Now Canonicalized (Low)
 
 `ship runtime:report --json` now exposes the effective profile, adapters, process plan, web
-features, DB runtime metadata, and managed-key sources in one machine-readable payload. The
-INT1-01 will extend that payload with a versioned handshake envelope for orchestration preflight.
-Managed runtime metadata now carries explicit registry/schema version identifiers so runtime and
-control-plane consumers can agree on the authoritative key mapping. The remaining risk is payload
-drift if future runtime metadata is added without extending the report.
+features, DB runtime metadata, managed-key sources, and a versioned handshake envelope for
+orchestration preflight. Managed runtime metadata now carries explicit registry/schema version
+identifiers so runtime and control-plane consumers can agree on the authoritative key mapping. The
+remaining risk is payload drift if future runtime metadata is added without extending the report.
 
-INT1-02 will add a named orchestration contract-mismatch preflight gate on top of `ship verify`
-so unsupported deploy/upgrade/promote combinations fail before the orchestration layer starts.
+`ship verify` now runs a named orchestration contract-mismatch preflight gate so unsupported
+deploy/upgrade/promote combinations fail before the orchestration layer starts. The remaining gap
+is widening that gate beyond the current shared contract token check into richer orchestration
+policy and remediation reporting.
 
 Managed settings now expose drift and rollback-target metadata for managed overrides, but the
 remaining risk is UI/operator workflow drift if future settings surfaces fail to render that
@@ -1465,6 +1468,7 @@ metadata consistently.
 Impact:
 
 - Operators and agents now have one canonical CLI report for runtime capability inspection.
+- Operators and agents now have one named verify preflight gate for orchestration/runtime contract drift.
 - Future runtime metadata additions should extend the report and its contract tests in the same change stream.
 
 ## Upgrade Readiness Report Is Now Canonicalized (Low)
@@ -1874,7 +1878,7 @@ Impact:
 4. Refresh e2e tests to match current GoShip flows.
 5. Align local stack docs with actual DB mode and compose services.
 6. Add shared/distributed replay storage for managed hook nonce tracking in multi-replica deployments.
-7. Publish shared signature vectors and a canonical payload library for the INT2 bridge so signing fixtures do not drift between runtime and control-plane consumers.
+7. Keep extending the shared signing seam rather than reintroducing ad hoc payload/signature builders outside `framework/security`.
 
 ---
 FILE: docs/architecture/07-core-interfaces.md
@@ -2176,8 +2180,8 @@ Canonical signature payload:
 
 - `METHOD + "\n" + PATH_WITH_QUERY + "\n" + TIMESTAMP + "\n" + NONCE + "\n" + RAW_BODY`
 
-shared signature vectors and the canonical payload library are tracked separately so both the
-runtime bridge and control-plane tooling can reuse the same signing fixtures.
+shared signature vectors and the canonical payload library now live on the shared security seam so
+both the runtime bridge and control-plane tooling can reuse the same signing fixtures.
 
 Verification/runtime rules:
 
@@ -2186,7 +2190,7 @@ Verification/runtime rules:
 - replay nonce TTL: `PAGODA_MANAGED_HOOKS_NONCE_TTL_SECONDS` (default `300`)
 - replay protection rejects reuse of the same nonce+timestamp tuple inside the TTL window
 - replay protection should run through a shared/distributed replay store contract in multi-replica deployments; process-local memory is only the default fallback implementation
-- the same signed-request pattern is expected for the control-plane cron entrypoint contract so scheduler-driven actions can reuse the replay/timestamp verification model
+- the same signed-request pattern is used for the control-plane cron entrypoint contract so scheduler-driven actions reuse the replay/timestamp verification model
 
 Response contract:
 
@@ -5328,362 +5332,169 @@ Proposed module boundaries:
 6. `packages/admin`
 7. `tools/cli/ship`
 
-## Priority Roadmap
+## Roadmap Reset (2026-03-19)
 
-### Phase 0: Stabilize Current Base
+The roadmap is no longer a second backlog.
 
-1. Fix container initialization mismatch and shutdown safety.
-2. Resolve realtime/notification route wiring drift.
-3. Clean and align current docs with actual runtime behavior.
-4. Refresh stale e2e coverage for critical flows.
+From this point forward:
 
-## First Rework Execution Plan
+1. This document records stable direction, execution tracks, and ticketing rules.
+2. Docket carries the actionable backlog.
+3. Open tickets should be implementation-ready leaves, not coordination placeholders.
 
-This section is the active implementation tracker for the first rework pass.
-Rule: execute exactly one task at a time, validate with tests, then move to the next task.
+Work that has already landed should be reflected here as current capability or moved to the known-gaps docs, not left behind as aspirational roadmap prose.
 
-### Quality Gates (for every task)
+## Active Execution Tracks
 
-1. Add or update tests with the change (prefer table-driven tests).
-2. Run targeted tests for touched package(s).
-3. Keep tests mostly stateless (no Docker for default test path).
-4. No task is marked complete without test evidence.
+### Track 1: Framework DX
 
-### Coverage Targets
+Goal:
 
-1. Global target: 90%+ over time (not required in one PR).
-2. Reworked packages should trend toward 90%+ before moving on.
-3. Complex pure-logic packages should aim for near-100% branch coverage with table tests.
+- keep the default developer loop fast, deterministic, and easy for AI agents to modify safely.
 
-### Active Task Queue (First Rework)
+Focus:
 
-1. `R0.1` Container shutdown safety + reliable container unit test baseline.
-Status: `completed`
-Done when:
-- `Container.Shutdown()` is nil-safe for optional services.
-- container unit tests compile and pass without external services.
-Test evidence:
-- `go test ./app/foundation -run 'Test(NewContainer|ContainerShutdownNilSafe)$'`
+- one canonical command path per concern;
+- stable route/container seams and repo-shape enforcement;
+- generator UX, reverse scaffolding, workflow docs, and the intentionally narrow golden Playwright contract;
+- CI/doctor/verify guardrails that catch drift early.
 
-2. `R0.2` Container initialization policy by runtime mode (`single-node` vs `distributed`), with explicit config contract.
-Status: `completed`
-Done when:
-- runtime/process/adapters config scaffold exists;
-- runtime plan resolver exists with table tests;
-- no startup behavior change yet (scaffold only).
-Test evidence:
-- `go test ./config ./framework/runtimeplan`
+Examples of active work:
 
-3. `R0.3` Router consistency pass (realtime + notifications wired consistently with initialized dependencies).
-Status: `completed`
-Done when:
-- router enables cache middleware only when cache dependency is available;
-- realtime routes are wired only when notifier+pubsub dependencies are available;
-- runtime plan is resolved at router build with safe fallback on invalid plan configuration.
-Test evidence:
-- `go test ./framework/runtimeplan`
+- `ship destroy` MVP;
+- `ship make:island`;
+- startup/HTTP/CLI contract suites;
+- keep the GoShip golden Playwright suite aligned with the current scaffold contract as that contract evolves;
+- standalone exportability verification.
 
-Follow-up hardening tracked under `TKT-195` / `TKT-257` / `TKT-258`:
-- invalid runtime-plan resolution now fails startup instead of warning + fallback;
-- resolved realtime capability mismatches (for example notifier/pubsub startup gaps) now fail startup instead of silently disabling route surface;
-- adapter-backed dependency mismatches (for example `pubsub=redis` without its required runtime dependency) now fail at startup.
-- notification-center route inventory and canonical route-name cleanup are tracked under `TKT-197` / `TKT-261` / `TKT-262`.
-- startup failure-path contracts are now pinned by a dedicated suite covering nil-container, missing-module, invalid-profile, and realtime dependency mismatch cases.
-- `ship routes --json` now has explicit public/auth route-group contract coverage over method/path/auth/handler/file output.
+### Track 2: Runtime Capabilities
 
-Default-topology hardening tracked under `TKT-198` / `TKT-263` / `TKT-264`:
-- local and dev defaults now normalize to `single-node`;
-- the canonical default local topology is colocated web/worker/scheduler with SQLite + Otter + Backlite + inproc pubsub semantics.
+Goal:
 
-Dev-loop convergence tracked under `TKT-199` / `TKT-265` / `TKT-266`:
-- `ship dev` default mode is now driven by the explicit runtime profile instead of jobs-adapter heuristics;
-- executable contract coverage now pins both the profile-driven resolver and the fallback behavior: `single-node` should stay on the web/app-on loop by default, while `distributed` should opt into the full multiprocess loop and unknown/error resolver states should fall back to the web loop.
+- make GoShip a credible standalone Rails/Laravel-style runtime before adding more orchestration complexity.
 
-Cache-contract parity tracked under `TKT-200` / `TKT-267` / `TKT-268`:
-- in-memory page caching is now wired through the same cache seam as Redis;
-- one shared contract suite now covers grouped payloads, tag invalidation, TTL expiry, and raw byte/prefix operations across `memory` and `redis`;
-- executable normalization specs now pin both the `memory`/`otter` adapter alias contract and the positive-TTL round-up rule so adapter choice does not change expiry semantics.
+Focus:
 
-Route-composition hardening tracked under `TKT-232` / `TKT-293` / `TKT-294`:
-- `app/router.go` remains the canonical route composition root;
-- `BuildRouter` now rejects a nil container explicitly before route/module wiring;
-- static route registration now flows through one canonical `appweb.RegisterStaticRoutes(c)` path, including PWA assets.
+- single-node as the canonical local truth;
+- deterministic profile/adapter mutation commands;
+- promotion/export/import surfaces that move from planning-only to executable;
+- portable adapter contracts across cache, jobs, pubsub, and storage.
 
-Docs hard-reset tracking under `TKT-233` / `TKT-295` / `TKT-296`:
-- doctor now flags selected migration-bridge wording in the canonical architecture, CLI, and roadmap docs set;
-- canonical docs have been rewritten to describe the current hard-cut model directly instead of relying on migration-era framing.
+Examples of active work:
 
-Local-runtime alignment tracked under `TKT-234` / `TKT-297` / `TKT-298`:
-- config defaults now point to `single-node`, while compose-backed accessories remain optional Redis + Mailpit only;
-- Makefile help and contributor docs now describe the same local runtime story as config and compose;
-- the default local contract is app-on single-node first, with compose reserved for optional accessory services.
+- `ship db:promote` apply-mode flow;
+- `ship profile:set`;
+- `ship adapter:set`;
+- cache parity across memory and redis;
+- shared/distributed replay store for managed hooks.
 
-Runtime-report contract tracked under `TKT-235` / `TKT-299` / `TKT-300`:
-- the runtime metadata/config primitives now feed `ship runtime:report --json`;
-- `ship runtime:report --json` is now the canonical machine-readable runtime capability surface for operators and agents.
-- `TKT-220` / `TKT-319` / `TKT-320` will extend that report with a versioned metadata handshake envelope for orchestration preflight.
+### Track 3: Installable Batteries
 
-Orchestration preflight contract tracked under `TKT-221` / `TKT-321` / `TKT-322`:
-- `ship verify` will grow a named contract-mismatch preflight gate that rejects unsupported runtime/orchestration combinations before deploy, upgrade, or promote flows begin;
-- the preflight should reuse the runtime contract metadata surface rather than inventing a separate ad hoc probe.
+Goal:
 
-Cross-lane dependency matrix tracked under `TKT-246` / `TKT-351` / `TKT-352`:
-- the cross-lane dependency matrix is the canonical naming for this coordination surface;
-- the cross-lane dependency matrix should explicitly name the must-finish-before contract map for true prerequisites;
-- the dependency matrix should call out only true contract prerequisites or shared-artifact ownership boundaries;
-- child work should stay in the documentation/coordination lane and avoid inventing new execution semantics;
-- the matrix is an advisory planning surface, not a blanket execution gate for every downstream ticket.
+- make GoShip batteries feel like first-class framework capabilities instead of partial module experiments.
 
-### Agent-Oriented Ticketing Contract
+Focus:
 
-Roadmap execution is now biased toward agent pickup, not serialized phase completion.
+- real `ship module:add`/`module:remove` wiring for installable modules;
+- battery-specific ergonomics for `storage`, `auth`, `admin`, `jobs`, and related modules;
+- CLI generators that create code matching the current runtime conventions;
+- module compatibility and release policy that downstream apps can trust.
+
+Examples of active work:
+
+- real module wiring snippets instead of TODO placeholders;
+- jobs inspector surface through `core.JobsInspector`;
+- admin scaffolding MVP;
+- mailer and job generators;
+- Cherie-oriented battery compatibility.
+
+### Track 4: Control-Plane Interoperability
+
+Goal:
+
+- define the minimum runtime contracts a future external authority can rely on without turning the runtime into a control-plane client.
+
+Focus:
+
+- signed managed-hook contract hardening;
+- upgrade/deploy/promotion preflight contracts;
+- managed override registry/versioning/drift semantics;
+- runtime metadata and module-adoption surfaces for orchestration tooling.
+
+Examples of active work:
+
+- orchestration preflight via `ship verify`;
+- upgrade readiness report and blocker schema;
+- distributed replay defense and key rotation;
+- managed override registry versioning;
+- promotion lifecycle and incident/recovery contracts.
+
+## Ticketing Rules
+
+Roadmap execution is biased toward AI pickup, not serialized phase completion.
 
 Rules:
 
-1. Program, phase, and coordination tickets are organizational only.
-2. They may summarize scope, track progress, and aggregate evidence, but they should not hard-block implementation tickets by default.
-3. A hard blocker is allowed only for a true prerequisite:
-   - a required shared contract artifact does not exist yet;
-   - two tickets would otherwise fight over the same narrow write scope;
-   - runtime safety would be violated by parallel delivery.
-4. "Spec/red test" and "implement/verify" siblings should be considered optional decomposition, not mandatory serialized waves.
-5. An implementation-ready ticket must be executable on its own:
-   - add or update targeted failing coverage first inside the ticket when needed;
-   - land code, docs, and verification in the same change stream;
-   - record evidence without waiting for a sibling roadmap ticket to move first.
-6. `docket start` should primarily surface leaf implementation work, not coordination parents.
+1. Epics may aggregate a theme, but their children must be leaf tickets.
+2. A leaf ticket must fit in one focused session and own one deliverable.
+3. Leaf tickets must include specific, observable acceptance criteria.
+4. Leaf tickets must include exact likely paths and concrete verification commands.
+5. Code, tests, and docs belong in the same ticket unless a true shared artifact forces a split.
+6. Red-spec and implementation tickets are optional decomposition, not the default pattern.
+7. Hard blockers are allowed only for real prerequisites:
+   - a shared contract artifact must exist first;
+   - two tickets would otherwise collide on the same narrow write scope;
+   - shipping in parallel would create unsafe runtime behavior.
+8. `docket start` should surface leaf implementation work before any epic or coordination ticket.
 
-This means:
+A ticket is not ready for AI execution if it only says:
 
-- no phase-to-phase hard blockers just because work appears later in the roadmap;
-- no sibling `-A` to `-B` blockers unless the `-A` ticket owns a real shared artifact that must land first;
-- no cross-lane blockers unless the downstream ticket truly cannot be delivered safely without the upstream result.
+- “coordinate”
+- “define child topology”
+- “keep evidence current”
+- “track scope”
 
-This cross-lane dependency matrix contract should stay named exactly that way in the canonical docs
-so planning, review, and verification tooling can grep for one phrase.
+Those are epic responsibilities, not implementation tickets.
 
-CLI-path reset tracked under `TKT-249` / `TKT-311` / `TKT-312`:
-- the executable spec now pins one canonical top-level quality path per concern;
-- `ship check` has been removed from help, docs, dispatch, and agent-policy surfaces;
-- `ship test` now owns the fast package-list quality loop, while `ship verify --profile fast|standard|strict` covers tiered repository verification.
-- `verify_strict` plus `cherie_compatibility_smoke` now define the required Cherie sync baseline in CI.
+## Current Backlog Policy
 
-4. `R0.4` Testing harness improvements so default `make test` is Docker-free and fast.
-Status: `completed`
-Done when:
-- default `make test` executes a Docker-free unit package set;
-- integration/infra-heavy tests run via separate command;
-- cache-dependent unit tests do not fail when cache service is disabled in runtime profile.
-Test evidence:
-- `bash tools/scripts/test-unit.sh`
+Use these rules when revisiting Docket:
 
-5. `R0.5` Establish package-level coverage baselines and close highest-value test gaps.
-Status: `in_progress`
+1. Close stale tickets whose capabilities have already landed in code, docs, and CI.
+2. Repurpose broad open tickets into atomic leaves when their IDs are still useful.
+3. Prefer reparenting existing granular tickets under the current epics over creating new umbrella phases.
+4. Avoid open tickets with child tickets unless the parent is an epic.
+5. Avoid keeping both a broad coordination ticket and its real implementation leaves open at the same time.
 
-6. `R1.1` Resource route registration refactor (prep for generator-driven resources).
-Status: `completed`
-Done when:
-- canonical router entrypoint remains `app/router.go`;
-- route declarations are centralized in `app/router.go`;
-- handler implementations remain in `app/web/controllers/*.go`;
-- realtime registration is feature-gated directly in the canonical router.
-Test evidence:
-- `go test ./cmd/web ./app/web/ui ./framework/runtimeplan`
-- `go test -c ./app/web/controllers` (compile check in restricted env)
+## What Is Already Canonical
 
-7. `R1.2` Minimal resource generator foundation.
-Status: `completed`
-Done when:
-- `ship make:resource <name>` scaffolds route handler (+ optional templ page);
-- generator prints router insertion snippet instead of auto-editing `app/router.go`;
-- generator logic is table-driven tested in `tools/cli/ship`.
-Test evidence:
-- `go test ./tools/cli/ship`
+The following are no longer roadmap aspirations:
 
-8. `R1.3` Optional safe router wiring mode for generator.
-Status: `completed`
-Done when:
-- `ship make:resource ... --wire` inserts generated snippet into `app/router.go`;
-- insertion only occurs behind explicit marker pairs (`public` or `auth`);
-- operation is idempotent and tested (no duplicate insertion).
-Test evidence:
-- `go test ./tools/cli/ship`
+1. `ship runtime:report --json` is implemented and documented.
+2. extension zones and protected contract zones are documented and doctor-enforced.
+3. Cherie compatibility smoke has a named CI lane.
+4. doc-sync, dead-route, generator, alpha-surface, and SQL portability/module-isolation lanes exist.
+5. `ship module:add` / `ship module:remove` deterministic workspace wiring exists as the baseline install/remove contract.
 
-9. `R1.4` Route name automation and dry-run previews for resource generation.
-Status: `completed`
-Done when:
-- generator ensures `RouteName<Resource>` constant is present in `app/web/routenames/routenames.go`;
-- `ship make:resource ... --dry-run` previews file/router/routename changes without writing;
-- wiring/import/constant insertion paths are idempotent and tested.
-Test evidence:
-- `go test ./tools/cli/ship`
+Any remaining backlog around these areas should describe the next missing layer, not restate the capability already shipped.
 
-10. `R1.5` Canonical generator output and idempotency matrix.
-Status: `completed`
-Done when:
-- `ship make:*` commands share one output contract built around `Created:`, `Updated:`, `Preview:`, and `Next:` sections;
-- dry-run generator output stays in the same report shape with explicit dry-run labeling;
-- generators package includes a consolidated idempotency matrix test for duplicate scaffold attempts.
-Test evidence:
-- `go test ./tools/cli/ship/internal/generators`
+## Immediate Direction
 
-11. `R1.6` Deterministic standalone module install/remove workflow.
-Status: `completed`
-Done when:
-- `ship module:add <name>` applies structured local-workspace wiring across `config/modules.yaml`,
-  root `go.mod`, and root `go.work`;
-- `ship module:remove <name>` removes only managed edits and fails with exact blocker file paths
-  when the repo still imports the target battery;
-- `modules/storage` is available as a first-class installable battery around the `core.BlobStorage`
-  seam.
-Test evidence:
-- `go test ./tools/cli/ship/internal/commands -run 'Test(ApplyModuleAdd_WiresLocalModuleDependencyContract_RedSpec|ApplyModuleRemove_FailsWithReferenceBlockers_RedSpec|ApplyModuleAdd_StorageBatteryContract_RedSpec|ApplyModuleRemove_RemovesSafeStorageDependencyContract_RedSpec)' -count=1`
-- `go test ./modules/storage -count=1`
+Near-term execution should stay concentrated on:
 
-12. `R1.7` Generator snapshot + idempotency CI gate.
-Status: `completed`
-Done when:
-- CI defines a dedicated generator contract lane instead of burying generator drift in the broad backend suite;
-- the lane runs per-generator golden snapshots for the shared generator report contract plus the consolidated idempotency matrix;
-- docs describe the explicit snapshot-refresh path for intentional output changes.
-Test evidence:
-- `go test ./tools/cli/ship/internal/commands -run TestCIContract_DefinesGeneratorSnapshotAndIdempotencyGate_RedSpec -count=1`
-- `make test-generator-contracts`
-- `make test-generator-idempotency`
-
-13. `R1.8` Freeze `v0.1.0-alpha` command and route contract.
-Status: `completed`
-Done when:
-- root CLI help and route inventory are frozen as named alpha snapshots;
-- CI runs a dedicated alpha contract lane instead of treating release-surface drift as incidental;
-- release docs explain the approved-review path for intentional alpha-surface changes.
-Test evidence:
-- `make test-alpha-contracts`
-
-14. `R1.9` CLI golden contract suite for doctor/routes/describe/verify.
-Status: `completed`
-Done when:
-- key operator-facing CLI commands have stable golden coverage for human and JSON output where applicable;
-- the suite uses an explicit snapshot refresh flow instead of silent fixture rewrites;
-- drift shows up in targeted command/policy package tests.
-Test evidence:
-- `go test ./tools/cli/ship/internal/commands ./tools/cli/ship/internal/policies -run 'Test(CLIGoldenContractSuite_RedSpec|DoctorGoldenContract_RedSpec)$' -count=1`
-
-15. `R1.10` Named doc-sync and dead-route guardrails.
-Status: `completed`
-Done when:
-- CI defines dedicated doc-sync and dead-route regression lanes;
-- the route map no longer carries removed route entries such as `/install-app`;
-- local make targets mirror the CI guardrails so drift is reproducible before push.
-Test evidence:
-- `go test ./tools/cli/ship/internal/commands -run 'Test(DocsRouteContract_RedSpec|CIContract_DefinesDocSyncAndDeadRouteGuards_RedSpec)$' -count=1`
-- `make test-doc-sync`
-- `make test-dead-routes`
-
-### Phase 1: Core Abstractions
-
-1. Define `core` interfaces for DB/cache/pubsub/jobs/storage.
-2. Implement adapters:
-- SQLite + Postgres
-- memory-cache + Redis-cache
-- inproc-pubsub + Redis-pubsub
-- inproc-jobs + Asynq
-3. Add runtime mode config (`single-node`, `distributed`).
-
-Current progress:
-
-1. Adapter registry + capability validation are active at container startup.
-2. Container exposes `CoreCache`, `CoreJobs`, and `CorePubSub`.
-3. First application call sites migrated to interface seams:
-- notifications fan-out enqueue in `app/jobs/notifications.go` now uses `core.Jobs`.
-- notifier publish/subscribe path in `modules/notifications/notifier.go` now uses `core.PubSub`.
-4. Domain testability improved:
-- notifications task processor now depends on a small planned-notification interface with table-driven unit tests.
-
-### Phase 2: Monorepo and Module Packaging
-
-1. Restructure into multi-module layout.
-2. Add `go.work` for local development across modules.
-3. Establish semver tagging and module release process.
-4. Define how Cherie consumes modules during local dev (`go.work`) vs released versions (tags).
-
-### Phase 3: CLI and Generators
-
-1. Build `goship` CLI.
-2. Implement app bootstrap and generator commands.
-3. Add idempotent install/wire commands for optional modules.
-
-### Phase 4: Batteries and DX
-
-1. Deliver auth, storage, notifications, billing, admin modules.
-2. Implement ActiveStorage-like attachment primitives.
-3. Improve diagnostics, error pages, and test templates.
-
-### Phase 5: LLM-First Tooling
-
-1. Add `llm.txt` as machine-readable framework reference.
-2. Add an MCP server exposing commands, module contracts, and examples.
-3. Generate concise human docs from the same source of truth.
-
-## TODO Checklist
-
-## Immediate
-
-- [x] Decide and document exact package naming convention (`github.com/leomorpho/goship/*`).
-- [x] Choose CLI implementation approach (stdlib `flag` + explicit command dispatch in `tools/cli/ship`).
-- [x] Draft `core` interface contracts in a design doc and first package (`framework/core`).
-- [x] Define runtime config schema for adapter selection and add startup adapter validation registry.
-- [x] Specify module compatibility/version policy.
-- [ ] Create a developer-facing README + LLM-facing README/`llm.txt` split with one source of truth.
-- [ ] Define MCP server scope for GoShip (commands, module APIs, recipes, migration help).
-- [ ] Create a `CHERIE_SYNC.md` runbook (upgrade process + rollback + validation checklist).
-- [x] Add a named starter bootstrap budget gate for `ship new` plus starter boot.
-- [ ] Create a baseline compatibility test suite for Cherie critical paths.
-- [ ] Add a dedicated CI smoke lane that names and enforces the Cherie boot/auth/realtime baseline separately from the generic GoShip smoke test.
-- [ ] Publish one extension-zone manifest that distinguishes safe customization areas from protected framework contract seams and keep `ship doctor` aligned to it.
-- [ ] Add a run-anywhere verification gate that proves generated apps remain standalone-exportable with no control-plane dependency assumptions.
-- [x] Extend the hard-cut wording lint across the canonical architecture docs, not only CLI/routes subsets.
-- [x] Expose the no-compatibility/no-deprecation invariant explicitly in `ship verify` and `ship doctor`.
-- [ ] Define testing standards doc: what must be unit-testable and where table tests are required.
-- [ ] Add doc-sync guardrails in pre-commit/CI for framework-impacting changes.
-- [ ] Add Cherie-sync guardrails in pre-commit/CI (or mandatory checklist gate).
-
-## Near-Term
-
-- [ ] Build first two DB adapters.
-- [ ] Build first cache pair: `memory` + `redis`.
-- [ ] Build first pubsub pair: `inproc` + `redis`.
-- [ ] Build first jobs pair: `inproc` + `asynq`.
-- [ ] Prototype attachment API with local and S3 storage.
-- [ ] Refactor high-logic route/service code into testable units with interface boundaries.
-- [ ] Add in-memory test doubles for cache/pubsub/jobs/storage adapters.
-- [ ] Ensure default `make test` runs without Docker.
-
-## Mid-Term
-
-- [x] Release minimal `ship new` CLI command (v1 local scaffold, no network bootstrap).
-- [x] Release `ship make:model` and `ship db:make`.
-- [ ] Release `auth` and `storage` modules.
-- [ ] Release `admin` scaffolding MVP.
-- [ ] Add golden-path example apps for both runtime modes.
-- [ ] Move Cherie onto released GoShip modules incrementally (module by module).
-- [ ] Upstream selected Cherie capabilities into optional GoShip modules (notifications/referrals/gamification/security helpers).
-- [ ] Keep Docker-based integration suite as optional/CI-focused (`make test-integration`), not default local path.
-- [x] Keep starter i18n scaffolding focused on `en`/`fr`; treat broader locale sets as follow-up work outside `ship new`.
-
-## Open Questions
-
-1. How strict should conventions be before allowing customization hooks?
-2. Which features are mandatory in v1 versus module-only?
-3. What is the minimum stable API surface for `core` v1.0.0?
-4. How should we guarantee cross-module compatibility at release time?
+1. making the planning-only promotion/export/import/upgrade surfaces executable;
+2. replacing module-wiring TODO placeholders with real battery wiring;
+3. tightening contract suites around startup, HTTP, CLI, and managed-mode interoperability;
+4. proving standalone exportability and downstream Cherie compatibility continuously;
+5. publishing `llm.txt`, MCP scope, and contributor runbooks only after the runtime and CLI contracts they depend on stabilize.
 
 ## Definition of Success (v1)
 
 1. A developer can run `ship new myapp` and ship a working app quickly.
 2. The same app code can run in single-node or distributed mode by config.
-3. Optional batteries are added via CLI without copy-paste.
-4. LLMs can reliably reason over framework structure using `llm.txt` + MCP.
+3. Optional batteries are added via CLI without copy-paste or hand wiring.
+4. LLMs can reliably reason over framework structure using stable docs and runtime/CLI contracts.
 5. Cherie can upgrade to current GoShip with a documented, repeatable process.
 
 ---

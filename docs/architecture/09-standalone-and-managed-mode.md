@@ -112,8 +112,8 @@ Canonical signature payload:
 
 - `METHOD + "\n" + PATH_WITH_QUERY + "\n" + TIMESTAMP + "\n" + NONCE + "\n" + RAW_BODY`
 
-shared signature vectors and the canonical payload library are tracked separately so both the
-runtime bridge and control-plane tooling can reuse the same signing fixtures.
+shared signature vectors and the canonical payload library now live on the shared security seam so
+both the runtime bridge and control-plane tooling can reuse the same signing fixtures.
 
 Verification/runtime rules:
 
@@ -122,7 +122,7 @@ Verification/runtime rules:
 - replay nonce TTL: `PAGODA_MANAGED_HOOKS_NONCE_TTL_SECONDS` (default `300`)
 - replay protection rejects reuse of the same nonce+timestamp tuple inside the TTL window
 - replay protection should run through a shared/distributed replay store contract in multi-replica deployments; process-local memory is only the default fallback implementation
-- the same signed-request pattern is expected for the control-plane cron entrypoint contract so scheduler-driven actions can reuse the replay/timestamp verification model
+- the same signed-request pattern is used for the control-plane cron entrypoint contract so scheduler-driven actions reuse the replay/timestamp verification model
 
 Response contract:
 

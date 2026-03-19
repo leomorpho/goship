@@ -1,5 +1,5 @@
 {
-  "counter": 387,
+  "counter": 390,
   "backend": "local",
   "states": {
     "archived": {
@@ -13,12 +13,12 @@
     "backlog": {
       "label": "Backlog",
       "open": true,
-      "startable": true,
       "column": 0,
       "next": [
         "todo",
         "archived"
-      ]
+      ],
+      "startable": true
     },
     "done": {
       "label": "Done",
@@ -43,7 +43,6 @@
       "label": "In Review",
       "open": true,
       "column": 3,
-      "blocks_dependents": false,
       "next": [
         "done",
         "in-progress",
@@ -53,13 +52,13 @@
     "todo": {
       "label": "To Do",
       "open": true,
-      "startable": true,
       "column": 1,
       "next": [
         "in-progress",
         "backlog",
         "archived"
-      ]
+      ],
+      "startable": true
     }
   },
   "labels": [

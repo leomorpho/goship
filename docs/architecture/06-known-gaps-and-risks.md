@@ -60,17 +60,19 @@ Impact:
 - The route manifest and static asset surface are centralized today.
 - Future route extraction work should keep using route-composition contract tests to avoid reintroducing split registration styles.
 
-## Startup and Route Contract Suites Now Cover Failure Paths (Low)
+## Startup, Route, and CLI Contract Suites Now Cover Fast Failure Paths (Low)
 
 Startup failure cases now have a dedicated contract suite covering nil containers, missing module
 dependencies, invalid runtime profiles, and realtime capability mismatches. Route inventory output
 also has explicit public/auth contract coverage over `method`, `path`, `auth`, `handler`, and
-`file` metadata.
+`file` metadata. Operator-facing CLI surfaces such as `ship verify`, `ship routes`, and
+`ship describe --pretty` also have stateless golden-contract coverage in the default test loop.
 
 Impact:
 
 - Startup regressions now fail through one executable contract instead of being spread across ad hoc tests.
 - CLI and agent consumers of `ship routes --json` now have an explicit grouped-route surface contract.
+- Selected operator-facing CLI outputs now drift through targeted golden tests instead of incidental broad-suite failures.
 
 ## Canonical Docs Now Enforce Hard-Cut Wording (Low)
 
@@ -143,14 +145,15 @@ Impact:
 ## 11) Runtime Capability Reporting Is Now Canonicalized (Low)
 
 `ship runtime:report --json` now exposes the effective profile, adapters, process plan, web
-features, DB runtime metadata, and managed-key sources in one machine-readable payload. The
-INT1-01 will extend that payload with a versioned handshake envelope for orchestration preflight.
-Managed runtime metadata now carries explicit registry/schema version identifiers so runtime and
-control-plane consumers can agree on the authoritative key mapping. The remaining risk is payload
-drift if future runtime metadata is added without extending the report.
+features, DB runtime metadata, managed-key sources, and a versioned handshake envelope for
+orchestration preflight. Managed runtime metadata now carries explicit registry/schema version
+identifiers so runtime and control-plane consumers can agree on the authoritative key mapping. The
+remaining risk is payload drift if future runtime metadata is added without extending the report.
 
-INT1-02 will add a named orchestration contract-mismatch preflight gate on top of `ship verify`
-so unsupported deploy/upgrade/promote combinations fail before the orchestration layer starts.
+`ship verify` now runs a named orchestration contract-mismatch preflight gate so unsupported
+deploy/upgrade/promote combinations fail before the orchestration layer starts. The remaining gap
+is widening that gate beyond the current shared contract token check into richer orchestration
+policy and remediation reporting.
 
 Managed settings now expose drift and rollback-target metadata for managed overrides, but the
 remaining risk is UI/operator workflow drift if future settings surfaces fail to render that
@@ -159,6 +162,7 @@ metadata consistently.
 Impact:
 
 - Operators and agents now have one canonical CLI report for runtime capability inspection.
+- Operators and agents now have one named verify preflight gate for orchestration/runtime contract drift.
 - Future runtime metadata additions should extend the report and its contract tests in the same change stream.
 
 ## Upgrade Readiness Report Is Now Canonicalized (Low)
@@ -568,4 +572,4 @@ Impact:
 4. Refresh e2e tests to match current GoShip flows.
 5. Align local stack docs with actual DB mode and compose services.
 6. Add shared/distributed replay storage for managed hook nonce tracking in multi-replica deployments.
-7. Publish shared signature vectors and a canonical payload library for the INT2 bridge so signing fixtures do not drift between runtime and control-plane consumers.
+7. Keep extending the shared signing seam rather than reintroducing ad hoc payload/signature builders outside `framework/security`.
