@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
@@ -20,6 +21,27 @@ type UpgradeDeps struct {
 	FindGoModule func(start string) (string, string, error)
 }
 
+type UpgradeReadinessReport struct {
+	SchemaVersion   string                  `json:"schema_version"`
+	TargetVersion   string                  `json:"target_version"`
+	Ready           bool                    `json:"ready"`
+	Blockers        []UpgradeReadinessItem  `json:"blockers"`
+	RemediationHints []string               `json:"remediation_hints"`
+	PlannedChanges  []UpgradePlannedChange  `json:"planned_changes"`
+}
+
+type UpgradeReadinessItem struct {
+	ID          string `json:"id"`
+	Title       string `json:"title"`
+	Remediation string `json:"remediation"`
+}
+
+type UpgradePlannedChange struct {
+	File    string `json:"file"`
+	Current string `json:"current"`
+	Target  string `json:"target"`
+}
+
 func RunUpgrade(args []string, d UpgradeDeps) int {
 	for _, arg := range args {
 		if arg == "-h" || arg == "--help" || arg == "help" {
@@ -31,6 +53,7 @@ func RunUpgrade(args []string, d UpgradeDeps) int {
 	fs.SetOutput(io.Discard)
 	to := fs.String("to", "", "target pinned version, e.g. v0.3.1001")
 	dryRun := fs.Bool("dry-run", false, "print planned file changes without writing")
+	jsonOut := fs.Bool("json", false, "emit machine-readable upgrade readiness report without writing")
 	if err := fs.Parse(args); err != nil {
 		fmt.Fprintf(d.Err, "invalid upgrade arguments: %v\n", err)
 		return 1
@@ -60,15 +83,23 @@ func RunUpgrade(args []string, d UpgradeDeps) int {
 		return 1
 	}
 
-	return upgradeGoose(d, root, *to, *dryRun)
+	return upgradeGoose(d, root, *to, *dryRun, *jsonOut)
 }
 
-func upgradeGoose(d UpgradeDeps, root, version string, dryRun bool) int {
+func upgradeGoose(d UpgradeDeps, root, version string, dryRun, jsonOut bool) int {
 	path := filepath.Join(root, "tools", "cli", "ship", "internal", "cli", "cli.go")
 	old, newText, changed, err := RewriteGooseVersion(path, version)
 	if err != nil {
 		fmt.Fprintf(d.Err, "failed to update goose version: %v\n", err)
 		return 1
+	}
+	report := buildUpgradeReadinessReport(path, old, version, changed)
+	if jsonOut {
+		if err := json.NewEncoder(d.Out).Encode(report); err != nil {
+			fmt.Fprintf(d.Err, "failed to encode upgrade readiness report: %v\n", err)
+			return 1
+		}
+		return 0
 	}
 	if !changed {
 		fmt.Fprintf(d.Out, "goose already pinned to %s in %s\n", version, path)
@@ -108,7 +139,30 @@ func RewriteGooseVersion(path, target string) (oldVersion string, rewritten stri
 	return old, updated, true, nil
 }
 
+func buildUpgradeReadinessReport(path, currentVersion, targetVersion string, changed bool) UpgradeReadinessReport {
+	report := UpgradeReadinessReport{
+		SchemaVersion:   "upgrade-readiness-v1",
+		TargetVersion:   targetVersion,
+		Ready:           true,
+		Blockers:        []UpgradeReadinessItem{},
+		RemediationHints: []string{
+			"Review the readiness report before mutating pinned versions.",
+			"Use ship upgrade --to <version> --dry-run to preview the text mutation plan.",
+			"Run ship upgrade --to <version> without --json after the readiness report is accepted.",
+		},
+		PlannedChanges: []UpgradePlannedChange{},
+	}
+	if changed {
+		report.PlannedChanges = append(report.PlannedChanges, UpgradePlannedChange{
+			File:    path,
+			Current: currentVersion,
+			Target:  targetVersion,
+		})
+	}
+	return report
+}
+
 func PrintUpgradeHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship upgrade commands:")
-	fmt.Fprintln(w, "  ship upgrade --to <version> [--dry-run]  Update pinned CLI tooling references and surface the upgrade readiness report/blocker schema contract (currently Goose only; no auto-latest)")
+	fmt.Fprintln(w, "  ship upgrade --to <version> [--dry-run] [--json]  Update pinned CLI tooling references and surface the upgrade readiness report/blocker schema contract (currently Goose only; no auto-latest)")
 }

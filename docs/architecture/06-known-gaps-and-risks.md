@@ -161,15 +161,16 @@ Impact:
 - Operators and agents now have one canonical CLI report for runtime capability inspection.
 - Future runtime metadata additions should extend the report and its contract tests in the same change stream.
 
-## Upgrade Readiness Report Still Needs a Blocker Schema (Low)
+## Upgrade Readiness Report Is Now Canonicalized (Low)
 
-`ship upgrade` still needs a machine-readable readiness report that carries the upgrade target,
-blocking conditions, and remediation hints in a shared blocker schema. The remaining risk is that
-upgrade orchestration tooling cannot yet preflight version bumps with one canonical contract.
+`ship upgrade --json` now exposes a machine-readable `upgrade-readiness-v1` payload that carries
+the requested upgrade target, readiness state, blocking conditions, remediation hints, and planned
+pin changes in one stable schema. The current scope stays Goose-only, so the remaining risk is
+future scope drift if additional upgrade surfaces bypass that schema.
 
 Impact:
 
-- Operators will have a single preflight report for upgrade safety once the contract lands.
+- Operators and orchestration tooling now have one canonical preflight report for upgrade safety.
 - Future upgrade automation should extend the same blocker schema instead of inventing a parallel plan format.
 
 ## Cross-Lane Dependency Matrix Still Needs A Single Contract Map (Low)

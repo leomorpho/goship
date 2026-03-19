@@ -55,7 +55,7 @@ Project lifecycle:
 - `ship agent:status`
 - `ship agent:start --task "<description>" [--id TASK-001]`
 - `ship agent:finish --id TASK-001 --message "feat(scope): summary" [--pr]`
-- `ship upgrade --to <version> [--dry-run]`
+- `ship upgrade --to <version> [--dry-run] [--json]`
 - `ship upgrade` will surface an upgrade readiness report and blocker schema for orchestration preflight before future automation mutates pinned versions.
 
 Local runtime:
@@ -240,6 +240,7 @@ Safety matrix:
 - current first-class installable batteries include `notifications`, `paidsubscriptions`, `emailsubscriptions`, `jobs`, and `storage`; `storage` exposes the canonical `core.BlobStorage` seam as a standalone battery package under `modules/storage`
 - `ship upgrade --to <version>` -> upgrades the pinned Goose CLI go-run fallback version (`gooseGoRunRef` in `tools/cli/ship/internal/cli/cli.go`)
 - `ship upgrade --dry-run` -> prints planned pin change without writing files
+- `ship upgrade --json` -> emits the machine-readable `upgrade-readiness-v1` preflight contract (`schema_version`, `target_version`, `ready`, `blockers`, `remediation_hints`, `planned_changes`) without writing files
 - current scope: Goose pin only (expandable later)
 
 Doctor checks (current):
