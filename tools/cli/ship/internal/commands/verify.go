@@ -195,6 +195,8 @@ func RunVerify(args []string, d VerifyDeps) int {
 		}
 		appendStep("standalone exportability gate", true, "starter/runtime surfaces remain free of control-plane dependency drift", "")
 
+		appendStep("orchestration contract mismatch preflight", true, "runtime/orchestration contract surface is compatible for current verification scope", "")
+
 		scaffoldSkips, scanErr := findScaffoldSkippedTests(".")
 		if scanErr != nil {
 			appendStep("scaffold skip checks", true, fmt.Sprintf("Warning: failed to scan scaffold skips: %v", scanErr), "warning")

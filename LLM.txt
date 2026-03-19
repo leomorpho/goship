@@ -1009,7 +1009,8 @@ Runtime DB metadata contract:
 - `config.Config.RuntimeMetadata()` now provides a normalized DB metadata snapshot for status/reporting surfaces.
 - `ship runtime:report --json` emits the canonical machine-readable runtime capability payload from config/runtime-plan metadata, including active profile, adapters, process plan, web features, DB runtime metadata, and managed-key sources.
 - Metadata includes DB mode/driver, migration tracking table, portability profile, and SQLite-to-Postgres compatibility path (`sqlite-to-postgres-manual-v1`).
-- `config.Config.ManagedSettingStatuses()` provides normalized managed-setting access states for settings/admin surfaces.
+- Managed runtime metadata now carries shared registry/schema version identifiers (`managed-key-registry-v1`, `managed-key-schema-v1`) so runtime and control-plane consumers can agree on the managed-key contract.
+- `config.Config.ManagedSettingStatuses()` provides normalized managed-setting access states for settings/admin surfaces, including managed-override drift and rollback-target metadata.
 - Managed mode now includes a signed control-plane bridge at `/managed/status`, `/managed/backup`, and `/managed/restore`.
 - Managed hook verification is configurable through `PAGODA_MANAGED_HOOKS_SECRET`, `PAGODA_MANAGED_HOOKS_MAX_SKEW_SECONDS`, and `PAGODA_MANAGED_HOOKS_NONCE_TTL_SECONDS`.
 
@@ -1438,15 +1439,16 @@ Impact:
 `ship runtime:report --json` now exposes the effective profile, adapters, process plan, web
 features, DB runtime metadata, and managed-key sources in one machine-readable payload. The
 INT1-01 will extend that payload with a versioned handshake envelope for orchestration preflight.
-The managed-key registry still needs an explicit versioned schema contract so runtime and control-plane
-consumers can agree on the authoritative key mapping. The remaining risk is payload drift if future
-runtime metadata is added without extending the report.
+Managed runtime metadata now carries explicit registry/schema version identifiers so runtime and
+control-plane consumers can agree on the authoritative key mapping. The remaining risk is payload
+drift if future runtime metadata is added without extending the report.
 
 INT1-02 will add a named orchestration contract-mismatch preflight gate on top of `ship verify`
 so unsupported deploy/upgrade/promote combinations fail before the orchestration layer starts.
 
-Managed settings still need a dedicated drift/rollback surface so operator tooling can detect when a
-managed override has diverged from the intended runtime state and present a safe rollback path.
+Managed settings now expose drift and rollback-target metadata for managed overrides, but the
+remaining risk is UI/operator workflow drift if future settings surfaces fail to render that
+metadata consistently.
 
 Impact:
 
@@ -1469,6 +1471,9 @@ Impact:
 The GoShip, Interaction, and Control-plane ticket streams still rely on multiple docs and ticket
 parents to express sequencing. The cross-lane dependency matrix should explicitly name the
 must-finish-before contract map so ticket ordering stays deterministic.
+
+This cross-lane dependency matrix contract should stay named exactly that way in the canonical docs
+so coordination and verification tooling can grep for one phrase.
 
 Impact:
 
@@ -4832,8 +4837,8 @@ Minimum framework tooling/hooks to expose:
 6. Shared/distributed replay storage contract for managed hook nonce tracking so multi-replica managed mode rejects replays consistently.
 7. `backup-manifest-v1` is now locked to SQLite-first metadata plus SHA-256 checksum invariants, and managed restore responses return typed restore evidence with an explicit accepted-manifest field.
 8. Shared signature vectors and a canonical payload library will be introduced for the INT2 bridge so runtime and control-plane signing fixtures stay aligned.
-9. Managed settings will need explicit drift detection and rollback semantics so the runtime can show when intended overrides and effective state have diverged.
-10. The managed-key registry will be versioned as a shared runtime/control-plane artifact so schema mapping stays authoritative instead of inferred from ad hoc key lists.
+9. Managed settings now expose explicit drift detection and rollback-target metadata so the runtime can show when intended overrides and effective state have diverged.
+10. The managed-key registry is now versioned as a shared runtime/control-plane artifact (`managed-key-registry-v1` / `managed-key-schema-v1`) so schema mapping stays authoritative instead of inferred from ad hoc key lists.
 11. Signed cron entrypoint verification should reuse the same replay/timestamp contract shape so control-plane schedulers can target runtime hooks deterministically.
 
 ## Docket Tracking
@@ -5315,6 +5320,9 @@ Orchestration preflight contract tracked under `TKT-221` / `TKT-321` / `TKT-322`
 Cross-lane dependency matrix tracked under `TKT-246` / `TKT-351` / `TKT-352`:
 - the dependency matrix should explicitly mark must-finish-before contract map entries so GoShip, Interaction, and Control-plane tickets stay sequenced without ambiguity;
 - child work should stay in the documentation/coordination lane and avoid inventing new execution semantics.
+
+This cross-lane dependency matrix contract should stay named exactly that way in the canonical docs
+so planning, review, and verification tooling can grep for one phrase.
 
 CLI-path reset tracked under `TKT-249` / `TKT-311` / `TKT-312`:
 - the executable spec now pins one canonical top-level quality path per concern;

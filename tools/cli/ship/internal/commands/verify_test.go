@@ -195,8 +195,8 @@ func TestRunVerify(t *testing.T) {
 		if !payload.OK {
 			t.Fatalf("payload.OK = false, want true")
 		}
-		if len(payload.Steps) != 8 {
-			t.Fatalf("steps len = %d, want 8", len(payload.Steps))
+		if len(payload.Steps) != 9 {
+			t.Fatalf("steps len = %d, want 9", len(payload.Steps))
 		}
 		if payload.Steps[2].Name != "ship doctor --json" {
 			t.Fatalf("doctor step name = %q, want ship doctor --json", payload.Steps[2].Name)
@@ -208,7 +208,10 @@ func TestRunVerify(t *testing.T) {
 			t.Fatalf("module compatibility step name = %q, want module compatibility policy", payload.Steps[4].Name)
 		}
 		if payload.Steps[7].Name != "standalone exportability gate" {
-			t.Fatalf("final step name = %q, want standalone exportability gate", payload.Steps[7].Name)
+			t.Fatalf("step 8 name = %q, want standalone exportability gate", payload.Steps[7].Name)
+		}
+		if payload.Steps[8].Name != "orchestration contract mismatch preflight" {
+			t.Fatalf("final step name = %q, want orchestration contract mismatch preflight", payload.Steps[8].Name)
 		}
 	})
 

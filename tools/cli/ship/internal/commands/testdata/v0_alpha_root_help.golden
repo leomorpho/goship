@@ -14,6 +14,8 @@ Direct Commands:
   ship describe [--pretty]                 Show runtime/module inventory
   ship runtime:report --json               Show machine-readable runtime capability report
   ship run:command <name> [-- <args...>]   Run app-defined CLI command
+  ship profile --help                      Runtime profile command help
+  ship adapter --help                      Adapter selection command help
   ship module:add <name> [--dry-run]       Enable a module
   ship module:remove <name> [--dry-run]    Disable a module
   ship upgrade --to <version> [--dry-run]  Upgrade pinned CLI tooling

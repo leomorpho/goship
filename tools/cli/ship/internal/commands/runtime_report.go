@@ -18,12 +18,21 @@ type RuntimeReportDeps struct {
 }
 
 type runtimeReport struct {
-	Profile   string                         `json:"profile"`
-	Adapters  runtimeReportAdapters          `json:"adapters"`
-	Processes runtimeReportProcesses         `json:"processes"`
-	Web       runtimeplan.WebFeatures        `json:"web"`
-	Database  config.DatabaseRuntimeMetadata `json:"database"`
-	Managed   config.ManagedRuntimeMetadata  `json:"managed"`
+	ContractVersion string                         `json:"contract_version"`
+	Handshake       runtimeReportHandshake         `json:"handshake"`
+	Profile         string                         `json:"profile"`
+	Adapters        runtimeReportAdapters          `json:"adapters"`
+	Processes       runtimeReportProcesses         `json:"processes"`
+	Web             runtimeplan.WebFeatures        `json:"web"`
+	Database        config.DatabaseRuntimeMetadata `json:"database"`
+	Managed         config.ManagedRuntimeMetadata  `json:"managed"`
+}
+
+type runtimeReportHandshake struct {
+	SchemaVersion string                         `json:"schema_version"`
+	Profile       string                         `json:"profile"`
+	Managed       config.ManagedRuntimeMetadata  `json:"managed"`
+	Database      config.DatabaseRuntimeMetadata `json:"database"`
 }
 
 type runtimeReportAdapters struct {
@@ -81,7 +90,14 @@ func RunRuntimeReport(args []string, d RuntimeReportDeps) int {
 	}
 
 	report := runtimeReport{
-		Profile: string(cfg.Runtime.Profile),
+		ContractVersion: "runtime-contract-v1",
+		Handshake: runtimeReportHandshake{
+			SchemaVersion: "runtime-handshake-v1",
+			Profile:       plan.Profile,
+			Managed:       cfg.RuntimeMetadata().Managed,
+			Database:      cfg.RuntimeMetadata().Database,
+		},
+		Profile: plan.Profile,
 		Adapters: runtimeReportAdapters{
 			DB:     cfg.Adapters.DB,
 			Cache:  cfg.Adapters.Cache,
@@ -92,7 +108,7 @@ func RunRuntimeReport(args []string, d RuntimeReportDeps) int {
 			Web:       plan.RunWeb,
 			Worker:    plan.RunWorker,
 			Scheduler: plan.RunScheduler,
-			CoLocated: cfg.Processes.CoLocated,
+			CoLocated: plan.CoLocated,
 		},
 		Web: runtimeplan.ResolveWebFeatures(
 			plan,

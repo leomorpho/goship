@@ -330,8 +330,8 @@ Minimum framework tooling/hooks to expose:
 6. Shared/distributed replay storage contract for managed hook nonce tracking so multi-replica managed mode rejects replays consistently.
 7. `backup-manifest-v1` is now locked to SQLite-first metadata plus SHA-256 checksum invariants, and managed restore responses return typed restore evidence with an explicit accepted-manifest field.
 8. Shared signature vectors and a canonical payload library will be introduced for the INT2 bridge so runtime and control-plane signing fixtures stay aligned.
-9. Managed settings will need explicit drift detection and rollback semantics so the runtime can show when intended overrides and effective state have diverged.
-10. The managed-key registry will be versioned as a shared runtime/control-plane artifact so schema mapping stays authoritative instead of inferred from ad hoc key lists.
+9. Managed settings now expose explicit drift detection and rollback-target metadata so the runtime can show when intended overrides and effective state have diverged.
+10. The managed-key registry is now versioned as a shared runtime/control-plane artifact (`managed-key-registry-v1` / `managed-key-schema-v1`) so schema mapping stays authoritative instead of inferred from ad hoc key lists.
 11. Signed cron entrypoint verification should reuse the same replay/timestamp contract shape so control-plane schedulers can target runtime hooks deterministically.
 
 ## Docket Tracking
@@ -813,6 +813,9 @@ Orchestration preflight contract tracked under `TKT-221` / `TKT-321` / `TKT-322`
 Cross-lane dependency matrix tracked under `TKT-246` / `TKT-351` / `TKT-352`:
 - the dependency matrix should explicitly mark must-finish-before contract map entries so GoShip, Interaction, and Control-plane tickets stay sequenced without ambiguity;
 - child work should stay in the documentation/coordination lane and avoid inventing new execution semantics.
+
+This cross-lane dependency matrix contract should stay named exactly that way in the canonical docs
+so planning, review, and verification tooling can grep for one phrase.
 
 CLI-path reset tracked under `TKT-249` / `TKT-311` / `TKT-312`:
 - the executable spec now pins one canonical top-level quality path per concern;

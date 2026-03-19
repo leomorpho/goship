@@ -30,6 +30,15 @@
       "migrations": 1
     }
   ],
+  "module_adoption": [
+    {
+      "id": "notifications",
+      "module_path": "github.com/leomorpho/goship-modules/notifications",
+      "version": "v0.0.0",
+      "source": "local-replace",
+      "installed": true
+    }
+  ],
   "controllers": [
     {
       "name": "login",

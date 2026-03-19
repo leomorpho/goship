@@ -45,7 +45,7 @@ func GetConfig() (Config, error) {
 	applyRuntimeDefaults(&c)
 	applyProcessesProfileIfUnset(&c, hasExplicitProcessSelection(repoPresence, envPresence, managedSet))
 	c.Managed.RuntimeReport = runtimeconfig.BuildReport(runtimeconfig.LayerInputs{
-		Defaults:        managedKeyValues(defaultConfig()),
+		Defaults:        managedKeyValues(normalizedDefaultConfigForReporting()),
 		EffectiveValues: managedKeyValues(c),
 		RepoSet:         repoPresence,
 		EnvSet:          envPresence,

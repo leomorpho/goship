@@ -13,6 +13,10 @@ const (
 	MigrationPortabilitySQLCoreV1 = "sql-core-v1"
 	// PromotionPathSQLiteToPostgresManualV1 identifies the first supported promotion workflow.
 	PromotionPathSQLiteToPostgresManualV1 = "sqlite-to-postgres-manual-v1"
+	// ManagedKeyRegistryVersion identifies the shared managed-key registry artifact contract.
+	ManagedKeyRegistryVersion = "managed-key-registry-v1"
+	// ManagedKeySchemaVersion identifies the runtime JSON schema version for managed-key metadata.
+	ManagedKeySchemaVersion = "managed-key-schema-v1"
 )
 
 // RuntimeMetadata reports normalized runtime capability metadata for status/reporting surfaces.
@@ -23,9 +27,11 @@ type RuntimeMetadata struct {
 
 // ManagedRuntimeMetadata reports effective managed keys and their source layers.
 type ManagedRuntimeMetadata struct {
-	Mode      string                        `json:"mode"`
-	Authority string                        `json:"authority,omitempty"`
-	Keys      map[string]ManagedKeyMetadata `json:"keys"`
+	Mode            string                        `json:"mode"`
+	Authority       string                        `json:"authority,omitempty"`
+	RegistryVersion string                        `json:"registry_version"`
+	SchemaVersion   string                        `json:"schema_version"`
+	Keys            map[string]ManagedKeyMetadata `json:"keys"`
 }
 
 // ManagedKeyMetadata reports the effective value and source for one managed key.
@@ -47,16 +53,17 @@ type DatabaseRuntimeMetadata struct {
 
 // RuntimeMetadata builds a runtime metadata snapshot using normalized configuration values.
 func (c Config) RuntimeMetadata() RuntimeMetadata {
+	normalized := normalizedConfigForReporting(c)
 	report := c.Managed.RuntimeReport
 	if report.Mode == "" {
 		report = runtimeconfig.BuildReport(runtimeconfig.LayerInputs{
-			Defaults:        managedKeyValues(c),
-			EffectiveValues: managedKeyValues(c),
+			Defaults:        managedKeyValues(normalizedDefaultConfigForReporting()),
+			EffectiveValues: managedKeyValues(normalized),
 			RepoSet:         map[string]bool{},
 			EnvSet:          map[string]bool{},
 			ManagedSet:      map[string]bool{},
-			ManagedEnabled:  c.Managed.Enabled,
-			Authority:       c.Managed.Authority,
+			ManagedEnabled:  normalized.Managed.Enabled,
+			Authority:       normalized.Managed.Authority,
 		})
 	}
 
@@ -69,11 +76,13 @@ func (c Config) RuntimeMetadata() RuntimeMetadata {
 	}
 
 	return RuntimeMetadata{
-		Database: c.Database.RuntimeMetadata(),
+		Database: normalized.Database.RuntimeMetadata(),
 		Managed: ManagedRuntimeMetadata{
-			Mode:      string(report.Mode),
-			Authority: report.Authority,
-			Keys:      keys,
+			Mode:            string(report.Mode),
+			Authority:       report.Authority,
+			RegistryVersion: ManagedKeyRegistryVersion,
+			SchemaVersion:   ManagedKeySchemaVersion,
+			Keys:            keys,
 		},
 	}
 }

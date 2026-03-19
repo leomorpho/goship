@@ -76,16 +76,25 @@ type describeSharedInfra struct {
 	CustomAppCommands    int      `json:"custom_app_commands"`
 }
 
+type describeModuleAdoption struct {
+	ID         string `json:"id"`
+	ModulePath string `json:"module_path"`
+	Version    string `json:"version"`
+	Source     string `json:"source"`
+	Installed  bool   `json:"installed"`
+}
+
 type describeResult struct {
-	Routes      []describeRoute      `json:"routes"`
-	Modules     []describeModule     `json:"modules"`
-	Controllers []describeController `json:"controllers"`
-	ViewModels  []describeViewModel  `json:"viewmodels"`
-	Components  []describeComponent  `json:"components"`
-	Islands     []describeIsland     `json:"islands"`
-	DBTables    []string             `json:"db_tables"`
-	Migrations  []describeMigration  `json:"migrations"`
-	SharedInfra describeSharedInfra  `json:"shared_infra"`
+	Routes         []describeRoute          `json:"routes"`
+	Modules        []describeModule         `json:"modules"`
+	ModuleAdoption []describeModuleAdoption `json:"module_adoption"`
+	Controllers    []describeController     `json:"controllers"`
+	ViewModels     []describeViewModel      `json:"viewmodels"`
+	Components     []describeComponent      `json:"components"`
+	Islands        []describeIsland         `json:"islands"`
+	DBTables       []string                 `json:"db_tables"`
+	Migrations     []describeMigration      `json:"migrations"`
+	SharedInfra    describeSharedInfra      `json:"shared_infra"`
 }
 
 func RunDescribe(args []string, d DescribeDeps) int {
@@ -183,22 +192,78 @@ func buildDescribeResult(root string) (describeResult, error) {
 	if err != nil {
 		return describeResult{}, err
 	}
+	moduleAdoption, err := collectDescribeModuleAdoption(root, modules)
+	if err != nil {
+		return describeResult{}, err
+	}
 	sharedInfra, err := collectDescribeSharedInfra(root, modules, controllers)
 	if err != nil {
 		return describeResult{}, err
 	}
 
 	return describeResult{
-		Routes:      routes,
-		Modules:     modules,
-		Controllers: controllers,
-		ViewModels:  viewmodels,
-		Components:  components,
-		Islands:     islands,
-		DBTables:    dbTables,
-		Migrations:  migrations,
-		SharedInfra: sharedInfra,
+		Routes:         routes,
+		Modules:        modules,
+		ModuleAdoption: moduleAdoption,
+		Controllers:    controllers,
+		ViewModels:     viewmodels,
+		Components:     components,
+		Islands:        islands,
+		DBTables:       dbTables,
+		Migrations:     migrations,
+		SharedInfra:    sharedInfra,
 	}, nil
+}
+
+func collectDescribeModuleAdoption(root string, modules []describeModule) ([]describeModuleAdoption, error) {
+	adoption := make([]describeModuleAdoption, 0, len(modules))
+	for _, module := range modules {
+		if !module.Installed {
+			continue
+		}
+
+		modulePath := fmt.Sprintf("github.com/leomorpho/goship-modules/%s", module.ID)
+		source := "tagged-release"
+		version := "v0.0.0"
+
+		moduleGoMod := filepath.Join(root, "modules", module.ID, "go.mod")
+		if _, err := os.Stat(moduleGoMod); err == nil {
+			if parsedPath := parseDescribeModulePath(moduleGoMod); parsedPath != "" {
+				modulePath = parsedPath
+			}
+			source = "local-replace"
+		} else if err != nil && !os.IsNotExist(err) {
+			return nil, err
+		}
+
+		adoption = append(adoption, describeModuleAdoption{
+			ID:         module.ID,
+			ModulePath: modulePath,
+			Version:    version,
+			Source:     source,
+			Installed:  true,
+		})
+	}
+
+	sort.Slice(adoption, func(i, j int) bool {
+		return adoption[i].ID < adoption[j].ID
+	})
+
+	return adoption, nil
+}
+
+func parseDescribeModulePath(path string) string {
+	content, err := os.ReadFile(path)
+	if err != nil {
+		return ""
+	}
+	for _, line := range strings.Split(string(content), "\n") {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "module ") {
+			return strings.TrimSpace(strings.TrimPrefix(line, "module "))
+		}
+	}
+	return ""
 }
 
 func collectDescribeSharedInfra(root string, modules []describeModule, controllers []describeController) (describeSharedInfra, error) {

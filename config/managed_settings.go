@@ -18,11 +18,13 @@ const (
 
 // ManagedSettingStatus reports effective state for one managed-capable setting key.
 type ManagedSettingStatus struct {
-	Key    string
-	Label  string
-	Value  string
-	Source runtimeconfig.Source
-	Access SettingAccess
+	Key            string
+	Label          string
+	Value          string
+	Source         runtimeconfig.Source
+	Access         SettingAccess
+	Drift          bool                 `json:"drift,omitempty"`
+	RollbackTarget runtimeconfig.Source `json:"rollback_target,omitempty"`
 }
 
 var managedSettingLabels = map[string]string{
@@ -42,16 +44,17 @@ var managedSettingLabels = map[string]string{
 
 // ManagedSettingStatuses returns the allowlisted managed settings with explicit access state.
 func (c Config) ManagedSettingStatuses() []ManagedSettingStatus {
+	normalized := normalizedConfigForReporting(c)
 	report := c.Managed.RuntimeReport
 	if report.Mode == "" {
 		report = runtimeconfig.BuildReport(runtimeconfig.LayerInputs{
-			Defaults:        managedKeyValues(defaultConfig()),
-			EffectiveValues: managedKeyValues(c),
+			Defaults:        managedKeyValues(normalizedDefaultConfigForReporting()),
+			EffectiveValues: managedKeyValues(normalized),
 			RepoSet:         map[string]bool{},
 			EnvSet:          map[string]bool{},
 			ManagedSet:      map[string]bool{},
-			ManagedEnabled:  c.Managed.Enabled,
-			Authority:       c.Managed.Authority,
+			ManagedEnabled:  normalized.Managed.Enabled,
+			Authority:       normalized.Managed.Authority,
 		})
 	}
 
@@ -61,23 +64,31 @@ func (c Config) ManagedSettingStatuses() []ManagedSettingStatus {
 	}
 	sort.Strings(keys)
 
-	effective := managedKeyValues(c)
+	effective := managedKeyValues(normalized)
 	statuses := make([]ManagedSettingStatus, 0, len(keys))
 	for _, key := range keys {
 		keyState, ok := report.Keys[key]
 		if !ok {
 			keyState = runtimeconfig.KeyState{
-				Value:  strings.TrimSpace(effective[key]),
-				Source: runtimeconfig.SourceFrameworkDefault,
+				Value:          strings.TrimSpace(effective[key]),
+				Source:         runtimeconfig.SourceFrameworkDefault,
+				RollbackTarget: runtimeconfig.SourceFrameworkDefault,
 			}
 		}
 
+		currentValue := strings.TrimSpace(effective[key])
+		drift := report.Mode == runtimeconfig.ModeManaged &&
+			keyState.Source == runtimeconfig.SourceManagedOverride &&
+			currentValue != strings.TrimSpace(keyState.Value)
+
 		statuses = append(statuses, ManagedSettingStatus{
-			Key:    key,
-			Label:  managedSettingLabel(key),
-			Value:  strings.TrimSpace(keyState.Value),
-			Source: keyState.Source,
-			Access: managedSettingAccess(report.Mode, keyState.Source),
+			Key:            key,
+			Label:          managedSettingLabel(key),
+			Value:          currentValue,
+			Source:         keyState.Source,
+			Access:         managedSettingAccess(report.Mode, keyState.Source),
+			Drift:          drift,
+			RollbackTarget: keyState.RollbackTarget,
 		})
 	}
 
