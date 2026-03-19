@@ -124,7 +124,7 @@ Impact:
 
 ## 9) SQLite-To-Postgres Promotion Is Contracted But Still Manual (Medium)
 
-GoShip now surfaces the promotion contract through `ship db:promote` and runtime DB metadata. The command now applies the canonical `.env` mutation step for SQLite-to-Postgres promotion (`standard` profile plus `db=postgres cache=redis jobs=asynq`) and supports `--dry-run` / `--json` previews of that exact mutation plan. The CLI still exposes separate `ship db:export --json`, `ship db:import --json`, and `ship db:verify-import --json` hooks for the remaining export/import workflow.
+GoShip now surfaces the promotion contract through `ship db:promote` and runtime DB metadata. The command now applies the canonical `.env` mutation step for SQLite-to-Postgres promotion (`standard` profile plus `db=postgres cache=redis jobs=asynq`) and supports `--dry-run` / `--json` previews of that exact mutation plan. The CLI still exposes separate `ship db:export --json`, `ship db:import --json`, and `ship db:verify-import --json` hooks for the remaining export/import workflow. `ship db:export --json` already emits a structured export report with checksum-backed `backup-manifest-v1` evidence and follow-up command hints, but the underlying import/verification engine is still manual-first.
 The underlying import/verification engine is still manual-first, so the next step is wiring those hooks to the actual framework path instead of just surfacing the CLI contract.
 
 Impact:
@@ -144,11 +144,7 @@ Impact:
 
 ## 11) Runtime Capability Reporting Is Now Canonicalized (Low)
 
-`ship runtime:report --json` now exposes the effective profile, adapters, process plan, web
-features, DB runtime metadata, managed-key sources, and a versioned handshake envelope for
-orchestration preflight. Managed runtime metadata now carries explicit registry/schema version
-identifiers so runtime and control-plane consumers can agree on the authoritative key mapping. The
-remaining risk is payload drift if future runtime metadata is added without extending the report.
+`ship runtime:report --json` now exposes the effective profile, adapters, process plan, web features, DB runtime metadata, managed-key sources, and a versioned handshake envelope for orchestration preflight. Managed runtime metadata now carries explicit registry/schema version identifiers so runtime and control-plane consumers can agree on the authoritative key mapping. The remaining risk is payload drift if future runtime metadata is added without extending the report.
 
 `ship verify` now runs a named orchestration contract-mismatch preflight gate so unsupported
 deploy/upgrade/promote combinations fail before the orchestration layer starts. The remaining gap
