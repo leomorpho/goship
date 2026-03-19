@@ -811,9 +811,36 @@ Orchestration preflight contract tracked under `TKT-221` / `TKT-321` / `TKT-322`
 - the preflight should reuse the runtime contract metadata surface rather than inventing a separate ad hoc probe.
 
 Cross-lane dependency matrix tracked under `TKT-246` / `TKT-351` / `TKT-352`:
-- the dependency matrix should explicitly mark must-finish-before contract map entries so GoShip, Interaction, and Control-plane tickets stay sequenced without ambiguity;
-- child work should stay in the documentation/coordination lane and avoid inventing new execution semantics.
-- this cross-lane dependency matrix naming is the canonical coordination contract for follow-on planning work.
+- the cross-lane dependency matrix is the canonical naming for this coordination surface;
+- the cross-lane dependency matrix should explicitly name the must-finish-before contract map for true prerequisites;
+- the dependency matrix should call out only true contract prerequisites or shared-artifact ownership boundaries;
+- child work should stay in the documentation/coordination lane and avoid inventing new execution semantics;
+- the matrix is an advisory planning surface, not a blanket execution gate for every downstream ticket.
+
+### Agent-Oriented Ticketing Contract
+
+Roadmap execution is now biased toward agent pickup, not serialized phase completion.
+
+Rules:
+
+1. Program, phase, and coordination tickets are organizational only.
+2. They may summarize scope, track progress, and aggregate evidence, but they should not hard-block implementation tickets by default.
+3. A hard blocker is allowed only for a true prerequisite:
+   - a required shared contract artifact does not exist yet;
+   - two tickets would otherwise fight over the same narrow write scope;
+   - runtime safety would be violated by parallel delivery.
+4. "Spec/red test" and "implement/verify" siblings should be considered optional decomposition, not mandatory serialized waves.
+5. An implementation-ready ticket must be executable on its own:
+   - add or update targeted failing coverage first inside the ticket when needed;
+   - land code, docs, and verification in the same change stream;
+   - record evidence without waiting for a sibling roadmap ticket to move first.
+6. `docket start` should primarily surface leaf implementation work, not coordination parents.
+
+This means:
+
+- no phase-to-phase hard blockers just because work appears later in the roadmap;
+- no sibling `-A` to `-B` blockers unless the `-A` ticket owns a real shared artifact that must land first;
+- no cross-lane blockers unless the downstream ticket truly cannot be delivered safely without the upstream result.
 
 CLI-path reset tracked under `TKT-249` / `TKT-311` / `TKT-312`:
 - the executable spec now pins one canonical top-level quality path per concern;
