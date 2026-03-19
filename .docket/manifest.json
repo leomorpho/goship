@@ -1256,7 +1256,7 @@
     },
     "TKT-259": {
       "title": "G1-03-A: Define executable spec and red tests",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-196"
     },

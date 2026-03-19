@@ -1,0 +1,18 @@
+{
+  "ticket_id": "TKT-259",
+  "ticket_state": "in-progress",
+  "created_at": "2026-03-19T04:14:24Z",
+  "ac_done": 3,
+  "ac_total": 3,
+  "changed_files": [
+    ".docket/manifest.json",
+    ".docket/tickets/TKT-196.md",
+    ".docket/tickets/TKT-259.md"
+  ],
+  "last_comments": [
+    "Defined the G1-03 red spec without shipping the hard-error behavior yet. Added pending red-spec tests for three target contracts: DX005 unpaired marker drift becomes blocking, DX027 raw controller form parsing becomes blocking, and DX020 module-isolation violations stop being suppressible through the temporary allowlist. Synced the roadmap/risk docs to capture that exact scope. Verification: `go test ./tools/cli/ship/internal/policies`; `docket validate TKT-259`; `docket validate TKT-196`."
+  ],
+  "branch": "work/2026-refactor-main-snapshot",
+  "worktree_path": "/Users/leoaudibert/Workspace/2026/pagoda-based/goship",
+  "summary": "AC completion checkpoint"
+}
