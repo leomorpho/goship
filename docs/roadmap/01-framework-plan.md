@@ -779,8 +779,8 @@ Default-topology hardening tracked under `TKT-198` / `TKT-263` / `TKT-264`:
 - the canonical default local topology is colocated web/worker/scheduler with SQLite + Otter + Backlite + inproc pubsub semantics.
 
 Dev-loop convergence tracked under `TKT-199` / `TKT-265` / `TKT-266`:
-- `ship dev` still resolves default mode from jobs-adapter heuristics instead of the explicit runtime profile;
-- executable red specs now pin the intended contract: `single-node` should stay on the web/app-on loop by default, while `distributed` should opt into the full multiprocess loop.
+- `ship dev` default mode is now driven by the explicit runtime profile instead of jobs-adapter heuristics;
+- executable contract coverage now pins both the profile-driven resolver and the fallback behavior: `single-node` should stay on the web/app-on loop by default, while `distributed` should opt into the full multiprocess loop and unknown/error resolver states should fall back to the web loop.
 
 Cache-contract parity tracked under `TKT-200` / `TKT-267` / `TKT-268`:
 - in-memory page caching is now wired through the same cache seam as Redis;
