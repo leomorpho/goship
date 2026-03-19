@@ -1304,8 +1304,8 @@
     },
     "TKT-267": {
       "title": "G2-03-A: Define executable spec and red tests",
-      "state": "backlog",
-      "priority": 6,
+      "state": "in-progress",
+      "priority": 4,
       "parent": "TKT-200"
     },
     "TKT-268": {

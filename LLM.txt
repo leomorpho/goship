@@ -5293,7 +5293,7 @@ Dev-loop convergence tracked under `TKT-199` / `TKT-265` / `TKT-266`:
 Cache-contract parity tracked under `TKT-200` / `TKT-267` / `TKT-268`:
 - in-memory page caching is now wired through the same cache seam as Redis;
 - one shared contract suite now covers grouped payloads, tag invalidation, TTL expiry, and raw byte/prefix operations across `memory` and `redis`;
-- the shared cache seam normalizes positive TTLs to second precision so adapter choice does not change expiry semantics.
+- executable normalization specs now pin both the `memory`/`otter` adapter alias contract and the positive-TTL round-up rule so adapter choice does not change expiry semantics.
 
 Route-composition hardening tracked under `TKT-232` / `TKT-293` / `TKT-294`:
 - `app/router.go` remains the canonical route composition root;
