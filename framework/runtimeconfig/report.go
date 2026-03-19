@@ -28,8 +28,9 @@ const (
 
 // KeyState reports the effective value and source for a managed key.
 type KeyState struct {
-	Value  string `json:"value"`
-	Source Source `json:"source"`
+	Value          string `json:"value"`
+	Source         Source `json:"source"`
+	RollbackTarget Source `json:"rollback_target,omitempty"`
 }
 
 // Report captures source-of-truth metadata for allowlisted managed keys.
@@ -79,9 +80,22 @@ func BuildReport(input LayerInputs) Report {
 			source = SourceManagedOverride
 		}
 
+		rollbackTarget := Source("")
+		if input.ManagedEnabled && input.ManagedSet[key] {
+			switch {
+			case input.EnvSet[key]:
+				rollbackTarget = SourceEnvironment
+			case input.RepoSet[key]:
+				rollbackTarget = SourceAppRepo
+			default:
+				rollbackTarget = SourceFrameworkDefault
+			}
+		}
+
 		report.Keys[key] = KeyState{
-			Value:  value,
-			Source: source,
+			Value:          value,
+			Source:         source,
+			RollbackTarget: rollbackTarget,
 		}
 	}
 

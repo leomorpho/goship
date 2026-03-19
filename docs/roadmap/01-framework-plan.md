@@ -842,6 +842,9 @@ This means:
 - no sibling `-A` to `-B` blockers unless the `-A` ticket owns a real shared artifact that must land first;
 - no cross-lane blockers unless the downstream ticket truly cannot be delivered safely without the upstream result.
 
+This cross-lane dependency matrix contract should stay named exactly that way in the canonical docs
+so planning, review, and verification tooling can grep for one phrase.
+
 CLI-path reset tracked under `TKT-249` / `TKT-311` / `TKT-312`:
 - the executable spec now pins one canonical top-level quality path per concern;
 - `ship check` has been removed from help, docs, dispatch, and agent-policy surfaces;

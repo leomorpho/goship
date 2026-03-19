@@ -93,11 +93,11 @@ func RunRuntimeReport(args []string, d RuntimeReportDeps) int {
 		ContractVersion: "runtime-contract-v1",
 		Handshake: runtimeReportHandshake{
 			SchemaVersion: "runtime-handshake-v1",
-			Profile:       string(cfg.Runtime.Profile),
+			Profile:       plan.Profile,
 			Managed:       cfg.RuntimeMetadata().Managed,
 			Database:      cfg.RuntimeMetadata().Database,
 		},
-		Profile: string(cfg.Runtime.Profile),
+		Profile: plan.Profile,
 		Adapters: runtimeReportAdapters{
 			DB:     cfg.Adapters.DB,
 			Cache:  cfg.Adapters.Cache,
@@ -108,7 +108,7 @@ func RunRuntimeReport(args []string, d RuntimeReportDeps) int {
 			Web:       plan.RunWeb,
 			Worker:    plan.RunWorker,
 			Scheduler: plan.RunScheduler,
-			CoLocated: cfg.Processes.CoLocated,
+			CoLocated: plan.CoLocated,
 		},
 		Web: runtimeplan.ResolveWebFeatures(
 			plan,

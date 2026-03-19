@@ -33,7 +33,7 @@ func TestBuildReportPrecedence(t *testing.T) {
 	assert.Equal(t, ModeManaged, report.Mode)
 	assert.Equal(t, "control-plane", report.Authority)
 	assert.Equal(t, KeyState{Value: "redis", Source: SourceEnvironment}, report.Keys["adapters.cache"])
-	assert.Equal(t, KeyState{Value: "asynq", Source: SourceManagedOverride}, report.Keys["adapters.jobs"])
+	assert.Equal(t, KeyState{Value: "asynq", Source: SourceManagedOverride, RollbackTarget: SourceFrameworkDefault}, report.Keys["adapters.jobs"])
 }
 
 func TestBuildReportStandaloneIgnoresManagedSet(t *testing.T) {

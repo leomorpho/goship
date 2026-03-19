@@ -137,15 +137,16 @@ Impact:
 `ship runtime:report --json` now exposes the effective profile, adapters, process plan, web
 features, DB runtime metadata, and managed-key sources in one machine-readable payload. The
 INT1-01 will extend that payload with a versioned handshake envelope for orchestration preflight.
-The managed-key registry still needs an explicit versioned schema contract so runtime and control-plane
-consumers can agree on the authoritative key mapping. The remaining risk is payload drift if future
-runtime metadata is added without extending the report.
+Managed runtime metadata now carries explicit registry/schema version identifiers so runtime and
+control-plane consumers can agree on the authoritative key mapping. The remaining risk is payload
+drift if future runtime metadata is added without extending the report.
 
 INT1-02 will add a named orchestration contract-mismatch preflight gate on top of `ship verify`
 so unsupported deploy/upgrade/promote combinations fail before the orchestration layer starts.
 
-Managed settings still need a dedicated drift/rollback surface so operator tooling can detect when a
-managed override has diverged from the intended runtime state and present a safe rollback path.
+Managed settings now expose drift and rollback-target metadata for managed overrides, but the
+remaining risk is UI/operator workflow drift if future settings surfaces fail to render that
+metadata consistently.
 
 Impact:
 
@@ -169,6 +170,9 @@ The GoShip, Interaction, and Control-plane ticket streams still rely on multiple
 parents to express sequencing. The cross-lane dependency matrix should explicitly name the
 must-finish-before contract map so ticket ordering stays deterministic.
 This cross-lane dependency matrix language is the canonical coordination contract for the docs lane.
+
+This cross-lane dependency matrix contract should stay named exactly that way in the canonical docs
+so coordination and verification tooling can grep for one phrase.
 
 Impact:
 

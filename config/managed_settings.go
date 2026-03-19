@@ -44,16 +44,17 @@ var managedSettingLabels = map[string]string{
 
 // ManagedSettingStatuses returns the allowlisted managed settings with explicit access state.
 func (c Config) ManagedSettingStatuses() []ManagedSettingStatus {
+	normalized := normalizedConfigForReporting(c)
 	report := c.Managed.RuntimeReport
 	if report.Mode == "" {
 		report = runtimeconfig.BuildReport(runtimeconfig.LayerInputs{
-			Defaults:        managedKeyValues(defaultConfig()),
-			EffectiveValues: managedKeyValues(c),
+			Defaults:        managedKeyValues(normalizedDefaultConfigForReporting()),
+			EffectiveValues: managedKeyValues(normalized),
 			RepoSet:         map[string]bool{},
 			EnvSet:          map[string]bool{},
 			ManagedSet:      map[string]bool{},
-			ManagedEnabled:  c.Managed.Enabled,
-			Authority:       c.Managed.Authority,
+			ManagedEnabled:  normalized.Managed.Enabled,
+			Authority:       normalized.Managed.Authority,
 		})
 	}
 
@@ -63,14 +64,15 @@ func (c Config) ManagedSettingStatuses() []ManagedSettingStatus {
 	}
 	sort.Strings(keys)
 
-	effective := managedKeyValues(c)
+	effective := managedKeyValues(normalized)
 	statuses := make([]ManagedSettingStatus, 0, len(keys))
 	for _, key := range keys {
 		keyState, ok := report.Keys[key]
 		if !ok {
 			keyState = runtimeconfig.KeyState{
-				Value:  strings.TrimSpace(effective[key]),
-				Source: runtimeconfig.SourceFrameworkDefault,
+				Value:          strings.TrimSpace(effective[key]),
+				Source:         runtimeconfig.SourceFrameworkDefault,
+				RollbackTarget: runtimeconfig.SourceFrameworkDefault,
 			}
 		}
 
@@ -80,7 +82,8 @@ func (c Config) ManagedSettingStatuses() []ManagedSettingStatus {
 		if displayValue == "" {
 			displayValue = reportedValue
 		}
-		drift := report.Mode == runtimeconfig.ModeManaged && effectiveValue != reportedValue
+		drift := report.Mode == runtimeconfig.ModeManaged &&
+			effectiveValue != reportedValue
 
 		statuses = append(statuses, ManagedSettingStatus{
 			Key:            key,
@@ -89,7 +92,7 @@ func (c Config) ManagedSettingStatuses() []ManagedSettingStatus {
 			Source:         keyState.Source,
 			Access:         managedSettingAccess(report.Mode, keyState.Source),
 			Drift:          drift,
-			RollbackTarget: managedSettingRollbackTarget(report.Mode, keyState.Source, drift),
+			RollbackTarget: managedSettingRollbackTarget(report.Mode, keyState, drift),
 		})
 	}
 
@@ -113,12 +116,15 @@ func managedSettingLabel(key string) string {
 	return key
 }
 
-func managedSettingRollbackTarget(mode runtimeconfig.Mode, source runtimeconfig.Source, drift bool) string {
+func managedSettingRollbackTarget(mode runtimeconfig.Mode, state runtimeconfig.KeyState, drift bool) string {
 	if mode != runtimeconfig.ModeManaged || !drift {
 		return ""
 	}
-	if source == runtimeconfig.SourceManagedOverride {
+	if state.RollbackTarget != "" {
+		return string(state.RollbackTarget)
+	}
+	if state.Source == runtimeconfig.SourceManagedOverride {
 		return string(runtimeconfig.SourceFrameworkDefault)
 	}
-	return string(source)
+	return string(state.Source)
 }

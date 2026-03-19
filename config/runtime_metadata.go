@@ -53,16 +53,17 @@ type DatabaseRuntimeMetadata struct {
 
 // RuntimeMetadata builds a runtime metadata snapshot using normalized configuration values.
 func (c Config) RuntimeMetadata() RuntimeMetadata {
+	normalized := normalizedConfigForReporting(c)
 	report := c.Managed.RuntimeReport
 	if report.Mode == "" {
 		report = runtimeconfig.BuildReport(runtimeconfig.LayerInputs{
-			Defaults:        managedKeyValues(c),
-			EffectiveValues: managedKeyValues(c),
+			Defaults:        managedKeyValues(normalizedDefaultConfigForReporting()),
+			EffectiveValues: managedKeyValues(normalized),
 			RepoSet:         map[string]bool{},
 			EnvSet:          map[string]bool{},
 			ManagedSet:      map[string]bool{},
-			ManagedEnabled:  c.Managed.Enabled,
-			Authority:       c.Managed.Authority,
+			ManagedEnabled:  normalized.Managed.Enabled,
+			Authority:       normalized.Managed.Authority,
 		})
 	}
 
@@ -75,7 +76,7 @@ func (c Config) RuntimeMetadata() RuntimeMetadata {
 	}
 
 	return RuntimeMetadata{
-		Database: c.Database.RuntimeMetadata(),
+		Database: normalized.Database.RuntimeMetadata(),
 		Managed: ManagedRuntimeMetadata{
 			Mode:            string(report.Mode),
 			Authority:       report.Authority,
