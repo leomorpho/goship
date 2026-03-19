@@ -2012,7 +2012,7 @@
     },
     "TKT-385": {
       "title": "INT4-01.4: Define restore evidence payload and post-restore validation contract",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-226"
     },
