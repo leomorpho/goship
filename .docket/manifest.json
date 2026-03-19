@@ -2006,7 +2006,7 @@
     },
     "TKT-384": {
       "title": "INT4-01.3: Define backup manifest v1 schema and checksum invariants",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-226"
     },
