@@ -14,6 +14,7 @@ func TestLocalRuntimeContract_DocsAndMakefileStayAligned_RedSpec(t *testing.T) {
 	aiGuide := mustReadText(t, filepath.Join(root, "docs", "guides", "01-ai-agent-guide.md"))
 	devGuide := mustReadText(t, filepath.Join(root, "docs", "guides", "02-development-workflows.md"))
 	compose := mustReadText(t, filepath.Join(root, "infra", "docker", "docker-compose.yml"))
+	envExample := mustReadText(t, filepath.Join(root, ".env.example"))
 
 	if strings.Contains(aiGuide, "make dev (default local dev: infra + web)") {
 		t.Fatal("AI agent guide still describes make dev as infra + web instead of the canonical app-on loop")
@@ -38,6 +39,9 @@ func TestLocalRuntimeContract_DocsAndMakefileStayAligned_RedSpec(t *testing.T) {
 	}
 	if strings.Contains(makefile, "db: ## Connect to the primary database") {
 		t.Fatal("Makefile still advertises a compose-backed primary database shell in the default local contract")
+	}
+	if strings.Contains(envExample, "# Database driver: sqlite or postgres.\nPAGODA_DB_DRIVER=\n# SQLite database path when using PAGODA_DB_DRIVER=sqlite.\nPAGODA_DB_PATH=") {
+		t.Fatal(".env.example should not blank out the canonical single-node SQLite defaults later in the file")
 	}
 }
 
