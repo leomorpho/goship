@@ -77,7 +77,7 @@ func TestMakeControllerIntegration_WireIntoRouter(t *testing.T) {
 	routerContent := `package goship
 
 import (
-	routeNames "github.com/leomorpho/goship/app/web/routenames"
+	routeNames "github.com/leomorpho/goship/framework/web/routenames"
 	"github.com/leomorpho/goship/app/web/controllers"
 )
 
@@ -186,7 +186,7 @@ func TestMakeControllerIntegration_WireStableAcrossMultipleRuns(t *testing.T) {
 		t.Fatal(err)
 	}
 	routerText := string(updated)
-	if strings.Count(routerText, `routeNames "github.com/leomorpho/goship/app/web/routenames"`) != 1 {
+	if strings.Count(routerText, `routeNames "github.com/leomorpho/goship/framework/web/routenames"`) != 1 {
 		t.Fatalf("routeNames import should be inserted once, got router:\n%s", routerText)
 	}
 	if strings.Count(routerText, "ship:generated:posts") != 1 || strings.Count(routerText, "ship:generated:comments") != 1 {

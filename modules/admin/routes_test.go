@@ -14,7 +14,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/leomorpho/goship/app/foundation"
-	"github.com/leomorpho/goship/app/web/ui"
+	"github.com/leomorpho/goship/framework/web/ui"
 	"github.com/leomorpho/goship/config"
 	ctxkeys "github.com/leomorpho/goship/framework/context"
 	"github.com/leomorpho/goship/framework/core"

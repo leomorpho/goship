@@ -8,7 +8,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/leomorpho/goship/app/foundation"
-	"github.com/leomorpho/goship/app/web/ui"
+	"github.com/leomorpho/goship/framework/web/ui"
 	"github.com/leomorpho/goship/framework/events"
 	eventtypes "github.com/leomorpho/goship/framework/events/types"
 	"github.com/stretchr/testify/require"

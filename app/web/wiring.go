@@ -11,7 +11,6 @@ import (
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	echomw "github.com/labstack/echo/v4/middleware"
-	modemailsubscriptions "github.com/leomorpho/goship-modules/emailsubscriptions"
 	"github.com/leomorpho/goship-modules/notifications"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/app/foundation"
@@ -34,7 +33,6 @@ const (
 )
 
 type RouteDeps struct {
-	EmailSubscriptions            *modemailsubscriptions.Service
 	StorageRepo                   *storagerepo.StorageClient
 	ProfileService                *profilesvc.ProfileService
 	SubscriptionsRepo             *paidsubscriptions.Service
@@ -57,9 +55,6 @@ func NewRouteDeps(
 	notificationServices *notifications.Services,
 ) (*RouteDeps, error) {
 	deps := &RouteDeps{}
-	deps.EmailSubscriptions = modemailsubscriptions.New(
-		modemailsubscriptions.NewSQLStore(c.Database, activeDatabaseDialect(c.Config)),
-	)
 	deps.StorageRepo = storagerepo.NewStorageClient(c.Config, c.Database, c.Config.Adapters.DB)
 	deps.SubscriptionsRepo = paidSubscriptions
 	deps.ProfileService = profilesvc.NewProfileServiceWithDBDeps(
@@ -83,13 +78,6 @@ func NewRouteDeps(
 	}
 
 	return deps, nil
-}
-
-func activeDatabaseDialect(cfg *config.Config) string {
-	if cfg.Database.DbMode == config.DBModeEmbedded {
-		return string(cfg.Database.Driver)
-	}
-	return "postgres"
 }
 
 func RegisterStaticRoutes(c *foundation.Container) error {

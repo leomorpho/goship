@@ -59,10 +59,10 @@ func TestGenerateResourceIntegration_FullGenerationExactOutput(t *testing.T) {
 
 import (
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/app/views"
+	"github.com/leomorpho/goship/framework/web/templates"
 	"github.com/leomorpho/goship/app/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/views/web/pages/gen"
-	"github.com/leomorpho/goship/app/web/ui"
+	"github.com/leomorpho/goship/framework/web/ui"
 )
 
 type contactForm struct {
@@ -95,7 +95,7 @@ func (r *contactForm) Get(ctx echo.Context) error {
 	}
 	templExpected := `package pages
 
-import "github.com/leomorpho/goship/app/web/ui"
+import "github.com/leomorpho/goship/framework/web/ui"
 
 templ ContactFormPage(page *ui.Page) {
 	<section>
@@ -184,7 +184,7 @@ func TestGenerateResourceIntegration_WireStableAcrossMultipleRuns(t *testing.T) 
 		t.Fatal(err)
 	}
 	routerText := string(updatedRouter)
-	if strings.Count(routerText, `routeNames "github.com/leomorpho/goship/app/web/routenames"`) != 1 {
+	if strings.Count(routerText, `routeNames "github.com/leomorpho/goship/framework/web/routenames"`) != 1 {
 		t.Fatalf("routeNames import should be inserted once, got router:\n%s", routerText)
 	}
 	if strings.Count(routerText, "ship:generated:inbox") != 1 || strings.Count(routerText, "ship:generated:alerts") != 1 {

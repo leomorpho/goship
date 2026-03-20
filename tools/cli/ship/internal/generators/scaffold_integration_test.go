@@ -318,7 +318,7 @@ func seedScaffoldTargets(t *testing.T, root string) {
 	routerContent := `package goship
 
 import (
-	routeNames "github.com/leomorpho/goship/app/web/routenames"
+	routeNames "github.com/leomorpho/goship/framework/web/routenames"
 	"github.com/leomorpho/goship/app/web/controllers"
 )
 

@@ -300,7 +300,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/app/web/ui"
+	"github.com/leomorpho/goship/framework/web/ui"
 )
 
 type %s struct {
@@ -333,15 +333,15 @@ func renderResourceTemplHandler(n NormalizedResourceName, domain NormalizedDomai
 	if testFirst {
 		imports = `import (
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/app/web/ui"
+	"github.com/leomorpho/goship/framework/web/ui"
 )`
 	} else {
 		imports = `import (
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/app/views"
+	"github.com/leomorpho/goship/framework/web/templates"
 	"github.com/leomorpho/goship/app/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/views/web/pages/gen"
-	"github.com/leomorpho/goship/app/web/ui"
+	"github.com/leomorpho/goship/framework/web/ui"
 )`
 	}
 
@@ -394,7 +394,7 @@ func Test%sRoute_Get(t *testing.T) {
 func renderResourceTempl(n NormalizedResourceName) string {
 	return fmt.Sprintf(`package pages
 
-import "github.com/leomorpho/goship/app/web/ui"
+import "github.com/leomorpho/goship/framework/web/ui"
 
 templ %sPage(page *ui.Page) {
 	<section>
@@ -533,7 +533,7 @@ func EnsureRouteNamesImport(routerPath string, dryRun bool) error {
 		return err
 	}
 	content := string(b)
-	if strings.Contains(content, `routeNames "github.com/leomorpho/goship/app/web/routenames"`) {
+	if strings.Contains(content, `routeNames "github.com/leomorpho/goship/framework/web/routenames"`) {
 		return nil
 	}
 
@@ -547,7 +547,7 @@ func EnsureRouteNamesImport(routerPath string, dryRun bool) error {
 	}
 	importEnd += importStart
 
-	line := "\trouteNames \"github.com/leomorpho/goship/app/web/routenames\"\n"
+	line := "\trouteNames \"github.com/leomorpho/goship/framework/web/routenames\"\n"
 	updated := content[:importEnd] + line + content[importEnd:]
 	if dryRun {
 		return nil

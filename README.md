@@ -345,7 +345,7 @@ g.DELETE("/posts/:id", postRoute.Destroy).Name = "posts.destroy"
 package pages
 
 import (
-	"github.com/leomorpho/goship/app/web/ui"
+	"github.com/leomorpho/goship/framework/web/ui"
 	"github.com/leomorpho/goship/app/web/viewmodels"
 	"github.com/leomorpho/goship/app/views/web/components"
 )

@@ -10,12 +10,10 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/hibiken/asynq"
 	"github.com/leomorpho/goship-modules/notifications"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/app"
 	"github.com/leomorpho/goship/app/foundation"
-	tasks "github.com/leomorpho/goship/app/jobs"
 	"github.com/leomorpho/goship/app/plans"
 	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
 	"github.com/leomorpho/goship/framework/events"
@@ -203,16 +201,14 @@ func wireJobsModule(c *foundation.Container) error {
 	return nil
 }
 
-type asynqProcessor interface {
-	ProcessTask(context.Context, *asynq.Task) error
-}
-
 func startEmbeddedJobsWorker(
 	ctx context.Context,
 	c *foundation.Container,
 	paidSubscriptionsService *paidsubscriptions.Service,
 	notificationServices *notifications.Services,
 ) error {
+	_ = paidSubscriptionsService
+	_ = notificationServices
 	if c.Config.Adapters.Jobs != "backlite" {
 		return nil
 	}
@@ -221,46 +217,6 @@ func startEmbeddedJobsWorker(
 		return events.DeliverAsync(ctx, c.EventBus, payload)
 	}); err != nil {
 		return err
-	}
-
-	emailSubscriptionConfirmationProcessor := tasks.NewEmailSubscriptionConfirmationProcessor(c.Mail, c.Config)
-	emailUpdateProcessor := tasks.NewEmailUpdateProcessor(c)
-	deactivateExpiredSubscriptionsProcessor := tasks.NewDeactivateExpiredSubscriptionsProcessor(paidSubscriptionsService)
-	allDailyConvoNotificationsProcessor := tasks.NewAllDailyConvoNotificationsProcessor(
-		notificationServices.PlannedNotificationsService,
-		c.CoreJobs,
-		30,
-	)
-	dailyConvoNotificationsProcessor := tasks.NewDailyConvoNotificationsProcessor(
-		notificationServices.Notifier,
-		c.Web,
-		paidSubscriptionsService,
-		notificationServices.PlannedNotificationsService,
-	)
-	deleteStaleNotificationsProcessor := tasks.NewDeleteStaleNotificationsProcessor(
-		c.Database,
-		c.Config.Adapters.DB,
-		c.Config.App.OperationalConstants.DeleteStaleNotificationAfterDays,
-	)
-
-	for _, job := range []struct {
-		name      string
-		processor asynqProcessor
-	}{
-		{name: tasks.TypeEmailSubscriptionConfirmation, processor: emailSubscriptionConfirmationProcessor},
-		{name: tasks.TypeEmailUpdates, processor: emailUpdateProcessor},
-		{name: tasks.TypeDeactivateExpiredSubscriptions, processor: deactivateExpiredSubscriptionsProcessor},
-		{name: tasks.TypeAllDailyConvoNotifications, processor: allDailyConvoNotificationsProcessor},
-		{name: tasks.TypeDailyConvoNotification, processor: dailyConvoNotificationsProcessor},
-		{name: tasks.TypeDeleteStaleNotifications, processor: deleteStaleNotificationsProcessor},
-	} {
-		if err := c.CoreJobs.Register(job.name, func(p asynqProcessor, taskName string) func(context.Context, []byte) error {
-			return func(ctx context.Context, payload []byte) error {
-				return p.ProcessTask(ctx, asynq.NewTask(taskName, payload))
-			}
-		}(job.processor, job.name)); err != nil {
-			return err
-		}
 	}
 
 	go func() {

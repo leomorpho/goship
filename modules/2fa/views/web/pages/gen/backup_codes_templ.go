@@ -9,8 +9,8 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	controller "github.com/leomorpho/goship/app/web/ui"
-	"github.com/leomorpho/goship/app/web/viewmodels"
+	controller "github.com/leomorpho/goship/framework/web/ui"
+	"github.com/leomorpho/goship/framework/web/viewmodels"
 )
 
 // Renders: backup code list after 2FA enablement or regeneration.

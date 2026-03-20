@@ -5,14 +5,14 @@ import (
 
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
-	templates "github.com/leomorpho/goship/app/views"
-	"github.com/leomorpho/goship/app/views/web/layouts/gen"
-	"github.com/leomorpho/goship/app/web/middleware"
-	routeNames "github.com/leomorpho/goship/app/web/routenames"
-	"github.com/leomorpho/goship/app/web/ui"
-	"github.com/leomorpho/goship/app/web/viewmodels"
 	"github.com/leomorpho/goship/framework/context"
 	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
+	"github.com/leomorpho/goship/framework/web/layouts/gen"
+	"github.com/leomorpho/goship/framework/web/middleware"
+	routeNames "github.com/leomorpho/goship/framework/web/routenames"
+	templates "github.com/leomorpho/goship/framework/web/templates"
+	"github.com/leomorpho/goship/framework/web/ui"
+	"github.com/leomorpho/goship/framework/web/viewmodels"
 	pages "github.com/leomorpho/goship/modules/2fa/views/web/pages/gen"
 )
 

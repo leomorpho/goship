@@ -2,11 +2,11 @@ package pwa
 
 import (
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/app/views/web/layouts/gen"
-	"github.com/leomorpho/goship/app/web/routenames"
-	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/framework/core"
-	templates "github.com/leomorpho/goship/app/views"
+	"github.com/leomorpho/goship/framework/web/layouts/gen"
+	"github.com/leomorpho/goship/framework/web/routenames"
+	templates "github.com/leomorpho/goship/framework/web/templates"
+	"github.com/leomorpho/goship/framework/web/ui"
 	pages "github.com/leomorpho/goship/modules/pwa/views/web/pages/gen"
 )
 

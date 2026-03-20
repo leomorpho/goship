@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 
-	appcommands "github.com/leomorpho/goship/app/commands"
 	"github.com/leomorpho/goship/app/foundation"
 	commandfw "github.com/leomorpho/goship/framework/command"
 )
@@ -20,13 +19,6 @@ func main() {
 	}()
 
 	registry := commandfw.NewRegistry()
-	if err := registry.Register(&appcommands.ExampleCommand{Container: container}); err != nil {
-		log.Fatalf("failed to register command: %v", err)
-	}
-	if err := registry.Register(&appcommands.SendTestEmailCommand{Container: container}); err != nil {
-		log.Fatalf("failed to register command: %v", err)
-	}
-
 	// ship:commands:start
 	// ship:commands:end
 

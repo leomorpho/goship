@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v4"
-	routeNames "github.com/leomorpho/goship/app/web/routenames"
+	routeNames "github.com/leomorpho/goship/framework/web/routenames"
 )
 
 func TestRouteModule_RegisterRoutes_CanonicalNotificationSurface(t *testing.T) {

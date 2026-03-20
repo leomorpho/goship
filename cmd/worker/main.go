@@ -11,7 +11,6 @@ import (
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/app"
 	"github.com/leomorpho/goship/app/foundation"
-	"github.com/leomorpho/goship/app/jobs"
 	"github.com/leomorpho/goship/app/plans"
 	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
 	"github.com/leomorpho/goship/framework/events"
@@ -112,30 +111,11 @@ func main() {
 		c.Web.Logger.Fatalf("failed to build router: %v", err)
 	}
 
-	emailSubscriptionConfirmationProcessor := tasks.NewEmailSubscriptionConfirmationProcessor(
-		c.Mail, c.Config,
-	)
-
-	emailUpdateProcessor := tasks.NewEmailUpdateProcessor(c)
-
-	deactivateExpiredSubscriptionsProcessor := tasks.NewDeactivateExpiredSubscriptionsProcessor(paidSubscriptionsService)
-	allDailyConvoNotificationsProcessor := tasks.NewAllDailyConvoNotificationsProcessor(notificationServices.PlannedNotificationsService, c.CoreJobs, 30)
-	dailyConvoNotificationsProcessor := tasks.NewDailyConvoNotificationsProcessor(notificationServices.Notifier, c.Web, paidSubscriptionsService, notificationServices.PlannedNotificationsService)
-	deleteStaleNotificationsProcessor := tasks.NewDeleteStaleNotificationsProcessor(
-		c.Database, c.Config.Adapters.DB, c.Config.App.OperationalConstants.DeleteStaleNotificationAfterDays,
-	)
-
 	// Map task types to the handlers
 	mux := asynq.NewServeMux()
 	mux.HandleFunc(events.AsyncJobName, func(ctx context.Context, task *asynq.Task) error {
 		return events.DeliverAsync(ctx, c.EventBus, task.Payload())
 	})
-	mux.Handle(tasks.TypeEmailSubscriptionConfirmation, emailSubscriptionConfirmationProcessor)
-	mux.Handle(tasks.TypeEmailUpdates, emailUpdateProcessor)
-	mux.Handle(tasks.TypeDeactivateExpiredSubscriptions, deactivateExpiredSubscriptionsProcessor)
-	mux.Handle(tasks.TypeAllDailyConvoNotifications, allDailyConvoNotificationsProcessor)
-	mux.Handle(tasks.TypeDailyConvoNotification, dailyConvoNotificationsProcessor)
-	mux.Handle(tasks.TypeDeleteStaleNotifications, deleteStaleNotificationsProcessor)
 
 	stopScheduler := startWorkerScheduler(c.Scheduler)
 	defer stopScheduler()

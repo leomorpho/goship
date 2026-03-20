@@ -11,19 +11,19 @@ import (
 
 	"github.com/labstack/echo/v4"
 	notifications "github.com/leomorpho/goship-modules/notifications"
-	routeNames "github.com/leomorpho/goship/app/web/routenames"
-	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/framework/core"
 	"github.com/leomorpho/goship/framework/dberrors"
 	"github.com/leomorpho/goship/framework/domain"
 	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
+	routeNames "github.com/leomorpho/goship/framework/web/routenames"
+	"github.com/leomorpho/goship/framework/web/ui"
 	profilesvc "github.com/leomorpho/goship/modules/profile"
 
-	"github.com/leomorpho/goship/app/views"
-	"github.com/leomorpho/goship/app/views/web/layouts/gen"
-	"github.com/leomorpho/goship/app/views/web/pages/gen"
-	"github.com/leomorpho/goship/app/web/viewmodels"
 	customctx "github.com/leomorpho/goship/framework/context"
+	"github.com/leomorpho/goship/framework/web/layouts/gen"
+	"github.com/leomorpho/goship/framework/web/pages/gen"
+	"github.com/leomorpho/goship/framework/web/templates"
+	"github.com/leomorpho/goship/framework/web/viewmodels"
 )
 
 const notificationQueryParam = "notif"

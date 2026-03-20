@@ -151,16 +151,6 @@ func (formValueRoute) Post(ctx echo.Context) error {
 		}
 	})
 
-	t.Run("email subscribe controller uses app contracts request type", func(t *testing.T) {
-		root := findRepoRoot(t)
-		issues := RunDoctorChecks(root)
-		for _, issue := range issues {
-			if issue.Code == "DX027" && issue.File == "app/web/controllers/email_subscribe.go" {
-				t.Fatalf("unexpected DX027 issue for email subscribe controller: %+v", issue)
-			}
-		}
-	})
-
 	t.Run("managed hooks controller uses app contracts request types", func(t *testing.T) {
 		root := findRepoRoot(t)
 		issues := RunDoctorChecks(root)

@@ -20,9 +20,9 @@ func TestLandingPageFallsBackToEnglishForUnsupportedLanguage(t *testing.T) {
 		AssertContains(`<html lang="en"`)
 }
 
-func TestEmailSubscribePageUsesFrenchLangQuery(t *testing.T) {
+func TestLoginPageUsesFrenchLangQuery(t *testing.T) {
 	s := testutil.NewTestServer(t)
-	s.Get("/emailSubscribe?lang=fr").
+	s.Get("/user/login?lang=fr").
 		AssertStatus(200).
 		AssertContains(`<html lang="fr"`)
 }

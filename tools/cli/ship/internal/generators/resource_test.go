@@ -321,7 +321,7 @@ import (
 	if err != nil {
 		t.Fatal(err)
 	}
-	if strings.Count(string(content), `routeNames "github.com/leomorpho/goship/app/web/routenames"`) != 1 {
+	if strings.Count(string(content), `routeNames "github.com/leomorpho/goship/framework/web/routenames"`) != 1 {
 		t.Fatalf("expected single routeNames import insertion, got:\n%s", string(content))
 	}
 }
@@ -344,7 +344,7 @@ func TestRunGenerateResourceDryRun(t *testing.T) {
 	routerContent := `package goship
 
 import (
-	routeNames "github.com/leomorpho/goship/app/web/routenames"
+	routeNames "github.com/leomorpho/goship/framework/web/routenames"
 )
 
 func registerPublicRoutes() {
@@ -516,7 +516,7 @@ func TestGeneratorIdempotencyMatrix_RedSpec(t *testing.T) {
 		routerContent := `package goship
 
 import (
-	routeNames "github.com/leomorpho/goship/app/web/routenames"
+	routeNames "github.com/leomorpho/goship/framework/web/routenames"
 )
 
 func registerPublicRoutes() {
@@ -567,8 +567,8 @@ import (
 	"github.com/a-h/templ"
 	"github.com/labstack/echo/v4"
 	emailviews "github.com/leomorpho/goship/app/views/emails/gen"
-	"github.com/leomorpho/goship/app/web/ui"
-	"github.com/leomorpho/goship/app/web/viewmodels"
+	"github.com/leomorpho/goship/framework/web/ui"
+	"github.com/leomorpho/goship/framework/web/viewmodels"
 	frameworkpage "github.com/leomorpho/goship/framework/web/page"
 )
 
@@ -636,7 +636,7 @@ func TestRunGenerateResourceWireWritesExpected(t *testing.T) {
 
 import (
 	"fmt"
-	routeNames "github.com/leomorpho/goship/app/web/routenames"
+	routeNames "github.com/leomorpho/goship/framework/web/routenames"
 	"github.com/leomorpho/goship/app/web/controllers"
 )
 

@@ -178,18 +178,6 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			wantErr:  "use namespaced DB commands",
 		},
 		{
-			name:      "run command",
-			args:      []string{"run:command", "send:test-email"},
-			wantCode:  0,
-			wantCalls: []fakeCall{{name: "go", args: []string{"run", "./cmd/cli/main.go", "send:test-email"}}},
-		},
-		{
-			name:      "run command with passthrough args",
-			args:      []string{"run:command", "send:test-email", "--", "--dry-run"},
-			wantCode:  0,
-			wantCalls: []fakeCall{{name: "go", args: []string{"run", "./cmd/cli/main.go", "send:test-email", "--dry-run"}}},
-		},
-		{
 			name:     "run command missing name",
 			args:     []string{"run:command"},
 			wantCode: 1,

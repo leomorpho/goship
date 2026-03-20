@@ -3,7 +3,7 @@ package twofa
 import (
 	"io/fs"
 
-	"github.com/leomorpho/goship/app/web/ui"
+	"github.com/leomorpho/goship/framework/web/ui"
 	"github.com/leomorpho/goship/framework/core"
 )
 

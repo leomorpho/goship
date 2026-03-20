@@ -131,9 +131,6 @@ func registerPublicRoutes(c *foundation.Container, g *echo.Group, ctr ui.Control
 	clearCookie := controllers.NewClearCookiesRoute(ctr)
 	g.GET("/clear-cookie", clearCookie.Get).Name = routeNames.RouteNameClearCookie
 
-	islandsDemo := controllers.NewIslandsDemoRoute(ctr)
-	g.GET("/demo/islands", islandsDemo.Get).Name = routeNames.RouteNameIslandsDemo
-
 	healthcheck := controllers.NewHealthCheckRoute(ctr)
 	g.GET("/up", healthcheck.GetLiveness).Name = routeNames.RouteNameHealthcheck
 	g.GET("/health", healthcheck.GetLiveness).Name = routeNames.RouteNameHealthLiveness
@@ -142,13 +139,6 @@ func registerPublicRoutes(c *foundation.Container, g *echo.Group, ctr ui.Control
 	g.GET(c.Config.App.TestSentryUrl, func(ctx echo.Context) error {
 		panic("Test error for Sentry")
 	})
-
-	emailSubscribe := controllers.NewEmailSubscribeRoute(ctr, *deps.EmailSubscriptions, *c.Config)
-	g.GET("/emailSubscribe", emailSubscribe.Get).Name = routeNames.RouteNameEmailSubscribe
-	g.POST("/emailSubscribe", emailSubscribe.Post).Name = routeNames.RouteNameEmailSubscribeSubmit
-
-	verifyEmailSubscription := controllers.NewVerifyEmailSubscriptionRoute(ctr, *deps.EmailSubscriptions)
-	g.GET("/email/subscription/:token", verifyEmailSubscription.Get).Name = routeNames.RouteNameVerifyEmailSubscription
 
 	pwaModule := pwamodule.NewModule(pwamodule.NewRouteService(ctr))
 	if err := pwaModule.RegisterRoutes(g); err != nil {
@@ -163,10 +153,6 @@ func registerPublicRoutes(c *foundation.Container, g *echo.Group, ctr ui.Control
 		g.GET("/error/404", errHandler.GetHttp404NotFound)
 		g.GET("/error/500", errHandler.GetHttp500InternalServerError)
 
-		sharedCounter := controllers.NewSharedCounterRoute(ctr)
-		g.GET("/examples/shared-counter", sharedCounter.Get).Name = routeNames.RouteNameSharedCounter
-		g.GET("/examples/shared-counter/stream", sharedCounter.Stream).Name = routeNames.RouteNameSharedCounterStream
-		g.POST("/examples/shared-counter/increment", sharedCounter.Increment).Name = routeNames.RouteNameSharedCounterIncrement
 	}
 	registerMailPreviewRoutes(g, ctr)
 
@@ -284,12 +270,6 @@ func registerAuthRoutes(c *foundation.Container, g *echo.Group, ctr ui.Controlle
 	})
 	if err := adminPanelModule.RegisterRoutes(onboardedGroup); err != nil {
 		return err
-	}
-
-	if c.Config.App.Environment != config.EnvProduction {
-		aiDemo := controllers.NewAIDemoRoute(ctr)
-		onboardedGroup.GET("/ai-demo", aiDemo.Get).Name = routeNames.RouteNameAIDemo
-		onboardedGroup.GET("/ai-demo/stream", aiDemo.Stream).Name = routeNames.RouteNameAIDemoStream
 	}
 
 	// ship:routes:auth:start

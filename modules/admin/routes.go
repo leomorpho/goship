@@ -11,9 +11,9 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/app/web/middleware"
-	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/framework/core"
+	"github.com/leomorpho/goship/framework/web/middleware"
+	"github.com/leomorpho/goship/framework/web/ui"
 	"github.com/leomorpho/goship/modules/auditlog"
 	"github.com/leomorpho/goship/modules/flags"
 )

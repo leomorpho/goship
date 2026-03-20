@@ -1,9 +1,5 @@
 package viewmodels
 
-func NewAIDemoPageData() AIDemoPageData {
-	return AIDemoPageData{}
-}
-
 func NewDropdownIterable() DropdownIterable {
 	return DropdownIterable{}
 }
@@ -16,14 +12,6 @@ func NewCommittedModePageData() CommittedModePageData {
 
 func NewUpdateInAppModeForm() *UpdateInAppModeForm {
 	return &UpdateInAppModeForm{}
-}
-
-func NewEmailSubscriptionData() EmailSubscriptionData {
-	return EmailSubscriptionData{}
-}
-
-func NewEmailSubscriptionForm() *EmailSubscriptionForm {
-	return &EmailSubscriptionForm{}
 }
 
 func NewEmailDefaultData() EmailDefaultData {

@@ -35,13 +35,10 @@ func TestRouteSmoke_PublicAndAuthenticatedGets(t *testing.T) {
 		wantStatus int
 	}{
 		{name: "landing", routeName: routeNames.RouteNameLandingPage, client: smokeClientAnonymous, wantStatus: http.StatusOK},
-		{name: "islands demo", routeName: routeNames.RouteNameIslandsDemo, client: smokeClientAnonymous, wantStatus: http.StatusOK},
 		{name: "healthcheck", routeName: routeNames.RouteNameHealthcheck, client: smokeClientAnonymous, wantStatus: http.StatusOK},
 		{name: "health liveness", routeName: routeNames.RouteNameHealthLiveness, client: smokeClientAnonymous, wantStatus: http.StatusOK},
 		{name: "health readiness", routeName: routeNames.RouteNameHealthReadiness, client: smokeClientAnonymous, wantStatus: http.StatusOK},
-		{name: "email subscribe", routeName: routeNames.RouteNameEmailSubscribe, client: smokeClientAnonymous, wantStatus: http.StatusOK},
 		{name: "install app", routeName: routeNames.RouteNameInstallApp, client: smokeClientAnonymous, wantStatus: http.StatusOK},
-		{name: "shared counter", routeName: routeNames.RouteNameSharedCounter, client: smokeClientAnonymous, wantStatus: http.StatusOK},
 		{name: "login", routeName: routeNames.RouteNameLogin, client: smokeClientAnonymous, wantStatus: http.StatusOK},
 		{name: "register", routeName: routeNames.RouteNameRegister, client: smokeClientAnonymous, wantStatus: http.StatusOK},
 		{name: "forgot password", routeName: routeNames.RouteNameForgotPassword, client: smokeClientAnonymous, wantStatus: http.StatusOK},
@@ -61,7 +58,6 @@ func TestRouteSmoke_PublicAndAuthenticatedGets(t *testing.T) {
 		{name: "push subscriptions", routeName: routeNames.RouteNameGetPushSubscriptions, client: smokeClientOnboarded, wantStatus: http.StatusOK},
 		{name: "pricing", routeName: routeNames.RouteNamePricingPage, client: smokeClientOnboarded, wantStatus: http.StatusOK},
 		{name: "payment public key", routeName: routeNames.RouteNamePaymentProcessorGetPublicKey, client: smokeClientOnboarded, wantStatus: http.StatusOK},
-		{name: "ai demo", routeName: routeNames.RouteNameAIDemo, client: smokeClientOnboarded, wantStatus: http.StatusOK},
 	}
 
 	for _, tc := range tests {

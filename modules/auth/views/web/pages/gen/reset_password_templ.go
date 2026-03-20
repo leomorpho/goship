@@ -9,9 +9,9 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	"github.com/leomorpho/goship/app/views/web/components/gen"
-	controller "github.com/leomorpho/goship/app/web/ui"
-	"github.com/leomorpho/goship/app/web/viewmodels"
+	"github.com/leomorpho/goship/framework/web/components/gen"
+	controller "github.com/leomorpho/goship/framework/web/ui"
+	"github.com/leomorpho/goship/framework/web/viewmodels"
 )
 
 // Route(s): /user/password/reset/token/:user/:password_token/:token

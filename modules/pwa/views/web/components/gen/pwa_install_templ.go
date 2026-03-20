@@ -8,8 +8,8 @@ package components
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import controller "github.com/leomorpho/goship/app/web/ui"
-import "github.com/leomorpho/goship/app/web/routenames"
+import controller "github.com/leomorpho/goship/framework/web/ui"
+import "github.com/leomorpho/goship/framework/web/routenames"
 
 // Renders: gradient pill button with a download cloud icon and "Install App" label
 func InstallButtonRedirectsToInstallPage(page *controller.Page, classes string) templ.Component {

@@ -12,7 +12,6 @@ const (
 	PageLogin                  Page = "login"
 	PageRegister               Page = "register"
 	PageResetPassword          Page = "reset-password"
-	PageEmailSubscribe         Page = "email-subscribe"
 	PagePreferences            Page = "preferences"
 	PagePhoneNumber            Page = "preferences.phone"
 	PageDisplayName            Page = "preferences.display_name"
@@ -23,8 +22,6 @@ const (
 	PagePricing                Page = "pricing"
 	PageSuccessfullySubscribed Page = "successfully_subscribed"
 	PageDeleteAccount          Page = "delete_account.page"
-	PageAIDemo                 Page = "ai_demo"
-	PageIslandsDemo            Page = "islands_demo"
 
 	SSEAnsweredByFriend Page = "sse_answered_by_friend"
 )

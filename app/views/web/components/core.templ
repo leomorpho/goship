@@ -29,7 +29,7 @@ templ Metatags(page *controller.Page) {
 		<meta name="keywords" content={ strings.Join(page.Metatags.Keywords, ", ") }/>
 	}
 	<meta name="application-name" content="Goship"/>
-	<meta name="msapplication-starturl" content="https://cherie.chatbond.app"/>
+	<meta name="msapplication-starturl" content="/"/>
 	<meta name="mobile-web-app-capable" content="yes"/>
 	<meta name="apple-mobile-web-app-capable" content="yes"/>
 	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
@@ -216,7 +216,7 @@ templ TextFooter(page *controller.Page) {
 		<footer class="bg-slate-100 dark:bg-gray-800 rounded-lg shadow m-4">
 			<div class="w-full mx-auto max-w-screen-xl p-4 md:flex md:items-center md:justify-between">
 				<span class="text-sm text-gray-500 sm:text-center dark:text-gray-400">
-					© <span id="currentYear"></span> <a href="https://cherie.chatbond.app" class="hover:underline">Chatbond Inc</a>. All Rights Reserved.
+					© <span id="currentYear"></span> <span class="hover:underline">GoShip</span>. All Rights Reserved.
 				</span>
 				<ul
 					hx-target="#main-content"
