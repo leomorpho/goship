@@ -1,4 +1,4 @@
-watch-js: make watch-js
-watch-go: make watch-go
-watch-css: make watch-css
-watch-go-worker: make worker
+web: make watch-go
+worker: make worker
+js: make watch-js
+css: make watch-css

@@ -1,0 +1,625 @@
+package commands
+
+import (
+	"flag"
+	"fmt"
+	"io"
+	"net/url"
+	"os"
+	"path/filepath"
+	"strconv"
+	"strings"
+	"time"
+
+	rt "github.com/leomorpho/goship/tools/cli/ship/internal/runtime"
+)
+
+type DBDeps struct {
+	Out             io.Writer
+	Err             io.Writer
+	ResolveDBURL    func() (string, error)
+	ResolveDBDriver func() (string, error)
+	RunGoose        func(args ...string) int
+	RunCmd          func(name string, args ...string) int
+	GooseDir        string
+	FindGoModule    func(start string) (string, string, error)
+}
+
+func RunDB(args []string, d DBDeps) int {
+	if len(args) == 0 {
+		PrintDBHelp(d.Err)
+		return 1
+	}
+
+	switch args[0] {
+	case "create":
+		return runCreate(args[1:], d)
+	case "generate":
+		return runGenerate(args[1:], d)
+	case "make":
+		return runMake(args[1:], d)
+	case "migrate":
+		if len(args) != 1 {
+			fmt.Fprintln(d.Err, "usage: ship db:migrate")
+			return 1
+		}
+		dbURL, err := d.ResolveDBURL()
+		if err != nil {
+			fmt.Fprintf(d.Err, "failed to resolve database URL: %v\n", err)
+			return 1
+		}
+		return runGooseUpAll(d, dbURL)
+	case "status":
+		return runStatus(args[1:], d)
+	case "reset":
+		return runReset(args[1:], d)
+	case "drop":
+		return runDrop(args[1:], d)
+	case "rollback":
+		return runRollback(args[1:], d)
+	case "seed":
+		if len(args) != 1 {
+			fmt.Fprintln(d.Err, "usage: ship db:seed")
+			return 1
+		}
+		return d.RunCmd("go", "run", "./cmd/seed/main.go")
+	case "console":
+		return runConsole(args[1:], d)
+	case "help", "-h", "--help":
+		PrintDBHelp(d.Out)
+		return 0
+	default:
+		fmt.Fprintf(d.Err, "unknown db command: %s\n\n", args[0])
+		PrintDBHelp(d.Err)
+		return 1
+	}
+}
+
+func runStatus(args []string, d DBDeps) int {
+	if len(args) != 0 {
+		fmt.Fprintln(d.Err, "usage: ship db:status")
+		return 1
+	}
+
+	dbURL, err := d.ResolveDBURL()
+	if err != nil {
+		fmt.Fprintf(d.Err, "failed to resolve database URL: %v\n", err)
+		return 1
+	}
+
+	return runGooseStatusAll(d, dbURL)
+}
+
+func runReset(args []string, d DBDeps) int {
+	fs := flag.NewFlagSet("db:reset", flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+	seed := fs.Bool("seed", false, "seed after reset+migrate")
+	force := fs.Bool("force", false, "allow reset on non-local database URLs")
+	yes := fs.Bool("yes", false, "confirm destructive reset")
+	dryRun := fs.Bool("dry-run", false, "print planned actions without executing")
+	if err := fs.Parse(args); err != nil {
+		fmt.Fprintf(d.Err, "invalid db:reset arguments: %v\n", err)
+		fmt.Fprintln(d.Err, "usage: ship db:reset [--seed] [--force] [--yes] [--dry-run]")
+		return 1
+	}
+	if fs.NArg() > 0 {
+		fmt.Fprintln(d.Err, "usage: ship db:reset [--seed] [--force] [--yes] [--dry-run]")
+		return 1
+	}
+
+	dbURL, err := d.ResolveDBURL()
+	if err != nil {
+		fmt.Fprintf(d.Err, "failed to resolve database URL: %v\n", err)
+		return 1
+	}
+	local := IsLocalDBURL(dbURL)
+	if isProductionEnv() && !(*force && *yes) {
+		fmt.Fprintln(d.Err, "refusing to reset in production without both --force and --yes")
+		return 1
+	}
+	if !local && !*force {
+		fmt.Fprintln(d.Err, "refusing to reset a non-local database without --force")
+		return 1
+	}
+	if !*yes && !*dryRun {
+		fmt.Fprintln(d.Err, "refusing destructive reset without --yes (or use --dry-run)")
+		return 1
+	}
+
+	printPlan(d.Out, "reset", dbURL, local, []string{
+		"goose reset",
+		"goose up",
+	}, *seed, *dryRun)
+	if *dryRun {
+		return 0
+	}
+
+	if code := runGooseResetAll(d, dbURL); code != 0 {
+		return code
+	}
+	if code := runGooseUpAll(d, dbURL); code != 0 {
+		return code
+	}
+	if *seed {
+		return d.RunCmd("go", "run", "./cmd/seed/main.go")
+	}
+	return 0
+}
+
+func runDrop(args []string, d DBDeps) int {
+	fs := flag.NewFlagSet("db:drop", flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+	force := fs.Bool("force", false, "allow drop on non-local database URLs")
+	yes := fs.Bool("yes", false, "confirm destructive drop")
+	dryRun := fs.Bool("dry-run", false, "print planned actions without executing")
+	if err := fs.Parse(args); err != nil {
+		fmt.Fprintf(d.Err, "invalid db:drop arguments: %v\n", err)
+		fmt.Fprintln(d.Err, "usage: ship db:drop [--force] [--yes] [--dry-run]")
+		return 1
+	}
+	if fs.NArg() > 0 {
+		fmt.Fprintln(d.Err, "usage: ship db:drop [--force] [--yes] [--dry-run]")
+		return 1
+	}
+
+	dbURL, err := d.ResolveDBURL()
+	if err != nil {
+		fmt.Fprintf(d.Err, "failed to resolve database URL: %v\n", err)
+		return 1
+	}
+	local := IsLocalDBURL(dbURL)
+	if isProductionEnv() && !(*force && *yes) {
+		fmt.Fprintln(d.Err, "refusing to drop in production without both --force and --yes")
+		return 1
+	}
+	if !local && !*force {
+		fmt.Fprintln(d.Err, "refusing to drop a non-local database without --force")
+		return 1
+	}
+	if !*yes && !*dryRun {
+		fmt.Fprintln(d.Err, "refusing destructive drop without --yes (or use --dry-run)")
+		return 1
+	}
+	printPlan(d.Out, "drop", dbURL, local, []string{"goose reset (revert all migrations; does not drop DB)"}, false, *dryRun)
+	if *dryRun {
+		return 0
+	}
+	return runGooseResetAll(d, dbURL)
+}
+
+func runCreate(args []string, d DBDeps) int {
+	fs := flag.NewFlagSet("db:create", flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+	dryRun := fs.Bool("dry-run", false, "print planned actions without executing")
+	if err := fs.Parse(args); err != nil {
+		fmt.Fprintf(d.Err, "invalid db:create arguments: %v\n", err)
+		fmt.Fprintln(d.Err, "usage: ship db:create [--dry-run]")
+		return 1
+	}
+	if fs.NArg() > 0 {
+		fmt.Fprintln(d.Err, "usage: ship db:create [--dry-run]")
+		return 1
+	}
+
+	dbURL, err := d.ResolveDBURL()
+	if err != nil {
+		fmt.Fprintf(d.Err, "failed to resolve database URL: %v\n", err)
+		return 1
+	}
+	local := IsLocalDBURL(dbURL)
+	printPlan(d.Out, "create", dbURL, local, []string{"verify target database is reachable"}, false, *dryRun)
+	if *dryRun {
+		return 0
+	}
+
+	if code := runGooseStatusAll(d, dbURL); code != 0 {
+		fmt.Fprintln(d.Err, "database is not reachable or does not exist; create it with your DB provider and retry")
+		return code
+	}
+	return 0
+}
+
+func runRollback(args []string, d DBDeps) int {
+	amount := "1"
+	if len(args) > 1 {
+		fmt.Fprintln(d.Err, "usage: ship db:rollback [amount]")
+		return 1
+	}
+	if len(args) == 1 {
+		if _, err := strconv.Atoi(args[0]); err != nil {
+			fmt.Fprintf(d.Err, "invalid rollback amount %q: must be an integer\n", args[0])
+			return 1
+		}
+		amount = args[0]
+	}
+
+	dbURL, err := d.ResolveDBURL()
+	if err != nil {
+		fmt.Fprintf(d.Err, "failed to resolve database URL: %v\n", err)
+		return 1
+	}
+
+	return runGooseDown(d, dbURL, amount)
+}
+
+func runMake(args []string, d DBDeps) int {
+	var (
+		name       string
+		tableName  string
+		softDelete bool
+	)
+
+	for i := 0; i < len(args); i++ {
+		arg := strings.TrimSpace(args[i])
+		switch arg {
+		case "--soft-delete":
+			softDelete = true
+		case "--table":
+			if i+1 >= len(args) {
+				fmt.Fprintln(d.Err, "db:make --soft-delete requires --table <table>")
+				return 1
+			}
+			i++
+			tableName = strings.TrimSpace(args[i])
+		default:
+			if strings.HasPrefix(arg, "--table=") {
+				tableName = strings.TrimSpace(strings.TrimPrefix(arg, "--table="))
+				continue
+			}
+			if strings.HasPrefix(arg, "-") {
+				fmt.Fprintf(d.Err, "invalid db:make arguments: unknown flag %s\n", arg)
+				fmt.Fprintln(d.Err, "usage: ship db:make <migration_name> [--soft-delete --table <table>]")
+				return 1
+			}
+			if name != "" {
+				fmt.Fprintln(d.Err, "usage: ship db:make <migration_name> [--soft-delete --table <table>]")
+				return 1
+			}
+			name = arg
+		}
+	}
+
+	if name == "" {
+		fmt.Fprintln(d.Err, "usage: ship db:make <migration_name> [--soft-delete --table <table>]")
+		return 1
+	}
+
+	if softDelete {
+		tableName = strings.TrimSpace(tableName)
+		if tableName == "" {
+			fmt.Fprintln(d.Err, "db:make --soft-delete requires --table <table>")
+			return 1
+		}
+		if err := writeSoftDeleteMigration(d.GooseDir, name, tableName, time.Now().UTC()); err != nil {
+			fmt.Fprintf(d.Err, "failed to write soft-delete migration: %v\n", err)
+			return 1
+		}
+		fmt.Fprintf(d.Out, "created soft-delete migration for %s in %s\n", tableName, d.GooseDir)
+		return 0
+	}
+
+	return d.RunGoose("-dir", d.GooseDir, "create", name, "sql")
+}
+
+func writeSoftDeleteMigration(dir string, migrationName string, tableName string, now time.Time) error {
+	filename := fmt.Sprintf("%s_%s.sql", now.UTC().Format("20060102150405"), migrationName)
+	path := filepath.Join(dir, filename)
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return err
+	}
+
+	body := fmt.Sprintf(`-- +goose Up
+ALTER TABLE %s ADD COLUMN deleted_at DATETIME;
+CREATE INDEX idx_%s_deleted_at ON %s(deleted_at);
+
+-- +goose Down
+DROP INDEX IF EXISTS idx_%s_deleted_at;
+`, tableName, tableName, tableName, tableName)
+
+	return os.WriteFile(path, []byte(body), 0o644)
+}
+
+func runGenerate(args []string, d DBDeps) int {
+	fs := flag.NewFlagSet("db:generate", flag.ContinueOnError)
+	fs.SetOutput(io.Discard)
+	configPath := fs.String("config", filepath.ToSlash(filepath.Join("db", "bobgen.yaml")), "path to bobgen config")
+	dryRun := fs.Bool("dry-run", false, "print planned generation command without executing")
+	if err := fs.Parse(args); err != nil {
+		fmt.Fprintf(d.Err, "invalid db:generate arguments: %v\n", err)
+		fmt.Fprintln(d.Err, "usage: ship db:generate [--config <path>] [--dry-run]")
+		return 1
+	}
+	if fs.NArg() > 0 {
+		fmt.Fprintln(d.Err, "usage: ship db:generate [--config <path>] [--dry-run]")
+		return 1
+	}
+
+	cfg := strings.TrimSpace(*configPath)
+	if cfg == "" {
+		fmt.Fprintln(d.Err, "usage: ship db:generate [--config <path>] [--dry-run]")
+		return 1
+	}
+
+	configs, err := resolveBobgenConfigs(d, cfg)
+	if err != nil {
+		fmt.Fprintf(d.Err, "failed to resolve bobgen config paths: %v\n", err)
+		return 1
+	}
+
+	fmt.Fprintln(d.Out, "DB generate plan:")
+	for _, config := range configs {
+		fmt.Fprintf(d.Out, "- config: %s\n", config)
+		fmt.Fprintf(d.Out, "- command: bobgen-sql -c %s\n", config)
+	}
+	if *dryRun {
+		fmt.Fprintln(d.Out, "- mode: dry-run (no commands executed)")
+		return 0
+	}
+
+	for _, config := range configs {
+		if code := d.RunCmd("bobgen-sql", "-c", config); code != 0 {
+			return code
+		}
+	}
+	return 0
+}
+
+func runConsole(args []string, d DBDeps) int {
+	if len(args) != 0 {
+		fmt.Fprintln(d.Err, "usage: ship db:console")
+		return 1
+	}
+
+	dbURL, err := d.ResolveDBURL()
+	if err != nil {
+		fmt.Fprintf(d.Err, "failed to resolve database URL: %v\n", err)
+		return 1
+	}
+
+	driver, err := resolveConsoleDriver(d, dbURL)
+	if err != nil {
+		fmt.Fprintf(d.Err, "failed to resolve database driver: %v\n", err)
+		return 1
+	}
+
+	name, cmdArgs, err := dbConsoleCommand(driver, dbURL)
+	if err != nil {
+		fmt.Fprintf(d.Err, "failed to build db shell command: %v\n", err)
+		return 1
+	}
+	return d.RunCmd(name, cmdArgs...)
+}
+
+func resolveConsoleDriver(d DBDeps, dbURL string) (string, error) {
+	if d.ResolveDBDriver != nil {
+		driver, err := d.ResolveDBDriver()
+		if err != nil {
+			return "", err
+		}
+		normalized := normalizeConsoleDriver(driver)
+		if normalized != "" {
+			return normalized, nil
+		}
+		if strings.TrimSpace(driver) != "" {
+			return "", fmt.Errorf("unsupported DB driver %q (supported: postgres, mysql, sqlite)", driver)
+		}
+	}
+
+	if inferred := inferConsoleDriverFromURL(dbURL); inferred != "" {
+		return inferred, nil
+	}
+	return "", fmt.Errorf("unable to determine DB driver from URL")
+}
+
+func normalizeConsoleDriver(driver string) string {
+	switch strings.ToLower(strings.TrimSpace(driver)) {
+	case "postgres", "postgresql", "pgx":
+		return "postgres"
+	case "mysql", "mariadb":
+		return "mysql"
+	case "sqlite", "sqlite3":
+		return "sqlite"
+	default:
+		return ""
+	}
+}
+
+func inferConsoleDriverFromURL(dbURL string) string {
+	if strings.HasPrefix(dbURL, "sqlite://") || strings.HasPrefix(dbURL, "sqlite3://") {
+		return "sqlite"
+	}
+	u, err := url.Parse(dbURL)
+	if err != nil {
+		return ""
+	}
+	return normalizeConsoleDriver(u.Scheme)
+}
+
+func dbConsoleCommand(driver string, dbURL string) (string, []string, error) {
+	switch normalizeConsoleDriver(driver) {
+	case "postgres":
+		return "psql", []string{dbURL}, nil
+	case "mysql":
+		args, err := mysqlConsoleArgs(dbURL)
+		if err != nil {
+			return "", nil, err
+		}
+		return "mysql", args, nil
+	case "sqlite":
+		path, err := sqliteConsolePath(dbURL)
+		if err != nil {
+			return "", nil, err
+		}
+		return "sqlite3", []string{path}, nil
+	default:
+		return "", nil, fmt.Errorf("unsupported DB driver %q", driver)
+	}
+}
+
+func mysqlConsoleArgs(dbURL string) ([]string, error) {
+	u, err := url.Parse(dbURL)
+	if err != nil {
+		return nil, err
+	}
+	if normalizeConsoleDriver(u.Scheme) != "mysql" {
+		return nil, fmt.Errorf("expected mysql URL, got %q", u.Scheme)
+	}
+	host := strings.TrimSpace(u.Hostname())
+	if host == "" {
+		return nil, fmt.Errorf("mysql URL is missing host")
+	}
+
+	args := []string{"--host", host}
+	if port := strings.TrimSpace(u.Port()); port != "" {
+		args = append(args, "--port", port)
+	}
+	if user := strings.TrimSpace(u.User.Username()); user != "" {
+		args = append(args, "--user", user)
+	}
+	if pass, ok := u.User.Password(); ok && strings.TrimSpace(pass) != "" {
+		args = append(args, "--password="+pass)
+	}
+	if dbName := strings.TrimSpace(strings.TrimPrefix(u.Path, "/")); dbName != "" {
+		args = append(args, dbName)
+	}
+	return args, nil
+}
+
+func sqliteConsolePath(dbURL string) (string, error) {
+	switch {
+	case strings.HasPrefix(dbURL, "sqlite://"):
+		return normalizeSQLitePath(strings.TrimPrefix(dbURL, "sqlite://"))
+	case strings.HasPrefix(dbURL, "sqlite3://"):
+		return normalizeSQLitePath(strings.TrimPrefix(dbURL, "sqlite3://"))
+	default:
+		u, err := url.Parse(dbURL)
+		if err != nil {
+			return "", err
+		}
+		if normalizeConsoleDriver(u.Scheme) != "sqlite" {
+			return "", fmt.Errorf("expected sqlite URL, got %q", u.Scheme)
+		}
+		return normalizeSQLitePath(strings.TrimPrefix(dbURL, u.Scheme+"://"))
+	}
+}
+
+func normalizeSQLitePath(raw string) (string, error) {
+	dsn := strings.TrimSpace(raw)
+	if idx := strings.Index(dsn, "?"); idx >= 0 {
+		dsn = dsn[:idx]
+	}
+	dsn = strings.TrimSpace(dsn)
+	if dsn == "" {
+		return "", fmt.Errorf("sqlite URL is missing database path")
+	}
+	return dsn, nil
+}
+
+func resolveBobgenConfigs(d DBDeps, explicitConfig string) ([]string, error) {
+	if strings.TrimSpace(explicitConfig) != "" && explicitConfig != filepath.ToSlash(filepath.Join("db", "bobgen.yaml")) {
+		return []string{explicitConfig}, nil
+	}
+	configs := []string{filepath.ToSlash(filepath.Join("db", "bobgen.yaml"))}
+	if d.FindGoModule == nil {
+		return configs, nil
+	}
+
+	wd, err := os.Getwd()
+	if err != nil {
+		return nil, err
+	}
+	root, _, err := d.FindGoModule(wd)
+	if err != nil {
+		return nil, err
+	}
+	manifestPath := filepath.Join(root, "config", "modules.yaml")
+	if !pathExists(manifestPath) {
+		return configs, nil
+	}
+
+	manifest, err := rt.LoadModulesManifest(manifestPath)
+	if err != nil {
+		return nil, err
+	}
+	for _, module := range manifest.Modules {
+		configRel := filepath.ToSlash(filepath.Join("modules", module, "db", "bobgen.yaml"))
+		configAbs := filepath.Join(root, filepath.FromSlash(configRel))
+		if !pathExists(configAbs) {
+			return nil, fmt.Errorf("enabled module %q missing bobgen config: %s", module, configRel)
+		}
+		configs = append(configs, configRel)
+	}
+	return configs, nil
+}
+
+func IsLocalDBURL(dbURL string) bool {
+	if strings.HasPrefix(dbURL, "sqlite://") {
+		return true
+	}
+	u, err := url.Parse(dbURL)
+	if err != nil {
+		return false
+	}
+	host := strings.ToLower(u.Hostname())
+	if host == "" {
+		return false
+	}
+	for _, allowed := range localDBHosts() {
+		if host == allowed {
+			return true
+		}
+	}
+	return false
+}
+
+func localDBHosts() []string {
+	raw := strings.TrimSpace(os.Getenv("SHIP_LOCAL_DB_HOSTS"))
+	if raw == "" {
+		return []string{"localhost", "127.0.0.1", "::1", "db", "postgres", "mysql"}
+	}
+	var out []string
+	for _, part := range strings.Split(raw, ",") {
+		v := strings.ToLower(strings.TrimSpace(part))
+		if v != "" {
+			out = append(out, v)
+		}
+	}
+	if len(out) == 0 {
+		return []string{"localhost", "127.0.0.1", "::1"}
+	}
+	return out
+}
+
+func isProductionEnv() bool {
+	env := strings.ToLower(strings.TrimSpace(rt.ResolveAppEnvironment()))
+	return env == "production" || env == "prod"
+}
+
+func printPlan(w io.Writer, action, dbURL string, local bool, steps []string, seed, dryRun bool) {
+	fmt.Fprintf(w, "DB %s plan:\n", action)
+	fmt.Fprintf(w, "- url: %s\n", dbURL)
+	fmt.Fprintf(w, "- local: %t\n", local)
+	for _, step := range steps {
+		fmt.Fprintf(w, "- step: %s\n", step)
+	}
+	if seed {
+		fmt.Fprintln(w, "- step: go run ./cmd/seed/main.go")
+	}
+	if dryRun {
+		fmt.Fprintln(w, "- mode: dry-run (no commands executed)")
+	}
+}
+
+func PrintDBHelp(w io.Writer) {
+	fmt.Fprintln(w, "ship db commands:")
+	fmt.Fprintln(w, "  ship db:create [--dry-run]")
+	fmt.Fprintln(w, "  ship db:generate [--config <path>] [--dry-run]")
+	fmt.Fprintln(w, "  ship db:make <migration_name>")
+	fmt.Fprintln(w, "  ship db:migrate")
+	fmt.Fprintln(w, "  ship db:status")
+	fmt.Fprintln(w, "  ship db:console")
+	fmt.Fprintln(w, "  ship db:reset [--seed] [--force] [--yes] [--dry-run]")
+	fmt.Fprintln(w, "  ship db:drop [--force] [--yes] [--dry-run]")
+	fmt.Fprintln(w, "  ship db:rollback [amount]")
+	fmt.Fprintln(w, "  ship db:seed")
+}

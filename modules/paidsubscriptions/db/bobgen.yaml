@@ -1,0 +1,8 @@
+# Module-local Bob codegen config for paidsubscriptions.
+sql:
+  dialect: psql
+  pattern: "modules/paidsubscriptions/db/migrate/migrations/*.sql"
+  queries:
+    - "modules/paidsubscriptions/db/queries"
+
+output: "modules/paidsubscriptions/db/gen"
