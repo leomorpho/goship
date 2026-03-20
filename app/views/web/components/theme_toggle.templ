@@ -1,0 +1,12 @@
+package components
+
+// Renders: theme switch button for toggling between light and dark modes
+// Route(s): embedded in web layouts/pages
+
+templ ThemeToggle(id string) {
+	<div data-component="theme-toggle"
+		id={ id }
+		data-island="ThemeToggle"
+		data-props={ templ.JSONString(map[string]any{}) }
+	></div>
+}

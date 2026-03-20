@@ -1,0 +1,21 @@
+{
+  "ticket_id": "TKT-094",
+  "created_at": "2026-03-16T13:35:11Z",
+  "ac_done": 1,
+  "ac_total": 1,
+  "changed_files": [
+    ".docket/tickets/TKT-094.md",
+    "docs/architecture/03-project-scope-analysis.md",
+    "docs/architecture/04-http-routes.md",
+    "docs/architecture/06-known-gaps-and-risks.md",
+    "docs/reference/01-cli.md",
+    "docs/roadmap/01-framework-plan.md",
+    "modules/admin/routes.go",
+    "modules/admin/routes_test.go",
+    "tools/cli/ship/internal/policies/doctor.go"
+  ],
+  "last_comments": [],
+  "branch": "work/2026-refactor-main-snapshot",
+  "worktree_path": "/workspace/project",
+  "summary": "AC completion checkpoint"
+}
