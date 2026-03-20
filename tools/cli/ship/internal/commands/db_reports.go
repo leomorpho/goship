@@ -16,6 +16,7 @@ type dbPromoteReport struct {
 	Database          config.DatabaseRuntimeMetadata `json:"database"`
 	Steps             []string                       `json:"steps"`
 	SuggestedCommands []string                       `json:"suggested_commands,omitempty"`
+	StateMachine      dbPromotionStateMachine        `json:"state_machine"`
 	MutationPlan      *dbPromoteMutationPlan         `json:"mutation_plan,omitempty"`
 	Note              string                         `json:"note,omitempty"`
 }
@@ -25,6 +26,21 @@ type dbPromoteMutationPlan struct {
 	EnvPath string            `json:"env_path,omitempty"`
 	Values  map[string]string `json:"values"`
 	Order   []string          `json:"order,omitempty"`
+}
+
+type dbPromotionStateMachine struct {
+	SchemaVersion string                 `json:"schema_version"`
+	InitialState  string                 `json:"initial_state"`
+	TerminalState string                 `json:"terminal_state"`
+	UnsafeStates  []string               `json:"unsafe_states"`
+	States        []dbPromotionStateSpec `json:"states"`
+}
+
+type dbPromotionStateSpec struct {
+	Name           string   `json:"name"`
+	Kind           string   `json:"kind"`
+	AllowsCommands []string `json:"allows_commands,omitempty"`
+	BlocksCommands []string `json:"blocks_commands,omitempty"`
 }
 
 type dbExportReport struct {
@@ -65,6 +81,7 @@ func buildDBPromoteReport(md config.DatabaseRuntimeMetadata, dryRun bool) dbProm
 			"ship db:import --json",
 			"ship db:verify-import --json",
 		},
+		StateMachine: buildDBPromotionStateMachine(),
 	}
 	if md.PromotionPath == "" {
 		report.Note = "no promotion path is defined for the current database driver"
@@ -81,6 +98,63 @@ func buildDBPromoteReport(md config.DatabaseRuntimeMetadata, dryRun bool) dbProm
 	}
 	report.Note = "config updated; export/import/verification steps remain manual"
 	return report
+}
+
+func buildDBPromotionStateMachine() dbPromotionStateMachine {
+	return dbPromotionStateMachine{
+		SchemaVersion: "promotion-state-machine-v1",
+		InitialState:  "source-ready",
+		TerminalState: "completed",
+		UnsafeStates: []string{
+			"config-applied",
+			"source-exported",
+			"target-migrated",
+			"target-imported",
+			"verification-failed",
+		},
+		States: []dbPromotionStateSpec{
+			{
+				Name:           "source-ready",
+				Kind:           "safe",
+				AllowsCommands: []string{"ship db:promote", "ship db:export --json"},
+			},
+			{
+				Name:           "config-applied",
+				Kind:           "unsafe-partial",
+				AllowsCommands: []string{"ship db:import --json", "ship db:verify-import --json"},
+				BlocksCommands: []string{"ship db:promote"},
+			},
+			{
+				Name:           "source-exported",
+				Kind:           "unsafe-partial",
+				AllowsCommands: []string{"ship db:import --json"},
+				BlocksCommands: []string{"ship db:promote", "ship db:export --json"},
+			},
+			{
+				Name:           "target-migrated",
+				Kind:           "unsafe-partial",
+				AllowsCommands: []string{"ship db:import --json"},
+				BlocksCommands: []string{"ship db:promote", "ship db:export --json"},
+			},
+			{
+				Name:           "target-imported",
+				Kind:           "unsafe-partial",
+				AllowsCommands: []string{"ship db:verify-import --json"},
+				BlocksCommands: []string{"ship db:promote", "ship db:export --json", "ship db:import --json"},
+			},
+			{
+				Name:           "verification-failed",
+				Kind:           "unsafe-partial",
+				AllowsCommands: []string{"ship db:verify-import --json"},
+				BlocksCommands: []string{"ship db:promote", "ship db:export --json", "ship db:import --json"},
+			},
+			{
+				Name:           "completed",
+				Kind:           "terminal",
+				BlocksCommands: []string{"ship db:promote", "ship db:export --json", "ship db:import --json", "ship db:verify-import --json"},
+			},
+		},
+	}
 }
 
 func buildDBPromoteMutationPlan(md config.DatabaseRuntimeMetadata, dryRun bool) *dbPromoteMutationPlan {
@@ -261,11 +335,18 @@ func printDBPromoteReport(w io.Writer, report dbPromoteReport) {
 	if report.Database.PromotionPath != "" {
 		fmt.Fprintf(w, "- promotion_path: %s\n", report.Database.PromotionPath)
 	}
+	fmt.Fprintf(w, "- state_machine: %s\n", report.StateMachine.SchemaVersion)
+	fmt.Fprintf(w, "- unsafe_states: %s\n", strings.Join(report.StateMachine.UnsafeStates, ", "))
 	if len(report.Database.CompatibleTargets) > 0 {
 		fmt.Fprintf(w, "- compatible_targets: %s\n", strings.Join(report.Database.CompatibleTargets, ", "))
 	}
 	for _, step := range report.Steps {
 		fmt.Fprintf(w, "- step: %s\n", step)
+	}
+	for _, state := range report.StateMachine.States {
+		for _, cmd := range state.BlocksCommands {
+			fmt.Fprintf(w, "- blocked: %s -> %s\n", state.Name, cmd)
+		}
 	}
 	for _, cmd := range report.SuggestedCommands {
 		fmt.Fprintf(w, "- next: %s\n", cmd)
