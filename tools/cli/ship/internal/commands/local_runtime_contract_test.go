@@ -24,6 +24,15 @@ func TestLocalRuntimeContract_DocsAndMakefileStayAligned_RedSpec(t *testing.T) {
 	if !strings.Contains(devGuide, "Docker Compose currently provisions:\n\n- Redis (`goship_cache`)\n- Mailpit (`goship_mailpit`)") {
 		t.Fatal("development workflows guide should pin the compose-backed local accessories explicitly")
 	}
+	if strings.Contains(devGuide, "use `make dev` if you need the full infrastructure stack") {
+		t.Fatal("development workflows guide should not describe make dev as the full infrastructure stack path")
+	}
+	if !strings.Contains(devGuide, "`make dev-full` if you need the full multiprocess infrastructure stack") {
+		t.Fatal("development workflows guide should send full infrastructure users to make dev-full")
+	}
+	if !strings.Contains(makefile, "dev: ## Start the canonical app-on dev loop (single-node web loop; distributed uses full mode)") {
+		t.Fatal("Makefile should advertise make dev as the canonical app-on dev loop")
+	}
 	if !strings.Contains(compose, "cache:") || !strings.Contains(compose, "mailpit:") {
 		t.Fatal("compose file should still define cache and mailpit services for the local accessory workflow")
 	}

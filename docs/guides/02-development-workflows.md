@@ -65,7 +65,7 @@ Notes:
 
 - **Postgres and Redis are optional.** The runtime can operate entirely with embedded SQLite, in-memory Otter cache, and Backlite jobs.
 - External database and cache services remain fully supported by configuration.
-- `make run` does not start Docker Compose or any accessory services; use `make dev` if you need the full infrastructure stack.
+- `make run` does not start Docker Compose or any accessory services; use `make dev-full` if you need the full multiprocess infrastructure stack.
 - CI keeps dedicated boundary suites for `make test-module-isolation` and `make test-sql-portability`; run those targets directly when changing installable-module imports or SQL portability metadata/contracts.
 - `make test-sql-portability` now checks `sql-core-v1` runtime metadata plus the branch annotations and placeholder conventions in the canonical migration/query SQL sources, so portability drift fails in a named lane instead of hiding in broad test output.
 - `make test-module-isolation` reports module/file context for forbidden imports and fails when the allowlist contains stale entries; trim `tools/scripts/test/module-isolation-allowlist.txt` as soon as a temporary exception is removed.
