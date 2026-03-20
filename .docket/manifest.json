@@ -1523,7 +1523,7 @@
     },
     "TKT-281": {
       "title": "G5-01-A: Define executable spec and red tests",
-      "state": "backlog",
+      "state": "in-progress",
       "priority": 6,
       "parent": "TKT-188"
     },
