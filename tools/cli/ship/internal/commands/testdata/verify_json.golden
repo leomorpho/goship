@@ -44,7 +44,7 @@
     {
       "name": "orchestration contract mismatch preflight",
       "ok": true,
-      "output": "runtime and orchestration metadata remain on the canonical shared contract surface"
+      "output": "runtime report and managed-settings access contract remain aligned for deploy safety"
     }
   ]
 }

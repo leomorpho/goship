@@ -102,6 +102,7 @@ func TestRestoreEvidenceJSONContract_RedSpec(t *testing.T) {
 		PostRestoreChecks: []string{
 			"manifest.validated",
 			"artifact.checksum.sha256",
+			"database.schema_version.present",
 		},
 	}
 
@@ -109,7 +110,7 @@ func TestRestoreEvidenceJSONContract_RedSpec(t *testing.T) {
 	require.NoError(t, err)
 	text := string(payload)
 	assert.Contains(t, text, `"accepted_manifest_version":"backup-manifest-v1"`)
-	assert.Contains(t, text, `"post_restore_checks":["manifest.validated","artifact.checksum.sha256"]`)
+	assert.Contains(t, text, `"post_restore_checks":["manifest.validated","artifact.checksum.sha256","database.schema_version.present"]`)
 }
 
 func TestRestoreEvidenceJSONContract_UsesAcceptedManifestVersionField_RedSpec(t *testing.T) {
@@ -126,6 +127,7 @@ func TestRestoreEvidenceJSONContract_UsesAcceptedManifestVersionField_RedSpec(t 
 		PostRestoreChecks: []string{
 			"manifest.validated",
 			"artifact.checksum.sha256",
+			"database.schema_version.present",
 		},
 	}
 

@@ -76,3 +76,37 @@ func TestCIContract_DefinesGeneratorSnapshotAndIdempotencyGate_RedSpec(t *testin
 		t.Fatal("development workflow guide should document the explicit snapshot refresh path")
 	}
 }
+
+func TestCIContract_DefinesUIChangeVerificationPolicyAndBrowserEvidence_RedSpec(t *testing.T) {
+	root := repoRootFromCommandsTest(t)
+
+	workflow := mustReadText(t, filepath.Join(root, ".github", "workflows", "test.yml"))
+	devGuide := mustReadText(t, filepath.Join(root, "docs", "guides", "02-development-workflows.md"))
+	risksDoc := mustReadText(t, filepath.Join(root, "docs", "architecture", "06-known-gaps-and-risks.md"))
+
+	for _, token := range []string{
+		"\n  e2e_smoke:\n",
+		"\n  cherie_compatibility_smoke:\n",
+		"name: playwright-smoke-report",
+		"name: playwright-cherie-smoke-report",
+	} {
+		if !strings.Contains(workflow, token) {
+			t.Fatalf("test workflow should include %q for browser evidence coverage", token)
+		}
+	}
+
+	for _, token := range []string{
+		"UI-impacting changes should add or update Playwright coverage for the affected flow",
+		"browser evidence should be attached or referenced in ticket or PR notes",
+		"tests/e2e/playwright-report",
+		"tests/e2e/test-results",
+	} {
+		if !strings.Contains(devGuide, token) {
+			t.Fatalf("development workflow guide should include %q", token)
+		}
+	}
+
+	if !strings.Contains(risksDoc, "browser evidence") {
+		t.Fatal("known-gaps doc should explain how the Playwright smoke lanes provide browser evidence")
+	}
+}

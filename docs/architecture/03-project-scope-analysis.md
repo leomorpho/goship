@@ -139,6 +139,7 @@ through `core.Jobs`, and the worker runtime starts/stops the scheduler lifecycle
 ## 8) Domain Events
 
 - `framework/events` now provides a typed in-process event bus with generic subscription helpers
+- `framework/events` also exposes a jobs-backed async bridge that decodes a typed envelope and republishes supported shared events into the local bus
 - `app/foundation.Container` exposes `EventBus`
 - Auth flows publish shared events such as `UserRegistered`, `UserLoggedIn`, `UserLoggedOut`, and `PasswordChanged`
 
@@ -147,6 +148,7 @@ through `core.Jobs`, and the worker runtime starts/stops the scheduler lifecycle
 - Server-rendered pages via Templ (`app/views/` + `app/web/ui`)
 - HTMX-enhanced interactions
 - Optional client islands built as per-component JS chunks under `app/static/islands/`
+- `ship make:island <Name>` generates the canonical island pair (`frontend/islands/<Name>.js` plus `app/views/web/components/<name>_island.templ`) that the browser runtime mounts through `data-island` / `data-props`
 - Optional vanilla JS bundle into `app/static/vanilla_bundle.js`
 - Public demo route `/demo/islands` that renders regression-guarded counter islands for vanilla JS, React, Vue, and Svelte
 
@@ -168,7 +170,7 @@ Build pipeline:
 Reflection-based administrative interface for managing database resources.
 
 - Resource registration and CRUD operations for Bob-generated models.
-- Embedded Backlite queue monitoring.
+- Queue monitoring reads through `core.JobsInspector`, with unsupported backends surfacing an explicit unavailable state in the admin UI.
 - Managed settings status page at `/auth/admin/managed-settings` for operator visibility into effective value/source/access state.
 - Feature flags page at `/auth/admin/flags` with server-side toggle actions.
 - Trash page at `/auth/admin/trash` for operator visibility into soft-deleted row counts by table.

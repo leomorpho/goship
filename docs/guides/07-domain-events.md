@@ -56,7 +56,14 @@ Current behavior:
 
 - job name: `framework.events.publish`
 
-This is the current enqueue contract only; no generic worker re-dispatcher is wired yet.
+The worker runtime registers that job name and calls `events.DeliverAsync(...)` to decode the
+envelope and republish it into the local in-process bus.
+
+Delivery contract:
+
+- the envelope type is the Go type string produced by `events`' reflection helper
+- supported async event types are the shared framework event types in `framework/events/types/`
+- unknown event types fail fast instead of silently dropping or guessing the payload
 
 ## Generator
 

@@ -550,13 +550,13 @@ func registerAuthRoutes() {
 		writeDoctorFixture(t, root)
 
 		for rel, content := range map[string]string{
-			filepath.Join("docs", "architecture", "01-architecture.md"):          "compatibility window\n",
-			filepath.Join("docs", "architecture", "02-structure-and-boundaries.md"): "deprecated alias\n",
-			filepath.Join("docs", "architecture", "03-project-scope-analysis.md"): "active transitional state\n",
-			filepath.Join("docs", "architecture", "07-core-interfaces.md"):       "deprecation period\n",
+			filepath.Join("docs", "architecture", "01-architecture.md"):                "compatibility window\n",
+			filepath.Join("docs", "architecture", "02-structure-and-boundaries.md"):    "deprecated alias\n",
+			filepath.Join("docs", "architecture", "03-project-scope-analysis.md"):      "active transitional state\n",
+			filepath.Join("docs", "architecture", "07-core-interfaces.md"):             "deprecation period\n",
 			filepath.Join("docs", "architecture", "09-standalone-and-managed-mode.md"): "legacy compatibility path\n",
-			filepath.Join("docs", "reference", "01-cli.md"):                       "legacy compatibility path\n",
-			filepath.Join("docs", "roadmap", "01-framework-plan.md"):              "transition-era fallback\n",
+			filepath.Join("docs", "reference", "01-cli.md"):                            "legacy compatibility path\n",
+			filepath.Join("docs", "roadmap", "01-framework-plan.md"):                   "transition-era fallback\n",
 		} {
 			path := filepath.Join(root, rel)
 			if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
@@ -599,6 +599,31 @@ func registerAuthRoutes() {
 		issues := RunDoctorChecks(root)
 		if containsDoctorIssueMessage(issues, "docs/guides/99-history.md:1") {
 			t.Fatalf("allowlisted historical reference should not produce DX030, got %+v", issues)
+		}
+	})
+
+	t.Run("canonical architecture docs ignore allowlist entries", func(t *testing.T) {
+		root := t.TempDir()
+		writeDoctorFixture(t, root)
+
+		docPath := filepath.Join(root, "docs", "architecture", "06-known-gaps-and-risks.md")
+		if err := os.MkdirAll(filepath.Dir(docPath), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(docPath, []byte("This architecture note mentions transition-era history.\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		allowlistPath := filepath.Join(root, "docs", "policies", "02-transition-wording-allowlist.txt")
+		if err := os.MkdirAll(filepath.Dir(allowlistPath), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(allowlistPath, []byte("docs/architecture/06-known-gaps-and-risks.md|transition-era\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+
+		issues := RunDoctorChecks(root)
+		if !containsDoctorIssueMessage(issues, "docs/architecture/06-known-gaps-and-risks.md:1") {
+			t.Fatalf("canonical architecture docs should ignore allowlist entries, got %+v", issues)
 		}
 	})
 
@@ -762,13 +787,13 @@ func NewContainer() *Container {
 
 type Container struct{}
 `,
-		filepath.Join(root, "app", "web", "ui", "page.go"):                   "package ui\n",
-		filepath.Join(root, "app", "web", "viewmodels", "page_data.go"):      "package viewmodels\n",
-		filepath.Join(root, "app", "web", "routenames", "routenames.go"):     "package routenames\n",
-		filepath.Join(root, "db", "bobgen.yaml"):                             "packages: []\n",
-		filepath.Join(root, "config", "modules.yaml"):                        "modules: []\n",
-		filepath.Join(root, "docs", "00-index.md"):                           "# Index\n",
-		filepath.Join(root, "docs", "architecture", "01-architecture.md"):    "# Architecture\n",
+		filepath.Join(root, "app", "web", "ui", "page.go"):                "package ui\n",
+		filepath.Join(root, "app", "web", "viewmodels", "page_data.go"):   "package viewmodels\n",
+		filepath.Join(root, "app", "web", "routenames", "routenames.go"):  "package routenames\n",
+		filepath.Join(root, "db", "bobgen.yaml"):                          "packages: []\n",
+		filepath.Join(root, "config", "modules.yaml"):                     "modules: []\n",
+		filepath.Join(root, "docs", "00-index.md"):                        "# Index\n",
+		filepath.Join(root, "docs", "architecture", "01-architecture.md"): "# Architecture\n",
 		filepath.Join(root, "docs", "architecture", "10-extension-zones.md"): strings.Join([]string{
 			"## Extension Zones",
 			"- `app/`",

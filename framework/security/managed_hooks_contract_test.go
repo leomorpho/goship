@@ -61,6 +61,24 @@ func TestManagedHookSignatureVectors_CanonicalPayloadLibrary_RedSpec(t *testing.
 	}
 }
 
+func TestManagedHookKeyRotationContract_RedSpec(t *testing.T) {
+	root := repoRootForSecurityContractTest(t)
+
+	managedDoc := strings.ToLower(mustReadSecurityContractText(t, filepath.Join(root, "docs", "architecture", "09-standalone-and-managed-mode.md")))
+	cliDoc := strings.ToLower(mustReadSecurityContractText(t, filepath.Join(root, "docs", "reference", "01-cli.md")))
+
+	for _, token := range []string{
+		"managed hook key rotation",
+		"pagoda_managed_hooks_previous_secret",
+		"rotation window",
+		"active signing key",
+	} {
+		if !strings.Contains(managedDoc, token) && !strings.Contains(cliDoc, token) {
+			t.Fatalf("managed hook key rotation contract should document %q", token)
+		}
+	}
+}
+
 func repoRootForSecurityContractTest(t *testing.T) string {
 	t.Helper()
 

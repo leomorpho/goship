@@ -211,6 +211,7 @@ bubblewrap
 # docket
 .docket/index.db
 .docket/tickets/*/sessions/
+.docket/checkpoints/
 
 # private nested repos / planning workspaces
 /tools/private/
@@ -219,3 +220,4 @@ bubblewrap
 .docket/locks.json
 .docket/runtime/
 .docket/semantic/
+tests/e2e/.tmp/

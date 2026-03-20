@@ -142,7 +142,7 @@ These commands are implemented as wrappers over existing workflows:
 - `ship module:add <name>` -> updates `config/modules.yaml`, app marker snippets, root `go.mod` `require`/`replace` directives, and `go.work` `use` entries for standalone batteries with local `go.mod` files
 - `ship module:remove <name>` -> removes those managed entries when safe; fails with exact blocker file paths when the repo still imports the module outside managed wiring points
 - `ship verify` -> rejects standalone-battery drift when root `go.mod` dependencies on installable modules are not the canonical local-dev shape (`v0.0.0` + local `replace` + matching `go.work use`), and enforces the canonical no-compatibility/no-deprecation wording invariant across the operator-facing docs set
-- `ship verify` includes an orchestration contract-mismatch preflight step before deploy/upgrade/promote flows so unsupported runtime combinations fail before orchestration starts
+- `ship verify` includes an orchestration contract-mismatch preflight step before deploy/upgrade/promote flows so unsupported runtime combinations fail before orchestration starts, and the preflight stays aligned with the managed-settings access contract used by the runtime report
 - `ship infra:up` -> detects `docker-compose`/`docker compose` and runs `up -d cache`, then attempts `up -d mailpit` (non-fatal if mailpit fails)
 - `ship infra:down` -> detects `docker-compose`/`docker compose` and runs `down`
 - `make test-module-isolation` -> dedicated CI lane for installable-module root import isolation; reports offending module/file context and rejects stale allowlist entries
@@ -273,6 +273,8 @@ Managed hook replay contract:
 
 - `framework/security.ManagedHookVerifier` exposes a pluggable `NonceStore` seam via `WithNonceStore(...)`
 - default behavior remains process-local in-memory replay protection until app/runtime wiring provides a shared backend
+- managed hook key rotation keeps `PAGODA_MANAGED_HOOKS_SECRET` as the active key and accepts `PAGODA_MANAGED_HOOKS_PREVIOUS_SECRET` during the rotation window
+- the rotation window does not relax replay protection; nonce and timestamp validation still apply to both secrets
 
 run-anywhere verification gate:
 

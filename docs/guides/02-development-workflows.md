@@ -212,6 +212,9 @@ The current GoShip golden-flow browser contract lives at `tests/e2e/tests/goship
 authoritative suite for scaffolded public/auth/islands coverage.
 The admin scaffold lane lives at `tests/e2e/tests/admin_scaffold.spec.ts` and covers the
 critical admin auth/managed-settings/flags/trash surfaces as Playwright baseline smoke coverage.
+UI-impacting changes should add or update Playwright coverage for the affected flow.
+browser evidence should be attached or referenced in ticket or PR notes.
+Primary artifact paths remain `tests/e2e/playwright-report` and `tests/e2e/test-results`.
 The `verify_strict` CI job runs `ship verify --profile strict` and serves as the precondition for the downstream Cherie compatibility gate.
 The Cherie compatibility lane runs `tests/e2e/tests/cherie_compatibility.spec.ts` with a web-only process env (`PAGODA_PROCESSES_WEB=true`, `PAGODA_PROCESSES_WORKER=false`, `PAGODA_PROCESSES_SCHEDULER=false`, `PAGODA_PROCESSES_COLOCATED=false`) so the baseline only measures boot, auth, and realtime route compatibility.
 Treat `verify_strict` and `cherie_compatibility_smoke` as the required status checks for Cherie-facing sync work.
@@ -219,7 +222,7 @@ The `generator_contracts` CI job runs `make test-generator-contracts` and blocks
 Use `make test-generator-idempotency` when only the duplicate-run matrix is relevant and you do not need to touch snapshots.
 When a generator output change is intentional, refresh the golden file locally with `UPDATE_GENERATOR_SNAPSHOTS=1 make test-generator-contracts` and commit the updated snapshot in the same change.
 The `alpha_contract` CI job runs `make test-alpha-contracts` and freezes the current root CLI help plus route inventory as the `v0.1.0-alpha` public surface.
-Only refresh those snapshots when the alpha surface change has approved review, then run `UPDATE_ALPHA_CONTRACTS=1 make test-alpha-contracts` and commit the snapshot update with the contract change.
+Only refresh those snapshots when the alpha surface change has approved review before merge, then run `UPDATE_ALPHA_CONTRACTS=1 make test-alpha-contracts` and commit the snapshot update with the contract change.
 The `doc_sync` CI job runs `make test-doc-sync` and keeps the HTTP route map plus project-scope docs aligned with canonical managed/admin/realtime surfaces.
 The `dead_route_regression` CI job runs `make test-dead-routes` and keeps the canonical route inventory checks from silently regressing.
 The `bootstrap_budget` CI job runs `make test-bootstrap-budget` and measures the canonical starter flow as `ship new <app> --no-i18n` followed by `go run ./cmd/web` inside the generated scaffold.

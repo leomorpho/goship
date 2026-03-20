@@ -3,18 +3,22 @@ package admin
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/leomorpho/goship/app/foundation"
 	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/config"
 	ctxkeys "github.com/leomorpho/goship/framework/context"
+	"github.com/leomorpho/goship/framework/core"
+	"github.com/leomorpho/goship/framework/runtimeconfig"
 )
 
 func TestAdminRoutes_NonAdminForbidden(t *testing.T) {
@@ -48,8 +52,70 @@ func TestAdminRoutes_AdminQueueMonitor(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c.Web.ServeHTTP(rec, req)
 
-	if rec.Code != http.StatusOK {
-		t.Fatalf("status = %d, want %d", rec.Code, http.StatusOK)
+	if rec.Code != http.StatusServiceUnavailable {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusServiceUnavailable)
+	}
+	if !strings.Contains(rec.Body.String(), "Queue monitor unavailable") {
+		t.Fatalf("body = %q, want unavailable banner", rec.Body.String())
+	}
+}
+
+func TestAdminRoutes_AdminQueueMonitorUsesCoreJobsInspector(t *testing.T) {
+	c := newContainerForAdminRoutes(t, true)
+	c.CoreJobsInspector = fakeJobsInspector{
+		records: []core.JobRecord{
+			{
+				ID:         "job-1",
+				Name:       "emails.send",
+				Queue:      "default",
+				Status:     core.JobStatusQueued,
+				Attempt:    1,
+				MaxRetries: 5,
+				Payload:    []byte(`{"user_id":1}`),
+				CreatedAt:  time.Unix(10, 0).UTC(),
+				UpdatedAt:  time.Unix(20, 0).UTC(),
+				RunAt:      time.Unix(30, 0).UTC(),
+			},
+		},
+	}
+
+	listReq := httptest.NewRequest(http.MethodGet, "/admin/queues", nil)
+	listRec := httptest.NewRecorder()
+	c.Web.ServeHTTP(listRec, listReq)
+
+	if listRec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", listRec.Code, http.StatusOK)
+	}
+	if !strings.Contains(listRec.Body.String(), "emails.send") || !strings.Contains(listRec.Body.String(), "/admin/queues/job-1") {
+		t.Fatalf("body = %q, want job list output", listRec.Body.String())
+	}
+
+	detailReq := httptest.NewRequest(http.MethodGet, "/admin/queues/job-1", nil)
+	detailRec := httptest.NewRecorder()
+	c.Web.ServeHTTP(detailRec, detailReq)
+
+	if detailRec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", detailRec.Code, http.StatusOK)
+	}
+	body := detailRec.Body.String()
+	if !strings.Contains(body, "emails.send") || !strings.Contains(body, "user_id") {
+		t.Fatalf("body = %q, want job detail payload", body)
+	}
+}
+
+func TestAdminRoutes_AdminQueueMonitorRedisCapabilityGap(t *testing.T) {
+	c := newContainerForAdminRoutes(t, true)
+	c.CoreJobsInspector = fakeJobsInspector{err: errors.New("redis jobs inspector is not implemented yet")}
+
+	req := httptest.NewRequest(http.MethodGet, "/admin/queues", nil)
+	rec := httptest.NewRecorder()
+	c.Web.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusServiceUnavailable {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusServiceUnavailable)
+	}
+	if !strings.Contains(rec.Body.String(), "redis jobs inspector is not implemented yet") {
+		t.Fatalf("body = %q, want capability-gap message", rec.Body.String())
 	}
 }
 
@@ -84,6 +150,46 @@ func TestAdminRoutes_AdminManagedSettings(t *testing.T) {
 	}
 	if !strings.Contains(rec.Body.String(), "Managed Runtime Settings") {
 		t.Fatalf("body = %q, want managed settings heading", rec.Body.String())
+	}
+}
+
+func TestAdminRoutes_AdminManagedSettingsShowsSourceAndReadOnlyStates(t *testing.T) {
+	c := newContainerForAdminRoutes(t, true)
+	c.Config.Managed.Enabled = true
+	c.Config.Managed.Authority = "control-plane"
+	c.Config.Adapters.Cache = "managed-cache"
+	c.Config.Managed.RuntimeReport = runtimeconfig.Report{
+		Mode:      runtimeconfig.ModeManaged,
+		Authority: "control-plane",
+		Keys: map[string]runtimeconfig.KeyState{
+			"adapters.cache": {
+				Value:  "managed-cache",
+				Source: runtimeconfig.SourceManagedOverride,
+			},
+			"adapters.jobs": {
+				Value:  "backlite",
+				Source: runtimeconfig.SourceEnvironment,
+			},
+		},
+	}
+
+	req := httptest.NewRequest(http.MethodGet, "/admin/managed-settings", nil)
+	rec := httptest.NewRecorder()
+	c.Web.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusOK)
+	}
+
+	body := rec.Body.String()
+	if !strings.Contains(body, "Managed mode: enabled (authority: control-plane)") {
+		t.Fatalf("body = %q, want managed authority banner", body)
+	}
+	if !strings.Contains(body, "Cache adapter") || !strings.Contains(body, "managed-cache") || !strings.Contains(body, "externally-managed") {
+		t.Fatalf("body = %q, want externally managed cache row", body)
+	}
+	if !strings.Contains(body, "Jobs adapter") || !strings.Contains(body, "backlite") || !strings.Contains(body, "read-only") || !strings.Contains(body, "environment") {
+		t.Fatalf("body = %q, want read-only jobs row with environment source", body)
 	}
 }
 
@@ -194,6 +300,28 @@ func newContainerForAdminRoutes(t *testing.T, admin bool) *foundation.Container 
 		t.Fatalf("register routes: %v", err)
 	}
 	return c
+}
+
+type fakeJobsInspector struct {
+	records []core.JobRecord
+	err     error
+}
+
+func (f fakeJobsInspector) List(context.Context, core.JobListFilter) ([]core.JobRecord, error) {
+	if f.err != nil {
+		return nil, f.err
+	}
+	return f.records, nil
+}
+
+func (f fakeJobsInspector) Get(context.Context, string) (core.JobRecord, bool, error) {
+	if f.err != nil {
+		return core.JobRecord{}, false, f.err
+	}
+	if len(f.records) == 0 {
+		return core.JobRecord{}, false, nil
+	}
+	return f.records[0], true, nil
 }
 
 func ensureBackliteSchema(db *sql.DB) error {

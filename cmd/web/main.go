@@ -17,6 +17,7 @@ import (
 	"github.com/leomorpho/goship/app/foundation"
 	tasks "github.com/leomorpho/goship/app/jobs"
 	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
+	"github.com/leomorpho/goship/framework/events"
 	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
 	profilesvc "github.com/leomorpho/goship/modules/profile"
 )
@@ -213,6 +214,12 @@ func startEmbeddedJobsWorker(
 ) error {
 	if c.Config.Adapters.Jobs != "backlite" {
 		return nil
+	}
+
+	if err := c.CoreJobs.Register(events.AsyncJobName, func(ctx context.Context, payload []byte) error {
+		return events.DeliverAsync(ctx, c.EventBus, payload)
+	}); err != nil {
+		return err
 	}
 
 	emailSubscriptionConfirmationProcessor := tasks.NewEmailSubscriptionConfirmationProcessor(c.Mail, c.Config)

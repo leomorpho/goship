@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/leomorpho/goship/framework/runtimeconfig"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -24,6 +25,33 @@ func TestRuntimeMetadataSQLitePromotionContract(t *testing.T) {
 	assert.Equal(t, "standalone", managed.Mode)
 	assert.Equal(t, "otter", managed.Keys["adapters.cache"].Value)
 	assert.Equal(t, "framework-default", managed.Keys["adapters.cache"].Source)
+}
+
+func TestRuntimeMetadataManagedRegistryContract(t *testing.T) {
+	cfg := defaultConfig()
+	cfg.Managed.Enabled = true
+	cfg.Managed.Authority = "control-plane"
+	cfg.Managed.RuntimeReport = runtimeconfig.BuildReport(runtimeconfig.LayerInputs{
+		Defaults:        managedKeyValues(defaultConfig()),
+		EffectiveValues: managedKeyValues(cfg),
+		RepoSet:         map[string]bool{},
+		EnvSet:          map[string]bool{},
+		ManagedSet:      map[string]bool{},
+		ManagedEnabled:  true,
+		Authority:       cfg.Managed.Authority,
+	})
+
+	metadata := cfg.RuntimeMetadata().Managed
+	statuses := cfg.ManagedSettingStatuses()
+
+	assert.Equal(t, "managed", metadata.Mode)
+	assert.Equal(t, "control-plane", metadata.Authority)
+	assert.Equal(t, ManagedKeyRegistryVersion, metadata.RegistryVersion)
+	assert.Equal(t, ManagedKeySchemaVersion, metadata.SchemaVersion)
+	assert.ElementsMatch(t, managedSettingRegistryKeys(), managedMetadataKeys(metadata.Keys))
+	assert.ElementsMatch(t, managedSettingRegistryKeys(), managedStatusKeys(statuses))
+	assert.Equal(t, "otter", metadata.Keys["adapters.cache"].Value)
+	assert.Equal(t, "framework-default", metadata.Keys["adapters.cache"].Source)
 }
 
 func TestRuntimeMetadataPostgresHasNoPromotionPath(t *testing.T) {
@@ -47,4 +75,20 @@ func TestRuntimeMetadataManagedKeyRegistryVersionContract(t *testing.T) {
 
 	assert.Contains(t, string(raw), `"registry_version":"managed-key-registry-v1"`)
 	assert.Contains(t, string(raw), `"schema_version":"managed-key-schema-v1"`)
+}
+
+func managedMetadataKeys(metadata map[string]ManagedKeyMetadata) []string {
+	keys := make([]string, 0, len(metadata))
+	for key := range metadata {
+		keys = append(keys, key)
+	}
+	return keys
+}
+
+func managedStatusKeys(statuses []ManagedSettingStatus) []string {
+	keys := make([]string, 0, len(statuses))
+	for _, status := range statuses {
+		keys = append(keys, status.Key)
+	}
+	return keys
 }

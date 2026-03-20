@@ -575,11 +575,9 @@ type SubscriptionCancelled struct { UserID int64; At time.Time }
 ```
 
 **Async variant** — for non-critical side effects, route through jobs module:
-```go
-func PublishAsync(ctx context.Context, bus *Bus, jobs core.Jobs, event any) error {
-    return jobs.Enqueue(ctx, EventJob{Event: event})
-}
-```
+`PublishAsync(...)` now enqueues an `AsyncEnvelope` under the explicit job name
+`framework.events.publish`; the worker-side bridge decodes that envelope and republishes the
+supported shared event type into the local bus.
 
 **What to do:**
 1. Create `framework/events/bus.go` with `Bus`, `Publish`, `Subscribe[T]`.

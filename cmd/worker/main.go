@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -12,6 +13,7 @@ import (
 	"github.com/leomorpho/goship/app/foundation"
 	"github.com/leomorpho/goship/app/jobs"
 	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
+	"github.com/leomorpho/goship/framework/events"
 	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
 	profilesvc "github.com/leomorpho/goship/modules/profile"
 )
@@ -124,6 +126,9 @@ func main() {
 
 	// Map task types to the handlers
 	mux := asynq.NewServeMux()
+	mux.HandleFunc(events.AsyncJobName, func(ctx context.Context, task *asynq.Task) error {
+		return events.DeliverAsync(ctx, c.EventBus, task.Payload())
+	})
 	mux.Handle(tasks.TypeEmailSubscriptionConfirmation, emailSubscriptionConfirmationProcessor)
 	mux.Handle(tasks.TypeEmailUpdates, emailUpdateProcessor)
 	mux.Handle(tasks.TypeDeactivateExpiredSubscriptions, deactivateExpiredSubscriptionsProcessor)

@@ -118,6 +118,62 @@ func TestRemoveModuleFromManifest(t *testing.T) {
 	}
 }
 
+func TestNotificationsModuleCatalog_UsesConcreteWiring(t *testing.T) {
+	info, ok := moduleCatalog["notifications"]
+	if !ok {
+		t.Fatal("expected notifications in module catalog")
+	}
+	if strings.Contains(info.ContainerSnippet, "TODO:") {
+		t.Fatalf("container snippet still contains TODO text: %q", info.ContainerSnippet)
+	}
+	if strings.Contains(info.RouterSnippets["auth"], "TODO:") {
+		t.Fatalf("router snippet still contains TODO text: %q", info.RouterSnippets["auth"])
+	}
+	if !strings.Contains(info.ContainerSnippet, "initNotifier") {
+		t.Fatalf("container snippet missing initNotifier wiring: %q", info.ContainerSnippet)
+	}
+	for _, want := range []string{
+		"notificationsModule := notificationroutes.NewRouteModule",
+		"RegisterOnboardingRoutes(onboardingGroup)",
+		"RegisterRoutes(onboardedGroup)",
+	} {
+		if !strings.Contains(info.RouterSnippets["auth"], want) {
+			t.Fatalf("router snippet missing %q: %q", want, info.RouterSnippets["auth"])
+		}
+	}
+}
+
+func TestModuleCatalogUsesConcreteJobsAndStorageSeams(t *testing.T) {
+	tests := []struct {
+		name    string
+		snippet string
+		needles []string
+	}{
+		{
+			name:    "jobs",
+			snippet: moduleCatalog["jobs"].ContainerSnippet,
+			needles: []string{"framework/bootstrap.WireJobsRuntime", "c.CoreJobs", "c.CoreJobsInspector"},
+		},
+		{
+			name:    "storage",
+			snippet: moduleCatalog["storage"].ContainerSnippet,
+			needles: []string{"modules/storage.New", "core.BlobStorage"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if strings.Contains(tt.snippet, "TODO") {
+				t.Fatalf("snippet still contains TODO text:\n%s", tt.snippet)
+			}
+			for _, needle := range tt.needles {
+				if !strings.Contains(tt.snippet, needle) {
+					t.Fatalf("snippet missing %q:\n%s", needle, tt.snippet)
+				}
+			}
+		})
+	}
+}
+
 func TestApplyModuleAdd_TwoFactor(t *testing.T) {
 	root := t.TempDir()
 
@@ -190,6 +246,101 @@ func registerExternalRoutes() {
 	}
 }
 
+func TestApplyModuleAddRemove_NotificationsIdempotent(t *testing.T) {
+	root := t.TempDir()
+	info, ok := moduleCatalog["notifications"]
+	if !ok {
+		t.Fatal("expected notifications in module catalog")
+	}
+	writeNotificationsModuleFixtureFiles(t, root)
+
+	containerPath := filepath.Join(root, "app", "foundation", "container.go")
+	routerPath := filepath.Join(root, "app", "router.go")
+	manifestPath := filepath.Join(root, "config", "modules.yaml")
+	goModPath := filepath.Join(root, "go.mod")
+	goWorkPath := filepath.Join(root, "go.work")
+
+	originalContainer := readTestFile(t, containerPath)
+	originalRouter := readTestFile(t, routerPath)
+	originalManifest := readTestFile(t, manifestPath)
+	originalGoMod := readTestFile(t, goModPath)
+	originalGoWork := readTestFile(t, goWorkPath)
+
+	if err := applyModuleAdd(root, info, false, io.Discard); err != nil {
+		t.Fatalf("applyModuleAdd first pass error: %v", err)
+	}
+	addedContainer := readTestFile(t, containerPath)
+	addedRouter := readTestFile(t, routerPath)
+	addedManifest := readTestFile(t, manifestPath)
+	addedGoMod := readTestFile(t, goModPath)
+	addedGoWork := readTestFile(t, goWorkPath)
+
+	for _, want := range []string{
+		"c.initNotifier()",
+		"notificationsModule := notificationroutes.NewRouteModule",
+		"RegisterOnboardingRoutes(onboardingGroup)",
+		"RegisterRoutes(onboardedGroup)",
+	} {
+		if !strings.Contains(addedContainer+addedRouter, want) {
+			t.Fatalf("missing notifications wiring token %q after add:\ncontainer:\n%s\nrouter:\n%s", want, addedContainer, addedRouter)
+		}
+	}
+	if strings.Contains(addedContainer+addedRouter, "TODO:") {
+		t.Fatalf("notifications wiring still contains TODO text after add:\ncontainer:\n%s\nrouter:\n%s", addedContainer, addedRouter)
+	}
+	if !strings.Contains(addedManifest, "- notifications") {
+		t.Fatalf("expected notifications in modules manifest, got:\n%s", addedManifest)
+	}
+	if !strings.Contains(addedGoMod, "github.com/leomorpho/goship-modules/notifications v0.0.0") {
+		t.Fatalf("expected notifications require in go.mod, got:\n%s", addedGoMod)
+	}
+	if !strings.Contains(addedGoWork, "./modules/notifications") {
+		t.Fatalf("expected notifications in go.work use list, got:\n%s", addedGoWork)
+	}
+
+	if err := applyModuleAdd(root, info, false, io.Discard); err != nil {
+		t.Fatalf("applyModuleAdd second pass error: %v", err)
+	}
+	if got := readTestFile(t, containerPath); got != addedContainer {
+		t.Fatalf("container mutated on re-add:\nfirst:\n%s\nsecond:\n%s", addedContainer, got)
+	}
+	if got := readTestFile(t, routerPath); got != addedRouter {
+		t.Fatalf("router mutated on re-add:\nfirst:\n%s\nsecond:\n%s", addedRouter, got)
+	}
+	if got := readTestFile(t, manifestPath); got != addedManifest {
+		t.Fatalf("manifest mutated on re-add:\nfirst:\n%s\nsecond:\n%s", addedManifest, got)
+	}
+	if got := readTestFile(t, goModPath); got != addedGoMod {
+		t.Fatalf("go.mod mutated on re-add:\nfirst:\n%s\nsecond:\n%s", addedGoMod, got)
+	}
+	if got := readTestFile(t, goWorkPath); got != addedGoWork {
+		t.Fatalf("go.work mutated on re-add:\nfirst:\n%s\nsecond:\n%s", addedGoWork, got)
+	}
+
+	if err := applyModuleRemove(root, info, false, io.Discard); err != nil {
+		t.Fatalf("applyModuleRemove first pass error: %v", err)
+	}
+	if got := readTestFile(t, containerPath); got != originalContainer {
+		t.Fatalf("container did not restore after remove:\nwant:\n%s\ngot:\n%s", originalContainer, got)
+	}
+	if got := readTestFile(t, routerPath); got != originalRouter {
+		t.Fatalf("router did not restore after remove:\nwant:\n%s\ngot:\n%s", originalRouter, got)
+	}
+	if got := readTestFile(t, manifestPath); got != originalManifest {
+		t.Fatalf("manifest did not restore after remove:\nwant:\n%s\ngot:\n%s", originalManifest, got)
+	}
+	if got := readTestFile(t, goModPath); got != originalGoMod {
+		t.Fatalf("go.mod did not restore after remove:\nwant:\n%s\ngot:\n%s", originalGoMod, got)
+	}
+	if got := readTestFile(t, goWorkPath); got != originalGoWork {
+		t.Fatalf("go.work did not restore after remove:\nwant:\n%s\ngot:\n%s", originalGoWork, got)
+	}
+
+	if err := applyModuleRemove(root, info, false, io.Discard); err != nil {
+		t.Fatalf("applyModuleRemove second pass error: %v", err)
+	}
+}
+
 func TestApplyModuleAdd_WiresLocalModuleDependencyContract_RedSpec(t *testing.T) {
 	root := t.TempDir()
 	writeModuleFixtureFiles(t, root)
@@ -233,6 +384,114 @@ func TestApplyModuleRemove_FailsWithReferenceBlockers_RedSpec(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "app/router.go") {
 		t.Fatalf("expected router blocker in error, got %v", err)
+	}
+}
+
+func TestAdminModuleCatalog_UsesConcreteWiring(t *testing.T) {
+	info, ok := moduleCatalog["admin"]
+	if !ok {
+		t.Fatal("expected admin in module catalog")
+	}
+
+	snippet := strings.TrimSpace(info.RouterSnippets["auth"])
+	if snippet == "" {
+		t.Fatal("expected admin auth router snippet")
+	}
+	if !strings.Contains(snippet, "adminmodule.New(adminmodule.ModuleDeps{") {
+		t.Fatalf("expected concrete admin module constructor, got:\n%s", snippet)
+	}
+	if !strings.Contains(snippet, "RegisterRoutes(onboardedGroup)") {
+		t.Fatalf("expected concrete admin route registration, got:\n%s", snippet)
+	}
+	if strings.Contains(snippet, "TODO") {
+		t.Fatalf("admin router snippet still uses TODO placeholder: %q", snippet)
+	}
+}
+
+func TestApplyModuleAdd_AdminIdempotent(t *testing.T) {
+	root := t.TempDir()
+
+	containerPath := filepath.Join(root, "app", "foundation", "container.go")
+	if err := os.MkdirAll(filepath.Dir(containerPath), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	containerContent := `package foundation
+
+func NewContainer() *Container {
+	c := &Container{}
+	// ship:container:start
+	// ship:container:end
+	return c
+}
+
+type Container struct{}
+`
+	if err := os.WriteFile(containerPath, []byte(containerContent), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	routerPath := filepath.Join(root, "app", "router.go")
+	if err := os.MkdirAll(filepath.Dir(routerPath), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	routerContent := `package goship
+
+import (
+	adminmodule "github.com/leomorpho/goship/modules/admin"
+)
+
+func registerAuthRoutes() {
+	// ship:routes:auth:start
+	// ship:routes:auth:end
+
+	_ = adminmodule.ModuleDeps{}
+}
+`
+	if err := os.WriteFile(routerPath, []byte(routerContent), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	manifestPath := filepath.Join(root, "config", "modules.yaml")
+	if err := os.MkdirAll(filepath.Dir(manifestPath), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(manifestPath, []byte(modulesManifestHeader), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	info, ok := moduleCatalog["admin"]
+	if !ok {
+		t.Fatal("expected admin in module catalog")
+	}
+	if err := applyModuleAdd(root, info, false, io.Discard); err != nil {
+		t.Fatalf("applyModuleAdd error: %v", err)
+	}
+
+	firstRouter := readTestFile(t, routerPath)
+	if !strings.Contains(firstRouter, "adminmodule.New(adminmodule.ModuleDeps{") {
+		t.Fatalf("expected admin router wiring, got:\n%s", firstRouter)
+	}
+	if !strings.Contains(firstRouter, "RegisterRoutes(onboardedGroup)") {
+		t.Fatalf("expected admin route registration, got:\n%s", firstRouter)
+	}
+
+	if err := applyModuleAdd(root, info, false, io.Discard); err != nil {
+		t.Fatalf("applyModuleAdd second pass error: %v", err)
+	}
+	secondRouter := readTestFile(t, routerPath)
+	if secondRouter != firstRouter {
+		t.Fatalf("admin router changed on reapply:\nfirst:\n%s\nsecond:\n%s", firstRouter, secondRouter)
+	}
+
+	if err := applyModuleRemove(root, info, false, io.Discard); err != nil {
+		t.Fatalf("applyModuleRemove error: %v", err)
+	}
+	removedRouter := readTestFile(t, routerPath)
+	if strings.Contains(removedRouter, "adminmodule.New(adminmodule.ModuleDeps{") {
+		t.Fatalf("expected admin router wiring removed, got:\n%s", removedRouter)
+	}
+	if strings.Contains(removedRouter, "RegisterRoutes(onboardedGroup)") {
+		t.Fatalf("expected admin route registration removed, got:\n%s", removedRouter)
 	}
 }
 
@@ -292,6 +551,77 @@ func TestApplyModuleRemove_RemovesSafeStorageDependencyContract_RedSpec(t *testi
 	}
 }
 
+func TestApplyModuleAdd_JobsAndStorageConcreteSeams_Idempotent(t *testing.T) {
+	tests := []struct {
+		name    string
+		module  string
+		setup   func(t *testing.T, root string)
+		needles []string
+	}{
+		{
+			name:   "jobs",
+			module: "jobs",
+			setup: func(t *testing.T, root string) {
+				writeModuleFixtureFiles(t, root)
+				if err := os.MkdirAll(filepath.Join(root, "modules", "jobs"), 0o755); err != nil {
+					t.Fatal(err)
+				}
+				if err := os.WriteFile(filepath.Join(root, "modules", "jobs", "go.mod"), []byte("module github.com/leomorpho/goship-modules/jobs\n\ngo 1.24.0\n"), 0o644); err != nil {
+					t.Fatal(err)
+				}
+			},
+			needles: []string{"framework/bootstrap.WireJobsRuntime", "c.CoreJobs", "c.CoreJobsInspector"},
+		},
+		{
+			name:   "storage",
+			module: "storage",
+			setup: func(t *testing.T, root string) {
+				writeModuleFixtureFiles(t, root)
+				if err := os.MkdirAll(filepath.Join(root, "modules", "storage"), 0o755); err != nil {
+					t.Fatal(err)
+				}
+				if err := os.WriteFile(filepath.Join(root, "modules", "storage", "go.mod"), []byte("module github.com/leomorpho/goship-modules/storage\n\ngo 1.24.0\n"), 0o644); err != nil {
+					t.Fatal(err)
+				}
+			},
+			needles: []string{"modules/storage.New", "core.BlobStorage"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			root := t.TempDir()
+			tt.setup(t, root)
+
+			info, ok := moduleCatalog[tt.module]
+			if !ok {
+				t.Fatalf("expected %s in module catalog", tt.module)
+			}
+
+			if err := applyModuleAdd(root, info, false, io.Discard); err != nil {
+				t.Fatalf("applyModuleAdd error: %v", err)
+			}
+
+			containerPath := filepath.Join(root, "app", "foundation", "container.go")
+			first := readTestFile(t, containerPath)
+			for _, needle := range tt.needles {
+				if !strings.Contains(first, needle) {
+					t.Fatalf("container missing %q after first apply:\n%s", needle, first)
+				}
+			}
+
+			if err := applyModuleAdd(root, info, false, io.Discard); err != nil {
+				t.Fatalf("applyModuleAdd second pass error: %v", err)
+			}
+
+			second := readTestFile(t, containerPath)
+			if second != first {
+				t.Fatalf("container changed on second apply:\nfirst:\n%s\nsecond:\n%s", first, second)
+			}
+		})
+	}
+}
+
 func writeModuleFixtureFiles(t *testing.T, root string) {
 	t.Helper()
 	files := map[string]string{
@@ -339,6 +669,57 @@ use (
 		filepath.Join(root, "modules", "notifications", "go.mod"): `module github.com/leomorpho/goship-modules/notifications
 
 go 1.24.0
+`,
+	}
+	for path, content := range files {
+		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
+func writeNotificationsModuleFixtureFiles(t *testing.T, root string) {
+	t.Helper()
+	files := map[string]string{
+		filepath.Join(root, "app", "foundation", "container.go"): `package foundation
+
+func NewContainer() *Container {
+	c := &Container{}
+	// ship:container:start
+	// ship:container:end
+	return c
+}
+
+type Container struct{}
+`,
+		filepath.Join(root, "app", "router.go"): `package goship
+
+func registerPublicRoutes() {
+	// ship:routes:public:start
+	// ship:routes:public:end
+}
+
+func registerAuthRoutes() {
+	// ship:routes:auth:start
+	// ship:routes:auth:end
+}
+
+func registerExternalRoutes() {
+	// ship:routes:external:start
+	// ship:routes:external:end
+}
+`,
+		filepath.Join(root, "config", "modules.yaml"): modulesManifestHeader,
+		filepath.Join(root, "go.mod"): `module example.com/demo
+
+go 1.24.0
+`,
+		filepath.Join(root, "go.work"): `go 1.25.6
+
+use .
 `,
 	}
 	for path, content := range files {

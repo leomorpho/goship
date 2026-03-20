@@ -40,14 +40,25 @@ var moduleCatalog = map[string]moduleInfo{
 		ID:         "notifications",
 		ModulePath: "github.com/leomorpho/goship-modules/notifications",
 		LocalPath:  filepath.Join("modules", "notifications"),
-		ContainerSnippet: `
-	// ship:module:notifications
-	// TODO: wire the notifications module (db, pubsub, push, sms) here.
+		ContainerSnippet: `	// ship:module:notifications
+	c.initNotifier()
 `,
 		RouterSnippets: map[string]string{
-			"auth": `
-	// ship:module:notifications
-	// TODO: register notification preferences + push subscription routes via modules/notifications/routes.go.
+			"auth": `	// ship:module:notifications
+	notificationsModule := notificationroutes.NewRouteModule(notificationroutes.RouteModuleDeps{
+		Controller:                    ctr,
+		ProfileService:                deps.ProfileService,
+		NotifierService:               deps.NotifierService,
+		PwaPushService:                deps.PwaPushService,
+		FcmPushService:                deps.FcmPushService,
+		NotificationPermissionService: deps.NotificationPermissionService,
+	})
+	if err := notificationsModule.RegisterOnboardingRoutes(onboardingGroup); err != nil {
+		return err
+	}
+	if err := notificationsModule.RegisterRoutes(onboardedGroup); err != nil {
+		return err
+	}
 `,
 		},
 	},
@@ -91,7 +102,7 @@ var moduleCatalog = map[string]moduleInfo{
 		LocalPath:  filepath.Join("modules", "jobs"),
 		ContainerSnippet: `
 	// ship:module:jobs
-	// TODO: wire background job processors via modules/jobs.
+	// Wire framework/bootstrap.WireJobsRuntime into c.CoreJobs and c.CoreJobsInspector.
 `,
 		RouterSnippets: map[string]string{},
 	},
@@ -123,14 +134,17 @@ var moduleCatalog = map[string]moduleInfo{
 	},
 	"admin": {
 		ID: "admin",
-		ContainerSnippet: `
-	// ship:module:admin
-	// TODO: wire admin console services.
-`,
 		RouterSnippets: map[string]string{
 			"auth": `
-	// ship:module:admin
-	// TODO: register admin routes via modules/admin/routes.go.
+	adminPanelModule := adminmodule.New(adminmodule.ModuleDeps{
+		Controller: ctr,
+		DB:         c.Database,
+		AuditLogs:  c.AuditLogs,
+		Flags:      c.Flags,
+	})
+	if err := adminPanelModule.RegisterRoutes(onboardedGroup); err != nil {
+		return err
+	}
 `,
 		},
 	},
@@ -140,7 +154,7 @@ var moduleCatalog = map[string]moduleInfo{
 		LocalPath:  filepath.Join("modules", "storage"),
 		ContainerSnippet: `
 	// ship:module:storage
-	// TODO: wire the storage battery around framework/core.BlobStorage.
+	// Wire modules/storage.New around the app-facing core.BlobStorage seam.
 `,
 		RouterSnippets: map[string]string{},
 	},
@@ -670,9 +684,17 @@ func updateGoModDependency(path, modulePath, localPath string, add bool) (bool, 
 	}
 
 	if add {
-		file.AddNewRequire(modulePath, "v0.0.0", false)
-		if err := file.AddReplace(modulePath, "", "./"+filepath.ToSlash(localPath), ""); err != nil {
-			return false, "", fmt.Errorf("update %s replace: %w", path, err)
+		localModulePath := "./" + filepath.ToSlash(localPath)
+		if !hasGoModRequire(file, modulePath) {
+			file.AddNewRequire(modulePath, "v0.0.0", false)
+		}
+		if !hasGoModReplace(file, modulePath, localModulePath) {
+			if err := file.DropReplace(modulePath, ""); err != nil {
+				return false, "", fmt.Errorf("drop stale %s replace: %w", path, err)
+			}
+			if err := file.AddReplace(modulePath, "", localModulePath, ""); err != nil {
+				return false, "", fmt.Errorf("update %s replace: %w", path, err)
+			}
 		}
 	} else {
 		if err := file.DropRequire(modulePath); err != nil {
@@ -695,6 +717,27 @@ func updateGoModDependency(path, modulePath, localPath string, add bool) (bool, 
 	return true, string(after), nil
 }
 
+func hasGoModRequire(file *modfile.File, modulePath string) bool {
+	for _, req := range file.Require {
+		if req.Mod.Path == modulePath {
+			return true
+		}
+	}
+	return false
+}
+
+func hasGoModReplace(file *modfile.File, modulePath, localModulePath string) bool {
+	for _, repl := range file.Replace {
+		if repl.Old.Path != modulePath || repl.Old.Version != "" {
+			continue
+		}
+		if repl.New.Path == localModulePath && repl.New.Version == "" {
+			return true
+		}
+	}
+	return false
+}
+
 func updateGoWorkUse(path, localPath, modulePath string, add bool) (bool, string, error) {
 	body, err := os.ReadFile(path)
 	if err != nil {
@@ -709,8 +752,10 @@ func updateGoWorkUse(path, localPath, modulePath string, add bool) (bool, string
 	before := string(modfile.Format(file.Syntax))
 	usePath := "./" + filepath.ToSlash(localPath)
 	if add {
-		if err := file.AddUse(usePath, modulePath); err != nil {
-			return false, "", fmt.Errorf("add use %s: %w", usePath, err)
+		if !hasGoWorkUse(file, usePath, modulePath) {
+			if err := file.AddUse(usePath, modulePath); err != nil {
+				return false, "", fmt.Errorf("add use %s: %w", usePath, err)
+			}
 		}
 	} else {
 		if err := file.DropUse(usePath); err != nil {
@@ -725,6 +770,15 @@ func updateGoWorkUse(path, localPath, modulePath string, add bool) (bool, string
 		return false, before, nil
 	}
 	return true, after, nil
+}
+
+func hasGoWorkUse(file *modfile.WorkFile, diskPath, modulePath string) bool {
+	for _, use := range file.Use {
+		if use.Path == diskPath && use.ModulePath == modulePath {
+			return true
+		}
+	}
+	return false
 }
 
 func findModuleRemovalBlockers(root string, info moduleInfo) ([]string, error) {

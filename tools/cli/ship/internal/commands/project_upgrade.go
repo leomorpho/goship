@@ -22,12 +22,15 @@ type UpgradeDeps struct {
 }
 
 type UpgradeReadinessReport struct {
-	SchemaVersion   string                  `json:"schema_version"`
-	TargetVersion   string                  `json:"target_version"`
-	Ready           bool                    `json:"ready"`
-	Blockers        []UpgradeReadinessItem  `json:"blockers"`
+	SchemaVersion    string                 `json:"schema_version"`
+	TargetVersion    string                 `json:"target_version"`
+	Ready            bool                   `json:"ready"`
+	RollbackTarget   string                 `json:"rollback_target"`
+	Canary           UpgradeCanaryPlan      `json:"canary"`
+	Verification     UpgradeVerification    `json:"verification"`
+	Blockers         []UpgradeReadinessItem `json:"blockers"`
 	RemediationHints []string               `json:"remediation_hints"`
-	PlannedChanges  []UpgradePlannedChange  `json:"planned_changes"`
+	PlannedChanges   []UpgradePlannedChange `json:"planned_changes"`
 }
 
 type UpgradeReadinessItem struct {
@@ -40,6 +43,16 @@ type UpgradePlannedChange struct {
 	File    string `json:"file"`
 	Current string `json:"current"`
 	Target  string `json:"target"`
+}
+
+type UpgradeCanaryPlan struct {
+	Strategy string `json:"strategy"`
+	Scope    string `json:"scope"`
+}
+
+type UpgradeVerification struct {
+	Command string `json:"command"`
+	Note    string `json:"note"`
 }
 
 func RunUpgrade(args []string, d UpgradeDeps) int {
@@ -141,10 +154,19 @@ func RewriteGooseVersion(path, target string) (oldVersion string, rewritten stri
 
 func buildUpgradeReadinessReport(path, currentVersion, targetVersion string, changed bool) UpgradeReadinessReport {
 	report := UpgradeReadinessReport{
-		SchemaVersion:   "upgrade-readiness-v1",
-		TargetVersion:   targetVersion,
-		Ready:           true,
-		Blockers:        []UpgradeReadinessItem{},
+		SchemaVersion:  "upgrade-readiness-v1",
+		TargetVersion:  targetVersion,
+		Ready:          true,
+		RollbackTarget: currentVersion,
+		Canary: UpgradeCanaryPlan{
+			Strategy: "cli-pin-preflight",
+			Scope:    "single pinned goose reference",
+		},
+		Verification: UpgradeVerification{
+			Command: "ship upgrade --to <version> --dry-run",
+			Note:    "Review the readiness report and planned mutation before writing the new pin.",
+		},
+		Blockers: []UpgradeReadinessItem{},
 		RemediationHints: []string{
 			"Review the readiness report before mutating pinned versions.",
 			"Use ship upgrade --to <version> --dry-run to preview the text mutation plan.",

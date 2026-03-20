@@ -166,7 +166,9 @@ Impact:
 `ship upgrade --json` now exposes a machine-readable `upgrade-readiness-v1` payload that carries
 the requested upgrade target, readiness state, blocking conditions, remediation hints, and planned
 pin changes in one stable schema. The current scope stays Goose-only, so the remaining risk is
-future scope drift if additional upgrade surfaces bypass that schema.
+future scope drift if additional upgrade surfaces bypass that schema. The contract still needs an
+explicit rollback/canary linkage so staged rollout consumers can map readiness to
+`rollback_target`, `canary`, and verification evidence without inventing a second payload.
 
 Impact:
 
@@ -201,14 +203,14 @@ Impact:
 - Ticket sequencing remains readable, but it still depends on documentation discipline.
 - Future coordination tickets should extend the same matrix language instead of inventing a parallel map.
 
-## 12) Domain Events Are In-Process Only (Low)
+## 12) Domain Events Use an Explicit Jobs-Backed Bridge, but Delivery Still Follows Jobs Semantics (Low)
 
-`framework/events` now covers synchronous in-process publish/subscribe and a jobs enqueue helper, but it does not yet ship a generic async re-dispatch worker or delivery guarantees across processes.
+`framework/events` now covers synchronous in-process publish/subscribe plus a jobs-backed async bridge. The worker runtime decodes the typed `framework.events.publish` envelope and republishes supported shared events into the local bus.
 
 Impact:
 
-- Domain events are reliable inside a single process and easy to test.
-- Cross-process fanout still requires explicit jobs or pubsub integration by the caller.
+- Domain events remain easy to test and keep the delivery contract explicit.
+- Async fanout still inherits the retry/failure semantics of the jobs backend and only supports the shared framework event types until the registry is extended.
 
 ## 13) CSP Is Hardened But Still Allows Script Attributes (Low)
 
@@ -380,7 +382,7 @@ Impact:
 ## 25) Alpha Surface Freeze Is Now Explicitly Gated (Low)
 
 GoShip now freezes the `v0.1.0-alpha` public surface through snapshots of root CLI help and route
-inventory, with a dedicated CI lane and an explicit approved-review refresh path.
+inventory, with a dedicated CI lane and an explicit approved-review-before-merge refresh path.
 
 Impact:
 
@@ -533,14 +535,15 @@ Impact:
 - allowlist entries can be trimmed as soon as temporary exceptions are removed, so drift is visible instead of silently accumulating;
 - SQL portability (`sql-core-v1`) continues to have one canonical CI entrypoint, which keeps future automation and downstream reuse predictable. That lane now checks the runtime metadata contract plus branch annotations and placeholder conventions in the canonical migration/query SQL sources, so portability drift fails with file/query diagnostics instead of generic test noise.
 
-## 23) Cherie Compatibility Smoke Coverage Is Still Generic (Medium)
+## 23) Cherie Compatibility Smoke Coverage Is Dedicated But Intentionally Narrow (Medium)
 
-CI currently runs one generic Playwright smoke spec for startup and basic app serving, but it does not yet expose a dedicated Cherie-oriented compatibility lane for the downstream-critical boot, auth, and realtime path trio.
+CI now runs a dedicated Cherie compatibility smoke baseline for the downstream-critical boot, auth, and realtime path trio. The named gate runs `tests/e2e/tests/cherie_compatibility.spec.ts` with a web-only process env so the baseline only measures the compatibility contract Cherie currently depends on.
+The Playwright smoke lanes now provide browser evidence through their uploaded reports and test-results artifacts, so UI-impacting changes have a concrete audit trail instead of ad hoc screenshots.
 
 Impact:
 
-- framework changes can keep the generic smoke green while still drifting from the narrower downstream compatibility baseline;
-- Cherie-specific upgrade confidence remains weaker than the roadmap policy requires until the smoke baseline is named and enforced in CI.
+- Cherie-specific upgrade confidence now comes from a named smoke gate instead of an implicit generic smoke-only check.
+- The suite remains intentionally narrow, so any future Cherie-facing sync-critical flows should be added to the same named lane and documented in the same change stream.
 
 ## 24) Extension Zones Vs Protected Contract Zones Are Not Codified In One Manifest (Medium)
 
@@ -568,4 +571,4 @@ Impact:
 4. Refresh e2e tests to match current GoShip flows.
 5. Align local stack docs with actual DB mode and compose services.
 6. Add shared/distributed replay storage for managed hook nonce tracking in multi-replica deployments.
-7. Keep extending the shared signing seam rather than reintroducing ad hoc payload/signature builders outside `framework/security`.
+7. Keep extending the shared signing seam rather than reintroducing ad hoc payload/signature builders outside `framework/security`; the canonical payload library follow-up keeps the runtime and control-plane fixtures aligned.

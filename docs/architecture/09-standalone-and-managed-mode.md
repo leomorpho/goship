@@ -88,6 +88,7 @@ Rules:
 - the runtime should be able to report both the effective value and the source of that value
 - managed settings should also surface drift detection and rollback semantics so operators can see when the runtime has diverged from the intended override state
 - the managed-key registry itself is a versioned artifact shared with the control plane, so runtime and orchestration tooling can agree on an authoritative schema mapping
+- runtime metadata publishes that registry contract through `config.RuntimeMetadata().Managed` using `managed-key-registry-v1` and `managed-key-schema-v1`
 - `TKT-339` defines the next runtime-surface contract for per-module adoption metadata, so external
   control planes can track module identity, module path, version, and source without parsing repo
   internals.
@@ -124,6 +125,13 @@ Verification/runtime rules:
 - replay protection should run through a shared/distributed replay store contract in multi-replica deployments; process-local memory is only the default fallback implementation
 - the same signed-request pattern is used for the control-plane cron entrypoint contract so scheduler-driven actions reuse the replay/timestamp verification model
 
+Managed hook key rotation:
+
+- `PAGODA_MANAGED_HOOKS_SECRET` is the active signing key.
+- `PAGODA_MANAGED_HOOKS_PREVIOUS_SECRET` may be supplied during a rotation window so in-flight managed-hook callers can continue to verify successfully.
+- The previous secret is read-only compatibility material and must not become the long-term signing key for new requests.
+- The active and previous secrets share the same replay/timestamp contract, so key rotation does not bypass nonce or skew checks.
+
 Response contract:
 
 - `401` for missing/invalid signature material
@@ -134,7 +142,8 @@ Response contract:
   SHA-256 artifact checksum, and storage target metadata
 - `POST /managed/restore` returns `restore_evidence` with the accepted manifest version field
   (`accepted_manifest_version`), artifact checksum, database descriptor, and named post-restore
-  validation checks
+  validation checks. The canonical checks are `manifest.validated`,
+  `artifact.checksum.sha256`, and `database.schema_version.present`.
 
 Backup manifest v1 invariants:
 

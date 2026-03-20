@@ -88,6 +88,7 @@ Current behavior:
 - Enqueue + scheduler delegates to Asynq.
 - Worker runtime is still Asynq server wiring in `cmd/worker`.
 - Inspector exists as a seam but currently returns "not implemented".
+- The admin queue monitor still mounts, but it reports an explicit unavailable state until the Redis inspector grows list/get support.
 
 ## Migration Notes
 

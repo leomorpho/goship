@@ -42,6 +42,17 @@ var managedSettingLabels = map[string]string{
 	"storage.driver":      "Storage driver",
 }
 
+// managedSettingRegistryKeys returns the canonical allowlist order shared by
+// runtime metadata and settings surfaces.
+func managedSettingRegistryKeys() []string {
+	keys := make([]string, 0, len(managedOverrideSpecs))
+	for key := range managedOverrideSpecs {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	return keys
+}
+
 // ManagedSettingStatuses returns the allowlisted managed settings with explicit access state.
 func (c Config) ManagedSettingStatuses() []ManagedSettingStatus {
 	normalized := normalizedConfigForReporting(c)
@@ -58,11 +69,7 @@ func (c Config) ManagedSettingStatuses() []ManagedSettingStatus {
 		})
 	}
 
-	keys := make([]string, 0, len(managedOverrideSpecs))
-	for key := range managedOverrideSpecs {
-		keys = append(keys, key)
-	}
-	sort.Strings(keys)
+	keys := managedSettingRegistryKeys()
 
 	effective := managedKeyValues(normalized)
 	statuses := make([]ManagedSettingStatus, 0, len(keys))

@@ -16,7 +16,6 @@ import (
 	"github.com/leomorpho/goship/framework/core"
 	"github.com/leomorpho/goship/modules/auditlog"
 	"github.com/leomorpho/goship/modules/flags"
-	backliteui "github.com/mikestefanello/backlite/ui"
 )
 
 type routes struct {
@@ -321,21 +320,100 @@ func (r *routes) Delete(ctx echo.Context) error {
 }
 
 func (r *routes) Queues(ctx echo.Context) error {
-	if !strings.EqualFold(strings.TrimSpace(r.controller.Container.Config.Adapters.Jobs), "backlite") {
-		return echo.NewHTTPError(http.StatusNotFound, "queue monitor is only available with backlite")
+	inspector := r.controller.Container.CoreJobsInspector
+	if inspector == nil {
+		return ctx.HTML(http.StatusServiceUnavailable, renderQueuesUnavailable("jobs inspector is not configured"))
 	}
 
-	handler, err := backliteui.NewHandler(backliteui.Config{
-		DB:       r.db,
-		BasePath: "/admin/queues",
-	})
-	if err != nil {
-		return err
+	jobID := strings.Trim(strings.TrimPrefix(ctx.Request().URL.Path, "/admin/queues"), "/")
+	if jobID != "" {
+		return r.renderQueueDetail(ctx, inspector, jobID)
 	}
-	mux := http.NewServeMux()
-	handler.Register(mux)
-	mux.ServeHTTP(ctx.Response(), ctx.Request())
-	return nil
+	return r.renderQueueList(ctx, inspector)
+}
+
+func (r *routes) renderQueueList(ctx echo.Context, inspector core.JobsInspector) error {
+	records, err := inspector.List(ctx.Request().Context(), core.JobListFilter{Limit: 50})
+	if err != nil {
+		return ctx.HTML(http.StatusServiceUnavailable, renderQueuesUnavailable(err.Error()))
+	}
+
+	var b strings.Builder
+	b.WriteString("<html><body><h1>Admin - Queue Monitor</h1>")
+	b.WriteString(`<p><a href="/admin/managed-settings">Managed settings</a></p>`)
+	if len(records) == 0 {
+		b.WriteString("<p>No jobs found.</p></body></html>")
+		return ctx.HTML(http.StatusOK, b.String())
+	}
+
+	b.WriteString("<table><thead><tr><th>ID</th><th>Name</th><th>Queue</th><th>Status</th><th>Attempts</th></tr></thead><tbody>")
+	for _, record := range records {
+		b.WriteString("<tr>")
+		b.WriteString(`<td><a href="/admin/queues/` + html.EscapeString(record.ID) + `">` + html.EscapeString(record.ID) + "</a></td>")
+		b.WriteString("<td>" + html.EscapeString(record.Name) + "</td>")
+		b.WriteString("<td>" + html.EscapeString(record.Queue) + "</td>")
+		b.WriteString("<td>" + html.EscapeString(string(record.Status)) + "</td>")
+		b.WriteString("<td>" + strconv.Itoa(record.Attempt) + "/" + strconv.Itoa(record.MaxRetries) + "</td>")
+		b.WriteString("</tr>")
+	}
+	b.WriteString("</tbody></table></body></html>")
+	return ctx.HTML(http.StatusOK, b.String())
+}
+
+func (r *routes) renderQueueDetail(ctx echo.Context, inspector core.JobsInspector, jobID string) error {
+	record, ok, err := inspector.Get(ctx.Request().Context(), jobID)
+	if err != nil {
+		return ctx.HTML(http.StatusServiceUnavailable, renderQueuesUnavailable(err.Error()))
+	}
+	if !ok {
+		return echo.NewHTTPError(http.StatusNotFound, "job not found")
+	}
+
+	var b strings.Builder
+	b.WriteString("<html><body><h1>Admin - Queue Job</h1>")
+	b.WriteString(`<p><a href="/admin/queues">Back to queue monitor</a></p>`)
+	b.WriteString("<dl>")
+	writeQueueDetailRow(&b, "ID", record.ID)
+	writeQueueDetailRow(&b, "Name", record.Name)
+	writeQueueDetailRow(&b, "Queue", record.Queue)
+	writeQueueDetailRow(&b, "Status", string(record.Status))
+	writeQueueDetailRow(&b, "Attempts", fmt.Sprintf("%d/%d", record.Attempt, record.MaxRetries))
+	writeQueueDetailRow(&b, "Run At", formatQueueTime(record.RunAt))
+	writeQueueDetailRow(&b, "Created At", formatQueueTime(record.CreatedAt))
+	writeQueueDetailRow(&b, "Updated At", formatQueueTime(record.UpdatedAt))
+	if strings.TrimSpace(record.LastError) != "" {
+		writeQueueDetailRow(&b, "Last Error", record.LastError)
+	}
+	if len(record.Payload) > 0 {
+		writeQueueDetailRow(&b, "Payload", string(record.Payload))
+	}
+	b.WriteString("</dl></body></html>")
+	return ctx.HTML(http.StatusOK, b.String())
+}
+
+func renderQueuesUnavailable(reason string) string {
+	var b strings.Builder
+	b.WriteString("<html><body><h1>Admin - Queue Monitor</h1>")
+	b.WriteString("<p>Queue monitor unavailable.</p>")
+	if strings.TrimSpace(reason) != "" {
+		b.WriteString("<p>" + html.EscapeString(reason) + "</p>")
+	}
+	b.WriteString("</body></html>")
+	return b.String()
+}
+
+func writeQueueDetailRow(b *strings.Builder, label, value string) {
+	if b == nil {
+		return
+	}
+	b.WriteString("<dt>" + html.EscapeString(label) + "</dt><dd>" + html.EscapeString(value) + "</dd>")
+}
+
+func formatQueueTime(t time.Time) string {
+	if t.IsZero() {
+		return "-"
+	}
+	return t.Format(time.RFC3339)
 }
 
 func (r *routes) resourceFromParam(ctx echo.Context) (AdminResource, error) {

@@ -198,6 +198,78 @@ func TestRunMakeScaffold_IntegrationMigrate_CallsDBMigrate(t *testing.T) {
 	}
 }
 
+func TestRunMakeScaffold_IntegrationAuthUsesOnboardedGroupAndStableOutput(t *testing.T) {
+	run := func(t *testing.T) (string, string, string) {
+		t.Helper()
+
+		root := t.TempDir()
+		prevWD, err := os.Getwd()
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Cleanup(func() { _ = os.Chdir(prevWD) })
+		if err := os.Chdir(root); err != nil {
+			t.Fatal(err)
+		}
+
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+		runner := &fakeRunner{}
+
+		seedScaffoldTargets(t, root)
+
+		code := RunMakeScaffold([]string{"Post", "title:string", "--auth=auth"}, makeScaffoldDeps(out, errOut, runner))
+		if code != 0 {
+			t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
+		}
+
+		routerBytes, err := os.ReadFile(filepath.Join(root, "app", "router.go"))
+		if err != nil {
+			t.Fatalf("read router: %v", err)
+		}
+		routeNamesBytes, err := os.ReadFile(filepath.Join(root, "app", "web", "routenames", "routenames.go"))
+		if err != nil {
+			t.Fatalf("read routenames: %v", err)
+		}
+
+		return out.String(), string(routerBytes), string(routeNamesBytes)
+	}
+
+	out1, router1, routeNames1 := run(t)
+	out2, router2, routeNames2 := run(t)
+
+	if out1 != out2 {
+		t.Fatalf("scaffold report changed across identical auth runs\n--- run 1 ---\n%s\n--- run 2 ---\n%s", out1, out2)
+	}
+	if router1 != router2 {
+		t.Fatalf("router changed across identical auth runs\n--- run 1 ---\n%s\n--- run 2 ---\n%s", router1, router2)
+	}
+	if routeNames1 != routeNames2 {
+		t.Fatalf("route names changed across identical auth runs\n--- run 1 ---\n%s\n--- run 2 ---\n%s", routeNames1, routeNames2)
+	}
+
+	for _, want := range []string{
+		"ship:routes:auth:start",
+		"ship:generated:posts",
+		"posts := controllers.NewPostsController(nil)",
+		`onboardedGroup.GET("/posts", posts.Index)`,
+		`onboardedGroup.GET("/posts/:id", posts.Show)`,
+		`onboardedGroup.POST("/posts", posts.Create)`,
+		`onboardedGroup.PUT("/posts/:id", posts.Update)`,
+		`onboardedGroup.DELETE("/posts/:id", posts.Destroy)`,
+		"ship:generated:post",
+		"post := controllers.NewPostRoute(ctr, nil)",
+		`onboardedGroup.GET("/post", post.Get).Name = routeNames.RouteNamePost`,
+	} {
+		if !strings.Contains(router1, want) {
+			t.Fatalf("router missing %q:\n%s", want, router1)
+		}
+	}
+	if strings.Count(routeNames1, `RouteNamePost = "post"`) != 1 {
+		t.Fatalf("route names should contain exactly one post constant:\n%s", routeNames1)
+	}
+}
+
 func makeScaffoldDeps(out, errOut *bytes.Buffer, runner *fakeRunner) ScaffoldDeps {
 	return ScaffoldDeps{
 		Out: out,

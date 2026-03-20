@@ -38,3 +38,16 @@ func TestCIContract_DefinesCherieCompatibilitySmokeBaseline_RedSpec(t *testing.T
 		}
 	}
 }
+
+func TestCherieCompatibilitySmokeBaseline_IsNotDescribedAsGeneric_RedSpec(t *testing.T) {
+	root := repoRootFromCommandsTest(t)
+
+	risksDoc := mustReadText(t, filepath.Join(root, "docs", "architecture", "06-known-gaps-and-risks.md"))
+
+	if strings.Contains(risksDoc, "Cherie Compatibility Smoke Coverage Is Still Generic") {
+		t.Fatal("known-gaps doc should not describe Cherie smoke coverage as generic")
+	}
+	if !strings.Contains(risksDoc, "dedicated Cherie compatibility smoke baseline") {
+		t.Fatal("known-gaps doc should describe the dedicated Cherie compatibility smoke baseline")
+	}
+}

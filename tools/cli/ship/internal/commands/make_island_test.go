@@ -13,6 +13,8 @@ import (
 func TestMakeIslandContract_RedSpec(t *testing.T) {
 	root := repoRootFromCommandsTest(t)
 
+	scope := mustReadText(t, filepath.Join(root, "docs", "architecture", "03-project-scope-analysis.md"))
+	routes := mustReadText(t, filepath.Join(root, "docs", "architecture", "04-http-routes.md"))
 	makeHelp := mustReadText(t, filepath.Join(root, "tools", "cli", "ship", "internal", "commands", "help.go"))
 	cliDispatch := mustReadText(t, filepath.Join(root, "tools", "cli", "ship", "internal", "cli", "cli.go"))
 	cliRef := mustReadText(t, filepath.Join(root, "docs", "reference", "01-cli.md"))
@@ -52,6 +54,24 @@ func TestMakeIslandContract_RedSpec(t *testing.T) {
 		}
 		if !strings.Contains(gaps, required) {
 			t.Fatalf("known gaps doc should describe %q for make:island", required)
+		}
+	}
+
+	for _, required := range []string{
+		"ship make:island <Name>",
+		"frontend/islands/<Name>.js",
+		"browser runtime mounts through",
+	} {
+		if !strings.Contains(scope, required) {
+			t.Fatalf("scope analysis should describe %q for make:island", required)
+		}
+	}
+
+	for _, required := range []string{
+		"framework islands demo (vanilla JS, React, Vue, Svelte) and browser verification surface for `ship make:island` scaffolds",
+	} {
+		if !strings.Contains(routes, required) {
+			t.Fatalf("route map should describe %q for make:island", required)
 		}
 	}
 }

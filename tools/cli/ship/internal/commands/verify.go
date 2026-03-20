@@ -199,7 +199,7 @@ func RunVerify(args []string, d VerifyDeps) int {
 			appendStep("orchestration contract mismatch preflight", false, preflightErr.Error(), "")
 			return nil
 		}
-		appendStep("orchestration contract mismatch preflight", true, "runtime and orchestration metadata remain on the canonical shared contract surface", "")
+		appendStep("orchestration contract mismatch preflight", true, "runtime report and managed-settings access contract remain aligned for deploy safety", "")
 
 		scaffoldSkips, scanErr := findScaffoldSkippedTests(".")
 		if scanErr != nil {
@@ -525,17 +525,37 @@ func checkStandaloneExportability(root string) error {
 
 func checkOrchestrationContractMismatch(root string) error {
 	runtimeReportPath := filepath.Join(root, "tools", "cli", "ship", "internal", "commands", "runtime_report.go")
-	content, err := os.ReadFile(runtimeReportPath)
+	if err := checkFileContainsTokens(runtimeReportPath, []string{"runtime-contract-v1", "runtime-handshake-v1"}); err != nil {
+		return err
+	}
+	managedSettingsPath := filepath.Join(root, "config", "managed_settings.go")
+	if err := checkFileContainsTokens(managedSettingsPath, []string{
+		"report := c.Managed.RuntimeReport",
+		"report = runtimeconfig.BuildReport(runtimeconfig.LayerInputs{",
+		"Access:         managedSettingAccess(report.Mode, keyState.Source)",
+		"if mode != runtimeconfig.ModeManaged {",
+		"return SettingAccessEditable",
+		"if source == runtimeconfig.SourceManagedOverride {",
+		"return SettingAccessExternallyManaged",
+		"return SettingAccessReadOnly",
+	}); err != nil {
+		return err
+	}
+	return nil
+}
+
+func checkFileContainsTokens(path string, tokens []string) error {
+	content, err := os.ReadFile(path)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil
 		}
-		return fmt.Errorf("read %s: %w", filepath.ToSlash(runtimeReportPath), err)
+		return fmt.Errorf("read %s: %w", filepath.ToSlash(path), err)
 	}
 	text := string(content)
-	for _, token := range []string{"runtime-contract-v1", "runtime-handshake-v1"} {
+	for _, token := range tokens {
 		if !strings.Contains(text, token) {
-			return fmt.Errorf("%s is missing %q", filepath.ToSlash(runtimeReportPath), token)
+			return fmt.Errorf("%s is missing %q", filepath.ToSlash(path), token)
 		}
 	}
 	return nil

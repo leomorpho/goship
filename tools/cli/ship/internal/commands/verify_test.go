@@ -104,6 +104,55 @@ func TestRunVerify(t *testing.T) {
 		}
 	})
 
+	t.Run("standard profile runs nilaway and tests", func(t *testing.T) {
+		root := t.TempDir()
+		writeVerifyGoMod(t, root)
+		writeVerifyGoWork(t, root)
+		prevWD := chdirVerifyRoot(t, root)
+		t.Cleanup(func() { _ = os.Chdir(prevWD) })
+
+		calls := make([]string, 0)
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+		code := RunVerify([]string{"--profile", "standard"}, VerifyDeps{
+			Out:          out,
+			Err:          errOut,
+			FindGoModule: findVerifyGoModule,
+			RelocateTempl: func(rootPath string) error {
+				return nil
+			},
+			RunStep: func(name string, args ...string) (int, string, error) {
+				calls = append(calls, name+" "+strings.Join(args, " "))
+				return 0, "ok", nil
+			},
+			LookPath: func(file string) (string, error) {
+				return "/usr/bin/" + file, nil
+			},
+			RunDoctor: func() (int, string, error) {
+				return 0, `{"ok":true,"issues":[]}`, nil
+			},
+		})
+		if code != 0 {
+			t.Fatalf("exit code = %d, want 0", code)
+		}
+		if errOut.Len() != 0 {
+			t.Fatalf("stderr = %q, want empty", errOut.String())
+		}
+		if len(calls) != 4 {
+			t.Fatalf("calls len = %d, want 4", len(calls))
+		}
+		for _, token := range []string{"verify passed"} {
+			if !strings.Contains(out.String(), token) {
+				t.Fatalf("stdout missing %q:\n%s", token, out.String())
+			}
+		}
+		for _, token := range []string{"nilaway not installed; skipping", "skipped in fast profile"} {
+			if strings.Contains(out.String(), token) {
+				t.Fatalf("stdout unexpectedly contained %q:\n%s", token, out.String())
+			}
+		}
+	})
+
 	t.Run("fails fast on subprocess failure", func(t *testing.T) {
 		root := t.TempDir()
 		writeVerifyGoMod(t, root)
@@ -255,7 +304,7 @@ func TestRunVerify(t *testing.T) {
 		root := t.TempDir()
 		writeVerifyGoMod(t, root)
 		writeVerifyGoWork(t, root)
-		canonicalDoc := filepath.Join(root, "docs", "reference", "01-cli.md")
+		canonicalDoc := filepath.Join(root, "docs", "architecture", "06-known-gaps-and-risks.md")
 		if err := os.MkdirAll(filepath.Dir(canonicalDoc), 0o755); err != nil {
 			t.Fatal(err)
 		}
@@ -291,8 +340,11 @@ func TestRunVerify(t *testing.T) {
 		if !strings.Contains(errOut.String(), "verify failed at no-compatibility/deprecation invariant") {
 			t.Fatalf("stderr = %q, want wording invariant failure", errOut.String())
 		}
-		if !strings.Contains(errOut.String(), "docs/reference/01-cli.md:1") {
+		if !strings.Contains(errOut.String(), "docs/architecture/06-known-gaps-and-risks.md:1") {
 			t.Fatalf("stderr = %q, want file:line diagnostic", errOut.String())
+		}
+		if !strings.Contains(errOut.String(), "rewrite canonical docs to describe the current hard-cut model only") {
+			t.Fatalf("stderr = %q, want replacement guidance", errOut.String())
 		}
 	})
 
@@ -401,6 +453,72 @@ use (
 			}
 		}
 		t.Fatalf("verify JSON missing orchestration contract mismatch preflight step:\n%s", out.String())
+	})
+
+	t.Run("fails when managed-settings contract drifts", func(t *testing.T) {
+		root := t.TempDir()
+		writeVerifyGoMod(t, root)
+		writeVerifyGoWork(t, root)
+		managedSettingsPath := filepath.Join(root, "config", "managed_settings.go")
+		if err := os.MkdirAll(filepath.Dir(managedSettingsPath), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(managedSettingsPath, []byte(`package config
+
+func managedSettingAccess() string { return "editable" }
+`), 0o644); err != nil {
+			t.Fatal(err)
+		}
+
+		prevWD := chdirVerifyRoot(t, root)
+		t.Cleanup(func() { _ = os.Chdir(prevWD) })
+
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+		code := RunVerify([]string{"--json", "--skip-tests"}, VerifyDeps{
+			Out:          out,
+			Err:          errOut,
+			FindGoModule: findVerifyGoModule,
+			RelocateTempl: func(rootPath string) error {
+				return nil
+			},
+			RunStep: func(name string, args ...string) (int, string, error) {
+				return 0, "ok", nil
+			},
+			LookPath: func(file string) (string, error) {
+				return "/usr/bin/" + file, nil
+			},
+			RunDoctor: func() (int, string, error) {
+				return 0, `{"ok":true,"issues":[]}`, nil
+			},
+		})
+		if code != 1 {
+			t.Fatalf("exit code = %d, want 1", code)
+		}
+		if errOut.Len() != 0 {
+			t.Fatalf("stderr = %q, want empty", errOut.String())
+		}
+
+		var payload verifyJSONResult
+		if err := json.Unmarshal(out.Bytes(), &payload); err != nil {
+			t.Fatalf("decode json: %v\n%s", err, out.String())
+		}
+		if payload.OK {
+			t.Fatalf("payload.OK = true, want false")
+		}
+		if len(payload.Steps) != 9 {
+			t.Fatalf("steps len = %d, want 9", len(payload.Steps))
+		}
+		last := payload.Steps[len(payload.Steps)-1]
+		if last.Name != "orchestration contract mismatch preflight" {
+			t.Fatalf("last step name = %q, want orchestration contract mismatch preflight", last.Name)
+		}
+		if last.OK {
+			t.Fatalf("last step should fail, got %+v", last)
+		}
+		if !strings.Contains(last.Output, "config/managed_settings.go") {
+			t.Fatalf("last step output = %q, want managed settings file diagnostic", last.Output)
+		}
 	})
 
 	t.Run("fails when templ relocation fails", func(t *testing.T) {

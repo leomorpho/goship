@@ -84,3 +84,46 @@ const gooseGoRunRef = "github.com/pressly/goose/v3/cmd/goose@v3.26.0"
 		t.Fatalf("cli.go should remain unchanged for --json preflight, got:\n%s", string(b))
 	}
 }
+
+func TestRunUpgrade_JSONIncludesRollbackAndCanaryContract_RedSpec(t *testing.T) {
+	root := t.TempDir()
+	if err := os.WriteFile(filepath.Join(root, "go.mod"), []byte("module example.com/demo\n\ngo 1.25\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	cliPath := filepath.Join(root, "tools", "cli", "ship", "internal", "cli", "cli.go")
+	if err := os.MkdirAll(filepath.Dir(cliPath), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(cliPath, []byte(`package ship
+const gooseGoRunRef = "github.com/pressly/goose/v3/cmd/goose@v3.26.0"
+`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	prevWD, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(prevWD) })
+	if err := os.Chdir(root); err != nil {
+		t.Fatal(err)
+	}
+
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	code := RunUpgrade([]string{"--to", "v3.27.0", "--json"}, UpgradeDeps{Out: out, Err: errOut, FindGoModule: findGoModuleTest})
+	if code != 0 {
+		t.Fatalf("code=%d stderr=%s", code, errOut.String())
+	}
+
+	var report map[string]any
+	if err := json.Unmarshal(out.Bytes(), &report); err != nil {
+		t.Fatalf("stdout should be valid JSON: %v\n%s", err, out.String())
+	}
+
+	for _, field := range []string{"rollback_target", "canary", "verification"} {
+		if got := report[field]; got == nil {
+			t.Fatalf("expected upgrade readiness report to include %q contract field", field)
+		}
+	}
+}
