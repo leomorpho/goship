@@ -104,3 +104,35 @@ func TestDocs_DBExportAndRuntimeReportContractsStayInSync_RedSpec(t *testing.T) 
 		}
 	}
 }
+
+func TestDocs_StagedRolloutDecisionContractStaysInSync_RedSpec(t *testing.T) {
+	root := repoRootFromCommandsTest(t)
+
+	cliDoc := mustReadText(t, filepath.Join(root, "docs", "reference", "01-cli.md"))
+	scopeDoc := mustReadText(t, filepath.Join(root, "docs", "architecture", "03-project-scope-analysis.md"))
+	managedDoc := mustReadText(t, filepath.Join(root, "docs", "architecture", "09-standalone-and-managed-mode.md"))
+	risksDoc := mustReadText(t, filepath.Join(root, "docs", "architecture", "06-known-gaps-and-risks.md"))
+	roadmapDoc := mustReadText(t, filepath.Join(root, "docs", "roadmap", "01-framework-plan.md"))
+
+	for _, token := range []string{
+		"staged-rollout-decision-v1",
+		"ship runtime:report --json",
+		"policy_input_version",
+	} {
+		if !strings.Contains(cliDoc, token) {
+			t.Fatalf("CLI reference should include %q", token)
+		}
+		if !strings.Contains(scopeDoc, token) {
+			t.Fatalf("scope doc should include %q", token)
+		}
+		if !strings.Contains(managedDoc, token) {
+			t.Fatalf("managed-mode doc should include %q", token)
+		}
+		if !strings.Contains(risksDoc, token) {
+			t.Fatalf("known-gaps doc should include %q", token)
+		}
+		if !strings.Contains(roadmapDoc, token) {
+			t.Fatalf("roadmap should include %q", token)
+		}
+	}
+}

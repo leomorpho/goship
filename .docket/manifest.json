@@ -1936,7 +1936,7 @@
     },
     "TKT-354": {
       "title": "INT5-04-B: Implement, verify, and sync docs",
-      "state": "backlog",
+      "state": "in-progress",
       "priority": 3
     },
     "TKT-355": {
