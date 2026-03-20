@@ -1896,7 +1896,7 @@
     },
     "TKT-346": {
       "title": "INT4-03-B: Implement, verify, and sync docs",
-      "state": "backlog",
+      "state": "done",
       "priority": 3
     },
     "TKT-347": {
@@ -1906,7 +1906,7 @@
     },
     "TKT-348": {
       "title": "INT5-03-B: Implement, verify, and sync docs",
-      "state": "backlog",
+      "state": "in-progress",
       "priority": 3
     },
     "TKT-349": {

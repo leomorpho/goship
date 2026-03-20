@@ -27,6 +27,11 @@ func TestRunDBPromote_JsonMutationPlanContract(t *testing.T) {
 	}
 
 	var payload struct {
+		StateMachine struct {
+			SchemaVersion string `json:"schema_version"`
+			CurrentState  string `json:"current_state"`
+			NextState     string `json:"next_state"`
+		} `json:"state_machine"`
 		MutationPlan struct {
 			DryRun bool              `json:"dry_run"`
 			Values map[string]string `json:"values"`
@@ -38,6 +43,15 @@ func TestRunDBPromote_JsonMutationPlanContract(t *testing.T) {
 
 	if !payload.MutationPlan.DryRun {
 		t.Fatalf("expected dry-run mutation plan in %s", out.String())
+	}
+	if payload.StateMachine.SchemaVersion != "promotion-state-machine-v1" {
+		t.Fatalf("state_machine.schema_version = %q", payload.StateMachine.SchemaVersion)
+	}
+	if payload.StateMachine.CurrentState != "sqlite-source-ready" {
+		t.Fatalf("state_machine.current_state = %q", payload.StateMachine.CurrentState)
+	}
+	if payload.StateMachine.NextState != "config-mutated-awaiting-import" {
+		t.Fatalf("state_machine.next_state = %q", payload.StateMachine.NextState)
 	}
 	for key, want := range map[string]string{
 		"PAGODA_RUNTIME_PROFILE": "server-db",

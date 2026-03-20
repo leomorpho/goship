@@ -34,7 +34,9 @@ an unsupported runtime plan.
 
 `ship db:promote [--dry-run] [--json]` now turns the first SQLite-to-Postgres promotion step into an
 executable config change by applying the canonical `.env` mutation set for the standard profile and
-Postgres/Redis/Asynq adapters; export/import/verification remain explicit manual follow-up steps.
+Postgres/Redis/Asynq adapters, exposes `promotion-state-machine-v1`, and blocks repeated promotion
+attempts once the runtime is already in a partial post-config state; export/import/verification
+remain explicit manual follow-up steps.
 
 ## Runtime Programs
 

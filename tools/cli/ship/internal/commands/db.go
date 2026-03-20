@@ -409,6 +409,12 @@ func runPromote(args []string, d DBDeps) int {
 
 	effectiveDryRun := *dryRun || *jsonOutput
 	report := buildDBPromoteReport(cfg.RuntimeMetadata().Database, effectiveDryRun)
+	blocked := len(report.StateMachine.Blockers) > 0
+	if blocked && !*jsonOutput {
+		printDBPromoteReport(d.Out, report)
+		fmt.Fprintln(d.Err, "db:promote blocked by the current promotion state")
+		return 1
+	}
 	if report.MutationPlan != nil && !effectiveDryRun {
 		envPath, err := findEnvFile(".")
 		if err != nil {
@@ -438,6 +444,9 @@ func runPromote(args []string, d DBDeps) int {
 		enc.SetIndent("", "  ")
 		if err := enc.Encode(report); err != nil {
 			fmt.Fprintf(d.Err, "failed to encode db:promote output: %v\n", err)
+			return 1
+		}
+		if blocked {
 			return 1
 		}
 		return 0

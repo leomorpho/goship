@@ -63,8 +63,12 @@ func TestRunDBPromote(t *testing.T) {
 		for _, token := range []string{
 			"DB promote plan:",
 			"- mode: dry-run (no files changed)",
+			"promotion_state_schema: promotion-state-machine-v1",
+			"current_state: sqlite-source-ready",
+			"next_state: config-mutated-awaiting-import",
 			"promotion_path: sqlite-to-postgres-manual-v1",
 			"compatible_targets: postgres",
+			"state: config-mutated-awaiting-import (partial) allow_promote=false",
 			"step: freeze writes for the source app",
 			"step: switch config to Postgres and unfreeze writes",
 			"set: PAGODA_RUNTIME_PROFILE=server-db",
@@ -197,6 +201,14 @@ func TestRunDBPromote(t *testing.T) {
 				CompatibleTargets []string `json:"compatible_targets"`
 				PromotionPath     string   `json:"promotion_path"`
 			} `json:"database"`
+			StateMachine struct {
+				SchemaVersion string `json:"schema_version"`
+				CurrentState  string `json:"current_state"`
+				NextState     string `json:"next_state"`
+				Blockers      []struct {
+					ID string `json:"id"`
+				} `json:"blockers"`
+			} `json:"state_machine"`
 			Steps             []string `json:"steps"`
 			SuggestedCommands []string `json:"suggested_commands"`
 			MutationPlan      struct {
@@ -209,6 +221,18 @@ func TestRunDBPromote(t *testing.T) {
 		}
 		if payload.Database.PromotionPath != config.PromotionPathSQLiteToPostgresManualV1 {
 			t.Fatalf("promotion_path = %q", payload.Database.PromotionPath)
+		}
+		if payload.StateMachine.SchemaVersion != "promotion-state-machine-v1" {
+			t.Fatalf("state_machine.schema_version = %q", payload.StateMachine.SchemaVersion)
+		}
+		if payload.StateMachine.CurrentState != "sqlite-source-ready" {
+			t.Fatalf("state_machine.current_state = %q", payload.StateMachine.CurrentState)
+		}
+		if payload.StateMachine.NextState != "config-mutated-awaiting-import" {
+			t.Fatalf("state_machine.next_state = %q", payload.StateMachine.NextState)
+		}
+		if len(payload.StateMachine.Blockers) != 0 {
+			t.Fatalf("expected no blockers for sqlite source: %+v", payload.StateMachine.Blockers)
 		}
 		if len(payload.Steps) == 0 {
 			t.Fatalf("expected steps in %s", out.String())
@@ -232,6 +256,47 @@ func TestRunDBPromote(t *testing.T) {
 			if !containsString(payload.SuggestedCommands, token) {
 				t.Fatalf("suggested commands missing %q:\n%s", token, out.String())
 			}
+		}
+	})
+
+	t.Run("blocks partial postgres promotion state", func(t *testing.T) {
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+
+		code := RunDB([]string{"promote", "--json"}, DBDeps{
+			Out: out,
+			Err: errOut,
+			LoadConfig: func() (config.Config, error) {
+				cfg := config.Config{}
+				cfg.Database.DbMode = config.DBModeStandalone
+				cfg.Database.Driver = config.DBDriverPostgres
+				return cfg, nil
+			},
+		})
+		if code != 1 {
+			t.Fatalf("exit code = %d, want 1", code)
+		}
+
+		var payload struct {
+			StateMachine struct {
+				CurrentState string `json:"current_state"`
+				Blockers     []struct {
+					ID string `json:"id"`
+				} `json:"blockers"`
+			} `json:"state_machine"`
+			Note string `json:"note"`
+		}
+		if err := json.Unmarshal(out.Bytes(), &payload); err != nil {
+			t.Fatalf("decode json: %v\n%s", err, out.String())
+		}
+		if payload.StateMachine.CurrentState != "config-mutated-awaiting-import" {
+			t.Fatalf("state_machine.current_state = %q", payload.StateMachine.CurrentState)
+		}
+		if len(payload.StateMachine.Blockers) != 1 || payload.StateMachine.Blockers[0].ID != "promotion-state.partial-transition-blocked" {
+			t.Fatalf("unexpected blockers: %+v", payload.StateMachine.Blockers)
+		}
+		if !strings.Contains(payload.Note, "promotion blocked") {
+			t.Fatalf("note = %q", payload.Note)
 		}
 	})
 }

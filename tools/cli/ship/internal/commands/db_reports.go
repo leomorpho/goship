@@ -14,10 +14,33 @@ import (
 
 type dbPromoteReport struct {
 	Database          config.DatabaseRuntimeMetadata `json:"database"`
+	StateMachine      dbPromotionStateMachine        `json:"state_machine"`
 	Steps             []string                       `json:"steps"`
 	SuggestedCommands []string                       `json:"suggested_commands,omitempty"`
 	MutationPlan      *dbPromoteMutationPlan         `json:"mutation_plan,omitempty"`
 	Note              string                         `json:"note,omitempty"`
+}
+
+type dbPromotionStateMachine struct {
+	SchemaVersion  string                    `json:"schema_version"`
+	CurrentState   string                    `json:"current_state"`
+	NextState      string                    `json:"next_state,omitempty"`
+	BlockingStates []string                  `json:"blocking_states"`
+	States         []dbPromotionState        `json:"states"`
+	Blockers       []dbPromotionStateBlocker `json:"blockers,omitempty"`
+}
+
+type dbPromotionState struct {
+	ID           string `json:"id"`
+	Class        string `json:"class"`
+	Description  string `json:"description"`
+	AllowPromote bool   `json:"allow_promote"`
+}
+
+type dbPromotionStateBlocker struct {
+	ID          string `json:"id"`
+	Title       string `json:"title"`
+	Remediation string `json:"remediation"`
 }
 
 type dbPromoteMutationPlan struct {
@@ -50,6 +73,7 @@ type dbVerifyImportReport struct {
 func buildDBPromoteReport(md config.DatabaseRuntimeMetadata, dryRun bool) dbPromoteReport {
 	report := dbPromoteReport{
 		Database: md,
+		StateMachine: buildDBPromotionStateMachine(md),
 		Steps: []string{
 			"freeze writes for the source app",
 			"record runtime metadata and migration baseline",
@@ -66,6 +90,10 @@ func buildDBPromoteReport(md config.DatabaseRuntimeMetadata, dryRun bool) dbProm
 			"ship db:verify-import --json",
 		},
 	}
+	if len(report.StateMachine.Blockers) > 0 {
+		report.Note = "promotion blocked until the current partial or inconsistent state is resolved"
+		return report
+	}
 	if md.PromotionPath == "" {
 		report.Note = "no promotion path is defined for the current database driver"
 		return report
@@ -81,6 +109,61 @@ func buildDBPromoteReport(md config.DatabaseRuntimeMetadata, dryRun bool) dbProm
 	}
 	report.Note = "config updated; export/import/verification steps remain manual"
 	return report
+}
+
+func buildDBPromotionStateMachine(md config.DatabaseRuntimeMetadata) dbPromotionStateMachine {
+	machine := dbPromotionStateMachine{
+		SchemaVersion:  "promotion-state-machine-v1",
+		BlockingStates: []string{"config-mutated-awaiting-import", "import-complete-awaiting-verify", "inconsistent-runtime-state"},
+		States: []dbPromotionState{
+			{
+				ID:           "sqlite-source-ready",
+				Class:        "safe",
+				Description:  "SQLite source runtime is ready for the first config-mutation step.",
+				AllowPromote: true,
+			},
+			{
+				ID:           "config-mutated-awaiting-import",
+				Class:        "partial",
+				Description:  "Runtime config already points at the target topology and still requires import or verification follow-up.",
+				AllowPromote: false,
+			},
+			{
+				ID:           "import-complete-awaiting-verify",
+				Class:        "partial",
+				Description:  "Data import is complete but verification evidence has not been recorded yet.",
+				AllowPromote: false,
+			},
+			{
+				ID:           "inconsistent-runtime-state",
+				Class:        "unsafe",
+				Description:  "Runtime metadata does not match a promotable SQLite source or a recognized partial state.",
+				AllowPromote: false,
+			},
+		},
+	}
+
+	switch {
+	case md.Mode == string(config.DBModeEmbedded) && md.Driver == string(config.DBDriverSQLite) && md.PromotionPath == config.PromotionPathSQLiteToPostgresManualV1:
+		machine.CurrentState = "sqlite-source-ready"
+		machine.NextState = "config-mutated-awaiting-import"
+	case md.Mode == string(config.DBModeStandalone) && md.Driver == string(config.DBDriverPostgres):
+		machine.CurrentState = "config-mutated-awaiting-import"
+		machine.Blockers = []dbPromotionStateBlocker{{
+			ID:          "promotion-state.partial-transition-blocked",
+			Title:       "promotion is already in a partial post-config state",
+			Remediation: "Run the import and verification follow-up for the Postgres target instead of re-running ship db:promote.",
+		}}
+	default:
+		machine.CurrentState = "inconsistent-runtime-state"
+		machine.Blockers = []dbPromotionStateBlocker{{
+			ID:          "promotion-state.inconsistent-runtime-state",
+			Title:       "runtime metadata is not in a promotable SQLite source state",
+			Remediation: "Return the runtime to an embedded SQLite source or complete the existing promotion workflow before retrying.",
+		}}
+	}
+
+	return machine
 }
 
 func buildDBPromoteMutationPlan(md config.DatabaseRuntimeMetadata, dryRun bool) *dbPromoteMutationPlan {
@@ -258,11 +341,24 @@ func printDBPromoteReport(w io.Writer, report dbPromoteReport) {
 	fmt.Fprintf(w, "- database_mode: %s\n", report.Database.Mode)
 	fmt.Fprintf(w, "- driver: %s\n", report.Database.Driver)
 	fmt.Fprintf(w, "- migration_portability: %s\n", report.Database.MigrationPortability)
+	fmt.Fprintf(w, "- promotion_state_schema: %s\n", report.StateMachine.SchemaVersion)
+	fmt.Fprintf(w, "- current_state: %s\n", report.StateMachine.CurrentState)
+	if report.StateMachine.NextState != "" {
+		fmt.Fprintf(w, "- next_state: %s\n", report.StateMachine.NextState)
+	}
 	if report.Database.PromotionPath != "" {
 		fmt.Fprintf(w, "- promotion_path: %s\n", report.Database.PromotionPath)
 	}
 	if len(report.Database.CompatibleTargets) > 0 {
 		fmt.Fprintf(w, "- compatible_targets: %s\n", strings.Join(report.Database.CompatibleTargets, ", "))
+	}
+	for _, state := range report.StateMachine.States {
+		fmt.Fprintf(w, "- state: %s (%s) allow_promote=%t\n", state.ID, state.Class, state.AllowPromote)
+	}
+	for _, blocker := range report.StateMachine.Blockers {
+		fmt.Fprintf(w, "- blocker: %s\n", blocker.ID)
+		fmt.Fprintf(w, "- blocker_title: %s\n", blocker.Title)
+		fmt.Fprintf(w, "- remediation: %s\n", blocker.Remediation)
 	}
 	for _, step := range report.Steps {
 		fmt.Fprintf(w, "- step: %s\n", step)

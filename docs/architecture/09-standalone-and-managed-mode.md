@@ -181,6 +181,18 @@ First supported workflow (`sqlite-to-postgres-manual-v1`):
 
 This is intentionally manual-first and deterministic before introducing control-plane automation.
 
+Canonical state machine (`promotion-state-machine-v1`):
+
+- `sqlite-source-ready`: safe source state; `ship db:promote` may apply the canonical config mutation.
+- `config-mutated-awaiting-import`: partial state; config is already flipped and the runtime must run import/verification follow-up instead of re-running promotion.
+- `import-complete-awaiting-verify`: partial state; verification evidence is still required before treating promotion as complete.
+- `inconsistent-runtime-state`: unsafe state; runtime metadata does not match either the canonical SQLite source or a recognized partial state.
+
+Blocking rule:
+
+- `ship db:promote` must reject invocations from `config-mutated-awaiting-import`,
+  `import-complete-awaiting-verify`, and `inconsistent-runtime-state`.
+
 SQL portability constraints (`sql-core-v1`):
 
 - Migrations must keep SQLite and Postgres compatibility as the default path.
