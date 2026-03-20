@@ -962,18 +962,18 @@
     "TKT-187": {
       "title": "Program: GoShip canonical hard-cutover and DX-first productization",
       "state": "backlog",
-      "priority": 4
+      "priority": 8
     },
     "TKT-188": {
       "title": "Epic: Framework DX and quality gates",
       "state": "backlog",
-      "priority": 5,
+      "priority": 8,
       "parent": "TKT-187"
     },
     "TKT-189": {
       "title": "Epic: Runtime capabilities and standalone operation",
       "state": "backlog",
-      "priority": 5,
+      "priority": 8,
       "parent": "TKT-187"
     },
     "TKT-190": {
@@ -985,7 +985,7 @@
     "TKT-191": {
       "title": "Epic: Product surface for generators and installable batteries",
       "state": "backlog",
-      "priority": 6,
+      "priority": 8,
       "parent": "TKT-187"
     },
     "TKT-192": {
@@ -1111,18 +1111,17 @@
     "TKT-212": {
       "title": "G6-03: Finalize verify profiles, Cherie sync baseline, and alpha contract gate",
       "state": "backlog",
-      "priority": 7,
-      "parent": "TKT-193"
+      "priority": 8
     },
     "TKT-213": {
       "title": "Program: Interaction contract between GoShip runtime and Control Plane authority",
       "state": "backlog",
-      "priority": 4
+      "priority": 8
     },
     "TKT-214": {
       "title": "Epic: Control-plane interoperability contract",
       "state": "backlog",
-      "priority": 5,
+      "priority": 8,
       "parent": "TKT-213"
     },
     "TKT-215": {
@@ -1314,8 +1313,7 @@
     "TKT-246": {
       "title": "INT1-03: Add cross-lane dependency matrix and must-finish-before contract map",
       "state": "backlog",
-      "priority": 6,
-      "parent": "TKT-214"
+      "priority": 8
     },
     "TKT-247": {
       "title": "INT5-04: Define staged rollout and canary decision contract",
@@ -1326,7 +1324,7 @@
     "TKT-248": {
       "title": "Roadmap Hygiene: Normalize new epic tickets with scope, likely paths, and verify commands",
       "state": "backlog",
-      "priority": 7,
+      "priority": 8,
       "parent": "TKT-187"
     },
     "TKT-249": {
@@ -1560,8 +1558,7 @@
     "TKT-287": {
       "title": "G6-01-A: Define executable spec and red tests",
       "state": "backlog",
-      "priority": 6,
-      "parent": "TKT-210"
+      "priority": 2
     },
     "TKT-288": {
       "title": "G6-01-B: Implement, verify, and sync docs (UI + Playwright)",
@@ -1572,8 +1569,7 @@
     "TKT-289": {
       "title": "G6-02-A: Define executable spec and red tests",
       "state": "backlog",
-      "priority": 6,
-      "parent": "TKT-211"
+      "priority": 2
     },
     "TKT-290": {
       "title": "G6-02-B: Implement, verify, and sync docs",
@@ -1584,14 +1580,12 @@
     "TKT-291": {
       "title": "G6-03-A: Define executable spec and red tests",
       "state": "backlog",
-      "priority": 6,
-      "parent": "TKT-212"
+      "priority": 2
     },
     "TKT-292": {
       "title": "G6-03-B: Implement, verify, and sync docs",
       "state": "backlog",
-      "priority": 3,
-      "parent": "TKT-212"
+      "priority": 3
     },
     "TKT-293": {
       "title": "G1-05-A: Define executable spec and red tests",
@@ -1608,24 +1602,21 @@
     "TKT-295": {
       "title": "G1-06-A: Define executable spec and red tests",
       "state": "backlog",
-      "priority": 6,
-      "parent": "TKT-233"
+      "priority": 2
     },
     "TKT-296": {
       "title": "G1-06-B: Implement, verify, and sync docs",
       "state": "backlog",
-      "priority": 3,
-      "parent": "TKT-233"
+      "priority": 3
     },
     "TKT-297": {
       "title": "G2-04-A: Define executable spec and red tests",
       "state": "backlog",
-      "priority": 6,
-      "parent": "TKT-234"
+      "priority": 2
     },
     "TKT-298": {
       "title": "G2-04-B: Implement, verify, and sync docs",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 3,
       "parent": "TKT-234"
     },
@@ -1679,25 +1670,25 @@
     },
     "TKT-307": {
       "title": "G3-04-A: Define executable spec and red tests",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 6,
       "parent": "TKT-244"
     },
     "TKT-308": {
       "title": "G3-04-B: Implement, verify, and sync docs",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 3,
       "parent": "TKT-244"
     },
     "TKT-309": {
       "title": "G6-06-A: Define executable spec and red tests",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 6,
       "parent": "TKT-245"
     },
     "TKT-310": {
       "title": "G6-06-B: Implement, verify, and sync docs",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 3,
       "parent": "TKT-245"
     },
@@ -1715,25 +1706,25 @@
     },
     "TKT-313": {
       "title": "G4-04-A: Define executable spec and red tests",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 6,
       "parent": "TKT-250"
     },
     "TKT-314": {
       "title": "G4-04-B: Implement, verify, and sync docs",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 3,
       "parent": "TKT-250"
     },
     "TKT-315": {
       "title": "G4-05-A: Define executable spec and red tests",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 6,
       "parent": "TKT-251"
     },
     "TKT-316": {
       "title": "G4-05-B: Implement, verify, and sync docs",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 3,
       "parent": "TKT-251"
     },
@@ -1836,14 +1827,12 @@
     "TKT-333": {
       "title": "INT4-02-A: Define executable spec and red tests",
       "state": "backlog",
-      "priority": 6,
-      "parent": "TKT-214"
+      "priority": 2
     },
     "TKT-334": {
       "title": "INT4-02-B: Implement, verify, and sync docs",
       "state": "backlog",
-      "priority": 3,
-      "parent": "TKT-214"
+      "priority": 3
     },
     "TKT-335": {
       "title": "INT5-01-A: Define executable spec and red tests",
@@ -1866,32 +1855,27 @@
     "TKT-338": {
       "title": "INT5-02-B: Implement, verify, and sync docs",
       "state": "backlog",
-      "priority": 3,
-      "parent": "TKT-214"
+      "priority": 3
     },
     "TKT-339": {
       "title": "INT6-01-A: Define executable spec and red tests",
       "state": "backlog",
-      "priority": 6,
-      "parent": "TKT-214"
+      "priority": 2
     },
     "TKT-340": {
       "title": "INT6-01-B: Implement, verify, and sync docs",
       "state": "backlog",
-      "priority": 3,
-      "parent": "TKT-214"
+      "priority": 3
     },
     "TKT-341": {
       "title": "INT6-02-A: Define executable spec and red tests",
       "state": "backlog",
-      "priority": 6,
-      "parent": "TKT-214"
+      "priority": 2
     },
     "TKT-342": {
       "title": "INT6-02-B: Implement, verify, and sync docs",
       "state": "backlog",
-      "priority": 3,
-      "parent": "TKT-214"
+      "priority": 3
     },
     "TKT-343": {
       "title": "INT2-03-A: Define executable spec and red tests",
@@ -1908,62 +1892,52 @@
     "TKT-345": {
       "title": "INT4-03-A: Define executable spec and red tests",
       "state": "backlog",
-      "priority": 6,
-      "parent": "TKT-214"
+      "priority": 2
     },
     "TKT-346": {
       "title": "INT4-03-B: Implement, verify, and sync docs",
       "state": "backlog",
-      "priority": 3,
-      "parent": "TKT-214"
+      "priority": 3
     },
     "TKT-347": {
       "title": "INT5-03-A: Define executable spec and red tests",
       "state": "backlog",
-      "priority": 6,
-      "parent": "TKT-214"
+      "priority": 2
     },
     "TKT-348": {
       "title": "INT5-03-B: Implement, verify, and sync docs",
       "state": "backlog",
-      "priority": 3,
-      "parent": "TKT-214"
+      "priority": 3
     },
     "TKT-349": {
       "title": "INT6-03-A: Define executable spec and red tests",
       "state": "backlog",
-      "priority": 6,
-      "parent": "TKT-214"
+      "priority": 2
     },
     "TKT-350": {
       "title": "INT6-03-B: Implement, verify, and sync docs",
       "state": "backlog",
-      "priority": 3,
-      "parent": "TKT-214"
+      "priority": 3
     },
     "TKT-351": {
       "title": "INT1-03-A: Define executable spec and red tests",
       "state": "backlog",
-      "priority": 6,
-      "parent": "TKT-246"
+      "priority": 2
     },
     "TKT-352": {
       "title": "INT1-03-B: Implement, verify, and sync docs",
       "state": "backlog",
-      "priority": 3,
-      "parent": "TKT-246"
+      "priority": 3
     },
     "TKT-353": {
       "title": "INT5-04-A: Define executable spec and red tests",
       "state": "backlog",
-      "priority": 6,
-      "parent": "TKT-214"
+      "priority": 2
     },
     "TKT-354": {
       "title": "INT5-04-B: Implement, verify, and sync docs",
       "state": "backlog",
-      "priority": 3,
-      "parent": "TKT-214"
+      "priority": 3
     },
     "TKT-355": {
       "title": "G6-05-A: Define executable spec and red tests",
