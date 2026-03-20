@@ -1,0 +1,13 @@
+{
+  "ticket_id": "TKT-093",
+  "created_at": "2026-03-16T13:26:55Z",
+  "ac_done": 1,
+  "ac_total": 1,
+  "changed_files": [
+    ".docket/tickets/TKT-093.md"
+  ],
+  "last_comments": [],
+  "branch": "work/2026-refactor-main-snapshot",
+  "worktree_path": "/workspace/project",
+  "summary": "AC completion checkpoint"
+}
