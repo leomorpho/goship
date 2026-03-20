@@ -174,6 +174,14 @@ explicit rollback/canary linkage so staged rollout consumers can map readiness t
 orchestration preflight or pin-mutation logic runs, so deploy and upgrade workflows stay pinned to
 the canonical `runtime-contract-v1` and `upgrade-readiness-v1` identifiers.
 
+The contract-version policy for orchestration is now pinned even though full enforcement is still a
+follow-up implementation concern: deploy policy accepts only `runtime-contract-v1` plus
+`runtime-handshake-v1`, and upgrade policy accepts only `upgrade-readiness-v1`. A blocking mismatch
+must use the stable diagnostics `unsupported_runtime_contract_version`,
+`unsupported_runtime_handshake_version`, or `unsupported_upgrade_readiness_version` and include
+remediation that points operators back to `ship runtime:report --json`, `ship upgrade --json`, or
+`ship verify` instead of ad hoc wording.
+
 Impact:
 
 - Operators and orchestration tooling now have one canonical preflight report for upgrade safety.
