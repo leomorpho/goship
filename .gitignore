@@ -1,20 +1,36 @@
 # Go ------------------------------------------------------------------------------------------
 .idea
-tmp/
+.local/
+.cache/
+.worktrees/
+*.test
+/tmp/
+/frontend/vite.config.ts.timestamp-*.mjs
+
+# Local Go build artifacts (root-level binaries from `go build ./cmd/...`)
+/web
+/worker
+/seed
+/ship
+/ship-mcp
+
+# CLI test fixture/artifact safety (should remain temp-only)
+/tools/cli/ship/test-fixtures/
+/tools/cli/ship/.tmp/
+
 schemaspy-output
 .DS_Store
 .env
-e2e_tests/node_modules
-e2e_tests/test-results
+tests/e2e/node_modules
+tests/e2e/test-results
 node_modules/
 schemaspy-output/
 .env
-e2e_tests/node_modules
-e2e_tests/test-results
-data/mailpit.db-shm
-data/mailpit.db-wal
-data/mailpit.db
-dbs
+tests/e2e/node_modules
+tests/e2e/test-results
+.local/data/mailpit.db-shm
+.local/data/mailpit.db-wal
+.local/data/mailpit.db
 
 # Ignore all JavaScript and CSS files in the static folder and its subdirectories
 # /static/**/*.js
@@ -190,5 +206,12 @@ pwabuilder-android-wrapper/signing.keystore
 bubblewrap
 
 
-deploy-real.yml
 .kamal/secrets
+
+# docket
+.docket/index.db
+.docket/tickets/*/sessions/
+
+# private nested repos / planning workspaces
+/tools/private/
+.doombox/

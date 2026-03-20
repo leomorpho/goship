@@ -1,0 +1,31 @@
+{
+  "ticket_id": "TKT-095",
+  "created_at": "2026-03-16T13:40:19Z",
+  "ac_done": 1,
+  "ac_total": 1,
+  "changed_files": [
+    ".docket/manifest.json",
+    ".docket/tickets/TKT-095.md",
+    "app/foundation/container.go",
+    "app/foundation/container_migrations.go",
+    "app/foundation/container_test.go",
+    "app/router.go",
+    "db/queries/sqlite_bootstrap.sql",
+    "docs/architecture/03-project-scope-analysis.md",
+    "docs/architecture/04-http-routes.md",
+    "docs/architecture/06-known-gaps-and-risks.md",
+    "docs/reference/01-cli.md",
+    "docs/roadmap/01-framework-plan.md",
+    "modules/admin/module.go",
+    "modules/admin/routes.go",
+    "modules/admin/routes_test.go",
+    "modules/flags/module.go",
+    "modules/flags/service.go",
+    "modules/flags/service_test.go",
+    "modules/flags/store.go"
+  ],
+  "last_comments": [],
+  "branch": "work/2026-refactor-main-snapshot",
+  "worktree_path": "/workspace/project",
+  "summary": "AC completion checkpoint"
+}
