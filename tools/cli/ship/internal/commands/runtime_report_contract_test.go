@@ -123,6 +123,37 @@ func TestRunRuntimeReport_EmitsVersionedHandshakeEnvelope_RedSpec(t *testing.T) 
 	}
 }
 
+func TestRunRuntimeReport_ExposesModuleAdoptionMetadata_RedSpec(t *testing.T) {
+	root := repoRootForRuntimeReportTest(t)
+
+	runtimeSource := mustReadRuntimeReportText(t, filepath.Join(root, "tools", "cli", "ship", "internal", "commands", "runtime_report.go"))
+	runtimeTests := mustReadRuntimeReportText(t, filepath.Join(root, "tools", "cli", "ship", "internal", "commands", "runtime_report_test.go"))
+	cliRef := mustReadRuntimeReportText(t, filepath.Join(root, "docs", "reference", "01-cli.md"))
+	scopeDoc := mustReadRuntimeReportText(t, filepath.Join(root, "docs", "architecture", "03-project-scope-analysis.md"))
+	managedDoc := mustReadRuntimeReportText(t, filepath.Join(root, "docs", "architecture", "09-standalone-and-managed-mode.md"))
+
+	for _, token := range []string{
+		`"module_adoption"`,
+		"collectDescribeModuleAdoption",
+	} {
+		if !strings.Contains(runtimeSource, token) {
+			t.Fatalf("runtime report source should expose module adoption token %q", token)
+		}
+	}
+	if !strings.Contains(runtimeTests, "module adoption") {
+		t.Fatal("runtime report tests should lock the module adoption payload")
+	}
+	if !strings.Contains(cliRef, "module adoption metadata") {
+		t.Fatal("cli reference should document runtime report module adoption metadata")
+	}
+	if !strings.Contains(scopeDoc, "module adoption metadata") {
+		t.Fatal("scope analysis should describe runtime report module adoption metadata")
+	}
+	if !strings.Contains(managedDoc, "per-module adoption metadata") {
+		t.Fatal("managed-mode contract doc should describe the per-module adoption metadata surface")
+	}
+}
+
 func containsRuntimeReportTokens(text string, want ...string) bool {
 	for _, token := range want {
 		if !strings.Contains(text, token) {

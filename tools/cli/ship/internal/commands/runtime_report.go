@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"os"
 	"strings"
 
 	"github.com/leomorpho/goship/config"
@@ -12,9 +13,10 @@ import (
 )
 
 type RuntimeReportDeps struct {
-	Out        io.Writer
-	Err        io.Writer
-	LoadConfig func() (config.Config, error)
+	Out          io.Writer
+	Err          io.Writer
+	LoadConfig   func() (config.Config, error)
+	FindGoModule func(start string) (string, string, error)
 }
 
 type runtimeReport struct {
@@ -26,6 +28,7 @@ type runtimeReport struct {
 	Web             runtimeplan.WebFeatures        `json:"web"`
 	Database        config.DatabaseRuntimeMetadata `json:"database"`
 	Managed         config.ManagedRuntimeMetadata  `json:"managed"`
+	ModuleAdoption  []describeModuleAdoption       `json:"module_adoption"`
 }
 
 type runtimeReportAdapters struct {
@@ -89,6 +92,30 @@ func RunRuntimeReport(args []string, d RuntimeReportDeps) int {
 		return 1
 	}
 
+	moduleAdoption := make([]describeModuleAdoption, 0)
+	if d.FindGoModule != nil {
+		wd, err := os.Getwd()
+		if err != nil {
+			fmt.Fprintf(d.Err, "runtime:report failed to resolve working directory: %v\n", err)
+			return 1
+		}
+		root, _, err := d.FindGoModule(wd)
+		if err != nil {
+			fmt.Fprintf(d.Err, "runtime:report failed to resolve project root (go.mod): %v\n", err)
+			return 1
+		}
+		modules, err := collectDescribeModules(root)
+		if err != nil {
+			fmt.Fprintf(d.Err, "runtime:report failed to collect module inventory: %v\n", err)
+			return 1
+		}
+		moduleAdoption, err = collectDescribeModuleAdoption(root, modules)
+		if err != nil {
+			fmt.Fprintf(d.Err, "runtime:report failed to collect module adoption: %v\n", err)
+			return 1
+		}
+	}
+
 	report := runtimeReport{
 		ContractVersion: "runtime-contract-v1",
 		Handshake: runtimeReportHandshake{
@@ -115,8 +142,9 @@ func RunRuntimeReport(args []string, d RuntimeReportDeps) int {
 			stringsTrim(cfg.Adapters.Cache) != "",
 			stringsTrim(cfg.Adapters.PubSub) != "",
 		),
-		Database: cfg.RuntimeMetadata().Database,
-		Managed:  cfg.RuntimeMetadata().Managed,
+		Database:       cfg.RuntimeMetadata().Database,
+		Managed:        cfg.RuntimeMetadata().Managed,
+		ModuleAdoption: moduleAdoption,
 	}
 
 	enc := json.NewEncoder(d.Out)

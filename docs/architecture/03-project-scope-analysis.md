@@ -21,6 +21,9 @@ GoShip is maintained as a single-app repository: one canonical runtime app under
 installed shared modules versus app-owned controller/job/command counts as a non-blocking
 upstreaming metric.
 
+`ship runtime:report --json` now also carries per-module adoption metadata so orchestration tooling
+can inspect installed module identity, source, and version without parsing repo internals.
+
 `ship profile:set <single-binary|standard|distributed>` now rewrites the local `.env` runtime
 profile and process preset values deterministically, giving the CLI a first-class way to move
 between the canonical topology modes.
@@ -232,7 +235,7 @@ Runtime DB metadata contract:
 
 - `config.Config.RuntimeMetadata()` now provides a normalized DB metadata snapshot for status/reporting surfaces.
 - `ship db:export --json` exposes a structured SQLite export report with a typed `backup-manifest-v1` payload, checksum evidence, suggested next commands, and a planning-only note for agents/tooling.
-- `ship runtime:report --json` emits the canonical machine-readable runtime capability payload from config/runtime-plan metadata, including active profile, adapters, process plan, web features, DB runtime metadata, managed-key sources, and a versioned handshake envelope.
+- `ship runtime:report --json` emits the canonical machine-readable runtime capability payload from config/runtime-plan metadata, including active profile, adapters, process plan, web features, DB runtime metadata, managed-key sources, per-module adoption metadata, and a versioned handshake envelope.
 - Metadata includes DB mode/driver, migration tracking table, portability profile, and SQLite-to-Postgres compatibility path (`sqlite-to-postgres-manual-v1`).
 - Managed runtime metadata now carries shared registry/schema version identifiers (`managed-key-registry-v1`, `managed-key-schema-v1`) so runtime and control-plane consumers can agree on the managed-key contract.
 - `config.Config.ManagedSettingStatuses()` provides normalized managed-setting access states for settings/admin surfaces, including managed-override drift and rollback-target metadata.

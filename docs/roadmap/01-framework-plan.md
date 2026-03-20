@@ -543,6 +543,10 @@ Shared-infra adoption reporting tracked under `TKT-238` / `TKT-355` / `TKT-356`:
 - `ship describe` now exposes a non-blocking shared-infra adoption summary;
 - the summary reports shared module adoption alongside app-owned controller/job/command counts to guide upstreaming decisions.
 
+Runtime module-adoption reporting tracked under `TKT-230` / `TKT-339` / `TKT-340`:
+- `ship runtime:report --json` now carries per-module adoption metadata for installed modules;
+- the payload reports module identity, source, and version so orchestration tooling can consume runtime metadata without repo parsing.
+
 Staged rollout/canary decision contract tracked under `TKT-247`:
 - `staged-rollout-decision-v1` is the canonical external decision artifact for hold/canary/promote/rollback outcomes;
 - the contract composes `ship runtime:report --json` readiness metadata with control-plane policy inputs instead of duplicating runtime meaning in a second payload.

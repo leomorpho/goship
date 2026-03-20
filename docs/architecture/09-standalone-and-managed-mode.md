@@ -89,9 +89,8 @@ Rules:
 - managed settings should also surface drift detection and rollback semantics so operators can see when the runtime has diverged from the intended override state
 - the managed-key registry itself is a versioned artifact shared with the control plane, so runtime and orchestration tooling can agree on an authoritative schema mapping
 - runtime metadata publishes that registry contract through `config.RuntimeMetadata().Managed` using `managed-key-registry-v1` and `managed-key-schema-v1`
-- `TKT-339` defines the next runtime-surface contract for per-module adoption metadata, so external
-  control planes can track module identity, module path, version, and source without parsing repo
-  internals.
+- runtime report surfaces now expose per-module adoption metadata, so external control planes can
+  track module identity, module path, version, and source without parsing repo internals.
 
 The external control plane should not rely on mutating arbitrary config files in application repos as its normal operating mechanism.
 

@@ -240,9 +240,10 @@ func (c CLI) runRoutes(args []string) int {
 
 func (c CLI) runRuntime(args []string) int {
 	return cmd.RunRuntimeReport(args, cmd.RuntimeReportDeps{
-		Out:        c.Out,
-		Err:        c.Err,
-		LoadConfig: config.GetConfig,
+		Out:          c.Out,
+		Err:          c.Err,
+		LoadConfig:   config.GetConfig,
+		FindGoModule: findGoModule,
 	})
 }
 
