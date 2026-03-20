@@ -1,0 +1,32 @@
+version: 1
+commands:
+  - id: go_test
+    description: Run Go tests.
+    prefix: ["go", "test"]
+  - id: go_run_ship
+    description: Run the local ship CLI entrypoint.
+    prefix: ["go", "run", "./tools/cli/ship/cmd/ship"]
+  - id: go_mod_tidy
+    description: Tidy Go modules.
+    prefix: ["go", "mod", "tidy"]
+  - id: docker_build_app
+    description: Build the app Docker image using the canonical Dockerfile.
+    prefix: ["docker", "build", "-f", "infra/docker/Dockerfile"]
+  - id: git_add
+    description: Stage changes.
+    prefix: ["git", "add"]
+  - id: git_commit
+    description: Create commits.
+    prefix: ["git", "commit"]
+  - id: ship_check
+    description: Run the ship check command.
+    prefix: ["ship", "check"]
+  - id: ship_doctor
+    description: Run the ship doctor command.
+    prefix: ["ship", "doctor"]
+  - id: ship_agent_setup
+    description: Sync agent allowlist artifacts.
+    prefix: ["ship", "agent:setup"]
+  - id: ship_agent_check
+    description: Verify generated agent artifacts are up to date.
+    prefix: ["ship", "agent:check"]

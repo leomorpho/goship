@@ -1,7 +1,13 @@
+SHELL := /bin/bash
+.DEFAULT_GOAL := help
+
 # Define variables
-PGVECTOR_IMAGE_NAME = custom-pgvector-for-atlas
+PGVECTOR_IMAGE_NAME = custom-pgvector
 PGVECTOR_IMAGE_TAG = latest
-PGVECTOR_IMAGE_DIR = pgvector-image
+PGVECTOR_IMAGE_DIR = infra/pgvector-image
+NPM ?= npm --prefix frontend
+TAILWIND ?= npx --prefix frontend tailwindcss
+COMPOSE_FILE ?= infra/docker/docker-compose.yml
 
 # Define a function to check for docker compose command
 define find_docker_compose
@@ -14,13 +20,8 @@ define find_docker_compose
   fi
 endef
 
-# TODO: https://github.com/casey/just?tab=readme-ov-file seems like a nice alternative/improvement to make
 # Determine if you have docker-compose or docker compose installed locally
-# If this does not work on your system, just set the name of the executable you have installed
 DCO_BIN := $(shell $(find_docker_compose))
-define Comment
-	- Run `make help` to see all the available options.
-endef
 
 .PHONY: help
 help: ## Show this help message.
@@ -29,6 +30,60 @@ help: ## Show this help message.
 	@awk 'BEGIN {FS = ":.*?## "}; /^[a-zA-Z_-]+:.*?## .*$$/ { printf "\033[36m%-30s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
 	@echo
 	@echo "To see the details of each command, run: make <command>"
+
+.PHONY: ensure-compose
+ensure-compose:
+	@if [ -z "$(DCO_BIN)" ]; then \
+		echo "No docker compose command found (docker-compose or docker compose)."; \
+		exit 1; \
+	fi
+
+.PHONY: hooks hooks-install
+hooks: hooks-install ## Install git hooks
+
+.PHONY: hooks-install
+hooks-install: ## Install git hooks and commit-msg enforcement
+	mkdir -p .githooks
+	chmod +x .githooks/pre-commit
+	chmod +x .githooks/prepare-commit-msg
+	chmod +x .githooks/commit-msg
+	git config core.hooksPath .githooks
+
+.PHONY: llm-txt
+llm-txt: ## Generate root LLM.txt from README and docs markdown files
+	bash tools/scripts/generate-llm-txt.sh
+
+.PHONY: check-compile
+check-compile: ## Compile app/packages and route tests without running tests
+	bash tools/scripts/check-compile.sh
+
+.PHONY: templ-gen
+templ-gen: ## Generate templ code next to .templ files via ship CLI
+	go run ./tools/cli/ship/cmd/ship templ generate --path app
+
+# Core workflow ------------------------------------------------------------------------------
+
+.PHONY: dev
+dev: ## Start local development in auto mode (single-binary default; full mode when jobs adapter is asynq)
+	go run ./tools/cli/ship/cmd/ship dev
+
+.PHONY: run
+run: ## Start the app in single-binary mode (no Docker)
+	go run ./cmd/web
+
+.PHONY: dev-worker
+dev-worker: ## Start local development worker only (infra + worker process)
+	bash tools/scripts/up.sh "$(DCO_BIN)"
+	overmind start -f Procfile.worker
+
+.PHONY: dev-full
+dev-full: ## Start local development including web, worker, and JS/CSS watchers
+	bash tools/scripts/up.sh "$(DCO_BIN)"
+	echo "Tip: run 'nvm use v18.20.7' if JS tooling fails."
+	overmind start -f Procfile
+
+.PHONY: dev-reset
+dev-reset: reset deps-js build-js build-css seed watch ## Full reset then start dev (destructive to local DB state)
 
 .PHONY: db
 db: ## Connect to the primary database
@@ -45,37 +100,29 @@ build-image: ## Build the Docker image for pgvector
 	docker build -t $(PGVECTOR_IMAGE_NAME):$(PGVECTOR_IMAGE_TAG) $(PGVECTOR_IMAGE_DIR)
 
 
-.PHONY: updateatlas
-updateatlas: ## Update the Atlas migration tool we use
-	curl -sSf https://atlasgo.sh | sh
-
 .PHONY: migrate_diff
-makemigrations: build-image ## Create a migration
-	@echo "Running Atlas migrate diff..."
-	atlas migrate diff "$(name)" \
-	  --dir "file://ent/migrate/migrations" \
-	  --to "ent://ent/schema" \
-	  --dev-url "docker+postgres://_/$(PGVECTOR_IMAGE_NAME):$(PGVECTOR_IMAGE_TAG)/dev?search_path=public&sslmode=disable"
+makemigrations: ## Create a migration through ship CLI
+	go run ./tools/cli/ship/cmd/ship db:make "$(name)"
 
 .PHONY: migrate_apply
-migrate: ## Apply migrations
-	@atlas migrate apply \
-	  --dir "file://ent/migrate/migrations" \
-	  --url "postgres://admin:admin@localhost:5432/app?search_path=public&sslmode=disable"
+migrate: ## Apply migrations through ship CLI
+	go run ./tools/cli/ship/cmd/ship db:migrate
 
-.PHONY: inspectschema
-inspectsql: ## Inspect the SQL DB schema
-	@atlas schema inspect \
-		-u "ent://ent/schema" \
-		--dev-url "sqlite://file?mode=memory&_fk=1" \
-		--format '{{ sql . "  " }}'
+.PHONY: db-status
+db-status: ## Show migration status through ship CLI
+	go run ./tools/cli/ship/cmd/ship db:status
 
-.PHONY: inspecterd
-inspecterd: ## Inspect the ERD DB schema
-	atlas schema inspect \
-		-u "ent://ent/schema" \
-		--dev-url "sqlite://file?mode=memory&_fk=1" \
-		-w
+.PHONY: db-create
+db-create: ## Validate/create DB target through ship CLI
+	go run ./tools/cli/ship/cmd/ship db:create
+
+.PHONY: db-drop
+db-drop: ## Preview drop plan (use direct ship command with --yes to execute)
+	go run ./tools/cli/ship/cmd/ship db:drop --dry-run
+
+.PHONY: db-reset
+db-reset: ## Preview reset plan (use direct ship command with --yes to execute)
+	go run ./tools/cli/ship/cmd/ship db:reset --dry-run
 
 .PHONY: schemaspy
 schema: ## Create DB schema
@@ -104,85 +151,86 @@ cache-clear: ## Clear the primary cache
 cache-test: ## Connect to the test cache
 	docker exec -it goship_cache redis-cli -n 1
 
-.PHONY: ent-install
-ent-install: ## Install Ent code-generation module
-	go get -d entgo.io/ent/cmd/ent
-
-.PHONY: ent-gen
-ent-gen: ## Generate Ent code
-	go run -mod=mod entgo.io/ent/cmd/ent generate --feature sql/upsert,sql/execquery ./ent/schema
-
-.PHONY: ent-new
-ent-new: ## Create a new Ent entity
-	go run entgo.io/ent/cmd/ent new $(name)
+.PHONY: model-new
+model-new: ## Create a new model scaffold
+	go run ./tools/cli/ship/cmd/ship make:model $(name)
  
- .PHONY: generate
-generate: ## Run code generation
+.PHONY: generate
+generate: templ-gen ## Run code generation
 	go generate ./...
 
 .PHONY: up
-up: ## Start the Docker containers
-	$(DCO_BIN) up -d --remove-orphans
-	sleep 3
+up: ensure-compose ## Start Docker containers
+	bash tools/scripts/up.sh "$(DCO_BIN)"
 
 .PHONY: down
-down: ## Stop the Docker containers
-	$(DCO_BIN) down
+down: ensure-compose ## Stop Docker containers
+	$(DCO_BIN) -f $(COMPOSE_FILE) down
 
-.PHONY: down
-down-volume: ## Stop the Docker containers
-	$(DCO_BIN) down --volumes
+.PHONY: down-volume
+down-volume: ensure-compose ## Stop Docker containers and delete volumes
+	$(DCO_BIN) -f $(COMPOSE_FILE) down --volumes
 
 .PHONY: seed
 seed: ## Seed with data (must be clean to begin with or will die)
 	go run cmd/seed/main.go
 
 .PHONY: reset
-reset: ## Rebuild Docker containers to wipe all data
-	$(DCO_BIN) down
-	make up
+reset: down up ## Rebuild Docker containers to wipe all data
 
-.PHONY: init 
-init: ## Set up the repo and run a fully working version of GoShip
-	make reset
-	make build-js 
-	make build-css 
-	make seed 
-	make watch
+.PHONY: init
+init: dev-reset ## Backward-compatible alias for full reset dev startup
 
 .PHONY: build-js
 build-js: ## Build JS/Svelte assets
-	npm run build
+	$(NPM) run build
 
+.PHONY: js-build-vite
+js-build-vite: ## Build JS assets with Vite islands output
+	$(NPM) run build
 
-.PHONY: build-js
-watch-js: ## Build JS/Svelte assets (auto reload changes)
-	npm install
-	npm run watch 
+.PHONY: deps-js
+deps-js: ## Install JS dependencies
+	$(NPM) install
 
+.PHONY: watch-js
+watch-js: ## Watch and rebuild JS/Svelte assets
+	$(NPM) run watch
+
+.PHONY: build-css
 build-css: ## Build CSS assets (auto reload changes)
-	npx tailwindcss -i ./styles/styles.css -o ./static/styles_bundle.css
+	$(TAILWIND) --config ./frontend/tailwind.config.js -i ./app/styles/styles.css -o ./app/static/styles_bundle.css
 
+.PHONY: watch-css
 watch-css: ## Build CSS assets (auto reload changes)
-	npx tailwindcss -i ./styles/styles.css -o ./static/styles_bundle.css --watch
+	$(TAILWIND) --config ./frontend/tailwind.config.js -i ./app/styles/styles.css -o ./app/static/styles_bundle.css --watch
 
-
-.PHONY: run
+.PHONY: watch-go
 watch-go: ## Run the application with air (auto reload changes)
 	clear
 	air
 
-watch: 
-	echo "Run 'nvm use v18.20.7' to make sure the JS version will work."
-	overmind start
+watch: ## Start all dev watchers/processes through overmind
+	@echo "Tip: run 'nvm use v18.20.7' if JS tooling fails."
+	overmind start -f Procfile
 
 .PHONY: test
-test: ## Run all tests
-	go test -p 1 ./...
+test: ## Run Docker-free unit test package set
+	bash tools/scripts/test-unit.sh
+	bash tools/scripts/check-module-isolation.sh
+
+.PHONY: test-module-isolation
+test-module-isolation: ## Ensure extracted modules do not import goship internals
+	bash tools/scripts/check-module-isolation.sh
+
+.PHONY: test-integration
+test-integration: ## Run integration test package set (may require Docker/infra)
+	bash tools/scripts/test-integration.sh
 
 .PHONY: testall
-testall: ## Run all tests with no caching
-	go test -count=1 -p 1 -count=1 ./...
+testall: ## Run both unit and integration test package sets
+	bash tools/scripts/test-unit.sh
+	bash tools/scripts/test-integration.sh
 
 .PHONY: cover
 cover: ## Create a html coverage report and open it once generated
@@ -203,7 +251,7 @@ cover-treemap: ## Create a treemap view of the coverage report
 .PHONY: worker
 worker: ## Run the worker
 	clear
-	go run cmd/worker/main.go
+	go run ./cmd/worker
 
 .PHONY: workerui
 workerui: ## Run the worker asynq dash
@@ -217,37 +265,42 @@ check-updates: ## Check for direct dependency updates
 # See https://tailwindcss.com/blog/standalone-cli
 .PHONY: tailwind-watch
 tailwind-watch: ## Start a Tailwind watcher
-	./tailwindcss -o static/output.css --watch
+	$(TAILWIND) --config ./frontend/tailwind.config.js -o app/static/output.css --watch
 
 # See https://tailwindcss.com/blog/standalone-cli
 .PHONY: tailwind-compile
 tailwind-compile: ## Compile and minify your CSS for production
-	./tailwindcss -i input.css -o static/output.css --minify
+	$(TAILWIND) --config ./frontend/tailwind.config.js -i app/styles/styles.css -o app/static/output.css --minify
 
 .PHONY: deploy-cherie
 deploy-goship: ## Deploy new Goship version
-	kamal deploy -c deploy.yml
+	kamal deploy -c infra/deploy/kamal/deploy.yml
 
 # TODO: below is not working, only interactive mode is
 .PHONY: test-e2e
 e2e: ## Run Playwright tests
 	@echo "Running end-to-end tests..."
-	@cd e2e_tests && npm install && npx playwright test
+	@cd tests/e2e && npm install && npx playwright test
+
+.PHONY: e2e-smoke
+e2e-smoke: ## Run Playwright smoke test with managed app startup
+	@echo "Running Playwright smoke test..."
+	@cd tests/e2e && npm install && npx playwright test tests/smoke.spec.ts
 
 .PHONY: test-e2e
 e2eui: ## Run Playwright tests
 	@echo "Running end-to-end tests..."
-	@cd e2e_tests && npm install && npx playwright test --ui
+	@cd tests/e2e && npm install && npx playwright test --ui
 
 # To run for mobile: `make codegen mobile=true`
 .PHONY: codegen
 codegen: ## Generate Playwright tests interactively
 ifeq ($(mobile),true)
 	@echo "Running Playwright codegen for mobile on predefined device (iPhone 12) at URL http://localhost:8002..."
-	@cd e2e_tests && npx playwright codegen --device="iPhone 12" http://localhost:8002
+	@cd tests/e2e && npx playwright codegen --device="iPhone 12" http://localhost:8002
 else
 	@echo "Running Playwright codegen for desktop at URL http://localhost:8002..."
-	@cd e2e_tests && npx playwright codegen http://localhost:8002
+	@cd tests/e2e && npx playwright codegen http://localhost:8002
 endif
 
 
