@@ -803,6 +803,9 @@ GoShip is maintained as a single-app repository: one canonical runtime app under
 installed shared modules versus app-owned controller/job/command counts as a non-blocking
 upstreaming metric.
 
+`ship runtime:report --json` now also carries per-module adoption metadata so orchestration tooling
+can inspect installed module identity, source, and version without parsing repo internals.
+
 `ship profile:set <single-binary|standard|distributed>` now rewrites the local `.env` runtime
 profile and process preset values deterministically, giving the CLI a first-class way to move
 between the canonical topology modes.
@@ -1014,7 +1017,7 @@ Runtime DB metadata contract:
 
 - `config.Config.RuntimeMetadata()` now provides a normalized DB metadata snapshot for status/reporting surfaces.
 - `ship db:export --json` exposes a structured SQLite export report with a typed `backup-manifest-v1` payload, checksum evidence, suggested next commands, and a planning-only note for agents/tooling.
-- `ship runtime:report --json` emits the canonical machine-readable runtime capability payload from config/runtime-plan metadata, including active profile, adapters, process plan, web features, DB runtime metadata, managed-key sources, and a versioned handshake envelope.
+- `ship runtime:report --json` emits the canonical machine-readable runtime capability payload from config/runtime-plan metadata, including active profile, adapters, process plan, web features, DB runtime metadata, managed-key sources, per-module adoption metadata, and a versioned handshake envelope.
 - Metadata includes DB mode/driver, migration tracking table, portability profile, and SQLite-to-Postgres compatibility path (`sqlite-to-postgres-manual-v1`).
 - Managed runtime metadata now carries shared registry/schema version identifiers (`managed-key-registry-v1`, `managed-key-schema-v1`) so runtime and control-plane consumers can agree on the managed-key contract.
 - `config.Config.ManagedSettingStatuses()` provides normalized managed-setting access states for settings/admin surfaces, including managed-override drift and rollback-target metadata.
@@ -1453,7 +1456,7 @@ Impact:
 
 ## 11) Runtime Capability Reporting Is Now Canonicalized (Low)
 
-`ship runtime:report --json` now exposes the effective profile, adapters, process plan, web features, DB runtime metadata, managed-key sources, and a versioned handshake envelope for orchestration preflight. Managed runtime metadata now carries explicit registry/schema version identifiers so runtime and control-plane consumers can agree on the authoritative key mapping. The remaining risk is payload drift if future runtime metadata is added without extending the report.
+`ship runtime:report --json` now exposes the effective profile, adapters, process plan, web features, DB runtime metadata, managed-key sources, per-module adoption metadata, and a versioned handshake envelope for orchestration preflight. Managed runtime metadata now carries explicit registry/schema version identifiers so runtime and control-plane consumers can agree on the authoritative key mapping. The remaining risk is payload drift if future runtime metadata is added without extending the report.
 
 `ship verify` now runs a named orchestration contract-mismatch preflight gate so unsupported
 deploy/upgrade/promote combinations fail before the orchestration layer starts. The remaining gap
@@ -2159,9 +2162,8 @@ Rules:
 - managed settings should also surface drift detection and rollback semantics so operators can see when the runtime has diverged from the intended override state
 - the managed-key registry itself is a versioned artifact shared with the control plane, so runtime and orchestration tooling can agree on an authoritative schema mapping
 - runtime metadata publishes that registry contract through `config.RuntimeMetadata().Managed` using `managed-key-registry-v1` and `managed-key-schema-v1`
-- `TKT-339` defines the next runtime-surface contract for per-module adoption metadata, so external
-  control planes can track module identity, module path, version, and source without parsing repo
-  internals.
+- runtime report surfaces now expose per-module adoption metadata, so external control planes can
+  track module identity, module path, version, and source without parsing repo internals.
 
 The external control plane should not rely on mutating arbitrary config files in application repos as its normal operating mechanism.
 
@@ -4281,7 +4283,7 @@ Safety matrix:
 - `ship agent:start --task ... [--id ...]` -> create `.worktrees/<id>` on branch `agent/<id>`, generate `TASK.md` with task text + `ship describe` JSON + discovered `CLAUDE.md` context
 - `ship agent:finish --id ... --message ... [--pr]` -> run `ship verify` in worktree, `git add -A`, validate conventional commit message, commit, optional `git push -u origin agent/<id>` + `gh pr create`, then `git worktree remove`
 - `ship doctor --json` -> machine-readable doctor result on stdout; exit code 0 when there are no errors, 1 when any error is reported
-- `ship runtime:report --json` -> machine-readable runtime capability report covering active profile, adapters, process plan, web features, DB runtime metadata, managed-key sources, and a versioned handshake envelope; downstream staged rollout and canary orchestration must compose those runtime facts into `staged-rollout-decision-v1` instead of inventing a second runtime-specific decision payload
+- `ship runtime:report --json` -> machine-readable runtime capability report covering active profile, adapters, process plan, web features, DB runtime metadata, managed-key sources, per-module adoption metadata, and a versioned handshake envelope; downstream staged rollout and canary orchestration must compose those runtime facts into `staged-rollout-decision-v1` instead of inventing a second runtime-specific decision payload
 - `ship describe --pretty` now includes a shared-infra adoption summary (`shared_modules`, `shared_module_ids`, `custom_app_controllers`, `custom_app_jobs`, `custom_app_commands`) as a non-blocking upstreaming metric
 - `ship config:validate` -> prints the known `PAGODA_*` config variables with type/default metadata and fails when any required variable is missing
 - `ship config:validate --json` -> prints the same contract as JSON for agent tooling
@@ -5184,6 +5186,10 @@ OSS workflow-docs contract tracked under `TKT-252` / `TKT-317` / `TKT-318`:
 Shared-infra adoption reporting tracked under `TKT-238` / `TKT-355` / `TKT-356`:
 - `ship describe` now exposes a non-blocking shared-infra adoption summary;
 - the summary reports shared module adoption alongside app-owned controller/job/command counts to guide upstreaming decisions.
+
+Runtime module-adoption reporting tracked under `TKT-230` / `TKT-339` / `TKT-340`:
+- `ship runtime:report --json` now carries per-module adoption metadata for installed modules;
+- the payload reports module identity, source, and version so orchestration tooling can consume runtime metadata without repo parsing.
 
 Staged rollout/canary decision contract tracked under `TKT-247`:
 - `staged-rollout-decision-v1` is the canonical external decision artifact for hold/canary/promote/rollback outcomes;
