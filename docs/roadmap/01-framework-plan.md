@@ -803,7 +803,7 @@ Focus:
 
 - signed managed-hook contract hardening;
 - upgrade/deploy/promotion preflight contracts;
-- managed override registry/versioning/drift semantics;
+- managed override registry/versioning/drift semantics, including divergence classification and escalation;
 - runtime metadata and module-adoption surfaces for orchestration tooling.
 
 Examples of active work:
@@ -811,7 +811,7 @@ Examples of active work:
 - orchestration preflight via `ship verify`;
 - upgrade readiness report and blocker schema;
 - distributed replay defense and key rotation;
-- managed override registry versioning;
+- managed override registry versioning plus `managed-divergence-v1` rollback/repeat-escalation semantics;
 - promotion lifecycle and incident/recovery contracts.
 
 ## Ticketing Rules

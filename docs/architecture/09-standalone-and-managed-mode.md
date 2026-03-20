@@ -89,6 +89,7 @@ Rules:
 - managed settings should also surface drift detection and rollback semantics so operators can see when the runtime has diverged from the intended override state
 - the managed-key registry itself is a versioned artifact shared with the control plane, so runtime and orchestration tooling can agree on an authoritative schema mapping
 - runtime metadata publishes that registry contract through `config.RuntimeMetadata().Managed` using `managed-key-registry-v1` and `managed-key-schema-v1`
+- runtime metadata also publishes `managed-divergence-v1`, which classifies drifted managed keys and distinguishes `immediate_action=rollback` from `repeated_action=upstream-module-candidate-review`
 - `TKT-339` defines the next runtime-surface contract for per-module adoption metadata, so external
   control planes can track module identity, module path, version, and source without parsing repo
   internals.

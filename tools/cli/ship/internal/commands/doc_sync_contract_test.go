@@ -79,7 +79,7 @@ func TestDocs_DBExportAndRuntimeReportContractsStayInSync_RedSpec(t *testing.T) 
 
 	for _, token := range []string{
 		"`ship db:export [--json]` -> reports the SQLite export manifest checksum contract from current runtime metadata; `--json` emits a structured export report with the typed backup manifest payload, suggested next commands, and planning note for agents/tooling",
-		"`ship runtime:report --json` -> machine-readable runtime capability report covering active profile, adapters, process plan, web features, DB runtime metadata, managed-key sources, and a versioned handshake envelope",
+		"`ship runtime:report --json` -> machine-readable runtime capability report covering active profile, adapters, process plan, web features, DB runtime metadata, managed-key sources, a versioned handshake envelope, and a managed divergence contract (`managed-divergence-v1`) that distinguishes immediate rollback from repeated upstream-module-candidate escalation",
 	} {
 		if !strings.Contains(cliDoc, token) {
 			t.Fatalf("CLI reference should include %q", token)
@@ -88,7 +88,7 @@ func TestDocs_DBExportAndRuntimeReportContractsStayInSync_RedSpec(t *testing.T) 
 
 	for _, token := range []string{
 		"`ship db:export --json` exposes a structured SQLite export report with a typed `backup-manifest-v1` payload, checksum evidence, suggested next commands, and a planning-only note for agents/tooling.",
-		"`ship runtime:report --json` emits the canonical machine-readable runtime capability payload from config/runtime-plan metadata, including active profile, adapters, process plan, web features, DB runtime metadata, managed-key sources, and a versioned handshake envelope.",
+		"`ship runtime:report --json` emits the canonical machine-readable runtime capability payload from config/runtime-plan metadata, including active profile, adapters, process plan, web features, DB runtime metadata, managed-key sources, a versioned handshake envelope, and the `managed-divergence-v1` classification contract for rollback vs repeated upstream-module-candidate escalation.",
 	} {
 		if !strings.Contains(scopeDoc, token) {
 			t.Fatalf("scope doc should include %q", token)
@@ -97,7 +97,7 @@ func TestDocs_DBExportAndRuntimeReportContractsStayInSync_RedSpec(t *testing.T) 
 
 	for _, token := range []string{
 		"`ship db:export --json` already emits a structured export report with checksum-backed `backup-manifest-v1` evidence and follow-up command hints, but the underlying import/verification engine is still manual-first.",
-		"`ship runtime:report --json` now exposes the effective profile, adapters, process plan, web features, DB runtime metadata, managed-key sources, and a versioned handshake envelope for orchestration preflight.",
+		"`ship runtime:report --json` now exposes the effective profile, adapters, process plan, web features, DB runtime metadata, managed-key sources, a versioned handshake envelope, and `managed-divergence-v1` classification output for orchestration preflight.",
 	} {
 		if !strings.Contains(risksDoc, token) {
 			t.Fatalf("known-gaps doc should include %q", token)

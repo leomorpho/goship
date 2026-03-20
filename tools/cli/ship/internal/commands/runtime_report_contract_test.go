@@ -123,6 +123,109 @@ func TestRunRuntimeReport_EmitsVersionedHandshakeEnvelope_RedSpec(t *testing.T) 
 	}
 }
 
+func TestRunRuntimeReport_EmitsManagedDivergenceContract_RedSpec(t *testing.T) {
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+
+	code := RunRuntimeReport([]string{"--json"}, RuntimeReportDeps{
+		Out: out,
+		Err: errOut,
+		LoadConfig: func() (config.Config, error) {
+			cfg := config.Config{
+				Runtime: config.RuntimeConfig{Profile: config.RuntimeProfileSingleNode},
+				Adapters: config.AdaptersConfig{
+					DB:     "sqlite",
+					Cache:  "managed-cache",
+					Jobs:   "backlite",
+					PubSub: "inproc",
+				},
+				Processes: config.ProcessesConfig{
+					Web:       true,
+					Worker:    true,
+					Scheduler: true,
+					CoLocated: true,
+				},
+				Database: config.DatabaseConfig{
+					DbMode: config.DBModeEmbedded,
+					Driver: config.DBDriverSQLite,
+				},
+				Managed: config.ManagedConfig{
+					Enabled:   true,
+					Authority: "control-plane",
+				},
+			}
+			cfg.Managed.RuntimeReport = runtimeconfig.BuildReport(runtimeconfig.LayerInputs{
+				Defaults: map[string]string{
+					"adapters.cache":  "otter",
+					"adapters.db":     "sqlite",
+					"adapters.jobs":   "backlite",
+					"adapters.pubsub": "inproc",
+				},
+				EffectiveValues: map[string]string{
+					"adapters.cache":  cfg.Adapters.Cache,
+					"adapters.db":     cfg.Adapters.DB,
+					"adapters.jobs":   cfg.Adapters.Jobs,
+					"adapters.pubsub": cfg.Adapters.PubSub,
+				},
+				RepoSet: map[string]bool{},
+				EnvSet:  map[string]bool{},
+				ManagedSet: map[string]bool{
+					"adapters.cache": true,
+				},
+				ManagedEnabled: true,
+				Authority:      cfg.Managed.Authority,
+			})
+			cfg.Adapters.Cache = "rolled-back-cache"
+			return cfg, nil
+		},
+	})
+	if code != 0 {
+		t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
+	}
+
+	var payload struct {
+		Managed struct {
+			Divergence struct {
+				SchemaVersion string `json:"schema_version"`
+				Items         []struct {
+					Key             string `json:"key"`
+					Classification  string `json:"classification"`
+					ImmediateAction string `json:"immediate_action"`
+					RepeatedAction  string `json:"repeated_action"`
+					RollbackTarget  string `json:"rollback_target"`
+				} `json:"items"`
+			} `json:"divergence"`
+		} `json:"managed"`
+	}
+	if err := json.Unmarshal(out.Bytes(), &payload); err != nil {
+		t.Fatalf("decode runtime report: %v\n%s", err, out.String())
+	}
+
+	if payload.Managed.Divergence.SchemaVersion != "managed-divergence-v1" {
+		t.Fatalf("managed divergence schema_version = %q, want managed-divergence-v1", payload.Managed.Divergence.SchemaVersion)
+	}
+	if len(payload.Managed.Divergence.Items) != 1 {
+		t.Fatalf("managed divergence items len = %d, want 1\n%s", len(payload.Managed.Divergence.Items), out.String())
+	}
+
+	item := payload.Managed.Divergence.Items[0]
+	if item.Key != "adapters.cache" {
+		t.Fatalf("managed divergence key = %q, want adapters.cache", item.Key)
+	}
+	if item.Classification != "drift" {
+		t.Fatalf("managed divergence classification = %q, want drift", item.Classification)
+	}
+	if item.ImmediateAction != "rollback" {
+		t.Fatalf("managed divergence immediate_action = %q, want rollback", item.ImmediateAction)
+	}
+	if item.RepeatedAction != "upstream-module-candidate-review" {
+		t.Fatalf("managed divergence repeated_action = %q, want upstream-module-candidate-review", item.RepeatedAction)
+	}
+	if item.RollbackTarget != "framework-default" {
+		t.Fatalf("managed divergence rollback_target = %q, want framework-default", item.RollbackTarget)
+	}
+}
+
 func containsRuntimeReportTokens(text string, want ...string) bool {
 	for _, token := range want {
 		if !strings.Contains(text, token) {

@@ -17,6 +17,14 @@ const (
 	ManagedKeyRegistryVersion = "managed-key-registry-v1"
 	// ManagedKeySchemaVersion is the schema version for the managed-key registry payload.
 	ManagedKeySchemaVersion = "managed-key-schema-v1"
+	// ManagedDivergenceSchemaVersion is the schema version for managed divergence metadata.
+	ManagedDivergenceSchemaVersion = "managed-divergence-v1"
+)
+
+const (
+	ManagedDivergenceClassificationDrift                 = "drift"
+	ManagedDivergenceActionRollback                      = "rollback"
+	ManagedDivergenceActionUpstreamModuleCandidateReview = "upstream-module-candidate-review"
 )
 
 // RuntimeMetadata reports normalized runtime capability metadata for status/reporting surfaces.
@@ -31,6 +39,7 @@ type ManagedRuntimeMetadata struct {
 	Authority       string                        `json:"authority,omitempty"`
 	RegistryVersion string                        `json:"registry_version"`
 	SchemaVersion   string                        `json:"schema_version"`
+	Divergence      ManagedDivergenceMetadata     `json:"divergence"`
 	Keys            map[string]ManagedKeyMetadata `json:"keys"`
 }
 
@@ -38,6 +47,21 @@ type ManagedRuntimeMetadata struct {
 type ManagedKeyMetadata struct {
 	Value  string `json:"value"`
 	Source string `json:"source"`
+}
+
+// ManagedDivergenceMetadata reports machine-readable divergence items for managed keys.
+type ManagedDivergenceMetadata struct {
+	SchemaVersion string                  `json:"schema_version"`
+	Items         []ManagedDivergenceItem `json:"items"`
+}
+
+// ManagedDivergenceItem classifies one managed-key divergence and its escalation path.
+type ManagedDivergenceItem struct {
+	Key             string `json:"key"`
+	Classification  string `json:"classification"`
+	ImmediateAction string `json:"immediate_action"`
+	RepeatedAction  string `json:"repeated_action"`
+	RollbackTarget  string `json:"rollback_target,omitempty"`
 }
 
 // DatabaseRuntimeMetadata reports DB mode/driver and promotion compatibility details.
@@ -68,6 +92,7 @@ func (c Config) RuntimeMetadata() RuntimeMetadata {
 	}
 
 	keys := map[string]ManagedKeyMetadata{}
+	effective := managedKeyValues(normalized)
 	for key, state := range report.Keys {
 		keys[key] = ManagedKeyMetadata{
 			Value:  state.Value,
@@ -82,8 +107,45 @@ func (c Config) RuntimeMetadata() RuntimeMetadata {
 			Authority:       report.Authority,
 			RegistryVersion: ManagedKeyRegistryVersion,
 			SchemaVersion:   ManagedKeySchemaVersion,
+			Divergence:      buildManagedDivergenceMetadata(report, effective),
 			Keys:            keys,
 		},
+	}
+}
+
+func buildManagedDivergenceMetadata(report runtimeconfig.Report, effective map[string]string) ManagedDivergenceMetadata {
+	items := make([]ManagedDivergenceItem, 0)
+	if report.Mode != runtimeconfig.ModeManaged {
+		return ManagedDivergenceMetadata{
+			SchemaVersion: ManagedDivergenceSchemaVersion,
+			Items:         items,
+		}
+	}
+
+	for _, key := range managedSettingRegistryKeys() {
+		state, ok := report.Keys[key]
+		if !ok {
+			continue
+		}
+
+		effectiveValue := strings.TrimSpace(effective[key])
+		reportedValue := strings.TrimSpace(state.Value)
+		if effectiveValue == reportedValue {
+			continue
+		}
+
+		items = append(items, ManagedDivergenceItem{
+			Key:             key,
+			Classification:  ManagedDivergenceClassificationDrift,
+			ImmediateAction: ManagedDivergenceActionRollback,
+			RepeatedAction:  ManagedDivergenceActionUpstreamModuleCandidateReview,
+			RollbackTarget:  managedSettingRollbackTarget(report.Mode, state, true),
+		})
+	}
+
+	return ManagedDivergenceMetadata{
+		SchemaVersion: ManagedDivergenceSchemaVersion,
+		Items:         items,
 	}
 }
 

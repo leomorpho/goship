@@ -31,9 +31,10 @@ func TestRuntimeMetadataManagedRegistryContract(t *testing.T) {
 	cfg := defaultConfig()
 	cfg.Managed.Enabled = true
 	cfg.Managed.Authority = "control-plane"
+	normalized := normalizedConfigForReporting(cfg)
 	cfg.Managed.RuntimeReport = runtimeconfig.BuildReport(runtimeconfig.LayerInputs{
-		Defaults:        managedKeyValues(defaultConfig()),
-		EffectiveValues: managedKeyValues(cfg),
+		Defaults:        managedKeyValues(normalizedDefaultConfigForReporting()),
+		EffectiveValues: managedKeyValues(normalized),
 		RepoSet:         map[string]bool{},
 		EnvSet:          map[string]bool{},
 		ManagedSet:      map[string]bool{},
@@ -52,6 +53,41 @@ func TestRuntimeMetadataManagedRegistryContract(t *testing.T) {
 	assert.ElementsMatch(t, managedSettingRegistryKeys(), managedStatusKeys(statuses))
 	assert.Equal(t, "otter", metadata.Keys["adapters.cache"].Value)
 	assert.Equal(t, "framework-default", metadata.Keys["adapters.cache"].Source)
+	assert.Equal(t, ManagedDivergenceSchemaVersion, metadata.Divergence.SchemaVersion)
+	assert.Empty(t, metadata.Divergence.Items)
+}
+
+func TestRuntimeMetadataManagedDivergenceContract_RedSpec(t *testing.T) {
+	cfg := defaultConfig()
+	cfg.Managed.Enabled = true
+	cfg.Managed.Authority = "control-plane"
+	cfg.Adapters.Cache = "managed-cache"
+	normalized := normalizedConfigForReporting(cfg)
+
+	cfg.Managed.RuntimeReport = runtimeconfig.BuildReport(runtimeconfig.LayerInputs{
+		Defaults:        managedKeyValues(normalizedDefaultConfigForReporting()),
+		EffectiveValues: managedKeyValues(normalized),
+		RepoSet:         map[string]bool{},
+		EnvSet:          map[string]bool{},
+		ManagedSet: map[string]bool{
+			"adapters.cache": true,
+		},
+		ManagedEnabled: true,
+		Authority:      cfg.Managed.Authority,
+	})
+
+	cfg.Adapters.Cache = "rolled-back-cache"
+
+	divergence := cfg.RuntimeMetadata().Managed.Divergence
+	require.Len(t, divergence.Items, 1)
+
+	item := divergence.Items[0]
+	assert.Equal(t, ManagedDivergenceSchemaVersion, divergence.SchemaVersion)
+	assert.Equal(t, "adapters.cache", item.Key)
+	assert.Equal(t, ManagedDivergenceClassificationDrift, item.Classification)
+	assert.Equal(t, ManagedDivergenceActionRollback, item.ImmediateAction)
+	assert.Equal(t, ManagedDivergenceActionUpstreamModuleCandidateReview, item.RepeatedAction)
+	assert.Equal(t, "framework-default", item.RollbackTarget)
 }
 
 func TestRuntimeMetadataPostgresHasNoPromotionPath(t *testing.T) {
@@ -75,6 +111,7 @@ func TestRuntimeMetadataManagedKeyRegistryVersionContract(t *testing.T) {
 
 	assert.Contains(t, string(raw), `"registry_version":"managed-key-registry-v1"`)
 	assert.Contains(t, string(raw), `"schema_version":"managed-key-schema-v1"`)
+	assert.Contains(t, string(raw), `"divergence":{"schema_version":"managed-divergence-v1"`)
 }
 
 func managedMetadataKeys(metadata map[string]ManagedKeyMetadata) []string {
