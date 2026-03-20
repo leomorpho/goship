@@ -121,6 +121,51 @@ func TestRunRuntimeReport_EmitsVersionedHandshakeEnvelope_RedSpec(t *testing.T) 
 	if handshake.Database.Driver != "sqlite" {
 		t.Fatalf("handshake database.driver = %q, want sqlite", handshake.Database.Driver)
 	}
+
+	var divergence struct {
+		SchemaVersion string `json:"schema_version"`
+		CurrentStatus string `json:"current_status"`
+		Classes       []struct {
+			ID         string `json:"id"`
+			Escalation string `json:"escalation"`
+		} `json:"classes"`
+		Escalation struct {
+			SchemaVersion     string `json:"schema_version"`
+			RepeatedThreshold int    `json:"repeated_threshold"`
+		} `json:"escalation"`
+	}
+	if err := json.Unmarshal(payload["divergence"], &divergence); err != nil {
+		t.Fatalf("divergence contract should decode: %v\n%s", err, out.String())
+	}
+	if divergence.SchemaVersion != "divergence-classification-v1" {
+		t.Fatalf("divergence schema_version = %q, want divergence-classification-v1", divergence.SchemaVersion)
+	}
+	if divergence.CurrentStatus != "baseline" {
+		t.Fatalf("divergence current_status = %q, want baseline", divergence.CurrentStatus)
+	}
+	if divergence.Escalation.SchemaVersion != "divergence-escalation-v1" {
+		t.Fatalf("divergence escalation schema_version = %q, want divergence-escalation-v1", divergence.Escalation.SchemaVersion)
+	}
+	if divergence.Escalation.RepeatedThreshold != 3 {
+		t.Fatalf("divergence repeated_threshold = %d, want 3", divergence.Escalation.RepeatedThreshold)
+	}
+	wantClasses := map[string]string{
+		"extension-zone-drift":    "observe",
+		"protected-contract-drift": "recover",
+		"repeated-local-divergence": "upstream-review",
+	}
+	if len(divergence.Classes) != len(wantClasses) {
+		t.Fatalf("divergence classes = %d, want %d", len(divergence.Classes), len(wantClasses))
+	}
+	for _, class := range divergence.Classes {
+		wantEscalation, ok := wantClasses[class.ID]
+		if !ok {
+			t.Fatalf("unexpected divergence class %q", class.ID)
+		}
+		if class.Escalation != wantEscalation {
+			t.Fatalf("divergence class %q escalation = %q, want %q", class.ID, class.Escalation, wantEscalation)
+		}
+	}
 }
 
 func TestRunRuntimeReport_ExposesModuleAdoptionMetadata_RedSpec(t *testing.T) {

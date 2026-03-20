@@ -91,6 +91,10 @@ Rules:
 - runtime metadata publishes that registry contract through `config.RuntimeMetadata().Managed` using `managed-key-registry-v1` and `managed-key-schema-v1`
 - runtime report surfaces now expose per-module adoption metadata, so external control planes can
   track module identity, module path, version, and source without parsing repo internals.
+- runtime report surfaces also expose a divergence classification contract (`divergence-classification-v1`)
+  plus escalation policy (`divergence-escalation-v1`) so control-plane tooling can distinguish
+  ordinary extension-zone drift from protected-contract recovery work and repeated divergence that
+  should be reviewed for upstreaming.
 
 The external control plane should not rely on mutating arbitrary config files in application repos as its normal operating mechanism.
 

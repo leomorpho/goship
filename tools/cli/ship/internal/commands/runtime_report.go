@@ -22,6 +22,7 @@ type RuntimeReportDeps struct {
 type runtimeReport struct {
 	ContractVersion string                         `json:"contract_version"`
 	Handshake       runtimeReportHandshake         `json:"handshake"`
+	Divergence      runtimeReportDivergence        `json:"divergence"`
 	Profile         string                         `json:"profile"`
 	Adapters        runtimeReportAdapters          `json:"adapters"`
 	Processes       runtimeReportProcesses         `json:"processes"`
@@ -50,6 +51,28 @@ type runtimeReportHandshake struct {
 	Profile       string                         `json:"profile"`
 	Managed       config.ManagedRuntimeMetadata  `json:"managed"`
 	Database      config.DatabaseRuntimeMetadata `json:"database"`
+}
+
+type runtimeReportDivergence struct {
+	SchemaVersion string                            `json:"schema_version"`
+	CurrentStatus string                            `json:"current_status"`
+	Classes       []runtimeReportDivergenceClass    `json:"classes"`
+	Escalation    runtimeReportDivergenceEscalation `json:"escalation"`
+}
+
+type runtimeReportDivergenceClass struct {
+	ID         string `json:"id"`
+	Meaning    string `json:"meaning"`
+	Trigger    string `json:"trigger"`
+	Escalation string `json:"escalation"`
+}
+
+type runtimeReportDivergenceEscalation struct {
+	SchemaVersion     string `json:"schema_version"`
+	RepeatedThreshold int    `json:"repeated_threshold"`
+	ObserveAction     string `json:"observe_action"`
+	ReviewAction      string `json:"review_action"`
+	RecoveryAction    string `json:"recovery_action"`
 }
 
 func RunRuntimeReport(args []string, d RuntimeReportDeps) int {
@@ -124,6 +147,7 @@ func RunRuntimeReport(args []string, d RuntimeReportDeps) int {
 			Managed:       cfg.RuntimeMetadata().Managed,
 			Database:      cfg.RuntimeMetadata().Database,
 		},
+		Divergence: buildRuntimeReportDivergence(),
 		Profile: plan.Profile,
 		Adapters: runtimeReportAdapters{
 			DB:     cfg.Adapters.DB,
@@ -154,6 +178,40 @@ func RunRuntimeReport(args []string, d RuntimeReportDeps) int {
 		return 1
 	}
 	return 0
+}
+
+func buildRuntimeReportDivergence() runtimeReportDivergence {
+	return runtimeReportDivergence{
+		SchemaVersion: "divergence-classification-v1",
+		CurrentStatus: "baseline",
+		Classes: []runtimeReportDivergenceClass{
+			{
+				ID:         "extension-zone-drift",
+				Meaning:    "App-owned divergence that stays inside extension zones and preserves protected seams.",
+				Trigger:    "Local changes stay within app, module, or UI extension zones.",
+				Escalation: "observe",
+			},
+			{
+				ID:         "protected-contract-drift",
+				Meaning:    "A documented protected contract changed or drifted from the canonical runtime surface.",
+				Trigger:    "Protected seams or operator-facing contract docs drift from runtime behavior.",
+				Escalation: "recover",
+			},
+			{
+				ID:         "repeated-local-divergence",
+				Meaning:    "The same local patch or workaround keeps recurring and should be evaluated for upstreaming.",
+				Trigger:    "Three or more repeated divergence events land against the same capability without upstreaming.",
+				Escalation: "upstream-review",
+			},
+		},
+		Escalation: runtimeReportDivergenceEscalation{
+			SchemaVersion:     "divergence-escalation-v1",
+			RepeatedThreshold: 3,
+			ObserveAction:     "Track the drift and keep it inside extension zones.",
+			ReviewAction:      "Open a framework/module review when the same divergence repeats.",
+			RecoveryAction:    "Block or recover protected-contract drift before deploy, upgrade, or promotion proceeds.",
+		},
+	}
 }
 
 func PrintRuntimeReportHelp(w io.Writer) {

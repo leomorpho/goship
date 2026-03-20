@@ -1874,7 +1874,7 @@
     },
     "TKT-342": {
       "title": "INT6-02-B: Implement, verify, and sync docs",
-      "state": "backlog",
+      "state": "done",
       "priority": 3
     },
     "TKT-343": {

@@ -1018,6 +1018,7 @@ Runtime DB metadata contract:
 - `config.Config.RuntimeMetadata()` now provides a normalized DB metadata snapshot for status/reporting surfaces.
 - `ship db:export --json` exposes a structured SQLite export report with a typed `backup-manifest-v1` payload, checksum evidence, suggested next commands, and a planning-only note for agents/tooling.
 - `ship runtime:report --json` emits the canonical machine-readable runtime capability payload from config/runtime-plan metadata, including active profile, adapters, process plan, web features, DB runtime metadata, managed-key sources, per-module adoption metadata, and a versioned handshake envelope.
+- The same runtime report now carries a divergence classification contract (`divergence-classification-v1`) plus escalation policy (`divergence-escalation-v1`) so operators can distinguish ordinary extension-zone drift from protected-contract drift and repeated divergence that should be upstreamed or recovered before rollout.
 - Metadata includes DB mode/driver, migration tracking table, portability profile, and SQLite-to-Postgres compatibility path (`sqlite-to-postgres-manual-v1`).
 - Managed runtime metadata now carries shared registry/schema version identifiers (`managed-key-registry-v1`, `managed-key-schema-v1`) so runtime and control-plane consumers can agree on the managed-key contract.
 - `config.Config.ManagedSettingStatuses()` provides normalized managed-setting access states for settings/admin surfaces, including managed-override drift and rollback-target metadata.
@@ -1457,6 +1458,7 @@ Impact:
 ## 11) Runtime Capability Reporting Is Now Canonicalized (Low)
 
 `ship runtime:report --json` now exposes the effective profile, adapters, process plan, web features, DB runtime metadata, managed-key sources, per-module adoption metadata, and a versioned handshake envelope for orchestration preflight. Managed runtime metadata now carries explicit registry/schema version identifiers so runtime and control-plane consumers can agree on the authoritative key mapping. The remaining risk is payload drift if future runtime metadata is added without extending the report.
+The report now also carries divergence classification and escalation metadata so operator tooling can separate ordinary extension-zone drift from protected-contract recovery cases and repeated divergence that should be reviewed for upstreaming.
 
 `ship verify` now runs a named orchestration contract-mismatch preflight gate so unsupported
 deploy/upgrade/promote combinations fail before the orchestration layer starts. The remaining gap
@@ -2164,6 +2166,10 @@ Rules:
 - runtime metadata publishes that registry contract through `config.RuntimeMetadata().Managed` using `managed-key-registry-v1` and `managed-key-schema-v1`
 - runtime report surfaces now expose per-module adoption metadata, so external control planes can
   track module identity, module path, version, and source without parsing repo internals.
+- runtime report surfaces also expose a divergence classification contract (`divergence-classification-v1`)
+  plus escalation policy (`divergence-escalation-v1`) so control-plane tooling can distinguish
+  ordinary extension-zone drift from protected-contract recovery work and repeated divergence that
+  should be reviewed for upstreaming.
 
 The external control plane should not rely on mutating arbitrary config files in application repos as its normal operating mechanism.
 
@@ -4284,6 +4290,7 @@ Safety matrix:
 - `ship agent:finish --id ... --message ... [--pr]` -> run `ship verify` in worktree, `git add -A`, validate conventional commit message, commit, optional `git push -u origin agent/<id>` + `gh pr create`, then `git worktree remove`
 - `ship doctor --json` -> machine-readable doctor result on stdout; exit code 0 when there are no errors, 1 when any error is reported
 - `ship runtime:report --json` -> machine-readable runtime capability report covering active profile, adapters, process plan, web features, DB runtime metadata, managed-key sources, per-module adoption metadata, and a versioned handshake envelope; downstream staged rollout and canary orchestration must compose those runtime facts into `staged-rollout-decision-v1` instead of inventing a second runtime-specific decision payload
+- `ship runtime:report --json` also emits the divergence-classification contract (`divergence-classification-v1` + `divergence-escalation-v1`) so downstream tooling can distinguish extension-zone drift, protected-contract drift, and repeated local divergence that should trigger upstream review or recovery action
 - `ship describe --pretty` now includes a shared-infra adoption summary (`shared_modules`, `shared_module_ids`, `custom_app_controllers`, `custom_app_jobs`, `custom_app_commands`) as a non-blocking upstreaming metric
 - `ship config:validate` -> prints the known `PAGODA_*` config variables with type/default metadata and fails when any required variable is missing
 - `ship config:validate --json` -> prints the same contract as JSON for agent tooling
