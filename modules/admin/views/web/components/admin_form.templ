@@ -1,0 +1,31 @@
+package components
+
+import "github.com/leomorpho/goship/modules/admin"
+
+// Renders: create/edit form with one input per AdminField, type-appropriate input widget per field type
+templ AdminForm(res admin.AdminResource, values map[string]any, errs map[string]string, csrfToken string) {
+	<form data-component="admin-form" method="post" class="space-y-4 rounded-lg border border-slate-200 bg-white p-4">
+		<input type="hidden" name="csrf" value={ csrfToken }/>
+		for _, field := range res.Fields {
+			if bound := getFieldWithValue(field, values); true {
+				<div class="space-y-1">
+					<label class="block text-sm font-semibold text-slate-700">{ field.Label }</label>
+					@AdminFieldInput(bound)
+					if errText, ok := errs[field.Name]; ok && errText != "" {
+						<p class="text-sm text-red-600">{ errText }</p>
+					}
+				</div>
+			}
+		}
+		<div class="pt-2">
+			<button type="submit" class="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800">Save</button>
+		</div>
+	</form>
+}
+
+func getFieldWithValue(f admin.AdminField, values map[string]any) admin.AdminField {
+	if v, ok := values[f.Name]; ok {
+		f.Value = v
+	}
+	return f
+}

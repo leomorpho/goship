@@ -1,12 +1,15 @@
 package main
 
 import (
-	"github.com/mikestefanello/pagoda/pkg/services"
-	"github.com/mikestefanello/pagoda/seeder"
+	"log"
+
+	"github.com/leomorpho/goship/app/foundation"
 )
 
 func main() {
-	c := services.NewContainer()
-	seeder.SeedUsers(c.Config, c.ORM, true)
-	c.Shutdown()
+	c := foundation.NewContainer()
+	defer func() {
+		_ = c.Shutdown()
+	}()
+	log.Println("seed command is temporarily disabled; use explicit SQL seed scripts")
 }
