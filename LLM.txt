@@ -1030,6 +1030,7 @@ Runtime DB metadata contract:
 - `config.Config.ManagedSettingStatuses()` provides normalized managed-setting access states for settings/admin surfaces, including managed-override drift and rollback-target metadata.
 - Managed mode now includes a signed control-plane bridge at `/managed/status`, `/managed/backup`, and `/managed/restore`.
 - Managed hook verification is configurable through `PAGODA_MANAGED_HOOKS_SECRET`, `PAGODA_MANAGED_HOOKS_MAX_SKEW_SECONDS`, and `PAGODA_MANAGED_HOOKS_NONCE_TTL_SECONDS`.
+- Managed backup/restore responses now accept and echo optional `record_links` (`incident_id`, `recovery_id`, `deploy_id`) so runtime evidence can be correlated with external incident and recovery records without coupling the runtime to control-plane storage.
 
 Security baseline:
 
@@ -1550,10 +1551,15 @@ Impact:
 
 Managed hook signatures now expose a shared/distributed replay-store contract, but the active runtime still uses the default in-memory nonce store until app wiring adopts a shared backend.
 
+Managed backup/restore evidence now exposes optional `record_links` identifiers for incident,
+recovery, and deploy correlation, but the remaining risk is consumer drift if downstream tooling
+fails to preserve those IDs verbatim across its own audit records.
+
 Impact:
 
 - Replays are blocked per process instance, but not across independently running replicas.
 - Process restarts clear replay history and reopen the short nonce window until entries are rebuilt.
+- Runtime/control-plane audit correlation now has one canonical identifier surface to share.
 
 ## 15) Soft-Delete Query Guardrail Is Warning-Only (Low)
 
@@ -2229,7 +2235,9 @@ Response contract:
   SHA-256 artifact checksum, and storage target metadata
 - `POST /managed/restore` returns `restore_evidence` with the accepted manifest version field
   (`accepted_manifest_version`), artifact checksum, database descriptor, and named post-restore
-  validation checks. The canonical checks are `manifest.validated`,
+  validation checks, plus optional `record_links` identifiers (`incident_id`, `recovery_id`,
+  `deploy_id`) that mirror the control-plane audit context supplied with the request. The canonical
+  checks are `manifest.validated`,
   `artifact.checksum.sha256`, and `database.schema_version.present`.
 
 Backup manifest v1 invariants:

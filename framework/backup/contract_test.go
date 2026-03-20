@@ -99,6 +99,11 @@ func TestRestoreEvidenceJSONContract_RedSpec(t *testing.T) {
 			SchemaVersion: "20260318_001",
 			SourcePath:    ".local/db/main.db",
 		},
+		RecordLinks: RecordLinks{
+			IncidentID: "inc-100",
+			RecoveryID: "recovery-200",
+			DeployID:   "deploy-300",
+		},
 		PostRestoreChecks: []string{
 			"manifest.validated",
 			"artifact.checksum.sha256",
@@ -110,29 +115,30 @@ func TestRestoreEvidenceJSONContract_RedSpec(t *testing.T) {
 	require.NoError(t, err)
 	text := string(payload)
 	assert.Contains(t, text, `"accepted_manifest_version":"backup-manifest-v1"`)
+	assert.Contains(t, text, `"record_links":{"incident_id":"inc-100","recovery_id":"recovery-200","deploy_id":"deploy-300"}`)
 	assert.Contains(t, text, `"post_restore_checks":["manifest.validated","artifact.checksum.sha256","database.schema_version.present"]`)
 }
 
 func TestRestoreEvidenceJSONContract_UsesAcceptedManifestVersionField_RedSpec(t *testing.T) {
-	evidence := RestoreEvidence{
-		Status:                  "accepted",
-		AcceptedManifestVersion: ManifestVersionV1,
-		ArtifactChecksumSHA256:  "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+	evidence := BuildRestoreEvidence(Manifest{
+		Version: ManifestVersionV1,
 		Database: DatabaseDescriptor{
 			Mode:          DBModeEmbedded,
 			Driver:        DBDriverSQLite,
 			SchemaVersion: "20260318_001",
 			SourcePath:    ".local/db/main.db",
 		},
-		PostRestoreChecks: []string{
-			"manifest.validated",
-			"artifact.checksum.sha256",
-			"database.schema_version.present",
+		Artifact: ArtifactDescriptor{
+			ChecksumSHA256: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
 		},
-	}
+	}, RecordLinks{
+		IncidentID: "inc-100",
+		RecoveryID: "recovery-200",
+	})
 
 	payload, err := json.Marshal(evidence)
 	require.NoError(t, err)
 	text := string(payload)
 	assert.Contains(t, text, `"accepted_manifest_version":"backup-manifest-v1"`)
+	assert.Contains(t, text, `"record_links":{"incident_id":"inc-100","recovery_id":"recovery-200"}`)
 }

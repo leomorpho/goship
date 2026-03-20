@@ -73,12 +73,20 @@ type RestoreRequest struct {
 	Manifest Manifest
 }
 
+// RecordLinks carries stable external identifiers without introducing storage dependencies.
+type RecordLinks struct {
+	IncidentID string `json:"incident_id,omitempty"`
+	RecoveryID string `json:"recovery_id,omitempty"`
+	DeployID   string `json:"deploy_id,omitempty"`
+}
+
 // RestoreEvidence is the machine-readable post-restore contract returned to callers.
 type RestoreEvidence struct {
 	Status                  string             `json:"status"`
 	AcceptedManifestVersion string             `json:"accepted_manifest_version"`
 	ArtifactChecksumSHA256  string             `json:"artifact_checksum_sha256"`
 	Database                DatabaseDescriptor `json:"database"`
+	RecordLinks             RecordLinks        `json:"record_links,omitempty"`
 	PostRestoreChecks       []string           `json:"post_restore_checks"`
 }
 
@@ -219,16 +227,30 @@ func (NoopRestorer) Restore(_ context.Context, req RestoreRequest) error {
 }
 
 // BuildRestoreEvidence returns a machine-readable restore evidence payload.
-func BuildRestoreEvidence(manifest Manifest) RestoreEvidence {
+func BuildRestoreEvidence(manifest Manifest, links RecordLinks) RestoreEvidence {
 	return RestoreEvidence{
 		Status:                  "accepted",
 		AcceptedManifestVersion: manifest.Version,
 		ArtifactChecksumSHA256:  manifest.Artifact.ChecksumSHA256,
 		Database:                manifest.Database,
+		RecordLinks:             links.Normalized(),
 		PostRestoreChecks: []string{
 			"manifest.validated",
 			"artifact.checksum.sha256",
 			"database.schema_version.present",
 		},
 	}
+}
+
+func (l RecordLinks) Normalized() RecordLinks {
+	return RecordLinks{
+		IncidentID: strings.TrimSpace(l.IncidentID),
+		RecoveryID: strings.TrimSpace(l.RecoveryID),
+		DeployID:   strings.TrimSpace(l.DeployID),
+	}
+}
+
+func (l RecordLinks) Empty() bool {
+	n := l.Normalized()
+	return n.IncidentID == "" && n.RecoveryID == "" && n.DeployID == ""
 }

@@ -27,11 +27,13 @@ type ManagedHooksDeps struct {
 }
 
 type managedBackupRequest struct {
-	ObjectKey string `json:"object_key"`
+	ObjectKey   string             `json:"object_key"`
+	RecordLinks backup.RecordLinks `json:"record_links,omitempty"`
 }
 
 type managedRestoreRequest struct {
-	Manifest backup.Manifest `json:"manifest"`
+	Manifest    backup.Manifest     `json:"manifest"`
+	RecordLinks backup.RecordLinks  `json:"record_links,omitempty"`
 }
 
 func NewManagedHooksRoute(ctr ui.Controller, deps ManagedHooksDeps) managedHooks {
@@ -98,10 +100,16 @@ func (m managedHooks) StartBackup(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
-	return ctx.JSON(http.StatusAccepted, map[string]any{
+	response := map[string]any{
 		"status":   "accepted",
 		"manifest": manifest,
-	})
+	}
+	recordLinks := req.RecordLinks.Normalized()
+	if !recordLinks.Empty() {
+		response["record_links"] = recordLinks
+	}
+
+	return ctx.JSON(http.StatusAccepted, response)
 }
 
 func (m managedHooks) StartRestore(ctx echo.Context) error {
@@ -123,10 +131,16 @@ func (m managedHooks) StartRestore(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	return ctx.JSON(http.StatusAccepted, map[string]any{
+	recordLinks := req.RecordLinks.Normalized()
+	response := map[string]any{
 		"status":           "accepted",
-		"restore_evidence": backup.BuildRestoreEvidence(req.Manifest),
-	})
+		"restore_evidence": backup.BuildRestoreEvidence(req.Manifest, recordLinks),
+	}
+	if !recordLinks.Empty() {
+		response["record_links"] = recordLinks
+	}
+
+	return ctx.JSON(http.StatusAccepted, response)
 }
 
 func (m managedHooks) requireManagedMode() error {

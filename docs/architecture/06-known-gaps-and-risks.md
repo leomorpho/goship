@@ -231,10 +231,15 @@ Impact:
 
 Managed hook signatures now expose a shared/distributed replay-store contract, but the active runtime still uses the default in-memory nonce store until app wiring adopts a shared backend.
 
+Managed backup/restore evidence now exposes optional `record_links` identifiers for incident,
+recovery, and deploy correlation, but the remaining risk is consumer drift if downstream tooling
+fails to preserve those IDs verbatim across its own audit records.
+
 Impact:
 
 - Replays are blocked per process instance, but not across independently running replicas.
 - Process restarts clear replay history and reopen the short nonce window until entries are rebuilt.
+- Runtime/control-plane audit correlation now has one canonical identifier surface to share.
 
 ## 15) Soft-Delete Query Guardrail Is Warning-Only (Low)
 

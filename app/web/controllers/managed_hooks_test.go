@@ -74,7 +74,7 @@ func TestManagedHooksBackupAndRestoreSigned(t *testing.T) {
 	restoreDriver := &fakeRestoreDriver{}
 	e := newManagedHooksTestServerWithDrivers(t, backupDriver, restoreDriver)
 
-	backupBody := []byte(`{"object_key":"snapshots/latest.db"}`)
+	backupBody := []byte(`{"object_key":"snapshots/latest.db","record_links":{"incident_id":"inc-100","recovery_id":"rec-200","deploy_id":"dep-300"}}`)
 	backupReq := httptest.NewRequest(http.MethodPost, "/managed/backup", bytes.NewReader(backupBody))
 	backupReq.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
 	signManagedRequest(backupReq, "secret", time.Now().UTC().Unix(), "backup-nonce", backupBody)
@@ -82,8 +82,24 @@ func TestManagedHooksBackupAndRestoreSigned(t *testing.T) {
 	e.ServeHTTP(backupRec, backupReq)
 	assert.Equal(t, http.StatusAccepted, backupRec.Code)
 	assert.True(t, backupDriver.called)
+	var backupPayload map[string]any
+	require.NoError(t, json.Unmarshal(backupRec.Body.Bytes(), &backupPayload))
+	backupLinks, ok := backupPayload["record_links"].(map[string]any)
+	if !ok {
+		t.Fatalf("expected record_links in backup payload, got %v", backupPayload)
+	}
+	assert.Equal(t, "inc-100", backupLinks["incident_id"])
+	assert.Equal(t, "rec-200", backupLinks["recovery_id"])
+	assert.Equal(t, "dep-300", backupLinks["deploy_id"])
 
-	restoreBody, err := json.Marshal(map[string]any{"manifest": backupDriver.manifest})
+	restoreBody, err := json.Marshal(map[string]any{
+		"manifest": backupDriver.manifest,
+		"record_links": map[string]any{
+			"incident_id": "inc-100",
+			"recovery_id": "rec-200",
+			"deploy_id":   "dep-300",
+		},
+	})
 	require.NoError(t, err)
 	restoreReq := httptest.NewRequest(http.MethodPost, "/managed/restore", bytes.NewReader(restoreBody))
 	restoreReq.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
@@ -101,6 +117,13 @@ func TestManagedHooksBackupAndRestoreSigned(t *testing.T) {
 	}
 	assert.Equal(t, backup.ManifestVersionV1, evidence["accepted_manifest_version"])
 	assert.Equal(t, backupDriver.manifest.Artifact.ChecksumSHA256, evidence["artifact_checksum_sha256"])
+	links, ok := evidence["record_links"].(map[string]any)
+	if !ok {
+		t.Fatalf("expected record_links in restore evidence, got %v", evidence)
+	}
+	assert.Equal(t, "inc-100", links["incident_id"])
+	assert.Equal(t, "rec-200", links["recovery_id"])
+	assert.Equal(t, "dep-300", links["deploy_id"])
 	checks, ok := evidence["post_restore_checks"].([]any)
 	if !ok || len(checks) == 0 {
 		t.Fatalf("expected post_restore_checks in restore evidence, got %v", evidence)

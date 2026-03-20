@@ -145,7 +145,9 @@ Response contract:
   SHA-256 artifact checksum, and storage target metadata
 - `POST /managed/restore` returns `restore_evidence` with the accepted manifest version field
   (`accepted_manifest_version`), artifact checksum, database descriptor, and named post-restore
-  validation checks. The canonical checks are `manifest.validated`,
+  validation checks, plus optional `record_links` identifiers (`incident_id`, `recovery_id`,
+  `deploy_id`) that mirror the control-plane audit context supplied with the request. The canonical
+  checks are `manifest.validated`,
   `artifact.checksum.sha256`, and `database.schema_version.present`.
 
 Backup manifest v1 invariants:

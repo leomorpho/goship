@@ -248,6 +248,7 @@ Runtime DB metadata contract:
 - `config.Config.ManagedSettingStatuses()` provides normalized managed-setting access states for settings/admin surfaces, including managed-override drift and rollback-target metadata.
 - Managed mode now includes a signed control-plane bridge at `/managed/status`, `/managed/backup`, and `/managed/restore`.
 - Managed hook verification is configurable through `PAGODA_MANAGED_HOOKS_SECRET`, `PAGODA_MANAGED_HOOKS_MAX_SKEW_SECONDS`, and `PAGODA_MANAGED_HOOKS_NONCE_TTL_SECONDS`.
+- Managed backup/restore responses now accept and echo optional `record_links` (`incident_id`, `recovery_id`, `deploy_id`) so runtime evidence can be correlated with external incident and recovery records without coupling the runtime to control-plane storage.
 
 Security baseline:
 

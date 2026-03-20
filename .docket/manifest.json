@@ -1916,7 +1916,7 @@
     },
     "TKT-350": {
       "title": "INT6-03-B: Implement, verify, and sync docs",
-      "state": "backlog",
+      "state": "done",
       "priority": 3
     },
     "TKT-351": {
