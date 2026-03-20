@@ -1,0 +1,14 @@
+# Core Bob codegen config for GoShip.
+# Uses SQL-files driver so generation is decoupled from a live database.
+#
+# Bob docs:
+# - https://bob.stephenafamo.com/docs/code-generation/sql/
+# - https://bob.stephenafamo.com/docs/code-generation/configuration/
+sql:
+  dialect: psql
+  pattern: "db/migrate/migrations/*.sql"
+  queries:
+    - "db/queries"
+
+# Deterministic generated output location for core app DB code.
+output: "db/gen"
