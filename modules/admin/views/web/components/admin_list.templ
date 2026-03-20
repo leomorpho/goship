@@ -1,0 +1,64 @@
+package components
+
+import (
+	"fmt"
+	"strings"
+
+	"github.com/leomorpho/goship/modules/admin"
+)
+
+// Renders: paginated table of resource rows with column headers, edit/delete links per row, and an "Add new" button
+templ AdminList(res admin.AdminResource, rows []admin.AdminRow, pager admin.Pager) {
+	<div data-component="admin-list" class="space-y-4">
+		<div class="flex items-center justify-between">
+			<h2 class="text-xl font-bold">{ res.PluralName }</h2>
+			<a href={ templ.URL("/admin/" + strings.ToLower(res.PluralName) + "/new") }
+				class="rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800">Add new</a>
+		</div>
+
+		<div class="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+			<table class="min-w-full text-sm">
+				<thead class="bg-slate-50 text-left">
+					<tr>
+						for _, field := range res.Fields {
+							if !field.Sensitive {
+								<th class="px-4 py-3 font-semibold text-slate-700">{ field.Label }</th>
+							}
+						}
+						<th class="px-4 py-3 font-semibold text-slate-700">Actions</th>
+					</tr>
+				</thead>
+				<tbody>
+					if len(rows) == 0 {
+						<tr>
+							<td class="px-4 py-4 text-slate-500" colspan="99">No records found.</td>
+						</tr>
+					} else {
+						for _, row := range rows {
+							if idValue := fmt.Sprint(row[res.IDField]); true {
+								<tr class="border-t border-slate-100">
+									for _, field := range res.Fields {
+										if !field.Sensitive {
+											<td class="px-4 py-3">{ fmt.Sprint(row[field.Name]) }</td>
+										}
+									}
+									<td class="px-4 py-3">
+										<div class="flex items-center gap-2">
+											<a class="rounded-md border border-slate-200 px-3 py-1 hover:bg-slate-50"
+												href={ templ.URL("/admin/" + strings.ToLower(res.PluralName) + "/" + idValue) }>Edit</a>
+											@AdminDeleteConfirm("/admin/" + strings.ToLower(res.PluralName) + "/" + idValue, "")
+										</div>
+									</td>
+								</tr>
+							}
+						}
+					}
+				</tbody>
+			</table>
+		</div>
+
+		<p class="text-sm text-slate-600">
+			Page { fmt.Sprint(pager.Page) } · Showing up to { fmt.Sprint(pager.PerPage) } per page · Total { fmt.Sprint(pager.Total) }
+		</p>
+	</div>
+}

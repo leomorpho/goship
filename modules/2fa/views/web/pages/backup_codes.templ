@@ -1,0 +1,21 @@
+package pages
+
+import (
+	"github.com/leomorpho/goship/app/controller"
+	"github.com/leomorpho/goship/app/web/viewmodels"
+)
+
+// Renders: backup code list after 2FA enablement or regeneration.
+templ BackupCodes(page *controller.Page) {
+	if data, ok := page.Data.(viewmodels.TwoFactorBackupCodesData); ok {
+		<div data-component="two-factor-backup-codes" class="mx-auto max-w-xl space-y-6 px-4 py-8">
+			<h1 class="text-3xl font-semibold">Backup codes</h1>
+			<p class="text-sm text-slate-600">Store these codes somewhere safe. Each code can be used once.</p>
+			<div class="grid gap-2 sm:grid-cols-2">
+				for _, code := range data.Codes {
+					<code class="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm">{ code }</code>
+				}
+			</div>
+		</div>
+	}
+}
