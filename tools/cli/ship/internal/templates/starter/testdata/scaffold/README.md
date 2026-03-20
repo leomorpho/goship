@@ -1,0 +1,14 @@
+# GoShip Starter
+
+Minimal GoShip starter. Add modules with `ship module:add`.
+
+Included by default:
+- auth routes
+- profile routes
+- landing page
+- home feed page
+
+Excluded by default:
+- payments
+- push notifications
+- PWA install flow
