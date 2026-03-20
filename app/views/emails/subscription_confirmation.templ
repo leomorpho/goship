@@ -1,0 +1,15 @@
+package emails
+
+import (
+	"github.com/leomorpho/goship/app/controller"
+)
+
+// Renders: newsletter subscription confirmation email with verification link
+templ SubscriptionConfirmation(page *controller.Page) {
+	<html>
+		<body>
+			<h1>Subscription confirmed</h1>
+			<p>Thanks for confirming your email subscription preferences.</p>
+		</body>
+	</html>
+}
