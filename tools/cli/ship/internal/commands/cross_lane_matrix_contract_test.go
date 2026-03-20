@@ -19,4 +19,19 @@ func TestCrossLaneDependencyMatrixContract_RedSpec(t *testing.T) {
 			t.Fatal("docs should name the must-finish-before contract map")
 		}
 	}
+	if !strings.Contains(roadmap, "| Lane | Requires | Must finish before | Why |") {
+		t.Fatal("roadmap should include the explicit cross-lane dependency matrix table")
+	}
+	for _, token := range []string{
+		"runtime-contract-v1",
+		"upgrade-readiness-v1",
+		"promotion-state-machine-v1",
+		"backup-manifest-v1",
+		"restore_evidence.record_links",
+		"staged-rollout-decision-v1",
+	} {
+		if !strings.Contains(roadmap, token) {
+			t.Fatalf("roadmap matrix should include %q", token)
+		}
+	}
 }

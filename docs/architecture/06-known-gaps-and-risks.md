@@ -192,17 +192,20 @@ Impact:
 - Runtime/control-plane consumers should extend the same schema instead of inventing a parallel canary payload.
 - Operators should still treat rollout execution and traffic shaping as external responsibilities for now.
 
-## Cross-Lane Dependency Matrix Still Needs A Single Contract Map (Low)
+## Cross-Lane Dependency Matrix Is Canonicalized But Still Doc-Driven (Low)
 
-The GoShip, Interaction, and Control-plane ticket streams still rely on multiple docs and ticket
-parents to express sequencing. The cross-lane dependency matrix should explicitly name the
-must-finish-before contract map so ticket ordering stays deterministic.
-This cross-lane dependency matrix language is the canonical coordination contract for the docs lane.
+The GoShip, Interaction, and Control-plane ticket streams now have an explicit cross-lane dependency
+matrix and must-finish-before contract map in `docs/roadmap/01-framework-plan.md`. This
+cross-lane dependency matrix language is the canonical coordination contract for the docs lane.
 
 This cross-lane dependency matrix contract should stay named exactly that way in the canonical docs
-so coordination and verification tooling can grep for one phrase.
+so coordination and verification tooling can grep for one phrase, but sequencing is still doc-driven
+until more of the contract map is enforced directly by docket or CLI policy surfaces.
 
 Impact:
+
+- Contributors now have one canonical dependency matrix to consult before sequencing cross-lane work.
+- The coordination contract is easier to test because the roadmap names the concrete contract tokens.
 
 - Ticket sequencing remains readable, but it still depends on documentation discipline.
 - Future coordination tickets should extend the same matrix language instead of inventing a parallel map.

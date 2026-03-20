@@ -44,6 +44,27 @@ Primary framing:
 - Rails inspiration applies to the entire framework experience (not only environment settings): app structure, conventions, generators, batteries, defaults, testing, and deployment workflows.
 - The roadmap also needs one explicit cross-lane dependency matrix plus a must-finish-before contract map so ticket sequencing stays deterministic across runtime, docs, and control-plane work.
 
+## Cross-Lane Dependency Matrix
+
+This cross-lane dependency matrix is the canonical coordination contract for sequencing GoShip,
+Interaction, and Control-plane work.
+
+| Lane | Requires | Must finish before | Why |
+| --- | --- | --- | --- |
+| GoShip runtime contracts | `runtime-contract-v1`, `runtime-handshake-v1`, `managed-key-schema-v1` | Interaction or control-plane deploy/canary automation | Downstream orchestration must consume one stable runtime report contract instead of reverse-engineering repo state. |
+| Interaction upgrade/promotion contracts | `upgrade-readiness-v1`, `promotion-state-machine-v1`, `sqlite-to-postgres-manual-v1` | Any upgrade or promotion automation beyond local CLI preflight | Upgrade/promotion policy cannot safely automate around unstable or partial runtime states. |
+| Interaction recovery contracts | `backup-manifest-v1`, `restore_evidence.record_links` | Incident, rollback, and recovery audit consumers | Recovery evidence must stay linkable to external incident and deploy records without runtime storage coupling. |
+| Control-plane policy and rollout tooling | `staged-rollout-decision-v1`, `policy_input_version` | Vendor-specific rollout execution or customer-facing recovery workflows | External policy may compose runtime facts, but it must not redefine the runtime-owned contract payloads. |
+| Docs and verification lane | `docs/reference/01-cli.md`, `docs/architecture/09-standalone-and-managed-mode.md`, contract tests | Any new coordination ticket that claims a lane dependency | Ticket ordering stays deterministic only when the docs and tests encode the same contract map. |
+
+## Must-Finish-Before Contract Map
+
+- `runtime-contract-v1` and `runtime-handshake-v1` must finish before any deploy or canary policy consumes `ship runtime:report --json`.
+- `upgrade-readiness-v1` must finish before upgrade automation or upgrade policy approvals rely on `ship upgrade --json`.
+- `promotion-state-machine-v1` must finish before promotion orchestration attempts to continue after the config flip.
+- `backup-manifest-v1` and `restore_evidence.record_links` must finish before incident/recovery tooling claims end-to-end audit linkage.
+- `staged-rollout-decision-v1` must finish before rollout tooling introduces a second decision payload format.
+
 ### Rails-Inspired Framework Pillars
 
 1. Convention over configuration:
