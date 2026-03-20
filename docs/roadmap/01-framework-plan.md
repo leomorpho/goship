@@ -334,6 +334,7 @@ Minimum framework tooling/hooks to expose:
 9. Managed settings will need explicit drift detection and rollback semantics so the runtime can show when intended overrides and effective state have diverged.
 10. The managed-key registry will be versioned as a shared runtime/control-plane artifact so schema mapping stays authoritative instead of inferred from ad hoc key lists.
 11. Signed cron entrypoint verification should reuse the same replay/timestamp contract shape so control-plane schedulers can target runtime hooks deterministically.
+12. Incident/recovery linkage for managed restore flows should use `incident-recovery-linkage-v1`, with required `incident_id` and `recovery_id`, optional `deploy_id`, and an echo contract in `restore_evidence` so runtime and control-plane records can join without shared storage.
 
 ## Docket Tracking
 

@@ -144,6 +144,10 @@ Response contract:
   (`accepted_manifest_version`), artifact checksum, database descriptor, and named post-restore
   validation checks. The canonical checks are `manifest.validated`,
   `artifact.checksum.sha256`, and `database.schema_version.present`.
+- `POST /managed/restore` also accepts and echoes a typed `linkage` object using
+  `incident-recovery-linkage-v1`. The runtime contract requires `incident_id` and `recovery_id`,
+  allows optional `deploy_id`, and returns the same linkage object inside `restore_evidence`
+  without requiring the runtime to own control-plane storage.
 
 Backup manifest v1 invariants:
 

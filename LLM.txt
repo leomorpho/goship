@@ -1019,6 +1019,7 @@ Runtime DB metadata contract:
 - Managed runtime metadata now carries shared registry/schema version identifiers (`managed-key-registry-v1`, `managed-key-schema-v1`) so runtime and control-plane consumers can agree on the managed-key contract.
 - `config.Config.ManagedSettingStatuses()` provides normalized managed-setting access states for settings/admin surfaces, including managed-override drift and rollback-target metadata.
 - Managed mode now includes a signed control-plane bridge at `/managed/status`, `/managed/backup`, and `/managed/restore`.
+- Runtime metadata now advertises the restore-linkage contract through `runtime_metadata.recovery`, including `incident-recovery-linkage-v1`, required `incident_id` / `recovery_id`, and optional `deploy_id`.
 - Managed hook verification is configurable through `PAGODA_MANAGED_HOOKS_SECRET`, `PAGODA_MANAGED_HOOKS_MAX_SKEW_SECONDS`, and `PAGODA_MANAGED_HOOKS_NONCE_TTL_SECONDS`.
 
 Security baseline:
@@ -1454,6 +1455,7 @@ Impact:
 ## 11) Runtime Capability Reporting Is Now Canonicalized (Low)
 
 `ship runtime:report --json` now exposes the effective profile, adapters, process plan, web features, DB runtime metadata, managed-key sources, and a versioned handshake envelope for orchestration preflight. Managed runtime metadata now carries explicit registry/schema version identifiers so runtime and control-plane consumers can agree on the authoritative key mapping. The remaining risk is payload drift if future runtime metadata is added without extending the report.
+Runtime metadata now also advertises the restore-linkage schema (`incident-recovery-linkage-v1`) and its required/optional identifier fields so control-plane recovery tooling can align on the same contract before invoking `/managed/restore`.
 
 `ship verify` now runs a named orchestration contract-mismatch preflight gate so unsupported
 deploy/upgrade/promote combinations fail before the orchestration layer starts. The remaining gap
@@ -2214,6 +2216,10 @@ Response contract:
   (`accepted_manifest_version`), artifact checksum, database descriptor, and named post-restore
   validation checks. The canonical checks are `manifest.validated`,
   `artifact.checksum.sha256`, and `database.schema_version.present`.
+- `POST /managed/restore` also accepts and echoes a typed `linkage` object using
+  `incident-recovery-linkage-v1`. The runtime contract requires `incident_id` and `recovery_id`,
+  allows optional `deploy_id`, and returns the same linkage object inside `restore_evidence`
+  without requiring the runtime to own control-plane storage.
 
 Backup manifest v1 invariants:
 
@@ -4976,6 +4982,7 @@ Minimum framework tooling/hooks to expose:
 9. Managed settings will need explicit drift detection and rollback semantics so the runtime can show when intended overrides and effective state have diverged.
 10. The managed-key registry will be versioned as a shared runtime/control-plane artifact so schema mapping stays authoritative instead of inferred from ad hoc key lists.
 11. Signed cron entrypoint verification should reuse the same replay/timestamp contract shape so control-plane schedulers can target runtime hooks deterministically.
+12. Incident/recovery linkage for managed restore flows should use `incident-recovery-linkage-v1`, with required `incident_id` and `recovery_id`, optional `deploy_id`, and an echo contract in `restore_evidence` so runtime and control-plane records can join without shared storage.
 
 ## Docket Tracking
 

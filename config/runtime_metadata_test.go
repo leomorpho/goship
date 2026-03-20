@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
+	"github.com/leomorpho/goship/framework/backup"
 	"github.com/leomorpho/goship/framework/runtimeconfig"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -75,6 +76,21 @@ func TestRuntimeMetadataManagedKeyRegistryVersionContract(t *testing.T) {
 
 	assert.Contains(t, string(raw), `"registry_version":"managed-key-registry-v1"`)
 	assert.Contains(t, string(raw), `"schema_version":"managed-key-schema-v1"`)
+}
+
+func TestRuntimeMetadataRecoveryLinkageContract_RedSpec(t *testing.T) {
+	cfg := defaultConfig()
+
+	metadata := cfg.RuntimeMetadata().Recovery
+	assert.Equal(t, backup.RecoveryLinkageSchemaVersionV1, metadata.LinkageSchemaVersion)
+	assert.Equal(t, []string{"incident_id", "recovery_id"}, metadata.RequiredRestoreLinkageFields)
+	assert.Equal(t, []string{"deploy_id"}, metadata.OptionalRestoreLinkageFields)
+
+	raw, err := json.Marshal(metadata)
+	require.NoError(t, err)
+	assert.Contains(t, string(raw), `"linkage_schema_version":"incident-recovery-linkage-v1"`)
+	assert.Contains(t, string(raw), `"required_restore_linkage_fields":["incident_id","recovery_id"]`)
+	assert.Contains(t, string(raw), `"optional_restore_linkage_fields":["deploy_id"]`)
 }
 
 func managedMetadataKeys(metadata map[string]ManagedKeyMetadata) []string {

@@ -31,7 +31,8 @@ type managedBackupRequest struct {
 }
 
 type managedRestoreRequest struct {
-	Manifest backup.Manifest `json:"manifest"`
+	Manifest backup.Manifest        `json:"manifest"`
+	Linkage  backup.RecoveryLinkage `json:"linkage"`
 }
 
 func NewManagedHooksRoute(ctr ui.Controller, deps ManagedHooksDeps) managedHooks {
@@ -119,13 +120,14 @@ func (m managedHooks) StartRestore(ctx echo.Context) error {
 
 	if err := m.restoreDriver.Restore(ctx.Request().Context(), backup.RestoreRequest{
 		Manifest: req.Manifest,
+		Linkage:  req.Linkage,
 	}); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
 	return ctx.JSON(http.StatusAccepted, map[string]any{
 		"status":           "accepted",
-		"restore_evidence": backup.BuildRestoreEvidence(req.Manifest),
+		"restore_evidence": backup.BuildRestoreEvidence(req.Manifest, req.Linkage),
 	})
 }
 

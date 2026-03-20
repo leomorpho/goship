@@ -136,3 +136,33 @@ func TestRestoreEvidenceJSONContract_UsesAcceptedManifestVersionField_RedSpec(t 
 	text := string(payload)
 	assert.Contains(t, text, `"accepted_manifest_version":"backup-manifest-v1"`)
 }
+
+func TestRestoreEvidenceJSONContract_IncludesIncidentRecoveryLinkage_RedSpec(t *testing.T) {
+	evidence := RestoreEvidence{
+		Status:                  "accepted",
+		AcceptedManifestVersion: ManifestVersionV1,
+		ArtifactChecksumSHA256:  "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+		Database: DatabaseDescriptor{
+			Mode:          DBModeEmbedded,
+			Driver:        DBDriverSQLite,
+			SchemaVersion: "20260318_001",
+			SourcePath:    ".local/db/main.db",
+		},
+		Linkage: RecoveryLinkage{
+			SchemaVersion: RecoveryLinkageSchemaVersionV1,
+			IncidentID:    "incident_123",
+			RecoveryID:    "recovery_456",
+			DeployID:      "deploy_789",
+		},
+		PostRestoreChecks: []string{
+			"manifest.validated",
+			"artifact.checksum.sha256",
+			"database.schema_version.present",
+		},
+	}
+
+	payload, err := json.Marshal(evidence)
+	require.NoError(t, err)
+	text := string(payload)
+	assert.Contains(t, text, `"linkage":{"schema_version":"incident-recovery-linkage-v1","incident_id":"incident_123","recovery_id":"recovery_456","deploy_id":"deploy_789"}`)
+}

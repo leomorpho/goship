@@ -84,6 +84,15 @@ func TestManagedHooksBackupAndRestoreSigned(t *testing.T) {
 	assert.True(t, backupDriver.called)
 
 	restoreBody, err := json.Marshal(map[string]any{"manifest": backupDriver.manifest})
+	restoreBody, err = json.Marshal(map[string]any{
+		"manifest": backupDriver.manifest,
+		"linkage": map[string]any{
+			"schema_version": "incident-recovery-linkage-v1",
+			"incident_id":    "incident_123",
+			"recovery_id":    "recovery_456",
+			"deploy_id":      "deploy_789",
+		},
+	})
 	require.NoError(t, err)
 	restoreReq := httptest.NewRequest(http.MethodPost, "/managed/restore", bytes.NewReader(restoreBody))
 	restoreReq.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
@@ -101,10 +110,23 @@ func TestManagedHooksBackupAndRestoreSigned(t *testing.T) {
 	}
 	assert.Equal(t, backup.ManifestVersionV1, evidence["accepted_manifest_version"])
 	assert.Equal(t, backupDriver.manifest.Artifact.ChecksumSHA256, evidence["artifact_checksum_sha256"])
+	linkage, ok := evidence["linkage"].(map[string]any)
+	if !ok {
+		t.Fatalf("expected linkage payload, got %v", evidence)
+	}
+	assert.Equal(t, "incident-recovery-linkage-v1", linkage["schema_version"])
+	assert.Equal(t, "incident_123", linkage["incident_id"])
+	assert.Equal(t, "recovery_456", linkage["recovery_id"])
+	assert.Equal(t, "deploy_789", linkage["deploy_id"])
 	checks, ok := evidence["post_restore_checks"].([]any)
 	if !ok || len(checks) == 0 {
 		t.Fatalf("expected post_restore_checks in restore evidence, got %v", evidence)
 	}
+	assert.True(t, restoreDriver.called)
+	assert.Equal(t, "incident-recovery-linkage-v1", restoreDriver.req.Linkage.SchemaVersion)
+	assert.Equal(t, "incident_123", restoreDriver.req.Linkage.IncidentID)
+	assert.Equal(t, "recovery_456", restoreDriver.req.Linkage.RecoveryID)
+	assert.Equal(t, "deploy_789", restoreDriver.req.Linkage.DeployID)
 }
 
 func newManagedHooksTestServer(t *testing.T) *echo.Echo {
@@ -194,9 +216,11 @@ func (f *fakeBackupDriver) Create(_ context.Context, _ backup.CreateRequest) (ba
 type fakeRestoreDriver struct {
 	called bool
 	err    error
+	req    backup.RestoreRequest
 }
 
-func (f *fakeRestoreDriver) Restore(_ context.Context, _ backup.RestoreRequest) error {
+func (f *fakeRestoreDriver) Restore(_ context.Context, req backup.RestoreRequest) error {
 	f.called = true
+	f.req = req
 	return f.err
 }

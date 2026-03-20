@@ -105,6 +105,9 @@ func TestRunRuntimeReport_EmitsVersionedHandshakeEnvelope_RedSpec(t *testing.T) 
 		Database struct {
 			Driver string `json:"driver"`
 		} `json:"database"`
+		Recovery struct {
+			LinkageSchemaVersion string `json:"linkage_schema_version"`
+		} `json:"recovery"`
 	}
 	if err := json.Unmarshal(handshakeRaw, &handshake); err != nil {
 		t.Fatalf("handshake should decode: %v\n%s", err, out.String())
@@ -120,6 +123,27 @@ func TestRunRuntimeReport_EmitsVersionedHandshakeEnvelope_RedSpec(t *testing.T) 
 	}
 	if handshake.Database.Driver != "sqlite" {
 		t.Fatalf("handshake database.driver = %q, want sqlite", handshake.Database.Driver)
+	}
+	if handshake.Recovery.LinkageSchemaVersion != "incident-recovery-linkage-v1" {
+		t.Fatalf("handshake recovery.linkage_schema_version = %q, want incident-recovery-linkage-v1", handshake.Recovery.LinkageSchemaVersion)
+	}
+
+	var recovery struct {
+		LinkageSchemaVersion         string   `json:"linkage_schema_version"`
+		RequiredRestoreLinkageFields []string `json:"required_restore_linkage_fields"`
+		OptionalRestoreLinkageFields []string `json:"optional_restore_linkage_fields"`
+	}
+	if err := json.Unmarshal(payload["recovery"], &recovery); err != nil {
+		t.Fatalf("recovery payload should decode: %v\n%s", err, out.String())
+	}
+	if recovery.LinkageSchemaVersion != "incident-recovery-linkage-v1" {
+		t.Fatalf("recovery.linkage_schema_version = %q, want incident-recovery-linkage-v1", recovery.LinkageSchemaVersion)
+	}
+	if got, want := strings.Join(recovery.RequiredRestoreLinkageFields, ","), "incident_id,recovery_id"; got != want {
+		t.Fatalf("recovery.required_restore_linkage_fields = %q, want %q", got, want)
+	}
+	if got, want := strings.Join(recovery.OptionalRestoreLinkageFields, ","), "deploy_id"; got != want {
+		t.Fatalf("recovery.optional_restore_linkage_fields = %q, want %q", got, want)
 	}
 }
 

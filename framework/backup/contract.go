@@ -12,6 +12,8 @@ import (
 const (
 	// ManifestVersionV1 identifies the first stable backup manifest schema.
 	ManifestVersionV1 = "backup-manifest-v1"
+	// RecoveryLinkageSchemaVersionV1 identifies the first stable incident/recovery linkage schema.
+	RecoveryLinkageSchemaVersionV1 = "incident-recovery-linkage-v1"
 
 	// DBModeEmbedded indicates the database runs in embedded mode.
 	DBModeEmbedded = "embedded"
@@ -71,6 +73,7 @@ type CreateRequest struct {
 // RestoreRequest defines input for restore operations.
 type RestoreRequest struct {
 	Manifest Manifest
+	Linkage  RecoveryLinkage
 }
 
 // RestoreEvidence is the machine-readable post-restore contract returned to callers.
@@ -79,7 +82,16 @@ type RestoreEvidence struct {
 	AcceptedManifestVersion string             `json:"accepted_manifest_version"`
 	ArtifactChecksumSHA256  string             `json:"artifact_checksum_sha256"`
 	Database                DatabaseDescriptor `json:"database"`
+	Linkage                 RecoveryLinkage    `json:"linkage"`
 	PostRestoreChecks       []string           `json:"post_restore_checks"`
+}
+
+// RecoveryLinkage identifies the external incident/recovery records linked to a restore action.
+type RecoveryLinkage struct {
+	SchemaVersion string `json:"schema_version"`
+	IncidentID    string `json:"incident_id,omitempty"`
+	RecoveryID    string `json:"recovery_id,omitempty"`
+	DeployID      string `json:"deploy_id,omitempty"`
 }
 
 // Driver creates backup manifests from runtime data.
@@ -219,16 +231,27 @@ func (NoopRestorer) Restore(_ context.Context, req RestoreRequest) error {
 }
 
 // BuildRestoreEvidence returns a machine-readable restore evidence payload.
-func BuildRestoreEvidence(manifest Manifest) RestoreEvidence {
+func BuildRestoreEvidence(manifest Manifest, linkage RecoveryLinkage) RestoreEvidence {
 	return RestoreEvidence{
 		Status:                  "accepted",
 		AcceptedManifestVersion: manifest.Version,
 		ArtifactChecksumSHA256:  manifest.Artifact.ChecksumSHA256,
 		Database:                manifest.Database,
+		Linkage:                 normalizeRecoveryLinkage(linkage),
 		PostRestoreChecks: []string{
 			"manifest.validated",
 			"artifact.checksum.sha256",
 			"database.schema_version.present",
 		},
 	}
+}
+
+func normalizeRecoveryLinkage(linkage RecoveryLinkage) RecoveryLinkage {
+	if strings.TrimSpace(linkage.SchemaVersion) == "" &&
+		(strings.TrimSpace(linkage.IncidentID) != "" ||
+			strings.TrimSpace(linkage.RecoveryID) != "" ||
+			strings.TrimSpace(linkage.DeployID) != "") {
+		linkage.SchemaVersion = RecoveryLinkageSchemaVersionV1
+	}
+	return linkage
 }

@@ -3,6 +3,7 @@ package config
 import (
 	"strings"
 
+	"github.com/leomorpho/goship/framework/backup"
 	"github.com/leomorpho/goship/framework/runtimeconfig"
 )
 
@@ -23,6 +24,7 @@ const (
 type RuntimeMetadata struct {
 	Database DatabaseRuntimeMetadata `json:"database"`
 	Managed  ManagedRuntimeMetadata  `json:"managed"`
+	Recovery RecoveryRuntimeMetadata `json:"recovery"`
 }
 
 // ManagedRuntimeMetadata reports effective managed keys and their source layers.
@@ -38,6 +40,13 @@ type ManagedRuntimeMetadata struct {
 type ManagedKeyMetadata struct {
 	Value  string `json:"value"`
 	Source string `json:"source"`
+}
+
+// RecoveryRuntimeMetadata reports the restore-linkage contract shared with control-plane tooling.
+type RecoveryRuntimeMetadata struct {
+	LinkageSchemaVersion         string   `json:"linkage_schema_version"`
+	RequiredRestoreLinkageFields []string `json:"required_restore_linkage_fields"`
+	OptionalRestoreLinkageFields []string `json:"optional_restore_linkage_fields"`
 }
 
 // DatabaseRuntimeMetadata reports DB mode/driver and promotion compatibility details.
@@ -83,6 +92,11 @@ func (c Config) RuntimeMetadata() RuntimeMetadata {
 			RegistryVersion: ManagedKeyRegistryVersion,
 			SchemaVersion:   ManagedKeySchemaVersion,
 			Keys:            keys,
+		},
+		Recovery: RecoveryRuntimeMetadata{
+			LinkageSchemaVersion:         backup.RecoveryLinkageSchemaVersionV1,
+			RequiredRestoreLinkageFields: []string{"incident_id", "recovery_id"},
+			OptionalRestoreLinkageFields: []string{"deploy_id"},
 		},
 	}
 }

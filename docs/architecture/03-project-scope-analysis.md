@@ -237,6 +237,7 @@ Runtime DB metadata contract:
 - Managed runtime metadata now carries shared registry/schema version identifiers (`managed-key-registry-v1`, `managed-key-schema-v1`) so runtime and control-plane consumers can agree on the managed-key contract.
 - `config.Config.ManagedSettingStatuses()` provides normalized managed-setting access states for settings/admin surfaces, including managed-override drift and rollback-target metadata.
 - Managed mode now includes a signed control-plane bridge at `/managed/status`, `/managed/backup`, and `/managed/restore`.
+- Runtime metadata now advertises the restore-linkage contract through `runtime_metadata.recovery`, including `incident-recovery-linkage-v1`, required `incident_id` / `recovery_id`, and optional `deploy_id`.
 - Managed hook verification is configurable through `PAGODA_MANAGED_HOOKS_SECRET`, `PAGODA_MANAGED_HOOKS_MAX_SKEW_SECONDS`, and `PAGODA_MANAGED_HOOKS_NONCE_TTL_SECONDS`.
 
 Security baseline:

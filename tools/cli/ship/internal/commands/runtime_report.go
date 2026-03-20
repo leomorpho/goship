@@ -26,6 +26,7 @@ type runtimeReport struct {
 	Web             runtimeplan.WebFeatures        `json:"web"`
 	Database        config.DatabaseRuntimeMetadata `json:"database"`
 	Managed         config.ManagedRuntimeMetadata  `json:"managed"`
+	Recovery        config.RecoveryRuntimeMetadata `json:"recovery"`
 }
 
 type runtimeReportAdapters struct {
@@ -47,6 +48,7 @@ type runtimeReportHandshake struct {
 	Profile       string                         `json:"profile"`
 	Managed       config.ManagedRuntimeMetadata  `json:"managed"`
 	Database      config.DatabaseRuntimeMetadata `json:"database"`
+	Recovery      config.RecoveryRuntimeMetadata `json:"recovery"`
 }
 
 func RunRuntimeReport(args []string, d RuntimeReportDeps) int {
@@ -96,6 +98,7 @@ func RunRuntimeReport(args []string, d RuntimeReportDeps) int {
 			Profile:       plan.Profile,
 			Managed:       cfg.RuntimeMetadata().Managed,
 			Database:      cfg.RuntimeMetadata().Database,
+			Recovery:      cfg.RuntimeMetadata().Recovery,
 		},
 		Profile: plan.Profile,
 		Adapters: runtimeReportAdapters{
@@ -117,6 +120,7 @@ func RunRuntimeReport(args []string, d RuntimeReportDeps) int {
 		),
 		Database: cfg.RuntimeMetadata().Database,
 		Managed:  cfg.RuntimeMetadata().Managed,
+		Recovery: cfg.RuntimeMetadata().Recovery,
 	}
 
 	enc := json.NewEncoder(d.Out)
