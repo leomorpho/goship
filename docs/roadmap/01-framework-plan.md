@@ -810,9 +810,23 @@ Examples of active work:
 
 - orchestration preflight via `ship verify`;
 - upgrade readiness report and blocker schema;
+- deploy/upgrade contract-version policy pinned to `runtime-contract-v1`, `runtime-handshake-v1`,
+  and `upgrade-readiness-v1`, with stable blockers
+  `unsupported_runtime_contract_version`,
+  `unsupported_runtime_handshake_version`, and
+  `unsupported_upgrade_readiness_version`;
 - distributed replay defense and key rotation;
 - managed override registry versioning;
 - promotion lifecycle and incident/recovery contracts.
+
+Contract-version policy for this track:
+
+- deploy orchestration must treat `ship runtime:report --json` as supported only when
+  `contract_version=runtime-contract-v1` and `handshake.schema_version=runtime-handshake-v1`
+- upgrade orchestration must treat `ship upgrade --json` as supported only when
+  `schema_version=upgrade-readiness-v1`
+- `ship verify` is the named preflight surface that should fail on those blocking mismatch cases and
+  reuse the same stable blocker IDs instead of inventing per-surface wording
 
 ## Ticketing Rules
 

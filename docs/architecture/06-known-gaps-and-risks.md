@@ -170,6 +170,14 @@ future scope drift if additional upgrade surfaces bypass that schema. The contra
 explicit rollback/canary linkage so staged rollout consumers can map readiness to
 `rollback_target`, `canary`, and verification evidence without inventing a second payload.
 
+The contract-version policy for orchestration is now pinned even though full enforcement is still a
+follow-up implementation concern: deploy policy accepts only `runtime-contract-v1` plus
+`runtime-handshake-v1`, and upgrade policy accepts only `upgrade-readiness-v1`. A blocking mismatch
+must use the stable diagnostics `unsupported_runtime_contract_version`,
+`unsupported_runtime_handshake_version`, or `unsupported_upgrade_readiness_version` and include
+remediation that points operators back to `ship runtime:report --json`, `ship upgrade --json`, or
+`ship verify` instead of ad hoc wording.
+
 Impact:
 
 - Operators and orchestration tooling now have one canonical preflight report for upgrade safety.
