@@ -1,0 +1,4 @@
+# Workspace-level module enablement for the monolith.
+# Modules are installed globally for the app workspace, not per mini-app.
+modules: []
+
