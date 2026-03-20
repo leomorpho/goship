@@ -5,8 +5,8 @@ import (
 	"io/fs"
 	"sync"
 
-	"github.com/leomorpho/goship/framework/web/ui"
 	"github.com/leomorpho/goship/framework/core"
+	"github.com/leomorpho/goship/framework/web/ui"
 	"github.com/leomorpho/goship/modules/auditlog"
 	"github.com/leomorpho/goship/modules/flags"
 )
@@ -17,6 +17,8 @@ type ModuleDeps struct {
 	AuditLogs  *auditlog.Service
 	Flags      *flags.Service
 }
+
+const ModuleID = "admin"
 
 type Module struct {
 	controller ui.Controller
@@ -38,7 +40,7 @@ func New(deps ModuleDeps) *Module {
 }
 
 func (m *Module) ID() string {
-	return "admin"
+	return ModuleID
 }
 
 func (m *Module) Migrations() fs.FS {

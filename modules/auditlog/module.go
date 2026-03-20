@@ -10,6 +10,8 @@ import (
 	dbmigrate "github.com/leomorpho/goship/modules/auditlog/db/migrate"
 )
 
+const ModuleID = "auditlog"
+
 type Module struct {
 	service *Service
 }
@@ -19,7 +21,7 @@ func NewModule(service *Service) *Module {
 }
 
 func (m *Module) ID() string {
-	return "auditlog"
+	return ModuleID
 }
 
 func (m *Module) Migrations() fs.FS {

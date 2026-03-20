@@ -3,8 +3,8 @@ package profiles
 import (
 	"io/fs"
 
-	"github.com/leomorpho/goship/framework/web/ui"
 	"github.com/leomorpho/goship/framework/core"
+	"github.com/leomorpho/goship/framework/web/ui"
 )
 
 type ModuleDeps struct {
@@ -12,6 +12,8 @@ type ModuleDeps struct {
 	ProfileService *ProfileService
 	MaxFileSizeMB  int64
 }
+
+const ModuleID = "profile"
 
 type Module struct {
 	service *routeService
@@ -24,7 +26,7 @@ func NewModule(deps ModuleDeps) *Module {
 }
 
 func (m *Module) ID() string {
-	return "profile"
+	return ModuleID
 }
 
 func (m *Module) Migrations() fs.FS {

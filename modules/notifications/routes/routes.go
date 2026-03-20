@@ -62,7 +62,7 @@ func NewRouteModule(deps RouteModuleDeps) *RouteModule {
 }
 
 func (m *RouteModule) ID() string {
-	return "notifications"
+	return notifications.ModuleID
 }
 
 func (m *RouteModule) Migrations() fs.FS {

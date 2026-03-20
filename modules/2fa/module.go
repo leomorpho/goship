@@ -3,14 +3,16 @@ package twofa
 import (
 	"io/fs"
 
-	"github.com/leomorpho/goship/framework/web/ui"
 	"github.com/leomorpho/goship/framework/core"
+	"github.com/leomorpho/goship/framework/web/ui"
 )
 
 type ModuleDeps struct {
 	Controller ui.Controller
 	Service    *Service
 }
+
+const ModuleID = "2fa"
 
 type Module struct {
 	controller ui.Controller
@@ -25,7 +27,7 @@ func NewModule(deps ModuleDeps) *Module {
 }
 
 func (m *Module) ID() string {
-	return "2fa"
+	return ModuleID
 }
 
 func (m *Module) Migrations() fs.FS {

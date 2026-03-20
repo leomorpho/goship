@@ -2,6 +2,8 @@ package storage
 
 import "github.com/leomorpho/goship/framework/core"
 
+const ModuleID = "storage"
+
 // Module exposes the installable storage battery around the core blob seam.
 type Module struct {
 	blob core.BlobStorage
@@ -14,7 +16,7 @@ func New(blob core.BlobStorage) *Module {
 
 // ID returns the canonical module identifier used by ship module commands.
 func (m *Module) ID() string {
-	return "storage"
+	return ModuleID
 }
 
 // BlobStorage exposes the configured blob storage seam for higher-level consumers.

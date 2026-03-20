@@ -4,6 +4,8 @@ import "io/fs"
 
 import dbmigrate "github.com/leomorpho/goship/modules/flags/db/migrate"
 
+const ModuleID = "flags"
+
 type Module struct {
 	service *Service
 }
@@ -13,7 +15,7 @@ func NewModule(service *Service) *Module {
 }
 
 func (m *Module) ID() string {
-	return "flags"
+	return ModuleID
 }
 
 func (m *Module) Migrations() fs.FS {

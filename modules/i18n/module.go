@@ -1,5 +1,7 @@
 package i18n
 
+const ModuleID = "i18n"
+
 type Module struct {
 	service *Service
 }
@@ -9,7 +11,7 @@ func NewModule(service *Service) *Module {
 }
 
 func (m *Module) ID() string {
-	return "i18n"
+	return ModuleID
 }
 
 func (m *Module) Service() *Service {

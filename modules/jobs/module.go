@@ -8,6 +8,8 @@ import (
 	sqldriver "github.com/leomorpho/goship-modules/jobs/drivers/sql"
 )
 
+const ModuleID = "jobs"
+
 type Module struct {
 	backend   Backend
 	jobs      Jobs

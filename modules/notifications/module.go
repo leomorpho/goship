@@ -9,6 +9,8 @@ import (
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 )
 
+const ModuleID = "notifications"
+
 // Services bundles all notification-related services exposed by this installable module.
 type Services struct {
 	Notifier                    *NotifierService

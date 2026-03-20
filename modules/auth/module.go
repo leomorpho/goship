@@ -5,8 +5,8 @@ import (
 
 	"github.com/leomorpho/goship-modules/notifications"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
-	"github.com/leomorpho/goship/framework/web/ui"
 	"github.com/leomorpho/goship/framework/core"
+	"github.com/leomorpho/goship/framework/web/ui"
 	dbmigrate "github.com/leomorpho/goship/modules/auth/db/migrate"
 	profilesvc "github.com/leomorpho/goship/modules/profile"
 )
@@ -19,6 +19,8 @@ type Deps struct {
 	TwoFactorAuth                 TwoFactorAuth
 }
 
+const ModuleID = "auth"
+
 type Module struct {
 	service *Service
 }
@@ -30,7 +32,7 @@ func New(deps Deps) *Module {
 }
 
 func (m *Module) ID() string {
-	return "auth"
+	return ModuleID
 }
 
 func (m *Module) Migrations() fs.FS {

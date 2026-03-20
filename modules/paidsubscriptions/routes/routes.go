@@ -40,7 +40,7 @@ func NewRouteModule(controller ui.Controller, service *paidsubscriptions.Service
 }
 
 func (m *RouteModule) ID() string {
-	return "paidsubscriptions"
+	return paidsubscriptions.ModuleID
 }
 
 func (m *RouteModule) Migrations() fs.FS {

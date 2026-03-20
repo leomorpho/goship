@@ -2,6 +2,8 @@ package pwa
 
 import "io/fs"
 
+const ModuleID = "pwa"
+
 type Module struct {
 	service *RouteService
 	assets  *assetService
@@ -15,7 +17,7 @@ func NewModule(service *RouteService) *Module {
 }
 
 func (m *Module) ID() string {
-	return "pwa"
+	return ModuleID
 }
 
 func (m *Module) Migrations() fs.FS {
