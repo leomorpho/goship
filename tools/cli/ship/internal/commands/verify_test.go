@@ -11,6 +11,36 @@ import (
 )
 
 func TestRunVerify(t *testing.T) {
+	t.Run("rejects unsupported runtime contract version", func(t *testing.T) {
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+		code := RunVerify([]string{"--runtime-contract-version", "runtime-contract-v9"}, VerifyDeps{
+			Out: out,
+			Err: errOut,
+		})
+		if code != 1 {
+			t.Fatalf("exit code = %d, want 1", code)
+		}
+		if !strings.Contains(errOut.String(), "unsupported runtime contract version") {
+			t.Fatalf("stderr = %q", errOut.String())
+		}
+	})
+
+	t.Run("rejects unsupported upgrade contract version", func(t *testing.T) {
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+		code := RunVerify([]string{"--upgrade-contract-version", "upgrade-readiness-v9"}, VerifyDeps{
+			Out: out,
+			Err: errOut,
+		})
+		if code != 1 {
+			t.Fatalf("exit code = %d, want 1", code)
+		}
+		if !strings.Contains(errOut.String(), "unsupported upgrade contract version") {
+			t.Fatalf("stderr = %q", errOut.String())
+		}
+	})
+
 	t.Run("success with skipped nilaway and tests", func(t *testing.T) {
 		root := t.TempDir()
 		writeVerifyGoMod(t, root)

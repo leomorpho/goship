@@ -55,7 +55,7 @@ Project lifecycle:
 - `ship agent:status`
 - `ship agent:start --task "<description>" [--id TASK-001]`
 - `ship agent:finish --id TASK-001 --message "feat(scope): summary" [--pr]`
-- `ship upgrade --to <version> [--dry-run] [--json]`
+- `ship upgrade --to <version> [--contract-version <schema>] [--dry-run] [--json]`
 - `ship upgrade` will surface an upgrade readiness report and blocker schema for orchestration preflight before future automation mutates pinned versions.
 
 Local runtime:
@@ -142,7 +142,7 @@ These commands are implemented as wrappers over existing workflows:
 - `ship module:add <name>` -> updates `config/modules.yaml`, app marker snippets, root `go.mod` `require`/`replace` directives, and `go.work` `use` entries for standalone batteries with local `go.mod` files
 - `ship module:remove <name>` -> removes those managed entries when safe; fails with exact blocker file paths when the repo still imports the module outside managed wiring points
 - `ship verify` -> rejects standalone-battery drift when root `go.mod` dependencies on installable modules are not the canonical local-dev shape (`v0.0.0` + local `replace` + matching `go.work use`), and enforces the canonical no-compatibility/no-deprecation wording invariant across the operator-facing docs set
-- `ship verify` includes an orchestration contract-mismatch preflight step before deploy/upgrade/promote flows so unsupported runtime combinations fail before orchestration starts, and the preflight stays aligned with the managed-settings access contract used by the runtime report
+- `ship verify` includes an orchestration contract-mismatch preflight step before deploy/upgrade/promote flows so unsupported runtime combinations fail before orchestration starts, and the preflight stays aligned with the managed-settings access contract used by the runtime report; `--runtime-contract-version` and `--upgrade-contract-version` reject unsupported contract identifiers before the preflight runs
 - `ship infra:up` -> detects `docker-compose`/`docker compose` and runs `up -d cache`, then attempts `up -d mailpit` (non-fatal if mailpit fails)
 - `ship infra:down` -> detects `docker-compose`/`docker compose` and runs `down`
 - `make test-module-isolation` -> dedicated CI lane for installable-module root import isolation; reports offending module/file context and rejects stale allowlist entries
@@ -241,6 +241,7 @@ Safety matrix:
 - `ship make:module <Name>` -> generate isolated module scaffold in `modules/<name>` with its own `go.mod`, module-facing types/contracts, and service tests
 - current first-class installable batteries include `notifications`, `paidsubscriptions`, `emailsubscriptions`, `jobs`, and `storage`; `storage` exposes the canonical `core.BlobStorage` seam as a standalone battery package under `modules/storage`
 - `ship upgrade --to <version>` -> upgrades the pinned Goose CLI go-run fallback version (`gooseGoRunRef` in `tools/cli/ship/internal/cli/cli.go`)
+- `ship upgrade --contract-version <schema>` -> requires the supported upgrade readiness contract version before mutating pins
 - `ship upgrade --dry-run` -> prints planned pin change without writing files
 - `ship upgrade --json` -> emits the machine-readable `upgrade-readiness-v1` preflight contract (`schema_version`, `target_version`, `ready`, `blockers`, `remediation_hints`, `planned_changes`) without writing files
 - current scope: Goose pin only (expandable later)

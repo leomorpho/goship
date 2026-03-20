@@ -296,7 +296,7 @@ func TestPrintAdditionalScopedHelp_IncludeDescriptions(t *testing.T) {
 			name: "upgrade",
 			out:  captureHelp(t, PrintUpgradeHelp),
 			want: map[string]string{
-				"  ship upgrade --to <version> [--dry-run] [--json]": "Update pinned CLI tooling references",
+				"  ship upgrade --to <version> [--contract-version <schema>] [--dry-run] [--json]": "Update pinned CLI tooling references",
 			},
 		},
 	}

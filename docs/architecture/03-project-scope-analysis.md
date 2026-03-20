@@ -38,6 +38,10 @@ Postgres/Redis/Asynq adapters, exposes `promotion-state-machine-v1`, and blocks 
 attempts once the runtime is already in a partial post-config state; export/import/verification
 remain explicit manual follow-up steps.
 
+`ship verify` and `ship upgrade` now reject unsupported contract-version identifiers up front, reusing
+the same runtime (`runtime-contract-v1`) and upgrade (`upgrade-readiness-v1`) tokens that their
+machine-readable JSON surfaces already emit.
+
 ## Runtime Programs
 
 - `cmd/web/main.go`: main HTTP application server

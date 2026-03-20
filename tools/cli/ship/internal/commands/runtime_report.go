@@ -140,9 +140,9 @@ func RunRuntimeReport(args []string, d RuntimeReportDeps) int {
 	}
 
 	report := runtimeReport{
-		ContractVersion: "runtime-contract-v1",
+		ContractVersion: runtimeContractVersion,
 		Handshake: runtimeReportHandshake{
-			SchemaVersion: "runtime-handshake-v1",
+			SchemaVersion: runtimeHandshakeSchemaVersion,
 			Profile:       plan.Profile,
 			Managed:       cfg.RuntimeMetadata().Managed,
 			Database:      cfg.RuntimeMetadata().Database,

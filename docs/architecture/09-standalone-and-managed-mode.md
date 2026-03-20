@@ -244,6 +244,9 @@ Versioning rules:
   meaning stays stable.
 - `runtime_contract_version` and `policy_input_version` must be preserved verbatim so audit tools
   can trace which runtime facts and control-plane policy produced the decision.
+- deploy and upgrade entrypoints must reject unsupported contract identifiers before orchestration
+  proceeds; the current allowlist is `runtime-contract-v1` for runtime reports and
+  `upgrade-readiness-v1` for upgrade readiness.
 
 Minimum verification semantics:
 

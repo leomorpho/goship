@@ -65,6 +65,7 @@ func RunUpgrade(args []string, d UpgradeDeps) int {
 	fs := flag.NewFlagSet("upgrade", flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
 	to := fs.String("to", "", "target pinned version, e.g. v0.3.1001")
+	contractVersion := fs.String("contract-version", upgradeReadinessSchemaVersion, "required upgrade readiness contract version")
 	dryRun := fs.Bool("dry-run", false, "print planned file changes without writing")
 	jsonOut := fs.Bool("json", false, "emit machine-readable upgrade readiness report without writing")
 	if err := fs.Parse(args); err != nil {
@@ -82,6 +83,10 @@ func RunUpgrade(args []string, d UpgradeDeps) int {
 	}
 	if !strings.HasPrefix(*to, "v") {
 		fmt.Fprintln(d.Err, "version must start with 'v' (example: v0.3.1001)")
+		return 1
+	}
+	if !isSupportedUpgradeContractVersion(strings.TrimSpace(*contractVersion)) {
+		fmt.Fprintf(d.Err, "unsupported upgrade contract version %q (supported: %s)\n", strings.TrimSpace(*contractVersion), upgradeReadinessSchemaVersion)
 		return 1
 	}
 
@@ -154,7 +159,7 @@ func RewriteGooseVersion(path, target string) (oldVersion string, rewritten stri
 
 func buildUpgradeReadinessReport(path, currentVersion, targetVersion string, changed bool) UpgradeReadinessReport {
 	report := UpgradeReadinessReport{
-		SchemaVersion:  "upgrade-readiness-v1",
+		SchemaVersion:  upgradeReadinessSchemaVersion,
 		TargetVersion:  targetVersion,
 		Ready:          true,
 		RollbackTarget: currentVersion,
@@ -186,5 +191,5 @@ func buildUpgradeReadinessReport(path, currentVersion, targetVersion string, cha
 
 func PrintUpgradeHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship upgrade commands:")
-	fmt.Fprintln(w, "  ship upgrade --to <version> [--dry-run] [--json]  Update pinned CLI tooling references and surface the upgrade readiness report/blocker schema contract (currently Goose only; no auto-latest)")
+	fmt.Fprintln(w, "  ship upgrade --to <version> [--contract-version <schema>] [--dry-run] [--json]  Update pinned CLI tooling references and surface the upgrade readiness report/blocker schema contract (currently Goose only; no auto-latest)")
 }

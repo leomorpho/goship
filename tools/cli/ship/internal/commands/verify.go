@@ -58,6 +58,8 @@ func RunVerify(args []string, d VerifyDeps) int {
 	skipTests := fs.Bool("skip-tests", false, "skip go test ./...")
 	jsonOutput := fs.Bool("json", false, "output verify results as JSON")
 	profile := fs.String("profile", verifyProfileStandard, "verification profile: fast, standard, or strict")
+	runtimeVersion := fs.String("runtime-contract-version", runtimeContractVersion, "required runtime report contract version")
+	upgradeVersion := fs.String("upgrade-contract-version", upgradeReadinessSchemaVersion, "required upgrade readiness contract version")
 	if err := fs.Parse(args); err != nil {
 		fmt.Fprintf(d.Err, "invalid verify arguments: %v\n", err)
 		return 1
@@ -68,6 +70,14 @@ func RunVerify(args []string, d VerifyDeps) int {
 	}
 	if *profile != verifyProfileFast && *profile != verifyProfileStandard && *profile != verifyProfileStrict {
 		fmt.Fprintf(d.Err, "invalid verify profile %q (expected fast|standard|strict)\n", *profile)
+		return 1
+	}
+	if !isSupportedRuntimeContractVersion(strings.TrimSpace(*runtimeVersion)) {
+		fmt.Fprintf(d.Err, "unsupported runtime contract version %q (supported: %s)\n", strings.TrimSpace(*runtimeVersion), runtimeContractVersion)
+		return 1
+	}
+	if !isSupportedUpgradeContractVersion(strings.TrimSpace(*upgradeVersion)) {
+		fmt.Fprintf(d.Err, "unsupported upgrade contract version %q (supported: %s)\n", strings.TrimSpace(*upgradeVersion), upgradeReadinessSchemaVersion)
 		return 1
 	}
 
@@ -247,6 +257,8 @@ func PrintVerifyHelp(w io.Writer) {
 	fmt.Fprintln(w, "  ship verify --profile fast                           Run the fast verification profile (skip nilaway and tests)")
 	fmt.Fprintln(w, "  ship verify --profile standard                       Run the default verification profile")
 	fmt.Fprintln(w, "  ship verify --profile strict                         Run the strict verification profile (requires nilaway)")
+	fmt.Fprintln(w, "  ship verify --runtime-contract-version <version>     Require the supported runtime report contract version")
+	fmt.Fprintln(w, "  ship verify --upgrade-contract-version <version>     Require the supported upgrade readiness contract version")
 	fmt.Fprintln(w, "  ship verify --skip-tests                             Skip final test step")
 	fmt.Fprintln(w, "  ship verify --json                                   Output verification result as JSON")
 }
@@ -525,7 +537,7 @@ func checkStandaloneExportability(root string) error {
 
 func checkOrchestrationContractMismatch(root string) error {
 	runtimeReportPath := filepath.Join(root, "tools", "cli", "ship", "internal", "commands", "runtime_report.go")
-	if err := checkFileContainsTokens(runtimeReportPath, []string{"runtime-contract-v1", "runtime-handshake-v1"}); err != nil {
+	if err := checkFileContainsTokens(runtimeReportPath, []string{"runtimeContractVersion", "runtimeHandshakeSchemaVersion"}); err != nil {
 		return err
 	}
 	managedSettingsPath := filepath.Join(root, "config", "managed_settings.go")

@@ -170,6 +170,9 @@ pin changes in one stable schema. The current scope stays Goose-only, so the rem
 future scope drift if additional upgrade surfaces bypass that schema. The contract still needs an
 explicit rollback/canary linkage so staged rollout consumers can map readiness to
 `rollback_target`, `canary`, and verification evidence without inventing a second payload.
+`ship verify` and `ship upgrade` now both reject unsupported contract-version flags before their
+orchestration preflight or pin-mutation logic runs, so deploy and upgrade workflows stay pinned to
+the canonical `runtime-contract-v1` and `upgrade-readiness-v1` identifiers.
 
 Impact:
 

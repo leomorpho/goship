@@ -127,3 +127,19 @@ const gooseGoRunRef = "github.com/pressly/goose/v3/cmd/goose@v3.26.0"
 		}
 	}
 }
+
+func TestRunUpgrade_RejectsUnsupportedContractVersion_RedSpec(t *testing.T) {
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	code := RunUpgrade([]string{"--to", "v3.27.0", "--contract-version", "upgrade-readiness-v9"}, UpgradeDeps{
+		Out:          out,
+		Err:          errOut,
+		FindGoModule: findGoModuleTest,
+	})
+	if code != 1 {
+		t.Fatalf("code=%d want 1", code)
+	}
+	if !strings.Contains(errOut.String(), "unsupported upgrade contract version") {
+		t.Fatalf("stderr=%q", errOut.String())
+	}
+}
