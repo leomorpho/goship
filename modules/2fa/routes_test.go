@@ -15,11 +15,11 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/app/authsupport"
 	"github.com/leomorpho/goship/app/foundation"
 	"github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/config"
+	"github.com/leomorpho/goship/modules/authsupport"
 	"github.com/pquerna/otp/totp"
 )
 

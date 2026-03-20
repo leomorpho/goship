@@ -14,12 +14,12 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/app/authsupport"
 	"github.com/leomorpho/goship/app/foundation"
-	"github.com/leomorpho/goship/app/validation"
 	"github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/config"
+	frameworkvalidation "github.com/leomorpho/goship/framework/web/validation"
+	"github.com/leomorpho/goship/modules/authsupport"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -111,7 +111,7 @@ func TestPostLogin_RedirectsToTwoFactorVerificationWithoutCreatingSession(t *tes
 	})
 
 	e := echo.New()
-	e.Validator = validation.NewValidator()
+	e.Validator = frameworkvalidation.NewValidator()
 	e.GET("/auth/2fa/verify", func(c echo.Context) error { return c.NoContent(http.StatusOK) }).Name = routenames.RouteNameTwoFactorVerify
 
 	container := &foundation.Container{

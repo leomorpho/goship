@@ -6,8 +6,8 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/app/authsupport"
 	"github.com/leomorpho/goship/framework/dberrors"
+	"github.com/leomorpho/goship/modules/authsupport"
 	"log/slog"
 )
 

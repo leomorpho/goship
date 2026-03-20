@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/leomorpho/goship/app/cachex"
 	"github.com/leomorpho/goship/framework/context"
+	cacherepo "github.com/leomorpho/goship/framework/repos/cache"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/labstack/echo/v4"
@@ -33,7 +33,7 @@ type CachedPage struct {
 // ServeCachedPage attempts to load a page from the cache by matching on the complete request URL
 // If a page is cached for the requested URL, it will be served here and the request terminated.
 // Any request made by an authenticated user or that is not a GET will be skipped.
-func ServeCachedPage(ch *cachex.CacheClient) echo.MiddlewareFunc {
+func ServeCachedPage(ch *cacherepo.CacheClient) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			// Cache backend is optional in some runtime services.

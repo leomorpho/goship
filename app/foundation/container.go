@@ -17,33 +17,32 @@ import (
 	_ "modernc.org/sqlite"
 
 	"github.com/leomorpho/goship-modules/notifications"
-	"github.com/leomorpho/goship/app/authsupport"
-	"github.com/leomorpho/goship/app/cachex"
-	"github.com/leomorpho/goship/app/i18nboot"
-	"github.com/leomorpho/goship/app/runtimeadapters"
 	"github.com/leomorpho/goship/app/schedules"
-	"github.com/leomorpho/goship/app/validation"
 	"github.com/leomorpho/goship/config"
 	dbqueries "github.com/leomorpho/goship/db/queries"
 	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
 	"github.com/leomorpho/goship/framework/core"
-	coreadapters "github.com/leomorpho/goship/framework/core/adapters"
+	adapters "github.com/leomorpho/goship/framework/core/adapters"
 	"github.com/leomorpho/goship/framework/events"
 	eventtypes "github.com/leomorpho/goship/framework/events/types"
 	"github.com/leomorpho/goship/framework/logging"
+	cacherepo "github.com/leomorpho/goship/framework/repos/cache"
 	"github.com/leomorpho/goship/framework/repos/mailer"
 	pubsubrepo "github.com/leomorpho/goship/framework/repos/pubsub"
 	"github.com/leomorpho/goship/framework/sse"
+	frameworkvalidation "github.com/leomorpho/goship/framework/web/validation"
 	"github.com/leomorpho/goship/modules/ai"
 	"github.com/leomorpho/goship/modules/auditlog"
+	"github.com/leomorpho/goship/modules/authsupport"
 	"github.com/leomorpho/goship/modules/flags"
+	i18nmodule "github.com/leomorpho/goship/modules/i18n"
 )
 
 // Container contains all services used by the application and provides an easy way to handle dependency
 // injection including within tests
 type Container struct {
 	// Validator stores a validator
-	Validator *validation.Validator
+	Validator *frameworkvalidation.Validator
 
 	// Web stores the web framework
 	Web *echo.Echo
@@ -54,7 +53,7 @@ type Container struct {
 	Config *config.Config
 
 	// Cache contains the cache client
-	Cache *cachex.CacheClient
+	Cache *cacherepo.CacheClient
 
 	// Database stores the connection to the database
 	Database    *sql.DB
@@ -100,14 +99,14 @@ type Container struct {
 	Scheduler *cron.Cron
 
 	// Adapters stores resolved adapter selection/capabilities for runtime use.
-	Adapters coreadapters.Resolved
+	Adapters adapters.Resolved
 }
 
 // NewContainer creates and initializes a new Container
 func NewContainer() *Container {
 	c := new(Container)
 	c.initConfig()
-	c.I18n = i18nboot.New(c.Config)
+	c.I18n = i18nmodule.New(c.Config)
 	c.validateAdapterPlan()
 	c.initValidator()
 	c.initWeb()
@@ -153,7 +152,7 @@ func (c *Container) validateAdapterPlan() {
 		panic("invalid container state: nil config")
 	}
 
-	resolved, err := coreadapters.ResolveFromConfig(c.Config)
+	resolved, err := adapters.ResolveFromConfig(c.Config)
 	if err != nil {
 		panic(fmt.Sprintf("invalid adapter plan: %v", err))
 	}
@@ -161,9 +160,9 @@ func (c *Container) validateAdapterPlan() {
 }
 
 func (c *Container) initCoreAdapters() {
-	c.CoreCache = runtimeadapters.NewCoreCacheAdapter(c.Cache)
-	c.CoreJobs = runtimeadapters.NewCoreJobsAdapter(nil, c.Adapters.JobsCapabilities)
-	c.CoreJobsInspector = runtimeadapters.NewCoreJobsInspectorAdapter(nil)
+	c.CoreCache = adapters.NewCoreCacheAdapter(c.Cache)
+	c.CoreJobs = adapters.NewCoreJobsAdapter(nil, c.Adapters.JobsCapabilities)
+	c.CoreJobsInspector = adapters.NewCoreJobsInspectorAdapter(nil)
 
 	var ps pubsubrepo.PubSubClient
 	switch c.Adapters.Selection.PubSub {
@@ -176,7 +175,7 @@ func (c *Container) initCoreAdapters() {
 	default:
 		ps = pubsubrepo.NewInProcPubSubClient()
 	}
-	c.CorePubSub = runtimeadapters.NewCorePubSubAdapter(ps)
+	c.CorePubSub = adapters.NewCorePubSubAdapter(ps)
 }
 
 func (c *Container) initScheduler() {
@@ -213,7 +212,7 @@ func (c *Container) initConfig() {
 
 // initValidator initializes the validator
 func (c *Container) initValidator() {
-	c.Validator = validation.NewValidator()
+	c.Validator = frameworkvalidation.NewValidator()
 }
 
 // initWeb initializes the web framework
@@ -266,7 +265,7 @@ func (c *Container) initWeb() {
 // initCache initializes the cache
 func (c *Container) initCache() {
 	var err error
-	if c.Cache, err = cachex.NewCacheClient(c.Config); err != nil {
+	if c.Cache, err = cacherepo.NewClient(c.Config); err != nil {
 		panic(err)
 	}
 }
@@ -484,7 +483,7 @@ func (c *Container) initAuditLogs() {
 }
 
 func (c *Container) initFlags() {
-	module := flags.NewModule(flags.NewService(flags.NewSQLStore(c.Database), runtimeadapters.NewCoreCacheAdapter(c.Cache)))
+	module := flags.NewModule(flags.NewService(flags.NewSQLStore(c.Database), adapters.NewCoreCacheAdapter(c.Cache)))
 	c.Flags = module.Service()
 }
 

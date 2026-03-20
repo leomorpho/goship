@@ -8,7 +8,6 @@ import (
 
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/app/authsupport"
 	templates "github.com/leomorpho/goship/app/views"
 	"github.com/leomorpho/goship/app/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/web/middleware"
@@ -21,6 +20,7 @@ import (
 	"github.com/leomorpho/goship/framework/repos/ratelimit"
 	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
 	pages "github.com/leomorpho/goship/modules/auth/views/web/pages/gen"
+	"github.com/leomorpho/goship/modules/authsupport"
 	"log/slog"
 )
 

@@ -17,10 +17,10 @@ import (
 
 	"github.com/leomorpho/goship-modules/notifications"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
-	"github.com/leomorpho/goship/app/authsupport"
 	"github.com/leomorpho/goship/config"
 	"github.com/leomorpho/goship/framework/dberrors"
 	"github.com/leomorpho/goship/framework/domain"
+	"github.com/leomorpho/goship/modules/authsupport"
 	profilesvc "github.com/leomorpho/goship/modules/profile"
 	"golang.org/x/oauth2"
 	ghoauth "golang.org/x/oauth2/github"

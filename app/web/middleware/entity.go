@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/leomorpho/goship/app/authsupport"
 	"github.com/leomorpho/goship/framework/context"
 	"github.com/leomorpho/goship/framework/dberrors"
+	"github.com/leomorpho/goship/modules/authsupport"
 
 	"github.com/labstack/echo/v4"
 )
