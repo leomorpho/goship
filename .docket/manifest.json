@@ -1511,7 +1511,7 @@
     },
     "TKT-279": {
       "title": "G4-03-A: Define executable spec and red tests",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 6,
       "parent": "TKT-206"
     },
