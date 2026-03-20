@@ -8,18 +8,18 @@ exclude_dir = [
     "tmp",
     "vendor",
     "testdata",
-    "e2e_tests",
-    "node_modules",
-    "javascript",
-    "pwabuilder-ios-wrapper",
+    "tests/e2e",
+    "frontend/node_modules",
+    "frontend/javascript",
+    "infra/pwabuilder-ios-wrapper",
     "pwabuilder-android-wrapper",
     "schemaspy-output",
-    "scripts",
+    "tools/scripts",
 
 ]
 args_bin = []
 bin = "./tmp/main"
-cmd = "templ generate && go build -o ./tmp/main cmd/web/main.go"
+cmd = "go build -o ./tmp/main ./cmd/web"
 delay = 1000
 exclude_file = []
 exclude_regex = [".*_templ.go", "_test.go"]
@@ -34,7 +34,10 @@ log = "build-errors.log"
 poll = false
 poll_interval = 0
 post_cmd = []
-pre_cmd = []
+pre_cmd = [
+    "go run ./tools/cli/ship/cmd/ship templ generate --path app",
+    "go run ./tools/cli/ship/cmd/ship templ generate --path modules",
+]
 rerun = false
 rerun_delay = 500
 send_interrupt = false

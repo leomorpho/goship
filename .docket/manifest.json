@@ -1,0 +1,727 @@
+{
+  "_warning": "DO NOT EDIT .docket/tickets/*.md OR .docket/manifest.json DIRECTLY. Use `docket` commands only.",
+  "tickets": {
+    "TKT-001": {
+      "title": "M03 A01 - Fix container initialization for optional services",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-002": {
+      "title": "M03 A02 - Add `--json` output flag to `ship doctor`",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-003": {
+      "title": "M03 B01 - Set up Vite build config with island code-splitting (parallel)",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-004": {
+      "title": "M03 B02 - Write the islands runtime (parallel)",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-005": {
+      "title": "M03 B03 - Migrate ThemeToggle to island pattern (parallel)",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-006": {
+      "title": "M03 B04 - Migrate remaining Svelte components to islands",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-007": {
+      "title": "M03 B05 - Remove old esbuild setup",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-008": {
+      "title": "M03 C01 - Define Module interface in framework (parallel)",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-009": {
+      "title": "M03 C02 - Standardize marker comments in router and container (parallel)",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-010": {
+      "title": "M03 C03 - Implement `ship module:add` CLI command",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-011": {
+      "title": "M03 C04 - Implement `ship module:remove` CLI command",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-012": {
+      "title": "M03 C05 - Add `ship_doctor`, `ship_routes`, `ship_modules` to MCP server (parallel)",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-013": {
+      "title": "M03 D01 - Extract auth controllers into `modules/auth`",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-014": {
+      "title": "M03 D02 - Extract profile into `modules/profile`",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-015": {
+      "title": "M03 D03 - Move paidsubscriptions route handler into module",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-016": {
+      "title": "M03 D04 - Move notifications route handlers into module",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-017": {
+      "title": "M03 D05 - Create `modules/pwa`",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-018": {
+      "title": "M03 E01 - Create `starter/` minimal skeleton",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-019": {
+      "title": "M03 E02 - Wire `ship new` to use `starter/` as template",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-020": {
+      "title": "M03 G01 - Replace Viper with cleanenv struct-tag config",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-021": {
+      "title": "M03 G02 - Add `.env` file loading",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-022": {
+      "title": "M03 G03 - Remove YAML config files",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-023": {
+      "title": "M03 G04 - Add `ship config:validate` command",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-024": {
+      "title": "M03 H01 - Add recovery middleware to Echo (parallel)",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-025": {
+      "title": "M03 H02 - Add `nilaway` to CI and `ship doctor` (parallel)",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-026": {
+      "title": "M03 H03 - Audit and enforce value-type viewmodels",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-027": {
+      "title": "M03 H04 - Add nil-safe accessor methods to domain models",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-028": {
+      "title": "M03 H05 - Viewmodel constructor functions",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-029": {
+      "title": "M03 H06 - Route smoke tests for nil deref",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-030": {
+      "title": "M03 I01 - Add SQLite DB adapter (CGO-free)",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-031": {
+      "title": "M03 I02 - Add Backlite as SQLite-backed jobs driver",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-032": {
+      "title": "M03 I03 - Add Otter as in-memory cache adapter",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-033": {
+      "title": "M03 I04 - Wire single-binary mode as default + update docs",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-034": {
+      "title": "M03 I05 - In-memory test database (zero Docker for tests)",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-035": {
+      "title": "M03 J01 - Define AdminField and AdminResource type system (parallel)",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-036": {
+      "title": "M03 J02 - Implement reflection-based resource registration",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-037": {
+      "title": "M03 J03 - Implement Bob-backed CRUD operations for admin",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-038": {
+      "title": "M03 J04 - Build templ components for admin UI",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-039": {
+      "title": "M03 J05 - Wire admin routes",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-040": {
+      "title": "M03 J06 - Embed Backlite queue monitor in admin panel (parallel after J05, I02)",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-041": {
+      "title": "M03 K01 - Chainable redirect helper (parallel)",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-042": {
+      "title": "M03 K02 - Pagination utility (parallel)",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-043": {
+      "title": "M03 K03 - `ship routes` command (parallel)",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-044": {
+      "title": "M03 K04 - `ship db:console` command (parallel)",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-045": {
+      "title": "M03 K05 - Built-in rate limiter middleware (parallel)",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-046": {
+      "title": "M03 K06 - Afero file system abstraction (parallel)",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-047": {
+      "title": "M03 F01 - Fix README inconsistencies (parallel)",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-048": {
+      "title": "M03 F02 - Fix architecture doc: decouple from Asynq (parallel)",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-049": {
+      "title": "M03 F03 - Update AI agent guide: add nil safety convention (parallel)",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-050": {
+      "title": "M03 F04 - Update docs index with all new roadmap docs (parallel)",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-051": {
+      "title": "M03 F05 - Update workflows doc: config and single binary mode (parallel)",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-052": {
+      "title": "M03 F06 - Update scope analysis doc to reflect evolving architecture (parallel)",
+      "state": "done",
+      "priority": 2
+    },
+    "TKT-053": {
+      "title": "M05 L01 - Enforce canonical file placement in `ship doctor`",
+      "state": "done",
+      "priority": 4
+    },
+    "TKT-054": {
+      "title": "M05 L02 - Enforce file size conventions in `ship doctor`",
+      "state": "done",
+      "priority": 4
+    },
+    "TKT-055": {
+      "title": "M05 L03 - Enforce marker comment integrity in `ship doctor`",
+      "state": "done",
+      "priority": 4
+    },
+    "TKT-056": {
+      "title": "M05 L04 - Add `ship verify` as the single done-check command",
+      "state": "done",
+      "priority": 4
+    },
+    "TKT-057": {
+      "title": "M05 L05 - Add `ship describe --json` machine-readable codebase map",
+      "state": "done",
+      "priority": 4
+    },
+    "TKT-058": {
+      "title": "M05 M01 - Add `ship_doctor` MCP tool",
+      "state": "done",
+      "priority": 4
+    },
+    "TKT-059": {
+      "title": "M05 M02 - Add `ship_routes` MCP tool",
+      "state": "done",
+      "priority": 4
+    },
+    "TKT-060": {
+      "title": "M05 M03 - Add `ship_modules` MCP tool",
+      "state": "done",
+      "priority": 4
+    },
+    "TKT-061": {
+      "title": "M05 M04 - Add `ship_scaffold` MCP tool",
+      "state": "done",
+      "priority": 4
+    },
+    "TKT-062": {
+      "title": "M05 M05 - Add `ship_verify` MCP tool",
+      "state": "done",
+      "priority": 4
+    },
+    "TKT-063": {
+      "title": "M05 N01 - Create framework CLAUDE.md",
+      "state": "done",
+      "priority": 4
+    },
+    "TKT-064": {
+      "title": "\u003cname\u003e",
+      "state": "done",
+      "priority": 4
+    },
+    "TKT-065": {
+      "title": "M05 N03 - Create app-layer CLAUDE.md",
+      "state": "done",
+      "priority": 4
+    },
+    "TKT-066": {
+      "title": "M05 O01 - Define route contract types for all existing routes",
+      "state": "done",
+      "priority": 4
+    },
+    "TKT-067": {
+      "title": "M05 O02 - Enforce contract usage in `ship doctor`",
+      "state": "done",
+      "priority": 4
+    },
+    "TKT-068": {
+      "title": "M05 P01 - Add `--test-first` flag to `ship make:scaffold`",
+      "state": "done",
+      "priority": 4
+    },
+    "TKT-069": {
+      "title": "M05 P02 - Add scaffold test to `ship verify` pre-completion check",
+      "state": "done",
+      "priority": 4
+    },
+    "TKT-070": {
+      "title": "M05 Q01 - Add conventional commits enforcement to pre-commit hook",
+      "state": "done",
+      "priority": 4
+    },
+    "TKT-071": {
+      "title": "M05 Q02 - Add `ship agent:start` for isolated worktree workflow",
+      "state": "done",
+      "priority": 4
+    },
+    "TKT-072": {
+      "title": "M05 Q03 - Add `ship agent:finish` for worktree cleanup and PR prep",
+      "state": "done",
+      "priority": 4
+    },
+    "TKT-073": {
+      "title": "M05 R01 - Add `// Renders:` comments to all exported templ functions (GoShip)",
+      "state": "done",
+      "priority": 4
+    },
+    "TKT-074": {
+      "title": "M05 R02 - Add `ship doctor` check for missing `// Renders:` comments",
+      "state": "done",
+      "priority": 4
+    },
+    "TKT-075": {
+      "title": "M05 R03 - Add `ship doctor` check for missing `data-component` attributes",
+      "state": "done",
+      "priority": 4
+    },
+    "TKT-076": {
+      "title": "M06 S01 - Add `ship dev` unified development command",
+      "state": "done",
+      "priority": 5
+    },
+    "TKT-077": {
+      "title": "M06 S02 - Generate GitHub Actions CI/CD workflows in `ship new`",
+      "state": "done",
+      "priority": 5
+    },
+    "TKT-078": {
+      "title": "M06 T01 - Multi-process SQLite safety (WAL mode + connection pool)",
+      "state": "done",
+      "priority": 5
+    },
+    "TKT-079": {
+      "title": "M06 T02 - Integrate `slog` structured logging into framework",
+      "state": "done",
+      "priority": 5
+    },
+    "TKT-080": {
+      "title": "M06 T03 - Security headers middleware",
+      "state": "done",
+      "priority": 5
+    },
+    "TKT-081": {
+      "title": "M06 T04 - Expand health check endpoint",
+      "state": "done",
+      "priority": 5
+    },
+    "TKT-082": {
+      "title": "M06 U01 - Email provider interface and adapters",
+      "state": "done",
+      "priority": 5
+    },
+    "TKT-083": {
+      "title": "M06 U02 - Templ-based email templates",
+      "state": "done",
+      "priority": 5
+    },
+    "TKT-084": {
+      "title": "M06 U03 - Email preview routes (development only)",
+      "state": "done",
+      "priority": 5
+    },
+    "TKT-085": {
+      "title": "M06 V01 - Cron job scheduling convention",
+      "state": "done",
+      "priority": 5
+    },
+    "TKT-086": {
+      "title": "M06 V02 - App-level CLI commands convention",
+      "state": "done",
+      "priority": 5
+    },
+    "TKT-087": {
+      "title": "M07 W01 - OAuth / Social Login module",
+      "state": "done",
+      "priority": 6
+    },
+    "TKT-088": {
+      "title": "M07 W02 - Two-Factor Authentication (TOTP) module",
+      "state": "done",
+      "priority": 6
+    },
+    "TKT-089": {
+      "title": "M07 X01 - `modules/ai` core: provider interface + Anthropic adapter",
+      "state": "done",
+      "priority": 6
+    },
+    "TKT-090": {
+      "title": "M07 X02 - OpenAI and OpenRouter adapters",
+      "state": "done",
+      "priority": 6
+    },
+    "TKT-091": {
+      "title": "M07 X03 - AI streaming via SSE + HTMX",
+      "state": "done",
+      "priority": 6
+    },
+    "TKT-092": {
+      "title": "M07 X04 - AI conversation history persistence",
+      "state": "done",
+      "priority": 6
+    },
+    "TKT-093": {
+      "title": "M07 Y01 - Domain events system",
+      "state": "done",
+      "priority": 6
+    },
+    "TKT-094": {
+      "title": "M07 Y02 - Soft deletes convention",
+      "state": "done",
+      "priority": 6
+    },
+    "TKT-095": {
+      "title": "M07 Y03 - Feature flags module",
+      "state": "done",
+      "priority": 6
+    },
+    "TKT-096": {
+      "title": "M07 Y04 - Audit log module",
+      "state": "done",
+      "priority": 6
+    },
+    "TKT-097": {
+      "title": "M07 Z01 - First-class SSE (Server-Sent Events) support",
+      "state": "done",
+      "priority": 6
+    },
+    "TKT-098": {
+      "title": "M07 Z02 - JSON API pattern and typed response helpers",
+      "state": "done",
+      "priority": 6
+    },
+    "TKT-099": {
+      "title": "M07 Z03 - OpenAPI spec generation from route contracts",
+      "state": "done",
+      "priority": 6
+    },
+    "TKT-100": {
+      "title": "M07 AA01 - Test data factory system",
+      "state": "done",
+      "priority": 6
+    },
+    "TKT-101": {
+      "title": "M07 AA02 - Typed HTTP test helpers",
+      "state": "done",
+      "priority": 6
+    },
+    "TKT-102": {
+      "title": "M07 AB01 - i18n module",
+      "state": "done",
+      "priority": 6
+    },
+    "TKT-103": {
+      "title": "M08 T02 - Write Style Guide",
+      "state": "done",
+      "priority": 7
+    },
+    "TKT-104": {
+      "title": "M08 T04 - Update Agent Guide with UI Convention",
+      "state": "done",
+      "priority": 7
+    },
+    "TKT-105": {
+      "title": "M08 T06 - Apply `data-component` to Templ Component Roots",
+      "state": "done",
+      "priority": 7
+    },
+    "TKT-106": {
+      "title": "M08 T08 - Apply `data-slot` and `data-action` to Components",
+      "state": "done",
+      "priority": 7
+    },
+    "TKT-107": {
+      "title": "M08 T10 - Add Inline Visual Comments to Templ Functions",
+      "state": "done",
+      "priority": 7
+    },
+    "TKT-108": {
+      "title": "M08 T12 - Playwright MCP Setup",
+      "state": "done",
+      "priority": 7
+    },
+    "TKT-109": {
+      "title": "M08 T13 - Agent Guide: Visual Discovery Workflow",
+      "state": "done",
+      "priority": 7
+    },
+    "TKT-110": {
+      "title": "A09 - Managed Mode Config Authority",
+      "state": "done",
+      "priority": 6
+    },
+    "TKT-111": {
+      "title": "A09 - Backup Capability Contract And S3-Compatible Providers",
+      "state": "done",
+      "priority": 6
+    },
+    "TKT-112": {
+      "title": "A09 - Managed Mode Settings Lock And Read-Only Admin Surfaces",
+      "state": "done",
+      "priority": 5
+    },
+    "TKT-113": {
+      "title": "A09 - Signed Managed Hooks For Backup, Restore, And Runtime Status",
+      "state": "done",
+      "priority": 7
+    },
+    "TKT-114": {
+      "title": "A09 - SQLite-First Promotion Path To Postgres",
+      "state": "done",
+      "priority": 5
+    },
+    "TKT-115": {
+      "title": "Deprecate lecho and zerolog in favor of slog",
+      "state": "done",
+      "priority": 6
+    },
+    "TKT-143": {
+      "title": "i18n hardening wave 2 (scope, enforcement, docs consolidation)",
+      "state": "done",
+      "priority": 4
+    },
+    "TKT-144": {
+      "title": "Remove top15 locale-pack behavior from `ship new`",
+      "state": "done",
+      "priority": 7
+    },
+    "TKT-145": {
+      "title": "Canonical i18n enforcement scope policy",
+      "state": "done",
+      "priority": 6
+    },
+    "TKT-146": {
+      "title": "Consolidate all i18n documentation into one canonical document",
+      "state": "done",
+      "priority": 5
+    },
+    "TKT-147": {
+      "title": "API locale propagation contract tests (integration + unit, no starter route mandate)",
+      "state": "done",
+      "priority": 6
+    },
+    "TKT-148": {
+      "title": "Dynamic `\u003chtml lang\u003e` propagation across layouts/pages",
+      "state": "done",
+      "priority": 6
+    },
+    "TKT-149": {
+      "title": "De-duplicate plural/select completeness logic across CLI and doctor",
+      "state": "done",
+      "priority": 6
+    },
+    "TKT-150": {
+      "title": "Harden i18n allowlist contract for stability",
+      "state": "done",
+      "priority": 5
+    },
+    "TKT-151": {
+      "title": "Broaden i18n scanner coverage and diagnostics quality",
+      "state": "done",
+      "priority": 5
+    },
+    "TKT-152": {
+      "title": "Expand safe i18n instrumentation rewrite coverage",
+      "state": "done",
+      "priority": 5
+    },
+    "TKT-153": {
+      "title": "Generate typed i18n keys for Go and JS to reduce string drift",
+      "state": "done",
+      "priority": 5
+    },
+    "TKT-154": {
+      "title": "Translator workflow contract and maintenance policy",
+      "state": "done",
+      "priority": 5
+    },
+    "TKT-155": {
+      "title": "Strict CI profile for i18n-enabled apps",
+      "state": "done",
+      "priority": 5
+    },
+    "TKT-156": {
+      "title": "Doctor Zero-Failure Baseline EPIC",
+      "state": "done",
+      "priority": 1
+    },
+    "TKT-157": {
+      "title": "Doctor Warning Burn-Down EPIC (DX027 + DX010)",
+      "state": "done",
+      "priority": 4
+    },
+    "TKT-158": {
+      "title": "DX021: Extract inline SQL out of modules/admin/routes.go into store/query layer",
+      "state": "done",
+      "priority": 1,
+      "parent": "TKT-156"
+    },
+    "TKT-159": {
+      "title": "DX023: Make Renders/Route comment detection block-aware (order-agnostic)",
+      "state": "done",
+      "priority": 1,
+      "parent": "TKT-156"
+    },
+    "TKT-160": {
+      "title": "DX023 tests: add regression matrix for templ comment permutations",
+      "state": "done",
+      "priority": 2,
+      "parent": "TKT-156"
+    },
+    "TKT-161": {
+      "title": "DX013: Resolve top-level tmp policy mismatch with dev tooling",
+      "state": "done",
+      "priority": 1,
+      "parent": "TKT-156"
+    },
+    "TKT-162": {
+      "title": "Docs: publish canonical doctor policy for templ comments and tmp artifacts",
+      "state": "done",
+      "priority": 3,
+      "parent": "TKT-156"
+    },
+    "TKT-163": {
+      "title": "DX027: migrate contact controller Bind payload to app/contracts type",
+      "state": "done",
+      "priority": 4,
+      "parent": "TKT-157"
+    },
+    "TKT-164": {
+      "title": "DX027: migrate email_subscribe controller Bind payload to app/contracts type",
+      "state": "done",
+      "priority": 4,
+      "parent": "TKT-157"
+    },
+    "TKT-165": {
+      "title": "DX027: migrate managed_hooks API request binding to app/contracts types",
+      "state": "done",
+      "priority": 4,
+      "parent": "TKT-157"
+    },
+    "TKT-166": {
+      "title": "DX027: migrate preferences controller Bind payloads to app/contracts types",
+      "state": "done",
+      "priority": 4,
+      "parent": "TKT-157"
+    },
+    "TKT-167": {
+      "title": "DX010: split doctor policy engine file by responsibility",
+      "state": "done",
+      "priority": 5,
+      "parent": "TKT-157"
+    },
+    "TKT-168": {
+      "title": "DX010: split MCP ship server tools.go by tool domain",
+      "state": "done",
+      "priority": 6,
+      "parent": "TKT-157"
+    },
+    "TKT-169": {
+      "title": "DX010: decompose config/config.go into modular config packages",
+      "state": "done",
+      "priority": 6,
+      "parent": "TKT-157"
+    }
+  }
+}
