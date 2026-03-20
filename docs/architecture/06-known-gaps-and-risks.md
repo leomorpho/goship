@@ -179,7 +179,9 @@ Impact:
 
 `staged-rollout-decision-v1` is now the canonical schema for hold/canary/promote/rollback verdicts
 that compose runtime readiness metadata from `ship runtime:report --json` with external
-control-plane policy inputs. The remaining gap is execution: GoShip still does not ship a rollout engine,
+control-plane policy inputs. The decision-conditioned invariants are now explicit in docs so
+downstream tooling can treat canary population, blocker preservation, and verification evidence as
+stable contract rules. The remaining gap is execution: GoShip still does not ship a rollout engine,
 canary traffic shaping, or vendor-specific deployment automation that consumes that schema.
 
 Impact:

@@ -545,7 +545,9 @@ Shared-infra adoption reporting tracked under `TKT-238` / `TKT-355` / `TKT-356`:
 
 Staged rollout/canary decision contract tracked under `TKT-247`:
 - `staged-rollout-decision-v1` is the canonical external decision artifact for hold/canary/promote/rollback outcomes;
-- the contract composes `ship runtime:report --json` readiness metadata with control-plane policy inputs instead of duplicating runtime meaning in a second payload.
+- the contract composes `ship runtime:report --json` readiness metadata with control-plane policy inputs instead of duplicating runtime meaning in a second payload;
+- `decision=canary` requires explicit cohort/percentage/exit criteria;
+- `hold`/`rollback` preserve blockers while `promote` requires blockers to be empty.
 
 Pagoda-intake governance tracked under `TKT-253` / `TKT-357` / `TKT-358`:
 - the executable spec now pins a recurring Pagoda intake cadence plus an adopt/adapt/skip decision log;

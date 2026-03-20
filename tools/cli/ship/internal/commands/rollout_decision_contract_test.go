@@ -8,11 +8,7 @@ import (
 )
 
 func TestRolloutDecisionContract_RedSpec(t *testing.T) {
-	wd, err := os.Getwd()
-	if err != nil {
-		t.Fatal(err)
-	}
-	root := filepath.Clean(filepath.Join(wd, "..", "..", "..", "..", ".."))
+	root := repoRootFromCommandsTest(t)
 
 	managedDoc, err := os.ReadFile(filepath.Join(root, "docs", "architecture", "09-standalone-and-managed-mode.md"))
 	if err != nil {
@@ -32,7 +28,7 @@ func TestRolloutDecisionContract_RedSpec(t *testing.T) {
 	}
 
 	managedText := string(managedDoc)
-	for _, required := range []string{
+	assertContainsAll(t, managedText, []string{
 		"staged-rollout-decision-v1",
 		"schema_version",
 		"runtime_contract_version",
@@ -42,25 +38,37 @@ func TestRolloutDecisionContract_RedSpec(t *testing.T) {
 		"ship runtime:report --json",
 		"runtime facts",
 		"control-plane policy",
-	} {
-		if !strings.Contains(managedText, required) {
-			t.Fatalf("managed-mode contract doc should include rollout decision token %q", required)
-		}
-	}
+		"`canary` must be omitted when `decision` is `hold`, `promote`, or `rollback`",
+		"`canary` must include `cohort`, `percentage`, and `exit_criteria` when `decision=canary`",
+		"`verification` must include `checks`, `evidence_refs`, and `verified_by`",
+		"`hold` and `rollback` must keep at least one machine-readable blocker reason",
+		"`promote` requires `blockers` to be empty",
+	})
 
-	if !strings.Contains(string(cliRef), "staged-rollout-decision-v1") {
-		t.Fatal("cli reference should describe the staged rollout decision contract dependency")
-	}
-	if !strings.Contains(string(roadmap), "staged-rollout-decision-v1") {
-		t.Fatal("framework roadmap should track the staged rollout decision contract")
-	}
-	for _, required := range []string{
+	assertContainsAll(t, string(cliRef), []string{
+		"staged-rollout-decision-v1",
+		"`verification` evidence (`checks`, `evidence_refs`, `verified_by`)",
+		"`decision=canary` requires a populated `canary` object",
+	})
+	assertContainsAll(t, string(roadmap), []string{
+		"staged-rollout-decision-v1",
+		"`decision=canary` requires explicit cohort/percentage/exit criteria",
+		"`hold`/`rollback` preserve blockers while `promote` requires blockers to be empty",
+	})
+	assertContainsAll(t, string(risks), []string{
 		"rollout engine",
 		"traffic shaping",
 		"staged-rollout-decision-v1",
-	} {
-		if !strings.Contains(string(risks), required) {
-			t.Fatalf("known gaps doc should describe rollout decision contract risk token %q", required)
+		"decision-conditioned invariants",
+	})
+}
+
+func assertContainsAll(t *testing.T, text string, required []string) {
+	t.Helper()
+
+	for _, token := range required {
+		if !strings.Contains(text, token) {
+			t.Fatalf("expected text to include %q", token)
 		}
 	}
 }

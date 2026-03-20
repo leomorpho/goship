@@ -1488,7 +1488,9 @@ Impact:
 
 `staged-rollout-decision-v1` is now the canonical schema for hold/canary/promote/rollback verdicts
 that compose runtime readiness metadata from `ship runtime:report --json` with external
-control-plane policy inputs. The remaining gap is execution: GoShip still does not ship a rollout engine,
+control-plane policy inputs. The decision-conditioned invariants are now explicit in docs so
+downstream tooling can treat canary population, blocker preservation, and verification evidence as
+stable contract rules. The remaining gap is execution: GoShip still does not ship a rollout engine,
 canary traffic shaping, or vendor-specific deployment automation that consumes that schema.
 
 Impact:
@@ -2291,6 +2293,14 @@ Canonical payload fields:
 - `blockers`: ordered list of machine-readable reasons preventing promotion
 - `verification`: minimum evidence that downstream tooling must check before acting on the decision
 
+Decision-conditioned invariants:
+
+- `canary` must be omitted when `decision` is `hold`, `promote`, or `rollback`
+- `canary` must include `cohort`, `percentage`, and `exit_criteria` when `decision=canary`
+- `verification` must include `checks`, `evidence_refs`, and `verified_by`
+- `hold` and `rollback` must keep at least one machine-readable blocker reason
+- `promote` requires `blockers` to be empty
+
 Versioning rules:
 
 - A new `schema_version` is required when field meaning changes, required fields change, or enum
@@ -2308,6 +2318,8 @@ Minimum verification semantics:
 - verify the referenced `policy_input_version` matches the policy bundle approved by the external authority
 - verify `blockers` is empty before acting on `promote`
 - verify `canary` is present and complete before acting on `canary`
+- verify `hold` and `rollback` preserve blocker evidence instead of collapsing to an unqualified verdict
+- verify `verification.checks`, `verification.evidence_refs`, and `verification.verified_by` are all populated before acting
 
 Composition rule:
 
@@ -4281,7 +4293,7 @@ Safety matrix:
 - `ship agent:start --task ... [--id ...]` -> create `.worktrees/<id>` on branch `agent/<id>`, generate `TASK.md` with task text + `ship describe` JSON + discovered `CLAUDE.md` context
 - `ship agent:finish --id ... --message ... [--pr]` -> run `ship verify` in worktree, `git add -A`, validate conventional commit message, commit, optional `git push -u origin agent/<id>` + `gh pr create`, then `git worktree remove`
 - `ship doctor --json` -> machine-readable doctor result on stdout; exit code 0 when there are no errors, 1 when any error is reported
-- `ship runtime:report --json` -> machine-readable runtime capability report covering active profile, adapters, process plan, web features, DB runtime metadata, managed-key sources, and a versioned handshake envelope; downstream staged rollout and canary orchestration must compose those runtime facts into `staged-rollout-decision-v1` instead of inventing a second runtime-specific decision payload
+- `ship runtime:report --json` -> machine-readable runtime capability report covering active profile, adapters, process plan, web features, DB runtime metadata, managed-key sources, and a versioned handshake envelope; downstream staged rollout and canary orchestration must compose those runtime facts into `staged-rollout-decision-v1` instead of inventing a second runtime-specific decision payload; `decision=canary` requires a populated `canary` object, while `verification` evidence (`checks`, `evidence_refs`, `verified_by`) must remain explicit in the decision artifact
 - `ship describe --pretty` now includes a shared-infra adoption summary (`shared_modules`, `shared_module_ids`, `custom_app_controllers`, `custom_app_jobs`, `custom_app_commands`) as a non-blocking upstreaming metric
 - `ship config:validate` -> prints the known `PAGODA_*` config variables with type/default metadata and fails when any required variable is missing
 - `ship config:validate --json` -> prints the same contract as JSON for agent tooling
@@ -5187,7 +5199,9 @@ Shared-infra adoption reporting tracked under `TKT-238` / `TKT-355` / `TKT-356`:
 
 Staged rollout/canary decision contract tracked under `TKT-247`:
 - `staged-rollout-decision-v1` is the canonical external decision artifact for hold/canary/promote/rollback outcomes;
-- the contract composes `ship runtime:report --json` readiness metadata with control-plane policy inputs instead of duplicating runtime meaning in a second payload.
+- the contract composes `ship runtime:report --json` readiness metadata with control-plane policy inputs instead of duplicating runtime meaning in a second payload;
+- `decision=canary` requires explicit cohort/percentage/exit criteria;
+- `hold`/`rollback` preserve blockers while `promote` requires blockers to be empty.
 
 Pagoda-intake governance tracked under `TKT-253` / `TKT-357` / `TKT-358`:
 - the executable spec now pins a recurring Pagoda intake cadence plus an adopt/adapt/skip decision log;

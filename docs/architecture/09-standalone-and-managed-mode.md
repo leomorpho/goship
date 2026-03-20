@@ -221,6 +221,14 @@ Canonical payload fields:
 - `blockers`: ordered list of machine-readable reasons preventing promotion
 - `verification`: minimum evidence that downstream tooling must check before acting on the decision
 
+Decision-conditioned invariants:
+
+- `canary` must be omitted when `decision` is `hold`, `promote`, or `rollback`
+- `canary` must include `cohort`, `percentage`, and `exit_criteria` when `decision=canary`
+- `verification` must include `checks`, `evidence_refs`, and `verified_by`
+- `hold` and `rollback` must keep at least one machine-readable blocker reason
+- `promote` requires `blockers` to be empty
+
 Versioning rules:
 
 - A new `schema_version` is required when field meaning changes, required fields change, or enum
@@ -238,6 +246,8 @@ Minimum verification semantics:
 - verify the referenced `policy_input_version` matches the policy bundle approved by the external authority
 - verify `blockers` is empty before acting on `promote`
 - verify `canary` is present and complete before acting on `canary`
+- verify `hold` and `rollback` preserve blocker evidence instead of collapsing to an unqualified verdict
+- verify `verification.checks`, `verification.evidence_refs`, and `verification.verified_by` are all populated before acting
 
 Composition rule:
 
