@@ -10,8 +10,16 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/mikestefanello/pagoda/pkg/routing/routes"
-	"github.com/mikestefanello/pagoda/pkg/services"
+	"github.com/hibiken/asynq"
+	jobsmodule "github.com/leomorpho/goship-modules/jobs"
+	"github.com/leomorpho/goship-modules/notifications"
+	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
+	"github.com/leomorpho/goship/app"
+	"github.com/leomorpho/goship/app/foundation"
+	tasks "github.com/leomorpho/goship/app/jobs"
+	appsubscriptions "github.com/leomorpho/goship/app/subscriptions"
+	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
+	profilesvc "github.com/leomorpho/goship/modules/profile"
 )
 
 func timeoutMiddleware(next http.Handler, writeTimeout time.Duration) http.Handler {
@@ -32,15 +40,71 @@ func timeoutMiddleware(next http.Handler, writeTimeout time.Duration) http.Handl
 
 func main() {
 	// Start a new container
-	c := services.NewContainer()
+	c := foundation.NewContainer()
 	defer func() {
 		if err := c.Shutdown(); err != nil {
 			c.Web.Logger.Fatal(err)
 		}
 	}()
 
+	plansCatalog, err := appsubscriptions.BuildPlanCatalog()
+	if err != nil {
+		c.Web.Logger.Fatalf("failed to build subscription plans catalog: %v", err)
+	}
+	paidSubscriptionsService := paidsubscriptions.NewServiceWithCatalog(paidsubscriptions.NewSQLStore(
+		c.Database,
+		c.Config.Adapters.DB,
+		c.Config.App.OperationalConstants.ProTrialTimespanInDays,
+		c.Config.App.OperationalConstants.PaymentFailedGracePeriodInDays,
+	), plansCatalog)
+
+	if err := wireJobsModule(c); err != nil {
+		c.Web.Logger.Fatalf("failed to initialize jobs module: %v", err)
+	}
+	storageClient := storagerepo.NewStorageClient(c.Config, c.Database, c.Config.Adapters.DB)
+	profileService := profilesvc.NewProfileServiceWithDBDeps(
+		c.Database,
+		c.Config.Adapters.DB,
+		storageClient,
+		paidSubscriptionsService,
+		profilesvc.NewBobNotificationCountStore(c.Database, c.Config.Adapters.DB),
+	)
+
+	var firebaseJSONAccessKeys *[]byte
+	if len(c.Config.App.FirebaseJSONAccessKeys) > 0 {
+		firebaseJSONAccessKeys = &c.Config.App.FirebaseJSONAccessKeys
+	}
+	notificationServices, err := notifications.New(notifications.RuntimeDeps{
+		DB:                                  c.Database,
+		DBDialect:                           c.Config.Adapters.DB,
+		PubSub:                              foundation.AdaptNotificationsPubSub(c.CorePubSub),
+		SubscriptionService:                 paidSubscriptionsService,
+		VapidPublicKey:                      c.Config.App.VapidPublicKey,
+		VapidPrivateKey:                     c.Config.App.VapidPrivateKey,
+		MailFromAddress:                     c.Config.Mail.FromAddress,
+		FirebaseJSONAccessKeys:              firebaseJSONAccessKeys,
+		SMSRegion:                           c.Config.Phone.Region,
+		SMSSenderID:                         c.Config.Phone.SenderID,
+		SMSValidationCodeExpirationMinutes:  c.Config.Phone.ValidationCodeExpirationMinutes,
+		GetNumNotificationsForProfileByIDFn: profileService.GetCountOfUnseenNotifications,
+	})
+	if err != nil {
+		c.Web.Logger.Fatalf("failed to initialize notifications module: %v", err)
+	}
+
 	// Build the router
-	routes.BuildRouter(c)
+	if err := goship.BuildRouter(c, goship.RouterModules{
+		PaidSubscriptions: paidSubscriptionsService,
+		Notifications:     notificationServices,
+	}); err != nil {
+		c.Web.Logger.Fatalf("failed to build router: %v", err)
+	}
+
+	jobsCtx, jobsCancel := context.WithCancel(context.Background())
+	defer jobsCancel()
+	if err := startEmbeddedJobsWorker(jobsCtx, c, paidSubscriptionsService, notificationServices); err != nil {
+		c.Web.Logger.Fatalf("failed to start embedded jobs worker: %v", err)
+	}
 
 	// Start the server
 	go func() {
@@ -74,7 +138,7 @@ func main() {
 	// 	}
 	// }()
 
-	// seeder.RunIdempotentSeeder(c.Config, c.ORM)
+	// seeder.RunIdempotentSeeder(c.Config, c.Database)
 
 	// // Start the scheduled tasks
 	// if err := c.Tasks.
@@ -94,7 +158,7 @@ func main() {
 	// 	c.Web.Logger.Fatalf("failed to register scheduler task: %v", err)
 	// }
 	// // NOTE: we run the following task every 30 minutes, but it will check if the same notif type has
-	// // not already been sent to profiles.
+	// // not already been sent to services.
 	// if err := c.Tasks.
 	// 	New(tasks.TypeAllDailyConvoNotifications).
 	// 	Periodic("@every 30m").
@@ -117,9 +181,119 @@ func main() {
 	signal.Notify(quit, os.Interrupt)
 	signal.Notify(quit, os.Kill)
 	<-quit
+	jobsCancel()
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+	if err := c.CoreJobs.Stop(ctx); err != nil {
+		c.Web.Logger.Fatal(err)
+	}
 	if err := c.Web.Shutdown(ctx); err != nil {
 		c.Web.Logger.Fatal(err)
 	}
+}
+
+func wireJobsModule(c *foundation.Container) error {
+	switch c.Config.Adapters.Jobs {
+	case "asynq":
+		mod, err := jobsmodule.New(jobsmodule.Config{
+			Backend: jobsmodule.BackendRedis,
+			Redis: jobsmodule.RedisConfig{
+				Addr:     fmt.Sprintf("%s:%d", c.Config.Cache.Hostname, c.Config.Cache.Port),
+				Password: c.Config.Cache.Password,
+				DB:       c.Config.Cache.Database,
+			},
+		})
+		if err != nil {
+			return err
+		}
+		c.CoreJobs = foundation.AdaptModuleJobs(mod.Jobs())
+		c.CoreJobsInspector = foundation.AdaptModuleJobsInspector(mod.Inspector())
+		return nil
+	case "dbqueue":
+		mod, err := jobsmodule.New(jobsmodule.Config{
+			Backend: jobsmodule.BackendSQL,
+			SQLDB:   c.Database,
+		})
+		if err == nil {
+			c.CoreJobs = foundation.AdaptModuleJobs(mod.Jobs())
+			c.CoreJobsInspector = foundation.AdaptModuleJobsInspector(mod.Inspector())
+		}
+		return err
+	case "backlite":
+		mod, err := jobsmodule.New(jobsmodule.Config{
+			Backend: jobsmodule.BackendBacklite,
+			SQLDB:   c.Database,
+		})
+		if err == nil {
+			c.CoreJobs = foundation.AdaptModuleJobs(mod.Jobs())
+			c.CoreJobsInspector = foundation.AdaptModuleJobsInspector(mod.Inspector())
+		}
+		return err
+	case "inproc":
+		return nil
+	default:
+		return fmt.Errorf("unsupported jobs adapter %q", c.Config.Adapters.Jobs)
+	}
+}
+
+type asynqProcessor interface {
+	ProcessTask(context.Context, *asynq.Task) error
+}
+
+func startEmbeddedJobsWorker(
+	ctx context.Context,
+	c *foundation.Container,
+	paidSubscriptionsService *paidsubscriptions.Service,
+	notificationServices *notifications.Services,
+) error {
+	if c.Config.Adapters.Jobs != "backlite" {
+		return nil
+	}
+
+	emailSubscriptionConfirmationProcessor := tasks.NewEmailSubscriptionConfirmationProcessor(c.Mail, c.Config)
+	emailUpdateProcessor := tasks.NewEmailUpdateProcessor(c)
+	deactivateExpiredSubscriptionsProcessor := tasks.NewDeactivateExpiredSubscriptionsProcessor(paidSubscriptionsService)
+	allDailyConvoNotificationsProcessor := tasks.NewAllDailyConvoNotificationsProcessor(
+		notificationServices.PlannedNotificationsService,
+		c.CoreJobs,
+		30,
+	)
+	dailyConvoNotificationsProcessor := tasks.NewDailyConvoNotificationsProcessor(
+		notificationServices.Notifier,
+		c.Web,
+		paidSubscriptionsService,
+		notificationServices.PlannedNotificationsService,
+	)
+	deleteStaleNotificationsProcessor := tasks.NewDeleteStaleNotificationsProcessor(
+		c.Database,
+		c.Config.Adapters.DB,
+		c.Config.App.OperationalConstants.DeleteStaleNotificationAfterDays,
+	)
+
+	for _, job := range []struct {
+		name      string
+		processor asynqProcessor
+	}{
+		{name: tasks.TypeEmailSubscriptionConfirmation, processor: emailSubscriptionConfirmationProcessor},
+		{name: tasks.TypeEmailUpdates, processor: emailUpdateProcessor},
+		{name: tasks.TypeDeactivateExpiredSubscriptions, processor: deactivateExpiredSubscriptionsProcessor},
+		{name: tasks.TypeAllDailyConvoNotifications, processor: allDailyConvoNotificationsProcessor},
+		{name: tasks.TypeDailyConvoNotification, processor: dailyConvoNotificationsProcessor},
+		{name: tasks.TypeDeleteStaleNotifications, processor: deleteStaleNotificationsProcessor},
+	} {
+		if err := c.CoreJobs.Register(job.name, func(p asynqProcessor, taskName string) func(context.Context, []byte) error {
+			return func(ctx context.Context, payload []byte) error {
+				return p.ProcessTask(ctx, asynq.NewTask(taskName, payload))
+			}
+		}(job.processor, job.name)); err != nil {
+			return err
+		}
+	}
+
+	go func() {
+		if err := c.CoreJobs.StartWorker(ctx); err != nil && !errors.Is(err, context.Canceled) {
+			c.Web.Logger.Errorf("embedded jobs worker stopped: %v", err)
+		}
+	}()
+	return nil
 }

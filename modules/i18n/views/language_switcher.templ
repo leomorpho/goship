@@ -1,0 +1,20 @@
+package views
+
+import i18nmodule "github.com/leomorpho/goship/modules/i18n"
+
+// Route(s): embedded in layout/header where language switching is exposed
+// Renders: language switcher links for locale query parameter toggling
+templ LanguageSwitcher(current string, currentURL string) {
+	<nav data-component="language-switcher" aria-label="Language switcher">
+		if current == "en" {
+			<strong>EN</strong>
+		} else {
+			<a href={ templ.URL(i18nmodule.LanguageSwitcherURL(currentURL, "en")) }>EN</a>
+		}
+		if current == "fr" {
+			<strong>FR</strong>
+		} else {
+			<a href={ templ.URL(i18nmodule.LanguageSwitcherURL(currentURL, "fr")) }>FR</a>
+		}
+	</nav>
+}
