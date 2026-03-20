@@ -1,4 +1,4 @@
-package foundation
+package authsupport
 
 import (
 	stdcontext "context"

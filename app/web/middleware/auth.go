@@ -11,7 +11,7 @@ import (
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
-	"github.com/leomorpho/goship/app/foundation"
+	"github.com/leomorpho/goship/app/authsupport"
 	"github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/framework/context"
 	"github.com/leomorpho/goship/framework/dberrors"
@@ -25,7 +25,7 @@ type profileThumbnailReader interface {
 
 // LoadAuthenticatedUser loads the authenticated user, if one, and stores in context
 func LoadAuthenticatedUser(
-	authClient *foundation.AuthClient, profileService profileThumbnailReader, subscriptionsService *paidsubscriptions.Service,
+	authClient *authsupport.AuthClient, profileService profileThumbnailReader, subscriptionsService *paidsubscriptions.Service,
 ) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
@@ -55,7 +55,7 @@ func LoadAuthenticatedUser(
 				c.Logger().Infof("auth user loaded in to context: %d", u.UserID)
 			case dberrors.IsNotFound(err):
 				c.Logger().Warn("auth user not found")
-			case errors.Is(err, foundation.NotAuthenticatedError{}):
+			case errors.Is(err, authsupport.NotAuthenticatedError{}):
 			default:
 				return echo.NewHTTPError(
 					http.StatusInternalServerError,
@@ -73,7 +73,7 @@ func LoadAuthenticatedUser(
 // If the token is invalid, the user will be redirected to the forgot password route
 // This requires that the user ID owning the token is loaded in context
 // (e.g. by LoadUser middleware).
-func LoadValidPasswordToken(authClient *foundation.AuthClient) echo.MiddlewareFunc {
+func LoadValidPasswordToken(authClient *authsupport.AuthClient) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			userIDRaw := c.Get(context.AuthenticatedUserIDKey)
@@ -99,7 +99,7 @@ func LoadValidPasswordToken(authClient *foundation.AuthClient) echo.MiddlewareFu
 			switch err.(type) {
 			case nil:
 				return next(c)
-			case foundation.InvalidPasswordTokenError:
+			case authsupport.InvalidPasswordTokenError:
 				uxflashmessages.Warning(c, "The link is either invalid or has expired. Please request a new one.")
 				// TODO use the const for route name
 				return c.Redirect(http.StatusFound, c.Echo().Reverse(routenames.RouteNameForgotPassword))

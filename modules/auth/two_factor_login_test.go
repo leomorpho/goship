@@ -14,7 +14,9 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
+	"github.com/leomorpho/goship/app/authsupport"
 	"github.com/leomorpho/goship/app/foundation"
+	"github.com/leomorpho/goship/app/validation"
 	"github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/config"
@@ -22,18 +24,18 @@ import (
 )
 
 type fakeLoginAuthStore struct {
-	userRecord *foundation.AuthUserRecord
-	identity   *foundation.AuthIdentity
+	userRecord *authsupport.AuthUserRecord
+	identity   *authsupport.AuthIdentity
 }
 
-func (f fakeLoginAuthStore) GetIdentityByUserID(context.Context, int) (*foundation.AuthIdentity, error) {
+func (f fakeLoginAuthStore) GetIdentityByUserID(context.Context, int) (*authsupport.AuthIdentity, error) {
 	if f.identity == nil {
 		return nil, sql.ErrNoRows
 	}
 	return f.identity, nil
 }
 
-func (f fakeLoginAuthStore) GetUserRecordByEmail(context.Context, string) (*foundation.AuthUserRecord, error) {
+func (f fakeLoginAuthStore) GetUserRecordByEmail(context.Context, string) (*authsupport.AuthUserRecord, error) {
 	if f.userRecord == nil {
 		return nil, sql.ErrNoRows
 	}
@@ -93,13 +95,13 @@ func TestPostLogin_RedirectsToTwoFactorVerificationWithoutCreatingSession(t *tes
 	}
 
 	cfg := configForTwoFactorLoginTest()
-	authClient := foundation.NewAuthClient(cfg, fakeLoginAuthStore{
-		userRecord: &foundation.AuthUserRecord{
+	authClient := authsupport.NewAuthClient(cfg, fakeLoginAuthStore{
+		userRecord: &authsupport.AuthUserRecord{
 			UserID:   42,
 			Email:    "user@example.com",
 			Password: string(passwordHash),
 		},
-		identity: &foundation.AuthIdentity{
+		identity: &authsupport.AuthIdentity{
 			UserID:                42,
 			UserEmail:             "user@example.com",
 			HasProfile:            true,
@@ -109,7 +111,7 @@ func TestPostLogin_RedirectsToTwoFactorVerificationWithoutCreatingSession(t *tes
 	})
 
 	e := echo.New()
-	e.Validator = foundation.NewValidator()
+	e.Validator = validation.NewValidator()
 	e.GET("/auth/2fa/verify", func(c echo.Context) error { return c.NoContent(http.StatusOK) }).Name = routenames.RouteNameTwoFactorVerify
 
 	container := &foundation.Container{

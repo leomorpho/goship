@@ -1,4 +1,4 @@
-package foundation
+package validation
 
 import (
 	"testing"
@@ -10,10 +10,11 @@ func TestValidator(t *testing.T) {
 	type example struct {
 		Value string `validate:"required"`
 	}
+	v := NewValidator()
 	e := example{}
-	err := c.Validator.Validate(e)
+	err := v.Validate(e)
 	assert.Error(t, err)
 	e.Value = "a"
-	err = c.Validator.Validate(e)
+	err = v.Validate(e)
 	assert.NoError(t, err)
 }

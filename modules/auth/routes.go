@@ -8,7 +8,7 @@ import (
 
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/app/foundation"
+	"github.com/leomorpho/goship/app/authsupport"
 	templates "github.com/leomorpho/goship/app/views"
 	"github.com/leomorpho/goship/app/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/web/middleware"
@@ -120,7 +120,7 @@ func (s *Service) postLogin(ctx echo.Context) error {
 	usr, err := s.ctr.Container.Auth.AuthenticateUserByEmailPassword(ctx, form.Email, form.Password)
 	switch err.(type) {
 	case nil:
-	case foundation.InvalidCredentialsError:
+	case authsupport.InvalidCredentialsError:
 		ctx.Logger().Debug("credentials incorrect")
 		return authFailed()
 	default:

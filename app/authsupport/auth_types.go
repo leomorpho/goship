@@ -1,4 +1,4 @@
-package foundation
+package authsupport
 
 // AuthIdentity is the authenticated user shape exposed to request middleware.
 type AuthIdentity struct {

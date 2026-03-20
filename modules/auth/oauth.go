@@ -17,7 +17,7 @@ import (
 
 	"github.com/leomorpho/goship-modules/notifications"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
-	"github.com/leomorpho/goship/app/foundation"
+	"github.com/leomorpho/goship/app/authsupport"
 	"github.com/leomorpho/goship/config"
 	"github.com/leomorpho/goship/framework/dberrors"
 	"github.com/leomorpho/goship/framework/domain"
@@ -93,7 +93,7 @@ type OAuthService struct {
 type oauthAuthClient interface {
 	RandomToken(length int) (string, error)
 	HashPassword(password string) (string, error)
-	GetIdentityByUserID(ctx context.Context, userID int) (*foundation.AuthIdentity, error)
+	GetIdentityByUserID(ctx context.Context, userID int) (*authsupport.AuthIdentity, error)
 }
 
 func NewOAuthService(cfg *config.Config, db *sql.DB, auth oauthAuthClient, deps Deps) *OAuthService {
@@ -212,7 +212,7 @@ func (s *OAuthService) HandleCallback(ctx context.Context, providerName, code st
 		return nil, errOAuthProviderDisabled
 	}
 	if s.db == nil {
-		return nil, foundation.ErrAuthStoreUnavailable
+		return nil, authsupport.ErrAuthStoreUnavailable
 	}
 
 	token, err := s.exchangeCode(ctx, provider, code)

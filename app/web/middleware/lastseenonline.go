@@ -6,18 +6,18 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/app/foundation"
+	"github.com/leomorpho/goship/app/authsupport"
 	"github.com/leomorpho/goship/framework/dberrors"
 	"log/slog"
 )
 
 // LoadAuthenticatedUser loads the authenticated user, if one, and stores in context
-func SetLastSeenOnline(authClient *foundation.AuthClient) echo.MiddlewareFunc {
+func SetLastSeenOnline(authClient *authsupport.AuthClient) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			u, err := authClient.GetAuthenticatedIdentity(c)
 			switch {
-			case errors.Is(err, foundation.NotAuthenticatedError{}):
+			case errors.Is(err, authsupport.NotAuthenticatedError{}):
 			case err == nil:
 				err = authClient.SetLastOnlineTimestamp(c, u.UserID)
 				if err != nil {

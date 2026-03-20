@@ -15,6 +15,7 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
+	"github.com/leomorpho/goship/app/authsupport"
 	"github.com/leomorpho/goship/app/foundation"
 	"github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/app/web/ui"
@@ -23,17 +24,17 @@ import (
 )
 
 type fakeTwoFactorAuthStore struct {
-	identity *foundation.AuthIdentity
+	identity *authsupport.AuthIdentity
 }
 
-func (f fakeTwoFactorAuthStore) GetIdentityByUserID(context.Context, int) (*foundation.AuthIdentity, error) {
+func (f fakeTwoFactorAuthStore) GetIdentityByUserID(context.Context, int) (*authsupport.AuthIdentity, error) {
 	if f.identity == nil {
 		return nil, sql.ErrNoRows
 	}
 	return f.identity, nil
 }
 
-func (f fakeTwoFactorAuthStore) GetUserRecordByEmail(context.Context, string) (*foundation.AuthUserRecord, error) {
+func (f fakeTwoFactorAuthStore) GetUserRecordByEmail(context.Context, string) (*authsupport.AuthUserRecord, error) {
 	return nil, errors.New("not implemented")
 }
 
@@ -100,8 +101,8 @@ func TestPostVerify_CompletesLoginAndRedirectsHome(t *testing.T) {
 	e.GET("/welcome/preferences", func(c echo.Context) error { return c.NoContent(http.StatusOK) }).Name = routenames.RouteNamePreferences
 	e.POST("/auth/2fa/verify", func(c echo.Context) error { return c.NoContent(http.StatusOK) }).Name = routenames.RouteNameTwoFactorVerifySubmit
 
-	authClient := foundation.NewAuthClient(cfg, fakeTwoFactorAuthStore{
-		identity: &foundation.AuthIdentity{
+	authClient := authsupport.NewAuthClient(cfg, fakeTwoFactorAuthStore{
+		identity: &authsupport.AuthIdentity{
 			UserID:                42,
 			UserEmail:             "user@example.com",
 			HasProfile:            true,
@@ -188,8 +189,8 @@ func TestPostVerify_AcceptsBackupCodeAndConsumesIt(t *testing.T) {
 	e.GET("/welcome/preferences", func(c echo.Context) error { return c.NoContent(http.StatusOK) }).Name = routenames.RouteNamePreferences
 	e.POST("/auth/2fa/verify", func(c echo.Context) error { return c.NoContent(http.StatusOK) }).Name = routenames.RouteNameTwoFactorVerifySubmit
 
-	authClient := foundation.NewAuthClient(cfg, fakeTwoFactorAuthStore{
-		identity: &foundation.AuthIdentity{
+	authClient := authsupport.NewAuthClient(cfg, fakeTwoFactorAuthStore{
+		identity: &authsupport.AuthIdentity{
 			UserID:                42,
 			UserEmail:             "user@example.com",
 			HasProfile:            true,

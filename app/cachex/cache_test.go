@@ -1,6 +1,6 @@
 //go:build integration
 
-package foundation
+package cachex
 
 import (
 	"context"
@@ -9,11 +9,16 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
+	"github.com/leomorpho/goship/app/foundation"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestCacheClient(t *testing.T) {
+	c := foundation.NewContainer()
+	t.Cleanup(func() {
+		require.NoError(t, c.Shutdown())
+	})
 	if c.Cache == nil {
 		t.Skip("cache dependency disabled in current runtime plan")
 	}

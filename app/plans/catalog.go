@@ -1,4 +1,4 @@
-package foundation
+package plans
 
 import paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 
@@ -7,8 +7,8 @@ const (
 	defaultPaidPlanKey = "pro"
 )
 
-// BuildSubscriptionPlanCatalog defines the app-owned catalog wired into runtime composition.
-func BuildSubscriptionPlanCatalog() (paidsubscriptions.PlanCatalog, error) {
+// BuildCatalog defines the app-owned catalog wired into runtime composition.
+func BuildCatalog() (paidsubscriptions.PlanCatalog, error) {
 	return paidsubscriptions.NewStaticPlanCatalog(
 		[]paidsubscriptions.Plan{
 			{Key: defaultFreePlanKey, Paid: false},

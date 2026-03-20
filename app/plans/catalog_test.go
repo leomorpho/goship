@@ -1,4 +1,4 @@
-package foundation
+package plans
 
 import (
 	"testing"
@@ -6,10 +6,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestBuildSubscriptionPlanCatalog(t *testing.T) {
+func TestBuildCatalog(t *testing.T) {
 	t.Parallel()
 
-	catalog, err := BuildSubscriptionPlanCatalog()
+	catalog, err := BuildCatalog()
 	require.NoError(t, err)
 	require.NotNil(t, catalog)
 

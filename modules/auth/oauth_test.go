@@ -12,6 +12,7 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
+	"github.com/leomorpho/goship/app/authsupport"
 	"github.com/leomorpho/goship/app/foundation"
 	"github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/app/web/ui"
@@ -63,15 +64,15 @@ func (f fakeOAuthAuthClient) HashPassword(password string) (string, error) {
 	return string(hash), nil
 }
 
-func (f fakeOAuthAuthClient) GetIdentityByUserID(ctx context.Context, userID int) (*foundation.AuthIdentity, error) {
+func (f fakeOAuthAuthClient) GetIdentityByUserID(ctx context.Context, userID int) (*authsupport.AuthIdentity, error) {
 	return lookupAuthIdentity(ctx, f.db, userID)
 }
 
-func (f fakeOAuthAuthStore) GetIdentityByUserID(ctx context.Context, userID int) (*foundation.AuthIdentity, error) {
+func (f fakeOAuthAuthStore) GetIdentityByUserID(ctx context.Context, userID int) (*authsupport.AuthIdentity, error) {
 	return lookupAuthIdentity(ctx, f.db, userID)
 }
 
-func (f fakeOAuthAuthStore) GetUserRecordByEmail(context.Context, string) (*foundation.AuthUserRecord, error) {
+func (f fakeOAuthAuthStore) GetUserRecordByEmail(context.Context, string) (*authsupport.AuthUserRecord, error) {
 	return nil, errors.New("not implemented")
 }
 
@@ -107,13 +108,13 @@ func (f fakeOAuthAuthStore) DeletePasswordTokens(context.Context, int) error {
 	return errors.New("not implemented")
 }
 
-func lookupAuthIdentity(ctx context.Context, db *sql.DB, userID int) (*foundation.AuthIdentity, error) {
+func lookupAuthIdentity(ctx context.Context, db *sql.DB, userID int) (*authsupport.AuthIdentity, error) {
 	row := db.QueryRowContext(ctx, `
 		SELECT u.id, u.name, u.email, p.id, COALESCE(p.fully_onboarded, false)
 		FROM users u
 		LEFT JOIN profiles p ON p.user_profile = u.id
 		WHERE u.id = ?`, userID)
-	identity := foundation.AuthIdentity{}
+	identity := authsupport.AuthIdentity{}
 	identity.HasProfile = false
 	var profileID sql.NullInt64
 	var fullyOnboarded sql.NullBool
@@ -270,7 +271,7 @@ func TestConsumeOAuthState_ValidatesAndClearsSession(t *testing.T) {
 func TestGetOAuthProviderCallback_CreatesSessionAndRedirectsHome(t *testing.T) {
 	db := newOAuthTestDB(t)
 	cfg := oauthTestConfig()
-	authClient := foundation.NewAuthClient(cfg, fakeOAuthAuthStore{db: db})
+	authClient := authsupport.NewAuthClient(cfg, fakeOAuthAuthStore{db: db})
 	profileService := profilesvc.NewProfileServiceWithDBDeps(db, "sqlite", nil, nil, nil)
 
 	e := echo.New()

@@ -1,4 +1,4 @@
-package foundation
+package authsupport
 
 import (
 	"database/sql"
@@ -8,7 +8,7 @@ import (
 	"github.com/leomorpho/goship/config"
 )
 
-func selectAuthStore(cfg *config.Config, db *sql.DB) authStore {
+func SelectStore(cfg *config.Config, db *sql.DB) authStore {
 	choice := strings.ToLower(strings.TrimSpace(os.Getenv("PAGODA_AUTH_STORE")))
 	switch choice {
 	case "", "bob":

@@ -1,38 +1,39 @@
-package foundation
+package i18nboot
 
 import (
 	"fmt"
 	"path/filepath"
 	"runtime"
 
+	"github.com/leomorpho/goship/config"
+	"github.com/leomorpho/goship/framework/core"
 	i18nmodule "github.com/leomorpho/goship/modules/i18n"
 )
 
-func (c *Container) initI18n() {
-	if c == nil || c.Config == nil {
-		return
+func New(cfg *config.Config) core.I18n {
+	if cfg == nil {
+		return nil
 	}
-	if !c.Config.I18n.Enabled {
-		c.I18n = nil
-		return
+	if !cfg.I18n.Enabled {
+		return nil
 	}
 
-	defaultLanguage := c.Config.I18n.DefaultLanguage
+	defaultLanguage := cfg.I18n.DefaultLanguage
 	if defaultLanguage == "" {
 		defaultLanguage = "en"
 	}
 
 	service, err := i18nmodule.NewService(i18nmodule.Options{
-		LocaleDir:       localeDir(),
+		LocaleDir:       LocaleDir(),
 		DefaultLanguage: defaultLanguage,
 	})
 	if err != nil {
 		panic(fmt.Sprintf("failed to initialize i18n service: %v", err))
 	}
-	c.I18n = service
+	return service
 }
 
-func localeDir() string {
+func LocaleDir() string {
 	_, file, _, ok := runtime.Caller(0)
 	if !ok {
 		return "locales"

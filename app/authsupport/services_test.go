@@ -1,9 +1,10 @@
-package foundation
+package authsupport_test
 
 import (
 	"os"
 	"testing"
 
+	"github.com/leomorpho/goship/app/foundation"
 	"github.com/leomorpho/goship/config"
 	"github.com/leomorpho/goship/framework/tests"
 
@@ -11,7 +12,7 @@ import (
 )
 
 var (
-	c   *Container
+	c   *foundation.Container
 	ctx echo.Context
 	usr *tests.UserRecord
 )
@@ -21,7 +22,7 @@ func TestMain(m *testing.M) {
 	config.SwitchEnvironment(config.EnvTest)
 
 	// Create a new container
-	c = NewContainer()
+	c = foundation.NewContainer()
 
 	// Create a web context
 	ctx, _ = tests.NewContext(c.Web, "/")

@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/leomorpho/goship/app/foundation"
+	"github.com/leomorpho/goship/app/authsupport"
 	"github.com/leomorpho/goship/framework/context"
 	"github.com/leomorpho/goship/framework/dberrors"
 
@@ -13,7 +13,7 @@ import (
 )
 
 // LoadUser loads the user based on the ID provided as a path parameter
-func LoadUser(authClient *foundation.AuthClient) echo.MiddlewareFunc {
+func LoadUser(authClient *authsupport.AuthClient) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			userID, err := strconv.Atoi(c.Param("user"))

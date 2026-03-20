@@ -1,10 +1,11 @@
-package foundation
+package runtimeadapters
 
 import (
 	"context"
 	"errors"
 	"time"
 
+	"github.com/leomorpho/goship/app/cachex"
 	"github.com/leomorpho/goship/framework/core"
 )
 
@@ -12,10 +13,10 @@ var _ core.Cache = (*CoreCacheAdapter)(nil)
 
 // CoreCacheAdapter adapts CacheClient to the core.Cache interface.
 type CoreCacheAdapter struct {
-	client *CacheClient
+	client *cachex.CacheClient
 }
 
-func NewCoreCacheAdapter(client *CacheClient) *CoreCacheAdapter {
+func NewCoreCacheAdapter(client *cachex.CacheClient) *CoreCacheAdapter {
 	return &CoreCacheAdapter{client: client}
 }
 

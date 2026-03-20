@@ -1,4 +1,4 @@
-package foundation
+package authsupport_test
 
 import (
 	"errors"
@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/leomorpho/goship/app/authsupport"
 	"github.com/leomorpho/goship/framework/tests"
 	"github.com/stretchr/testify/require"
 
@@ -15,9 +16,9 @@ import (
 func TestAuthClient_Auth(t *testing.T) {
 	assertNoAuth := func() {
 		_, err := c.Auth.GetAuthenticatedUserID(ctx)
-		assert.True(t, errors.Is(err, NotAuthenticatedError{}))
+		assert.True(t, errors.Is(err, authsupport.NotAuthenticatedError{}))
 		_, err = c.Auth.GetAuthenticatedIdentity(ctx)
-		assert.True(t, errors.Is(err, NotAuthenticatedError{}))
+		assert.True(t, errors.Is(err, authsupport.NotAuthenticatedError{}))
 	}
 
 	assertNoAuth()
@@ -74,14 +75,14 @@ func TestAuthClient_AuthenticateUserByEmailPassword(t *testing.T) {
 	t.Run("bad email", func(t *testing.T) {
 		_, err := c.Auth.AuthenticateUserByEmailPassword(ctx, "missing@example.com", "password")
 		assert.Error(t, err)
-		_, ok := err.(InvalidCredentialsError)
+		_, ok := err.(authsupport.InvalidCredentialsError)
 		assert.True(t, ok)
 	})
 
 	t.Run("bad password", func(t *testing.T) {
 		_, err := c.Auth.AuthenticateUserByEmailPassword(ctx, loginUser.Email, "not-the-password")
 		assert.Error(t, err)
-		_, ok := err.(InvalidCredentialsError)
+		_, ok := err.(authsupport.InvalidCredentialsError)
 		assert.True(t, ok)
 	})
 }
