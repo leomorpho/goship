@@ -1557,7 +1557,7 @@
     },
     "TKT-287": {
       "title": "G6-01-A: Define executable spec and red tests",
-      "state": "backlog",
+      "state": "in-progress",
       "priority": 2
     },
     "TKT-288": {
@@ -1568,7 +1568,7 @@
     },
     "TKT-289": {
       "title": "G6-02-A: Define executable spec and red tests",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 2
     },
     "TKT-290": {
@@ -1579,7 +1579,7 @@
     },
     "TKT-291": {
       "title": "G6-03-A: Define executable spec and red tests",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 2
     },
     "TKT-292": {
@@ -1601,7 +1601,7 @@
     },
     "TKT-295": {
       "title": "G1-06-A: Define executable spec and red tests",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 2
     },
     "TKT-296": {
@@ -1611,7 +1611,7 @@
     },
     "TKT-297": {
       "title": "G2-04-A: Define executable spec and red tests",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 2
     },
     "TKT-298": {
@@ -1826,7 +1826,7 @@
     },
     "TKT-333": {
       "title": "INT4-02-A: Define executable spec and red tests",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 2
     },
     "TKT-334": {
@@ -1859,7 +1859,7 @@
     },
     "TKT-339": {
       "title": "INT6-01-A: Define executable spec and red tests",
-      "state": "backlog",
+      "state": "in-progress",
       "priority": 2
     },
     "TKT-340": {
@@ -1869,7 +1869,7 @@
     },
     "TKT-341": {
       "title": "INT6-02-A: Define executable spec and red tests",
-      "state": "backlog",
+      "state": "in-progress",
       "priority": 2
     },
     "TKT-342": {
@@ -1891,7 +1891,7 @@
     },
     "TKT-345": {
       "title": "INT4-03-A: Define executable spec and red tests",
-      "state": "backlog",
+      "state": "in-progress",
       "priority": 2
     },
     "TKT-346": {
@@ -1901,7 +1901,7 @@
     },
     "TKT-347": {
       "title": "INT5-03-A: Define executable spec and red tests",
-      "state": "backlog",
+      "state": "in-progress",
       "priority": 2
     },
     "TKT-348": {
@@ -1911,7 +1911,7 @@
     },
     "TKT-349": {
       "title": "INT6-03-A: Define executable spec and red tests",
-      "state": "backlog",
+      "state": "in-progress",
       "priority": 2
     },
     "TKT-350": {
@@ -1921,7 +1921,7 @@
     },
     "TKT-351": {
       "title": "INT1-03-A: Define executable spec and red tests",
-      "state": "backlog",
+      "state": "in-progress",
       "priority": 2
     },
     "TKT-352": {
@@ -1931,7 +1931,7 @@
     },
     "TKT-353": {
       "title": "INT5-04-A: Define executable spec and red tests",
-      "state": "backlog",
+      "state": "in-progress",
       "priority": 2
     },
     "TKT-354": {
