@@ -500,6 +500,7 @@ func checkStandaloneExportability(root string) error {
 
 	forbidden := []string{
 		"tools/private/control-plane",
+		"fleet/control-plane",
 		"control-plane dependency",
 	}
 

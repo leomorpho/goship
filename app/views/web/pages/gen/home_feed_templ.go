@@ -160,7 +160,7 @@ func hello(page *controller.Page, justFinishedOnboarded bool) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "!</span> <img src=\"https://chatbond-static.s3.us-west-002.backblazeb2.com/cherie/pwa/v2/icons/logo-animated-sm.gif\" class=\"ml-1 sm:ml-2 w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 lg:w-11 lg:h-11 xl:w-12 xl:h-12\" alt=\"Logo\"></h1><span id=\"helpMe\" just-onboarded-data=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "!</span> <img src=\"/icon.png\" class=\"ml-1 sm:ml-2 w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 lg:w-11 lg:h-11 xl:w-12 xl:h-12 rounded-xl\" alt=\"GoShip logo\"></h1><span id=\"helpMe\" just-onboarded-data=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

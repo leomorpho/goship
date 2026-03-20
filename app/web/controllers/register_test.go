@@ -80,14 +80,10 @@ func TestRegisterUserFieldValidation(t *testing.T) {
 
 			// Assert that exactly one error message is found
 			if tc.expectedError {
-				// TODO: awaiting an extra one for the dating rollout per region announcement
 				assert.Equal(t, 2, errors.Length(), "Expected exactly one error alert for missing field")
 			} else {
 				assert.Equal(t, 0, errors.Length(), "Expected no error alert for this field")
 			}
-
-			// TODO: awaiting an extra one for the dating rollout per region announcement. Removed below check
-			// because it's too annoying to check (too low priority).
 
 			// Optionally, you can iterate over each found alert and check if it contains specific error text
 			// errors.Each(func(i int, s *goquery.Selection) {

@@ -71,8 +71,8 @@ type (
 		URLs []string `json:"urls"`
 	}
 
-	// TODO: deprecated. If we remove it now, we need to clean it up
-	// from go templates too (errors triggered from it).
+	// PreferencesFormData is retained for legacy template bindings until the remaining
+	// preferences templates are fully migrated to narrower forms.
 	PreferencesFormData struct {
 		Bio                     string `form:"bio"`
 		SelfBirthdate           string `form:"birthdate"`

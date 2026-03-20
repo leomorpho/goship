@@ -25,33 +25,17 @@ templ installAppDisclaimer() {
 
 templ installIos(installArtHeight string) {
 	<div class={ "flex justify-center pb-5 p-2", installArtHeight }>
-		<a href="https://apps.apple.com/ca/app/ch%C3%A9rie-companion-app/id6572281728" target="_blank" class="h-full">
-			<img
-				class="h-full object-contain block dark:hidden cursor-pointer"
-				src={ "https://chatbond-static.s3.us-west-002.backblazeb2.com/cherie/ios-app-store/en/Download_on_the_App_Store_Badge_US-UK_RGB_blk_092917.svg" }
-				alt={ "Dark mode icon to install app from apple app store" }
-				loading="lazy"
-			/>
-			<img
-				class="h-full object-contain hidden dark:block cursor-pointer"
-				src={ "https://chatbond-static.s3.us-west-002.backblazeb2.com/cherie/ios-app-store/en/Download_on_the_App_Store_Badge_US-UK_RGB_wht_092917.svg" }
-				alt={ "Light mode icon to nstall app from apple app store" }
-				loading="lazy"
-			/>
-		</a>
+		<div class="flex h-full items-center rounded-2xl border border-slate-300 bg-slate-50 px-6 text-center font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+			Install from Safari using "Add to Home Screen"
+		</div>
 	</div>
 }
 
 templ installAndroid(installArtHeight string) {
 	<div class={ "flex justify-center pb-5 p-2", installArtHeight }>
-		<img
-			_="on click
-					call Swal.fire('Coming soon to Google Play! Add it to the home screen for now, see 3rd option.')"
-			class="h-full object-contain cursor-pointer"
-			src={ "https://chatbond-static.s3.us-west-002.backblazeb2.com/cherie/google-app-store/GetItOnGooglePlay_Badge_Web_color_English.png" }
-			alt={ "Dark mode icon to install app from apple app store" }
-			loading="lazy"
-		/>
+		<div class="flex h-full items-center rounded-2xl border border-slate-300 bg-slate-50 px-6 text-center font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+			Install from Chrome using "Install app" or "Add to Home Screen"
+		</div>
 	</div>
 }
 
@@ -135,15 +119,10 @@ templ iPhone() {
 	@warningDontDoTheseStepsJustYet()
 	<ol class="ps-5 mt-2 space-y-1 list-decimal list-inside">
 		<li>{ "Open Safari on your device and navigate to the Goship website:" }</li>
-		@screen("https://chatbond-static.s3.us-west-002.backblazeb2.com/cherie/pwa/pwa-install-steps/ios/1-annotated.jpg", "open the Goship website on safari")
 		<li>{ "Open the share menu:" }</li>
-		@screen("https://chatbond-static.s3.us-west-002.backblazeb2.com/cherie/pwa/pwa-install-steps/ios/2-annotated.jpg", "home screen")
 		<li>{ "Select \"Add to home Screen\":" }</li>
-		@screen("https://chatbond-static.s3.us-west-002.backblazeb2.com/cherie/pwa/pwa-install-steps/ios/3-annotated.jpg", "add to home screen")
 		<li>{ "Confirm by tapping \"Add\":" }</li>
-		@screen("https://chatbond-static.s3.us-west-002.backblazeb2.com/cherie/pwa/pwa-install-steps/ios/4-annotated.jpg", "confirm by tapping 'add'")
 		<li>{ "App will be installed to home screen:" }</li>
-		@screen("https://chatbond-static.s3.us-west-002.backblazeb2.com/cherie/pwa/pwa-install-steps/ios/5-annotated.jpg", "app is installed")
 		<li>{ "Open the app, enjoy!" }</li>
 	</ol>
 }
@@ -152,16 +131,10 @@ templ android() {
 	@warningDontDoTheseStepsJustYet()
 	<ol class="ps-5 mt-2 space-y-1 list-decimal list-inside">
 		<li>{ "Open Chrome on your device and navigate to the Goship website:" }</li>
-		@screen("https://chatbond-static.s3.us-west-002.backblazeb2.com/cherie/pwa/pwa-install-steps/android/1-annotated.jpeg", "open the Goship website on chrome")
 		<li>{ "Open the 3-dot options menu:" }</li>
-		@screen("https://chatbond-static.s3.us-west-002.backblazeb2.com/cherie/pwa/pwa-install-steps/android/2-annotated.jpeg", "open 3 dot menu")
 		<li>{ "Select \"Install app\" (or \"Add to home Screen\" on older devices):" }</li>
-		@screen("https://chatbond-static.s3.us-west-002.backblazeb2.com/cherie/pwa/pwa-install-steps/android/3-annotated.jpg", "select 'install app'")
 		<li>{ "Confirm by tapping \"Install\" (or \"Add to home screen \" on older devices):" }</li>
-		@screen("https://chatbond-static.s3.us-west-002.backblazeb2.com/cherie/pwa/pwa-install-steps/android/4-annotated.jpg", "confirm installation")
-		@screen("https://chatbond-static.s3.us-west-002.backblazeb2.com/cherie/pwa/pwa-install-steps/android/5-annotated.jpg", "confirm installation")
 		<li>{ "App will be installed to home screen:" }</li>
-		@screen("https://chatbond-static.s3.us-west-002.backblazeb2.com/cherie/pwa/pwa-install-steps/android/6-annotated.jpg", "app is installed")
 		<li>{ "Open the app, enjoy!" }</li>
 	</ol>
 }

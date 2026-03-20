@@ -16,8 +16,7 @@ type Question struct {
 	Answer      Answer `json:"answers"`
 	OtherAnswer Answer `json:"self_answer"` // Currently, this is used only for quiz results, to show self and other side by side.
 	VotingCount int    `json:"voting_count"`
-	// TODO: not high priority, but Liked/Disliked can be combined in one var. This was
-	// done as a way to get a feature in quickly.
+	// Liked and Disliked are kept as separate fields for compatibility with current consumers.
 	Liked        bool `json:"liked"`
 	Disliked     bool `json:"disliked"`
 	VotedAt      *time.Time
@@ -45,7 +44,7 @@ type Quiz struct {
 	Questions   []QuizQuestion `json:"questions"`
 }
 
-// TODO: deprecate in favor of Profile
+// Author is a legacy transport shape kept for compatibility with current payloads.
 type Author struct {
 	UserId       int    `json:"user_id"`
 	ProfileID    int    `json:"dating_profile_id"`
@@ -81,9 +80,8 @@ type QuizQuestionAnswer struct {
 
 type Photo struct {
 	ID int `json:"id"`
-	// TODO: below field name is misleading. It's really the URL. Photo
-	// is a non-descript name. Change it for a better naming alternative.
-	Photo           string `json:"photo"` // URL -> DEPRECATE...DO NOT USE ANYMORE!
+	// Photo is the legacy full-size URL field kept for compatibility with existing consumers.
+	Photo           string `json:"photo"`
 	ThumbnailURL    string `json:"thumbnail_url"`
 	ThumbnailWidth  int    `json:"thumbnail_w"`
 	ThumbnailHeight int    `json:"thumbnail_h"`
