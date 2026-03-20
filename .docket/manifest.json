@@ -1584,7 +1584,7 @@
     },
     "TKT-292": {
       "title": "G6-03-B: Implement, verify, and sync docs",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 3
     },
     "TKT-293": {
@@ -1606,7 +1606,7 @@
     },
     "TKT-296": {
       "title": "G1-06-B: Implement, verify, and sync docs",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 3
     },
     "TKT-297": {
@@ -1831,7 +1831,7 @@
     },
     "TKT-334": {
       "title": "INT4-02-B: Implement, verify, and sync docs",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 3
     },
     "TKT-335": {
@@ -1854,7 +1854,7 @@
     },
     "TKT-338": {
       "title": "INT5-02-B: Implement, verify, and sync docs",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 3
     },
     "TKT-339": {
