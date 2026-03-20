@@ -1,0 +1,47 @@
+#!/bin/sh
+
+set -eu
+
+msg_file="${1:-}"
+if [ -z "$msg_file" ] || [ ! -f "$msg_file" ]; then
+  echo "ERROR: commit message file is required." >&2
+  exit 1
+fi
+
+subject=$(
+  awk '
+    /^[[:space:]]*#/ { next }
+    /^[[:space:]]*$/ { next }
+    { sub(/\r$/, ""); print; exit }
+  ' "$msg_file"
+)
+
+if [ -z "$subject" ]; then
+  echo "ERROR: commit message subject is required." >&2
+  exit 1
+fi
+
+case "$subject" in
+  Merge\ *|Revert\ *)
+    exit 0
+    ;;
+  fixup!\ *|squash!\ *)
+    subject="${subject#*! }"
+    ;;
+esac
+
+pattern='^(feat|fix|docs|refactor|test|chore|perf|style|build|ci)(\([a-z0-9-]+\))?: .+'
+if ! printf '%s\n' "$subject" | grep -Eq "$pattern"; then
+  echo "ERROR: commit message does not follow conventional commits format." >&2
+  echo "Expected: <type>(<scope>): <description>" >&2
+  echo "Types: feat, fix, docs, refactor, test, chore, perf, style, build, ci" >&2
+  exit 1
+fi
+
+description="${subject#*: }"
+case "$description" in
+  *.)
+    echo "ERROR: commit description must not end with a period." >&2
+    exit 1
+    ;;
+esac

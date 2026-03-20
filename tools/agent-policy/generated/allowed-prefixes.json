@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "prefixes": [
+    [
+      "go",
+      "test"
+    ],
+    [
+      "go",
+      "run",
+      "./tools/cli/ship/cmd/ship"
+    ],
+    [
+      "go",
+      "mod",
+      "tidy"
+    ],
+    [
+      "docker",
+      "build",
+      "-f",
+      "infra/docker/Dockerfile"
+    ],
+    [
+      "git",
+      "add"
+    ],
+    [
+      "git",
+      "commit"
+    ],
+    [
+      "ship",
+      "check"
+    ],
+    [
+      "ship",
+      "doctor"
+    ],
+    [
+      "ship",
+      "agent:setup"
+    ],
+    [
+      "ship",
+      "agent:check"
+    ]
+  ]
+}

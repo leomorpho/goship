@@ -1,0 +1,67 @@
+package pages
+
+import (
+	"github.com/leomorpho/goship/app/controller"
+	"github.com/leomorpho/goship/app/views/web/helpers/gen"
+	"github.com/leomorpho/goship/app/web/ui"
+	fmw "github.com/leomorpho/goship/framework/middleware"
+)
+
+// Renders: framework islands demonstration with one counter per supported framework.
+// Route(s): rendered by app/router.go page handlers
+
+templ IslandsDemoPage(page *controller.Page) {
+	<html lang={ page.Language() } data-theme="lightmode">
+		<head>
+			<meta charset="utf-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1"/>
+			<title>{ page.AppName } | Islands Demo</title>
+			<link rel="stylesheet" href={ helpers.File("styles_bundle.css") }/>
+		</head>
+		<body data-component="islands-demo-page" class="min-h-screen bg-base-200 text-base-content">
+			<main class="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-8 px-4 py-10 sm:px-6 lg:px-10">
+				<header class="space-y-3">
+					<h1 class="text-3xl font-black tracking-tight sm:text-4xl">Framework Islands Demo</h1>
+					<p class="max-w-3xl text-base-content/80">
+						Super simple demo page: one counter island each for vanilla JS, React, Vue, and Svelte.
+					</p>
+				</header>
+				<!-- NOTE: These demo counters may be moved around, but do not delete them. They prove framework island support in GoShip. -->
+				<p data-slot="islands-regression-note" class="rounded-xl border border-warning/30 bg-warning/10 px-4 py-3 text-sm font-medium text-warning-content">
+					These demo counters may be moved around, but do not delete them. They prove framework island support in GoShip.
+				</p>
+				<section class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+						<div data-island="VanillaCounter" data-props={ templ.JSONString(ui.IslandsDemoIslandProps(page, "VanillaCounter", "Vanilla JS Counter", 0)) }>
+							<section class="rounded-xl border border-base-300 bg-base-100 p-4 shadow-sm">
+								<h3 class="text-lg font-semibold">{ ui.IslandsDemoLabel(page, "VanillaCounter", "Vanilla JS Counter") }</h3>
+								<p class="mt-2 text-3xl font-bold leading-none">0</p>
+								<p class="mt-2 text-xs font-medium uppercase tracking-wide opacity-70">Vanilla JS</p>
+							</section>
+						</div>
+						<div data-island="ReactCounter" data-props={ templ.JSONString(ui.IslandsDemoIslandProps(page, "ReactCounter", "React Counter", 10)) }>
+							<section class="rounded-xl border border-base-300 bg-base-100 p-4 shadow-sm">
+								<h3 class="text-lg font-semibold">{ ui.IslandsDemoLabel(page, "ReactCounter", "React Counter") }</h3>
+								<p class="mt-2 text-3xl font-bold leading-none">10</p>
+								<p class="mt-2 text-xs font-medium uppercase tracking-wide opacity-70">React</p>
+							</section>
+						</div>
+						<div data-island="VueCounter" data-props={ templ.JSONString(ui.IslandsDemoIslandProps(page, "VueCounter", "Vue Counter", 20)) }>
+							<section class="rounded-xl border border-base-300 bg-base-100 p-4 shadow-sm">
+								<h3 class="text-lg font-semibold">{ ui.IslandsDemoLabel(page, "VueCounter", "Vue Counter") }</h3>
+								<p class="mt-2 text-3xl font-bold leading-none">20</p>
+								<p class="mt-2 text-xs font-medium uppercase tracking-wide opacity-70">Vue</p>
+							</section>
+						</div>
+						<div data-island="SvelteCounter" data-props={ templ.JSONString(ui.IslandsDemoIslandProps(page, "SvelteCounter", "Svelte Counter", 30)) }>
+							<section class="rounded-xl border border-base-300 bg-base-100 p-4 shadow-sm">
+								<h3 class="text-lg font-semibold">{ ui.IslandsDemoLabel(page, "SvelteCounter", "Svelte Counter") }</h3>
+								<p class="mt-2 text-3xl font-bold leading-none">30</p>
+								<p class="mt-2 text-xs font-medium uppercase tracking-wide opacity-70">Svelte</p>
+							</section>
+						</div>
+				</section>
+			</main>
+			<script nonce={ fmw.CSPNonce(page.Context) } src={ helpers.File("islands-runtime.js") } data-manifest-url={ helpers.File("islands-manifest.json") }></script>
+		</body>
+	</html>
+}

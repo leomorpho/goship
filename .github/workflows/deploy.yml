@@ -1,0 +1,13 @@
+name: Deploy
+on:
+  push:
+    branches: [main]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: webfactory/ssh-agent@v0.10.0
+        with: { ssh-private-key: '${{ secrets.DEPLOY_KEY }}' }
+      - run: gem install kamal
+      - run: kamal deploy

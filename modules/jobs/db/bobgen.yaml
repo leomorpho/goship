@@ -1,0 +1,9 @@
+sql:
+  - name: sqlite
+    dialect: sqlite
+    dsn: file:jobs.db?mode=memory&cache=shared
+    queries:
+      - "modules/jobs/db/queries/*.sql"
+    schema:
+      - "modules/jobs/db/migrate/migrations/*.sql"
+output: "modules/jobs/db/gen"
