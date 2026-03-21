@@ -5,7 +5,11 @@ set -euo pipefail
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "${ROOT_DIR}"
 
-violations="$(rg -n --glob '*.go' --glob '!**/*_test.go' '(appsubscriptions\.NewEntStore|NewEntStore\(|ORM:\s*c\.ORM)' cmd app/web/wiring.go || true)"
+violations="$(
+  rg -n --glob '*.go' --glob '!**/*_test.go' \
+    '(appsubscriptions\.NewEntStore|NewEntStore\(|ORM:\s*c\.ORM)' \
+    cmd framework/web/wiring.go container.go router.go schedules.go || true
+)"
 
 if [[ -n "${violations}" ]]; then
   echo "Error: composition root contains legacy ORM-bound module wiring in runtime paths:"

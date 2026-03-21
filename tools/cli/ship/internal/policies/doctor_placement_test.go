@@ -235,8 +235,8 @@ func findRepoRoot(t *testing.T) string {
 	}
 	for {
 		if hasFile(filepath.Join(dir, "go.mod")) &&
-			hasFile(filepath.Join(dir, "app", "router.go")) &&
-			hasFile(filepath.Join(dir, "modules", "admin", "routes.go")) {
+			hasFile(filepath.Join(dir, "modules", "admin", "routes.go")) &&
+			(hasFile(filepath.Join(dir, "router.go")) || hasFile(filepath.Join(dir, "app", "router.go"))) {
 			return dir
 		}
 		parent := filepath.Dir(dir)

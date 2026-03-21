@@ -26,7 +26,7 @@ func TestMakeMailerContract_RedSpec(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	mailPreview, err := os.ReadFile(filepath.Join(root, "app", "web", "controllers", "mail_preview.go"))
+	mailPreview, err := os.ReadFile(filepath.Join(root, "framework", "web", "controllers", "mail_preview.go"))
 	if err != nil {
 		t.Fatal(err)
 	}

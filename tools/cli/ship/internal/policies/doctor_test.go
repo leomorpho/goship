@@ -8,6 +8,21 @@ import (
 )
 
 func TestRunDoctorChecks(t *testing.T) {
+	t.Run("canonical framework repo skips starter-app required path checks", func(t *testing.T) {
+		root := t.TempDir()
+		writeCanonicalFrameworkDoctorFixture(t, root)
+
+		issues := RunDoctorChecks(root)
+		for _, issue := range issues {
+			if issue.Code != "DX001" && issue.Code != "DX002" && issue.Code != "DX013" {
+				continue
+			}
+			if strings.Contains(issue.Message, "app") || strings.Contains(issue.Message, "unexpected top-level directory: static") || strings.Contains(issue.Message, "unexpected top-level directory: styles") || strings.Contains(issue.Message, "unexpected top-level directory: testdata") {
+				t.Fatalf("unexpected framework-repo issue: %+v", issue)
+			}
+		}
+	})
+
 	t.Run("valid fixture has no issues", func(t *testing.T) {
 		root := t.TempDir()
 		writeDoctorFixture(t, root)
@@ -726,6 +741,84 @@ func findGoModuleTest(start string) (string, string, error) {
 			return "", "", os.ErrNotExist
 		}
 		dir = parent
+	}
+}
+
+func writeCanonicalFrameworkDoctorFixture(t *testing.T, root string) {
+	t.Helper()
+
+	writeCanonicalRepoFixture(t, root)
+	dirs := []string{
+		filepath.Join(root, "db", "queries"),
+		filepath.Join(root, "db", "migrate", "migrations"),
+		filepath.Join(root, "docs", "architecture"),
+		filepath.Join(root, "docs", "reference"),
+		filepath.Join(root, "tools", "agent-policy", "generated"),
+	}
+	for _, dir := range dirs {
+		if err := os.MkdirAll(dir, 0o755); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	files := map[string]string{
+		filepath.Join(root, "db", "bobgen.yaml"):      "packages: []\n",
+		filepath.Join(root, "config", "modules.yaml"): "modules: []\n",
+		filepath.Join(root, "docs", "00-index.md"):    "# Index\n",
+		filepath.Join(root, "docs", "architecture", "01-architecture.md"): "# Architecture\n",
+		filepath.Join(root, "docs", "architecture", "08-cognitive-model.md"): "# Cognitive Model\n",
+		filepath.Join(root, "docs", "architecture", "10-extension-zones.md"): strings.Join([]string{
+			"## Extension Zones",
+			"- `app/`",
+			"",
+			"## Protected Contract Zones",
+			"- `framework/`",
+			"- `app/router.go`",
+			"- `app/foundation/container.go`",
+			"- `config/modules.yaml`",
+			"- `tools/agent-policy/allowed-commands.yaml`",
+			"",
+		}, "\n"),
+		filepath.Join(root, "docs", "reference", "01-cli.md"): strings.Join([]string{
+			"## Minimal V1 Command Set",
+			"## Implementation Mapping (Current Repo)",
+			"## Generator test strategy",
+			"ship doctor",
+			"ship agent:setup",
+			"ship agent:check",
+			"ship agent:status",
+			"ship new <app>",
+			"ship upgrade",
+			"ship make:resource",
+			"ship make:model",
+			"ship make:controller",
+			"ship make:scaffold",
+			"ship make:module",
+			"ship db:migrate",
+			"ship test --integration",
+			"",
+		}, "\n"),
+		filepath.Join(root, ".gitignore"): strings.Join([]string{
+			"/web",
+			"/worker",
+			"/seed",
+			"/ship",
+			"/ship-mcp",
+			"",
+		}, "\n"),
+		filepath.Join(root, ".dockerignore"): strings.Join([]string{
+			".git",
+			"node_modules",
+			"frontend/node_modules",
+			".local",
+			"tools/scripts/venv",
+			"",
+		}, "\n"),
+	}
+	for path, content := range files {
+		if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+			t.Fatal(err)
+		}
 	}
 }
 

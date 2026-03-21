@@ -17,6 +17,7 @@ func checkFileSizes(root string) []DoctorIssue {
 	issues := make([]DoctorIssue, 0)
 	hardCapAllowlist := map[string]struct{}{
 		filepath.ToSlash(filepath.Join("tools", "cli", "ship", "internal", "policies", "doctor.go")): {},
+		filepath.ToSlash(filepath.Join("tools", "cli", "ship", "internal", "policies", "doctor_repo_checks.go")): {},
 		filepath.ToSlash(filepath.Join("config", "config.go")):                                       {},
 		filepath.ToSlash(filepath.Join("app", "views", "web", "pages", "home_feed.templ")):           {},
 		filepath.ToSlash(filepath.Join("app", "views", "web", "pages", "landing_page.templ")):        {},
@@ -171,6 +172,70 @@ func checkTopLevelDirs(root string) []DoctorIssue {
 	}
 
 	return issues
+}
+
+func CheckCanonicalRepoTopLevelPaths(root string) []DoctorIssue {
+	if !looksLikeCanonicalFrameworkRepo(root) {
+		return nil
+	}
+
+	issues := make([]DoctorIssue, 0)
+	required := []string{
+		"cmd",
+		"config",
+		"container.go",
+		"db",
+		"docs",
+		"framework",
+		"frontend",
+		"go.mod",
+		"go.work",
+		"infra",
+		"locales",
+		"modules",
+		"router.go",
+		"schedules.go",
+		"static",
+		"styles",
+		"testdata",
+		"tests",
+		"tools",
+	}
+	for _, rel := range required {
+		if !pathExists(filepath.Join(root, rel)) {
+			issues = append(issues, DoctorIssue{
+				Code:    "DX013",
+				File:    filepath.ToSlash(rel),
+				Message: fmt.Sprintf("missing canonical top-level path: %s", filepath.ToSlash(rel)),
+				Fix:     "restore the canonical GoShip repo layout before merging",
+			})
+		}
+	}
+
+	forbidden := []string{
+		"app",
+		"javascript",
+	}
+	for _, rel := range forbidden {
+		if !pathExists(filepath.Join(root, rel)) {
+			continue
+		}
+		issues = append(issues, DoctorIssue{
+			Code:    "DX013",
+			File:    filepath.ToSlash(rel),
+			Message: fmt.Sprintf("forbidden top-level path present: %s", filepath.ToSlash(rel)),
+			Fix:     "remove the old competing top-level path and keep the canonical GoShip repo shape",
+		})
+	}
+
+	return issues
+}
+
+func looksLikeCanonicalFrameworkRepo(root string) bool {
+	return isDir(filepath.Join(root, "tools", "cli", "ship")) ||
+		hasFile(filepath.Join(root, "container.go")) ||
+		hasFile(filepath.Join(root, "router.go")) ||
+		hasFile(filepath.Join(root, "schedules.go"))
 }
 
 func countNonBlankLines(path string) (int, error) {

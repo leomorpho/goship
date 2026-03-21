@@ -75,3 +75,80 @@ var _ = core.PubSub(nil)
 	issues := RunDoctorChecks(root)
 	mustNotContainIssueCode(t, issues, "DX020")
 }
+
+func TestCheckCanonicalRepoTopLevelPaths(t *testing.T) {
+	t.Run("canonical framework repo shape passes", func(t *testing.T) {
+		root := t.TempDir()
+		writeCanonicalRepoFixture(t, root)
+
+		issues := CheckCanonicalRepoTopLevelPaths(root)
+		if len(issues) != 0 {
+			t.Fatalf("expected no issues, got %+v", issues)
+		}
+	})
+
+	t.Run("forbidden app shell path fails", func(t *testing.T) {
+		root := t.TempDir()
+		writeCanonicalRepoFixture(t, root)
+		if err := os.MkdirAll(filepath.Join(root, "app"), 0o755); err != nil {
+			t.Fatal(err)
+		}
+
+		issues := CheckCanonicalRepoTopLevelPaths(root)
+		if !containsDoctorIssueMessage(issues, "forbidden top-level path present: app") {
+			t.Fatalf("expected forbidden app path issue, got %+v", issues)
+		}
+	})
+
+	t.Run("missing canonical runtime file fails", func(t *testing.T) {
+		root := t.TempDir()
+		writeCanonicalRepoFixture(t, root)
+		if err := os.Remove(filepath.Join(root, "router.go")); err != nil {
+			t.Fatal(err)
+		}
+
+		issues := CheckCanonicalRepoTopLevelPaths(root)
+		if !containsDoctorIssueMessage(issues, "missing canonical top-level path: router.go") {
+			t.Fatalf("expected missing router.go issue, got %+v", issues)
+		}
+	})
+}
+
+func writeCanonicalRepoFixture(t *testing.T, root string) {
+	t.Helper()
+
+	dirs := []string{
+		filepath.Join(root, "cmd"),
+		filepath.Join(root, "config"),
+		filepath.Join(root, "db"),
+		filepath.Join(root, "docs"),
+		filepath.Join(root, "framework"),
+		filepath.Join(root, "frontend"),
+		filepath.Join(root, "infra"),
+		filepath.Join(root, "locales"),
+		filepath.Join(root, "modules"),
+		filepath.Join(root, "static"),
+		filepath.Join(root, "styles"),
+		filepath.Join(root, "testdata"),
+		filepath.Join(root, "tests"),
+		filepath.Join(root, "tools", "cli", "ship"),
+	}
+	for _, dir := range dirs {
+		if err := os.MkdirAll(dir, 0o755); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	files := map[string]string{
+		filepath.Join(root, "go.mod"):     "module example.com/goship\n\ngo 1.25\n",
+		filepath.Join(root, "go.work"):    "go 1.25\n\nuse .\n",
+		filepath.Join(root, "container.go"): "package goship\n",
+		filepath.Join(root, "router.go"):    "package goship\n",
+		filepath.Join(root, "schedules.go"): "package goship\n",
+	}
+	for path, content := range files {
+		if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+}

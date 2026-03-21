@@ -700,6 +700,56 @@ func TestScaffoldTodo(t *testing.T) {
 			t.Fatalf("expected scaffold warning step, got %+v", payload.Steps)
 		}
 	})
+
+	t.Run("framework repo layout failures stop verify before build", func(t *testing.T) {
+		root := t.TempDir()
+		writeVerifyGoMod(t, root)
+		writeVerifyGoWork(t, root)
+		if err := os.MkdirAll(filepath.Join(root, "tools", "cli", "ship"), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.MkdirAll(filepath.Join(root, "app"), 0o755); err != nil {
+			t.Fatal(err)
+		}
+
+		prevWD := chdirVerifyRoot(t, root)
+		t.Cleanup(func() { _ = os.Chdir(prevWD) })
+
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+		calls := make([]string, 0)
+		code := RunVerify([]string{"--skip-tests"}, VerifyDeps{
+			Out:          out,
+			Err:          errOut,
+			FindGoModule: findVerifyGoModule,
+			RelocateTempl: func(rootPath string) error {
+				return nil
+			},
+			RunStep: func(name string, args ...string) (int, string, error) {
+				calls = append(calls, name+" "+strings.Join(args, " "))
+				return 0, "ok", nil
+			},
+			LookPath: func(file string) (string, error) {
+				return "/usr/bin/" + file, nil
+			},
+			RunDoctor: func() (int, string, error) {
+				t.Fatal("doctor should not run after canonical repo layout failure")
+				return 0, "", nil
+			},
+		})
+		if code != 1 {
+			t.Fatalf("exit code = %d, want 1", code)
+		}
+		if len(calls) != 0 {
+			t.Fatalf("verify should fail before subprocesses, got calls %+v", calls)
+		}
+		if !strings.Contains(errOut.String(), "verify failed at canonical repo layout") {
+			t.Fatalf("stderr = %q, want repo layout failure step", errOut.String())
+		}
+		if !strings.Contains(errOut.String(), "forbidden top-level path present: app") {
+			t.Fatalf("stderr = %q, want forbidden app path diagnostic", errOut.String())
+		}
+	})
 }
 
 func writeVerifyGoMod(t *testing.T, root string) {

@@ -132,6 +132,18 @@ func RunVerify(args []string, d VerifyDeps) int {
 	}
 
 	if err := withWorkingDir(root, func() error {
+		repoLayoutIssues := policies.CheckCanonicalRepoTopLevelPaths(".")
+		if repoLayoutIssues != nil {
+			if len(repoLayoutIssues) > 0 {
+				appendStep("canonical repo layout", false, formatVerifyDoctorIssues(repoLayoutIssues), "")
+				return nil
+			}
+			appendStep("canonical repo layout", true, "canonical GoShip repo layout is intact", "")
+			if failed != nil {
+				return nil
+			}
+		}
+
 		code, output, runErr := runStep("templ", "generate", "-path", ".")
 		if code == 0 && runErr == nil {
 			if relocateErr := relocateTempl("."); relocateErr != nil {
