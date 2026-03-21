@@ -3002,7 +3002,7 @@
     },
     "TKT-533": {
       "title": "Implement the canonical runtime-report JSON contract and lock it with contract tests.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-532"
     },
@@ -3121,7 +3121,7 @@
     },
     "TKT-553": {
       "title": "Implement framework-owned design tokens as CSS variables and prove token compilation in starter builds.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-552"
     },
