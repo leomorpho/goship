@@ -2168,7 +2168,7 @@
     },
     "TKT-393": {
       "title": "Enforce the canonical GoShip repo layout in CI and fail on forbidden top-level paths.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-392"
     },
