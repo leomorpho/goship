@@ -126,7 +126,7 @@ func resolveStartupWebFeatures(c *foundation.Container) (runtimeplan.Plan, runti
 }
 
 func registerPublicRoutes(c *foundation.Container, g *echo.Group, ctr ui.Controller, deps *frameworkweb.RouteDeps) error {
-	landingPage := controllers.NewLandingPageRoute(ctr)
+	landingPage := frameworkcontrollers.NewLandingPageRoute(ctr)
 	g.GET("/", landingPage.Get).Name = routeNames.RouteNameLandingPage
 
 	clearCookie := frameworkcontrollers.NewClearCookiesRoute(ctr)
@@ -168,7 +168,7 @@ func registerMailPreviewRoutes(g *echo.Group, ctr ui.Controller) {
 		return
 	}
 
-	mailPreview := controllers.NewMailPreviewRoute(ctr)
+	mailPreview := frameworkcontrollers.NewMailPreviewRoute(ctr)
 	mailGroup := g.Group("/dev/mail")
 	mailGroup.GET("", mailPreview.Index).Name = routeNames.RouteNameMailPreviewIndex
 	mailGroup.GET("/welcome", mailPreview.Welcome).Name = routeNames.RouteNameMailPreviewWelcome

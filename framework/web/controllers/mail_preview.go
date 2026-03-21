@@ -13,15 +13,15 @@ import (
 	"github.com/leomorpho/goship/framework/web/viewmodels"
 )
 
-type mailPreview struct {
-	ctr ui.Controller
+type MailPreviewRoute struct {
+	Controller ui.Controller
 }
 
-func NewMailPreviewRoute(ctr ui.Controller) mailPreview {
-	return mailPreview{ctr: ctr}
+func NewMailPreviewRoute(ctr ui.Controller) MailPreviewRoute {
+	return MailPreviewRoute{Controller: ctr}
 }
 
-func (r *mailPreview) Index(ctx echo.Context) error {
+func (r *MailPreviewRoute) Index(ctx echo.Context) error {
 	links := []string{
 		"/dev/mail/welcome",
 		"/dev/mail/password-reset",
@@ -41,11 +41,11 @@ func (r *mailPreview) Index(ctx echo.Context) error {
 	return ctx.HTML(http.StatusOK, b.String())
 }
 
-func (r *mailPreview) Welcome(ctx echo.Context) error {
+func (r *MailPreviewRoute) Welcome(ctx echo.Context) error {
 	data := viewmodels.NewEmailDefaultData()
-	data.AppName = string(r.ctr.Container.Config.App.Name)
-	data.SupportEmail = r.ctr.Container.Config.App.SupportEmail
-	data.Domain = r.ctr.Container.Config.HTTP.Domain
+	data.AppName = string(r.Controller.Container.Config.App.Name)
+	data.SupportEmail = r.Controller.Container.Config.App.SupportEmail
+	data.Domain = r.Controller.Container.Config.HTTP.Domain
 	data.ConfirmationLink = "https://example.test/confirm-email"
 
 	page := &ui.Page{
@@ -56,11 +56,11 @@ func (r *mailPreview) Welcome(ctx echo.Context) error {
 	return r.renderEmailPreview(ctx, emailviews.RegistrationConfirmation(page))
 }
 
-func (r *mailPreview) PasswordReset(ctx echo.Context) error {
+func (r *MailPreviewRoute) PasswordReset(ctx echo.Context) error {
 	data := viewmodels.NewEmailPasswordResetData()
-	data.AppName = string(r.ctr.Container.Config.App.Name)
-	data.SupportEmail = r.ctr.Container.Config.App.SupportEmail
-	data.Domain = r.ctr.Container.Config.HTTP.Domain
+	data.AppName = string(r.Controller.Container.Config.App.Name)
+	data.SupportEmail = r.Controller.Container.Config.App.SupportEmail
+	data.Domain = r.Controller.Container.Config.HTTP.Domain
 	data.ProfileName = "Preview User"
 	data.PasswordResetLink = "https://example.test/reset-password"
 	data.OperatingSystem = "macOS"
@@ -74,11 +74,11 @@ func (r *mailPreview) PasswordReset(ctx echo.Context) error {
 	return r.renderEmailPreview(ctx, emailviews.PasswordReset(page))
 }
 
-func (r *mailPreview) VerifyEmail(ctx echo.Context) error {
+func (r *MailPreviewRoute) VerifyEmail(ctx echo.Context) error {
 	data := viewmodels.NewEmailDefaultData()
-	data.AppName = string(r.ctr.Container.Config.App.Name)
-	data.SupportEmail = r.ctr.Container.Config.App.SupportEmail
-	data.Domain = r.ctr.Container.Config.HTTP.Domain
+	data.AppName = string(r.Controller.Container.Config.App.Name)
+	data.SupportEmail = r.Controller.Container.Config.App.SupportEmail
+	data.Domain = r.Controller.Container.Config.HTTP.Domain
 	data.ConfirmationLink = "https://example.test/verify-email"
 
 	page := &ui.Page{
@@ -89,7 +89,7 @@ func (r *mailPreview) VerifyEmail(ctx echo.Context) error {
 	return r.renderEmailPreview(ctx, emailviews.RegistrationConfirmation(page))
 }
 
-func (r *mailPreview) renderEmailPreview(ctx echo.Context, component templ.Component) error {
+func (r *MailPreviewRoute) renderEmailPreview(ctx echo.Context, component templ.Component) error {
 	html, _, err := mailer.RenderEmail(ctx.Request().Context(), component)
 	if err != nil {
 		return err

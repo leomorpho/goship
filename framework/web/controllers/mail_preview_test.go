@@ -12,7 +12,7 @@ import (
 	"github.com/leomorpho/goship/framework/web/ui"
 )
 
-func newMailPreviewControllerForTest() mailPreview {
+func newMailPreviewControllerForTest() MailPreviewRoute {
 	cfg := &config.Config{
 		App: config.AppConfig{
 			Name:         "GoShip",
@@ -52,11 +52,11 @@ func TestMailPreviewTemplateRoutes(t *testing.T) {
 	tests := []struct {
 		name string
 		path string
-		run  func(route *mailPreview, ctx echo.Context) error
+		run  func(route *MailPreviewRoute, ctx echo.Context) error
 	}{
-		{name: "welcome", path: "/dev/mail/welcome", run: func(route *mailPreview, ctx echo.Context) error { return route.Welcome(ctx) }},
-		{name: "password_reset", path: "/dev/mail/password-reset", run: func(route *mailPreview, ctx echo.Context) error { return route.PasswordReset(ctx) }},
-		{name: "verify_email", path: "/dev/mail/verify-email", run: func(route *mailPreview, ctx echo.Context) error { return route.VerifyEmail(ctx) }},
+		{name: "welcome", path: "/dev/mail/welcome", run: func(route *MailPreviewRoute, ctx echo.Context) error { return route.Welcome(ctx) }},
+		{name: "password_reset", path: "/dev/mail/password-reset", run: func(route *MailPreviewRoute, ctx echo.Context) error { return route.PasswordReset(ctx) }},
+		{name: "verify_email", path: "/dev/mail/verify-email", run: func(route *MailPreviewRoute, ctx echo.Context) error { return route.VerifyEmail(ctx) }},
 	}
 
 	for _, tc := range tests {
