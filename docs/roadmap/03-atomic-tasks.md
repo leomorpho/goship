@@ -1,5 +1,7 @@
 # GoShip Atomic Task List
 
+> Status note: `01-framework-plan.md` is the canonical roadmap. This file is execution/task detail only.
+
 **Reference docs (read before picking up any task):**
 - `docs/roadmap/02-architecture-evolution.md` — JS islands, module system, app split, MCP
 - `docs/roadmap/04-pagoda-and-dx-improvements.md` — single binary, admin panel, DX improvements

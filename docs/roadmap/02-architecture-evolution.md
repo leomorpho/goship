@@ -1,5 +1,7 @@
 # GoShip Architecture Evolution
 
+> Status note: `01-framework-plan.md` is the canonical roadmap. This file is supporting architecture context and may contain historical assumptions.
+
 **Status:** Active planning — tasks tracked in `03-atomic-tasks.md`
 **Last updated:** 2026-03-08
 

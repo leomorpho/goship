@@ -1,5 +1,7 @@
 # GoShip — Modules & Capabilities
 
+> Status note: `01-framework-plan.md` is the canonical roadmap. This file is supporting execution guidance.
+
 **Status:** Active planning — tasks pickup-ready for any LLM agent
 **Last updated:** 2026-03-08
 

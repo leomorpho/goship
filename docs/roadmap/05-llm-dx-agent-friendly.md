@@ -1,5 +1,7 @@
 # GoShip — LLM-Forward DX & Agent-Friendly Codebase
 
+> Status note: `01-framework-plan.md` is the canonical roadmap. This file is supporting execution guidance.
+
 **Status:** Active — tasks pickup-ready for any LLM agent
 **Last updated:** 2026-03-08
 **Priority:** Convention-over-configuration is the top priority. All tasks serve that goal.

@@ -1,5 +1,7 @@
 # Pagoda Inspirations & DX Improvements
 
+> Status note: `01-framework-plan.md` is the canonical roadmap. This file is idea/input context, not canonical priority.
+
 **Reference:** `docs/roadmap/02-architecture-evolution.md` for broader context.
 **Last updated:** 2026-03-08
 

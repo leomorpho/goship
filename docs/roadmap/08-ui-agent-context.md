@@ -1,5 +1,7 @@
 # UI Agent Context: LLM-Friendly UI Convention
 
+> Status note: `01-framework-plan.md` is the canonical roadmap. This file is supporting UI/agent context.
+
 Make it easy for any LLM to navigate and edit the Go/HTMX/Templ UI in this repository.
 
 Convention spec: `docs/ui/convention.md`
