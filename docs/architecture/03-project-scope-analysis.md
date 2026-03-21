@@ -14,6 +14,7 @@ GoShip is a Go + Echo + Templ + HTMX starter application that ships with:
 - Background task processing (Asynq worker)
 - Provider-agnostic AI completion service with an Anthropic adapter
 - Frontend asset bundling for vanilla JS plus Svelte/React/Vue islands
+- Framework-owned design tokens compiled to CSS variables and recipe classes through the Vite/Tailwind asset pipeline
 
 GoShip is maintained as a single-app repository: one canonical runtime app under `app/` + `cmd/`, plus framework/modules/tooling packages.
 
@@ -164,7 +165,7 @@ through `core.Jobs`, and the worker runtime starts/stops the scheduler lifecycle
 Build pipeline:
 
 - JS via `frontend/vite.config.ts` + Vite
-- CSS via Tailwind CLI in Makefile
+- CSS tokens and recipe classes live in `styles/styles.css` + `styles/tailwind_components.css`, with Vite smoke coverage proving the emitted starter CSS bundle contains the framework-owned token surface
 
 ## 10) AI Integration
 

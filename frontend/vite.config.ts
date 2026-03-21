@@ -11,6 +11,7 @@ const outputDir = path.resolve(frontendRoot, "../static");
 const islandsDir = path.resolve(frontendRoot, "islands");
 const islandsRuntimeEntry = path.resolve(frontendRoot, "javascript/vanilla/islands-runtime.js");
 const vanillaEntry = path.resolve(frontendRoot, "javascript/vanilla/main.js");
+const stylesEntry = path.resolve(frontendRoot, "../styles/styles.css");
 const staticURLPrefix = "/files";
 
 function collectIslandEntries(rootDir: string): Record<string, string> {
@@ -110,6 +111,7 @@ export default defineConfig({
     rollupOptions: {
       preserveEntrySignatures: "strict",
       input: {
+        styles_bundle: stylesEntry,
         islands_runtime: islandsRuntimeEntry,
         vanilla_bundle: vanillaEntry,
         ...collectIslandEntries(islandsDir),
@@ -128,6 +130,9 @@ export default defineConfig({
         assetFileNames(assetInfo) {
           if (assetInfo.name === "islands-manifest.json") {
             return "islands-manifest.json";
+          }
+          if (assetInfo.name === "styles_bundle.css") {
+            return "styles_bundle.css";
           }
           return "islands/assets/[name]-[hash][extname]";
         },

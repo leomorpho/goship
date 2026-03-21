@@ -78,3 +78,15 @@ func TestPage_GetMessages(t *testing.T) {
 		}
 	}
 }
+
+func TestPage_DesignTokenRecipes(t *testing.T) {
+	ctx, _ := tests.NewContext(c.Web, "/")
+	p := ui.NewPage(ctx)
+
+	assert.Equal(t, "gs-page", p.StarterPageClass())
+	assert.Equal(t, "gs-panel", p.StarterPanelClass())
+	assert.Equal(t, "gs-title", p.StarterTitleClass())
+	assert.Equal(t, "gs-text", p.StarterTextClass())
+	assert.Equal(t, "gs-button gs-button-primary", p.StarterPrimaryActionClass())
+	assert.Equal(t, "gs-button gs-button-secondary", p.StarterSecondaryActionClass())
+}

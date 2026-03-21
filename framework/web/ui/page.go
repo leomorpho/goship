@@ -115,3 +115,27 @@ func (p Page) Language() string {
 	}
 	return lang
 }
+
+func (p Page) StarterPageClass() string {
+	return "gs-page"
+}
+
+func (p Page) StarterPanelClass() string {
+	return "gs-panel"
+}
+
+func (p Page) StarterTitleClass() string {
+	return "gs-title"
+}
+
+func (p Page) StarterTextClass() string {
+	return "gs-text"
+}
+
+func (p Page) StarterPrimaryActionClass() string {
+	return "gs-button gs-button-primary"
+}
+
+func (p Page) StarterSecondaryActionClass() string {
+	return "gs-button gs-button-secondary"
+}

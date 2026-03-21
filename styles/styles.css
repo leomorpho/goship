@@ -6,18 +6,55 @@
 @tailwind components;
 @tailwind utilities;
 
-
 [x-cloak] {
   display: none !important;
 }
 
 :root {
+  --gs-color-background: #f3f6fb;
+  --gs-color-surface: #ffffff;
+  --gs-color-surface-muted: #eef3ff;
+  --gs-color-text: #172033;
+  --gs-color-text-muted: #5b6578;
+  --gs-color-border: #d6dfef;
+  --gs-color-accent: #1f4ed8;
+  --gs-color-accent-strong: #1d3fb0;
+  --gs-color-accent-contrast: #f8fbff;
+  --gs-color-success: #18794e;
+  --gs-color-danger: #b42318;
+  --gs-radius-panel: 1.5rem;
+  --gs-radius-control: 0.875rem;
+  --gs-shadow-panel: 0 24px 60px rgba(15, 23, 42, 0.14);
+  --gs-space-page: clamp(1.5rem, 3vw, 3rem);
   --brightness-normal: 1;
-  /* No change by default */
   --brightness-hover-light: 0.15;
-  /* Lighter in light mode */
   --brightness-hover-dark: 0.3;
-  /* Darker in dark mode */
+  --brightness-hover: var(--brightness-hover-light);
+}
+
+[data-theme="darkmode"] {
+  --gs-color-background: #08111f;
+  --gs-color-surface: #101b2f;
+  --gs-color-surface-muted: #16233b;
+  --gs-color-text: #edf3ff;
+  --gs-color-text-muted: #aab9d4;
+  --gs-color-border: #243450;
+  --gs-color-accent: #8fb4ff;
+  --gs-color-accent-strong: #bfd3ff;
+  --gs-color-accent-contrast: #08111f;
+  --gs-color-success: #6fd0a0;
+  --gs-color-danger: #ff9b8f;
+  --gs-shadow-panel: 0 30px 70px rgba(2, 6, 23, 0.45);
+  --brightness-hover: var(--brightness-hover-dark);
+}
+
+html {
+  background: var(--gs-color-background);
+}
+
+body {
+  background: var(--gs-color-background);
+  color: var(--gs-color-text);
 }
 
 .hover-brightness {

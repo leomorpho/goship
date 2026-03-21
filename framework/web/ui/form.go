@@ -61,9 +61,9 @@ func (f FormSubmission) GetFieldErrors(fieldName string) []string {
 func (f FormSubmission) GetFieldStatusClass(fieldName string) string {
 	if f.IsSubmitted {
 		if f.FieldHasErrors(fieldName) {
-			return "is-danger"
+			return "gs-field-error"
 		}
-		return "is-success"
+		return "gs-field-success"
 	}
 	return ""
 }

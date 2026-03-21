@@ -3,7 +3,7 @@
 This document describes the visual design system for the GoShip codebase.
 It is intended as a reference for developers and AI agents before editing any UI file.
 
-Last updated: 2026-03-07
+Last updated: 2026-03-21
 
 ---
 
@@ -27,6 +27,12 @@ The active theme is set via `data-theme` on the `<html>` element.
 | `error` | `#A30000` — dark red, error states | `#A30000` — same dark red, unchanged |
 
 > `primary-content`, `secondary-content`, `accent-content`, etc. are derived automatically by DaisyUI from the base token.
+
+Framework-owned CSS variable layer:
+
+- `styles/styles.css` defines the canonical `--gs-*` tokens for background, surface, text, border, accent, success, danger, radius, spacing, and shadow.
+- `styles/tailwind_components.css` defines the framework-owned recipe classes that are safelisted into the bundle: `gs-page`, `gs-panel`, `gs-title`, `gs-text`, `gs-button`, `gs-button-primary`, `gs-button-secondary`, `gs-field-error`, and `gs-field-success`.
+- Prefer those `gs-*` recipe classes when the framework should own the default presentation across templ pages and islands; use raw utility classes only for app-specific one-offs.
 
 ---
 

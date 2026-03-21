@@ -6,6 +6,7 @@
   "scripts": {
     "build": "vite build",
     "build:vite": "vite build",
+    "test": "node --test test/*.test.mjs",
     "watch": "vite build --watch"
   },
   "repository": {

@@ -1,3 +1,39 @@
-/* .label {
-    @apply block text-sm font-medium text-gray-700 dark: text-gray-100;
-} */
+@layer components {
+  .gs-page {
+    @apply min-h-screen bg-gs-bg text-gs-text;
+  }
+
+  .gs-panel {
+    @apply rounded-gs-panel border border-gs-border bg-gs-surface shadow-gs-panel;
+  }
+
+  .gs-title {
+    @apply font-PlayfairDisplay text-4xl font-semibold tracking-tight text-gs-text sm:text-5xl;
+  }
+
+  .gs-text {
+    @apply text-base leading-7 text-gs-text-muted;
+  }
+
+  .gs-button {
+    @apply inline-flex items-center justify-center rounded-gs-control px-4 py-2.5 text-sm font-semibold transition-colors duration-200;
+  }
+
+  .gs-button-primary {
+    @apply bg-gs-accent text-gs-accent-contrast hover:bg-gs-accent-strong;
+  }
+
+  .gs-button-secondary {
+    @apply border border-gs-border bg-gs-surface text-gs-text hover:bg-gs-surface-muted;
+  }
+
+  .gs-field-error {
+    border-color: var(--gs-color-danger);
+    --tw-ring-color: var(--gs-color-danger);
+  }
+
+  .gs-field-success {
+    border-color: var(--gs-color-success);
+    --tw-ring-color: var(--gs-color-success);
+  }
+}

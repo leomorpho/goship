@@ -31,7 +31,7 @@ func TestFormSubmission(t *testing.T) {
 	require.Len(t, form.Submission.GetFieldErrors("Name"), 1)
 	assert.Len(t, form.Submission.GetFieldErrors("Email"), 0)
 	assert.Equal(t, "This field is required.", form.Submission.GetFieldErrors("Name")[0])
-	assert.Equal(t, "is-danger", form.Submission.GetFieldStatusClass("Name"))
-	assert.Equal(t, "is-success", form.Submission.GetFieldStatusClass("Email"))
+	assert.Equal(t, "gs-field-error", form.Submission.GetFieldStatusClass("Name"))
+	assert.Equal(t, "gs-field-success", form.Submission.GetFieldStatusClass("Email"))
 	assert.False(t, form.Submission.IsDone())
 }
