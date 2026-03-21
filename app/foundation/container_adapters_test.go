@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/leomorpho/goship/config"
+	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
 )
 
 func TestContainerValidateAdapterPlan(t *testing.T) {
@@ -63,12 +64,10 @@ func TestContainerValidateAdapterPlan(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			c := &Container{Config: tt.cfg}
-			panicked := didPanic(func() {
-				c.validateAdapterPlan()
-			})
-			if panicked != tt.wantPanic {
-				t.Fatalf("panic mismatch: got=%v want=%v", panicked, tt.wantPanic)
+			_, err := frameworkbootstrap.ResolveAdapterPlan(tt.cfg)
+			gotErr := err != nil
+			if gotErr != tt.wantPanic {
+				t.Fatalf("error mismatch: got=%v want=%v err=%v", gotErr, tt.wantPanic, err)
 			}
 		})
 	}
@@ -77,28 +76,16 @@ func TestContainerValidateAdapterPlan(t *testing.T) {
 func TestContainerValidateAdapterPlan_StrictPubSubDependencyContract(t *testing.T) {
 	t.Parallel()
 
-	c := &Container{
-		Config: &config.Config{
-			Adapters: config.AdaptersConfig{
-				DB:     "postgres",
-				Cache:  "memory",
-				Jobs:   "inproc",
-				PubSub: "redis",
-			},
+	_, err := frameworkbootstrap.ResolveAdapterPlan(&config.Config{
+		Adapters: config.AdaptersConfig{
+			DB:     "postgres",
+			Cache:  "memory",
+			Jobs:   "inproc",
+			PubSub: "redis",
 		},
-	}
+	})
 
-	if !didPanic(func() { c.validateAdapterPlan() }) {
-		t.Fatal("expected panic when redis pubsub is configured without redis cache backing")
+	if err == nil {
+		t.Fatal("expected error when redis pubsub is configured without redis cache backing")
 	}
-}
-
-func didPanic(fn func()) (panicked bool) {
-	defer func() {
-		if recover() != nil {
-			panicked = true
-		}
-	}()
-	fn()
-	return panicked
 }

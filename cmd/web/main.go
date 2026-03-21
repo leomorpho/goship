@@ -14,7 +14,6 @@ import (
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/app"
 	"github.com/leomorpho/goship/app/foundation"
-	"github.com/leomorpho/goship/app/plans"
 	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
 	"github.com/leomorpho/goship/framework/events"
 	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
@@ -46,7 +45,7 @@ func main() {
 		}
 	}()
 
-	plansCatalog, err := plans.BuildCatalog()
+	plansCatalog, err := paidsubscriptions.BuildDefaultCatalog()
 	if err != nil {
 		c.Web.Logger.Fatalf("failed to build subscription plans catalog: %v", err)
 	}
