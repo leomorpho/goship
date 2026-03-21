@@ -11,8 +11,8 @@ import (
 
 	"github.com/labstack/echo/v4"
 	echomiddleware "github.com/labstack/echo/v4/middleware"
-	customctx "github.com/leomorpho/goship/framework/context"
 	"github.com/leomorpho/goship/framework/domain"
+	frameworkauthcontext "github.com/leomorpho/goship/framework/web/authcontext"
 	"github.com/leomorpho/goship/framework/web/layouts/gen"
 	routeNames "github.com/leomorpho/goship/framework/web/routenames"
 	templates "github.com/leomorpho/goship/framework/web/templates"
@@ -221,15 +221,7 @@ func (s *routeService) postCurrentProfilePhoto(ctx echo.Context) error {
 const profileIDQueryParam = "profile_id"
 
 func authenticatedProfileID(ctx echo.Context) (int, error) {
-	v := ctx.Get(customctx.AuthenticatedProfileIDKey)
-	if v == nil {
-		return 0, echo.NewHTTPError(http.StatusUnauthorized, "authenticated profile id missing from context")
-	}
-	profileID, ok := v.(int)
-	if !ok || profileID <= 0 {
-		return 0, echo.NewHTTPError(http.StatusUnauthorized, "authenticated profile id missing from context")
-	}
-	return profileID, nil
+	return frameworkauthcontext.AuthenticatedProfileID(ctx)
 }
 
 func fullSecureURLForRoute(ctx echo.Context, domain, routeName, csrf string) string {

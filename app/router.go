@@ -22,6 +22,7 @@ import (
 	"github.com/leomorpho/goship/framework/logging"
 	"github.com/leomorpho/goship/framework/runtimeplan"
 	frameworksecurity "github.com/leomorpho/goship/framework/security"
+	frameworkcontrollers "github.com/leomorpho/goship/framework/web/controllers"
 	twofamodule "github.com/leomorpho/goship/modules/2fa"
 	adminmodule "github.com/leomorpho/goship/modules/admin"
 	authmodule "github.com/leomorpho/goship/modules/auth"
@@ -128,7 +129,7 @@ func registerPublicRoutes(c *foundation.Container, g *echo.Group, ctr ui.Control
 	landingPage := controllers.NewLandingPageRoute(ctr)
 	g.GET("/", landingPage.Get).Name = routeNames.RouteNameLandingPage
 
-	clearCookie := controllers.NewClearCookiesRoute(ctr)
+	clearCookie := frameworkcontrollers.NewClearCookiesRoute(ctr)
 	g.GET("/clear-cookie", clearCookie.Get).Name = routeNames.RouteNameClearCookie
 
 	healthcheck := controllers.NewHealthCheckRoute(ctr)

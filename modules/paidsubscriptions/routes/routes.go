@@ -14,6 +14,7 @@ import (
 	customctx "github.com/leomorpho/goship/framework/context"
 	"github.com/leomorpho/goship/framework/core"
 	"github.com/leomorpho/goship/framework/domain"
+	frameworkauthcontext "github.com/leomorpho/goship/framework/web/authcontext"
 	"github.com/leomorpho/goship/framework/web/layouts/gen"
 	"github.com/leomorpho/goship/framework/web/pages/gen"
 	routeNames "github.com/leomorpho/goship/framework/web/routenames"
@@ -334,19 +335,9 @@ func (m *RouteModule) isPaidPlanKey(planKey string) bool {
 }
 
 func authenticatedProfileID(ctx echo.Context) (int, error) {
-	v := ctx.Get(customctx.AuthenticatedProfileIDKey)
-	profileID, ok := v.(int)
-	if !ok || profileID <= 0 {
-		return 0, echo.NewHTTPError(http.StatusUnauthorized, "authenticated profile id missing from context")
-	}
-	return profileID, nil
+	return frameworkauthcontext.AuthenticatedProfileID(ctx)
 }
 
 func authenticatedUserEmail(ctx echo.Context) (string, error) {
-	v := ctx.Get(customctx.AuthenticatedUserEmailKey)
-	email, ok := v.(string)
-	if !ok || email == "" {
-		return "", echo.NewHTTPError(http.StatusUnauthorized, "authenticated user email missing from context")
-	}
-	return email, nil
+	return frameworkauthcontext.AuthenticatedUserEmail(ctx)
 }

@@ -15,15 +15,14 @@ import (
 	"github.com/leomorpho/goship/framework/dberrors"
 	"github.com/leomorpho/goship/framework/domain"
 	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
-	routeNames "github.com/leomorpho/goship/framework/web/routenames"
-	"github.com/leomorpho/goship/framework/web/ui"
-	profilesvc "github.com/leomorpho/goship/modules/profile"
-
-	customctx "github.com/leomorpho/goship/framework/context"
+	frameworkauthcontext "github.com/leomorpho/goship/framework/web/authcontext"
 	"github.com/leomorpho/goship/framework/web/layouts/gen"
 	"github.com/leomorpho/goship/framework/web/pages/gen"
+	routeNames "github.com/leomorpho/goship/framework/web/routenames"
 	"github.com/leomorpho/goship/framework/web/templates"
+	"github.com/leomorpho/goship/framework/web/ui"
 	"github.com/leomorpho/goship/framework/web/viewmodels"
+	profilesvc "github.com/leomorpho/goship/modules/profile"
 )
 
 const notificationQueryParam = "notif"
@@ -628,10 +627,5 @@ func (r *OutgoingNotificationsRoute) createNotificationsPage(
 }
 
 func authenticatedProfileID(ctx echo.Context) (int, error) {
-	v := ctx.Get(customctx.AuthenticatedProfileIDKey)
-	profileID, ok := v.(int)
-	if !ok || profileID <= 0 {
-		return 0, echo.NewHTTPError(http.StatusUnauthorized, "authenticated profile id missing from context")
-	}
-	return profileID, nil
+	return frameworkauthcontext.AuthenticatedProfileID(ctx)
 }

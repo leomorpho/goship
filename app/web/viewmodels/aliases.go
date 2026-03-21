@@ -74,6 +74,7 @@ var (
 	NewLoginOAuthData                = frameworkviewmodels.NewLoginOAuthData
 	NewLoginOAuthProvider            = frameworkviewmodels.NewLoginOAuthProvider
 	NewManagedSettingControl         = frameworkviewmodels.NewManagedSettingControl
+	ManagedSettingsFromConfig        = frameworkviewmodels.ManagedSettingsFromConfig
 	NewNormalNotificationsPageData   = frameworkviewmodels.NewNormalNotificationsPageData
 	NewNotificationItem              = frameworkviewmodels.NewNotificationItem
 	NewNotificationPermissionsData   = frameworkviewmodels.NewNotificationPermissionsData

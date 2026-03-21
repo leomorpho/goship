@@ -50,8 +50,8 @@ func (c *deleteAccount) DeleteAccountPage(ctx echo.Context) error {
 	if err != nil {
 		return err
 	}
-	planKey := activePlanKey(c.subscriptionsService, activePlan)
-	uncancelledSubscription := isPaidPlanKey(c.subscriptionsService, planKey) && !isTrial && subscriptionExpiredOn == nil
+	planKey := c.subscriptionsService.ActivePlanKey(activePlan)
+	uncancelledSubscription := c.subscriptionsService.IsPaidPlanKey(planKey) && !isTrial && subscriptionExpiredOn == nil
 
 	page.Layout = layouts.Main
 	page.Name = templates.PageDeleteAccount

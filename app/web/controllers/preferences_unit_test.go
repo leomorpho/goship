@@ -29,7 +29,7 @@ func TestManagedSettingsViewData_MapsManagedStatus(t *testing.T) {
 		},
 	}
 
-	settings := managedSettingsViewData(&cfg)
+	settings := viewmodels.ManagedSettingsFromConfig(&cfg)
 	require.NotEmpty(t, settings)
 
 	var cacheSettingFound bool
@@ -66,7 +66,7 @@ func TestManagedSettingsPreferencesPage_RendersAccessAndSourceStates(t *testing.
 	pageData := viewmodels.NewPreferencesData()
 	pageData.ManagedMode = true
 	pageData.ManagedAuthority = cfg.Managed.RuntimeReport.Authority
-	pageData.ManagedSettings = managedSettingsViewData(&cfg)
+	pageData.ManagedSettings = viewmodels.ManagedSettingsFromConfig(&cfg)
 
 	ctx, _ := tests.NewContext(echo.New(), "/auth/admin/managed-settings")
 	page := ui.NewPage(ctx)
