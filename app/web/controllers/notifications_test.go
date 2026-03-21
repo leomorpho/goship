@@ -10,6 +10,7 @@ import (
 	"github.com/labstack/echo/v4"
 	modnotifications "github.com/leomorpho/goship-modules/notifications/routes"
 	customctx "github.com/leomorpho/goship/framework/context"
+	frameworkauthcontext "github.com/leomorpho/goship/framework/web/authcontext"
 	"github.com/leomorpho/goship/framework/web/ui"
 )
 
@@ -31,17 +32,17 @@ func TestAuthenticatedProfileID(t *testing.T) {
 	rec := httptest.NewRecorder()
 	ctx := e.NewContext(req, rec)
 
-	if _, err := authenticatedProfileID(ctx); err == nil {
+	if _, err := frameworkauthcontext.AuthenticatedProfileID(ctx); err == nil {
 		t.Fatal("expected error when profile id context key is missing")
 	}
 
 	ctx.Set(customctx.AuthenticatedProfileIDKey, 0)
-	if _, err := authenticatedProfileID(ctx); err == nil {
+	if _, err := frameworkauthcontext.AuthenticatedProfileID(ctx); err == nil {
 		t.Fatal("expected error for non-positive profile id")
 	}
 
 	ctx.Set(customctx.AuthenticatedProfileIDKey, 42)
-	got, err := authenticatedProfileID(ctx)
+	got, err := frameworkauthcontext.AuthenticatedProfileID(ctx)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

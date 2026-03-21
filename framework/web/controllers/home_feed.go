@@ -17,20 +17,17 @@ import (
 	"log/slog"
 )
 
-type (
-	homeFeed struct {
-		ctr            ui.Controller
-		profileService profilesvc.ProfileService
-		pageSize       *int
-	}
-)
+type homeFeed struct {
+	ctr            ui.Controller
+	profileService profilesvc.ProfileService
+	pageSize       *int
+}
 
 func NewHomeFeedRoute(
 	ctr ui.Controller,
 	profileService profilesvc.ProfileService,
 	pageSize *int,
 ) homeFeed {
-
 	return homeFeed{
 		ctr:            ctr,
 		profileService: profileService,
@@ -42,19 +39,14 @@ func (c *homeFeed) Get(ctx echo.Context) error {
 	justFinishedOnboardedStr := ctx.QueryParam("just_finished_onboarding")
 	var justFinishedOnboarded bool
 	if justFinishedOnboardedStr != "" {
-		// Convert the query parameter string to lowercase to handle case-insensitivity
 		justFinishedOnboardedStr = strings.ToLower(justFinishedOnboardedStr)
-
-		// Parse the string into a boolean value
 		switch justFinishedOnboardedStr {
 		case "true":
 			justFinishedOnboarded = true
 		case "false":
 			justFinishedOnboarded = false
 		default:
-			// Handle invalid or unexpected values
-			// You can set a default value or handle the error as needed
-			justFinishedOnboarded = false // Or you might want to return an error
+			justFinishedOnboarded = false
 		}
 	}
 
@@ -81,7 +73,6 @@ func (c *homeFeed) Get(ctx echo.Context) error {
 		oldestAnswerTimestamp = time.Now()
 	}
 
-	// NOTE: we're obviosuly not querying any home feed items with the timestamp, but feel free to create the appropriate repo method for it.
 	nextPageURL := ctx.Echo().Reverse(routenames.RouteNameHomeFeed) + "?timestamp=" + oldestAnswerTimestamp.Format(time.RFC3339Nano)
 
 	data := viewmodels.NewHomeFeedData()
@@ -98,18 +89,14 @@ func (c *homeFeed) Get(ctx echo.Context) error {
 }
 
 func (c *homeFeed) GetHomeButtons(ctx echo.Context) error {
-
 	page := ui.NewPage(ctx)
 	page.Layout = layouts.Main
 	page.Component = pages.HomeFeedButtons(&page)
 	page.Name = templates.PageHomeFeed
 
 	var numWaitingOnPartner int
-
 	numDrafts := 2
-
 	numLiked := 4
-
 	waitingOnYou := 2
 
 	data := viewmodels.NewHomeFeedButtonsData()
@@ -119,6 +106,5 @@ func (c *homeFeed) GetHomeButtons(ctx echo.Context) error {
 	data.NumWaitingOnYou = waitingOnYou
 
 	page.Data = data
-
 	return c.ctr.RenderPage(ctx, page)
 }

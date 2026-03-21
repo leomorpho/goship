@@ -9,6 +9,7 @@ import (
 	"github.com/leomorpho/goship/app/views/web/pages/gen"
 	"github.com/leomorpho/goship/framework/domain"
 	"github.com/leomorpho/goship/framework/runtimeconfig"
+	frameworkauthcontext "github.com/leomorpho/goship/framework/web/authcontext"
 	routeNames "github.com/leomorpho/goship/framework/web/routenames"
 	"github.com/leomorpho/goship/framework/web/ui"
 	viewmodels "github.com/leomorpho/goship/framework/web/viewmodels"
@@ -47,7 +48,7 @@ func (p *preferences) Get(ctx echo.Context) error {
 		return err
 	}
 
-	profileID, err := authenticatedProfileID(ctx)
+	profileID, err := frameworkauthcontext.AuthenticatedProfileID(ctx)
 	if err != nil {
 		return err
 	}
@@ -96,7 +97,7 @@ func (p *preferences) Get(ctx echo.Context) error {
 }
 
 func (p *preferences) currentPreferencesData(ctx echo.Context) (viewmodels.PreferencesData, error) {
-	profileID, err := authenticatedProfileID(ctx)
+	profileID, err := frameworkauthcontext.AuthenticatedProfileID(ctx)
 	if err != nil {
 		return viewmodels.NewPreferencesData(), err
 	}

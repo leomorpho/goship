@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	frameworkauthcontext "github.com/leomorpho/goship/framework/web/authcontext"
 	"github.com/leomorpho/goship/framework/web/routenames"
 	"github.com/leomorpho/goship/framework/web/ui"
 	profilesvc "github.com/leomorpho/goship/modules/profile"
@@ -17,7 +18,7 @@ func NewOnboardingRoute(ctr ui.Controller, profileService *profilesvc.ProfileSer
 }
 
 func (p *onboarding) Get(ctx echo.Context) error {
-	profileID, err := authenticatedProfileID(ctx)
+	profileID, err := frameworkauthcontext.AuthenticatedProfileID(ctx)
 	if err != nil {
 		return err
 	}

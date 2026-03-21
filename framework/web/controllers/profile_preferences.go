@@ -8,6 +8,7 @@ import (
 	"github.com/leomorpho/goship/app/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/views/web/pages/gen"
 	"github.com/leomorpho/goship/framework/context"
+	frameworkauthcontext "github.com/leomorpho/goship/framework/web/authcontext"
 	"github.com/leomorpho/goship/framework/web/ui"
 	viewmodels "github.com/leomorpho/goship/framework/web/viewmodels"
 	profilesvc "github.com/leomorpho/goship/modules/profile"
@@ -21,7 +22,7 @@ func NewProfilePrefsRoute(ctr ui.Controller, profileService *profilesvc.ProfileS
 }
 
 func (p *profilePrefsRoute) GetBio(ctx echo.Context) error {
-	profileID, err := authenticatedProfileID(ctx)
+	profileID, err := frameworkauthcontext.AuthenticatedProfileID(ctx)
 	if err != nil {
 		return err
 	}
@@ -63,7 +64,7 @@ func (p *profilePrefsRoute) UpdateBio(ctx echo.Context) error {
 		return p.GetBio(ctx)
 	}
 
-	profileID, err := authenticatedProfileID(ctx)
+	profileID, err := frameworkauthcontext.AuthenticatedProfileID(ctx)
 	if err != nil {
 		return err
 	}

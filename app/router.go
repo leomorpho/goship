@@ -12,7 +12,6 @@ import (
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	paidsubscriptionroutes "github.com/leomorpho/goship-modules/paidsubscriptions/routes"
 	"github.com/leomorpho/goship/app/foundation"
-	"github.com/leomorpho/goship/app/web/controllers"
 	"github.com/leomorpho/goship/config"
 	"github.com/leomorpho/goship/framework/backup"
 	"github.com/leomorpho/goship/framework/logging"
@@ -194,7 +193,7 @@ func registerAuthRoutes(c *foundation.Container, g *echo.Group, ctr ui.Controlle
 	}
 
 	onboardingGroup := g.Group("/welcome", middleware.RequireAuthentication())
-	preferences := controllers.NewPreferencesRoute(
+	preferences := frameworkcontrollers.NewPreferencesRoute(
 		ctr,
 		deps.ProfileService,
 		deps.PwaPushService,
@@ -210,14 +209,14 @@ func registerAuthRoutes(c *foundation.Container, g *echo.Group, ctr ui.Controlle
 	onboardingGroup.GET("/preferences/display-name/get", preferences.GetDisplayName).Name = routeNames.RouteNameGetDisplayName
 	onboardingGroup.POST("/preferences/display-name/save", preferences.SaveDisplayName).Name = routeNames.RouteNameUpdateDisplayName
 
-	deleteAccountRoute := controllers.NewDeleteAccountRoute(ctr, deps.ProfileService, deps.SubscriptionsRepo)
+	deleteAccountRoute := frameworkcontrollers.NewDeleteAccountRoute(ctr, deps.ProfileService, deps.SubscriptionsRepo)
 	onboardingGroup.GET("/preferences/delete-account", deleteAccountRoute.DeleteAccountPage).Name = routeNames.RouteNameDeleteAccountPage
 	onboardingGroup.GET("/preferences/delete-account/now", deleteAccountRoute.DeleteAccountRequest).Name = routeNames.RouteNameDeleteAccountRequest
 
-	finishOnboarding := controllers.NewOnboardingRoute(ctr, deps.ProfileService)
+	finishOnboarding := frameworkcontrollers.NewOnboardingRoute(ctr, deps.ProfileService)
 	onboardingGroup.GET("/finish-onboarding", finishOnboarding.Get).Name = routeNames.RouteNameFinishOnboarding
 
-	profilePrefs := controllers.NewProfilePrefsRoute(ctr, deps.ProfileService)
+	profilePrefs := frameworkcontrollers.NewProfilePrefsRoute(ctr, deps.ProfileService)
 	onboardingGroup.GET("/profileBio", profilePrefs.GetBio).Name = routeNames.RouteNameGetBio
 	onboardingGroup.POST("/profileBio/update", profilePrefs.UpdateBio).Name = routeNames.RouteNameUpdateBio
 
@@ -231,7 +230,7 @@ func registerAuthRoutes(c *foundation.Container, g *echo.Group, ctr ui.Controlle
 
 	onboardedGroup := g.Group("/auth", middleware.RequireAuthentication(), middleware.RedirectToOnboardingIfNotComplete())
 
-	homeFeed := controllers.NewHomeFeedRoute(ctr, *deps.ProfileService, &c.Config.App.PageSize)
+	homeFeed := frameworkcontrollers.NewHomeFeedRoute(ctr, *deps.ProfileService, &c.Config.App.PageSize)
 	onboardedGroup.GET("/homeFeed", homeFeed.Get, middleware.SetLastSeenOnline(c.Auth)).Name = routeNames.RouteNameHomeFeed
 	onboardedGroup.GET("/homeFeed/buttons", homeFeed.GetHomeButtons).Name = routeNames.RouteNameGetHomeFeedButtons
 

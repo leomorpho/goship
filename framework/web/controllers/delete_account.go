@@ -2,32 +2,29 @@ package controllers
 
 import (
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
-	routeNames "github.com/leomorpho/goship/framework/web/routenames"
-	"github.com/leomorpho/goship/framework/web/ui"
-
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/app/views"
 	"github.com/leomorpho/goship/app/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/views/web/pages/gen"
+	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
+	frameworkauthcontext "github.com/leomorpho/goship/framework/web/authcontext"
+	routeNames "github.com/leomorpho/goship/framework/web/routenames"
+	"github.com/leomorpho/goship/framework/web/ui"
 	"github.com/leomorpho/goship/framework/web/viewmodels"
 	profilesvc "github.com/leomorpho/goship/modules/profile"
 )
 
-type (
-	deleteAccount struct {
-		ctr                  ui.Controller
-		profileService       *profilesvc.ProfileService
-		subscriptionsService *paidsubscriptions.Service
-	}
-)
+type deleteAccount struct {
+	ctr                  ui.Controller
+	profileService       *profilesvc.ProfileService
+	subscriptionsService *paidsubscriptions.Service
+}
 
 func NewDeleteAccountRoute(
 	ctr ui.Controller,
 	profileService *profilesvc.ProfileService,
 	subscriptionsService *paidsubscriptions.Service,
 ) deleteAccount {
-
 	return deleteAccount{
 		ctr:                  ctr,
 		profileService:       profileService,
@@ -38,7 +35,7 @@ func NewDeleteAccountRoute(
 func (c *deleteAccount) DeleteAccountPage(ctx echo.Context) error {
 	page := ui.NewPage(ctx)
 
-	profileID, err := authenticatedProfileID(ctx)
+	profileID, err := frameworkauthcontext.AuthenticatedProfileID(ctx)
 	if err != nil {
 		return err
 	}
@@ -46,7 +43,6 @@ func (c *deleteAccount) DeleteAccountPage(ctx echo.Context) error {
 	activePlan, subscriptionExpiredOn, isTrial, err := c.subscriptionsService.GetCurrentlyActiveProduct(
 		ctx.Request().Context(), profileID,
 	)
-
 	if err != nil {
 		return err
 	}
@@ -66,7 +62,7 @@ func (c *deleteAccount) DeleteAccountPage(ctx echo.Context) error {
 }
 
 func (c *deleteAccount) DeleteAccountRequest(ctx echo.Context) error {
-	profileID, err := authenticatedProfileID(ctx)
+	profileID, err := frameworkauthcontext.AuthenticatedProfileID(ctx)
 	if err != nil {
 		return err
 	}
@@ -76,9 +72,7 @@ func (c *deleteAccount) DeleteAccountRequest(ctx echo.Context) error {
 		return err
 	}
 
-	if err := c.ctr.Container.Auth.Logout(ctx); err == nil {
-
-	} else {
+	if err := c.ctr.Container.Auth.Logout(ctx); err != nil {
 		uxflashmessages.Danger(ctx, "An error occurred. Please try again.")
 	}
 	return c.ctr.Redirect(ctx, routeNames.RouteNameLandingPage)
