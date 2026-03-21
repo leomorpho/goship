@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 	"testing/fstest"
@@ -140,6 +141,15 @@ func TestScaffoldNewProject(t *testing.T) {
 	}
 	if !strings.Contains(container, "EnabledModules") {
 		t.Fatalf("expected starter container content copied into scaffold:\n%s", container)
+	}
+
+	gotLayout, err := snapshotGeneratedProjectLayout(opts.AppPath)
+	if err != nil {
+		t.Fatalf("snapshotGeneratedProjectLayout failed: %v", err)
+	}
+	wantLayout := canonicalGeneratedProjectLayoutSnapshot(opts, defaultNewLayoutArtifactPaths())
+	if !slices.Equal(gotLayout, wantLayout) {
+		t.Fatalf("generated layout mismatch\nwant:\n%s\ngot:\n%s", strings.Join(wantLayout, "\n"), strings.Join(gotLayout, "\n"))
 	}
 }
 
@@ -280,14 +290,19 @@ func TestRenderStarterTemplateFilesFromFS_ValidLayout(t *testing.T) {
 	}
 
 	templateFS := fstest.MapFS{
-		"testdata/scaffold/app/foundation/container.go":           {Data: []byte("package foundation\n")},
-		"testdata/scaffold/app/router.go":                         {Data: []byte("package app\n")},
-		"testdata/scaffold/app/views/templates.go":                {Data: []byte("package views\n")},
-		"testdata/scaffold/app/web/routenames/routenames.go":      {Data: []byte("package routenames\n")},
-		"testdata/scaffold/cmd/web/main.go":                       {Data: []byte("package main\n")},
-		"testdata/scaffold/go.mod":                                {Data: []byte("module github.com/leomorpho/goship/starter\n")},
-		"testdata/scaffold/config/modules.yaml":                   {Data: []byte("modules: []\n")},
-		"testdata/scaffold/app/views/web/pages/landing.templ":     {Data: []byte("templ Landing(){<div>GoShip Starter</div>}")},
+		"testdata/scaffold/README.md":                              {Data: []byte("# GoShip Starter\n")},
+		"testdata/scaffold/app/foundation/container.go":            {Data: []byte("package foundation\n")},
+		"testdata/scaffold/app/router.go":                          {Data: []byte("package app\n")},
+		"testdata/scaffold/app/router_test.go":                     {Data: []byte("package app\n")},
+		"testdata/scaffold/app/views/templates.go":                 {Data: []byte("package views\n")},
+		"testdata/scaffold/app/views/web/pages/home_feed.templ":    {Data: []byte("templ HomeFeed(){<div>Home Feed</div>}")},
+		"testdata/scaffold/app/views/web/pages/home_feed_templ.go": {Data: []byte("package pages\n")},
+		"testdata/scaffold/app/views/web/pages/landing.templ":      {Data: []byte("templ Landing(){<div>GoShip Starter</div>}")},
+		"testdata/scaffold/app/views/web/pages/landing_templ.go":   {Data: []byte("package pages\n")},
+		"testdata/scaffold/app/web/routenames/routenames.go":       {Data: []byte("package routenames\n")},
+		"testdata/scaffold/cmd/web/main.go":                        {Data: []byte("package main\n")},
+		"testdata/scaffold/go.mod":                                 {Data: []byte("module github.com/leomorpho/goship/starter\n")},
+		"testdata/scaffold/config/modules.yaml":                    {Data: []byte("modules: []\n")},
 	}
 
 	files, err := renderStarterTemplateFilesFromFS(opts, templateFS, starterTemplateRoot)
@@ -305,4 +320,32 @@ func TestRenderStarterTemplateFilesFromFS_ValidLayout(t *testing.T) {
 	if !strings.Contains(gotLanding, "Demo") {
 		t.Fatalf("landing rewrite missing starter display replacement:\n%s", gotLanding)
 	}
+}
+
+func TestCanonicalGeneratedProjectLayoutGolden(t *testing.T) {
+	packageDir, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("getwd: %v", err)
+	}
+
+	opts := NewProjectOptions{
+		Name:    "demo",
+		Module:  "example.com/demo",
+		AppPath: "demo",
+	}
+	assertCLIGoldenSnapshot(
+		t,
+		packageDir,
+		"project_new_layout.golden",
+		strings.Join(canonicalGeneratedProjectLayoutSnapshot(opts, defaultNewLayoutArtifactPaths()), "\n")+"\n",
+	)
+
+	opts.I18nEnabled = true
+	opts.I18nSet = true
+	assertCLIGoldenSnapshot(
+		t,
+		packageDir,
+		"project_new_layout_i18n.golden",
+		strings.Join(canonicalGeneratedProjectLayoutSnapshot(opts, defaultNewLayoutArtifactPaths()), "\n")+"\n",
+	)
 }

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 
@@ -38,6 +39,19 @@ func TestNewProjectIntegration_SupportsMakeModelQueryScaffold(t *testing.T) {
 	}
 
 	projectRoot := filepath.Join(root, "demo")
+	gotLayout, err := snapshotGeneratedProjectLayout(projectRoot)
+	if err != nil {
+		t.Fatalf("snapshotGeneratedProjectLayout: %v", err)
+	}
+	wantLayout := canonicalGeneratedProjectLayoutSnapshot(NewProjectOptions{
+		Name:    "demo",
+		Module:  "example.com/demo",
+		AppPath: projectRoot,
+	}, defaultNewLayoutArtifactPaths())
+	if !slices.Equal(gotLayout, wantLayout) {
+		t.Fatalf("fresh scaffold layout mismatch\nwant:\n%s\ngot:\n%s", strings.Join(wantLayout, "\n"), strings.Join(gotLayout, "\n"))
+	}
+
 	entMigrationsKeep := filepath.Join(projectRoot, "db", "migrate", "migrations", ".gitkeep")
 	if _, err := os.Stat(entMigrationsKeep); err != nil {
 		t.Fatalf("expected migrations scaffold at %s: %v", entMigrationsKeep, err)

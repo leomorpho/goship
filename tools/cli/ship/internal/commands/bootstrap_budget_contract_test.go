@@ -61,4 +61,18 @@ func TestBootstrapBudgetContract_RedSpec(t *testing.T) {
 			t.Fatalf("development workflows guide missing %q", token)
 		}
 	}
+
+	cliRef, err := os.ReadFile(filepath.Join(root, "docs", "reference", "01-cli.md"))
+	if err != nil {
+		t.Fatalf("read CLI reference: %v", err)
+	}
+	for _, token := range []string{
+		"`cmd/web/main.go`",
+		"`app/router.go`",
+		"`tools/agent-policy/generated/`",
+	} {
+		if !strings.Contains(string(cliRef), token) {
+			t.Fatalf("CLI reference missing %q from the generated-app layout contract", token)
+		}
+	}
 }

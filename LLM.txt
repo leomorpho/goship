@@ -4443,8 +4443,12 @@ Generator output contract:
 `app/*` (domain skeletons)
 `app/web/{controllers,middleware,ui,viewmodels}`
 `app/jobs/jobs.go`
+`app/views/web/pages/{landing,home_feed}.templ`
+`cmd/web/main.go`
 `db/{migrate/migrations,queries,gen,bobgen.yaml}`
 `docs/00-index.md` and baseline architecture docs
+`tools/agent-policy/allowed-commands.yaml`
+`tools/agent-policy/generated/`
 3. Supports `--dry-run` and `--force`.
 4. Supports `--i18n` and `--no-i18n` (otherwise prompts in interactive terminals).
 5. If i18n is enabled during scaffold, writes starter locale files:

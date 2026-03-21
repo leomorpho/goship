@@ -19,22 +19,14 @@ import (
 
 const starterTemplateRoot = "testdata/scaffold"
 
-var requiredStarterTemplateFiles = []string{
-	"app/foundation/container.go",
-	"app/router.go",
-	"app/views/templates.go",
-	"app/web/routenames/routenames.go",
-	"cmd/web/main.go",
-}
-
 type NewProjectOptions struct {
-	Name              string
-	Module            string
-	DryRun            bool
-	Force             bool
-	AppPath           string
-	I18nEnabled       bool
-	I18nSet           bool
+	Name        string
+	Module      string
+	DryRun      bool
+	Force       bool
+	AppPath     string
+	I18nEnabled bool
+	I18nSet     bool
 }
 
 type NewDeps struct {
@@ -282,7 +274,7 @@ func validateStarterScaffoldLayout(templateFS fs.FS, root string) error {
 		return fmt.Errorf("starter scaffold layout invalid: template root %q is empty", root)
 	}
 
-	for _, rel := range requiredStarterTemplateFiles {
+	for _, rel := range canonicalStarterTemplateFiles {
 		requiredPath := path.Join(root, rel)
 		if _, statErr := fs.Stat(templateFS, requiredPath); statErr != nil {
 			if errors.Is(statErr, fs.ErrNotExist) {
