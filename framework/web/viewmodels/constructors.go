@@ -37,10 +37,6 @@ func NewForgotPasswordForm() *ForgotPasswordForm {
 	return &ForgotPasswordForm{}
 }
 
-func NewPost() Post {
-	return Post{}
-}
-
 func NewHomeFeedData() HomeFeedData {
 	return HomeFeedData{}
 }

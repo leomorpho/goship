@@ -31,7 +31,6 @@ type (
 	PaymentProcessorPublicKey     = frameworkviewmodels.PaymentProcessorPublicKey
 	PhoneNumber                   = frameworkviewmodels.PhoneNumber
 	PhoneNumberVerification       = frameworkviewmodels.PhoneNumberVerification
-	Post                          = frameworkviewmodels.Post
 	PreferencesData               = frameworkviewmodels.PreferencesData
 	PreferencesFormData           = frameworkviewmodels.PreferencesFormData
 	PricingPageData               = frameworkviewmodels.PricingPageData
@@ -81,7 +80,6 @@ var (
 	NewPaymentProcessorPublicKey     = frameworkviewmodels.NewPaymentProcessorPublicKey
 	NewPhoneNumber                   = frameworkviewmodels.NewPhoneNumber
 	NewPhoneNumberVerification       = frameworkviewmodels.NewPhoneNumberVerification
-	NewPost                          = frameworkviewmodels.NewPost
 	NewPreferencesData               = frameworkviewmodels.NewPreferencesData
 	NewPreferencesFormData           = frameworkviewmodels.NewPreferencesFormData
 	NewPricingPageData               = frameworkviewmodels.NewPricingPageData

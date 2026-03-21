@@ -8,7 +8,6 @@ var (
 	DisplayName             = frameworkpages.DisplayName
 	EditPhonePage           = frameworkpages.EditPhonePage
 	Error                   = frameworkpages.Error
-	Home                    = frameworkpages.Home
 	HomeFeed                = frameworkpages.HomeFeed
 	HomeFeedButtons         = frameworkpages.HomeFeedButtons
 	HomeFeedItems           = frameworkpages.HomeFeedItems
