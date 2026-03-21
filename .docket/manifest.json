@@ -961,18 +961,18 @@
     },
     "TKT-187": {
       "title": "Program: GoShip canonical hard-cutover and DX-first productization",
-      "state": "backlog",
+      "state": "archived",
       "priority": 8
     },
     "TKT-188": {
       "title": "Epic: Framework DX and quality gates",
-      "state": "backlog",
+      "state": "archived",
       "priority": 8,
       "parent": "TKT-187"
     },
     "TKT-189": {
       "title": "Epic: Runtime capabilities and standalone operation",
-      "state": "backlog",
+      "state": "archived",
       "priority": 8,
       "parent": "TKT-187"
     },
@@ -984,7 +984,7 @@
     },
     "TKT-191": {
       "title": "Epic: Product surface for generators and installable batteries",
-      "state": "backlog",
+      "state": "archived",
       "priority": 8,
       "parent": "TKT-187"
     },
@@ -1110,17 +1110,17 @@
     },
     "TKT-212": {
       "title": "G6-03: Finalize verify profiles, Cherie sync baseline, and alpha contract gate",
-      "state": "backlog",
+      "state": "archived",
       "priority": 8
     },
     "TKT-213": {
       "title": "Program: Interaction contract between GoShip runtime and Control Plane authority",
-      "state": "backlog",
+      "state": "archived",
       "priority": 8
     },
     "TKT-214": {
       "title": "Epic: Control-plane interoperability contract",
-      "state": "backlog",
+      "state": "archived",
       "priority": 8,
       "parent": "TKT-213"
     },
@@ -1312,7 +1312,7 @@
     },
     "TKT-246": {
       "title": "INT1-03: Add cross-lane dependency matrix and must-finish-before contract map",
-      "state": "backlog",
+      "state": "archived",
       "priority": 8
     },
     "TKT-247": {
@@ -1323,7 +1323,7 @@
     },
     "TKT-248": {
       "title": "Roadmap Hygiene: Normalize new epic tickets with scope, likely paths, and verify commands",
-      "state": "backlog",
+      "state": "archived",
       "priority": 8,
       "parent": "TKT-187"
     },
@@ -3208,6 +3208,24 @@
       "state": "backlog",
       "priority": 4,
       "parent": "TKT-562"
+    },
+    "TKT-568": {
+      "title": "Implement verify profile tiers and prove command behavior across representative project states.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-505"
+    },
+    "TKT-569": {
+      "title": "Implement Cherie compatibility smoke baseline and prove downstream compatibility in CI and browser tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-505"
+    },
+    "TKT-570": {
+      "title": "Implement an alpha contract gate and prove pre-release contract drift fails verification.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-505"
     }
   }
 }
