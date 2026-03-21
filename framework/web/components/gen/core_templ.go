@@ -10,8 +10,8 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"fmt"
-	"github.com/leomorpho/goship/app/views/web/helpers/gen"
 	fmw "github.com/leomorpho/goship/framework/middleware"
+	"github.com/leomorpho/goship/framework/web/helpers/gen"
 	controller "github.com/leomorpho/goship/framework/web/ui"
 	"strings"
 )
