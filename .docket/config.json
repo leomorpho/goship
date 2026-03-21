@@ -1,5 +1,5 @@
 {
-  "counter": 390,
+  "counter": 567,
   "backend": "local",
   "states": {
     "archived": {
@@ -12,79 +12,94 @@
       "roles": [
         "archived"
       ],
-      "terminal": true
+      "terminal": true,
+      "startable": false,
+      "reviewable": false,
+      "blocks_dependents": false
     },
-  "backlog": {
-    "label": "Backlog",
-    "open": true,
-    "column": 0,
-    "next": [
-      "todo",
-      "in-progress",
-      "archived"
-    ],
-    "roles": [
-      "intake"
-    ],
-    "startable": true,
-    "blocks_dependents": true
-  },
+    "backlog": {
+      "label": "Backlog",
+      "open": true,
+      "column": 0,
+      "next": [
+        "todo",
+        "in-progress",
+        "archived"
+      ],
+      "roles": [
+        "intake"
+      ],
+      "terminal": false,
+      "startable": true,
+      "reviewable": false,
+      "blocks_dependents": true
+    },
     "done": {
       "label": "Done",
-    "open": false,
-    "column": 4,
-    "next": [
-      "archived",
-      "in-progress"
-    ],
-    "roles": [
-      "completed"
-    ],
-    "terminal": true
-  },
+      "open": false,
+      "column": 4,
+      "next": [
+        "archived",
+        "in-progress"
+      ],
+      "roles": [
+        "completed"
+      ],
+      "terminal": true,
+      "startable": false,
+      "reviewable": false,
+      "blocks_dependents": false
+    },
     "in-progress": {
       "label": "In Progress",
-    "open": true,
-    "column": 2,
-    "next": [
-      "in-review",
-      "todo",
-      "archived"
-    ],
-    "roles": [
-      "active"
-    ],
-    "blocks_dependents": true
-  },
+      "open": true,
+      "column": 2,
+      "next": [
+        "in-review",
+        "todo",
+        "archived"
+      ],
+      "roles": [
+        "active"
+      ],
+      "terminal": false,
+      "startable": false,
+      "reviewable": false,
+      "blocks_dependents": true
+    },
     "in-review": {
       "label": "In Review",
-    "open": true,
-    "column": 3,
-    "next": [
-      "done",
-      "in-progress",
-      "archived"
-    ],
-    "roles": [
-      "review"
-    ],
-    "reviewable": true,
-    "blocks_dependents": true
-  },
+      "open": true,
+      "column": 3,
+      "next": [
+        "done",
+        "in-progress",
+        "archived"
+      ],
+      "roles": [
+        "review"
+      ],
+      "terminal": false,
+      "startable": false,
+      "reviewable": true,
+      "blocks_dependents": true
+    },
     "todo": {
       "label": "To Do",
-    "open": true,
-    "column": 1,
-    "next": [
-      "in-progress",
-      "backlog",
-      "archived"
-    ],
-    "roles": [
-      "intake"
-    ],
-    "startable": true,
-    "blocks_dependents": true
+      "open": true,
+      "column": 1,
+      "next": [
+        "in-progress",
+        "backlog",
+        "archived"
+      ],
+      "roles": [
+        "intake"
+      ],
+      "terminal": false,
+      "startable": true,
+      "reviewable": false,
+      "blocks_dependents": true
     }
   },
   "labels": [

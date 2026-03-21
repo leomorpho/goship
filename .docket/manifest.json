@@ -2154,6 +2154,1060 @@
       "state": "in-progress",
       "priority": 4,
       "parent": "TKT-191"
+    },
+    "TKT-391": {
+      "title": "Program: P1 Framework Beauty",
+      "state": "backlog",
+      "priority": 8
+    },
+    "TKT-392": {
+      "title": "Epic: P1-E1 Canonical Repo Shape",
+      "state": "backlog",
+      "priority": 6,
+      "parent": "TKT-391"
+    },
+    "TKT-393": {
+      "title": "Enforce the canonical GoShip repo layout in CI and fail on forbidden top-level paths.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-392"
+    },
+    "TKT-394": {
+      "title": "Remove stale tooling references to the deleted internal app shell and update path-based tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-392"
+    },
+    "TKT-395": {
+      "title": "Remove stale docs references to the deleted internal app shell and add doc-link regression checks.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-392"
+    },
+    "TKT-396": {
+      "title": "Enforce canonical ownership of container.go, router.go, and schedules.go with smoke tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-392"
+    },
+    "TKT-397": {
+      "title": "Fail CI when framework code reintroduces hidden starter-app assumptions.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-392"
+    },
+    "TKT-398": {
+      "title": "Add a repo-shape doctor check that validates framework, modules, root runtime files, and asset paths.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-392"
+    },
+    "TKT-399": {
+      "title": "Add fixture tests proving a clean GoShip repo passes repo-shape verification.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-392"
+    },
+    "TKT-400": {
+      "title": "Add fixture tests proving invalid repo shapes fail with corrective output.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-392"
+    },
+    "TKT-401": {
+      "title": "Epic: P1-E2 Framework And Module Boundaries",
+      "state": "backlog",
+      "priority": 6,
+      "parent": "TKT-391"
+    },
+    "TKT-402": {
+      "title": "Audit framework packages for duplicate responsibilities and collapse one duplicate into the canonical owner.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-401"
+    },
+    "TKT-403": {
+      "title": "Audit modules packages for duplicate responsibilities and collapse one duplicate into the canonical owner.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-401"
+    },
+    "TKT-404": {
+      "title": "Enforce forbidden imports between framework and modules with package-boundary tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-401"
+    },
+    "TKT-405": {
+      "title": "Enforce forbidden imports from modules into control-plane-specific code paths with boundary tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-401"
+    },
+    "TKT-406": {
+      "title": "Normalize first-party module identity constants and fail on duplicate module IDs.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-401"
+    },
+    "TKT-407": {
+      "title": "Normalize route ownership across first-party modules and prove route registration stays deterministic.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-401"
+    },
+    "TKT-408": {
+      "title": "Normalize config ownership across first-party modules and prove install remove idempotence.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-401"
+    },
+    "TKT-409": {
+      "title": "Normalize asset ownership across first-party modules and prove emitted paths stay canonical.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-401"
+    },
+    "TKT-410": {
+      "title": "Epic: P1-E3 Transitional Sludge Removal",
+      "state": "backlog",
+      "priority": 6,
+      "parent": "TKT-391"
+    },
+    "TKT-411": {
+      "title": "Remove transitional alias packages that survived the app removal and update imports with regression tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-410"
+    },
+    "TKT-412": {
+      "title": "Remove hidden private-product residue from framework strings, assets, and templates with snapshot tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-410"
+    },
+    "TKT-413": {
+      "title": "Remove dead compatibility code left over from internal-app extraction and cover package compilation.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-410"
+    },
+    "TKT-414": {
+      "title": "Remove stale generated artifacts that no longer map to canonical source owners and prove regeneration passes.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-410"
+    },
+    "TKT-415": {
+      "title": "Remove any remaining framework code that exists only to preserve deleted historical layout assumptions.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-410"
+    },
+    "TKT-416": {
+      "title": "Replace weak migration-era comments with current architectural intent and lock key generated files with snapshots.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-410"
+    },
+    "TKT-417": {
+      "title": "Program: P2 Starter And Golden Path DX",
+      "state": "backlog",
+      "priority": 8
+    },
+    "TKT-418": {
+      "title": "Epic: P2-E1 Canonical Generated App",
+      "state": "backlog",
+      "priority": 6,
+      "parent": "TKT-417"
+    },
+    "TKT-419": {
+      "title": "Define the canonical generated-app directory layout in code and lock it with golden tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-418"
+    },
+    "TKT-420": {
+      "title": "Rewrite ship new to emit the canonical generated-app shape and prove it with fresh-project snapshots.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-418"
+    },
+    "TKT-421": {
+      "title": "Ensure a fresh generated app boots without edits and prove it with full integration tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-418"
+    },
+    "TKT-422": {
+      "title": "Ensure a fresh generated app migrates cleanly and prove it with CLI smoke tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-418"
+    },
+    "TKT-423": {
+      "title": "Ensure a fresh generated app renders its default public routes and prove it with browser tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-418"
+    },
+    "TKT-424": {
+      "title": "Remove placeholder copy and residue from generated output and lock it with golden snapshots.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-418"
+    },
+    "TKT-425": {
+      "title": "Emit clearer starter config defaults and prove generated config works across fresh-project fixtures.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-418"
+    },
+    "TKT-426": {
+      "title": "Emit readable starter code and lock key generated files with readability-focused snapshots.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-418"
+    },
+    "TKT-427": {
+      "title": "Epic: P2-E2 Daily Developer Commands",
+      "state": "backlog",
+      "priority": 6,
+      "parent": "TKT-417"
+    },
+    "TKT-428": {
+      "title": "Make ship dev the single local development entrypoint and prove it boots the full stack in fixture apps.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-427"
+    },
+    "TKT-429": {
+      "title": "Make ship test the single project test entrypoint and prove target routing across package and suite combinations.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-427"
+    },
+    "TKT-430": {
+      "title": "Make ship verify fail on structural violations and prove failure output with broken-project fixtures.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-427"
+    },
+    "TKT-431": {
+      "title": "Make ship doctor the default diagnostic entrypoint and prove actionable output for common setup failures.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-427"
+    },
+    "TKT-432": {
+      "title": "Make ship dev validate missing prerequisites and prove corrective guidance in command integration tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-427"
+    },
+    "TKT-433": {
+      "title": "Make ship test produce stable machine-readable output for automation and lock it with CLI contract tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-427"
+    },
+    "TKT-434": {
+      "title": "Make ship verify produce stable machine-readable output for automation and lock it with CLI contract tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-427"
+    },
+    "TKT-435": {
+      "title": "Make ship doctor produce stable machine-readable output for automation and lock it with CLI contract tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-427"
+    },
+    "TKT-436": {
+      "title": "Epic: P2-E3 Error Quality And Feedback Loops",
+      "state": "backlog",
+      "priority": 6,
+      "parent": "TKT-417"
+    },
+    "TKT-437": {
+      "title": "Replace ambiguous CLI failures with corrective messages and prove them with error-path tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-436"
+    },
+    "TKT-438": {
+      "title": "Add fast-path failure detection for broken generated apps and prove doctor surfaces root causes first.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-436"
+    },
+    "TKT-439": {
+      "title": "Add startup error messages that name missing config, secrets, or services and prove them in runtime tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-436"
+    },
+    "TKT-440": {
+      "title": "Add verification hints that point to the owning package or generator and prove hint accuracy in fixture tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-436"
+    },
+    "TKT-441": {
+      "title": "Add command timing and progress output that stays concise and test the human and JSON forms.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-436"
+    },
+    "TKT-442": {
+      "title": "Add focused local smoke flows for fresh apps and prove they run under ship test quickly.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-436"
+    },
+    "TKT-443": {
+      "title": "Program: P3 Generators, Batteries, And Reversible Scaffolding",
+      "state": "backlog",
+      "priority": 8
+    },
+    "TKT-444": {
+      "title": "Epic: P3-E1 Generator Contract",
+      "state": "backlog",
+      "priority": 6,
+      "parent": "TKT-443"
+    },
+    "TKT-445": {
+      "title": "Define the generator lifecycle contract in code for create, install, remove, and upgrade operations.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-444"
+    },
+    "TKT-446": {
+      "title": "Make generator output deterministic and prove identical output across repeated runs with golden tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-444"
+    },
+    "TKT-447": {
+      "title": "Make generator operations idempotent and prove reruns do not create drift in fixture apps.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-444"
+    },
+    "TKT-448": {
+      "title": "Make generator operations emit structured change summaries and lock the summary schema with contract tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-444"
+    },
+    "TKT-449": {
+      "title": "Make generator failures roll back partial changes safely and prove rollback in failure-injection tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-444"
+    },
+    "TKT-450": {
+      "title": "Make generator path ownership explicit and fail when output escapes canonical app-owned locations.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-444"
+    },
+    "TKT-451": {
+      "title": "Add a generator acceptance suite that creates and mutates fresh apps through multiple commands.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-444"
+    },
+    "TKT-452": {
+      "title": "Epic: P3-E2 Reversible Batteries",
+      "state": "backlog",
+      "priority": 6,
+      "parent": "TKT-443"
+    },
+    "TKT-453": {
+      "title": "Define a battery install contract for routes, config, assets, jobs, templates, and migrations.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-452"
+    },
+    "TKT-454": {
+      "title": "Define a battery remove contract that returns apps to canonical expected shape and prove it with fixtures.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-452"
+    },
+    "TKT-455": {
+      "title": "Add golden install remove tests for every first-party battery.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-452"
+    },
+    "TKT-456": {
+      "title": "Add idempotence tests for installing the same battery twice.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-452"
+    },
+    "TKT-457": {
+      "title": "Add idempotence tests for removing an absent battery safely.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-452"
+    },
+    "TKT-458": {
+      "title": "Add cross-battery composition tests for supported first-party combinations.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-452"
+    },
+    "TKT-459": {
+      "title": "Add generator explain-output tests that map each emitted file to its owning battery contract.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-452"
+    },
+    "TKT-460": {
+      "title": "Epic: P3-E3 Finish First-Party Battery Wiring",
+      "state": "backlog",
+      "priority": 6,
+      "parent": "TKT-443"
+    },
+    "TKT-461": {
+      "title": "Finish concrete notifications battery wiring and prove routes, config, views, jobs, and tests land correctly.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-460"
+    },
+    "TKT-462": {
+      "title": "Finish concrete admin battery wiring and prove routes, views, auth gates, and tests land correctly.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-460"
+    },
+    "TKT-463": {
+      "title": "Finish concrete jobs battery wiring and prove worker, queue, and schedule integration in tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-460"
+    },
+    "TKT-464": {
+      "title": "Finish concrete storage battery wiring and prove adapter, config, and file-path integration in tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-460"
+    },
+    "TKT-465": {
+      "title": "Finish paid-subscriptions battery wiring and prove billing flows, config, and route ownership in tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-460"
+    },
+    "TKT-466": {
+      "title": "Finish emailsubscriptions battery wiring and prove routes, jobs, and verification paths in tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-460"
+    },
+    "TKT-467": {
+      "title": "Finish realtime battery wiring and prove starter integration and runtime startup in tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-460"
+    },
+    "TKT-468": {
+      "title": "Finish PWA battery wiring and prove installable output, assets, and browser behavior in tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-460"
+    },
+    "TKT-469": {
+      "title": "Program: P4 Upgradeable Framework",
+      "state": "backlog",
+      "priority": 8
+    },
+    "TKT-470": {
+      "title": "Epic: P4-E1 Upgrade Contracts",
+      "state": "backlog",
+      "priority": 6,
+      "parent": "TKT-469"
+    },
+    "TKT-471": {
+      "title": "Implement a machine-readable upgrade-readiness report and lock its schema with contract tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-470"
+    },
+    "TKT-472": {
+      "title": "Include framework version, module adoption, drift, and blockers in the readiness report with fixture tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-470"
+    },
+    "TKT-473": {
+      "title": "Add explicit upgrade compatibility windows and prove unsupported jumps fail clearly in tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-470"
+    },
+    "TKT-474": {
+      "title": "Add upgrade blocker classification and prove manual-follow-up items are surfaced consistently.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-470"
+    },
+    "TKT-475": {
+      "title": "Add upgrade result reporting that can be consumed by automation and lock the JSON schema with tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-470"
+    },
+    "TKT-476": {
+      "title": "Epic: P4-E2 ship upgrade",
+      "state": "backlog",
+      "priority": 6,
+      "parent": "TKT-469"
+    },
+    "TKT-477": {
+      "title": "Implement ship upgrade plan and prove safe step computation across representative app versions.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-476"
+    },
+    "TKT-478": {
+      "title": "Implement ship upgrade apply for safe automatic rewrites and prove file changes with golden tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-476"
+    },
+    "TKT-479": {
+      "title": "Add codemods for common framework rewrites and prove before-and-after output with fixtures.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-476"
+    },
+    "TKT-480": {
+      "title": "Add drift detection against canonical generated conventions and prove blocker output in stale fixture apps.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-476"
+    },
+    "TKT-481": {
+      "title": "Add upgrade rollback support for failed automatic rewrites and prove rollback in failure-path tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-476"
+    },
+    "TKT-482": {
+      "title": "Add upgrade command output that distinguishes automatic, manual, and blocked steps with contract tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-476"
+    },
+    "TKT-483": {
+      "title": "Add upgrade acceptance tests that create older apps, upgrade them, and verify they still boot and verify.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-476"
+    },
+    "TKT-484": {
+      "title": "Epic: P4-E3 Fleet Upgrade Readiness",
+      "state": "backlog",
+      "priority": 6,
+      "parent": "TKT-469"
+    },
+    "TKT-485": {
+      "title": "Make ship doctor surface upgrade readiness and blockers and prove both human and JSON output.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-484"
+    },
+    "TKT-486": {
+      "title": "Make runtime reports expose current framework version and module adoption for fleet visibility.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-484"
+    },
+    "TKT-487": {
+      "title": "Add tests proving control-plane consumers can parse upgrade reports from multiple supported app versions.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-484"
+    },
+    "TKT-488": {
+      "title": "Add tests proving upgraded apps still emit valid managed runtime contracts.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-484"
+    },
+    "TKT-489": {
+      "title": "Program: P5 Verification And Confidence",
+      "state": "backlog",
+      "priority": 8
+    },
+    "TKT-490": {
+      "title": "Epic: P5-E1 Fresh-App Confidence",
+      "state": "backlog",
+      "priority": 6,
+      "parent": "TKT-489"
+    },
+    "TKT-491": {
+      "title": "Add an end-to-end suite that generates a fresh app, migrates it, boots it, and verifies it.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-490"
+    },
+    "TKT-492": {
+      "title": "Add a browser suite that proves the canonical starter renders and basic auth settings flows work.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-490"
+    },
+    "TKT-493": {
+      "title": "Add a worker process suite that proves generated apps boot web and worker processes together.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-490"
+    },
+    "TKT-494": {
+      "title": "Add a static and styles compilation suite that proves fresh apps build frontend assets correctly.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-490"
+    },
+    "TKT-495": {
+      "title": "Add a route-contract suite that locks starter route names and ownership.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-490"
+    },
+    "TKT-496": {
+      "title": "Add a fresh-app CI lane that runs generation, batteries, verify, and smoke tests together.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-490"
+    },
+    "TKT-497": {
+      "title": "Epic: P5-E2 Generator And Module Confidence",
+      "state": "backlog",
+      "priority": 6,
+      "parent": "TKT-489"
+    },
+    "TKT-498": {
+      "title": "Add golden tests for every generator command output path.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-497"
+    },
+    "TKT-499": {
+      "title": "Add module boundary tests that fail when modules depend on non-canonical framework internals.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-497"
+    },
+    "TKT-500": {
+      "title": "Add route-collision tests across first-party modules.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-497"
+    },
+    "TKT-501": {
+      "title": "Add config-collision tests across first-party modules.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-497"
+    },
+    "TKT-502": {
+      "title": "Add asset-collision tests across first-party modules.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-497"
+    },
+    "TKT-503": {
+      "title": "Add migration-order tests across first-party modules.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-497"
+    },
+    "TKT-504": {
+      "title": "Add a matrix suite proving supported battery combinations install and remove cleanly.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-497"
+    },
+    "TKT-505": {
+      "title": "Epic: P5-E3 Operational Confidence",
+      "state": "backlog",
+      "priority": 6,
+      "parent": "TKT-489"
+    },
+    "TKT-506": {
+      "title": "Add startup smoke tests for health, readiness, web boot, worker boot, and migrations.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-505"
+    },
+    "TKT-507": {
+      "title": "Add fixture-based doctor tests for missing config, broken secrets, and invalid adapters.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-505"
+    },
+    "TKT-508": {
+      "title": "Add verify tests for structural drift, forbidden edits, and invalid generated layout.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-505"
+    },
+    "TKT-509": {
+      "title": "Add top-level CI lanes that cover fresh app, upgrades, batteries, and standalone operations.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-505"
+    },
+    "TKT-510": {
+      "title": "Add failure-injection tests proving commands fail with actionable output instead of silent drift.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-505"
+    },
+    "TKT-511": {
+      "title": "Program: P6 Standalone Production Runtime",
+      "state": "backlog",
+      "priority": 8
+    },
+    "TKT-512": {
+      "title": "Epic: P6-E1 Runtime Health And Startup",
+      "state": "backlog",
+      "priority": 6,
+      "parent": "TKT-511"
+    },
+    "TKT-513": {
+      "title": "Make health endpoints framework-default and prove healthy boot in integration tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-512"
+    },
+    "TKT-514": {
+      "title": "Make readiness endpoints framework-default and prove dependency-sensitive readiness in integration tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-512"
+    },
+    "TKT-515": {
+      "title": "Add framework-default startup contract validation and prove misconfiguration fails early in runtime tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-512"
+    },
+    "TKT-516": {
+      "title": "Add structured startup summaries for operators and lock expected output with tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-512"
+    },
+    "TKT-517": {
+      "title": "Add framework-default environment validation for required runtime variables and prove failure modes in tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-512"
+    },
+    "TKT-518": {
+      "title": "Epic: P6-E2 Backups Restore Promotion",
+      "state": "backlog",
+      "priority": 6,
+      "parent": "TKT-511"
+    },
+    "TKT-519": {
+      "title": "Implement executable backup creation for standalone apps and prove backup artifacts are valid in tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-518"
+    },
+    "TKT-520": {
+      "title": "Implement executable restore for standalone apps and prove restored apps boot and verify.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-518"
+    },
+    "TKT-521": {
+      "title": "Implement backup metadata emission in runtime reports and lock the schema with contract tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-518"
+    },
+    "TKT-522": {
+      "title": "Implement restore evidence emission and lock the schema with contract tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-518"
+    },
+    "TKT-523": {
+      "title": "Implement SQLite-to-Postgres promotion steps and prove promoted apps pass verify and boot.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-518"
+    },
+    "TKT-524": {
+      "title": "Add CLI commands for backup, restore, and promotion and cover them with integration tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-518"
+    },
+    "TKT-525": {
+      "title": "Add regression tests for backup, restore, and promotion across representative fixture apps.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-518"
+    },
+    "TKT-526": {
+      "title": "Epic: P6-E3 Runtime Operations",
+      "state": "backlog",
+      "priority": 6,
+      "parent": "TKT-511"
+    },
+    "TKT-527": {
+      "title": "Add framework-default secret validation before runtime boot and prove failure output in tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-526"
+    },
+    "TKT-528": {
+      "title": "Add framework-default process topology reporting and prove web worker realtime roles appear correctly.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-526"
+    },
+    "TKT-529": {
+      "title": "Add deploy-critical runtime smoke tests for boot, migrate, health, readiness, and worker startup.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-526"
+    },
+    "TKT-530": {
+      "title": "Add operator-facing failure guidance to runtime and CLI surfaces and prove it appears in error tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-526"
+    },
+    "TKT-531": {
+      "title": "Program: P7 Managed Runtime Contracts",
+      "state": "backlog",
+      "priority": 8
+    },
+    "TKT-532": {
+      "title": "Epic: P7-E1 Core Contracts",
+      "state": "backlog",
+      "priority": 6,
+      "parent": "TKT-531"
+    },
+    "TKT-533": {
+      "title": "Implement the canonical runtime-report JSON contract and lock it with contract tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-532"
+    },
+    "TKT-534": {
+      "title": "Implement the managed deployment env-var contract and prove runtime consumption in integration tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-532"
+    },
+    "TKT-535": {
+      "title": "Implement the signed managed-hook contract and prove request verification in tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-532"
+    },
+    "TKT-536": {
+      "title": "Implement module-adoption reporting in runtime reports and prove consistent first-party coverage.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-532"
+    },
+    "TKT-537": {
+      "title": "Implement upgrade-readiness reporting for managed apps and prove contract consumption with tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-532"
+    },
+    "TKT-538": {
+      "title": "Implement backup metadata and restore evidence contracts and prove managed consumers can parse them.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-532"
+    },
+    "TKT-539": {
+      "title": "Implement rollout and promotion decision input contracts without embedding rollout orchestration in GoShip.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-532"
+    },
+    "TKT-540": {
+      "title": "Epic: P7-E2 Security And Durability",
+      "state": "backlog",
+      "priority": 6,
+      "parent": "TKT-531"
+    },
+    "TKT-541": {
+      "title": "Replace in-memory managed-hook replay protection with durable storage and prove concurrency safety in tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-540"
+    },
+    "TKT-542": {
+      "title": "Add managed key versioning and key rollover support and prove old and new keys validate correctly.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-540"
+    },
+    "TKT-543": {
+      "title": "Add secret rotation support for managed contracts and prove rotation without downtime in tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-540"
+    },
+    "TKT-544": {
+      "title": "Add contract-version negotiation for managed runtime reports and lock backward compatibility with tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-540"
+    },
+    "TKT-545": {
+      "title": "Add security event reporting for invalid signatures, replays, and contract violations with tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-540"
+    },
+    "TKT-546": {
+      "title": "Epic: P7-E3 No-Coupling Enforcement",
+      "state": "backlog",
+      "priority": 6,
+      "parent": "TKT-531"
+    },
+    "TKT-547": {
+      "title": "Add forbidden-import tests that fail on control-plane source coupling inside GoShip.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-546"
+    },
+    "TKT-548": {
+      "title": "Add forbidden-string path tests that fail on hidden private control-plane assumptions in GoShip.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-546"
+    },
+    "TKT-549": {
+      "title": "Add fixture tests proving GoShip apps boot under managed env vars without control-plane code present.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-546"
+    },
+    "TKT-550": {
+      "title": "Add fixture tests proving GoShip apps remain fully standalone without managed env vars present.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-546"
+    },
+    "TKT-551": {
+      "title": "Program: P12 Styling And Frontend Coherence",
+      "state": "backlog",
+      "priority": 8
+    },
+    "TKT-552": {
+      "title": "Epic: P12-E1 Styling Foundation",
+      "state": "backlog",
+      "priority": 6,
+      "parent": "TKT-551"
+    },
+    "TKT-553": {
+      "title": "Implement framework-owned design tokens as CSS variables and prove token compilation in starter builds.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-552"
+    },
+    "TKT-554": {
+      "title": "Implement a Tailwind bridge that consumes framework tokens and prove class generation in tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-552"
+    },
+    "TKT-555": {
+      "title": "Implement starter typography, spacing, color, and elevation primitives on top of shared tokens with build tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-552"
+    },
+    "TKT-556": {
+      "title": "Implement a semantic recipe layer for common UI patterns and prove recipe output with render tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-552"
+    },
+    "TKT-557": {
+      "title": "Epic: P12-E2 Shared Rendering Surface",
+      "state": "backlog",
+      "priority": 6,
+      "parent": "TKT-551"
+    },
+    "TKT-558": {
+      "title": "Implement shared button, input, form, alert, card, and nav recipes for templ and prove markup consistency.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-557"
+    },
+    "TKT-559": {
+      "title": "Implement the same token and recipe usage in one canonical JS island set and prove parity in browser tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-557"
+    },
+    "TKT-560": {
+      "title": "Implement starter layout primitives shared by server-rendered pages and islands and prove visual consistency in tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-557"
+    },
+    "TKT-561": {
+      "title": "Remove conflicting ad hoc styling patterns from first-party modules and prove modules render with shared tokens.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-557"
+    },
+    "TKT-562": {
+      "title": "Epic: P12-E3 Module UI Contract And Showcase",
+      "state": "backlog",
+      "priority": 6,
+      "parent": "TKT-551"
+    },
+    "TKT-563": {
+      "title": "Implement a module UI contract that defines how batteries add styles without breaking app coherence.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-562"
+    },
+    "TKT-564": {
+      "title": "Implement a starter theme built on tokens and recipes and lock it with visual regression tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-562"
+    },
+    "TKT-565": {
+      "title": "Implement the landing-page app as a downstream GoShip app using the shared token and recipe system.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-562"
+    },
+    "TKT-566": {
+      "title": "Implement JS runtime showcase pages in the landing-page app and prove style parity across server and island surfaces.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-562"
+    },
+    "TKT-567": {
+      "title": "Implement a frontend regression suite that proves templ pages and islands stay token-consistent over time.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-562"
     }
   }
 }
