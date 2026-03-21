@@ -196,10 +196,15 @@ Managed operation matters, but only after the standalone path is solid.
 Priority work:
 
 - stable runtime handshake
+- `runtime-contract-v1`, `runtime-handshake-v1`, and `upgrade-readiness-v1` remain the only supported contract identifiers until an explicit version bump lands with migration coverage
+- `ship runtime:report --json`, `ship upgrade --json`, and `ship verify` must surface blocking mismatch diagnostics such as `unsupported_runtime_contract_version`, `unsupported_runtime_handshake_version`, and `unsupported_upgrade_readiness_version`
 - stable managed hook contracts
+- shared signature vectors and one canonical payload library for managed-hook signing
 - managed override UX/read-only semantics
 - runtime metadata for adoption/divergence
 - upgrade readiness and orchestration preflight
+- `staged-rollout-decision-v1` stays the control-plane input contract, including `policy_input_version`, while rollout engine and traffic shaping stay out of the framework repo
+- cross-lane dependency matrix and must-finish-before contract map stay explicit in the canonical roadmap so runtime-contract-v1, upgrade-readiness-v1, promotion-state-machine-v1, backup-manifest-v1, restore_evidence.record_links, and staged-rollout-decision-v1 can be sequenced without ambiguity
 
 Not priority:
 
@@ -234,6 +239,21 @@ Current honest assessment:
 That is acceptable and intentional.
 
 The control plane should be built as a GoShip app in its own repo and consume GoShip contracts like any other downstream app.
+
+## Cross-Lane Dependency Matrix
+
+The cross-lane dependency matrix and must-finish-before contract map are the canonical coordination surface for production-system work.
+
+| Lane | Requires | Must finish before | Why |
+| --- | --- | --- | --- |
+| runtime contracts | `runtime-contract-v1`, `runtime-handshake-v1` | managed orchestration | Control-plane deploy logic can only consume one stable runtime contract at a time. |
+| upgrade readiness | `upgrade-readiness-v1` | fleet upgrades | Managed upgrade planning needs one stable readiness payload before orchestration fans out. |
+| promotion and backup | `promotion-state-machine-v1`, `backup-manifest-v1`, `restore_evidence.record_links` | disaster recovery automation | Restore and promotion evidence must be machine-readable before control-plane recovery flows are trustworthy. |
+| rollout policy inputs | `staged-rollout-decision-v1`, `policy_input_version` | canary and promote decisions | Runtime facts and control-plane policy must speak one shared verdict schema before rollout automation is allowed. |
+
+## Pagoda Intake Governance
+
+Pagoda intake governance stays on a weekly or per-tag cadence, and each upstream change is classified as adopt, adapt, or skip in `docs/roadmap/09-pagoda-intake-log.md`.
 
 ## Canonical Repo Shape
 

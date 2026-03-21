@@ -45,7 +45,15 @@ type ManagedHookSignatureVector struct {
 }
 
 // ManagedHookSignatureVectors is the shared vector registry for managed-hook signing fixtures.
-var ManagedHookSignatureVectors = []ManagedHookSignatureVector{}
+var ManagedHookSignatureVectors = []ManagedHookSignatureVector{
+	{
+		Method:            http.MethodGet,
+		Path:              "/managed/status?verbose=true",
+		Timestamp:         1710000000,
+		Nonce:             "nonce-123",
+		ExpectedSignature: "e55f9ca752736c0787742009ae01b495a47ebd98252eff077f46689e6ba5d859",
+	},
+}
 
 // CronRequest captures the signed internal cron endpoint(s) request contract.
 type CronRequest struct {

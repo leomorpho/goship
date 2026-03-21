@@ -1,6 +1,7 @@
 package security
 
 import (
+	"encoding/hex"
 	"os"
 	"path/filepath"
 	"strings"
@@ -75,6 +76,37 @@ func TestManagedHookKeyRotationContract_RedSpec(t *testing.T) {
 	} {
 		if !strings.Contains(managedDoc, token) && !strings.Contains(cliDoc, token) {
 			t.Fatalf("managed hook key rotation contract should document %q", token)
+		}
+	}
+}
+
+func TestManagedHookSignatureVectors_JSONContract_RedSpec(t *testing.T) {
+	if len(ManagedHookSignatureVectors) == 0 {
+		t.Fatal("ManagedHookSignatureVectors should publish at least one canonical shared signing fixture")
+	}
+
+	for _, vector := range ManagedHookSignatureVectors {
+		if vector.Method == "" {
+			t.Fatal("managed hook signature vector method must be non-empty")
+		}
+		if vector.Path == "" {
+			t.Fatal("managed hook signature vector path must be non-empty")
+		}
+		if strings.TrimSpace(vector.Nonce) == "" {
+			t.Fatal("managed hook signature vector nonce must be non-empty")
+		}
+		if len(vector.ExpectedSignature) != 64 {
+			t.Fatalf("expected signature %q should be a 64-character hex digest", vector.ExpectedSignature)
+		}
+		if _, err := hex.DecodeString(vector.ExpectedSignature); err != nil {
+			t.Fatalf("expected signature %q should be valid hex: %v", vector.ExpectedSignature, err)
+		}
+
+		if got := SignManagedHookRequest("secret", vector.Method, vector.Path, vector.Timestamp, vector.Nonce, vector.Body); got != vector.ExpectedSignature {
+			t.Fatalf("signature mismatch for %s %s: got %q want %q", vector.Method, vector.Path, got, vector.ExpectedSignature)
+		}
+		if got := string(CanonicalManagedHookPayload(vector.Method, vector.Path, vector.Timestamp, vector.Nonce, vector.Body)); got == "" {
+			t.Fatalf("canonical payload should be non-empty for %s %s", vector.Method, vector.Path)
 		}
 	}
 }

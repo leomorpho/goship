@@ -1,6 +1,7 @@
 package runtimeconfig
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -53,6 +54,33 @@ func TestBuildReportStandaloneIgnoresManagedSet(t *testing.T) {
 	assert.Equal(t, ModeStandalone, report.Mode)
 	assert.Empty(t, report.Authority)
 	assert.Equal(t, KeyState{Value: "postgres", Source: SourceFrameworkDefault}, report.Keys["database.driver"])
+}
+
+func TestBuildReportJSONContractIncludesRollbackTargets_RedSpec(t *testing.T) {
+	report := BuildReport(LayerInputs{
+		Defaults: map[string]string{
+			"adapters.cache": "otter",
+		},
+		EffectiveValues: map[string]string{
+			"adapters.cache": "redis",
+		},
+		RepoSet: map[string]bool{
+			"adapters.cache": true,
+		},
+		ManagedSet: map[string]bool{
+			"adapters.cache": true,
+		},
+		ManagedEnabled: true,
+		Authority:      "control-plane",
+	})
+
+	raw, err := json.Marshal(report)
+	require.NoError(t, err)
+
+	assert.Contains(t, string(raw), `"mode":"managed"`)
+	assert.Contains(t, string(raw), `"authority":"control-plane"`)
+	assert.Contains(t, string(raw), `"source":"managed-override"`)
+	assert.Contains(t, string(raw), `"rollback_target":"app-repo"`)
 }
 
 func TestParseManagedOverrides(t *testing.T) {

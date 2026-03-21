@@ -7,8 +7,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
-	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
 )
 
 type MakeCommandOptions struct {

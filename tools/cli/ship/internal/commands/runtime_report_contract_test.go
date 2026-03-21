@@ -67,7 +67,11 @@ func TestRunRuntimeReport_EmitsVersionedHandshakeEnvelope_RedSpec(t *testing.T) 
 						Mode:      runtimeconfig.ModeManaged,
 						Authority: "control-plane",
 						Keys: map[string]runtimeconfig.KeyState{
-							"adapters.cache": {Value: "otter", Source: runtimeconfig.SourceFrameworkDefault},
+							"adapters.cache": {
+								Value:          "otter",
+								Source:         runtimeconfig.SourceManagedOverride,
+								RollbackTarget: runtimeconfig.SourceFrameworkDefault,
+							},
 						},
 					},
 				},
@@ -120,6 +124,43 @@ func TestRunRuntimeReport_EmitsVersionedHandshakeEnvelope_RedSpec(t *testing.T) 
 	}
 	if handshake.Database.Driver != "sqlite" {
 		t.Fatalf("handshake database.driver = %q, want sqlite", handshake.Database.Driver)
+	}
+
+	var managed struct {
+		Mode            string `json:"mode"`
+		Authority       string `json:"authority"`
+		RegistryVersion string `json:"registry_version"`
+		SchemaVersion   string `json:"schema_version"`
+		Keys            map[string]struct {
+			Value          string `json:"value"`
+			Source         string `json:"source"`
+			RollbackTarget string `json:"rollback_target"`
+		} `json:"keys"`
+	}
+	if err := json.Unmarshal(payload["managed"], &managed); err != nil {
+		t.Fatalf("managed contract should decode: %v\n%s", err, out.String())
+	}
+	if managed.Mode != "managed" {
+		t.Fatalf("managed mode = %q, want managed", managed.Mode)
+	}
+	if managed.Authority != "control-plane" {
+		t.Fatalf("managed authority = %q, want control-plane", managed.Authority)
+	}
+	if managed.RegistryVersion != "managed-key-registry-v1" {
+		t.Fatalf("managed registry_version = %q, want managed-key-registry-v1", managed.RegistryVersion)
+	}
+	if managed.SchemaVersion != "managed-key-schema-v1" {
+		t.Fatalf("managed schema_version = %q, want managed-key-schema-v1", managed.SchemaVersion)
+	}
+	cacheKey, ok := managed.Keys["adapters.cache"]
+	if !ok {
+		t.Fatalf("managed keys missing adapters.cache entry:\n%s", out.String())
+	}
+	if cacheKey.Source != "managed-override" {
+		t.Fatalf("managed adapters.cache source = %q, want managed-override", cacheKey.Source)
+	}
+	if cacheKey.RollbackTarget != "framework-default" {
+		t.Fatalf("managed adapters.cache rollback_target = %q, want framework-default", cacheKey.RollbackTarget)
 	}
 
 	var divergence struct {

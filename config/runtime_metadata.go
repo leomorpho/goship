@@ -36,8 +36,9 @@ type ManagedRuntimeMetadata struct {
 
 // ManagedKeyMetadata reports the effective value and source for one managed key.
 type ManagedKeyMetadata struct {
-	Value  string `json:"value"`
-	Source string `json:"source"`
+	Value          string `json:"value"`
+	Source         string `json:"source"`
+	RollbackTarget string `json:"rollback_target,omitempty"`
 }
 
 // DatabaseRuntimeMetadata reports DB mode/driver and promotion compatibility details.
@@ -70,8 +71,9 @@ func (c Config) RuntimeMetadata() RuntimeMetadata {
 	keys := map[string]ManagedKeyMetadata{}
 	for key, state := range report.Keys {
 		keys[key] = ManagedKeyMetadata{
-			Value:  state.Value,
-			Source: string(state.Source),
+			Value:          state.Value,
+			Source:         string(state.Source),
+			RollbackTarget: string(state.RollbackTarget),
 		}
 	}
 
