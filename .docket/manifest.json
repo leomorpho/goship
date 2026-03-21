@@ -3226,6 +3226,36 @@
       "state": "backlog",
       "priority": 4,
       "parent": "TKT-505"
+    },
+    "TKT-571": {
+      "title": "Implement framework-default structured logging contracts and prove log shape stability in tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-526"
+    },
+    "TKT-572": {
+      "title": "Implement framework-default metrics export contracts and prove metrics availability in runtime tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-526"
+    },
+    "TKT-573": {
+      "title": "Implement framework-default error-reporting hooks and prove error emission on controlled failure paths.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-526"
+    },
+    "TKT-574": {
+      "title": "Implement job and worker health reporting and prove worker-state visibility in runtime tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-526"
+    },
+    "TKT-575": {
+      "title": "Implement deployment success failure reporting and prove status appears in runtime reports and tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-526"
     }
   }
 }
