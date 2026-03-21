@@ -30,7 +30,7 @@ func HomeFeed() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<section data-component=\"starter-home-feed\" class=\"p-6\"><h1>Home Feed</h1><p>Minimal authenticated home feed scaffold backed by auth and profile only.</p></section>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<section data-component=\"starter-home-feed\" class=\"starter-panel\"><div class=\"starter-status\">Authenticated Surface</div><h1>Home Feed</h1><p>Minimal authenticated home feed scaffold backed by auth and profile only.</p></section>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

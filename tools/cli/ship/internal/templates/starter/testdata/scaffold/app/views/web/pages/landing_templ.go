@@ -30,7 +30,7 @@ func Landing() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<section data-component=\"starter-landing\" class=\"p-6\"><h1>GoShip Starter</h1><p>Landing page scaffold with auth entrypoints and no optional modules enabled by default.</p></section>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<section data-component=\"starter-landing\" class=\"starter-panel\"><div class=\"starter-status\">Fresh App Ready</div><h1>GoShip Starter</h1><p>Landing page scaffold with auth entrypoints, a starter migration, and one obvious path to boot and verify a fresh app.</p></section>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

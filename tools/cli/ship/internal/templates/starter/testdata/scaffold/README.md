@@ -2,6 +2,11 @@
 
 Minimal GoShip starter. Add modules with `ship module:add`.
 
+Fresh-app loop:
+- `ship db:migrate`
+- `go run ./cmd/web`
+- `ship verify --profile fast`
+
 Included by default:
 - auth routes
 - profile routes

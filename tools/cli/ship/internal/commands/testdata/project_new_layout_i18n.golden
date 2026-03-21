@@ -1,3 +1,4 @@
+.env
 .github/
 .github/dependabot.yml
 .github/workflows/
@@ -32,6 +33,8 @@ app/views/web/pages/home_feed.templ
 app/views/web/pages/home_feed_templ.go
 app/views/web/pages/landing.templ
 app/views/web/pages/landing_templ.go
+app/views/web/pages/profile.templ
+app/views/web/pages/profile_templ.go
 app/web/
 app/web/controllers/
 app/web/controllers/controllers.go
@@ -46,6 +49,8 @@ app/web/viewmodels/viewmodels.go
 cmd/
 cmd/web/
 cmd/web/main.go
+cmd/worker/
+cmd/worker/main.go
 config/
 config/modules.yaml
 db/
@@ -55,6 +60,7 @@ db/gen/.gitkeep
 db/migrate/
 db/migrate/migrations/
 db/migrate/migrations/.gitkeep
+db/migrate/migrations/00001_starter_bootstrap.sql
 db/queries/
 db/queries/user.sql
 docs/
@@ -64,9 +70,14 @@ docs/architecture/01-architecture.md
 docs/architecture/08-cognitive-model.md
 docs/architecture/10-extension-zones.md
 go.mod
+go.sum
 locales/
 locales/en.toml
 locales/fr.toml
+static/
+static/styles_bundle.css
+styles/
+styles/styles.css
 tools/
 tools/agent-policy/
 tools/agent-policy/allowed-commands.yaml

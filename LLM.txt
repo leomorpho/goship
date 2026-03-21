@@ -825,6 +825,11 @@ remain explicit manual follow-up steps.
 the same runtime (`runtime-contract-v1`) and upgrade (`upgrade-readiness-v1`) tokens that their
 machine-readable JSON surfaces already emit.
 
+`ship new` now ships a runnable fresh-app confidence loop by default: the scaffold includes a local
+`.env`, a starter SQLite migration, a minimal web entrypoint with readiness/rendered-route smoke
+surface, matching `static/` and `styles/` assets, and a trivial worker entrypoint so downstream apps
+can immediately run `ship db:migrate`, `go run ./cmd/web`, and `ship verify --profile fast`.
+
 ## Runtime Programs
 
 - `cmd/web/main.go`: main HTTP application server
@@ -2858,7 +2863,7 @@ The `alpha_contract` CI job runs `make test-alpha-contracts` and freezes the cur
 Only refresh those snapshots when the alpha surface change has approved review before merge, then run `UPDATE_ALPHA_CONTRACTS=1 make test-alpha-contracts` and commit the snapshot update with the contract change.
 The `doc_sync` CI job runs `make test-doc-sync` and keeps the HTTP route map plus project-scope docs aligned with canonical managed/admin/realtime surfaces.
 The `dead_route_regression` CI job runs `make test-dead-routes` and keeps the canonical route inventory checks from silently regressing.
-The `bootstrap_budget` CI job runs `make test-bootstrap-budget` and measures the canonical starter flow as `ship new <app> --no-i18n` followed by `go run ./cmd/web` inside the generated scaffold.
+The `bootstrap_budget` CI job runs `make test-bootstrap-budget` and measures the canonical starter flow as `ship new <app> --no-i18n`, `ship db:migrate`, `go run ./cmd/web`, and HTTP checks against `/health/readiness` plus `/` inside the generated scaffold.
 The default budget is 120 seconds via `BOOTSTRAP_BUDGET_SECONDS=120`; keep local reruns on comparable hardware or raise the variable only when investigating runner variance rather than changing the committed CI threshold.
 Use `BOOTSTRAP_BUDGET_SECONDS` only as a local rerun override; the committed CI contract keeps the 120-second threshold.
 If the Cherie lane breaks:
@@ -4434,6 +4439,7 @@ Generator output contract:
 
 1. Creates a local scaffold only (no external downloads or package installs).
 2. Writes deterministic starter files:
+`.env`
 `go.mod`
 `config/modules.yaml` (workspace-level module enablement)
 `app/router.go` (with route marker pairs for `--wire`)
@@ -4443,13 +4449,18 @@ Generator output contract:
 `app/*` (domain skeletons)
 `app/web/{controllers,middleware,ui,viewmodels}`
 `app/jobs/jobs.go`
-`app/views/web/pages/{landing,home_feed}.templ`
+`app/views/web/pages/{landing,home_feed,profile}.templ`
 `cmd/web/main.go`
-`db/{migrate/migrations,queries,gen,bobgen.yaml}`
+`cmd/worker/main.go`
+`db/migrate/migrations/`
+`db/{queries,gen,bobgen.yaml}`
+`styles/`
+`static/`
 `docs/00-index.md` and baseline architecture docs
 `tools/agent-policy/allowed-commands.yaml`
 `tools/agent-policy/generated/`
 3. Supports `--dry-run` and `--force`.
+4. Fresh scaffolds are expected to pass the canonical confidence loop: `ship db:migrate`, `go run ./cmd/web`, and `ship verify --profile fast`.
 4. Supports `--i18n` and `--no-i18n` (otherwise prompts in interactive terminals).
 5. If i18n is enabled during scaffold, writes starter locale files:
 `locales/en.toml`

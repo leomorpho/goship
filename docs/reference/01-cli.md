@@ -302,6 +302,7 @@ Generator output contract:
 
 1. Creates a local scaffold only (no external downloads or package installs).
 2. Writes deterministic starter files:
+`.env`
 `go.mod`
 `config/modules.yaml` (workspace-level module enablement)
 `app/router.go` (with route marker pairs for `--wire`)
@@ -311,13 +312,18 @@ Generator output contract:
 `app/*` (domain skeletons)
 `app/web/{controllers,middleware,ui,viewmodels}`
 `app/jobs/jobs.go`
-`app/views/web/pages/{landing,home_feed}.templ`
+`app/views/web/pages/{landing,home_feed,profile}.templ`
 `cmd/web/main.go`
-`db/{migrate/migrations,queries,gen,bobgen.yaml}`
+`cmd/worker/main.go`
+`db/migrate/migrations/`
+`db/{queries,gen,bobgen.yaml}`
+`styles/`
+`static/`
 `docs/00-index.md` and baseline architecture docs
 `tools/agent-policy/allowed-commands.yaml`
 `tools/agent-policy/generated/`
 3. Supports `--dry-run` and `--force`.
+4. Fresh scaffolds are expected to pass the canonical confidence loop: `ship db:migrate`, `go run ./cmd/web`, and `ship verify --profile fast`.
 4. Supports `--i18n` and `--no-i18n` (otherwise prompts in interactive terminals).
 5. If i18n is enabled during scaffold, writes starter locale files:
 `locales/en.toml`

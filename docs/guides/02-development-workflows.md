@@ -225,7 +225,7 @@ The `alpha_contract` CI job runs `make test-alpha-contracts` and freezes the cur
 Only refresh those snapshots when the alpha surface change has approved review before merge, then run `UPDATE_ALPHA_CONTRACTS=1 make test-alpha-contracts` and commit the snapshot update with the contract change.
 The `doc_sync` CI job runs `make test-doc-sync` and keeps the HTTP route map plus project-scope docs aligned with canonical managed/admin/realtime surfaces.
 The `dead_route_regression` CI job runs `make test-dead-routes` and keeps the canonical route inventory checks from silently regressing.
-The `bootstrap_budget` CI job runs `make test-bootstrap-budget` and measures the canonical starter flow as `ship new <app> --no-i18n` followed by `go run ./cmd/web` inside the generated scaffold.
+The `bootstrap_budget` CI job runs `make test-bootstrap-budget` and measures the canonical starter flow as `ship new <app> --no-i18n`, `ship db:migrate`, `go run ./cmd/web`, and HTTP checks against `/health/readiness` plus `/` inside the generated scaffold.
 The default budget is 120 seconds via `BOOTSTRAP_BUDGET_SECONDS=120`; keep local reruns on comparable hardware or raise the variable only when investigating runner variance rather than changing the committed CI threshold.
 Use `BOOTSTRAP_BUDGET_SECONDS` only as a local rerun override; the committed CI contract keeps the 120-second threshold.
 If the Cherie lane breaks:

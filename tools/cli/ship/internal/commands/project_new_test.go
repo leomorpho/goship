@@ -107,11 +107,17 @@ func TestScaffoldNewProject(t *testing.T) {
 		filepath.Join(opts.AppPath, "app", "notifications", "notifier.go"),
 		filepath.Join(opts.AppPath, "app", "subscriptions", "repo.go"),
 		filepath.Join(opts.AppPath, "app", "emailsubscriptions", "repo.go"),
+		filepath.Join(opts.AppPath, "cmd", "worker", "main.go"),
+		filepath.Join(opts.AppPath, "db", "migrate", "migrations", "00001_starter_bootstrap.sql"),
 		filepath.Join(opts.AppPath, "docs", "00-index.md"),
 		filepath.Join(opts.AppPath, "docs", "architecture", "01-architecture.md"),
 		filepath.Join(opts.AppPath, "docs", "architecture", "08-cognitive-model.md"),
 		filepath.Join(opts.AppPath, "docs", "architecture", "10-extension-zones.md"),
+		filepath.Join(opts.AppPath, "go.sum"),
+		filepath.Join(opts.AppPath, "static", "styles_bundle.css"),
+		filepath.Join(opts.AppPath, "styles", "styles.css"),
 		filepath.Join(opts.AppPath, "cmd", "web", "main.go"),
+		filepath.Join(opts.AppPath, ".env"),
 	}
 	for _, p := range checkFiles {
 		if _, err := os.Stat(p); err != nil {
@@ -299,6 +305,8 @@ func TestRenderStarterTemplateFilesFromFS_ValidLayout(t *testing.T) {
 		"testdata/scaffold/app/views/web/pages/home_feed_templ.go": {Data: []byte("package pages\n")},
 		"testdata/scaffold/app/views/web/pages/landing.templ":      {Data: []byte("templ Landing(){<div>GoShip Starter</div>}")},
 		"testdata/scaffold/app/views/web/pages/landing_templ.go":   {Data: []byte("package pages\n")},
+		"testdata/scaffold/app/views/web/pages/profile.templ":      {Data: []byte("templ Profile(){<div>Profile</div>}")},
+		"testdata/scaffold/app/views/web/pages/profile_templ.go":   {Data: []byte("package pages\n")},
 		"testdata/scaffold/app/web/routenames/routenames.go":       {Data: []byte("package routenames\n")},
 		"testdata/scaffold/cmd/web/main.go":                        {Data: []byte("package main\n")},
 		"testdata/scaffold/go.mod":                                 {Data: []byte("module github.com/leomorpho/goship/starter\n")},

@@ -312,11 +312,17 @@ func checkModuleCompatibilityPolicy(root string) error {
 	goWorkPath := filepath.Join(root, "go.work")
 	goWorkBody, err := os.ReadFile(goWorkPath)
 	if err != nil {
-		return fmt.Errorf("read go.work: %w", err)
+		if !os.IsNotExist(err) {
+			return fmt.Errorf("read go.work: %w", err)
+		}
+		goWorkBody = nil
 	}
-	goWorkFile, err := modfile.ParseWork(goWorkPath, goWorkBody, nil)
-	if err != nil {
-		return fmt.Errorf("parse go.work: %w", err)
+	var goWorkFile *modfile.WorkFile
+	if len(goWorkBody) > 0 {
+		goWorkFile, err = modfile.ParseWork(goWorkPath, goWorkBody, nil)
+		if err != nil {
+			return fmt.Errorf("parse go.work: %w", err)
+		}
 	}
 
 	requiredVersions := map[string]string{}
@@ -330,8 +336,10 @@ func checkModuleCompatibilityPolicy(root string) error {
 	}
 
 	workspaceUses := map[string]struct{}{}
-	for _, use := range goWorkFile.Use {
-		workspaceUses[filepath.Clean(filepath.FromSlash(use.Path))] = struct{}{}
+	if goWorkFile != nil {
+		for _, use := range goWorkFile.Use {
+			workspaceUses[filepath.Clean(filepath.FromSlash(use.Path))] = struct{}{}
+		}
 	}
 
 	for _, info := range standaloneModulePolicies() {

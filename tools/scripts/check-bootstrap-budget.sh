@@ -10,6 +10,7 @@ BUDGET_SECONDS="${BOOTSTRAP_BUDGET_SECONDS:-120}"
 APP_NAME="bootstrap-budget-demo"
 APP_DIR="${WORK_DIR}/${APP_NAME}"
 SHIP_BIN="${WORK_DIR}/ship"
+PORT="42619"
 
 echo "== bootstrap budget =="
 echo "budget_seconds=${BUDGET_SECONDS}"
@@ -29,15 +30,28 @@ start_ts="$(date +%s)"
 
 (
 	cd "${APP_DIR}"
-	go run ./cmd/web >/dev/null
+	"${SHIP_BIN}" db:migrate >/dev/null
+	PORT="${PORT}" go run ./cmd/web >/tmp/bootstrap-budget-web.log 2>&1 &
+	server_pid="$!"
+	trap 'kill "${server_pid}" >/dev/null 2>&1 || true' EXIT
+	for _ in $(seq 1 50); do
+		if curl --fail --silent http://127.0.0.1:${PORT}/health/readiness >/dev/null; then
+			break
+		fi
+		sleep 0.2
+	done
+	curl --fail --silent http://127.0.0.1:${PORT}/health/readiness >/dev/null
+	curl --fail --silent http://127.0.0.1:${PORT}/ >/dev/null
+	kill "${server_pid}" >/dev/null 2>&1 || true
+	wait "${server_pid}" 2>/dev/null || true
 )
 
 elapsed="$(( $(date +%s) - start_ts ))"
 echo "elapsed_seconds=${elapsed}"
 
 if (( elapsed > BUDGET_SECONDS )); then
-	echo "bootstrap budget exceeded: ship new + go run ./cmd/web took ${elapsed}s (budget ${BUDGET_SECONDS}s)" >&2
+	echo "bootstrap budget exceeded: ship new + ship db:migrate + go run ./cmd/web + readiness render checks took ${elapsed}s (budget ${BUDGET_SECONDS}s)" >&2
 	exit 1
 fi
 
-echo "bootstrap budget passed: ship new + go run ./cmd/web took ${elapsed}s"
+echo "bootstrap budget passed: ship new + ship db:migrate + go run ./cmd/web + readiness render checks took ${elapsed}s"

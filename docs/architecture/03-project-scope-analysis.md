@@ -43,6 +43,11 @@ remain explicit manual follow-up steps.
 the same runtime (`runtime-contract-v1`) and upgrade (`upgrade-readiness-v1`) tokens that their
 machine-readable JSON surfaces already emit.
 
+`ship new` now ships a runnable fresh-app confidence loop by default: the scaffold includes a local
+`.env`, a starter SQLite migration, a minimal web entrypoint with readiness/rendered-route smoke
+surface, matching `static/` and `styles/` assets, and a trivial worker entrypoint so downstream apps
+can immediately run `ship db:migrate`, `go run ./cmd/web`, and `ship verify --profile fast`.
+
 ## Runtime Programs
 
 - `cmd/web/main.go`: main HTTP application server

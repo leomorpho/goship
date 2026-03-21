@@ -195,7 +195,9 @@ func ScaffoldNewProject(opts NewProjectOptions, d NewDeps) error {
 
 func baseScaffoldFiles(opts NewProjectOptions) map[string]string {
 	return map[string]string{
+		filepath.Join(opts.AppPath, ".env"):                                          renderStarterDotEnv(),
 		filepath.Join(opts.AppPath, "go.mod"):                                        renderGoMod(opts),
+		filepath.Join(opts.AppPath, "go.sum"):                                        renderGoSum(),
 		filepath.Join(opts.AppPath, "Makefile"):                                      renderStarterMakefile(),
 		filepath.Join(opts.AppPath, "Procfile"):                                      renderProcfile(),
 		filepath.Join(opts.AppPath, "Procfile.dev"):                                  renderProcfileDev(),
@@ -214,14 +216,18 @@ func baseScaffoldFiles(opts NewProjectOptions) map[string]string {
 		filepath.Join(opts.AppPath, "app", "notifications", "notifier.go"):           renderNotificationsDomainSkeleton(),
 		filepath.Join(opts.AppPath, "app", "subscriptions", "repo.go"):               renderSubscriptionsDomainSkeleton(),
 		filepath.Join(opts.AppPath, "app", "emailsubscriptions", "repo.go"):          renderEmailSubscriptionsDomainSkeleton(),
+		filepath.Join(opts.AppPath, "cmd", "worker", "main.go"):                      renderWorkerMain(),
 		filepath.Join(opts.AppPath, "docs", "00-index.md"):                           renderDocsIndexSkeleton(),
 		filepath.Join(opts.AppPath, "docs", "architecture", "01-architecture.md"):    renderArchitectureSkeleton(),
 		filepath.Join(opts.AppPath, "docs", "architecture", "08-cognitive-model.md"): renderCognitiveModelSkeleton(),
 		filepath.Join(opts.AppPath, "docs", "architecture", "10-extension-zones.md"): renderExtensionZonesSkeleton(),
+		filepath.Join(opts.AppPath, "db", "migrate", "migrations", "00001_starter_bootstrap.sql"): renderStarterMigration(),
 		filepath.Join(opts.AppPath, ".github", "workflows", "ci.yml"):                renderGithubCI(),
 		filepath.Join(opts.AppPath, ".github", "workflows", "deploy.yml"):            renderGithubDeploy(),
 		filepath.Join(opts.AppPath, ".github", "workflows", "security.yml"):          renderGithubSecurity(),
 		filepath.Join(opts.AppPath, ".github", "dependabot.yml"):                     renderGithubDependabot(),
+		filepath.Join(opts.AppPath, "static", "styles_bundle.css"):                   renderStarterStylesBundle(),
+		filepath.Join(opts.AppPath, "styles", "styles.css"):                          renderStarterStylesSource(),
 	}
 }
 
@@ -336,6 +342,12 @@ require github.com/a-h/templ v0.3.1001
 `, opts.Module)
 }
 
+func renderGoSum() string {
+	return `github.com/a-h/templ v0.3.1001 h1:yHDTgexACdJttyiyamcTHXr2QkIeVF1MukLy44EAhMY=
+github.com/a-h/templ v0.3.1001/go.mod h1:oCZcnKRf5jjsGpf2yELzQfodLphd2mwecwG4Crk5HBo=
+`
+}
+
 func renderModulesManifestSkeleton() string {
 	return `# Workspace-level module enablement.
 # Modules apply to the monolith as a whole (not per mini-app).
@@ -344,9 +356,20 @@ modules: []
 }
 
 func renderStarterMakefile() string {
-	return `.PHONY: run
+	return `.PHONY: migrate run
+migrate:
+	ship db:migrate
+
 run:
 	go run ./cmd/web
+`
+}
+
+func renderStarterDotEnv() string {
+	return `APP_ENV=development
+DB_DRIVER=sqlite
+DATABASE_URL=sqlite://tmp/starter.db
+PORT=3000
 `
 }
 
@@ -418,6 +441,17 @@ func renderViewModelsSkeleton() string {
 
 func renderJobsSkeleton() string {
 	return `package jobs
+`
+}
+
+func renderWorkerMain() string {
+	return `package main
+
+import "log"
+
+func main() {
+	log.Println("starter worker ready: no background jobs registered yet")
+}
 `
 }
 
@@ -499,6 +533,39 @@ SELECT * FROM users WHERE id = ?;
 -- name: GetUserByEmail :one
 SELECT * FROM users WHERE email = ?;
 `
+}
+
+func renderStarterMigration() string {
+	return `-- +goose Up
+CREATE TABLE IF NOT EXISTS starter_bootstrap (
+    id INTEGER PRIMARY KEY,
+    app_name TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+
+INSERT INTO starter_bootstrap (id, app_name, created_at)
+VALUES (1, 'GoShip Starter', CURRENT_TIMESTAMP)
+ON CONFLICT(id) DO NOTHING;
+
+-- +goose Down
+DROP TABLE IF EXISTS starter_bootstrap;
+`
+}
+
+func renderStarterStylesSource() string {
+	return `:root {
+  --starter-bg: #f5efe4;
+  --starter-panel: #fffaf2;
+  --starter-ink: #1e1b18;
+  --starter-accent: #bb5a3c;
+  --starter-muted: #6f655a;
+  --starter-border: #ddc9a9;
+}
+`
+}
+
+func renderStarterStylesBundle() string {
+	return `:root{--starter-bg:#f5efe4;--starter-panel:#fffaf2;--starter-ink:#1e1b18;--starter-accent:#bb5a3c;--starter-muted:#6f655a;--starter-border:#ddc9a9}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#fff8ef 0,#f5efe4 48%,#eadcc4 100%);color:var(--starter-ink);font-family:Georgia,"Times New Roman",serif}a{color:inherit}.starter-shell{max-width:960px;margin:0 auto;padding:32px 20px 64px}.starter-header{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:24px}.starter-brand{font-size:28px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}.starter-nav{display:flex;gap:12px;flex-wrap:wrap}.starter-nav a{padding:10px 14px;border:1px solid var(--starter-border);border-radius:999px;background:rgba(255,250,242,.8);text-decoration:none}.starter-panel{background:var(--starter-panel);border:1px solid var(--starter-border);border-radius:24px;padding:28px;box-shadow:0 24px 80px rgba(62,38,20,.08)}.starter-panel h1{font-size:42px;line-height:1.05;margin:0 0 12px}.starter-panel p{font-size:18px;line-height:1.6;color:var(--starter-muted);margin:0}.starter-status{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:rgba(187,90,60,.12);color:var(--starter-accent);font-size:14px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:16px}.starter-footer{margin-top:18px;font-size:14px;color:var(--starter-muted)}@media (max-width:640px){.starter-shell{padding:24px 16px 40px}.starter-header{flex-direction:column;align-items:flex-start}.starter-panel{padding:22px}.starter-panel h1{font-size:34px}}`
 }
 
 func renderGithubCI() string {

@@ -40,7 +40,9 @@ func TestBootstrapBudgetContract_RedSpec(t *testing.T) {
 	}
 	for _, token := range []string{
 		"ship new",
+		"ship db:migrate",
 		"go run ./cmd/web",
+		"curl --fail --silent http://127.0.0.1:",
 		"BOOTSTRAP_BUDGET_SECONDS",
 	} {
 		if !strings.Contains(string(script), token) {
@@ -56,6 +58,8 @@ func TestBootstrapBudgetContract_RedSpec(t *testing.T) {
 		"`make test-bootstrap-budget`",
 		"`BOOTSTRAP_BUDGET_SECONDS`",
 		"`ship new <app> --no-i18n`",
+		"`ship db:migrate`",
+		"`/health/readiness`",
 	} {
 		if !strings.Contains(string(devGuide), token) {
 			t.Fatalf("development workflows guide missing %q", token)
@@ -68,7 +72,11 @@ func TestBootstrapBudgetContract_RedSpec(t *testing.T) {
 	}
 	for _, token := range []string{
 		"`cmd/web/main.go`",
+		"`cmd/worker/main.go`",
 		"`app/router.go`",
+		"`db/migrate/migrations/`",
+		"`static/`",
+		"`styles/`",
 		"`tools/agent-policy/generated/`",
 	} {
 		if !strings.Contains(string(cliRef), token) {

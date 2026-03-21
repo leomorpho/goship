@@ -5,6 +5,7 @@ package controllers_test
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"testing"
@@ -29,15 +30,16 @@ func TestRouteSmoke_PublicAndAuthenticatedGets(t *testing.T) {
 	onboardedClient, _, _ := loginSmokeUser(t, true)
 
 	tests := []struct {
-		name       string
-		routeName  string
-		client     smokeClientState
-		wantStatus int
+		name             string
+		routeName        string
+		client           smokeClientState
+		wantStatus       int
+		wantBodyContains string
 	}{
-		{name: "landing", routeName: routeNames.RouteNameLandingPage, client: smokeClientAnonymous, wantStatus: http.StatusOK},
-		{name: "healthcheck", routeName: routeNames.RouteNameHealthcheck, client: smokeClientAnonymous, wantStatus: http.StatusOK},
-		{name: "health liveness", routeName: routeNames.RouteNameHealthLiveness, client: smokeClientAnonymous, wantStatus: http.StatusOK},
-		{name: "health readiness", routeName: routeNames.RouteNameHealthReadiness, client: smokeClientAnonymous, wantStatus: http.StatusOK},
+		{name: "landing", routeName: routeNames.RouteNameLandingPage, client: smokeClientAnonymous, wantStatus: http.StatusOK, wantBodyContains: "GoShip"},
+		{name: "healthcheck", routeName: routeNames.RouteNameHealthcheck, client: smokeClientAnonymous, wantStatus: http.StatusOK, wantBodyContains: "ok"},
+		{name: "health liveness", routeName: routeNames.RouteNameHealthLiveness, client: smokeClientAnonymous, wantStatus: http.StatusOK, wantBodyContains: "alive"},
+		{name: "health readiness", routeName: routeNames.RouteNameHealthReadiness, client: smokeClientAnonymous, wantStatus: http.StatusOK, wantBodyContains: "ready"},
 		{name: "install app", routeName: routeNames.RouteNameInstallApp, client: smokeClientAnonymous, wantStatus: http.StatusOK},
 		{name: "login", routeName: routeNames.RouteNameLogin, client: smokeClientAnonymous, wantStatus: http.StatusOK},
 		{name: "register", routeName: routeNames.RouteNameRegister, client: smokeClientAnonymous, wantStatus: http.StatusOK},
@@ -49,7 +51,7 @@ func TestRouteSmoke_PublicAndAuthenticatedGets(t *testing.T) {
 		{name: "delete account", routeName: routeNames.RouteNameDeleteAccountPage, client: smokeClientOnboarding, wantStatus: http.StatusOK},
 		{name: "finish onboarding", routeName: routeNames.RouteNameFinishOnboarding, client: smokeClientOnboarding, wantStatus: http.StatusOK},
 		{name: "profile bio", routeName: routeNames.RouteNameGetBio, client: smokeClientOnboarding, wantStatus: http.StatusOK},
-		{name: "home feed", routeName: routeNames.RouteNameHomeFeed, client: smokeClientOnboarded, wantStatus: http.StatusOK},
+		{name: "home feed", routeName: routeNames.RouteNameHomeFeed, client: smokeClientOnboarded, wantStatus: http.StatusOK, wantBodyContains: "Home"},
 		{name: "home feed buttons", routeName: routeNames.RouteNameGetHomeFeedButtons, client: smokeClientOnboarded, wantStatus: http.StatusOK},
 		{name: "profile", routeName: routeNames.RouteNameProfile, client: smokeClientOnboarded, wantStatus: http.StatusOK},
 		{name: "upload photo", routeName: routeNames.RouteNameUploadPhoto, client: smokeClientOnboarded, wantStatus: http.StatusOK},
@@ -70,7 +72,13 @@ func TestRouteSmoke_PublicAndAuthenticatedGets(t *testing.T) {
 				req = req.setClient(onboardedClient)
 			}
 
-			req.get().assertStatusCode(tc.wantStatus)
+			resp := req.get().assertStatusCode(tc.wantStatus)
+			if tc.wantBodyContains != "" {
+				body, err := io.ReadAll(resp.Body)
+				require.NoError(t, err)
+				require.NoError(t, resp.Body.Close())
+				require.Contains(t, string(body), tc.wantBodyContains)
+			}
 		})
 	}
 }
