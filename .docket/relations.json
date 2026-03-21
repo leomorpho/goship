@@ -1,6 +1,206 @@
 {
   "relations": [
     {
+      "from": "TKT-001",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-002",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-003",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-008",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-024",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-025",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-027",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-041",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-042",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-043",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-046",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-047",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-048",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-049",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-050",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-051",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-052",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-063",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-064",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-065",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-070",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-076",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-077",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-079",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-080",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-081",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-093",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-094",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-097",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-103",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-104",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-105",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-106",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-107",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-108",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-109",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-110",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-114",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-115",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-143",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
       "from": "TKT-171",
       "to": "TKT-172",
       "relation": "blocks"
@@ -174,6 +374,176 @@
       "from": "TKT-185",
       "to": "TKT-184",
       "relation": "blocks"
+    },
+    {
+      "from": "TKT-212",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-213",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-287",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-289",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-291",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-292",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-295",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-296",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-297",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-333",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-334",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-338",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-339",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-340",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-341",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-342",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-345",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-346",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-347",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-348",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-349",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-350",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-351",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-352",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-353",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-354",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-391",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-417",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-443",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-469",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-489",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-511",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-531",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
+    },
+    {
+      "from": "TKT-551",
+      "to": "TKT-187",
+      "relation": "parallel-safe"
     }
   ]
 }

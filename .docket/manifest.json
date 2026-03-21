@@ -961,18 +961,18 @@
     },
     "TKT-187": {
       "title": "Program: GoShip canonical hard-cutover and DX-first productization",
-      "state": "archived",
+      "state": "backlog",
       "priority": 8
     },
     "TKT-188": {
       "title": "Epic: Framework DX and quality gates",
-      "state": "archived",
+      "state": "backlog",
       "priority": 8,
       "parent": "TKT-187"
     },
     "TKT-189": {
       "title": "Epic: Runtime capabilities and standalone operation",
-      "state": "archived",
+      "state": "backlog",
       "priority": 8,
       "parent": "TKT-187"
     },
@@ -984,7 +984,7 @@
     },
     "TKT-191": {
       "title": "Epic: Product surface for generators and installable batteries",
-      "state": "archived",
+      "state": "backlog",
       "priority": 8,
       "parent": "TKT-187"
     },
@@ -1110,17 +1110,17 @@
     },
     "TKT-212": {
       "title": "G6-03: Finalize verify profiles, Cherie sync baseline, and alpha contract gate",
-      "state": "archived",
+      "state": "backlog",
       "priority": 8
     },
     "TKT-213": {
       "title": "Program: Interaction contract between GoShip runtime and Control Plane authority",
-      "state": "archived",
+      "state": "backlog",
       "priority": 8
     },
     "TKT-214": {
       "title": "Epic: Control-plane interoperability contract",
-      "state": "archived",
+      "state": "backlog",
       "priority": 8,
       "parent": "TKT-213"
     },
@@ -1323,7 +1323,7 @@
     },
     "TKT-248": {
       "title": "Roadmap Hygiene: Normalize new epic tickets with scope, likely paths, and verify commands",
-      "state": "archived",
+      "state": "backlog",
       "priority": 8,
       "parent": "TKT-187"
     },
@@ -2633,7 +2633,7 @@
     },
     "TKT-471": {
       "title": "Implement a machine-readable upgrade-readiness report and lock its schema with contract tests.",
-      "state": "backlog",
+      "state": "in-progress",
       "priority": 4,
       "parent": "TKT-470"
     },
@@ -2752,7 +2752,7 @@
     },
     "TKT-491": {
       "title": "Add an end-to-end suite that generates a fresh app, migrates it, boots it, and verifies it.",
-      "state": "backlog",
+      "state": "in-progress",
       "priority": 4,
       "parent": "TKT-490"
     },
