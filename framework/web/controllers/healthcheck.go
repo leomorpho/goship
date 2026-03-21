@@ -20,16 +20,8 @@ var processStartedAt = time.Now()
 
 func NewHealthCheckRoute(ctr ui.Controller) HealthcheckRoute {
 	registry := health.NewRegistry()
-	if ctr.Container != nil {
-		if ctr.Container.Database != nil {
-			registry.Register(health.NewDBChecker(ctr.Container.Database, 2*time.Second))
-		}
-		if ctr.Container.CoreCache != nil {
-			registry.Register(health.NewCacheChecker(ctr.Container.CoreCache, 2*time.Second))
-		}
-		if ctr.Container.CoreJobsInspector != nil {
-			registry.Register(health.NewJobsChecker(ctr.Container.CoreJobsInspector, 2*time.Second))
-		}
+	if ctr.Container != nil && ctr.Container.Health != nil {
+		registry = ctr.Container.Health
 	}
 
 	return HealthcheckRoute{

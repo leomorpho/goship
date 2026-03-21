@@ -72,3 +72,19 @@ func TestRegistryRunDefaultsMissingStatusToError(t *testing.T) {
 		t.Fatalf("expected default error status, got %q", results["db"].Status)
 	}
 }
+
+func TestNewRegistryRegistersInitialCheckers(t *testing.T) {
+	registry := NewRegistry(
+		testChecker{name: "db", result: CheckResult{Status: StatusOK}},
+		nil,
+		testChecker{name: "cache", result: CheckResult{Status: StatusOK}},
+	)
+
+	results, allOK := registry.Run(context.Background())
+	if !allOK {
+		t.Fatal("expected allOK to be true")
+	}
+	if len(results) != 2 {
+		t.Fatalf("expected 2 results, got %d", len(results))
+	}
+}

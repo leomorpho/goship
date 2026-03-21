@@ -1,11 +1,14 @@
 package bootstrap
 
 import (
+	"context"
 	"fmt"
 	"path/filepath"
 	"strings"
 	"sync"
 	"testing"
+
+	"github.com/leomorpho/goship/framework/health"
 )
 
 func TestOpenEmbeddedDBConfiguresSQLitePragmas(t *testing.T) {
@@ -111,5 +114,27 @@ func TestOpenEmbeddedDBConcurrentWritesAvoidLockErrors(t *testing.T) {
 	}
 	if count != workers {
 		t.Fatalf("writes count = %d, want %d", count, workers)
+	}
+}
+
+func TestNewContainerEmbeddedBootHasHealthyReadiness(t *testing.T) {
+	t.Setenv("PAGODA_APP_ENVIRONMENT", "test")
+	t.Setenv("PAGODA_DB_PATH", filepath.Join(t.TempDir(), "app.db"))
+
+	container := NewContainer(nil)
+	t.Cleanup(func() {
+		_ = container.Shutdown()
+	})
+
+	if container.Health == nil {
+		t.Fatal("expected health registry to be initialized")
+	}
+
+	results, allOK := container.Health.Run(context.Background())
+	if !allOK {
+		t.Fatalf("expected healthy readiness, got %#v", results)
+	}
+	if results["db"].Status != health.StatusOK {
+		t.Fatalf("expected db status ok, got %q", results["db"].Status)
 	}
 }

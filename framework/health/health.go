@@ -28,8 +28,12 @@ type Registry struct {
 	checkers []Checker
 }
 
-func NewRegistry() *Registry {
-	return &Registry{}
+func NewRegistry(checkers ...Checker) *Registry {
+	registry := &Registry{}
+	for _, checker := range checkers {
+		registry.Register(checker)
+	}
+	return registry
 }
 
 func (r *Registry) Register(checker Checker) {

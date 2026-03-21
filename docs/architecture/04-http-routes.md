@@ -15,6 +15,7 @@ Ergonomic routing rule:
 - `GET /up` liveness healthcheck alias
 - `GET /health` liveness healthcheck
 - `GET /health/ready` readiness healthcheck (returns `503` when a registered dependency check fails)
+- These health endpoints are framework-default routes registered during framework web wiring, not app-specific controller composition.
 - `GET /clear-cookie`
 
 Email subscription:

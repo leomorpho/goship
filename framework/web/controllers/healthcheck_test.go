@@ -9,7 +9,9 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
 	"github.com/leomorpho/goship/framework/health"
+	"github.com/leomorpho/goship/framework/web/ui"
 )
 
 func TestHealthcheckLiveness(t *testing.T) {
@@ -55,6 +57,18 @@ func TestHealthcheckReadiness503WhenAnyCheckFails(t *testing.T) {
 	}
 	if rec.Code != http.StatusServiceUnavailable {
 		t.Fatalf("unexpected status code: got %d want %d", rec.Code, http.StatusServiceUnavailable)
+	}
+}
+
+func TestNewHealthCheckRouteUsesContainerHealthRegistry(t *testing.T) {
+	registry := health.NewRegistry(testChecker{
+		name:   "db",
+		result: health.CheckResult{Status: health.StatusOK},
+	})
+
+	route := NewHealthCheckRoute(ui.NewController(&frameworkbootstrap.Container{Health: registry}))
+	if route.registry != registry {
+		t.Fatal("expected route to use container health registry")
 	}
 }
 

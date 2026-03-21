@@ -19,7 +19,9 @@ import (
 	frameworkmiddleware "github.com/leomorpho/goship/framework/middleware"
 	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
 	"github.com/leomorpho/goship/framework/runtimeplan"
+	frameworkcontrollers "github.com/leomorpho/goship/framework/web/controllers"
 	webmiddleware "github.com/leomorpho/goship/framework/web/middleware"
+	routeNames "github.com/leomorpho/goship/framework/web/routenames"
 	"github.com/leomorpho/goship/framework/web/ui"
 	i18nmodule "github.com/leomorpho/goship/modules/i18n"
 	profilesvc "github.com/leomorpho/goship/modules/profile"
@@ -80,6 +82,8 @@ func NewRouteDeps(
 }
 
 func RegisterStaticRoutes(c *frameworkbootstrap.Container) error {
+	registerHealthRoutes(c)
+
 	c.Web.Group("", webmiddleware.CacheControl(c.Config.Cache.Expiration.StaticFile), echomw.Gzip()).
 		Static(config.StaticPrefix, config.StaticDir)
 
@@ -98,6 +102,13 @@ func RegisterStaticRoutes(c *frameworkbootstrap.Container) error {
 	}
 
 	return nil
+}
+
+func registerHealthRoutes(c *frameworkbootstrap.Container) {
+	healthcheck := frameworkcontrollers.NewHealthCheckRoute(ui.NewController(c))
+	c.Web.GET("/up", healthcheck.GetLiveness).Name = routeNames.RouteNameHealthcheck
+	c.Web.GET("/health", healthcheck.GetLiveness).Name = routeNames.RouteNameHealthLiveness
+	c.Web.GET("/health/ready", healthcheck.GetReadiness).Name = routeNames.RouteNameHealthReadiness
 }
 
 func ApplyTLSRedirect(groups ...*echo.Group) {
