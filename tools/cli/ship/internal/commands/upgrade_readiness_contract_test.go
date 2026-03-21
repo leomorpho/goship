@@ -53,27 +53,54 @@ const gooseGoRunRef = "github.com/pressly/goose/v3/cmd/goose@v3.26.0"
 		t.Fatalf("code=%d stderr=%s", code, errOut.String())
 	}
 
-	var report map[string]any
-	if err := json.Unmarshal(out.Bytes(), &report); err != nil {
+	var report UpgradeReadinessReport
+	decoder := json.NewDecoder(bytes.NewReader(out.Bytes()))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&report); err != nil {
 		t.Fatalf("stdout should be valid JSON: %v\n%s", err, out.String())
 	}
-	if got := report["schema_version"]; got != "upgrade-readiness-v1" {
+	if got := report.SchemaVersion; got != "upgrade-readiness-v1" {
 		t.Fatalf("schema_version=%v want upgrade-readiness-v1", got)
 	}
-	if got := report["target_version"]; got != "v3.27.0" {
+	if got := report.TargetVersion; got != "v3.27.0" {
 		t.Fatalf("target_version=%v want v3.27.0", got)
 	}
-	if got := report["ready"]; got != true {
+	if got := report.Ready; got != true {
 		t.Fatalf("ready=%v want true", got)
 	}
-	if got := report["blockers"]; got == nil {
-		t.Fatalf("expected blockers array in report")
+	if report.RollbackTarget != "v3.26.0" {
+		t.Fatalf("rollback_target=%q want v3.26.0", report.RollbackTarget)
 	}
-	if got := report["remediation_hints"]; got == nil {
-		t.Fatalf("expected remediation_hints array in report")
+	if report.Canary.Strategy != "cli-pin-preflight" {
+		t.Fatalf("canary.strategy=%q want cli-pin-preflight", report.Canary.Strategy)
 	}
-	if got := report["planned_changes"]; got == nil {
-		t.Fatalf("expected planned_changes array in report")
+	if report.Canary.Scope != "single pinned goose reference" {
+		t.Fatalf("canary.scope=%q want single pinned goose reference", report.Canary.Scope)
+	}
+	if report.Verification.Command != "ship upgrade --to v3.27.0 --dry-run" {
+		t.Fatalf("verification.command=%q want concrete dry-run command", report.Verification.Command)
+	}
+	if len(report.Blockers) != 0 {
+		t.Fatalf("blockers=%+v want empty", report.Blockers)
+	}
+	if len(report.RemediationHints) != 3 {
+		t.Fatalf("remediation_hints=%d want 3", len(report.RemediationHints))
+	}
+	if got := report.RemediationHints[1]; got != "Use ship upgrade --to v3.27.0 --dry-run to preview the text mutation plan." {
+		t.Fatalf("remediation_hints[1]=%q", got)
+	}
+	if len(report.PlannedChanges) != 1 {
+		t.Fatalf("planned_changes=%d want 1", len(report.PlannedChanges))
+	}
+	change := report.PlannedChanges[0]
+	if !strings.HasSuffix(change.File, filepath.Join("tools", "cli", "ship", "internal", "cli", "cli.go")) {
+		t.Fatalf("planned_changes[0].file=%q should point at ship internal cli.go", change.File)
+	}
+	if change.Current != "v3.26.0" {
+		t.Fatalf("planned_changes[0].current=%q want v3.26.0", change.Current)
+	}
+	if change.Target != "v3.27.0" {
+		t.Fatalf("planned_changes[0].target=%q want v3.27.0", change.Target)
 	}
 
 	b, err := os.ReadFile(cliPath)
@@ -125,6 +152,25 @@ const gooseGoRunRef = "github.com/pressly/goose/v3/cmd/goose@v3.26.0"
 		if got := report[field]; got == nil {
 			t.Fatalf("expected upgrade readiness report to include %q contract field", field)
 		}
+	}
+}
+
+func TestBuildUpgradeReadinessReport_UsesConcreteCommands_RedSpec(t *testing.T) {
+	report := buildUpgradeReadinessReport(
+		"/repo/tools/cli/ship/internal/cli/cli.go",
+		"v3.26.0",
+		"v3.27.0",
+		true,
+	)
+
+	if report.Verification.Command != "ship upgrade --to v3.27.0 --dry-run" {
+		t.Fatalf("verification.command=%q want concrete dry-run command", report.Verification.Command)
+	}
+	if got := report.RemediationHints[1]; got != "Use ship upgrade --to v3.27.0 --dry-run to preview the text mutation plan." {
+		t.Fatalf("remediation_hints[1]=%q", got)
+	}
+	if got := report.RemediationHints[2]; got != "Run ship upgrade --to v3.27.0 after the readiness report is accepted." {
+		t.Fatalf("remediation_hints[2]=%q", got)
 	}
 }
 

@@ -136,3 +136,26 @@ func TestDocs_StagedRolloutDecisionContractStaysInSync_RedSpec(t *testing.T) {
 		}
 	}
 }
+
+func TestDocs_UpgradeReadinessContractStaysInSync_RedSpec(t *testing.T) {
+	root := repoRootFromCommandsTest(t)
+
+	cliDoc := mustReadText(t, filepath.Join(root, "docs", "reference", "01-cli.md"))
+
+	for _, token := range []string{
+		"`ship upgrade --json`",
+		"upgrade-readiness-v1",
+		"schema_version",
+		"target_version",
+		"rollback_target",
+		"canary",
+		"verification",
+		"blockers",
+		"remediation_hints",
+		"planned_changes",
+	} {
+		if !strings.Contains(cliDoc, token) {
+			t.Fatalf("CLI reference should include %q", token)
+		}
+	}
+}

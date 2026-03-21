@@ -158,6 +158,9 @@ func RewriteGooseVersion(path, target string) (oldVersion string, rewritten stri
 }
 
 func buildUpgradeReadinessReport(path, currentVersion, targetVersion string, changed bool) UpgradeReadinessReport {
+	dryRunCommand := fmt.Sprintf("ship upgrade --to %s --dry-run", targetVersion)
+	applyCommand := fmt.Sprintf("ship upgrade --to %s", targetVersion)
+
 	report := UpgradeReadinessReport{
 		SchemaVersion:  upgradeReadinessSchemaVersion,
 		TargetVersion:  targetVersion,
@@ -168,14 +171,14 @@ func buildUpgradeReadinessReport(path, currentVersion, targetVersion string, cha
 			Scope:    "single pinned goose reference",
 		},
 		Verification: UpgradeVerification{
-			Command: "ship upgrade --to <version> --dry-run",
+			Command: dryRunCommand,
 			Note:    "Review the readiness report and planned mutation before writing the new pin.",
 		},
 		Blockers: []UpgradeReadinessItem{},
 		RemediationHints: []string{
 			"Review the readiness report before mutating pinned versions.",
-			"Use ship upgrade --to <version> --dry-run to preview the text mutation plan.",
-			"Run ship upgrade --to <version> without --json after the readiness report is accepted.",
+			fmt.Sprintf("Use %s to preview the text mutation plan.", dryRunCommand),
+			fmt.Sprintf("Run %s after the readiness report is accepted.", applyCommand),
 		},
 		PlannedChanges: []UpgradePlannedChange{},
 	}
