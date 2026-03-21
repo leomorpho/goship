@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/app/foundation"
 	"github.com/leomorpho/goship/config"
+	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
 	"github.com/leomorpho/goship/framework/web/ui"
 )
 
@@ -14,7 +14,7 @@ func TestRegisterMailPreviewRoutesDevelopmentOnly(t *testing.T) {
 	t.Run("registers routes in development", func(t *testing.T) {
 		e := echo.New()
 		g := e.Group("")
-		ctr := ui.NewController(&foundation.Container{Config: testConfigForDevelop()})
+		ctr := ui.NewController(&frameworkbootstrap.Container{Config: testConfigForDevelop()})
 
 		registerMailPreviewRoutes(g, ctr)
 
@@ -26,7 +26,7 @@ func TestRegisterMailPreviewRoutesDevelopmentOnly(t *testing.T) {
 	t.Run("does not register routes in production", func(t *testing.T) {
 		e := echo.New()
 		g := e.Group("")
-		ctr := ui.NewController(&foundation.Container{Config: testConfigForProduction()})
+		ctr := ui.NewController(&frameworkbootstrap.Container{Config: testConfigForProduction()})
 
 		registerMailPreviewRoutes(g, ctr)
 

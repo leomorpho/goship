@@ -11,9 +11,9 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/app/foundation"
 	"github.com/leomorpho/goship/config"
 	"github.com/leomorpho/goship/framework/backup"
+	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
 	frameworksecurity "github.com/leomorpho/goship/framework/security"
 	webmiddleware "github.com/leomorpho/goship/framework/web/middleware"
 	"github.com/leomorpho/goship/framework/web/ui"
@@ -166,7 +166,7 @@ func newManagedHooksTestServerWithDrivers(t *testing.T, backupDriver *fakeBackup
 	cfg.Backup.SQLitePath = ".local/db/main.db"
 	cfg.Database.Path = ".local/db/main.db"
 
-	ctr := ui.NewController(&foundation.Container{
+	ctr := ui.NewController(&frameworkbootstrap.Container{
 		Config: &cfg,
 	})
 	route := NewManagedHooksRoute(ctr, ManagedHooksDeps{

@@ -54,46 +54,48 @@ func TestEveryViewmodelStructHasConstructor(t *testing.T) {
 
 func TestNoExternalViewmodelCompositeLiterals(t *testing.T) {
 	repoRoot := filepath.Clean(filepath.Join(".", "..", "..", ".."))
+	viewmodelsDir := filepath.Join(repoRoot, "framework", "web", "viewmodels")
 	fset := token.NewFileSet()
 
 	var offenders []string
-	for _, root := range []string{"app", "modules"} {
-		base := filepath.Join(repoRoot, root)
-		err := filepath.WalkDir(base, func(path string, d fs.DirEntry, err error) error {
-			require.NoError(t, err)
-			if d.IsDir() {
-				if d.Name() == "gen" {
-					return filepath.SkipDir
-				}
-				return nil
-			}
-			if filepath.Ext(path) != ".go" || strings.HasSuffix(path, "_test.go") {
-				return nil
-			}
-
-			file, parseErr := parser.ParseFile(fset, path, nil, 0)
-			require.NoError(t, parseErr)
-			ast.Inspect(file, func(n ast.Node) bool {
-				lit, ok := n.(*ast.CompositeLit)
-				if !ok {
-					return true
-				}
-				sel, ok := lit.Type.(*ast.SelectorExpr)
-				if !ok {
-					return true
-				}
-				pkg, ok := sel.X.(*ast.Ident)
-				if !ok || pkg.Name != "viewmodels" {
-					return true
-				}
-				pos := fset.Position(lit.Pos())
-				offenders = append(offenders, pos.String())
-				return true
-			})
-			return nil
-		})
+	err := filepath.WalkDir(repoRoot, func(path string, d fs.DirEntry, err error) error {
 		require.NoError(t, err)
-	}
+		if d.IsDir() {
+			switch d.Name() {
+			case ".git", "gen":
+				return filepath.SkipDir
+			}
+			if filepath.Clean(path) == viewmodelsDir {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		if filepath.Ext(path) != ".go" || strings.HasSuffix(path, "_test.go") {
+			return nil
+		}
+
+		file, parseErr := parser.ParseFile(fset, path, nil, 0)
+		require.NoError(t, parseErr)
+		ast.Inspect(file, func(n ast.Node) bool {
+			lit, ok := n.(*ast.CompositeLit)
+			if !ok {
+				return true
+			}
+			sel, ok := lit.Type.(*ast.SelectorExpr)
+			if !ok {
+				return true
+			}
+			pkg, ok := sel.X.(*ast.Ident)
+			if !ok || pkg.Name != "viewmodels" {
+				return true
+			}
+			pos := fset.Position(lit.Pos())
+			offenders = append(offenders, pos.String())
+			return true
+		})
+		return nil
+	})
+	require.NoError(t, err)
 
 	require.Empty(t, offenders, "use viewmodel constructors outside app/web/viewmodels")
 }

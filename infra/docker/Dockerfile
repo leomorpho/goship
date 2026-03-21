@@ -45,9 +45,6 @@ COPY --from=builder /app-seed /goship-seed
 # Copy asynq tool
 COPY --from=builder /go/bin/asynq /usr/local/bin/
 
-# Copy templ views
-COPY app/views/ /app/views/
-
 # Optional: Bind to a TCP port (document the ports the application listens on)
 EXPOSE 8000
 EXPOSE 8080
@@ -56,7 +53,7 @@ EXPOSE 8080
 COPY infra/docker/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-COPY app/static/ /app/static/
+COPY static/ /static/
 
 # Below is only used if you need to use PWABuilder to make a native Android app
 # RUN mkdir pwabuilder-android-wrapper

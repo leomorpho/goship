@@ -65,7 +65,7 @@ def update_images(directories, new_image_path, manifest_json_path):
                     resized_new_image = new_image.resize(icon_size, Image.LANCZOS)
 
                     # Define the path for saving the resized icon
-                    icon_path = os.path.join("app/static", os.path.basename(src))
+                    icon_path = os.path.join("static", os.path.basename(src))
 
                     # Save the resized icon
                     resized_new_image.save(icon_path)
@@ -78,14 +78,14 @@ def update_images(directories, new_image_path, manifest_json_path):
 
 # List of directories to search for PNG files
 directories = [
-    "./app/static",
+    "./static",
     "./pwabuilder-android-wrapper",
     "./infra/pwabuilder-ios-wrapper"
 ]
 
 # Path to the new image
 new_image_path = "/Users/leoaudibert/Downloads/goshop.PNG"
-manifest_json_path = "./app/static/manifest.json"
+manifest_json_path = "./static/manifest.json"
 
 # Run the update process
 update_images(directories, new_image_path, manifest_json_path)

@@ -5,13 +5,13 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/leomorpho/goship/app/foundation"
 	"github.com/leomorpho/goship/config"
+	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
 	"github.com/leomorpho/goship/framework/tests"
 )
 
 var (
-	c   *foundation.Container
+	c   *frameworkbootstrap.Container
 	usr *tests.UserRecord
 )
 
@@ -24,7 +24,7 @@ func TestMain(m *testing.M) {
 	config.SwitchEnvironment(config.EnvTest)
 
 	// Create a new container
-	c = foundation.NewContainer()
+	c = frameworkbootstrap.NewContainer(nil)
 
 	// Create a user
 	var err error

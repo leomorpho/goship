@@ -3,11 +3,11 @@ package main
 import (
 	"log"
 
-	"github.com/leomorpho/goship/app/foundation"
+	"github.com/leomorpho/goship"
 )
 
 func main() {
-	c := foundation.NewContainer()
+	c := goship.NewContainer()
 	defer func() {
 		_ = c.Shutdown()
 	}()

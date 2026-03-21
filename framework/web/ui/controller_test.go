@@ -8,14 +8,14 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/leomorpho/goship/app/foundation"
-	"github.com/leomorpho/goship/app/views/web/components/gen"
-	"github.com/leomorpho/goship/app/views/web/layouts/gen"
-	"github.com/leomorpho/goship/app/views/web/pages/gen"
 	"github.com/leomorpho/goship/config"
+	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
 	"github.com/leomorpho/goship/framework/htmx"
 	"github.com/leomorpho/goship/framework/tests"
+	"github.com/leomorpho/goship/framework/web/components/gen"
+	"github.com/leomorpho/goship/framework/web/layouts/gen"
 	"github.com/leomorpho/goship/framework/web/middleware"
+	"github.com/leomorpho/goship/framework/web/pages/gen"
 	"github.com/leomorpho/goship/framework/web/ui"
 
 	"github.com/stretchr/testify/assert"
@@ -25,7 +25,7 @@ import (
 )
 
 var (
-	c *foundation.Container
+	c *frameworkbootstrap.Container
 )
 
 func TestMain(m *testing.M) {
@@ -37,7 +37,7 @@ func TestMain(m *testing.M) {
 	config.SwitchEnvironment(config.EnvTest)
 
 	// Create a new container
-	c = foundation.NewContainer()
+	c = frameworkbootstrap.NewContainer(nil)
 
 	// Run tests
 	exitVal := m.Run()

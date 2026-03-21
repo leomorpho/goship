@@ -3,9 +3,9 @@ package controllers
 import (
 	"github.com/a-h/templ"
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/app/views"
-	"github.com/leomorpho/goship/app/views/web/pages/gen"
+	"github.com/leomorpho/goship/framework/web/pages/gen"
 	"github.com/leomorpho/goship/framework/web/routenames"
+	"github.com/leomorpho/goship/framework/web/templates"
 	"github.com/leomorpho/goship/framework/web/ui"
 )
 

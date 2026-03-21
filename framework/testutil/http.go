@@ -11,10 +11,9 @@ import (
 	"strings"
 	"testing"
 
+	goship "github.com/leomorpho/goship"
 	"github.com/leomorpho/goship-modules/notifications"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
-	goship "github.com/leomorpho/goship/app"
-	"github.com/leomorpho/goship/app/foundation"
 	"github.com/leomorpho/goship/config"
 	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
 	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
@@ -30,7 +29,7 @@ type requestConfig struct {
 
 type TestServer struct {
 	Server    *httptest.Server
-	Container *foundation.Container
+	Container *goship.Container
 	t         testing.TB
 	client    *http.Client
 }
@@ -39,7 +38,7 @@ func NewTestServer(t testing.TB) *TestServer {
 	t.Helper()
 	config.SwitchEnvironment(config.EnvTest)
 
-	c := foundation.NewContainer()
+	c := goship.NewContainer()
 
 	paidSubscriptions := paidsubscriptions.New(paidsubscriptions.NewSQLStore(
 		c.Database,

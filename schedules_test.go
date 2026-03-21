@@ -1,4 +1,4 @@
-package schedules
+package goship
 
 import (
 	"context"
@@ -24,12 +24,12 @@ func (f *fakeJobs) Enqueue(_ context.Context, name string, _ []byte, _ core.Enqu
 	return "job-id", nil
 }
 
-func TestRegisterAddsDefaultSchedulesThatEnqueueJobs(t *testing.T) {
+func TestRegisterSchedulesAddsDefaultSchedulesThatEnqueueJobs(t *testing.T) {
 	t.Parallel()
 
 	s := cron.New(cron.WithSeconds())
 	j := &fakeJobs{}
-	Register(s, func() core.Jobs { return j })
+	RegisterSchedules(s, func() core.Jobs { return j })
 
 	entries := s.Entries()
 	if len(entries) < 2 {
@@ -45,8 +45,8 @@ func TestRegisterAddsDefaultSchedulesThatEnqueueJobs(t *testing.T) {
 	}
 }
 
-func TestRegisterNilSafe(t *testing.T) {
+func TestRegisterSchedulesNilSafe(t *testing.T) {
 	t.Parallel()
 
-	Register(nil, nil)
+	RegisterSchedules(nil, nil)
 }

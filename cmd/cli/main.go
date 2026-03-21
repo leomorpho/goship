@@ -6,12 +6,12 @@ import (
 	"log"
 	"os"
 
-	"github.com/leomorpho/goship/app/foundation"
+	"github.com/leomorpho/goship"
 	commandfw "github.com/leomorpho/goship/framework/command"
 )
 
 func main() {
-	container := foundation.NewContainer()
+	container := goship.NewContainer()
 	defer func() {
 		if err := container.Shutdown(); err != nil {
 			log.Printf("container shutdown error: %v", err)

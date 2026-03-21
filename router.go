@@ -11,9 +11,9 @@ import (
 	notificationroutes "github.com/leomorpho/goship-modules/notifications/routes"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	paidsubscriptionroutes "github.com/leomorpho/goship-modules/paidsubscriptions/routes"
-	"github.com/leomorpho/goship/app/foundation"
 	"github.com/leomorpho/goship/config"
 	"github.com/leomorpho/goship/framework/backup"
+	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
 	"github.com/leomorpho/goship/framework/logging"
 	"github.com/leomorpho/goship/framework/runtimeplan"
 	frameworksecurity "github.com/leomorpho/goship/framework/security"
@@ -34,8 +34,8 @@ type RouterModules struct {
 	Notifications     *notifications.Services
 }
 
-// BuildRouter is the canonical app-level router entrypoint.
-func BuildRouter(c *foundation.Container, modules RouterModules) error {
+// BuildRouter is the canonical GoShip router entrypoint.
+func BuildRouter(c *frameworkbootstrap.Container, modules RouterModules) error {
 	if c == nil {
 		return errors.New("invalid router container: nil")
 	}
@@ -56,14 +56,12 @@ func BuildRouter(c *foundation.Container, modules RouterModules) error {
 		return err
 	}
 
-	// Create a slog logger.
 	logger := logging.NewLogger(c.Config.Log)
 
 	if err := frameworkweb.RegisterStaticRoutes(c); err != nil {
 		return err
 	}
 
-	// Non static file route groups.
 	g := c.Web.Group("")
 	e := c.Web.Group("")
 	s := c.Web.Group("")
@@ -106,7 +104,7 @@ func BuildRouter(c *foundation.Container, modules RouterModules) error {
 	return nil
 }
 
-func resolveStartupWebFeatures(c *foundation.Container) (runtimeplan.Plan, runtimeplan.WebFeatures, error) {
+func resolveStartupWebFeatures(c *frameworkbootstrap.Container) (runtimeplan.Plan, runtimeplan.WebFeatures, error) {
 	if c == nil || c.Config == nil {
 		return runtimeplan.Plan{}, runtimeplan.WebFeatures{}, errors.New("invalid runtime container: config is nil")
 	}
@@ -124,7 +122,7 @@ func resolveStartupWebFeatures(c *foundation.Container) (runtimeplan.Plan, runti
 	return plan, features, nil
 }
 
-func registerPublicRoutes(c *foundation.Container, g *echo.Group, ctr ui.Controller, deps *frameworkweb.RouteDeps) error {
+func registerPublicRoutes(c *frameworkbootstrap.Container, g *echo.Group, ctr ui.Controller, deps *frameworkweb.RouteDeps) error {
 	landingPage := frameworkcontrollers.NewLandingPageRoute(ctr)
 	g.GET("/", landingPage.Get).Name = routeNames.RouteNameLandingPage
 
@@ -152,7 +150,6 @@ func registerPublicRoutes(c *foundation.Container, g *echo.Group, ctr ui.Control
 		g.GET("/error/403", errHandler.GetHttp403Forbidden)
 		g.GET("/error/404", errHandler.GetHttp404NotFound)
 		g.GET("/error/500", errHandler.GetHttp500InternalServerError)
-
 	}
 	registerMailPreviewRoutes(g, ctr)
 
@@ -175,7 +172,7 @@ func registerMailPreviewRoutes(g *echo.Group, ctr ui.Controller) {
 	mailGroup.GET("/verify-email", mailPreview.VerifyEmail).Name = routeNames.RouteNameMailPreviewVerifyEmail
 }
 
-func registerAuthRoutes(c *foundation.Container, g *echo.Group, ctr ui.Controller, deps *frameworkweb.RouteDeps) error {
+func registerAuthRoutes(c *frameworkbootstrap.Container, g *echo.Group, ctr ui.Controller, deps *frameworkweb.RouteDeps) error {
 	twoFactorService := twofamodule.NewService(
 		twofamodule.NewSQLStore(c.Database, c.Config.Adapters.DB),
 		string(c.Config.App.Name),
@@ -278,7 +275,7 @@ func registerAuthRoutes(c *foundation.Container, g *echo.Group, ctr ui.Controlle
 	return nil
 }
 
-func registerExternalRoutes(c *foundation.Container, e *echo.Group, ctr ui.Controller, deps *frameworkweb.RouteDeps) error {
+func registerExternalRoutes(c *frameworkbootstrap.Container, e *echo.Group, ctr ui.Controller, deps *frameworkweb.RouteDeps) error {
 	paymentsModule := paidsubscriptionroutes.NewRouteModule(ctr, deps.SubscriptionsRepo)
 	if err := paymentsModule.RegisterExternalRoutes(e, deps.StripeWebhookPath); err != nil {
 		return err
@@ -307,7 +304,7 @@ func registerExternalRoutes(c *foundation.Container, e *echo.Group, ctr ui.Contr
 	return nil
 }
 
-func registerRealtimeRoutes(c *foundation.Container, s *echo.Group, ctr ui.Controller) error {
+func registerRealtimeRoutes(c *frameworkbootstrap.Container, s *echo.Group, ctr ui.Controller) error {
 	if c.Notifier == nil {
 		return errors.New("cannot register realtime routes: notifier is nil")
 	}

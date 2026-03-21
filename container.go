@@ -1,7 +1,6 @@
-package foundation
+package goship
 
 import (
-	"github.com/leomorpho/goship/app/schedules"
 	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
 	"github.com/leomorpho/goship/framework/core"
 	"github.com/robfig/cron/v3"
@@ -9,11 +8,11 @@ import (
 
 type Container = frameworkbootstrap.Container
 
-// NewContainer keeps the starter-facing entrypoint while delegating generic runtime wiring to framework/bootstrap.
+// NewContainer builds the canonical GoShip runtime container.
 func NewContainer() *Container {
 	// ship:container:start
 	// ship:container:end
 	return frameworkbootstrap.NewContainer(func(scheduler *cron.Cron, jobs func() core.Jobs) {
-		schedules.Register(scheduler, jobs)
+		RegisterSchedules(scheduler, jobs)
 	})
 }

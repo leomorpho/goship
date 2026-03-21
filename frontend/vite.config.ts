@@ -7,7 +7,7 @@ import { svelte } from "@sveltejs/vite-plugin-svelte";
 import sveltePreprocess from "svelte-preprocess";
 
 const frontendRoot = __dirname;
-const outputDir = path.resolve(frontendRoot, "../app/static");
+const outputDir = path.resolve(frontendRoot, "../static");
 const islandsDir = path.resolve(frontendRoot, "islands");
 const islandsRuntimeEntry = path.resolve(frontendRoot, "javascript/vanilla/islands-runtime.js");
 const vanillaEntry = path.resolve(frontendRoot, "javascript/vanilla/main.js");

@@ -13,12 +13,12 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/app/foundation"
-	"github.com/leomorpho/goship/framework/web/ui"
 	"github.com/leomorpho/goship/config"
+	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
 	ctxkeys "github.com/leomorpho/goship/framework/context"
 	"github.com/leomorpho/goship/framework/core"
 	"github.com/leomorpho/goship/framework/runtimeconfig"
+	"github.com/leomorpho/goship/framework/web/ui"
 )
 
 func TestAdminRoutes_NonAdminForbidden(t *testing.T) {
@@ -269,13 +269,13 @@ INSERT INTO feature_flags (key, enabled, rollout_pct, description) VALUES ('new_
 	}
 }
 
-func newContainerForAdminRoutes(t *testing.T, admin bool) *foundation.Container {
+func newContainerForAdminRoutes(t *testing.T, admin bool) *frameworkbootstrap.Container {
 	t.Helper()
 	if err := chdirRepoRoot(); err != nil {
 		t.Fatalf("chdir repo root: %v", err)
 	}
 	config.SwitchEnvironment(config.EnvTest)
-	c := foundation.NewContainer()
+	c := frameworkbootstrap.NewContainer(nil)
 	if err := ensureBackliteSchema(c.Database); err != nil {
 		t.Fatalf("ensure backlite schema: %v", err)
 	}

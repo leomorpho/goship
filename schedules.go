@@ -1,4 +1,4 @@
-package schedules
+package goship
 
 import (
 	"context"
@@ -15,8 +15,8 @@ const (
 	deleteStaleJob          = "notification.recycling"
 )
 
-// Register wires periodic schedules that enqueue background jobs.
-func Register(s *cron.Cron, jobsProvider JobsProvider) {
+// RegisterSchedules wires periodic schedules that enqueue background jobs.
+func RegisterSchedules(s *cron.Cron, jobsProvider JobsProvider) {
 	if s == nil || jobsProvider == nil {
 		return
 	}

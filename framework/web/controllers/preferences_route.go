@@ -4,13 +4,13 @@ import (
 	"fmt"
 
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/app/views"
-	"github.com/leomorpho/goship/app/views/web/layouts/gen"
-	"github.com/leomorpho/goship/app/views/web/pages/gen"
 	"github.com/leomorpho/goship/framework/domain"
 	"github.com/leomorpho/goship/framework/runtimeconfig"
 	frameworkauthcontext "github.com/leomorpho/goship/framework/web/authcontext"
+	"github.com/leomorpho/goship/framework/web/layouts/gen"
+	"github.com/leomorpho/goship/framework/web/pages/gen"
 	routeNames "github.com/leomorpho/goship/framework/web/routenames"
+	"github.com/leomorpho/goship/framework/web/templates"
 	"github.com/leomorpho/goship/framework/web/ui"
 	viewmodels "github.com/leomorpho/goship/framework/web/viewmodels"
 

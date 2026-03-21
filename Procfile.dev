@@ -1,4 +1,4 @@
 web: air -c .air.toml
 worker: go run ./cmd/worker
 vite: npm --prefix frontend run watch
-css: npx --prefix frontend tailwindcss -i app/styles/styles.css -o app/static/styles_bundle.css --watch
+css: npx --prefix frontend tailwindcss -i styles/styles.css -o static/styles_bundle.css --watch

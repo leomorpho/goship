@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
 )
 
 type MakeCommandOptions struct {
@@ -113,11 +115,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/leomorpho/goship/app/foundation"
+	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
 )
 
 type %sCommand struct {
-	Container *foundation.Container
+	Container *frameworkbootstrap.Container
 }
 
 func (c *%sCommand) Name() string { return %q }

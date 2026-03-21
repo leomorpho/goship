@@ -14,10 +14,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/leomorpho/goship"
 	"github.com/leomorpho/goship-modules/notifications"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
-	"github.com/leomorpho/goship/app"
-	"github.com/leomorpho/goship/app/foundation"
 	"github.com/leomorpho/goship/config"
 	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
 	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
@@ -31,7 +30,7 @@ import (
 
 var (
 	srv *httptest.Server
-	c   *foundation.Container
+	c   *goship.Container
 )
 
 func TestMain(m *testing.M) {
@@ -48,7 +47,7 @@ func TestMain(m *testing.M) {
 	config.SwitchEnvironment(config.EnvTest)
 
 	// Start a new container
-	c = foundation.NewContainer()
+	c = goship.NewContainer()
 	if err := ensureNotificationsSchemaCompat(c.Database); err != nil {
 		panic(err)
 	}

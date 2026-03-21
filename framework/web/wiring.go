@@ -13,8 +13,8 @@ import (
 	echomw "github.com/labstack/echo/v4/middleware"
 	"github.com/leomorpho/goship-modules/notifications"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
-	"github.com/leomorpho/goship/app/foundation"
 	"github.com/leomorpho/goship/config"
+	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
 	"github.com/leomorpho/goship/framework/logging"
 	frameworkmiddleware "github.com/leomorpho/goship/framework/middleware"
 	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
@@ -49,7 +49,7 @@ func sseSkipper(c echo.Context) bool {
 }
 
 func NewRouteDeps(
-	c *foundation.Container,
+	c *frameworkbootstrap.Container,
 	paidSubscriptions *paidsubscriptions.Service,
 	notificationServices *notifications.Services,
 ) (*RouteDeps, error) {
@@ -79,7 +79,7 @@ func NewRouteDeps(
 	return deps, nil
 }
 
-func RegisterStaticRoutes(c *foundation.Container) error {
+func RegisterStaticRoutes(c *frameworkbootstrap.Container) error {
 	c.Web.Group("", webmiddleware.CacheControl(c.Config.Cache.Expiration.StaticFile), echomw.Gzip()).
 		Static(config.StaticPrefix, config.StaticDir)
 
@@ -106,7 +106,7 @@ func ApplyTLSRedirect(groups ...*echo.Group) {
 	}
 }
 
-func commonMiddleware(c *foundation.Container, deps *RouteDeps, sessionStore *sessions.CookieStore) []echo.MiddlewareFunc {
+func commonMiddleware(c *frameworkbootstrap.Container, deps *RouteDeps, sessionStore *sessions.CookieStore) []echo.MiddlewareFunc {
 	return []echo.MiddlewareFunc{
 		echomw.RemoveTrailingSlashWithConfig(echomw.TrailingSlashConfig{RedirectCode: http.StatusMovedPermanently}),
 		echomw.Secure(),
@@ -121,7 +121,7 @@ func commonMiddleware(c *foundation.Container, deps *RouteDeps, sessionStore *se
 	}
 }
 
-func ApplyMainMiddleware(c *foundation.Container, g *echo.Group, logger *slog.Logger, deps *RouteDeps, webFeatures runtimeplan.WebFeatures) {
+func ApplyMainMiddleware(c *frameworkbootstrap.Container, g *echo.Group, logger *slog.Logger, deps *RouteDeps, webFeatures runtimeplan.WebFeatures) {
 	sessionStore := sessions.NewCookieStore([]byte(c.Config.App.EncryptionKey))
 	base := commonMiddleware(c, deps, sessionStore)
 
@@ -143,7 +143,7 @@ func ApplyMainMiddleware(c *foundation.Container, g *echo.Group, logger *slog.Lo
 	}
 }
 
-func ApplyRealtimeMiddleware(c *foundation.Container, s *echo.Group, logger *slog.Logger, deps *RouteDeps) {
+func ApplyRealtimeMiddleware(c *frameworkbootstrap.Container, s *echo.Group, logger *slog.Logger, deps *RouteDeps) {
 	sessionStore := sessions.NewCookieStore([]byte(c.Config.App.EncryptionKey))
 	base := commonMiddleware(c, deps, sessionStore)
 	mw := []echo.MiddlewareFunc{
@@ -155,7 +155,7 @@ func ApplyRealtimeMiddleware(c *foundation.Container, s *echo.Group, logger *slo
 	s.Use(mw...)
 }
 
-func ApplyExternalMiddleware(c *foundation.Container, e *echo.Group, logger *slog.Logger, deps *RouteDeps) {
+func ApplyExternalMiddleware(c *frameworkbootstrap.Container, e *echo.Group, logger *slog.Logger, deps *RouteDeps) {
 	sessionStore := sessions.NewCookieStore([]byte(c.Config.App.EncryptionKey))
 	base := commonMiddleware(c, deps, sessionStore)
 	mw := []echo.MiddlewareFunc{

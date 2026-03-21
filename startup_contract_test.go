@@ -6,8 +6,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/leomorpho/goship-modules/notifications"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
-	"github.com/leomorpho/goship/app/foundation"
 	"github.com/leomorpho/goship/config"
+	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
 	"github.com/leomorpho/goship/framework/web/ui"
 	"github.com/stretchr/testify/require"
 )
@@ -18,7 +18,7 @@ func TestStartupFailurePathContract_RedSpec(t *testing.T) {
 
 		cases := []struct {
 			name    string
-			c       *foundation.Container
+			c       *frameworkbootstrap.Container
 			modules RouterModules
 			wantErr string
 		}{
@@ -33,13 +33,13 @@ func TestStartupFailurePathContract_RedSpec(t *testing.T) {
 			},
 			{
 				name:    "missing paid subscriptions module",
-				c:       &foundation.Container{},
+				c:       &frameworkbootstrap.Container{},
 				modules: RouterModules{},
 				wantErr: "missing paid subscriptions module",
 			},
 			{
 				name: "missing notifications module",
-				c:    &foundation.Container{},
+				c:    &frameworkbootstrap.Container{},
 				modules: RouterModules{
 					PaidSubscriptions: &paidsubscriptions.Service{},
 				},
@@ -71,22 +71,22 @@ func TestStartupFailurePathContract_RedSpec(t *testing.T) {
 
 		cases := []struct {
 			name    string
-			c       *foundation.Container
+			c       *frameworkbootstrap.Container
 			wantErr string
 		}{
 			{
 				name:    "nil config",
-				c:       &foundation.Container{},
+				c:       &frameworkbootstrap.Container{},
 				wantErr: "invalid runtime container: config is nil",
 			},
 			{
 				name:    "invalid runtime profile",
-				c:       &foundation.Container{Config: brokenProfile},
+				c:       &frameworkbootstrap.Container{Config: brokenProfile},
 				wantErr: "invalid runtime plan: unknown runtime profile: broken",
 			},
 			{
 				name:    "realtime dependency mismatch",
-				c:       &foundation.Container{Config: realtimeMismatch},
+				c:       &frameworkbootstrap.Container{Config: realtimeMismatch},
 				wantErr: "invalid startup capability contract: realtime requires notifier service",
 			},
 		}
@@ -106,9 +106,9 @@ func TestStartupFailurePathContract_RedSpec(t *testing.T) {
 
 		e := echo.New()
 		group := e.Group("")
-		ctr := ui.NewController(&foundation.Container{Config: testConfigForDevelop()})
+		ctr := ui.NewController(&frameworkbootstrap.Container{Config: testConfigForDevelop()})
 
-		err := registerRealtimeRoutes(&foundation.Container{}, group, ctr)
+		err := registerRealtimeRoutes(&frameworkbootstrap.Container{}, group, ctr)
 		require.EqualError(t, err, "cannot register realtime routes: notifier is nil")
 	})
 }

@@ -4,15 +4,15 @@ import (
 	"os"
 	"testing"
 
-	"github.com/leomorpho/goship/app/foundation"
 	"github.com/leomorpho/goship/config"
+	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
 	"github.com/leomorpho/goship/framework/tests"
 
 	"github.com/labstack/echo/v4"
 )
 
 var (
-	c   *foundation.Container
+	c   *frameworkbootstrap.Container
 	ctx echo.Context
 	usr *tests.UserRecord
 )
@@ -22,7 +22,7 @@ func TestMain(m *testing.M) {
 	config.SwitchEnvironment(config.EnvTest)
 
 	// Create a new container
-	c = foundation.NewContainer()
+	c = frameworkbootstrap.NewContainer(nil)
 
 	// Create a web context
 	ctx, _ = tests.NewContext(c.Web, "/")

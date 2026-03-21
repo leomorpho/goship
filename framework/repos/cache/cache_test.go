@@ -9,13 +9,13 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/leomorpho/goship/app/foundation"
+	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestCacheClient(t *testing.T) {
-	c := foundation.NewContainer()
+	c := frameworkbootstrap.NewContainer(nil)
 	t.Cleanup(func() {
 		require.NoError(t, c.Shutdown())
 	})

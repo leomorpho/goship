@@ -7,10 +7,10 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/app/foundation"
-	"github.com/leomorpho/goship/framework/web/ui"
+	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
 	"github.com/leomorpho/goship/framework/events"
 	eventtypes "github.com/leomorpho/goship/framework/events/types"
+	"github.com/leomorpho/goship/framework/web/ui"
 	"github.com/stretchr/testify/require"
 )
 
@@ -20,7 +20,7 @@ func TestServicePublishUserRegistered(t *testing.T) {
 	rec := httptest.NewRecorder()
 	ctx := e.NewContext(req, rec)
 
-	container := &foundation.Container{
+	container := &frameworkbootstrap.Container{
 		Web:      e,
 		Logger:   e.Logger,
 		EventBus: events.NewBus(),
@@ -55,7 +55,7 @@ func TestServicePublishAuthLifecycleEvents(t *testing.T) {
 	rec := httptest.NewRecorder()
 	ctx := e.NewContext(req, rec)
 
-	container := &foundation.Container{
+	container := &frameworkbootstrap.Container{
 		Web:      e,
 		Logger:   e.Logger,
 		EventBus: events.NewBus(),

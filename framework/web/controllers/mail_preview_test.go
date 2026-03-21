@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/app/foundation"
 	"github.com/leomorpho/goship/config"
+	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
 	"github.com/leomorpho/goship/framework/web/ui"
 )
 
@@ -23,7 +23,7 @@ func newMailPreviewControllerForTest() MailPreviewRoute {
 			Domain: "https://example.test",
 		},
 	}
-	ctr := ui.NewController(&foundation.Container{Config: cfg})
+	ctr := ui.NewController(&frameworkbootstrap.Container{Config: cfg})
 	return NewMailPreviewRoute(ctr)
 }
 

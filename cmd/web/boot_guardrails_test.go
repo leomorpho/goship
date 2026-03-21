@@ -4,15 +4,15 @@ import (
 	"context"
 	"testing"
 
-	"github.com/leomorpho/goship/app/foundation"
 	"github.com/leomorpho/goship/config"
+	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
 	"github.com/stretchr/testify/require"
 )
 
 func TestWireJobsModuleInProcNoOp(t *testing.T) {
 	t.Parallel()
 
-	c := &foundation.Container{
+	c := &frameworkbootstrap.Container{
 		Config: &config.Config{
 			Adapters: config.AdaptersConfig{Jobs: "inproc"},
 		},
@@ -24,7 +24,7 @@ func TestWireJobsModuleInProcNoOp(t *testing.T) {
 func TestWireJobsModuleUnsupportedAdapterFailsFast(t *testing.T) {
 	t.Parallel()
 
-	c := &foundation.Container{
+	c := &frameworkbootstrap.Container{
 		Config: &config.Config{
 			Adapters: config.AdaptersConfig{Jobs: "unsupported"},
 		},
@@ -37,7 +37,7 @@ func TestWireJobsModuleUnsupportedAdapterFailsFast(t *testing.T) {
 func TestStartEmbeddedJobsWorkerNoOpOutsideBacklite(t *testing.T) {
 	t.Parallel()
 
-	c := &foundation.Container{
+	c := &frameworkbootstrap.Container{
 		Config: &config.Config{
 			Adapters: config.AdaptersConfig{Jobs: "asynq"},
 		},

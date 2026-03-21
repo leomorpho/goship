@@ -96,7 +96,7 @@ func TestGenerateResourceScaffold(t *testing.T) {
 	if !strings.Contains(handlerText, "return r.ctr.RenderPage(ctx, page)") {
 		t.Fatalf("expected templ handler to render page, got:\n%s", handlerText)
 	}
-	if !strings.Contains(handlerText, `github.com/leomorpho/goship/app/views/web/pages/gen`) {
+	if !strings.Contains(handlerText, `github.com/leomorpho/goship/framework/web/pages/gen`) {
 		t.Fatalf("expected templ handler to import pages/gen, got:\n%s", handlerText)
 	}
 	viewContent, err := os.ReadFile(viewPath)
@@ -566,7 +566,7 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/labstack/echo/v4"
-	emailviews "github.com/leomorpho/goship/app/views/emails/gen"
+	emailviews "github.com/leomorpho/goship/framework/views/emails/gen"
 	"github.com/leomorpho/goship/framework/web/ui"
 	"github.com/leomorpho/goship/framework/web/viewmodels"
 	frameworkpage "github.com/leomorpho/goship/framework/web/page"

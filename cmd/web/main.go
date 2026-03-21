@@ -10,10 +10,9 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/leomorpho/goship"
 	"github.com/leomorpho/goship-modules/notifications"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
-	"github.com/leomorpho/goship/app"
-	"github.com/leomorpho/goship/app/foundation"
 	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
 	"github.com/leomorpho/goship/framework/events"
 	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
@@ -38,7 +37,7 @@ func timeoutMiddleware(next http.Handler, writeTimeout time.Duration) http.Handl
 
 func main() {
 	// Start a new container
-	c := foundation.NewContainer()
+	c := goship.NewContainer()
 	defer func() {
 		if err := c.Shutdown(); err != nil {
 			c.Web.Logger.Fatal(err)
@@ -190,7 +189,7 @@ func main() {
 	}
 }
 
-func wireJobsModule(c *foundation.Container) error {
+func wireJobsModule(c *goship.Container) error {
 	runtime, err := frameworkbootstrap.WireJobsRuntime(c.Config, c.Database, frameworkbootstrap.JobsProcessWeb)
 	if err != nil {
 		return err
@@ -202,7 +201,7 @@ func wireJobsModule(c *foundation.Container) error {
 
 func startEmbeddedJobsWorker(
 	ctx context.Context,
-	c *foundation.Container,
+	c *goship.Container,
 	paidSubscriptionsService *paidsubscriptions.Service,
 	notificationServices *notifications.Services,
 ) error {

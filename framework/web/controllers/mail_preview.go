@@ -6,8 +6,8 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/labstack/echo/v4"
-	emailviews "github.com/leomorpho/goship/app/views/emails/gen"
 	"github.com/leomorpho/goship/framework/repos/mailer"
+	emailviews "github.com/leomorpho/goship/framework/views/emails/gen"
 	frameworkpage "github.com/leomorpho/goship/framework/web/page"
 	"github.com/leomorpho/goship/framework/web/ui"
 	"github.com/leomorpho/goship/framework/web/viewmodels"
