@@ -16,15 +16,15 @@ import (
 func checkFileSizes(root string) []DoctorIssue {
 	issues := make([]DoctorIssue, 0)
 	hardCapAllowlist := map[string]struct{}{
-		filepath.ToSlash(filepath.Join("tools", "cli", "ship", "internal", "policies", "doctor.go")): {},
+		filepath.ToSlash(filepath.Join("tools", "cli", "ship", "internal", "policies", "doctor.go")):             {},
 		filepath.ToSlash(filepath.Join("tools", "cli", "ship", "internal", "policies", "doctor_repo_checks.go")): {},
-		filepath.ToSlash(filepath.Join("config", "config.go")):                                       {},
-		filepath.ToSlash(filepath.Join("app", "views", "web", "pages", "home_feed.templ")):           {},
-		filepath.ToSlash(filepath.Join("app", "views", "web", "pages", "landing_page.templ")):        {},
-		filepath.ToSlash(filepath.Join("app", "views", "web", "pages", "preferences.templ")):         {},
-		filepath.ToSlash(filepath.Join("app", "views", "emails", "password_reset.templ")):            {},
-		filepath.ToSlash(filepath.Join("app", "views", "emails", "registration_confirmation.templ")): {},
-		filepath.ToSlash(filepath.Join("app", "views", "emails", "update.templ")):                    {},
+		filepath.ToSlash(filepath.Join("config", "config.go")):                                                   {},
+		filepath.ToSlash(filepath.Join("app", "views", "web", "pages", "home_feed.templ")):                       {},
+		filepath.ToSlash(filepath.Join("app", "views", "web", "pages", "landing_page.templ")):                    {},
+		filepath.ToSlash(filepath.Join("app", "views", "web", "pages", "preferences.templ")):                     {},
+		filepath.ToSlash(filepath.Join("app", "views", "emails", "password_reset.templ")):                        {},
+		filepath.ToSlash(filepath.Join("app", "views", "emails", "registration_confirmation.templ")):             {},
+		filepath.ToSlash(filepath.Join("app", "views", "emails", "update.templ")):                                {},
 	}
 
 	scanRoots := []string{
@@ -147,7 +147,6 @@ func checkTopLevelDirs(root string) []DoctorIssue {
 		"docs":       {},
 		"framework":  {},
 		"infra":      {},
-		"javascript": {},
 		"locales":    {},
 		"modules":    {},
 		"static":     {},
@@ -292,6 +291,7 @@ func checkCLIDocsCoverage(root string) []DoctorIssue {
 
 	required := []string{
 		"ship doctor",
+		"ship verify",
 		"ship agent:setup",
 		"ship agent:check",
 		"ship agent:status",
@@ -311,6 +311,18 @@ func checkCLIDocsCoverage(root string) []DoctorIssue {
 				Code:    "DX012",
 				Message: fmt.Sprintf("cli docs missing required command token: %q", token),
 				Fix:     "update docs/reference/01-cli.md to cover implemented core commands",
+			})
+		}
+	}
+	if looksLikeCanonicalFrameworkRepo(root) {
+		for _, token := range []string{"extension-zone manifest", "`container.go`", "`router.go`", "`schedules.go`"} {
+			if strings.Contains(text, token) {
+				continue
+			}
+			issues = append(issues, DoctorIssue{
+				Code:    "DX012",
+				Message: fmt.Sprintf("cli docs missing framework repo command token: %q", token),
+				Fix:     "update docs/reference/01-cli.md to describe canonical root-runtime repo enforcement",
 			})
 		}
 	}
@@ -344,12 +356,22 @@ func checkExtensionZoneManifest(root string) []DoctorIssue {
 	requiredTokens := []string{
 		"## Extension Zones",
 		"## Protected Contract Zones",
-		"`app/`",
 		"`framework/`",
-		"`app/router.go`",
-		"`app/foundation/container.go`",
 		"`config/modules.yaml`",
 		"`tools/agent-policy/allowed-commands.yaml`",
+	}
+	if looksLikeCanonicalFrameworkRepo(root) {
+		requiredTokens = append(requiredTokens,
+			"`container.go`",
+			"`router.go`",
+			"`schedules.go`",
+		)
+	} else {
+		requiredTokens = append(requiredTokens,
+			"`app/`",
+			"`app/router.go`",
+			"`app/foundation/container.go`",
+		)
 	}
 	for _, token := range requiredTokens {
 		if strings.Contains(text, token) {
@@ -361,6 +383,25 @@ func checkExtensionZoneManifest(root string) []DoctorIssue {
 			Message: fmt.Sprintf("extension-zone manifest missing required token: %q", token),
 			Fix:     "restore the canonical extension-zone manifest sections and protected seam entries",
 		})
+	}
+
+	if looksLikeCanonicalFrameworkRepo(root) {
+		staleTokens := []string{
+			"`app/`",
+			"`app/router.go`",
+			"`app/foundation/container.go`",
+		}
+		for _, token := range staleTokens {
+			if !strings.Contains(text, token) {
+				continue
+			}
+			issues = append(issues, DoctorIssue{
+				Code:    "DX031",
+				File:    rel,
+				Message: fmt.Sprintf("extension-zone manifest contains stale framework-shell token: %q", token),
+				Fix:     "document the canonical root runtime seams and remove deleted internal app-shell references",
+			})
+		}
 	}
 
 	return issues

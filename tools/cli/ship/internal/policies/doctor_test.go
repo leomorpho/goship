@@ -762,10 +762,10 @@ func writeCanonicalFrameworkDoctorFixture(t *testing.T, root string) {
 	}
 
 	files := map[string]string{
-		filepath.Join(root, "db", "bobgen.yaml"):      "packages: []\n",
-		filepath.Join(root, "config", "modules.yaml"): "modules: []\n",
-		filepath.Join(root, "docs", "00-index.md"):    "# Index\n",
-		filepath.Join(root, "docs", "architecture", "01-architecture.md"): "# Architecture\n",
+		filepath.Join(root, "db", "bobgen.yaml"):                             "packages: []\n",
+		filepath.Join(root, "config", "modules.yaml"):                        "modules: []\n",
+		filepath.Join(root, "docs", "00-index.md"):                           "# Index\n",
+		filepath.Join(root, "docs", "architecture", "01-architecture.md"):    "# Architecture\n",
 		filepath.Join(root, "docs", "architecture", "08-cognitive-model.md"): "# Cognitive Model\n",
 		filepath.Join(root, "docs", "architecture", "10-extension-zones.md"): strings.Join([]string{
 			"## Extension Zones",
@@ -784,6 +784,7 @@ func writeCanonicalFrameworkDoctorFixture(t *testing.T, root string) {
 			"## Implementation Mapping (Current Repo)",
 			"## Generator test strategy",
 			"ship doctor",
+			"ship verify",
 			"ship agent:setup",
 			"ship agent:check",
 			"ship agent:status",
@@ -905,6 +906,7 @@ type Container struct{}
 			"## Implementation Mapping (Current Repo)",
 			"## Generator test strategy",
 			"ship doctor",
+			"ship verify",
 			"ship agent:setup",
 			"ship agent:check",
 			"ship agent:status",
@@ -917,6 +919,10 @@ type Container struct{}
 			"ship make:module",
 			"ship db:migrate",
 			"ship test --integration",
+			"extension-zone manifest",
+			"`container.go`",
+			"`router.go`",
+			"`schedules.go`",
 			"",
 		}, "\n"),
 		filepath.Join(root, ".gitignore"): strings.Join([]string{

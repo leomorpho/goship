@@ -750,6 +750,61 @@ func TestScaffoldTodo(t *testing.T) {
 			t.Fatalf("stderr = %q, want forbidden app path diagnostic", errOut.String())
 		}
 	})
+
+	t.Run("framework repo layout rejects legacy app shell runtime fallback paths", func(t *testing.T) {
+		root := t.TempDir()
+		writeVerifyGoMod(t, root)
+		writeVerifyGoWork(t, root)
+		if err := os.MkdirAll(filepath.Join(root, "tools", "cli", "ship"), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.MkdirAll(filepath.Join(root, "app", "foundation"), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(root, "app", "router.go"), []byte("package app\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(root, "app", "foundation", "container.go"), []byte("package foundation\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+
+		prevWD := chdirVerifyRoot(t, root)
+		t.Cleanup(func() { _ = os.Chdir(prevWD) })
+
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+		calls := make([]string, 0)
+		code := RunVerify([]string{"--skip-tests"}, VerifyDeps{
+			Out:          out,
+			Err:          errOut,
+			FindGoModule: findVerifyGoModule,
+			RelocateTempl: func(rootPath string) error {
+				return nil
+			},
+			RunStep: func(name string, args ...string) (int, string, error) {
+				calls = append(calls, name+" "+strings.Join(args, " "))
+				return 0, "ok", nil
+			},
+			LookPath: func(file string) (string, error) {
+				return "/usr/bin/" + file, nil
+			},
+			RunDoctor: func() (int, string, error) {
+				t.Fatal("doctor should not run after canonical repo layout failure")
+				return 0, "", nil
+			},
+		})
+		if code != 1 {
+			t.Fatalf("exit code = %d, want 1", code)
+		}
+		if len(calls) != 0 {
+			t.Fatalf("verify should fail before subprocesses, got calls %+v", calls)
+		}
+		for _, token := range []string{"missing canonical top-level path: container.go", "missing canonical top-level path: router.go"} {
+			if !strings.Contains(errOut.String(), token) {
+				t.Fatalf("stderr = %q, want %q", errOut.String(), token)
+			}
+		}
+	})
 }
 
 func writeVerifyGoMod(t *testing.T, root string) {

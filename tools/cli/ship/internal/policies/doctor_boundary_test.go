@@ -112,6 +112,34 @@ func TestCheckCanonicalRepoTopLevelPaths(t *testing.T) {
 			t.Fatalf("expected missing router.go issue, got %+v", issues)
 		}
 	})
+
+	t.Run("legacy app shell runtime files do not satisfy canonical root paths", func(t *testing.T) {
+		root := t.TempDir()
+		writeCanonicalRepoFixture(t, root)
+		if err := os.Remove(filepath.Join(root, "container.go")); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.Remove(filepath.Join(root, "router.go")); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.MkdirAll(filepath.Join(root, "app", "foundation"), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(root, "app", "foundation", "container.go"), []byte("package foundation\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(root, "app", "router.go"), []byte("package app\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+
+		issues := CheckCanonicalRepoTopLevelPaths(root)
+		if !containsDoctorIssueMessage(issues, "missing canonical top-level path: container.go") {
+			t.Fatalf("expected missing container.go issue, got %+v", issues)
+		}
+		if !containsDoctorIssueMessage(issues, "missing canonical top-level path: router.go") {
+			t.Fatalf("expected missing router.go issue, got %+v", issues)
+		}
+	})
 }
 
 func writeCanonicalRepoFixture(t *testing.T, root string) {
@@ -140,8 +168,8 @@ func writeCanonicalRepoFixture(t *testing.T, root string) {
 	}
 
 	files := map[string]string{
-		filepath.Join(root, "go.mod"):     "module example.com/goship\n\ngo 1.25\n",
-		filepath.Join(root, "go.work"):    "go 1.25\n\nuse .\n",
+		filepath.Join(root, "go.mod"):       "module example.com/goship\n\ngo 1.25\n",
+		filepath.Join(root, "go.work"):      "go 1.25\n\nuse .\n",
 		filepath.Join(root, "container.go"): "package goship\n",
 		filepath.Join(root, "router.go"):    "package goship\n",
 		filepath.Join(root, "schedules.go"): "package goship\n",

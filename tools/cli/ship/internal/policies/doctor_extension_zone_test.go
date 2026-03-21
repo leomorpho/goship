@@ -14,9 +14,14 @@ func TestRunDoctorChecks_ExtensionZoneContract_RedSpec(t *testing.T) {
 	cliDoc := mustReadPolicyContractText(t, filepath.Join(root, "docs", "reference", "01-cli.md"))
 	policySource := mustReadPolicyContractText(t, filepath.Join(root, "tools", "cli", "ship", "internal", "policies", "doctor_repo_checks.go"))
 
-	for _, token := range []string{"Extension Zones", "Protected Contract Zones", "`app/`", "`framework/`"} {
+	for _, token := range []string{"Extension Zones", "Protected Contract Zones", "`framework/`", "`container.go`", "`router.go`", "`schedules.go`"} {
 		if !strings.Contains(zoneDoc, token) {
 			t.Fatalf("extension zone doc should describe %s", token)
+		}
+	}
+	for _, stale := range []string{"`app/`", "`app/router.go`", "`app/foundation/container.go`"} {
+		if strings.Contains(zoneDoc, stale) {
+			t.Fatalf("extension zone doc should not mention stale shell token %s", stale)
 		}
 	}
 	if !strings.Contains(cliDoc, "extension-zone manifest") {
