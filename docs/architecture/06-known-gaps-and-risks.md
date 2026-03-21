@@ -52,12 +52,13 @@ Impact:
 ## Route Composition Style Still Needs Ongoing Discipline (Low)
 
 `app/router.go` now owns one canonical static-registration path through `appweb.RegisterStaticRoutes(c)`,
-and `BuildRouter` fails fast when the app container is nil. The remaining risk is drift from future
-route extractions if new registration styles are introduced outside that composition root.
+framework web wiring owns the default health endpoints, and `BuildRouter` fails fast when the app
+container is nil. The remaining risk is drift from future route extractions if new registration styles
+are introduced outside that composition root.
 
 Impact:
 
-- The route manifest and static asset surface are centralized today.
+- The route manifest, default health surface, and static asset surface are centralized today.
 - Future route extraction work should keep using route-composition contract tests to avoid reintroducing split registration styles.
 
 ## Startup, Route, and CLI Contract Suites Now Cover Fast Failure Paths (Low)

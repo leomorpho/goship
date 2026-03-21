@@ -1050,6 +1050,7 @@ Health endpoints:
 
 - `GET /health` is now a JSON liveness endpoint (`{"status":"ok"}` when process is running).
 - `GET /health/ready` is a JSON readiness endpoint that runs registered dependency checks (DB, cache, jobs inspector) and returns `503` when any critical check fails.
+- The framework bootstrap container now owns the default health registry, and framework web wiring registers `/up`, `/health`, and `/health/ready` without app-specific route assembly.
 
 ## Testing Surface
 
@@ -1088,6 +1089,7 @@ Ergonomic routing rule:
 - `GET /up` liveness healthcheck alias
 - `GET /health` liveness healthcheck
 - `GET /health/ready` readiness healthcheck (returns `503` when a registered dependency check fails)
+- These health endpoints are framework-default routes registered during framework web wiring, not app-specific controller composition.
 - `GET /clear-cookie`
 
 Email subscription:
@@ -1379,12 +1381,13 @@ Impact:
 ## Route Composition Style Still Needs Ongoing Discipline (Low)
 
 `app/router.go` now owns one canonical static-registration path through `appweb.RegisterStaticRoutes(c)`,
-and `BuildRouter` fails fast when the app container is nil. The remaining risk is drift from future
-route extractions if new registration styles are introduced outside that composition root.
+framework web wiring owns the default health endpoints, and `BuildRouter` fails fast when the app
+container is nil. The remaining risk is drift from future route extractions if new registration styles
+are introduced outside that composition root.
 
 Impact:
 
-- The route manifest and static asset surface are centralized today.
+- The route manifest, default health surface, and static asset surface are centralized today.
 - Future route extraction work should keep using route-composition contract tests to avoid reintroducing split registration styles.
 
 ## Startup, Route, and CLI Contract Suites Now Cover Fast Failure Paths (Low)

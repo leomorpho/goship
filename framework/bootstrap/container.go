@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
+	"time"
 
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/labstack/echo/v4"
@@ -23,6 +24,7 @@ import (
 	adapters "github.com/leomorpho/goship/framework/core/adapters"
 	"github.com/leomorpho/goship/framework/events"
 	eventtypes "github.com/leomorpho/goship/framework/events/types"
+	"github.com/leomorpho/goship/framework/health"
 	"github.com/leomorpho/goship/framework/logging"
 	cacherepo "github.com/leomorpho/goship/framework/repos/cache"
 	"github.com/leomorpho/goship/framework/repos/mailer"
@@ -93,6 +95,9 @@ type Container struct {
 	// CorePubSub exposes pubsub via the backend-agnostic core seam.
 	CorePubSub core.PubSub
 
+	// Health stores the framework-default liveness/readiness registry.
+	Health *health.Registry
+
 	// Scheduler stores cron-based app schedule registration.
 	Scheduler *cron.Cron
 
@@ -122,6 +127,7 @@ func NewContainer(registerSchedules func(*cron.Cron, func() core.Jobs)) *Contain
 	// ship:container:start
 	// ship:container:end
 	c.initCoreAdapters()
+	c.initHealth()
 	c.initSSEHub()
 	return c
 }
@@ -187,6 +193,18 @@ func (c *Container) initScheduler(registerSchedules func(*cron.Cron, func() core
 			return c.CoreJobs
 		})
 	}
+}
+
+func (c *Container) initHealth() {
+	if c == nil {
+		return
+	}
+
+	c.Health = health.NewRegistry(
+		health.NewDBChecker(c.Database, 2*time.Second),
+		health.NewCacheChecker(c.CoreCache, 2*time.Second),
+		health.NewJobsChecker(c.CoreJobsInspector, 2*time.Second),
+	)
 }
 
 // Shutdown shuts the Container down and disconnects all connections

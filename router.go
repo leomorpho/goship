@@ -129,11 +129,6 @@ func registerPublicRoutes(c *frameworkbootstrap.Container, g *echo.Group, ctr ui
 	clearCookie := frameworkcontrollers.NewClearCookiesRoute(ctr)
 	g.GET("/clear-cookie", clearCookie.Get).Name = routeNames.RouteNameClearCookie
 
-	healthcheck := frameworkcontrollers.NewHealthCheckRoute(ctr)
-	g.GET("/up", healthcheck.GetLiveness).Name = routeNames.RouteNameHealthcheck
-	g.GET("/health", healthcheck.GetLiveness).Name = routeNames.RouteNameHealthLiveness
-	g.GET("/health/ready", healthcheck.GetReadiness).Name = routeNames.RouteNameHealthReadiness
-
 	g.GET(c.Config.App.TestSentryUrl, func(ctx echo.Context) error {
 		panic("Test error for Sentry")
 	})
