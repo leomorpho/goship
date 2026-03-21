@@ -1,27 +1,26 @@
 package templates
 
-type (
-	Page string
-)
+import frameworktemplates "github.com/leomorpho/goship/framework/web/templates"
+
+type Page = frameworktemplates.Page
 
 const (
-	PageLanding                Page = "landing"
-	PageError                  Page = "error"
-	PageForgotPassword         Page = "forgot-password"
-	PageHome                   Page = "home"
-	PageLogin                  Page = "login"
-	PageRegister               Page = "register"
-	PageResetPassword          Page = "reset-password"
-	PagePreferences            Page = "preferences"
-	PagePhoneNumber            Page = "preferences.phone"
-	PageDisplayName            Page = "preferences.display_name"
-	PageHomeFeed               Page = "home_feed"
-	PageInstallApp             Page = "install_app"
-	PageProfile                Page = "profile"
-	PageNotifications          Page = "notifications"
-	PagePricing                Page = "pricing"
-	PageSuccessfullySubscribed Page = "successfully_subscribed"
-	PageDeleteAccount          Page = "delete_account.page"
-
-	SSEAnsweredByFriend Page = "sse_answered_by_friend"
+	PageLanding                = frameworktemplates.PageLanding
+	PageError                  = frameworktemplates.PageError
+	PageForgotPassword         = frameworktemplates.PageForgotPassword
+	PageHome                   = frameworktemplates.PageHome
+	PageLogin                  = frameworktemplates.PageLogin
+	PageRegister               = frameworktemplates.PageRegister
+	PageResetPassword          = frameworktemplates.PageResetPassword
+	PagePreferences            = frameworktemplates.PagePreferences
+	PagePhoneNumber            = frameworktemplates.PagePhoneNumber
+	PageDisplayName            = frameworktemplates.PageDisplayName
+	PageHomeFeed               = frameworktemplates.PageHomeFeed
+	PageInstallApp             = frameworktemplates.PageInstallApp
+	PageProfile                = frameworktemplates.PageProfile
+	PageNotifications          = frameworktemplates.PageNotifications
+	PagePricing                = frameworktemplates.PagePricing
+	PageSuccessfullySubscribed = frameworktemplates.PageSuccessfullySubscribed
+	PageDeleteAccount          = frameworktemplates.PageDeleteAccount
+	SSEAnsweredByFriend        = frameworktemplates.SSEAnsweredByFriend
 )

@@ -11,11 +11,11 @@ import (
 	"strings"
 
 	"github.com/a-h/templ"
-	"github.com/leomorpho/goship/app/foundation"
-	"github.com/leomorpho/goship/app/web/middleware"
+	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
 	"github.com/leomorpho/goship/framework/context"
 	frameworkmiddleware "github.com/leomorpho/goship/framework/middleware"
 	redirector "github.com/leomorpho/goship/framework/redirect"
+	webmiddleware "github.com/leomorpho/goship/framework/web/middleware"
 
 	"github.com/labstack/echo/v4"
 )
@@ -25,11 +25,11 @@ import (
 // the router to inject the container so your routes have access to the services within the container
 type Controller struct {
 	// Container stores a services container which contains dependencies
-	Container *foundation.Container
+	Container *frameworkbootstrap.Container
 }
 
 // NewController creates a new Controller
-func NewController(c *foundation.Container) Controller {
+func NewController(c *frameworkbootstrap.Container) Controller {
 	return Controller{
 		Container: c,
 	}
@@ -189,7 +189,7 @@ func (c *Controller) cachePage(ctx echo.Context, page Page, html *bytes.Buffer) 
 	// The request URL is used as the cache key so the middleware can serve the
 	// cached page on matching requests
 	key := ctx.Request().URL.String()
-	cp := middleware.CachedPage{
+	cp := webmiddleware.CachedPage{
 		URL:        key,
 		HTML:       html.Bytes(),
 		Headers:    headers,
@@ -198,7 +198,7 @@ func (c *Controller) cachePage(ctx echo.Context, page Page, html *bytes.Buffer) 
 
 	err := c.Container.Cache.
 		Set().
-		Group(middleware.CachedPageGroup).
+		Group(webmiddleware.CachedPageGroup).
 		Key(key).
 		Tags(page.Cache.Tags...).
 		Expiration(page.Cache.Expiration).

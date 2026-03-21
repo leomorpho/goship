@@ -45,7 +45,6 @@ type RouteDeps struct {
 }
 
 func sseSkipper(c echo.Context) bool {
-	// Skip timeout middleware for SSE endpoint.
 	return c.Path() == "/auth/realtime"
 }
 
@@ -81,7 +80,6 @@ func NewRouteDeps(
 }
 
 func RegisterStaticRoutes(c *foundation.Container) error {
-	// Static files with proper cache control.
 	c.Web.Group("", appmiddleware.CacheControl(c.Config.Cache.Expiration.StaticFile), echomw.Gzip()).
 		Static(config.StaticPrefix, config.StaticDir)
 
@@ -89,7 +87,6 @@ func RegisterStaticRoutes(c *foundation.Container) error {
 		c.Web.Static("/uploads", c.Config.Storage.LocalStoragePath)
 	}
 
-	// Custom handler for serving Android asset links.
 	c.Web.GET(pathAndroidAssetLinks, func(ctx echo.Context) error {
 		ctx.Response().Header().Set("Cache-Control", fmt.Sprintf("public, max-age=%d", c.Config.Cache.Expiration.StaticFile))
 		return ctx.File("./pwabuilder-android-wrapper/assetlinks.json")
@@ -119,7 +116,7 @@ func commonMiddleware(c *foundation.Container, deps *RouteDeps, sessionStore *se
 		i18nmodule.DetectLanguage(c.I18n, deps.ProfileService),
 		echomw.CSRFWithConfig(echomw.CSRFConfig{
 			TokenLookup:  "form:csrf,header:X-CSRF-Token,query:csrf",
-			CookieMaxAge: 172800, // 48h
+			CookieMaxAge: 172800,
 		}),
 	}
 }

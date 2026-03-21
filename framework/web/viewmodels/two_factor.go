@@ -1,6 +1,6 @@
 package viewmodels
 
-import "github.com/leomorpho/goship/app/web/ui"
+import "github.com/leomorpho/goship/framework/web/ui"
 
 type TwoFactorSetupData struct {
 	QRCodeDataURL string

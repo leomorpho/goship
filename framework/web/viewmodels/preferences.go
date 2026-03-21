@@ -1,8 +1,8 @@
 package viewmodels
 
 import (
-	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/framework/domain"
+	"github.com/leomorpho/goship/framework/web/ui"
 )
 
 type (
