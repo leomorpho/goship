@@ -82,7 +82,7 @@
       "terminal": false,
       "startable": false,
       "reviewable": true,
-      "blocks_dependents": true
+      "blocks_dependents": false
     },
     "todo": {
       "label": "To Do",
