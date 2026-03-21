@@ -2323,7 +2323,7 @@
     },
     "TKT-419": {
       "title": "Define the canonical generated-app directory layout in code and lock it with golden tests.",
-      "state": "backlog",
+      "state": "in-progress",
       "priority": 4,
       "parent": "TKT-418"
     },
@@ -2478,7 +2478,7 @@
     },
     "TKT-445": {
       "title": "Define the generator lifecycle contract in code for create, install, remove, and upgrade operations.",
-      "state": "backlog",
+      "state": "in-progress",
       "priority": 4,
       "parent": "TKT-444"
     },
