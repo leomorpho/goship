@@ -9,8 +9,8 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	controller "github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/framework/web/routenames"
+	controller "github.com/leomorpho/goship/framework/web/ui"
 )
 
 // Renders: horizontal divider with "or" label followed by conditional login, register, and forgot-password buttons

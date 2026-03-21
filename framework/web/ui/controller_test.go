@@ -12,10 +12,10 @@ import (
 	"github.com/leomorpho/goship/app/views/web/components/gen"
 	"github.com/leomorpho/goship/app/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/views/web/pages/gen"
-	"github.com/leomorpho/goship/app/web/middleware"
 	"github.com/leomorpho/goship/config"
 	"github.com/leomorpho/goship/framework/htmx"
 	"github.com/leomorpho/goship/framework/tests"
+	"github.com/leomorpho/goship/framework/web/middleware"
 	"github.com/leomorpho/goship/framework/web/ui"
 
 	"github.com/stretchr/testify/assert"

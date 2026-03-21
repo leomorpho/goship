@@ -9,8 +9,8 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	"github.com/leomorpho/goship/app/web/routenames"
 	"github.com/leomorpho/goship/framework/web/components/gen"
+	"github.com/leomorpho/goship/framework/web/routenames"
 	controller "github.com/leomorpho/goship/framework/web/ui"
 )
 

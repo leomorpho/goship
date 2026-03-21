@@ -12,17 +12,17 @@ import (
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	paidsubscriptionroutes "github.com/leomorpho/goship-modules/paidsubscriptions/routes"
 	"github.com/leomorpho/goship/app/foundation"
-	appweb "github.com/leomorpho/goship/app/web"
 	"github.com/leomorpho/goship/app/web/controllers"
-	"github.com/leomorpho/goship/app/web/middleware"
-	routeNames "github.com/leomorpho/goship/app/web/routenames"
-	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/config"
 	"github.com/leomorpho/goship/framework/backup"
 	"github.com/leomorpho/goship/framework/logging"
 	"github.com/leomorpho/goship/framework/runtimeplan"
 	frameworksecurity "github.com/leomorpho/goship/framework/security"
+	frameworkweb "github.com/leomorpho/goship/framework/web"
 	frameworkcontrollers "github.com/leomorpho/goship/framework/web/controllers"
+	"github.com/leomorpho/goship/framework/web/middleware"
+	routeNames "github.com/leomorpho/goship/framework/web/routenames"
+	"github.com/leomorpho/goship/framework/web/ui"
 	twofamodule "github.com/leomorpho/goship/modules/2fa"
 	adminmodule "github.com/leomorpho/goship/modules/admin"
 	authmodule "github.com/leomorpho/goship/modules/auth"
@@ -52,7 +52,7 @@ func BuildRouter(c *foundation.Container, modules RouterModules) error {
 	if err != nil {
 		return err
 	}
-	deps, err := appweb.NewRouteDeps(c, modules.PaidSubscriptions, modules.Notifications)
+	deps, err := frameworkweb.NewRouteDeps(c, modules.PaidSubscriptions, modules.Notifications)
 	if err != nil {
 		return err
 	}
@@ -60,7 +60,7 @@ func BuildRouter(c *foundation.Container, modules RouterModules) error {
 	// Create a slog logger.
 	logger := logging.NewLogger(c.Config.Log)
 
-	if err := appweb.RegisterStaticRoutes(c); err != nil {
+	if err := frameworkweb.RegisterStaticRoutes(c); err != nil {
 		return err
 	}
 
@@ -73,15 +73,15 @@ func BuildRouter(c *foundation.Container, modules RouterModules) error {
 	// ship:routes:api:v1:end
 
 	if c.Config.HTTP.TLS.Enabled {
-		appweb.ApplyTLSRedirect(g, e, s)
+		frameworkweb.ApplyTLSRedirect(g, e, s)
 	}
 
-	appweb.ApplyMainMiddleware(c, g, logger, deps, webFeatures)
-	appweb.ApplyRealtimeMiddleware(c, s, logger, deps)
-	appweb.ApplyExternalMiddleware(c, e, logger, deps)
+	frameworkweb.ApplyMainMiddleware(c, g, logger, deps, webFeatures)
+	frameworkweb.ApplyRealtimeMiddleware(c, s, logger, deps)
+	frameworkweb.ApplyExternalMiddleware(c, e, logger, deps)
 
 	ctr := ui.NewController(c)
-	errorHandler := controllers.NewErrorHandler(ctr)
+	errorHandler := frameworkcontrollers.NewErrorHandler(ctr)
 	c.Web.HTTPErrorHandler = errorHandler.Get
 
 	if err := registerPublicRoutes(c, g, ctr, deps); err != nil {
@@ -125,14 +125,14 @@ func resolveStartupWebFeatures(c *foundation.Container) (runtimeplan.Plan, runti
 	return plan, features, nil
 }
 
-func registerPublicRoutes(c *foundation.Container, g *echo.Group, ctr ui.Controller, deps *appweb.RouteDeps) error {
+func registerPublicRoutes(c *foundation.Container, g *echo.Group, ctr ui.Controller, deps *frameworkweb.RouteDeps) error {
 	landingPage := controllers.NewLandingPageRoute(ctr)
 	g.GET("/", landingPage.Get).Name = routeNames.RouteNameLandingPage
 
 	clearCookie := frameworkcontrollers.NewClearCookiesRoute(ctr)
 	g.GET("/clear-cookie", clearCookie.Get).Name = routeNames.RouteNameClearCookie
 
-	healthcheck := controllers.NewHealthCheckRoute(ctr)
+	healthcheck := frameworkcontrollers.NewHealthCheckRoute(ctr)
 	g.GET("/up", healthcheck.GetLiveness).Name = routeNames.RouteNameHealthcheck
 	g.GET("/health", healthcheck.GetLiveness).Name = routeNames.RouteNameHealthLiveness
 	g.GET("/health/ready", healthcheck.GetReadiness).Name = routeNames.RouteNameHealthReadiness
@@ -147,7 +147,7 @@ func registerPublicRoutes(c *foundation.Container, g *echo.Group, ctr ui.Control
 	}
 
 	if ctr.Container.Config.App.Environment != config.EnvProduction {
-		errHandler := controllers.NewErrorHandler(ctr)
+		errHandler := frameworkcontrollers.NewErrorHandler(ctr)
 		g.GET("/error/400", errHandler.GetHttp400BadRequest)
 		g.GET("/error/401", errHandler.GetHttp401Unauthorized)
 		g.GET("/error/403", errHandler.GetHttp403Forbidden)
@@ -176,7 +176,7 @@ func registerMailPreviewRoutes(g *echo.Group, ctr ui.Controller) {
 	mailGroup.GET("/verify-email", mailPreview.VerifyEmail).Name = routeNames.RouteNameMailPreviewVerifyEmail
 }
 
-func registerAuthRoutes(c *foundation.Container, g *echo.Group, ctr ui.Controller, deps *appweb.RouteDeps) error {
+func registerAuthRoutes(c *foundation.Container, g *echo.Group, ctr ui.Controller, deps *frameworkweb.RouteDeps) error {
 	twoFactorService := twofamodule.NewService(
 		twofamodule.NewSQLStore(c.Database, c.Config.Adapters.DB),
 		string(c.Config.App.Name),
@@ -279,14 +279,14 @@ func registerAuthRoutes(c *foundation.Container, g *echo.Group, ctr ui.Controlle
 	return nil
 }
 
-func registerExternalRoutes(c *foundation.Container, e *echo.Group, ctr ui.Controller, deps *appweb.RouteDeps) error {
+func registerExternalRoutes(c *foundation.Container, e *echo.Group, ctr ui.Controller, deps *frameworkweb.RouteDeps) error {
 	paymentsModule := paidsubscriptionroutes.NewRouteModule(ctr, deps.SubscriptionsRepo)
 	if err := paymentsModule.RegisterExternalRoutes(e, deps.StripeWebhookPath); err != nil {
 		return err
 	}
 
 	if c.Config.Managed.Enabled {
-		managedHooks := controllers.NewManagedHooksRoute(ctr, controllers.ManagedHooksDeps{
+		managedHooks := frameworkcontrollers.NewManagedHooksRoute(ctr, frameworkcontrollers.ManagedHooksDeps{
 			BackupDriver:  backup.NewSQLiteDriver(),
 			RestoreDriver: backup.NoopRestorer{},
 		})
@@ -314,7 +314,7 @@ func registerRealtimeRoutes(c *foundation.Container, s *echo.Group, ctr ui.Contr
 	}
 
 	onboardedGroup := s.Group("/auth", middleware.RequireAuthentication())
-	realtime := controllers.NewRealtimeRoute(ctr, *c.Notifier)
+	realtime := frameworkcontrollers.NewRealtimeRoute(ctr, *c.Notifier)
 	onboardedGroup.GET("/realtime", realtime.Get).Name = routeNames.RouteNameRealtime
 	return nil
 }

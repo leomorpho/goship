@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	routeNames "github.com/leomorpho/goship/app/web/routenames"
 	frameworktests "github.com/leomorpho/goship/framework/tests"
+	routeNames "github.com/leomorpho/goship/framework/web/routenames"
 	profilesvc "github.com/leomorpho/goship/modules/profile"
 	"github.com/stretchr/testify/require"
 )

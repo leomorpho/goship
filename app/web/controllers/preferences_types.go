@@ -3,7 +3,7 @@ package controllers
 import (
 	"github.com/leomorpho/goship-modules/notifications"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
-	"github.com/leomorpho/goship/app/web/ui"
+	"github.com/leomorpho/goship/framework/web/ui"
 	profilesvc "github.com/leomorpho/goship/modules/profile"
 )
 

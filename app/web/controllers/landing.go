@@ -3,8 +3,8 @@ package controllers
 import (
 	"github.com/leomorpho/goship/app/views"
 	"github.com/leomorpho/goship/app/views/web/pages/gen"
-	"github.com/leomorpho/goship/app/web/routenames"
-	"github.com/leomorpho/goship/app/web/ui"
+	"github.com/leomorpho/goship/framework/web/routenames"
+	"github.com/leomorpho/goship/framework/web/ui"
 
 	"github.com/labstack/echo/v4"
 )

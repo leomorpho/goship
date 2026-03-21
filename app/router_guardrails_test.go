@@ -7,8 +7,8 @@ import (
 	"github.com/leomorpho/goship-modules/notifications"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/app/foundation"
-	"github.com/leomorpho/goship/app/web/ui"
 	"github.com/leomorpho/goship/config"
+	"github.com/leomorpho/goship/framework/web/ui"
 	"github.com/stretchr/testify/require"
 )
 

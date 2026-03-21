@@ -7,9 +7,9 @@ import (
 	"github.com/leomorpho/goship/app/views"
 	"github.com/leomorpho/goship/app/views/web/layouts/gen"
 	"github.com/leomorpho/goship/app/views/web/pages/gen"
-	"github.com/leomorpho/goship/app/web/ui"
-	viewmodels "github.com/leomorpho/goship/app/web/viewmodels"
 	"github.com/leomorpho/goship/framework/context"
+	"github.com/leomorpho/goship/framework/web/ui"
+	viewmodels "github.com/leomorpho/goship/framework/web/viewmodels"
 	profilesvc "github.com/leomorpho/goship/modules/profile"
 )
 

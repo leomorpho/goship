@@ -9,8 +9,8 @@ import (
 
 	"github.com/labstack/echo/v4"
 	modnotifications "github.com/leomorpho/goship-modules/notifications/routes"
-	"github.com/leomorpho/goship/app/web/ui"
 	customctx "github.com/leomorpho/goship/framework/context"
+	"github.com/leomorpho/goship/framework/web/ui"
 )
 
 type fakeNotificationCountReader struct {

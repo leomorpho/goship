@@ -8,7 +8,7 @@ package components
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import controller "github.com/leomorpho/goship/app/web/ui"
+import controller "github.com/leomorpho/goship/framework/web/ui"
 import "github.com/leomorpho/goship/framework/web/routenames"
 
 // Renders: mobile-optimized bottom navigation bar with icons for home, notifications, and profile
