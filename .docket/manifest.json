@@ -2883,7 +2883,7 @@
     },
     "TKT-513": {
       "title": "Make health endpoints framework-default and prove healthy boot in integration tests.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-512"
     },
