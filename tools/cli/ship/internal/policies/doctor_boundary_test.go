@@ -113,6 +113,32 @@ func TestCheckCanonicalRepoTopLevelPaths(t *testing.T) {
 		}
 	})
 
+	t.Run("missing canonical modules path fails", func(t *testing.T) {
+		root := t.TempDir()
+		writeCanonicalRepoFixture(t, root)
+		if err := os.RemoveAll(filepath.Join(root, "modules")); err != nil {
+			t.Fatal(err)
+		}
+
+		issues := CheckCanonicalRepoTopLevelPaths(root)
+		if !containsDoctorIssueMessage(issues, "missing canonical top-level path: modules") {
+			t.Fatalf("expected missing modules issue, got %+v", issues)
+		}
+	})
+
+	t.Run("missing canonical asset path fails", func(t *testing.T) {
+		root := t.TempDir()
+		writeCanonicalRepoFixture(t, root)
+		if err := os.RemoveAll(filepath.Join(root, "static")); err != nil {
+			t.Fatal(err)
+		}
+
+		issues := CheckCanonicalRepoTopLevelPaths(root)
+		if !containsDoctorIssueMessage(issues, "missing canonical top-level path: static") {
+			t.Fatalf("expected missing static issue, got %+v", issues)
+		}
+	})
+
 	t.Run("legacy app shell runtime files do not satisfy canonical root paths", func(t *testing.T) {
 		root := t.TempDir()
 		writeCanonicalRepoFixture(t, root)
