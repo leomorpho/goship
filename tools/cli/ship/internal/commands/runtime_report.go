@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/leomorpho/goship/config"
+	"github.com/leomorpho/goship/framework/runtimeconfig"
 	"github.com/leomorpho/goship/framework/runtimeplan"
 )
 
@@ -26,6 +27,7 @@ type runtimeReport struct {
 	Profile         string                         `json:"profile"`
 	Adapters        runtimeReportAdapters          `json:"adapters"`
 	Processes       runtimeReportProcesses         `json:"processes"`
+	ProcessTopology runtimeReportProcessTopology   `json:"process_topology"`
 	Web             runtimeplan.WebFeatures        `json:"web"`
 	Database        config.DatabaseRuntimeMetadata `json:"database"`
 	Managed         config.ManagedRuntimeMetadata  `json:"managed"`
@@ -44,6 +46,19 @@ type runtimeReportProcesses struct {
 	Worker    bool `json:"worker"`
 	Scheduler bool `json:"scheduler"`
 	CoLocated bool `json:"co_located"`
+}
+
+type runtimeReportProcessTopology struct {
+	Web       runtimeReportProcessTopologyEntry `json:"web"`
+	Worker    runtimeReportProcessTopologyEntry `json:"worker"`
+	Scheduler runtimeReportProcessTopologyEntry `json:"scheduler"`
+	CoLocated runtimeReportProcessTopologyEntry `json:"co_located"`
+}
+
+type runtimeReportProcessTopologyEntry struct {
+	Enabled      bool   `json:"enabled"`
+	Source       string `json:"source"`
+	RealtimeRole string `json:"realtime_role,omitempty"`
 }
 
 type runtimeReportHandshake struct {
@@ -170,6 +185,7 @@ func RunRuntimeReport(args []string, d RuntimeReportDeps) int {
 		Managed:        cfg.RuntimeMetadata().Managed,
 		ModuleAdoption: moduleAdoption,
 	}
+	report.ProcessTopology = buildRuntimeReportProcessTopology(cfg, report.Web)
 
 	enc := json.NewEncoder(d.Out)
 	enc.SetIndent("", "  ")
@@ -178,6 +194,44 @@ func RunRuntimeReport(args []string, d RuntimeReportDeps) int {
 		return 1
 	}
 	return 0
+}
+
+func buildRuntimeReportProcessTopology(cfg config.Config, web runtimeplan.WebFeatures) runtimeReportProcessTopology {
+	topology := runtimeconfig.BuildProcessTopology(cfg.Managed.RuntimeReport, runtimeconfig.ProcessDefaults{
+		Web:       cfg.Processes.Web,
+		Worker:    cfg.Processes.Worker,
+		Scheduler: cfg.Processes.Scheduler,
+		CoLocated: cfg.Processes.CoLocated,
+	})
+	payload := runtimeReportProcessTopology{
+		Web: runtimeReportProcessTopologyEntry{
+			Enabled: topology.Web.Enabled,
+			Source:  string(topology.Web.Source),
+		},
+		Worker: runtimeReportProcessTopologyEntry{
+			Enabled: topology.Worker.Enabled,
+			Source:  string(topology.Worker.Source),
+		},
+		Scheduler: runtimeReportProcessTopologyEntry{
+			Enabled: topology.Scheduler.Enabled,
+			Source:  string(topology.Scheduler.Source),
+		},
+		CoLocated: runtimeReportProcessTopologyEntry{
+			Enabled: topology.CoLocated.Enabled,
+			Source:  string(topology.CoLocated.Source),
+		},
+	}
+
+	if web.EnableRealtime {
+		if payload.Web.Enabled {
+			payload.Web.RealtimeRole = "realtime-edge"
+		}
+		if payload.Worker.Enabled {
+			payload.Worker.RealtimeRole = "realtime-worker"
+		}
+	}
+
+	return payload
 }
 
 func buildRuntimeReportDivergence() runtimeReportDivergence {
