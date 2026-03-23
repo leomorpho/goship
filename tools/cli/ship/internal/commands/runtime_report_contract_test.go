@@ -163,6 +163,48 @@ func TestRunRuntimeReport_EmitsVersionedHandshakeEnvelope_RedSpec(t *testing.T) 
 		t.Fatalf("managed adapters.cache rollback_target = %q, want framework-default", cacheKey.RollbackTarget)
 	}
 
+	var processTopology struct {
+		Web struct {
+			Enabled      bool   `json:"enabled"`
+			Source       string `json:"source"`
+			RealtimeRole string `json:"realtime_role"`
+		} `json:"web"`
+		Worker struct {
+			Enabled      bool   `json:"enabled"`
+			Source       string `json:"source"`
+			RealtimeRole string `json:"realtime_role"`
+		} `json:"worker"`
+		Scheduler struct {
+			Enabled bool   `json:"enabled"`
+			Source  string `json:"source"`
+		} `json:"scheduler"`
+		CoLocated struct {
+			Enabled bool   `json:"enabled"`
+			Source  string `json:"source"`
+		} `json:"co_located"`
+	}
+	if err := json.Unmarshal(payload["process_topology"], &processTopology); err != nil {
+		t.Fatalf("process_topology should decode: %v\n%s", err, out.String())
+	}
+	if !processTopology.Web.Enabled || processTopology.Web.Source != "framework-default" {
+		t.Fatalf("process_topology.web = %+v, want enabled framework-default", processTopology.Web)
+	}
+	if !processTopology.Worker.Enabled || processTopology.Worker.Source != "framework-default" {
+		t.Fatalf("process_topology.worker = %+v, want enabled framework-default", processTopology.Worker)
+	}
+	if processTopology.Web.RealtimeRole != "realtime-edge" {
+		t.Fatalf("process_topology.web.realtime_role = %q, want realtime-edge", processTopology.Web.RealtimeRole)
+	}
+	if processTopology.Worker.RealtimeRole != "realtime-worker" {
+		t.Fatalf("process_topology.worker.realtime_role = %q, want realtime-worker", processTopology.Worker.RealtimeRole)
+	}
+	if !processTopology.Scheduler.Enabled || processTopology.Scheduler.Source != "framework-default" {
+		t.Fatalf("process_topology.scheduler = %+v, want enabled framework-default", processTopology.Scheduler)
+	}
+	if !processTopology.CoLocated.Enabled || processTopology.CoLocated.Source != "framework-default" {
+		t.Fatalf("process_topology.co_located = %+v, want enabled framework-default", processTopology.CoLocated)
+	}
+
 	var divergence struct {
 		SchemaVersion string `json:"schema_version"`
 		CurrentStatus string `json:"current_status"`

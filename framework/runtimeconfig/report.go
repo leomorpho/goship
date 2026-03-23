@@ -40,6 +40,28 @@ type Report struct {
 	Keys      map[string]KeyState `json:"keys"`
 }
 
+// ProcessDefaults holds fallback process values when report keys are absent.
+type ProcessDefaults struct {
+	Web       bool
+	Worker    bool
+	Scheduler bool
+	CoLocated bool
+}
+
+// ProcessTopologyEntry reports one process flag with its source layer.
+type ProcessTopologyEntry struct {
+	Enabled bool   `json:"enabled"`
+	Source  Source `json:"source"`
+}
+
+// ProcessTopology reports process topology with managed-source provenance.
+type ProcessTopology struct {
+	Web       ProcessTopologyEntry `json:"web"`
+	Worker    ProcessTopologyEntry `json:"worker"`
+	Scheduler ProcessTopologyEntry `json:"scheduler"`
+	CoLocated ProcessTopologyEntry `json:"co_located"`
+}
+
 // LayerInputs contains the layer state needed to compute a managed config report.
 type LayerInputs struct {
 	EffectiveValues map[string]string
@@ -100,6 +122,16 @@ func BuildReport(input LayerInputs) Report {
 	}
 
 	return report
+}
+
+// BuildProcessTopology maps process keys from a managed report into typed topology entries.
+func BuildProcessTopology(report Report, defaults ProcessDefaults) ProcessTopology {
+	return ProcessTopology{
+		Web:       processTopologyEntry(report.Keys, "processes.web", defaults.Web),
+		Worker:    processTopologyEntry(report.Keys, "processes.worker", defaults.Worker),
+		Scheduler: processTopologyEntry(report.Keys, "processes.scheduler", defaults.Scheduler),
+		CoLocated: processTopologyEntry(report.Keys, "processes.colocated", defaults.CoLocated),
+	}
 }
 
 // ParseManagedOverrides parses a JSON object of managed overrides into normalized strings.
@@ -181,4 +213,27 @@ func keyUnion(sets ...map[string]string) []string {
 	}
 	sort.Strings(keys)
 	return keys
+}
+
+func processTopologyEntry(keys map[string]KeyState, key string, fallback bool) ProcessTopologyEntry {
+	entry := ProcessTopologyEntry{
+		Enabled: fallback,
+		Source:  SourceFrameworkDefault,
+	}
+	if keys == nil {
+		return entry
+	}
+
+	state, ok := keys[key]
+	if !ok {
+		return entry
+	}
+	parsed, err := strconv.ParseBool(strings.TrimSpace(state.Value))
+	if err == nil {
+		entry.Enabled = parsed
+	}
+	if state.Source != "" {
+		entry.Source = state.Source
+	}
+	return entry
 }

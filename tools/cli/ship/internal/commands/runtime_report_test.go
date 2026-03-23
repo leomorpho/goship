@@ -61,7 +61,7 @@ func TestRunRuntimeReport(t *testing.T) {
 		if err := json.Unmarshal(out.Bytes(), &payload); err != nil {
 			t.Fatalf("decode json: %v\n%s", err, out.String())
 		}
-		for _, key := range []string{"profile", "adapters", "processes", "web", "database", "managed", "module_adoption"} {
+		for _, key := range []string{"profile", "adapters", "processes", "process_topology", "web", "database", "managed", "module_adoption"} {
 			if _, ok := payload[key]; !ok {
 				t.Fatalf("missing runtime report key %q in %s", key, out.String())
 			}
@@ -168,6 +168,103 @@ func TestRunRuntimeReport(t *testing.T) {
 		}
 		if !strings.Contains(errOut.String(), "requires --json") {
 			t.Fatalf("stderr = %q, want json requirement", errOut.String())
+		}
+	})
+
+	t.Run("process topology reports framework defaults and realtime roles", func(t *testing.T) {
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+
+		code := RunRuntimeReport([]string{"--json"}, RuntimeReportDeps{
+			Out: out,
+			Err: errOut,
+			LoadConfig: func() (config.Config, error) {
+				cfg := config.Config{
+					Runtime: config.RuntimeConfig{Profile: config.RuntimeProfileSingleNode},
+					Adapters: config.AdaptersConfig{
+						DB:     "sqlite",
+						Cache:  "otter",
+						Jobs:   "backlite",
+						PubSub: "inproc",
+					},
+					Processes: config.ProcessesConfig{
+						Web:       true,
+						Worker:    true,
+						Scheduler: true,
+						CoLocated: true,
+					},
+					Database: config.DatabaseConfig{
+						DbMode: config.DBModeEmbedded,
+						Driver: config.DBDriverSQLite,
+					},
+					Managed: config.ManagedConfig{
+						RuntimeReport: runtimeconfig.BuildReport(runtimeconfig.LayerInputs{
+							Defaults: map[string]string{
+								"processes.web":       "true",
+								"processes.worker":    "true",
+								"processes.scheduler": "true",
+								"processes.colocated": "true",
+							},
+							EffectiveValues: map[string]string{
+								"processes.web":       "true",
+								"processes.worker":    "true",
+								"processes.scheduler": "true",
+								"processes.colocated": "true",
+							},
+							ManagedEnabled: false,
+						}),
+					},
+				}
+				return cfg, nil
+			},
+		})
+		if code != 0 {
+			t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
+		}
+
+		var payload struct {
+			ProcessTopology struct {
+				Web struct {
+					Enabled      bool   `json:"enabled"`
+					Source       string `json:"source"`
+					RealtimeRole string `json:"realtime_role"`
+				} `json:"web"`
+				Worker struct {
+					Enabled      bool   `json:"enabled"`
+					Source       string `json:"source"`
+					RealtimeRole string `json:"realtime_role"`
+				} `json:"worker"`
+				Scheduler struct {
+					Enabled bool   `json:"enabled"`
+					Source  string `json:"source"`
+				} `json:"scheduler"`
+				CoLocated struct {
+					Enabled bool   `json:"enabled"`
+					Source  string `json:"source"`
+				} `json:"co_located"`
+			} `json:"process_topology"`
+		}
+		if err := json.Unmarshal(out.Bytes(), &payload); err != nil {
+			t.Fatalf("decode runtime report: %v\n%s", err, out.String())
+		}
+
+		if !payload.ProcessTopology.Web.Enabled || payload.ProcessTopology.Web.Source != "framework-default" {
+			t.Fatalf("web topology = %+v, want enabled framework-default", payload.ProcessTopology.Web)
+		}
+		if !payload.ProcessTopology.Worker.Enabled || payload.ProcessTopology.Worker.Source != "framework-default" {
+			t.Fatalf("worker topology = %+v, want enabled framework-default", payload.ProcessTopology.Worker)
+		}
+		if payload.ProcessTopology.Web.RealtimeRole != "realtime-edge" {
+			t.Fatalf("web realtime role = %q, want realtime-edge", payload.ProcessTopology.Web.RealtimeRole)
+		}
+		if payload.ProcessTopology.Worker.RealtimeRole != "realtime-worker" {
+			t.Fatalf("worker realtime role = %q, want realtime-worker", payload.ProcessTopology.Worker.RealtimeRole)
+		}
+		if !payload.ProcessTopology.Scheduler.Enabled || payload.ProcessTopology.Scheduler.Source != "framework-default" {
+			t.Fatalf("scheduler topology = %+v, want enabled framework-default", payload.ProcessTopology.Scheduler)
+		}
+		if !payload.ProcessTopology.CoLocated.Enabled || payload.ProcessTopology.CoLocated.Source != "framework-default" {
+			t.Fatalf("co-located topology = %+v, want enabled framework-default", payload.ProcessTopology.CoLocated)
 		}
 	})
 }

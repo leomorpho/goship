@@ -107,3 +107,53 @@ func TestRejectUnknownKeys(t *testing.T) {
 
 	assert.Equal(t, []string{"invalid.key"}, rejected)
 }
+
+func TestBuildProcessTopology(t *testing.T) {
+	report := BuildReport(LayerInputs{
+		Defaults: map[string]string{
+			"processes.web":       "true",
+			"processes.worker":    "true",
+			"processes.scheduler": "true",
+			"processes.colocated": "true",
+		},
+		EffectiveValues: map[string]string{
+			"processes.web":       "true",
+			"processes.worker":    "false",
+			"processes.scheduler": "true",
+			"processes.colocated": "false",
+		},
+		RepoSet: map[string]bool{
+			"processes.web": true,
+		},
+		ManagedSet: map[string]bool{
+			"processes.worker": true,
+		},
+		ManagedEnabled: true,
+	})
+
+	topology := BuildProcessTopology(report, ProcessDefaults{
+		Web:       true,
+		Worker:    true,
+		Scheduler: true,
+		CoLocated: true,
+	})
+
+	assert.Equal(t, ProcessTopologyEntry{Enabled: true, Source: SourceAppRepo}, topology.Web)
+	assert.Equal(t, ProcessTopologyEntry{Enabled: false, Source: SourceManagedOverride}, topology.Worker)
+	assert.Equal(t, ProcessTopologyEntry{Enabled: true, Source: SourceFrameworkDefault}, topology.Scheduler)
+	assert.Equal(t, ProcessTopologyEntry{Enabled: false, Source: SourceFrameworkDefault}, topology.CoLocated)
+}
+
+func TestBuildProcessTopologyDefaultsWhenKeysMissing(t *testing.T) {
+	topology := BuildProcessTopology(Report{}, ProcessDefaults{
+		Web:       true,
+		Worker:    false,
+		Scheduler: false,
+		CoLocated: true,
+	})
+
+	assert.Equal(t, ProcessTopologyEntry{Enabled: true, Source: SourceFrameworkDefault}, topology.Web)
+	assert.Equal(t, ProcessTopologyEntry{Enabled: false, Source: SourceFrameworkDefault}, topology.Worker)
+	assert.Equal(t, ProcessTopologyEntry{Enabled: false, Source: SourceFrameworkDefault}, topology.Scheduler)
+	assert.Equal(t, ProcessTopologyEntry{Enabled: true, Source: SourceFrameworkDefault}, topology.CoLocated)
+}
