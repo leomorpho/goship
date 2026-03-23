@@ -169,6 +169,30 @@ func TestRunRuntimeReport(t *testing.T) {
 		if !strings.Contains(errOut.String(), "requires --json") {
 			t.Fatalf("stderr = %q, want json requirement", errOut.String())
 		}
+		if !strings.Contains(errOut.String(), "Run `ship runtime:report --json`") {
+			t.Fatalf("stderr = %q, want operator guidance", errOut.String())
+		}
+	})
+
+	t.Run("load config failures include operator guidance", func(t *testing.T) {
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+		code := RunRuntimeReport([]string{"--json"}, RuntimeReportDeps{
+			Out: out,
+			Err: errOut,
+			LoadConfig: func() (config.Config, error) {
+				return config.Config{}, os.ErrNotExist
+			},
+		})
+		if code != 1 {
+			t.Fatalf("exit code = %d, want 1", code)
+		}
+		if !strings.Contains(errOut.String(), "runtime:report failed to load config") {
+			t.Fatalf("stderr = %q, want load-config failure", errOut.String())
+		}
+		if !strings.Contains(errOut.String(), "Verify `.env` and PAGODA_* runtime variables") {
+			t.Fatalf("stderr = %q, want operator guidance", errOut.String())
+		}
 	})
 
 	t.Run("process topology reports framework defaults and realtime roles", func(t *testing.T) {

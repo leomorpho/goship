@@ -111,6 +111,7 @@ func RunRuntimeReport(args []string, d RuntimeReportDeps) int {
 	}
 	if !*jsonOutput {
 		fmt.Fprintln(d.Err, "runtime:report currently requires --json")
+		fmt.Fprintln(d.Err, "Run `ship runtime:report --json` to get the machine-readable runtime report payload.")
 		return 1
 	}
 	if d.LoadConfig == nil {
@@ -121,6 +122,7 @@ func RunRuntimeReport(args []string, d RuntimeReportDeps) int {
 	cfg, err := d.LoadConfig()
 	if err != nil {
 		fmt.Fprintf(d.Err, "runtime:report failed to load config: %v\n", err)
+		fmt.Fprintln(d.Err, "Verify `.env` and PAGODA_* runtime variables, then retry `ship runtime:report --json`.")
 		return 1
 	}
 

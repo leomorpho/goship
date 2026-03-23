@@ -229,6 +229,9 @@ func TestRunVerify(t *testing.T) {
 		if !strings.Contains(errOut.String(), "compile failed") {
 			t.Fatalf("stderr = %q, want subprocess output", errOut.String())
 		}
+		if !strings.Contains(errOut.String(), "Next step: run `ship runtime:report --json`") {
+			t.Fatalf("stderr = %q, want operator guidance", errOut.String())
+		}
 	})
 
 	t.Run("json output returns structured steps", func(t *testing.T) {
@@ -748,6 +751,9 @@ func TestScaffoldTodo(t *testing.T) {
 		}
 		if !strings.Contains(errOut.String(), "forbidden top-level path present: app") {
 			t.Fatalf("stderr = %q, want forbidden app path diagnostic", errOut.String())
+		}
+		if !strings.Contains(errOut.String(), "Next step: run `ship doctor --json`") {
+			t.Fatalf("stderr = %q, want operator guidance", errOut.String())
 		}
 	})
 
