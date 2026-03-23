@@ -251,6 +251,12 @@ func RunVerify(args []string, d VerifyDeps) int {
 		if failed.Output != "" {
 			fmt.Fprintln(d.Err, failed.Output)
 		}
+		switch failed.Name {
+		case "canonical repo layout":
+			fmt.Fprintln(d.Err, "Next step: run `ship doctor --json` to inspect full repo-shape diagnostics before retrying verify.")
+		default:
+			fmt.Fprintln(d.Err, "Next step: run `ship runtime:report --json` to confirm runtime contract state before retrying verify.")
+		}
 		return 1
 	}
 
