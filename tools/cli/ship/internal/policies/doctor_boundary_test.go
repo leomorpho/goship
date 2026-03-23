@@ -154,6 +154,51 @@ func TestCheckCanonicalRepoTopLevelPaths(t *testing.T) {
 	})
 }
 
+func TestCheckFrameworkCIVerifyGate(t *testing.T) {
+	t.Run("missing workflow fails", func(t *testing.T) {
+		root := t.TempDir()
+		writeCanonicalRepoFixture(t, root)
+		issues := checkFrameworkCIVerifyGate(root)
+		if !containsDoctorIssueMessage(issues, "missing CI workflow gate for strict framework verify profile") {
+			t.Fatalf("expected missing workflow issue, got %+v", issues)
+		}
+	})
+
+	t.Run("missing strict verify command fails", func(t *testing.T) {
+		root := t.TempDir()
+		writeCanonicalRepoFixture(t, root)
+		workflowPath := filepath.Join(root, ".github", "workflows", "test.yml")
+		if err := os.MkdirAll(filepath.Dir(workflowPath), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		workflow := "name: Test\njobs:\n  verify_strict:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo missing gate\n"
+		if err := os.WriteFile(workflowPath, []byte(workflow), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		issues := checkFrameworkCIVerifyGate(root)
+		if !containsDoctorIssueMessage(issues, "CI workflow missing strict verify command") {
+			t.Fatalf("expected missing strict command issue, got %+v", issues)
+		}
+	})
+
+	t.Run("verify_strict gate present passes", func(t *testing.T) {
+		root := t.TempDir()
+		writeCanonicalRepoFixture(t, root)
+		workflowPath := filepath.Join(root, ".github", "workflows", "test.yml")
+		if err := os.MkdirAll(filepath.Dir(workflowPath), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		workflow := "name: Test\njobs:\n  verify_strict:\n    runs-on: ubuntu-latest\n    steps:\n      - run: go run ./tools/cli/ship/cmd/ship verify --profile strict\n"
+		if err := os.WriteFile(workflowPath, []byte(workflow), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		issues := checkFrameworkCIVerifyGate(root)
+		if len(issues) != 0 {
+			t.Fatalf("expected no issues, got %+v", issues)
+		}
+	})
+}
+
 func writeCanonicalRepoFixture(t *testing.T, root string) {
 	t.Helper()
 
