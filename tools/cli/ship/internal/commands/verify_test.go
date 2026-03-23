@@ -767,10 +767,16 @@ func TestScaffoldTodo(t *testing.T) {
 		if err := os.MkdirAll(filepath.Join(root, "app", "foundation"), 0o755); err != nil {
 			t.Fatal(err)
 		}
+		if err := os.MkdirAll(filepath.Join(root, "app", "schedules"), 0o755); err != nil {
+			t.Fatal(err)
+		}
 		if err := os.WriteFile(filepath.Join(root, "app", "router.go"), []byte("package app\n"), 0o644); err != nil {
 			t.Fatal(err)
 		}
 		if err := os.WriteFile(filepath.Join(root, "app", "foundation", "container.go"), []byte("package foundation\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(root, "app", "schedules", "schedules.go"), []byte("package schedules\n"), 0o644); err != nil {
 			t.Fatal(err)
 		}
 
@@ -805,7 +811,11 @@ func TestScaffoldTodo(t *testing.T) {
 		if len(calls) != 0 {
 			t.Fatalf("verify should fail before subprocesses, got calls %+v", calls)
 		}
-		for _, token := range []string{"missing canonical top-level path: container.go", "missing canonical top-level path: router.go"} {
+		for _, token := range []string{
+			"missing canonical top-level path: container.go",
+			"missing canonical top-level path: router.go",
+			"missing canonical top-level path: schedules.go",
+		} {
 			if !strings.Contains(errOut.String(), token) {
 				t.Fatalf("stderr = %q, want %q", errOut.String(), token)
 			}
