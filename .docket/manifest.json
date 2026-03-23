@@ -2180,7 +2180,7 @@
     },
     "TKT-395": {
       "title": "Remove stale docs references to the deleted internal app shell and add doc-link regression checks.",
-      "state": "backlog",
+      "state": "in-progress",
       "priority": 4,
       "parent": "TKT-392"
     },
@@ -2973,19 +2973,19 @@
     },
     "TKT-528": {
       "title": "Add framework-default process topology reporting and prove web worker realtime roles appear correctly.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-526"
     },
     "TKT-529": {
       "title": "Add deploy-critical runtime smoke tests for boot, migrate, health, readiness, and worker startup.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-526"
     },
     "TKT-530": {
       "title": "Add operator-facing failure guidance to runtime and CLI surfaces and prove it appears in error tests.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-526"
     },
@@ -3229,7 +3229,7 @@
     },
     "TKT-571": {
       "title": "Implement framework-default structured logging contracts and prove log shape stability in tests.",
-      "state": "backlog",
+      "state": "in-progress",
       "priority": 4,
       "parent": "TKT-526"
     },
