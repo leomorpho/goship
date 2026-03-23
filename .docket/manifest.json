@@ -2174,7 +2174,7 @@
     },
     "TKT-394": {
       "title": "Remove stale tooling references to the deleted internal app shell and update path-based tests.",
-      "state": "backlog",
+      "state": "in-progress",
       "priority": 4,
       "parent": "TKT-392"
     },
@@ -2889,7 +2889,7 @@
     },
     "TKT-514": {
       "title": "Make readiness endpoints framework-default and prove dependency-sensitive readiness in integration tests.",
-      "state": "backlog",
+      "state": "in-progress",
       "priority": 4,
       "parent": "TKT-512"
     },
@@ -3008,7 +3008,7 @@
     },
     "TKT-534": {
       "title": "Implement the managed deployment env-var contract and prove runtime consumption in integration tests.",
-      "state": "backlog",
+      "state": "in-progress",
       "priority": 4,
       "parent": "TKT-532"
     },
@@ -3127,7 +3127,7 @@
     },
     "TKT-554": {
       "title": "Implement a Tailwind bridge that consumes framework tokens and prove class generation in tests.",
-      "state": "backlog",
+      "state": "in-progress",
       "priority": 4,
       "parent": "TKT-552"
     },
