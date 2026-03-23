@@ -232,6 +232,50 @@ func CheckCanonicalRepoTopLevelPaths(root string) []DoctorIssue {
 	return issues
 }
 
+func checkFrameworkCIVerifyGate(root string) []DoctorIssue {
+	if !looksLikeCanonicalFrameworkRepo(root) {
+		return nil
+	}
+	workflowRel := filepath.ToSlash(filepath.Join(".github", "workflows", "test.yml"))
+	workflowPath := filepath.Join(root, filepath.FromSlash(workflowRel))
+	if !hasFile(workflowPath) {
+		return []DoctorIssue{{
+			Code:    "DX013",
+			File:    workflowRel,
+			Message: "missing CI workflow gate for strict framework verify profile",
+			Fix:     "add .github/workflows/test.yml with a verify_strict job that runs `go run ./tools/cli/ship/cmd/ship verify --profile strict`",
+		}}
+	}
+	content, err := os.ReadFile(workflowPath)
+	if err != nil {
+		return []DoctorIssue{{
+			Code:    "DX013",
+			File:    workflowRel,
+			Message: "failed to read CI workflow for strict verify gate",
+			Fix:     err.Error(),
+		}}
+	}
+	text := string(content)
+	var issues []DoctorIssue
+	if !strings.Contains(text, "verify_strict:") {
+		issues = append(issues, DoctorIssue{
+			Code:    "DX013",
+			File:    workflowRel,
+			Message: "CI workflow missing verify_strict job",
+			Fix:     "restore verify_strict job in .github/workflows/test.yml",
+		})
+	}
+	if !strings.Contains(text, "go run ./tools/cli/ship/cmd/ship verify --profile strict") {
+		issues = append(issues, DoctorIssue{
+			Code:    "DX013",
+			File:    workflowRel,
+			Message: "CI workflow missing strict verify command",
+			Fix:     "run `go run ./tools/cli/ship/cmd/ship verify --profile strict` in verify_strict job",
+		})
+	}
+	return issues
+}
+
 func looksLikeCanonicalFrameworkRepo(root string) bool {
 	return isDir(filepath.Join(root, "tools", "cli", "ship")) ||
 		hasFile(filepath.Join(root, "container.go")) ||

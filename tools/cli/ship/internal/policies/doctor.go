@@ -289,6 +289,7 @@ func RunDoctorChecks(root string) []DoctorIssue {
 		issues = append(issues, checkTopLevelDirs(root)...)
 	} else {
 		issues = append(issues, CheckCanonicalRepoTopLevelPaths(root)...)
+		issues = append(issues, checkFrameworkCIVerifyGate(root)...)
 	}
 	issues = append(issues, checkFileSizes(root)...)
 	issues = append(issues, checkCLIDocsCoverage(root)...)
