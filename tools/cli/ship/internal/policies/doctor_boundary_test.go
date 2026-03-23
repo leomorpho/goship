@@ -122,13 +122,22 @@ func TestCheckCanonicalRepoTopLevelPaths(t *testing.T) {
 		if err := os.Remove(filepath.Join(root, "router.go")); err != nil {
 			t.Fatal(err)
 		}
+		if err := os.Remove(filepath.Join(root, "schedules.go")); err != nil {
+			t.Fatal(err)
+		}
 		if err := os.MkdirAll(filepath.Join(root, "app", "foundation"), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.MkdirAll(filepath.Join(root, "app", "schedules"), 0o755); err != nil {
 			t.Fatal(err)
 		}
 		if err := os.WriteFile(filepath.Join(root, "app", "foundation", "container.go"), []byte("package foundation\n"), 0o644); err != nil {
 			t.Fatal(err)
 		}
 		if err := os.WriteFile(filepath.Join(root, "app", "router.go"), []byte("package app\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(root, "app", "schedules", "schedules.go"), []byte("package schedules\n"), 0o644); err != nil {
 			t.Fatal(err)
 		}
 
@@ -138,6 +147,9 @@ func TestCheckCanonicalRepoTopLevelPaths(t *testing.T) {
 		}
 		if !containsDoctorIssueMessage(issues, "missing canonical top-level path: router.go") {
 			t.Fatalf("expected missing router.go issue, got %+v", issues)
+		}
+		if !containsDoctorIssueMessage(issues, "missing canonical top-level path: schedules.go") {
+			t.Fatalf("expected missing schedules.go issue, got %+v", issues)
 		}
 	})
 }
