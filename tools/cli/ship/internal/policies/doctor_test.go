@@ -560,6 +560,48 @@ func registerAuthRoutes() {
 		mustContainIssueCode(t, issues, "DX012")
 	})
 
+	t.Run("canonical framework repo cli docs reject stale internal shell links", func(t *testing.T) {
+		root := t.TempDir()
+		writeCanonicalRepoFixture(t, root)
+		cliDoc := filepath.Join(root, "docs", "reference", "01-cli.md")
+		if err := os.MkdirAll(filepath.Dir(cliDoc), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		content := strings.Join([]string{
+			"## Minimal V1 Command Set",
+			"## Implementation Mapping (Current Repo)",
+			"## Generator test strategy",
+			"ship doctor",
+			"ship verify",
+			"ship agent:setup",
+			"ship agent:check",
+			"ship agent:status",
+			"ship new <app>",
+			"ship upgrade",
+			"ship make:resource",
+			"ship make:model",
+			"ship make:controller",
+			"ship make:scaffold",
+			"ship make:module",
+			"ship db:migrate",
+			"ship test --integration",
+			"extension-zone manifest",
+			"`container.go`",
+			"`router.go`",
+			"`schedules.go`",
+			"`app/foundation/container.go`",
+			"",
+		}, "\n")
+		if err := os.WriteFile(cliDoc, []byte(content), 0o644); err != nil {
+			t.Fatal(err)
+		}
+
+		issues := checkCLIDocsCoverage(root)
+		if !containsDoctorIssueMessage(issues, "cli docs contain stale framework-shell link token") {
+			t.Fatalf("expected stale framework-shell link issue, got %+v", issues)
+		}
+	})
+
 	t.Run("canonical docs reject transition-era wording red spec", func(t *testing.T) {
 		root := t.TempDir()
 		writeDoctorFixture(t, root)

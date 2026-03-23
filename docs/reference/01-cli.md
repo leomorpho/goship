@@ -235,7 +235,7 @@ Safety matrix:
 - `ship make:island <Name>` -> Generate a frontend island scaffold: the canonical pair `frontend/islands/<Name>.js` with an exported `mount(el, props)` seam and `app/views/web/components/<name>_island.templ` with the matching `data-island` / `data-props` mount target; follow-up remains explicit: run `ship templ generate --file app/views/web/components/<name>_island.templ`, run `make build-js`, then render `@components.<Name>Island(...)` from the page/component that should host the island
 - `ship make:job <Name>` -> Generate a background job scaffold at `app/jobs/<name>.go` plus `app/jobs/<name>_test.go` around `core.Jobs` / `core.JobHandler` registration helpers
 - `ship make:mailer <Name>` -> Generate a mailer scaffold at `app/views/emails/<name>.templ` and wire a `/dev/mail/<name>` preview into the existing mail preview controller and route surface
-- `ship make:schedule <Name> --cron "<expr>"` -> insert a named cron entry into `app/schedules/schedules.go` between `ship:schedules` markers
+- `ship make:schedule <Name> --cron "<expr>"` -> insert a named cron entry into `schedules.go` between `ship:schedules` markers
 - `ship make:command <Name>` -> scaffold `app/commands/<name>.go` and register it in `cmd/cli/main.go` at `ship:commands` markers
 - `ship make:scaffold <Name> ...` -> orchestration command that composes `make:model`, `db:make`, `make:controller --domain <plural_model> --wire`, and optionally `make:resource --domain <plural_model>` / `db:migrate`
 - `ship make:module <Name>` -> generate isolated module scaffold in `modules/<name>` with its own `go.mod`, module-facing types/contracts, and service tests
@@ -308,7 +308,7 @@ Generator output contract:
 `app/router.go` (with route marker pairs for `--wire`)
 `app/web/routenames/routenames.go`
 `app/views/templates.go`
-`app/foundation/container.go`
+`container.go`
 `app/*` (domain skeletons)
 `app/web/{controllers,middleware,ui,viewmodels}`
 `app/jobs/jobs.go`
@@ -375,7 +375,7 @@ CLI owns:
 
 App/framework owns:
 
-- actual runtime behavior in `cmd/*`, `app/*`, `framework/*`, and `config/*`.
+- actual runtime behavior in `cmd/*`, `container.go`, `router.go`, `schedules.go`, `framework/*`, and `config/*`.
 
 Rule:
 

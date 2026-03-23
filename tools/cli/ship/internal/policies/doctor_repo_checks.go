@@ -325,6 +325,16 @@ func checkCLIDocsCoverage(root string) []DoctorIssue {
 				Fix:     "update docs/reference/01-cli.md to describe canonical root-runtime repo enforcement",
 			})
 		}
+		for _, stale := range []string{"`app/foundation/container.go`", "`app/schedules/schedules.go`"} {
+			if !strings.Contains(text, stale) {
+				continue
+			}
+			issues = append(issues, DoctorIssue{
+				Code:    "DX012",
+				Message: fmt.Sprintf("cli docs contain stale framework-shell link token: %q", stale),
+				Fix:     "remove deleted internal app-shell file links and keep canonical root runtime seams in docs/reference/01-cli.md",
+			})
+		}
 	}
 	return issues
 }
