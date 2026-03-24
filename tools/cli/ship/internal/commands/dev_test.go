@@ -198,6 +198,9 @@ func TestRunDev_FailsFastWhenGeneratedAppScaffoldBroken(t *testing.T) {
 	if !strings.Contains(stderr, "[DX001] missing required directory: app/foundation") {
 		t.Fatalf("stderr = %q, want root-cause issue", stderr)
 	}
+	if !strings.Contains(stderr, "owner: ship new scaffold generator") {
+		t.Fatalf("stderr = %q, want owning generator hint", stderr)
+	}
 	if !strings.Contains(stderr, "Next step: run `ship doctor --json`") {
 		t.Fatalf("stderr = %q, want corrective next step", stderr)
 	}

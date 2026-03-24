@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	policies "github.com/leomorpho/goship/tools/cli/ship/internal/policies"
 )
 
 func TestRunVerify(t *testing.T) {
@@ -811,6 +813,9 @@ func TestScaffoldTodo(t *testing.T) {
 		if !strings.Contains(errOut.String(), "missing required directory: app") {
 			t.Fatalf("stderr = %q, want required-directory diagnostic", errOut.String())
 		}
+		if !strings.Contains(errOut.String(), "owner: ship new scaffold generator") {
+			t.Fatalf("stderr = %q, want owning generator hint", errOut.String())
+		}
 		if !strings.Contains(errOut.String(), "Next step: run `ship doctor --json`") {
 			t.Fatalf("stderr = %q, want operator guidance", errOut.String())
 		}
@@ -880,6 +885,31 @@ func TestScaffoldTodo(t *testing.T) {
 			}
 		}
 	})
+}
+
+func TestFormatVerifyDoctorIssues_IncludesOwningHintAccuracy(t *testing.T) {
+	t.Parallel()
+
+	issues := []policies.DoctorIssue{
+		{
+			Code:    "DX001",
+			Message: "missing required directory: app/foundation",
+			Fix:     "create app/foundation or regenerate the app scaffold with `ship new`",
+		},
+		{
+			Code:    "DX030",
+			Message: "canonical docs contain deprecated wording",
+			Fix:     "update docs wording",
+		},
+	}
+
+	formatted := formatVerifyDoctorIssues(issues)
+	if !strings.Contains(formatted, "owner: ship new scaffold generator (tools/cli/ship/internal/commands/project_new.go)") {
+		t.Fatalf("formatted issues missing generator owner hint:\n%s", formatted)
+	}
+	if !strings.Contains(formatted, "owner: doctor policy checks (tools/cli/ship/internal/policies/doctor.go)") {
+		t.Fatalf("formatted issues missing doctor owner hint:\n%s", formatted)
+	}
 }
 
 func writeVerifyGoMod(t *testing.T, root string) {

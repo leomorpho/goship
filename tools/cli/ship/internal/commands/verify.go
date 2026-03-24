@@ -427,12 +427,24 @@ func formatVerifyDoctorIssues(issues []policies.DoctorIssue) string {
 	lines := make([]string, 0, len(issues))
 	for _, issue := range issues {
 		line := fmt.Sprintf("[%s] %s", issue.Code, issue.Message)
+		if ownerHint := verifyIssueOwnerHint(issue.Code); ownerHint != "" {
+			line += "\nowner: " + ownerHint
+		}
 		if issue.Fix != "" {
 			line += "\nfix: " + issue.Fix
 		}
 		lines = append(lines, line)
 	}
 	return strings.Join(lines, "\n")
+}
+
+func verifyIssueOwnerHint(code string) string {
+	switch strings.TrimSpace(code) {
+	case "DX001", "DX002", "DX005", "DX011":
+		return "ship new scaffold generator (tools/cli/ship/internal/commands/project_new.go)"
+	default:
+		return "doctor policy checks (tools/cli/ship/internal/policies/doctor.go)"
+	}
 }
 
 func defaultVerifyRunStep(name string, args ...string) (int, string, error) {
