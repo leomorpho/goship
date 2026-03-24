@@ -2174,7 +2174,7 @@
     },
     "TKT-394": {
       "title": "Remove stale tooling references to the deleted internal app shell and update path-based tests.",
-      "state": "in-progress",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-392"
     },
