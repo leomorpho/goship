@@ -3265,7 +3265,7 @@
     },
     "TKT-578": {
       "title": "Add Otter in-memory cache adapter and wire it as the default dev/single-binary cache backend",
-      "state": "backlog",
+      "state": "done",
       "priority": 3,
       "parent": "TKT-189"
     },
