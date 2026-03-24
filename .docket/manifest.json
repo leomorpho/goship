@@ -2347,7 +2347,7 @@
     },
     "TKT-423": {
       "title": "Ensure a fresh generated app renders its default public routes and prove it with browser tests.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-418"
     },
