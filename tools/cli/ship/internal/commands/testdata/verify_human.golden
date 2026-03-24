@@ -1,2 +1,10 @@
-! go test ./...: skipped via --skip-tests
-✓ verify passed
+· templ generate (5ms)
+· go build ./... (5ms)
+· ship doctor --json (5ms)
+· no-compatibility/deprecation invariant (5ms)
+· module compatibility policy (5ms)
+· nilaway ./... (5ms)
+! go test ./... (0ms): skipped via --skip-tests
+· standalone exportability gate (5ms)
+· orchestration contract mismatch preflight (5ms)
+✓ verify passed (95ms)

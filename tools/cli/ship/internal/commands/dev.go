@@ -23,6 +23,7 @@ type DevDeps struct {
 	IsInteractive           func() bool
 	PromptOpenURL           func(url string) (bool, error)
 	OpenBrowser             func(url string) error
+	Now                     func() time.Time
 }
 
 func RunDev(args []string, d DevDeps) int {
@@ -81,6 +82,22 @@ func RunDev(args []string, d DevDeps) int {
 		fmt.Fprintln(d.Err, "Next step: run `ship doctor --json` to inspect full scaffold diagnostics before retrying `ship dev`.")
 		return 1
 	}
+	now := d.Now
+	if now == nil {
+		now = time.Now
+	}
+	startedAt := now()
+	fmt.Fprintf(d.Out, "starting dev (%s)\n", mode)
+
+	reportExit := func(code int) int {
+		elapsedMS := elapsedMilliseconds(now().Sub(startedAt))
+		if code == 0 {
+			fmt.Fprintf(d.Out, "dev %s exited with code %d after %dms\n", mode, code, elapsedMS)
+			return code
+		}
+		fmt.Fprintf(d.Err, "dev %s exited with code %d after %dms\n", mode, code, elapsedMS)
+		return code
+	}
 
 	var maybeOpenWhenReady func(done <-chan struct{})
 	if mode == "web" || mode == "all" {
@@ -95,9 +112,9 @@ func RunDev(args []string, d DevDeps) int {
 		}
 		code := d.RunCmd("air", "-c", ".air.toml")
 		close(done)
-		return code
+		return reportExit(code)
 	case "worker":
-		return d.RunCmd("go", "run", "./cmd/worker")
+		return reportExit(d.RunCmd("go", "run", "./cmd/worker"))
 	case "all":
 		if d.RunDevAll != nil {
 			done := make(chan struct{})
@@ -106,7 +123,7 @@ func RunDev(args []string, d DevDeps) int {
 			}
 			code := d.RunDevAll()
 			close(done)
-			return code
+			return reportExit(code)
 		}
 		fmt.Fprintln(d.Err, "dev all runner is not configured")
 		return 1

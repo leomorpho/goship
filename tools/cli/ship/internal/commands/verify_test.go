@@ -6,6 +6,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 
@@ -83,6 +84,9 @@ func TestRunVerify(t *testing.T) {
 		}
 		if !strings.Contains(out.String(), "verify passed") {
 			t.Fatalf("stdout = %q, want success message", out.String())
+		}
+		if !regexp.MustCompile(`templ generate \(\d+ms\)`).MatchString(out.String()) {
+			t.Fatalf("stdout = %q, want templ progress timing", out.String())
 		}
 		if !strings.Contains(out.String(), "nilaway not installed; skipping") {
 			t.Fatalf("stdout = %q, want nilaway skip message", out.String())
@@ -296,6 +300,25 @@ func TestRunVerify(t *testing.T) {
 		}
 		if payload.Steps[8].Name != "orchestration contract mismatch preflight" {
 			t.Fatalf("final step name = %q, want orchestration contract mismatch preflight", payload.Steps[8].Name)
+		}
+
+		var raw map[string]any
+		if err := json.Unmarshal(out.Bytes(), &raw); err != nil {
+			t.Fatalf("decode raw json: %v", err)
+		}
+		if _, ok := raw["elapsed_ms"]; !ok {
+			t.Fatalf("json payload missing elapsed_ms: %s", out.String())
+		}
+		rawSteps, ok := raw["steps"].([]any)
+		if !ok || len(rawSteps) == 0 {
+			t.Fatalf("json payload missing steps array: %s", out.String())
+		}
+		firstStep, ok := rawSteps[0].(map[string]any)
+		if !ok {
+			t.Fatalf("first step is not object: %T", rawSteps[0])
+		}
+		if _, ok := firstStep["duration_ms"]; !ok {
+			t.Fatalf("json payload missing step duration_ms: %s", out.String())
 		}
 	})
 

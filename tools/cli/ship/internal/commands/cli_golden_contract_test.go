@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 )
 
 func TestCLIGoldenContractSuite_RedSpec(t *testing.T) {
@@ -56,6 +57,7 @@ func TestCLIGoldenContractSuite_RedSpec(t *testing.T) {
 		t.Cleanup(func() { _ = os.Chdir(prevWD) })
 
 		humanOut := &bytes.Buffer{}
+		humanNow := fakeTickNow(5 * time.Millisecond)
 		if code := RunVerify([]string{"--skip-tests"}, VerifyDeps{
 			Out:          humanOut,
 			Err:          &bytes.Buffer{},
@@ -72,12 +74,14 @@ func TestCLIGoldenContractSuite_RedSpec(t *testing.T) {
 			RunDoctor: func() (int, string, error) {
 				return 0, `{"ok":true,"issues":[]}`, nil
 			},
+			Now: humanNow,
 		}); code != 0 {
 			t.Fatalf("verify human exit code = %d", code)
 		}
 		assertCLIGoldenSnapshot(t, packageDir, "verify_human.golden", humanOut.String())
 
 		jsonOut := &bytes.Buffer{}
+		jsonNow := fakeTickNow(5 * time.Millisecond)
 		if code := RunVerify([]string{"--json"}, VerifyDeps{
 			Out:          jsonOut,
 			Err:          &bytes.Buffer{},
@@ -94,6 +98,7 @@ func TestCLIGoldenContractSuite_RedSpec(t *testing.T) {
 			RunDoctor: func() (int, string, error) {
 				return 0, `{"ok":true,"issues":[]}`, nil
 			},
+			Now: jsonNow,
 		}); code != 0 {
 			t.Fatalf("verify json exit code = %d", code)
 		}
@@ -144,4 +149,13 @@ func assertCLIJSONGolden(t *testing.T, packageDir, name string, payload []byte) 
 	}
 	pretty.WriteByte('\n')
 	assertCLIGoldenSnapshot(t, packageDir, name, pretty.String())
+}
+
+func fakeTickNow(step time.Duration) func() time.Time {
+	current := time.Unix(0, 0).UTC()
+	return func() time.Time {
+		now := current
+		current = current.Add(step)
+		return now
+	}
 }

@@ -1,50 +1,60 @@
 {
   "ok": true,
+  "elapsed_ms": 105,
   "steps": [
     {
       "name": "templ generate",
       "ok": true,
-      "output": "templ ok"
+      "output": "templ ok",
+      "duration_ms": 5
     },
     {
       "name": "go build ./...",
       "ok": true,
-      "output": "go ok"
+      "output": "go ok",
+      "duration_ms": 5
     },
     {
       "name": "ship doctor --json",
       "ok": true,
-      "output": "{\"ok\":true,\"issues\":[]}"
+      "output": "{\"ok\":true,\"issues\":[]}",
+      "duration_ms": 5
     },
     {
       "name": "no-compatibility/deprecation invariant",
       "ok": true,
-      "output": "canonical docs avoid compatibility-window and deprecation wording"
+      "output": "canonical docs avoid compatibility-window and deprecation wording",
+      "duration_ms": 5
     },
     {
       "name": "module compatibility policy",
       "ok": true,
-      "output": "standalone batteries use the canonical local-workspace or tagged-release wiring policy"
+      "output": "standalone batteries use the canonical local-workspace or tagged-release wiring policy",
+      "duration_ms": 5
     },
     {
       "name": "nilaway ./...",
       "ok": true,
-      "output": "nilaway ok"
+      "output": "nilaway ok",
+      "duration_ms": 5
     },
     {
       "name": "go test ./...",
       "ok": true,
-      "output": "go ok"
+      "output": "go ok",
+      "duration_ms": 5
     },
     {
       "name": "standalone exportability gate",
       "ok": true,
-      "output": "starter/runtime surfaces remain free of control-plane dependency drift"
+      "output": "starter/runtime surfaces remain free of control-plane dependency drift",
+      "duration_ms": 5
     },
     {
       "name": "orchestration contract mismatch preflight",
       "ok": true,
-      "output": "runtime report and managed-settings access contract remain aligned for deploy safety"
+      "output": "runtime report and managed-settings access contract remain aligned for deploy safety",
+      "duration_ms": 5
     }
   ]
 }

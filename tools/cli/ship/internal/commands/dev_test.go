@@ -206,6 +206,38 @@ func TestRunDev_FailsFastWhenGeneratedAppScaffoldBroken(t *testing.T) {
 	}
 }
 
+func TestRunDev_PrintsModeProgressAndTiming(t *testing.T) {
+	t.Parallel()
+
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+
+	code := RunDev([]string{"--web"}, DevDeps{
+		Out: out,
+		Err: errOut,
+		RunCmd: func(name string, args ...string) int {
+			return 0
+		},
+	})
+	if code != 0 {
+		t.Fatalf("code = %d, want 0", code)
+	}
+
+	stdout := out.String()
+	if !strings.Contains(stdout, "starting dev (web)") {
+		t.Fatalf("stdout = %q, want mode start progress", stdout)
+	}
+	if !strings.Contains(stdout, "dev web exited with code 0 after ") {
+		t.Fatalf("stdout = %q, want mode completion timing", stdout)
+	}
+	if !strings.Contains(stdout, "ms") {
+		t.Fatalf("stdout = %q, want millisecond timing unit", stdout)
+	}
+	if errOut.Len() != 0 {
+		t.Fatalf("stderr = %q, want empty", errOut.String())
+	}
+}
+
 type assertiveError string
 
 func (e assertiveError) Error() string {

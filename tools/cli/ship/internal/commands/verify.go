@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 
 	policies "github.com/leomorpho/goship/tools/cli/ship/internal/policies"
 	"golang.org/x/mod/modfile"
@@ -25,18 +26,21 @@ type VerifyDeps struct {
 	LookPath      func(file string) (string, error)
 	RelocateTempl func(rootPath string) error
 	RunDoctor     func() (int, string, error)
+	Now           func() time.Time
 }
 
 type verifyJSONStep struct {
-	Name     string `json:"name"`
-	OK       bool   `json:"ok"`
-	Output   string `json:"output"`
-	Severity string `json:"severity,omitempty"`
+	Name       string `json:"name"`
+	OK         bool   `json:"ok"`
+	Output     string `json:"output"`
+	Severity   string `json:"severity,omitempty"`
+	DurationMS int64  `json:"duration_ms"`
 }
 
 type verifyJSONResult struct {
-	OK    bool             `json:"ok"`
-	Steps []verifyJSONStep `json:"steps"`
+	OK        bool             `json:"ok"`
+	ElapsedMS int64            `json:"elapsed_ms"`
+	Steps     []verifyJSONStep `json:"steps"`
 }
 
 const (
@@ -115,85 +119,111 @@ func RunVerify(args []string, d VerifyDeps) int {
 			return runVerifyDoctorJSON(d.FindGoModule)
 		}
 	}
+	now := d.Now
+	if now == nil {
+		now = time.Now
+	}
+	verifyStartedAt := now()
 
 	results := make([]verifyJSONStep, 0, 5)
 	var failed *verifyJSONStep
 
-	appendStep := func(name string, ok bool, output string, severity string) {
+	appendStep := func(name string, ok bool, output string, severity string, durationMS int64) {
+		trimmedOutput := strings.TrimSpace(output)
 		results = append(results, verifyJSONStep{
-			Name:     name,
-			OK:       ok,
-			Output:   strings.TrimSpace(output),
-			Severity: strings.TrimSpace(severity),
+			Name:       name,
+			OK:         ok,
+			Output:     trimmedOutput,
+			Severity:   strings.TrimSpace(severity),
+			DurationMS: durationMS,
 		})
 		if !ok && failed == nil {
 			failed = &results[len(results)-1]
 		}
+		if *jsonOutput {
+			return
+		}
+		if !ok {
+			return
+		}
+		if severity == "warning" {
+			fmt.Fprintf(d.Out, "! %s (%dms): %s\n", name, durationMS, trimmedOutput)
+			return
+		}
+		fmt.Fprintf(d.Out, "· %s (%dms)\n", name, durationMS)
 	}
 
 	if issues := policies.FastPathGeneratedAppIssues(root); len(issues) > 0 {
-		appendStep("generated app scaffold", false, formatVerifyDoctorIssues(issues), "")
+		stepStartedAt := now()
+		appendStep("generated app scaffold", false, formatVerifyDoctorIssues(issues), "", elapsedMilliseconds(now().Sub(stepStartedAt)))
 	} else if err := withWorkingDir(root, func() error {
+		stepStartedAt := now()
 		repoLayoutIssues := policies.CheckCanonicalRepoTopLevelPaths(".")
 		if repoLayoutIssues != nil {
 			if len(repoLayoutIssues) > 0 {
-				appendStep("canonical repo layout", false, formatVerifyDoctorIssues(repoLayoutIssues), "")
+				appendStep("canonical repo layout", false, formatVerifyDoctorIssues(repoLayoutIssues), "", elapsedMilliseconds(now().Sub(stepStartedAt)))
 				return nil
 			}
-			appendStep("canonical repo layout", true, "canonical GoShip repo layout is intact", "")
+			appendStep("canonical repo layout", true, "canonical GoShip repo layout is intact", "", elapsedMilliseconds(now().Sub(stepStartedAt)))
 			if failed != nil {
 				return nil
 			}
 		}
 
+		stepStartedAt = now()
 		code, output, runErr := runStep("templ", "generate", "-path", ".")
 		if code == 0 && runErr == nil {
 			if relocateErr := relocateTempl("."); relocateErr != nil {
 				runErr = relocateErr
 			}
 		}
-		appendStep("templ generate", code == 0 && runErr == nil, mergeVerifyOutput(output, runErr), "")
+		appendStep("templ generate", code == 0 && runErr == nil, mergeVerifyOutput(output, runErr), "", elapsedMilliseconds(now().Sub(stepStartedAt)))
 		if failed != nil {
 			return nil
 		}
 
+		stepStartedAt = now()
 		code, output, runErr = runStep("go", "build", "./...")
-		appendStep("go build ./...", code == 0 && runErr == nil, mergeVerifyOutput(output, runErr), "")
+		appendStep("go build ./...", code == 0 && runErr == nil, mergeVerifyOutput(output, runErr), "", elapsedMilliseconds(now().Sub(stepStartedAt)))
 		if failed != nil {
 			return nil
 		}
 
+		stepStartedAt = now()
 		code, output, runErr = runDoctor()
-		appendStep("ship doctor --json", code == 0 && runErr == nil, mergeVerifyOutput(output, runErr), "")
+		appendStep("ship doctor --json", code == 0 && runErr == nil, mergeVerifyOutput(output, runErr), "", elapsedMilliseconds(now().Sub(stepStartedAt)))
 		if failed != nil {
 			return nil
 		}
 
+		stepStartedAt = now()
 		if issues := policies.CheckHardCutDocWording("."); len(issues) > 0 {
-			appendStep("no-compatibility/deprecation invariant", false, formatVerifyDoctorIssues(issues), "")
+			appendStep("no-compatibility/deprecation invariant", false, formatVerifyDoctorIssues(issues), "", elapsedMilliseconds(now().Sub(stepStartedAt)))
 			return nil
 		}
-		appendStep("no-compatibility/deprecation invariant", true, "canonical docs avoid compatibility-window and deprecation wording", "")
+		appendStep("no-compatibility/deprecation invariant", true, "canonical docs avoid compatibility-window and deprecation wording", "", elapsedMilliseconds(now().Sub(stepStartedAt)))
 
+		stepStartedAt = now()
 		if modulePolicyErr := checkModuleCompatibilityPolicy("."); modulePolicyErr != nil {
-			appendStep("module compatibility policy", false, modulePolicyErr.Error(), "")
+			appendStep("module compatibility policy", false, modulePolicyErr.Error(), "", elapsedMilliseconds(now().Sub(stepStartedAt)))
 			return nil
 		}
-		appendStep("module compatibility policy", true, "standalone batteries use the canonical local-workspace or tagged-release wiring policy", "")
+		appendStep("module compatibility policy", true, "standalone batteries use the canonical local-workspace or tagged-release wiring policy", "", elapsedMilliseconds(now().Sub(stepStartedAt)))
 
 		runNilaway := *profile != verifyProfileFast
 		requireNilaway := *profile == verifyProfileStrict
 		if !runNilaway {
-			appendStep("nilaway ./...", true, "skipped in fast profile", "warning")
+			appendStep("nilaway ./...", true, "skipped in fast profile", "warning", 0)
 		} else if _, err := lookPath("nilaway"); err != nil {
 			if requireNilaway {
-				appendStep("nilaway ./...", false, "nilaway is required in strict profile", "")
+				appendStep("nilaway ./...", false, "nilaway is required in strict profile", "", 0)
 				return nil
 			}
-			appendStep("nilaway ./...", true, "nilaway not installed; skipping", "warning")
+			appendStep("nilaway ./...", true, "nilaway not installed; skipping", "warning", 0)
 		} else {
+			stepStartedAt = now()
 			code, output, runErr = runStep("nilaway", "./...")
-			appendStep("nilaway ./...", code == 0 && runErr == nil, mergeVerifyOutput(output, runErr), "")
+			appendStep("nilaway ./...", code == 0 && runErr == nil, mergeVerifyOutput(output, runErr), "", elapsedMilliseconds(now().Sub(stepStartedAt)))
 			if failed != nil {
 				return nil
 			}
@@ -204,30 +234,34 @@ func RunVerify(args []string, d VerifyDeps) int {
 			if *profile == verifyProfileFast && !*skipTests {
 				reason = "skipped in fast profile"
 			}
-			appendStep("go test ./...", true, reason, "warning")
+			appendStep("go test ./...", true, reason, "warning", 0)
 		} else {
+			stepStartedAt = now()
 			code, output, runErr = runStep("go", "test", "./...")
-			appendStep("go test ./...", code == 0 && runErr == nil, mergeVerifyOutput(output, runErr), "")
+			appendStep("go test ./...", code == 0 && runErr == nil, mergeVerifyOutput(output, runErr), "", elapsedMilliseconds(now().Sub(stepStartedAt)))
 		}
 		if failed != nil {
 			return nil
 		}
 
+		stepStartedAt = now()
 		if exportabilityErr := checkStandaloneExportability("."); exportabilityErr != nil {
-			appendStep("standalone exportability gate", false, exportabilityErr.Error(), "")
+			appendStep("standalone exportability gate", false, exportabilityErr.Error(), "", elapsedMilliseconds(now().Sub(stepStartedAt)))
 			return nil
 		}
-		appendStep("standalone exportability gate", true, "starter/runtime surfaces remain free of control-plane dependency drift", "")
+		appendStep("standalone exportability gate", true, "starter/runtime surfaces remain free of control-plane dependency drift", "", elapsedMilliseconds(now().Sub(stepStartedAt)))
 
+		stepStartedAt = now()
 		if preflightErr := checkOrchestrationContractMismatch("."); preflightErr != nil {
-			appendStep("orchestration contract mismatch preflight", false, preflightErr.Error(), "")
+			appendStep("orchestration contract mismatch preflight", false, preflightErr.Error(), "", elapsedMilliseconds(now().Sub(stepStartedAt)))
 			return nil
 		}
-		appendStep("orchestration contract mismatch preflight", true, "runtime report and managed-settings access contract remain aligned for deploy safety", "")
+		appendStep("orchestration contract mismatch preflight", true, "runtime report and managed-settings access contract remain aligned for deploy safety", "", elapsedMilliseconds(now().Sub(stepStartedAt)))
 
+		stepStartedAt = now()
 		scaffoldSkips, scanErr := findScaffoldSkippedTests(".")
 		if scanErr != nil {
-			appendStep("scaffold skip checks", true, fmt.Sprintf("Warning: failed to scan scaffold skips: %v", scanErr), "warning")
+			appendStep("scaffold skip checks", true, fmt.Sprintf("Warning: failed to scan scaffold skips: %v", scanErr), "warning", elapsedMilliseconds(now().Sub(stepStartedAt)))
 			return nil
 		}
 		if len(scaffoldSkips) > 0 {
@@ -236,6 +270,7 @@ func RunVerify(args []string, d VerifyDeps) int {
 				true,
 				fmt.Sprintf("Warning: %d scaffolded tests are still skipped.\n%s", len(scaffoldSkips), strings.Join(scaffoldSkips, "\n")),
 				"warning",
+				elapsedMilliseconds(now().Sub(stepStartedAt)),
 			)
 		}
 		return nil
@@ -244,12 +279,13 @@ func RunVerify(args []string, d VerifyDeps) int {
 		return 1
 	}
 
+	elapsedMS := elapsedMilliseconds(now().Sub(verifyStartedAt))
 	if *jsonOutput {
-		return writeVerifyJSON(d.Out, failed == nil, results)
+		return writeVerifyJSON(d.Out, failed == nil, elapsedMS, results)
 	}
 
 	if failed != nil {
-		fmt.Fprintf(d.Err, "verify failed at %s\n", failed.Name)
+		fmt.Fprintf(d.Err, "verify failed at %s (%dms)\n", failed.Name, failed.DurationMS)
 		if failed.Output != "" {
 			fmt.Fprintln(d.Err, failed.Output)
 		}
@@ -262,12 +298,7 @@ func RunVerify(args []string, d VerifyDeps) int {
 		return 1
 	}
 
-	for _, step := range results {
-		if step.Severity == "warning" || strings.Contains(step.Output, "skipping") || strings.Contains(step.Output, "skipped") {
-			fmt.Fprintf(d.Out, "! %s: %s\n", step.Name, step.Output)
-		}
-	}
-	fmt.Fprintln(d.Out, "✓ verify passed")
+	fmt.Fprintf(d.Out, "✓ verify passed (%dms)\n", elapsedMS)
 	return 0
 }
 
@@ -283,8 +314,8 @@ func PrintVerifyHelp(w io.Writer) {
 	fmt.Fprintln(w, "  ship verify --json                                   Output verification result as JSON")
 }
 
-func writeVerifyJSON(w io.Writer, ok bool, steps []verifyJSONStep) int {
-	payload := verifyJSONResult{OK: ok, Steps: steps}
+func writeVerifyJSON(w io.Writer, ok bool, elapsedMS int64, steps []verifyJSONStep) int {
+	payload := verifyJSONResult{OK: ok, ElapsedMS: elapsedMS, Steps: steps}
 	if err := json.NewEncoder(w).Encode(payload); err != nil {
 		fmt.Fprintf(w, "{\"ok\":false,\"steps\":[{\"name\":\"verify\",\"ok\":false,\"output\":%q}]}\n", fmt.Sprintf("failed to encode verify JSON: %v", err))
 		return 1
@@ -293,6 +324,13 @@ func writeVerifyJSON(w io.Writer, ok bool, steps []verifyJSONStep) int {
 		return 0
 	}
 	return 1
+}
+
+func elapsedMilliseconds(d time.Duration) int64 {
+	if d < 0 {
+		return 0
+	}
+	return d.Milliseconds()
 }
 
 func mergeVerifyOutput(output string, err error) string {
