@@ -2210,7 +2210,7 @@
     },
     "TKT-400": {
       "title": "Add fixture tests proving invalid repo shapes fail with corrective output.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-392"
     },
