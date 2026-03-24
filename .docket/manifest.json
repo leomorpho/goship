@@ -1869,7 +1869,7 @@
     },
     "TKT-341": {
       "title": "INT6-02-A: Define executable spec and red tests",
-      "state": "backlog",
+      "state": "done",
       "priority": 5
     },
     "TKT-342": {
