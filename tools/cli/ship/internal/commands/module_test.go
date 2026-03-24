@@ -214,6 +214,39 @@ func TestRunModuleAdd_DryRunPrintsInstallContract(t *testing.T) {
 	}
 }
 
+func TestRunModuleRemove_AbsentModuleIsNoOp(t *testing.T) {
+	root := t.TempDir()
+	writeModuleFixtureFiles(t, root)
+
+	runOnce := func(t *testing.T) string {
+		t.Helper()
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+		code := RunModule([]string{"remove", "storage"}, ModuleDeps{
+			Out: out,
+			Err: errOut,
+			FindGoModule: func(start string) (string, string, error) {
+				return root, "example.com/demo", nil
+			},
+		})
+		if code != 0 {
+			t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
+		}
+		return out.String()
+	}
+
+	first := runOnce(t)
+	second := runOnce(t)
+	for _, log := range []string{first, second} {
+		if !strings.Contains(log, "Module was not wired; no changes needed.") {
+			t.Fatalf("expected no-op message, got:\n%s", log)
+		}
+		if !strings.Contains(log, "Reminder: module:remove does not roll back related DB migrations.") {
+			t.Fatalf("expected reminder message, got:\n%s", log)
+		}
+	}
+}
+
 func TestApplyModuleAdd_TwoFactor(t *testing.T) {
 	root := t.TempDir()
 
@@ -526,6 +559,45 @@ func TestApplyModuleRemove_FailsWithReferenceBlockers_RedSpec(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "app/router.go") {
 		t.Fatalf("expected router blocker in error, got %v", err)
+	}
+}
+
+func TestApplyModuleRemove_AbsentModuleIsIdempotentNoOp(t *testing.T) {
+	root := t.TempDir()
+	writeModuleFixtureFiles(t, root)
+
+	info, ok := moduleCatalog["storage"]
+	if !ok {
+		t.Fatal("expected storage in module catalog")
+	}
+
+	tracked := []string{
+		filepath.Join(root, "app", "foundation", "container.go"),
+		filepath.Join(root, "app", "router.go"),
+		filepath.Join(root, "config", "modules.yaml"),
+		filepath.Join(root, "go.mod"),
+		filepath.Join(root, "go.work"),
+		filepath.Join(root, ".env.example"),
+	}
+	original := map[string]string{}
+	for _, path := range tracked {
+		original[path] = readTestFile(t, path)
+	}
+
+	for i := 0; i < 2; i++ {
+		out := &bytes.Buffer{}
+		if err := applyModuleRemove(root, info, false, out); err != nil {
+			t.Fatalf("applyModuleRemove pass %d error: %v", i+1, err)
+		}
+		if !strings.Contains(out.String(), "Module was not wired; no changes needed.") {
+			t.Fatalf("expected no-op message on pass %d, got:\n%s", i+1, out.String())
+		}
+	}
+
+	for _, path := range tracked {
+		if got := readTestFile(t, path); got != original[path] {
+			t.Fatalf("%s changed after removing absent module:\nwant:\n%s\ngot:\n%s", path, original[path], got)
+		}
 	}
 }
 

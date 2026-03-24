@@ -84,6 +84,9 @@ func updateGoModDependency(path, modulePath, localPath string, add bool) (bool, 
 	if err != nil {
 		return false, "", fmt.Errorf("read %s: %w", path, err)
 	}
+	if !add && !strings.Contains(string(body), modulePath) {
+		return false, string(body), nil
+	}
 
 	file, err := modfile.Parse(path, body, nil)
 	if err != nil {
@@ -155,6 +158,10 @@ func updateGoWorkUse(path, localPath, modulePath string, add bool) (bool, string
 	if err != nil {
 		return false, "", fmt.Errorf("read %s: %w", path, err)
 	}
+	usePath := "./" + filepath.ToSlash(localPath)
+	if !add && !strings.Contains(string(body), usePath) {
+		return false, string(body), nil
+	}
 
 	file, err := modfile.ParseWork(path, body, nil)
 	if err != nil {
@@ -162,7 +169,6 @@ func updateGoWorkUse(path, localPath, modulePath string, add bool) (bool, string
 	}
 
 	before := string(modfile.Format(file.Syntax))
-	usePath := "./" + filepath.ToSlash(localPath)
 	if add {
 		if !hasGoWorkUse(file, usePath, modulePath) {
 			if err := file.AddUse(usePath, modulePath); err != nil {
