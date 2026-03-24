@@ -1359,7 +1359,7 @@
     },
     "TKT-254": {
       "title": "Roadmap Hygiene: Enforce atomic ticket decomposition and TDD/UI verification standards",
-      "state": "backlog",
+      "state": "todo",
       "priority": 3,
       "parent": "TKT-248"
     },
@@ -1479,7 +1479,7 @@
     },
     "TKT-274": {
       "title": "G3-03-B: Implement, verify, and sync docs",
-      "state": "backlog",
+      "state": "done",
       "priority": 3,
       "parent": "TKT-189"
     },
