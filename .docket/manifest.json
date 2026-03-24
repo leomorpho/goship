@@ -3259,7 +3259,7 @@
     },
     "TKT-577": {
       "title": "Add Backlite SQLite job queue adapter and wire it as the default dev/single-binary jobs backend",
-      "state": "backlog",
+      "state": "done",
       "priority": 3,
       "parent": "TKT-189"
     },
