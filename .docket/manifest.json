@@ -1443,7 +1443,7 @@
     },
     "TKT-268": {
       "title": "G2-03-B: Implement, verify, and sync docs",
-      "state": "in-progress",
+      "state": "in-review",
       "priority": 3,
       "parent": "TKT-200"
     },
@@ -2174,7 +2174,7 @@
     },
     "TKT-394": {
       "title": "Remove stale tooling references to the deleted internal app shell and update path-based tests.",
-      "state": "in-progress",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-392"
     },
@@ -2204,7 +2204,7 @@
     },
     "TKT-399": {
       "title": "Add fixture tests proving a clean GoShip repo passes repo-shape verification.",
-      "state": "in-progress",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-392"
     },
@@ -2443,7 +2443,7 @@
     },
     "TKT-439": {
       "title": "Add startup error messages that name missing config, secrets, or services and prove them in runtime tests.",
-      "state": "in-progress",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-436"
     },
@@ -2556,7 +2556,7 @@
     },
     "TKT-458": {
       "title": "Add cross-battery composition tests for supported first-party combinations.",
-      "state": "in-progress",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-452"
     },
@@ -2669,7 +2669,7 @@
     },
     "TKT-477": {
       "title": "Implement ship upgrade plan and prove safe step computation across representative app versions.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-476"
     },
@@ -2782,7 +2782,7 @@
     },
     "TKT-496": {
       "title": "Add a fresh-app CI lane that runs generation, batteries, verify, and smoke tests together.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-490"
     },
@@ -2889,7 +2889,7 @@
     },
     "TKT-514": {
       "title": "Make readiness endpoints framework-default and prove dependency-sensitive readiness in integration tests.",
-      "state": "in-progress",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-512"
     },
@@ -3008,7 +3008,7 @@
     },
     "TKT-534": {
       "title": "Implement the managed deployment env-var contract and prove runtime consumption in integration tests.",
-      "state": "in-progress",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-532"
     },
@@ -3133,7 +3133,7 @@
     },
     "TKT-555": {
       "title": "Implement starter typography, spacing, color, and elevation primitives on top of shared tokens with build tests.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-552"
     },
@@ -3229,7 +3229,7 @@
     },
     "TKT-571": {
       "title": "Implement framework-default structured logging contracts and prove log shape stability in tests.",
-      "state": "in-progress",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-526"
     },
