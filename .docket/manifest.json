@@ -2323,7 +2323,7 @@
     },
     "TKT-419": {
       "title": "Define the canonical generated-app directory layout in code and lock it with golden tests.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-418"
     },
