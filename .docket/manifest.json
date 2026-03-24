@@ -2758,7 +2758,7 @@
     },
     "TKT-492": {
       "title": "Add a browser suite that proves the canonical starter renders and basic auth settings flows work.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-490"
     },
