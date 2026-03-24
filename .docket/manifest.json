@@ -2770,7 +2770,7 @@
     },
     "TKT-494": {
       "title": "Add a static and styles compilation suite that proves fresh apps build frontend assets correctly.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-490"
     },
