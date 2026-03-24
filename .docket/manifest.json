@@ -3289,7 +3289,7 @@
     },
     "TKT-582": {
       "title": "Add fixture test proving ship new + ship module:add + ship module:remove round-trips cleanly",
-      "state": "backlog",
+      "state": "done",
       "priority": 3,
       "parent": "TKT-452"
     },
