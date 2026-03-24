@@ -3015,6 +3015,8 @@ The `dead_route_regression` CI job runs `make test-dead-routes` and keeps the ca
 The `bootstrap_budget` CI job runs `make test-bootstrap-budget` and measures the canonical starter flow as `ship new <app> --no-i18n`, `ship db:migrate`, `go run ./cmd/web`, and HTTP checks against `/health/readiness` plus `/` inside the generated scaffold.
 The default budget is 120 seconds via `BOOTSTRAP_BUDGET_SECONDS=120`; keep local reruns on comparable hardware or raise the variable only when investigating runner variance rather than changing the committed CI threshold.
 Use `BOOTSTRAP_BUDGET_SECONDS` only as a local rerun override; the committed CI contract keeps the 120-second threshold.
+The `fresh_app_ci` CI job runs `make test-fresh-app-ci`, which executes the canonical generated-app confidence lane in one pass: generation (`ship templ generate --path app` inside `TestFreshApp`), scaffolded battery compile checks (`go test ./app/...` inside `TestFreshApp`), `ship verify --profile fast`, and starter smoke route checks for `/health/readiness`, `/health`, and `/`.
+Use `make test-fresh-app-ci` locally when touching starter layout/runtime boot wiring to keep generation, batteries, verify, and smoke evidence coupled in one deterministic lane.
 If the Cherie lane breaks:
 1. Re-run the Playwright spec locally with `npm --prefix tests/e2e run test:cherie-smoke`.
 2. Compare `/up`, `/user/login`, and `/auth/realtime` behavior against the baseline before widening scope.

@@ -20,6 +20,12 @@ func TestBootstrapBudgetContract_RedSpec(t *testing.T) {
 	if !strings.Contains(string(makefile), "bash tools/scripts/check-bootstrap-budget.sh") {
 		t.Fatal("test-bootstrap-budget should run the canonical bootstrap budget script")
 	}
+	if !strings.Contains(string(makefile), "test-fresh-app-ci:") {
+		t.Fatal("Makefile should define a test-fresh-app-ci target")
+	}
+	if !strings.Contains(string(makefile), "bash tools/scripts/check-fresh-app-ci.sh") {
+		t.Fatal("test-fresh-app-ci should run the canonical fresh-app CI script")
+	}
 
 	workflow, err := os.ReadFile(filepath.Join(root, ".github", "workflows", "test.yml"))
 	if err != nil {
@@ -28,6 +34,8 @@ func TestBootstrapBudgetContract_RedSpec(t *testing.T) {
 	for _, token := range []string{
 		"\n  bootstrap_budget:\n",
 		"run: make test-bootstrap-budget",
+		"\n  fresh_app_ci:\n",
+		"run: make test-fresh-app-ci",
 	} {
 		if !strings.Contains(string(workflow), token) {
 			t.Fatalf("test workflow missing %q", token)
@@ -50,6 +58,20 @@ func TestBootstrapBudgetContract_RedSpec(t *testing.T) {
 		}
 	}
 
+	freshAppScript, err := os.ReadFile(filepath.Join(root, "tools", "scripts", "check-fresh-app-ci.sh"))
+	if err != nil {
+		t.Fatalf("read fresh-app CI script: %v", err)
+	}
+	for _, token := range []string{
+		"go test ./tools/cli/ship/internal/commands -run TestFreshApp -count=1",
+		"go test ./framework/web/controllers -count=1",
+		"fresh-app CI lane passed",
+	} {
+		if !strings.Contains(string(freshAppScript), token) {
+			t.Fatalf("fresh-app CI script missing %q", token)
+		}
+	}
+
 	devGuide, err := os.ReadFile(filepath.Join(root, "docs", "guides", "02-development-workflows.md"))
 	if err != nil {
 		t.Fatalf("read development workflows guide: %v", err)
@@ -60,6 +82,7 @@ func TestBootstrapBudgetContract_RedSpec(t *testing.T) {
 		"`ship new <app> --no-i18n`",
 		"`ship db:migrate`",
 		"`/health/readiness`",
+		"`make test-fresh-app-ci`",
 	} {
 		if !strings.Contains(string(devGuide), token) {
 			t.Fatalf("development workflows guide missing %q", token)

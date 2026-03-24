@@ -150,6 +150,28 @@ func TestFreshApp(t *testing.T) {
 	toolBin := scaffoldFreshAppTooling(t)
 	env := append(os.Environ(), "PATH="+toolBin+string(os.PathListSeparator)+os.Getenv("PATH"))
 
+	for _, rel := range []string{
+		filepath.Join("cmd", "web", "main.go"),
+		filepath.Join("cmd", "worker", "main.go"),
+		filepath.Join("styles", "styles.css"),
+		filepath.Join("static", "styles_bundle.css"),
+		filepath.Join("app", "jobs", "jobs.go"),
+		filepath.Join("app", "notifications", "notifier.go"),
+		filepath.Join("app", "emailsubscriptions", "repo.go"),
+		filepath.Join("app", "subscriptions", "repo.go"),
+	} {
+		if _, err := os.Stat(filepath.Join(projectRoot, rel)); err != nil {
+			t.Fatalf("fresh scaffold should include %s: %v", rel, err)
+		}
+	}
+
+	if output, err := runCommand(projectRoot, env, shipBin, "templ", "generate", "--path", "app"); err != nil {
+		t.Fatalf("ship templ generate --path app failed: %v\n%s", err, output)
+	}
+	if output, err := runCommand(projectRoot, env, "go", "test", "./app/...", "-count=1"); err != nil {
+		t.Fatalf("go test ./app/... failed for scaffolded batteries: %v\n%s", err, output)
+	}
+
 	if output, err := runCommand(projectRoot, env, shipBin, "db:migrate"); err != nil {
 		t.Fatalf("ship db:migrate failed: %v\n%s", err, output)
 	}

@@ -255,6 +255,10 @@ test-dead-routes: ## Verify canonical route inventory guardrails stay green
 test-bootstrap-budget: ## Verify ship new scaffold plus starter boot stays within the canonical CI budget
 	bash tools/scripts/check-bootstrap-budget.sh
 
+.PHONY: test-fresh-app-ci
+test-fresh-app-ci: ## Verify the fresh-app CI lane (generation, batteries, verify, smoke) in one pass
+	bash tools/scripts/check-fresh-app-ci.sh
+
 .PHONY: test-integration
 test-integration: ## Run integration test package set (may require Docker/infra)
 	bash tools/scripts/test-integration.sh
