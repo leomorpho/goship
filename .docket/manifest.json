@@ -1901,7 +1901,7 @@
     },
     "TKT-347": {
       "title": "INT5-03-A: Define executable spec and red tests",
-      "state": "in-progress",
+      "state": "done",
       "priority": 2
     },
     "TKT-348": {
