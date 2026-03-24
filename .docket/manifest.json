@@ -2300,7 +2300,7 @@
     },
     "TKT-415": {
       "title": "Remove any remaining framework code that exists only to preserve deleted historical layout assumptions.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-410"
     },
