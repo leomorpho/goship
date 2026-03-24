@@ -3223,7 +3223,7 @@
     },
     "TKT-570": {
       "title": "Implement an alpha contract gate and prove pre-release contract drift fails verification.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-505"
     },
