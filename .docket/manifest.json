@@ -2001,7 +2001,7 @@
     },
     "TKT-365": {
       "title": "INT3-03: Add managed override UX contract tests for effective source and local read-only behavior",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-216"
     },
