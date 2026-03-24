@@ -516,6 +516,119 @@ func TestApplyModuleAdd_IdempotentAcrossFirstPartyBatteries(t *testing.T) {
 	}
 }
 
+func TestApplyModuleAdd_ComposesSupportedFirstPartyPairs(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name   string
+		first  string
+		second string
+	}{
+		{name: "notifications and jobs", first: "notifications", second: "jobs"},
+		{name: "notifications and storage", first: "notifications", second: "storage"},
+		{name: "billing and emailsubscriptions", first: "billing", second: "emailsubscriptions"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			root := t.TempDir()
+			writeNotificationsModuleFixtureFiles(t, root)
+
+			firstInfo := moduleCatalog[tt.first]
+			secondInfo := moduleCatalog[tt.second]
+			writeLocalModuleGoModFixture(t, root, firstInfo.LocalPath, firstInfo.ModulePath)
+			writeLocalModuleGoModFixture(t, root, secondInfo.LocalPath, secondInfo.ModulePath)
+
+			if err := applyModuleAdd(root, firstInfo, false, io.Discard); err != nil {
+				t.Fatalf("applyModuleAdd(%s) error: %v", tt.first, err)
+			}
+			if err := applyModuleAdd(root, secondInfo, false, io.Discard); err != nil {
+				t.Fatalf("applyModuleAdd(%s) error: %v", tt.second, err)
+			}
+
+			manifest := readTestFile(t, filepath.Join(root, "config", "modules.yaml"))
+			if !strings.Contains(manifest, "- "+firstInfo.ID) {
+				t.Fatalf("modules manifest missing %q after composition, got:\n%s", firstInfo.ID, manifest)
+			}
+			if !strings.Contains(manifest, "- "+secondInfo.ID) {
+				t.Fatalf("modules manifest missing %q after composition, got:\n%s", secondInfo.ID, manifest)
+			}
+
+			goMod := readTestFile(t, filepath.Join(root, "go.mod"))
+			for _, info := range []moduleInfo{firstInfo, secondInfo} {
+				if strings.TrimSpace(info.ModulePath) == "" {
+					continue
+				}
+				if !strings.Contains(goMod, info.ModulePath+" v0.0.0") {
+					t.Fatalf("go.mod missing require for %q after composition, got:\n%s", info.ModulePath, goMod)
+				}
+				if !strings.Contains(goMod, "replace "+info.ModulePath+" => ./"+filepath.ToSlash(info.LocalPath)) {
+					t.Fatalf("go.mod missing replace for %q after composition, got:\n%s", info.ModulePath, goMod)
+				}
+			}
+
+			goWork := readTestFile(t, filepath.Join(root, "go.work"))
+			for _, info := range []moduleInfo{firstInfo, secondInfo} {
+				if strings.TrimSpace(info.LocalPath) == "" {
+					continue
+				}
+				if !strings.Contains(goWork, "./"+filepath.ToSlash(info.LocalPath)) {
+					t.Fatalf("go.work missing use for %q after composition, got:\n%s", info.LocalPath, goWork)
+				}
+			}
+		})
+	}
+}
+
+func TestApplyModuleRemove_ComposedPairLeavesRemainingBatteryIntact(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	writeNotificationsModuleFixtureFiles(t, root)
+
+	notifications := moduleCatalog["notifications"]
+	jobs := moduleCatalog["jobs"]
+	writeLocalModuleGoModFixture(t, root, notifications.LocalPath, notifications.ModulePath)
+	writeLocalModuleGoModFixture(t, root, jobs.LocalPath, jobs.ModulePath)
+
+	if err := applyModuleAdd(root, notifications, false, io.Discard); err != nil {
+		t.Fatalf("applyModuleAdd(notifications) error: %v", err)
+	}
+	if err := applyModuleAdd(root, jobs, false, io.Discard); err != nil {
+		t.Fatalf("applyModuleAdd(jobs) error: %v", err)
+	}
+
+	if err := applyModuleRemove(root, notifications, false, io.Discard); err != nil {
+		t.Fatalf("applyModuleRemove(notifications) error: %v", err)
+	}
+
+	manifest := readTestFile(t, filepath.Join(root, "config", "modules.yaml"))
+	if strings.Contains(manifest, "- notifications") {
+		t.Fatalf("notifications should be removed from modules manifest, got:\n%s", manifest)
+	}
+	if !strings.Contains(manifest, "- jobs") {
+		t.Fatalf("jobs should remain in modules manifest, got:\n%s", manifest)
+	}
+
+	container := readTestFile(t, filepath.Join(root, "app", "foundation", "container.go"))
+	if strings.Contains(container, "c.initNotifier()") {
+		t.Fatalf("notifications wiring should be removed from container, got:\n%s", container)
+	}
+	for _, token := range []string{"framework/bootstrap.WireJobsRuntime", "c.CoreJobs", "c.CoreJobsInspector"} {
+		if !strings.Contains(container, token) {
+			t.Fatalf("jobs wiring token %q missing after removing notifications, got:\n%s", token, container)
+		}
+	}
+
+	goMod := readTestFile(t, filepath.Join(root, "go.mod"))
+	if strings.Contains(goMod, "github.com/leomorpho/goship-modules/notifications") {
+		t.Fatalf("notifications dependency should be removed from go.mod, got:\n%s", goMod)
+	}
+	if !strings.Contains(goMod, "github.com/leomorpho/goship-modules/jobs v0.0.0") {
+		t.Fatalf("jobs dependency should remain in go.mod, got:\n%s", goMod)
+	}
+}
+
 func TestApplyModuleAdd_WiresLocalModuleDependencyContract_RedSpec(t *testing.T) {
 	root := t.TempDir()
 	writeModuleFixtureFiles(t, root)
