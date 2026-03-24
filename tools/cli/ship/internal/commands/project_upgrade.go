@@ -22,27 +22,36 @@ type UpgradeDeps struct {
 }
 
 type UpgradeReadinessReport struct {
-	SchemaVersion    string                 `json:"schema_version"`
-	TargetVersion    string                 `json:"target_version"`
-	Ready            bool                   `json:"ready"`
-	RollbackTarget   string                 `json:"rollback_target"`
-	Canary           UpgradeCanaryPlan      `json:"canary"`
-	Verification     UpgradeVerification    `json:"verification"`
-	Blockers         []UpgradeReadinessItem `json:"blockers"`
-	RemediationHints []string               `json:"remediation_hints"`
-	PlannedChanges   []UpgradePlannedChange `json:"planned_changes"`
+	SchemaVersion         string                   `json:"schema_version"`
+	BlockerClassification string                   `json:"blocker_classification"`
+	TargetVersion         string                   `json:"target_version"`
+	Ready                 bool                     `json:"ready"`
+	RollbackTarget        string                   `json:"rollback_target"`
+	Canary                UpgradeCanaryPlan        `json:"canary"`
+	Verification          UpgradeVerification      `json:"verification"`
+	Blockers              []UpgradeReadinessItem   `json:"blockers"`
+	ManualFollowUps       []UpgradeManualFollowUp  `json:"manual_follow_ups"`
+	RemediationHints      []string                 `json:"remediation_hints"`
+	PlannedChanges        []UpgradePlannedChange   `json:"planned_changes"`
 }
 
 type UpgradeReadinessItem struct {
-	ID          string `json:"id"`
-	Title       string `json:"title"`
-	Remediation string `json:"remediation"`
+	ID             string `json:"id"`
+	Classification string `json:"classification"`
+	Title          string `json:"title"`
+	Remediation    string `json:"remediation"`
 }
 
 type UpgradePlannedChange struct {
 	File    string `json:"file"`
 	Current string `json:"current"`
 	Target  string `json:"target"`
+}
+
+type UpgradeManualFollowUp struct {
+	ID          string `json:"id"`
+	Description string `json:"description"`
+	Command     string `json:"command"`
 }
 
 type UpgradeCanaryPlan struct {
@@ -162,10 +171,11 @@ func buildUpgradeReadinessReport(path, currentVersion, targetVersion string, cha
 	applyCommand := fmt.Sprintf("ship upgrade --to %s", targetVersion)
 
 	report := UpgradeReadinessReport{
-		SchemaVersion:  upgradeReadinessSchemaVersion,
-		TargetVersion:  targetVersion,
-		Ready:          true,
-		RollbackTarget: currentVersion,
+		SchemaVersion:         upgradeReadinessSchemaVersion,
+		BlockerClassification: "upgrade-blocker-classification-v1",
+		TargetVersion:         targetVersion,
+		Ready:                 true,
+		RollbackTarget:        currentVersion,
 		Canary: UpgradeCanaryPlan{
 			Strategy: "cli-pin-preflight",
 			Scope:    "single pinned goose reference",
@@ -175,6 +185,18 @@ func buildUpgradeReadinessReport(path, currentVersion, targetVersion string, cha
 			Note:    "Review the readiness report and planned mutation before writing the new pin.",
 		},
 		Blockers: []UpgradeReadinessItem{},
+		ManualFollowUps: []UpgradeManualFollowUp{
+			{
+				ID:          "upgrade.readiness.review",
+				Description: "Review the readiness report and planned mutation before writing the new pin.",
+				Command:     dryRunCommand,
+			},
+			{
+				ID:          "upgrade.pin.apply",
+				Description: "Apply the pinned version mutation once readiness review is complete.",
+				Command:     applyCommand,
+			},
+		},
 		RemediationHints: []string{
 			"Review the readiness report before mutating pinned versions.",
 			fmt.Sprintf("Use %s to preview the text mutation plan.", dryRunCommand),

@@ -62,6 +62,9 @@ const gooseGoRunRef = "github.com/pressly/goose/v3/cmd/goose@v3.26.0"
 	if got := report.SchemaVersion; got != "upgrade-readiness-v1" {
 		t.Fatalf("schema_version=%v want upgrade-readiness-v1", got)
 	}
+	if got := report.BlockerClassification; got != "upgrade-blocker-classification-v1" {
+		t.Fatalf("blocker_classification=%v want upgrade-blocker-classification-v1", got)
+	}
 	if got := report.TargetVersion; got != "v3.27.0" {
 		t.Fatalf("target_version=%v want v3.27.0", got)
 	}
@@ -82,6 +85,15 @@ const gooseGoRunRef = "github.com/pressly/goose/v3/cmd/goose@v3.26.0"
 	}
 	if len(report.Blockers) != 0 {
 		t.Fatalf("blockers=%+v want empty", report.Blockers)
+	}
+	if len(report.ManualFollowUps) != 2 {
+		t.Fatalf("manual_follow_ups=%d want 2", len(report.ManualFollowUps))
+	}
+	if got := report.ManualFollowUps[0].Command; got != "ship upgrade --to v3.27.0 --dry-run" {
+		t.Fatalf("manual_follow_ups[0].command=%q want ship upgrade --to v3.27.0 --dry-run", got)
+	}
+	if got := report.ManualFollowUps[1].Command; got != "ship upgrade --to v3.27.0" {
+		t.Fatalf("manual_follow_ups[1].command=%q want ship upgrade --to v3.27.0", got)
 	}
 	if len(report.RemediationHints) != 3 {
 		t.Fatalf("remediation_hints=%d want 3", len(report.RemediationHints))
@@ -148,7 +160,7 @@ const gooseGoRunRef = "github.com/pressly/goose/v3/cmd/goose@v3.26.0"
 		t.Fatalf("stdout should be valid JSON: %v\n%s", err, out.String())
 	}
 
-	for _, field := range []string{"rollback_target", "canary", "verification"} {
+	for _, field := range []string{"rollback_target", "canary", "verification", "blocker_classification", "manual_follow_ups"} {
 		if got := report[field]; got == nil {
 			t.Fatalf("expected upgrade readiness report to include %q contract field", field)
 		}
