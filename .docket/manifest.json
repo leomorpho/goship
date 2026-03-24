@@ -2329,7 +2329,7 @@
     },
     "TKT-420": {
       "title": "Rewrite ship new to emit the canonical generated-app shape and prove it with fresh-project snapshots.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-418"
     },
