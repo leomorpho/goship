@@ -622,6 +622,39 @@ func TestApplyModuleAdd_JobsAndStorageConcreteSeams_Idempotent(t *testing.T) {
 	}
 }
 
+func TestApplyModuleAdd_BillingAppendsStripeEnvExample(t *testing.T) {
+	root := t.TempDir()
+	writeModuleFixtureFiles(t, root)
+	if err := os.MkdirAll(filepath.Join(root, "modules", "paidsubscriptions"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, "modules", "paidsubscriptions", "go.mod"), []byte("module github.com/leomorpho/goship-modules/paidsubscriptions\n\ngo 1.24.0\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	info, ok := moduleCatalog["billing"]
+	if !ok {
+		t.Fatal("expected billing in module catalog")
+	}
+	if err := applyModuleAdd(root, info, false, io.Discard); err != nil {
+		t.Fatalf("applyModuleAdd error: %v", err)
+	}
+
+	envExamplePath := filepath.Join(root, ".env.example")
+	first := readTestFile(t, envExamplePath)
+	if !strings.Contains(first, "STRIPE_KEY=") || !strings.Contains(first, "STRIPE_WEBHOOK_SECRET=") {
+		t.Fatalf("expected stripe env vars in .env.example, got:\n%s", first)
+	}
+
+	if err := applyModuleAdd(root, info, false, io.Discard); err != nil {
+		t.Fatalf("applyModuleAdd second pass error: %v", err)
+	}
+	second := readTestFile(t, envExamplePath)
+	if strings.Count(second, "STRIPE_KEY=") != 1 || strings.Count(second, "STRIPE_WEBHOOK_SECRET=") != 1 {
+		t.Fatalf("expected stripe env vars exactly once in .env.example, got:\n%s", second)
+	}
+}
+
 func writeModuleFixtureFiles(t *testing.T, root string) {
 	t.Helper()
 	files := map[string]string{
@@ -665,6 +698,11 @@ go 1.24.0
 use (
 	.
 )
+`,
+		filepath.Join(root, ".env.example"): `APP_KEY=
+DATABASE_URL=sqlite://tmp/starter.db
+CACHE_DRIVER=memory
+QUEUE_DRIVER=backlite
 `,
 		filepath.Join(root, "modules", "notifications", "go.mod"): `module github.com/leomorpho/goship-modules/notifications
 
@@ -720,6 +758,11 @@ go 1.24.0
 		filepath.Join(root, "go.work"): `go 1.25.6
 
 use .
+`,
+		filepath.Join(root, ".env.example"): `APP_KEY=
+DATABASE_URL=sqlite://tmp/starter.db
+CACHE_DRIVER=memory
+QUEUE_DRIVER=backlite
 `,
 	}
 	for path, content := range files {

@@ -33,6 +33,7 @@ var canonicalGeneratedProjectFiles = []string{
 	".github/workflows/deploy.yml",
 	".github/workflows/security.yml",
 	".env",
+	".env.example",
 	"Makefile",
 	"Procfile",
 	"Procfile.dev",

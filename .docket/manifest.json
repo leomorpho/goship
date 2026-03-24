@@ -3277,7 +3277,7 @@
     },
     "TKT-580": {
       "title": "Verify and fix ship new generator output to match canonical runtime layout (root runtime files, framework/, modules/)",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 3,
       "parent": "TKT-444"
     },
@@ -3325,7 +3325,7 @@
     },
     "TKT-589": {
       "title": "Generate .env.example in ship new with all required and optional env vars documented",
-      "state": "backlog",
+      "state": "done",
       "priority": 3,
       "parent": "TKT-580"
     },

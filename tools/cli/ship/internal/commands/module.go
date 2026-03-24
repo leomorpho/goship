@@ -28,12 +28,35 @@ type ModuleDeps struct {
 
 // moduleInfo describes how a module should update the app markers.
 type moduleInfo struct {
-	ID               string
-	ModulePath       string
-	LocalPath        string
-	ContainerSnippet string
-	RouterSnippets   map[string]string
+	ID                string
+	ModulePath        string
+	LocalPath         string
+	ContainerSnippet  string
+	RouterSnippets    map[string]string
+	EnvExampleSnippet string
 }
+
+var (
+	paidSubscriptionsContainerSnippet = `
+	// ship:module:paidsubscriptions
+	// TODO: wire the paid subscriptions module (plans catalog, subscription store) here.
+`
+	paidSubscriptionsRouterSnippets = map[string]string{
+		"auth": `
+	// ship:module:paidsubscriptions
+	// TODO: register pricing/session routes via modules/paidsubscriptions/routes.go.
+`,
+		"external": `
+	// ship:module:paidsubscriptions
+	// TODO: register public webhook handlers (e.g., Stripe) via modules/paidsubscriptions/routes.go.
+`,
+	}
+	paidSubscriptionsEnvExampleSnippet = `# ship:module:paidsubscriptions
+# Stripe settings for paid subscriptions.
+STRIPE_KEY=
+STRIPE_WEBHOOK_SECRET=
+`
+)
 
 var moduleCatalog = map[string]moduleInfo{
 	"notifications": {
@@ -63,23 +86,20 @@ var moduleCatalog = map[string]moduleInfo{
 		},
 	},
 	"paidsubscriptions": {
-		ID:         "paidsubscriptions",
-		ModulePath: "github.com/leomorpho/goship-modules/paidsubscriptions",
-		LocalPath:  filepath.Join("modules", "paidsubscriptions"),
-		ContainerSnippet: `
-	// ship:module:paidsubscriptions
-	// TODO: wire the paid subscriptions module (plans catalog, subscription store) here.
-`,
-		RouterSnippets: map[string]string{
-			"auth": `
-	// ship:module:paidsubscriptions
-	// TODO: register pricing/session routes via modules/paidsubscriptions/routes.go.
-`,
-			"external": `
-	// ship:module:paidsubscriptions
-	// TODO: register public webhook handlers (e.g., Stripe) via modules/paidsubscriptions/routes.go.
-`,
-		},
+		ID:                "paidsubscriptions",
+		ModulePath:        "github.com/leomorpho/goship-modules/paidsubscriptions",
+		LocalPath:         filepath.Join("modules", "paidsubscriptions"),
+		ContainerSnippet:  paidSubscriptionsContainerSnippet,
+		RouterSnippets:    paidSubscriptionsRouterSnippets,
+		EnvExampleSnippet: paidSubscriptionsEnvExampleSnippet,
+	},
+	"billing": {
+		ID:                "paidsubscriptions",
+		ModulePath:        "github.com/leomorpho/goship-modules/paidsubscriptions",
+		LocalPath:         filepath.Join("modules", "paidsubscriptions"),
+		ContainerSnippet:  paidSubscriptionsContainerSnippet,
+		RouterSnippets:    paidSubscriptionsRouterSnippets,
+		EnvExampleSnippet: paidSubscriptionsEnvExampleSnippet,
 	},
 	"emailsubscriptions": {
 		ID:         "emailsubscriptions",
@@ -327,10 +347,49 @@ func applyModuleAdd(root string, info moduleInfo, dryRun bool, out io.Writer) er
 		changed = true
 	}
 
+	if envChanged, err := appendModuleEnvExample(root, info, dryRun, out); err != nil {
+		return err
+	} else if envChanged {
+		changed = true
+	}
+
 	if !changed {
 		fmt.Fprintln(out, "Module already wired; no changes needed.")
 	}
 	return nil
+}
+
+func appendModuleEnvExample(root string, info moduleInfo, dryRun bool, out io.Writer) (bool, error) {
+	trimmed := strings.TrimSpace(info.EnvExampleSnippet)
+	if trimmed == "" {
+		return false, nil
+	}
+
+	envExamplePath := filepath.Join(root, ".env.example")
+	body, err := os.ReadFile(envExamplePath)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false, nil
+		}
+		return false, fmt.Errorf("read %s: %w", envExamplePath, err)
+	}
+	current := string(body)
+	if strings.Contains(current, trimmed) {
+		return false, nil
+	}
+
+	next := current
+	if strings.TrimSpace(next) != "" && !strings.HasSuffix(next, "\n") {
+		next += "\n"
+	}
+	if strings.TrimSpace(next) != "" {
+		next += "\n"
+	}
+	next += trimmed + "\n"
+	if err := writeOrDiff(envExamplePath, next, dryRun, out); err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func applyModuleRemove(root string, info moduleInfo, dryRun bool, out io.Writer) error {

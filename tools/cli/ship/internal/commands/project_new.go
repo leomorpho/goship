@@ -195,39 +195,40 @@ func ScaffoldNewProject(opts NewProjectOptions, d NewDeps) error {
 
 func baseScaffoldFiles(opts NewProjectOptions) map[string]string {
 	return map[string]string{
-		filepath.Join(opts.AppPath, ".env"):                                          renderStarterDotEnv(),
-		filepath.Join(opts.AppPath, "go.mod"):                                        renderGoMod(opts),
-		filepath.Join(opts.AppPath, "go.sum"):                                        renderGoSum(),
-		filepath.Join(opts.AppPath, "Makefile"):                                      renderStarterMakefile(),
-		filepath.Join(opts.AppPath, "Procfile"):                                      renderProcfile(),
-		filepath.Join(opts.AppPath, "Procfile.dev"):                                  renderProcfileDev(),
-		filepath.Join(opts.AppPath, "Procfile.worker"):                               renderProcfileWorker(),
-		filepath.Join(opts.AppPath, "config", "modules.yaml"):                        renderModulesManifestSkeleton(),
-		filepath.Join(opts.AppPath, "db", "bobgen.yaml"):                             renderBobgenConfigSkeleton(),
-		filepath.Join(opts.AppPath, "db", "queries", "user.sql"):                     renderUserQuerySkeleton(),
-		filepath.Join(opts.AppPath, "db", "gen", ".gitkeep"):                         "",
-		filepath.Join(opts.AppPath, "db", "migrate", "migrations", ".gitkeep"):       "",
-		filepath.Join(opts.AppPath, "app", "web", "controllers", "controllers.go"):   renderControllersSkeleton(),
-		filepath.Join(opts.AppPath, "app", "web", "middleware", "middleware.go"):     renderMiddlewareSkeleton(),
-		filepath.Join(opts.AppPath, "app", "web", "ui", "ui.go"):                     renderUISkeleton(),
-		filepath.Join(opts.AppPath, "app", "web", "viewmodels", "viewmodels.go"):     renderViewModelsSkeleton(),
-		filepath.Join(opts.AppPath, "app", "jobs", "jobs.go"):                        renderJobsSkeleton(),
-		filepath.Join(opts.AppPath, "app", "profiles", "repo.go"):                    renderProfilesDomainSkeleton(),
-		filepath.Join(opts.AppPath, "app", "notifications", "notifier.go"):           renderNotificationsDomainSkeleton(),
-		filepath.Join(opts.AppPath, "app", "subscriptions", "repo.go"):               renderSubscriptionsDomainSkeleton(),
-		filepath.Join(opts.AppPath, "app", "emailsubscriptions", "repo.go"):          renderEmailSubscriptionsDomainSkeleton(),
-		filepath.Join(opts.AppPath, "cmd", "worker", "main.go"):                      renderWorkerMain(),
-		filepath.Join(opts.AppPath, "docs", "00-index.md"):                           renderDocsIndexSkeleton(),
-		filepath.Join(opts.AppPath, "docs", "architecture", "01-architecture.md"):    renderArchitectureSkeleton(),
-		filepath.Join(opts.AppPath, "docs", "architecture", "08-cognitive-model.md"): renderCognitiveModelSkeleton(),
-		filepath.Join(opts.AppPath, "docs", "architecture", "10-extension-zones.md"): renderExtensionZonesSkeleton(),
+		filepath.Join(opts.AppPath, ".env"):                                                       renderStarterDotEnv(),
+		filepath.Join(opts.AppPath, ".env.example"):                                               renderStarterDotEnvExample(),
+		filepath.Join(opts.AppPath, "go.mod"):                                                     renderGoMod(opts),
+		filepath.Join(opts.AppPath, "go.sum"):                                                     renderGoSum(),
+		filepath.Join(opts.AppPath, "Makefile"):                                                   renderStarterMakefile(),
+		filepath.Join(opts.AppPath, "Procfile"):                                                   renderProcfile(),
+		filepath.Join(opts.AppPath, "Procfile.dev"):                                               renderProcfileDev(),
+		filepath.Join(opts.AppPath, "Procfile.worker"):                                            renderProcfileWorker(),
+		filepath.Join(opts.AppPath, "config", "modules.yaml"):                                     renderModulesManifestSkeleton(),
+		filepath.Join(opts.AppPath, "db", "bobgen.yaml"):                                          renderBobgenConfigSkeleton(),
+		filepath.Join(opts.AppPath, "db", "queries", "user.sql"):                                  renderUserQuerySkeleton(),
+		filepath.Join(opts.AppPath, "db", "gen", ".gitkeep"):                                      "",
+		filepath.Join(opts.AppPath, "db", "migrate", "migrations", ".gitkeep"):                    "",
+		filepath.Join(opts.AppPath, "app", "web", "controllers", "controllers.go"):                renderControllersSkeleton(),
+		filepath.Join(opts.AppPath, "app", "web", "middleware", "middleware.go"):                  renderMiddlewareSkeleton(),
+		filepath.Join(opts.AppPath, "app", "web", "ui", "ui.go"):                                  renderUISkeleton(),
+		filepath.Join(opts.AppPath, "app", "web", "viewmodels", "viewmodels.go"):                  renderViewModelsSkeleton(),
+		filepath.Join(opts.AppPath, "app", "jobs", "jobs.go"):                                     renderJobsSkeleton(),
+		filepath.Join(opts.AppPath, "app", "profiles", "repo.go"):                                 renderProfilesDomainSkeleton(),
+		filepath.Join(opts.AppPath, "app", "notifications", "notifier.go"):                        renderNotificationsDomainSkeleton(),
+		filepath.Join(opts.AppPath, "app", "subscriptions", "repo.go"):                            renderSubscriptionsDomainSkeleton(),
+		filepath.Join(opts.AppPath, "app", "emailsubscriptions", "repo.go"):                       renderEmailSubscriptionsDomainSkeleton(),
+		filepath.Join(opts.AppPath, "cmd", "worker", "main.go"):                                   renderWorkerMain(),
+		filepath.Join(opts.AppPath, "docs", "00-index.md"):                                        renderDocsIndexSkeleton(),
+		filepath.Join(opts.AppPath, "docs", "architecture", "01-architecture.md"):                 renderArchitectureSkeleton(),
+		filepath.Join(opts.AppPath, "docs", "architecture", "08-cognitive-model.md"):              renderCognitiveModelSkeleton(),
+		filepath.Join(opts.AppPath, "docs", "architecture", "10-extension-zones.md"):              renderExtensionZonesSkeleton(),
 		filepath.Join(opts.AppPath, "db", "migrate", "migrations", "00001_starter_bootstrap.sql"): renderStarterMigration(),
-		filepath.Join(opts.AppPath, ".github", "workflows", "ci.yml"):                renderGithubCI(),
-		filepath.Join(opts.AppPath, ".github", "workflows", "deploy.yml"):            renderGithubDeploy(),
-		filepath.Join(opts.AppPath, ".github", "workflows", "security.yml"):          renderGithubSecurity(),
-		filepath.Join(opts.AppPath, ".github", "dependabot.yml"):                     renderGithubDependabot(),
-		filepath.Join(opts.AppPath, "static", "styles_bundle.css"):                   renderStarterStylesBundle(),
-		filepath.Join(opts.AppPath, "styles", "styles.css"):                          renderStarterStylesSource(),
+		filepath.Join(opts.AppPath, ".github", "workflows", "ci.yml"):                             renderGithubCI(),
+		filepath.Join(opts.AppPath, ".github", "workflows", "deploy.yml"):                         renderGithubDeploy(),
+		filepath.Join(opts.AppPath, ".github", "workflows", "security.yml"):                       renderGithubSecurity(),
+		filepath.Join(opts.AppPath, ".github", "dependabot.yml"):                                  renderGithubDependabot(),
+		filepath.Join(opts.AppPath, "static", "styles_bundle.css"):                                renderStarterStylesBundle(),
+		filepath.Join(opts.AppPath, "styles", "styles.css"):                                       renderStarterStylesSource(),
 	}
 }
 
@@ -369,6 +370,23 @@ func renderStarterDotEnv() string {
 	return `APP_ENV=development
 DB_DRIVER=sqlite
 DATABASE_URL=sqlite://tmp/starter.db
+PORT=3000
+`
+}
+
+func renderStarterDotEnvExample() string {
+	return `# Required: application secret used for cookie/session signing.
+APP_KEY=
+# Required: primary database connection string.
+DATABASE_URL=sqlite://tmp/starter.db
+
+# Optional runtime defaults for local development.
+CACHE_DRIVER=memory
+QUEUE_DRIVER=backlite
+
+# Common runtime knobs.
+APP_ENV=development
+DB_DRIVER=sqlite
 PORT=3000
 `
 }

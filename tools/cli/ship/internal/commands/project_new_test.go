@@ -118,6 +118,7 @@ func TestScaffoldNewProject(t *testing.T) {
 		filepath.Join(opts.AppPath, "styles", "styles.css"),
 		filepath.Join(opts.AppPath, "cmd", "web", "main.go"),
 		filepath.Join(opts.AppPath, ".env"),
+		filepath.Join(opts.AppPath, ".env.example"),
 	}
 	for _, p := range checkFiles {
 		if _, err := os.Stat(p); err != nil {

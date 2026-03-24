@@ -1,4 +1,5 @@
 .env
+.env.example
 .github/
 .github/dependabot.yml
 .github/workflows/
