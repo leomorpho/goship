@@ -2139,7 +2139,7 @@
     },
     "TKT-388": {
       "title": "Battery wiring: make ship module:add notifications insert real wiring",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-191"
     },
