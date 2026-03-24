@@ -1317,7 +1317,7 @@
     },
     "TKT-247": {
       "title": "INT5-04: Define staged rollout and canary decision contract",
-      "state": "backlog",
+      "state": "done",
       "priority": 6,
       "parent": "TKT-214"
     },
