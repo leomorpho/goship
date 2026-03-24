@@ -2341,7 +2341,7 @@
     },
     "TKT-422": {
       "title": "Ensure a fresh generated app migrates cleanly and prove it with CLI smoke tests.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-418"
     },
