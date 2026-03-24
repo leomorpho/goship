@@ -3277,7 +3277,7 @@
     },
     "TKT-580": {
       "title": "Verify and fix ship new generator output to match canonical runtime layout (root runtime files, framework/, modules/)",
-      "state": "in-review",
+      "state": "done",
       "priority": 3,
       "parent": "TKT-444"
     },
