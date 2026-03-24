@@ -2151,7 +2151,7 @@
     },
     "TKT-390": {
       "title": "Battery wiring: make ship module:add jobs and storage insert concrete seams",
-      "state": "in-progress",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-191"
     },
