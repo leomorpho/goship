@@ -2443,7 +2443,7 @@
     },
     "TKT-439": {
       "title": "Add startup error messages that name missing config, secrets, or services and prove them in runtime tests.",
-      "state": "backlog",
+      "state": "in-progress",
       "priority": 4,
       "parent": "TKT-436"
     },
@@ -2508,7 +2508,7 @@
     },
     "TKT-450": {
       "title": "Make generator path ownership explicit and fail when output escapes canonical app-owned locations.",
-      "state": "in-progress",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-444"
     },
