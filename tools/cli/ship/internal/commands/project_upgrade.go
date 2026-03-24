@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -22,18 +23,30 @@ type UpgradeDeps struct {
 }
 
 type UpgradeReadinessReport struct {
-	SchemaVersion         string                   `json:"schema_version"`
-	BlockerClassification string                   `json:"blocker_classification"`
-	TargetVersion         string                   `json:"target_version"`
-	Ready                 bool                     `json:"ready"`
-	RollbackTarget        string                   `json:"rollback_target"`
-	Canary                UpgradeCanaryPlan        `json:"canary"`
-	Verification          UpgradeVerification      `json:"verification"`
-	Result                UpgradeResult            `json:"result"`
-	Blockers              []UpgradeReadinessItem   `json:"blockers"`
-	ManualFollowUps       []UpgradeManualFollowUp  `json:"manual_follow_ups"`
-	RemediationHints      []string                 `json:"remediation_hints"`
-	PlannedChanges        []UpgradePlannedChange   `json:"planned_changes"`
+	SchemaVersion         string                  `json:"schema_version"`
+	BlockerClassification string                  `json:"blocker_classification"`
+	TargetVersion         string                  `json:"target_version"`
+	Ready                 bool                    `json:"ready"`
+	RollbackTarget        string                  `json:"rollback_target"`
+	Canary                UpgradeCanaryPlan       `json:"canary"`
+	Verification          UpgradeVerification     `json:"verification"`
+	Plan                  UpgradePlan             `json:"plan"`
+	Result                UpgradeResult           `json:"result"`
+	Blockers              []UpgradeReadinessItem  `json:"blockers"`
+	ManualFollowUps       []UpgradeManualFollowUp `json:"manual_follow_ups"`
+	RemediationHints      []string                `json:"remediation_hints"`
+	PlannedChanges        []UpgradePlannedChange  `json:"planned_changes"`
+}
+
+type UpgradePlan struct {
+	Strategy  string            `json:"strategy"`
+	SafeSteps []UpgradeSafeStep `json:"safe_steps"`
+}
+
+type UpgradeSafeStep struct {
+	From    string `json:"from"`
+	To      string `json:"to"`
+	Command string `json:"command"`
 }
 
 type UpgradeReadinessItem struct {
@@ -177,6 +190,7 @@ func RewriteGooseVersion(path, target string) (oldVersion string, rewritten stri
 func buildUpgradeReadinessReport(path, currentVersion, targetVersion string, changed bool) UpgradeReadinessReport {
 	dryRunCommand := fmt.Sprintf("ship upgrade --to %s --dry-run", targetVersion)
 	applyCommand := fmt.Sprintf("ship upgrade --to %s", targetVersion)
+	planSteps := computeSafeUpgradeSteps(currentVersion, targetVersion)
 
 	report := UpgradeReadinessReport{
 		SchemaVersion:         upgradeReadinessSchemaVersion,
@@ -191,6 +205,10 @@ func buildUpgradeReadinessReport(path, currentVersion, targetVersion string, cha
 		Verification: UpgradeVerification{
 			Command: dryRunCommand,
 			Note:    "Review the readiness report and planned mutation before writing the new pin.",
+		},
+		Plan: UpgradePlan{
+			Strategy:  "minor-boundary-bridge-v1",
+			SafeSteps: []UpgradeSafeStep{},
 		},
 		Result: UpgradeResult{
 			Mode:    "preflight",
@@ -220,6 +238,7 @@ func buildUpgradeReadinessReport(path, currentVersion, targetVersion string, cha
 	}
 	if changed {
 		report.Result.Outcome = "planned-change"
+		report.Plan.SafeSteps = planSteps
 		report.PlannedChanges = append(report.PlannedChanges, UpgradePlannedChange{
 			File:    path,
 			Current: currentVersion,
@@ -227,6 +246,107 @@ func buildUpgradeReadinessReport(path, currentVersion, targetVersion string, cha
 		})
 	}
 	return report
+}
+
+type semverTriple struct {
+	major int
+	minor int
+	patch int
+}
+
+func computeSafeUpgradeSteps(currentVersion, targetVersion string) []UpgradeSafeStep {
+	current, okCurrent := parseSimpleSemver(currentVersion)
+	target, okTarget := parseSimpleSemver(targetVersion)
+	if !okCurrent || !okTarget {
+		if currentVersion == targetVersion {
+			return []UpgradeSafeStep{}
+		}
+		return []UpgradeSafeStep{
+			{
+				From:    currentVersion,
+				To:      targetVersion,
+				Command: fmt.Sprintf("ship upgrade --to %s", targetVersion),
+			},
+		}
+	}
+	if compareSemverTriple(current, target) >= 0 {
+		return []UpgradeSafeStep{}
+	}
+
+	waypoints := make([]string, 0, 4)
+	cursor := current
+	for cursor.major < target.major {
+		cursor.major++
+		cursor.minor = 0
+		cursor.patch = 0
+		waypoints = append(waypoints, formatSimpleSemver(cursor))
+	}
+	for cursor.minor < target.minor {
+		if cursor.minor+1 == target.minor && target.patch > 0 {
+			break
+		}
+		cursor.minor++
+		cursor.patch = 0
+		waypoints = append(waypoints, formatSimpleSemver(cursor))
+	}
+	if cursor.patch != target.patch {
+		waypoints = append(waypoints, formatSimpleSemver(target))
+	} else if len(waypoints) == 0 || waypoints[len(waypoints)-1] != formatSimpleSemver(target) {
+		waypoints = append(waypoints, formatSimpleSemver(target))
+	}
+
+	steps := make([]UpgradeSafeStep, 0, len(waypoints))
+	from := currentVersion
+	for _, to := range waypoints {
+		if from == to {
+			continue
+		}
+		steps = append(steps, UpgradeSafeStep{
+			From:    from,
+			To:      to,
+			Command: fmt.Sprintf("ship upgrade --to %s", to),
+		})
+		from = to
+	}
+	return steps
+}
+
+func parseSimpleSemver(version string) (semverTriple, bool) {
+	trimmed := strings.TrimSpace(version)
+	if !strings.HasPrefix(trimmed, "v") {
+		return semverTriple{}, false
+	}
+	parts := strings.Split(strings.TrimPrefix(trimmed, "v"), ".")
+	if len(parts) != 3 {
+		return semverTriple{}, false
+	}
+	major, err := strconv.Atoi(parts[0])
+	if err != nil {
+		return semverTriple{}, false
+	}
+	minor, err := strconv.Atoi(parts[1])
+	if err != nil {
+		return semverTriple{}, false
+	}
+	patch, err := strconv.Atoi(parts[2])
+	if err != nil {
+		return semverTriple{}, false
+	}
+	return semverTriple{major: major, minor: minor, patch: patch}, true
+}
+
+func compareSemverTriple(left, right semverTriple) int {
+	if left.major != right.major {
+		return left.major - right.major
+	}
+	if left.minor != right.minor {
+		return left.minor - right.minor
+	}
+	return left.patch - right.patch
+}
+
+func formatSimpleSemver(version semverTriple) string {
+	return fmt.Sprintf("v%d.%d.%d", version.major, version.minor, version.patch)
 }
 
 func PrintUpgradeHelp(w io.Writer) {
