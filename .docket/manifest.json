@@ -2854,7 +2854,7 @@
     },
     "TKT-508": {
       "title": "Add verify tests for structural drift, forbidden edits, and invalid generated layout.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-505"
     },
