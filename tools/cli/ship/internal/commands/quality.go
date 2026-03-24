@@ -53,7 +53,7 @@ func runDefaultTestSuite(d QualityDeps) error {
 	root, hasLists := findProjectRootWithCheckLists(d.HasFile)
 	if hasLists {
 		return withWorkingDir(root, func() error {
-			unitPkgs, err := readPackageList(filepath.Join("scripts", "test", "unit-packages.txt"))
+			unitPkgs, err := readPackageList(filepath.Join("tools", "scripts", "test", "unit-packages.txt"))
 			if err != nil {
 				return err
 			}
@@ -63,7 +63,7 @@ func runDefaultTestSuite(d QualityDeps) error {
 				}
 			}
 
-			compilePkgs, err := readPackageList(filepath.Join("scripts", "test", "compile-packages.txt"))
+			compilePkgs, err := readPackageList(filepath.Join("tools", "scripts", "test", "compile-packages.txt"))
 			if err != nil {
 				return err
 			}
@@ -93,8 +93,8 @@ func findProjectRootWithCheckLists(hasFile func(path string) bool) (string, bool
 	}
 	dir := wd
 	for {
-		unitPath := filepath.Join(dir, "scripts", "test", "unit-packages.txt")
-		compilePath := filepath.Join(dir, "scripts", "test", "compile-packages.txt")
+		unitPath := filepath.Join(dir, "tools", "scripts", "test", "unit-packages.txt")
+		compilePath := filepath.Join(dir, "tools", "scripts", "test", "compile-packages.txt")
 		if hasFile(unitPath) && hasFile(compilePath) {
 			return dir, true
 		}
