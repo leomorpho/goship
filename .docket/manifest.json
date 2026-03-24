@@ -1002,7 +1002,7 @@
     },
     "TKT-194": {
       "title": "G1-01: Purge transition-era runtime and CLI dual paths",
-      "state": "in-progress",
+      "state": "in-review",
       "priority": 5,
       "parent": "TKT-188"
     },
@@ -1014,7 +1014,7 @@
     },
     "TKT-196": {
       "title": "G1-03: Promote structural warnings to hard errors and close DX020 allowlists",
-      "state": "in-progress",
+      "state": "in-review",
       "priority": 5,
       "parent": "TKT-188"
     },
@@ -1032,13 +1032,13 @@
     },
     "TKT-199": {
       "title": "G2-02: Converge ship dev and make dev to one-command app-on loop",
-      "state": "in-progress",
+      "state": "in-review",
       "priority": 5,
       "parent": "TKT-189"
     },
     "TKT-200": {
       "title": "G2-03: Unify cache contract behavior across memory and redis paths",
-      "state": "in-progress",
+      "state": "in-review",
       "priority": 5,
       "parent": "TKT-189"
     },
@@ -1056,7 +1056,7 @@
     },
     "TKT-203": {
       "title": "Runtime: make db:promote mutate config instead of planning only",
-      "state": "in-progress",
+      "state": "in-review",
       "priority": 6,
       "parent": "TKT-189"
     },
@@ -1068,7 +1068,7 @@
     },
     "TKT-205": {
       "title": "G4-02: Implement ship make:island with mount/test contract",
-      "state": "in-progress",
+      "state": "in-review",
       "priority": 6,
       "parent": "TKT-191"
     },
@@ -1901,7 +1901,7 @@
     },
     "TKT-347": {
       "title": "INT5-03-A: Define executable spec and red tests",
-      "state": "in-progress",
+      "state": "in-review",
       "priority": 2
     },
     "TKT-348": {
@@ -1936,7 +1936,7 @@
     },
     "TKT-354": {
       "title": "INT5-04-B: Implement, verify, and sync docs",
-      "state": "in-progress",
+      "state": "in-review",
       "priority": 3
     },
     "TKT-355": {
@@ -1989,7 +1989,7 @@
     },
     "TKT-363": {
       "title": "G5-06: Enforce UI change verification policy in CI (Playwright + browser evidence)",
-      "state": "in-progress",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-192"
     },
@@ -2097,13 +2097,13 @@
     },
     "TKT-381": {
       "title": "G6-03.4: Implement verify profile tiers (fast, standard, strict)",
-      "state": "in-progress",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-212"
     },
     "TKT-382": {
       "title": "G6-03.5: Add Cherie compatibility sync baseline and smoke gate",
-      "state": "in-progress",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-212"
     },
@@ -2145,13 +2145,13 @@
     },
     "TKT-389": {
       "title": "Battery wiring: make ship module:add admin insert real wiring",
-      "state": "in-progress",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-191"
     },
     "TKT-390": {
       "title": "Battery wiring: make ship module:add jobs and storage insert concrete seams",
-      "state": "in-progress",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-191"
     },
@@ -2180,7 +2180,7 @@
     },
     "TKT-395": {
       "title": "Remove stale docs references to the deleted internal app shell and add doc-link regression checks.",
-      "state": "in-progress",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-392"
     },
@@ -2437,13 +2437,13 @@
     },
     "TKT-438": {
       "title": "Add fast-path failure detection for broken generated apps and prove doctor surfaces root causes first.",
-      "state": "in-progress",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-436"
     },
     "TKT-439": {
       "title": "Add startup error messages that name missing config, secrets, or services and prove them in runtime tests.",
-      "state": "backlog",
+      "state": "in-progress",
       "priority": 4,
       "parent": "TKT-436"
     },
@@ -2550,13 +2550,13 @@
     },
     "TKT-457": {
       "title": "Add idempotence tests for removing an absent battery safely.",
-      "state": "in-progress",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-452"
     },
     "TKT-458": {
       "title": "Add cross-battery composition tests for supported first-party combinations.",
-      "state": "backlog",
+      "state": "in-progress",
       "priority": 4,
       "parent": "TKT-452"
     },
@@ -2657,7 +2657,7 @@
     },
     "TKT-475": {
       "title": "Add upgrade result reporting that can be consumed by automation and lock the JSON schema with tests.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-470"
     },
@@ -2776,7 +2776,7 @@
     },
     "TKT-495": {
       "title": "Add a route-contract suite that locks starter route names and ownership.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-490"
     },
@@ -3127,7 +3127,7 @@
     },
     "TKT-554": {
       "title": "Implement a Tailwind bridge that consumes framework tokens and prove class generation in tests.",
-      "state": "in-progress",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-552"
     },
