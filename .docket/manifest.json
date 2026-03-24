@@ -2532,25 +2532,25 @@
     },
     "TKT-454": {
       "title": "Define a battery remove contract that returns apps to canonical expected shape and prove it with fixtures.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-452"
     },
     "TKT-455": {
       "title": "Add golden install remove tests for every first-party battery.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-452"
     },
     "TKT-456": {
       "title": "Add idempotence tests for installing the same battery twice.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-452"
     },
     "TKT-457": {
       "title": "Add idempotence tests for removing an absent battery safely.",
-      "state": "backlog",
+      "state": "in-progress",
       "priority": 4,
       "parent": "TKT-452"
     },
@@ -2651,7 +2651,7 @@
     },
     "TKT-474": {
       "title": "Add upgrade blocker classification and prove manual-follow-up items are surfaced consistently.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-470"
     },
