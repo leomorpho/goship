@@ -1216,7 +1216,7 @@
     },
     "TKT-230": {
       "title": "Interop: emit module adoption metadata from runtime report surfaces",
-      "state": "backlog",
+      "state": "done",
       "priority": 6,
       "parent": "TKT-214"
     },
