@@ -68,7 +68,6 @@ When in doubt, follow `docs/architecture/02-structure-and-boundaries.md`.
 
 Common commands:
 
-- `make dev`
 - `make test`
 - `make testall`
 - `make templ-gen`
@@ -84,6 +83,11 @@ Common commands:
 - `go run ./tools/cli/ship/cmd/ship db:migrate`
 - `go run ./tools/cli/ship/cmd/ship db:status`
 - `go run ./tools/cli/ship/cmd/ship db:reset --yes`
+
+Canonical dev command:
+
+- `go run ./tools/cli/ship/cmd/ship dev`
+- `make dev` remains as a compatibility wrapper around the same command.
 
 ## Documentation Sync (Required)
 
@@ -179,7 +183,6 @@ Use `docket start` to pick up prioritized ticket work.
   - triggers: session_end, pre_review, handoff
   - summary: Run wrap-up readiness checks for AC completion, handoff quality, blockers, and review transition readiness.
 <!-- docket:skill-pack:end -->
-
 
 
 

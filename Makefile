@@ -68,7 +68,7 @@ ship-install: ## Install the latest local ship CLI binary into GOBIN (or GOPATH/
 # Core workflow ------------------------------------------------------------------------------
 
 .PHONY: dev
-dev: ## Start the canonical app-on dev loop (single-node web loop; distributed uses full mode)
+dev: ## Compatibility wrapper for ship dev (kept for muscle memory and editor tasks)
 	go run ./tools/cli/ship/cmd/ship dev
 
 .PHONY: run

@@ -2794,15 +2794,16 @@ Copy `.env.example` to `.env` and fill in the values your environment needs. All
 
 Primary commands:
 
-- `make dev`: starts the canonical app-on dev loop (single-node web loop; distributed full loop)
+- `ship dev`: canonical app-on dev loop (single-node web loop; distributed full loop)
+- `make dev`: compatibility wrapper around `ship dev`
 - `make run`: single-binary web process with SQLite + Otter + Backlite
 - `make ship-install`: install the latest local `ship` binary to `GOBIN` (or `GOPATH/bin`)
-- `go run ./tools/cli/ship/cmd/ship dev`: CLI equivalent of `make dev`
+- `go run ./tools/cli/ship/cmd/ship dev`: direct module-path invocation of the same canonical command
 
 Recommended modes:
 
 - Unified dev mode:
-  `make dev` (or `ship dev`)
+  `ship dev` (or `make dev` wrapper)
   Runs the canonical app-on loop: web mode for `single-node` and full multiprocess mode for `distributed`.
   Web mode runs via `air -c .air.toml` so Go rebuilds and templ generation happen automatically on edits.
   In interactive terminals, `ship dev` prints the local URL and prompts to open it in your browser (`[Y/n]`, Enter = yes). Browser open is deferred until the URL is reachable.
@@ -2851,6 +2852,7 @@ Notes:
 - **Postgres and Redis are optional.** The runtime can operate entirely with embedded SQLite, in-memory Otter cache, and Backlite jobs.
 - External database and cache services remain fully supported by configuration.
 - `make run` does not start Docker Compose or any accessory services; use `make dev` if you need the full infrastructure stack.
+- `make run` does not start Docker Compose or any accessory services; use `ship dev` (or the `make dev` wrapper) if you need the full infrastructure stack.
 - CI keeps dedicated boundary suites for `make test-module-isolation` and `make test-sql-portability`; run those targets directly when changing installable-module imports or SQL portability metadata/contracts.
 - `make test-sql-portability` now checks `sql-core-v1` runtime metadata plus the branch annotations and placeholder conventions in the canonical migration/query SQL sources, so portability drift fails in a named lane instead of hiding in broad test output.
 - `make test-module-isolation` reports module/file context for forbidden imports and fails when the allowlist contains stale entries; trim `tools/scripts/test/module-isolation-allowlist.txt` as soon as a temporary exception is removed.
@@ -4200,7 +4202,7 @@ This file defines baseline requirements for any GoShip repository (framework, CL
 
 Required commands must exist and work:
 
-1. `make dev` (web-only default)
+1. `ship dev` (web-only default; `make dev` may exist as a wrapper)
 2. `make test` (fast Docker-free unit set)
 3. `make test-integration` (infra-backed integration set)
 4. `make testall` (unit + integration)

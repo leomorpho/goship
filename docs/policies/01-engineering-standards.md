@@ -13,7 +13,7 @@ This file defines baseline requirements for any GoShip repository (framework, CL
 
 Required commands must exist and work:
 
-1. `make dev` (web-only default)
+1. `ship dev` (web-only default; `make dev` may exist as a wrapper)
 2. `make test` (fast Docker-free unit set)
 3. `make test-integration` (infra-backed integration set)
 4. `make testall` (unit + integration)

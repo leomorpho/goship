@@ -3319,7 +3319,7 @@
     },
     "TKT-587": {
       "title": "Verify ship dev and make dev are fully converged and remove the make dev alias if redundant",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-188"
     },
