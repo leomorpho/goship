@@ -35,11 +35,76 @@ type moduleInfo struct {
 	RouterSnippets    map[string]string
 	EnvExampleSnippet string
 	RequiredEnv       []requiredEnvVar
+	InstallContract   moduleInstallContract
 }
 
 type requiredEnvVar struct {
 	Name        string
 	Description string
+}
+
+type moduleInstallContract struct {
+	Routes     []string
+	Config     []string
+	Assets     []string
+	Jobs       []string
+	Templates  []string
+	Migrations []string
+}
+
+func (c moduleInstallContract) IsEmpty() bool {
+	return len(c.Routes) == 0 &&
+		len(c.Config) == 0 &&
+		len(c.Assets) == 0 &&
+		len(c.Jobs) == 0 &&
+		len(c.Templates) == 0 &&
+		len(c.Migrations) == 0
+}
+
+func (m moduleInfo) installContract() moduleInstallContract {
+	contract := m.InstallContract
+	if len(contract.Config) == 0 {
+		contract.Config = []string{"config/modules.yaml"}
+	}
+	if strings.TrimSpace(m.ContainerSnippet) != "" {
+		contract.Config = appendUniqueStrings(contract.Config, "app/foundation/container.go")
+	}
+	for group, snippet := range m.RouterSnippets {
+		if strings.TrimSpace(snippet) == "" {
+			continue
+		}
+		contract.Routes = appendUniqueStrings(contract.Routes, "app/router.go ("+group+")")
+	}
+	if strings.TrimSpace(m.ModulePath) != "" {
+		contract.Config = appendUniqueStrings(contract.Config, "go.mod", "go.work")
+	}
+	if strings.TrimSpace(m.LocalPath) != "" {
+		contract.Migrations = appendUniqueStrings(contract.Migrations, filepath.ToSlash(filepath.Join(m.LocalPath, "db", "migrate", "migrations")))
+	}
+	if strings.TrimSpace(m.EnvExampleSnippet) != "" {
+		contract.Config = appendUniqueStrings(contract.Config, ".env.example")
+	}
+	return contract
+}
+
+func appendUniqueStrings(dst []string, values ...string) []string {
+	for _, value := range values {
+		v := strings.TrimSpace(value)
+		if v == "" {
+			continue
+		}
+		exists := false
+		for _, existing := range dst {
+			if existing == v {
+				exists = true
+				break
+			}
+		}
+		if !exists {
+			dst = append(dst, v)
+		}
+	}
+	return dst
 }
 
 var (
@@ -239,6 +304,7 @@ func runModuleAdd(args []string, d ModuleDeps) int {
 		fmt.Fprintf(d.Err, "module:add failed: %v\n", err)
 		return 1
 	}
+	printModuleInstallContract(d.Out, info)
 	if !dryRun {
 		if err := warnMissingModuleEnv(root, info, d.Out); err != nil {
 			fmt.Fprintf(d.Err, "module:add env checks failed: %v\n", err)
@@ -249,6 +315,28 @@ func runModuleAdd(args []string, d ModuleDeps) int {
 		fmt.Fprintln(d.Out, "Dry-run mode: no files were written.")
 	}
 	return 0
+}
+
+func printModuleInstallContract(out io.Writer, info moduleInfo) {
+	contract := info.installContract()
+	fmt.Fprintf(out, "Install contract for module %q:\n", info.ID)
+	printInstallContractSection(out, "routes", contract.Routes)
+	printInstallContractSection(out, "config", contract.Config)
+	printInstallContractSection(out, "assets", contract.Assets)
+	printInstallContractSection(out, "jobs", contract.Jobs)
+	printInstallContractSection(out, "templates", contract.Templates)
+	printInstallContractSection(out, "migrations", contract.Migrations)
+}
+
+func printInstallContractSection(out io.Writer, label string, values []string) {
+	fmt.Fprintf(out, "  %s:\n", label)
+	if len(values) == 0 {
+		fmt.Fprintln(out, "    - (none)")
+		return
+	}
+	for _, value := range values {
+		fmt.Fprintf(out, "    - %s\n", value)
+	}
 }
 
 func runModuleRemove(args []string, d ModuleDeps) int {

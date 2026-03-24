@@ -143,11 +143,32 @@ require github.com/AfterShip/email-verifier v1.3.3
 func renderModuleEntrypoint(packageName string) string {
 	return fmt.Sprintf(`package %s
 
+const ModuleID = %q
+
+// InstallContract defines the files/surfaces a module install is expected to touch.
+type InstallContract struct {
+	Routes     []string
+	Config     []string
+	Assets     []string
+	Jobs       []string
+	Templates  []string
+	Migrations []string
+}
+
+// Contract returns the default module install contract shape for this scaffold.
+func Contract() InstallContract {
+	return InstallContract{
+		Config: []string{
+			"config/modules.yaml",
+		},
+	}
+}
+
 // New is the module entrypoint used by app wiring.
 func New(store Store) *Service {
 	return NewService(store)
 }
-`, packageName)
+`, packageName, packageName)
 }
 
 func renderModuleContracts(packageName string) string {
