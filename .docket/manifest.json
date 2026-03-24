@@ -2502,7 +2502,7 @@
     },
     "TKT-449": {
       "title": "Make generator failures roll back partial changes safely and prove rollback in failure-injection tests.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-444"
     },
