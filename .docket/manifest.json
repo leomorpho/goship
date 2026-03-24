@@ -2419,7 +2419,7 @@
     },
     "TKT-435": {
       "title": "Make ship doctor produce stable machine-readable output for automation and lock it with CLI contract tests.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-427"
     },
