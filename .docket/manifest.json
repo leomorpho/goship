@@ -2222,7 +2222,7 @@
     },
     "TKT-402": {
       "title": "Audit framework packages for duplicate responsibilities and collapse one duplicate into the canonical owner.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-401"
     },
