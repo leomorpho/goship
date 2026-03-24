@@ -2437,7 +2437,7 @@
     },
     "TKT-438": {
       "title": "Add fast-path failure detection for broken generated apps and prove doctor surfaces root causes first.",
-      "state": "backlog",
+      "state": "in-progress",
       "priority": 4,
       "parent": "TKT-436"
     },
@@ -2508,13 +2508,13 @@
     },
     "TKT-450": {
       "title": "Make generator path ownership explicit and fail when output escapes canonical app-owned locations.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-444"
     },
     "TKT-451": {
       "title": "Add a generator acceptance suite that creates and mutates fresh apps through multiple commands.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-444"
     },
@@ -2526,7 +2526,7 @@
     },
     "TKT-453": {
       "title": "Define a battery install contract for routes, config, assets, jobs, templates, and migrations.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-452"
     },
