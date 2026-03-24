@@ -2848,7 +2848,7 @@
     },
     "TKT-507": {
       "title": "Add fixture-based doctor tests for missing config, broken secrets, and invalid adapters.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-505"
     },
