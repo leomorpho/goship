@@ -2830,7 +2830,7 @@
     },
     "TKT-504": {
       "title": "Add a matrix suite proving supported battery combinations install and remove cleanly.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-497"
     },
