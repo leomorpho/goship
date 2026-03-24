@@ -1062,8 +1062,8 @@
     },
     "TKT-204": {
       "title": "G4-01: Implement ship destroy MVP reverse scaffolding",
-      "state": "in-progress",
-      "priority": 6,
+      "state": "backlog",
+      "priority": 3,
       "parent": "TKT-191"
     },
     "TKT-205": {
@@ -1080,8 +1080,8 @@
     },
     "TKT-207": {
       "title": "G5-01: Rewrite Playwright suite to current GoShip golden flows",
-      "state": "in-progress",
-      "priority": 6,
+      "state": "backlog",
+      "priority": 3,
       "parent": "TKT-188"
     },
     "TKT-208": {
@@ -1204,8 +1204,8 @@
     },
     "TKT-228": {
       "title": "Interop: make ship upgrade emit readiness and blocker JSON",
-      "state": "in-progress",
-      "priority": 6,
+      "state": "backlog",
+      "priority": 4,
       "parent": "TKT-214"
     },
     "TKT-229": {
@@ -1216,7 +1216,7 @@
     },
     "TKT-230": {
       "title": "Interop: emit module adoption metadata from runtime report surfaces",
-      "state": "in-progress",
+      "state": "backlog",
       "priority": 6,
       "parent": "TKT-214"
     },
@@ -1317,7 +1317,7 @@
     },
     "TKT-247": {
       "title": "INT5-04: Define staged rollout and canary decision contract",
-      "state": "in-progress",
+      "state": "backlog",
       "priority": 6,
       "parent": "TKT-214"
     },
@@ -1359,7 +1359,7 @@
     },
     "TKT-254": {
       "title": "Roadmap Hygiene: Enforce atomic ticket decomposition and TDD/UI verification standards",
-      "state": "in-progress",
+      "state": "backlog",
       "priority": 3,
       "parent": "TKT-248"
     },
@@ -1479,19 +1479,19 @@
     },
     "TKT-274": {
       "title": "G3-03-B: Implement, verify, and sync docs",
-      "state": "in-progress",
+      "state": "backlog",
       "priority": 3,
       "parent": "TKT-189"
     },
     "TKT-275": {
       "title": "G4-01-A: Define executable spec and red tests",
-      "state": "in-progress",
+      "state": "backlog",
       "priority": 6,
       "parent": "TKT-191"
     },
     "TKT-276": {
       "title": "G4-01-B: Implement, verify, and sync docs",
-      "state": "in-progress",
+      "state": "backlog",
       "priority": 3,
       "parent": "TKT-191"
     },
@@ -1503,7 +1503,7 @@
     },
     "TKT-278": {
       "title": "G4-02-B: Implement, verify, and sync docs (UI + Playwright)",
-      "state": "in-progress",
+      "state": "backlog",
       "priority": 3,
       "parent": "TKT-191"
     },
@@ -1527,7 +1527,7 @@
     },
     "TKT-282": {
       "title": "G5-01-B: Implement, verify, and sync docs (UI + Playwright)",
-      "state": "in-progress",
+      "state": "backlog",
       "priority": 3,
       "parent": "TKT-188"
     },
@@ -1539,7 +1539,7 @@
     },
     "TKT-284": {
       "title": "G5-02-B: Implement, verify, and sync docs",
-      "state": "in-progress",
+      "state": "backlog",
       "priority": 3,
       "parent": "TKT-208"
     },
@@ -1551,18 +1551,18 @@
     },
     "TKT-286": {
       "title": "G5-03-B: Implement, verify, and sync docs",
-      "state": "in-progress",
+      "state": "backlog",
       "priority": 3,
       "parent": "TKT-209"
     },
     "TKT-287": {
       "title": "G6-01-A: Define executable spec and red tests",
-      "state": "in-progress",
-      "priority": 2
+      "state": "backlog",
+      "priority": 5
     },
     "TKT-288": {
       "title": "G6-01-B: Implement, verify, and sync docs (UI + Playwright)",
-      "state": "in-progress",
+      "state": "backlog",
       "priority": 3,
       "parent": "TKT-210"
     },
@@ -1573,7 +1573,7 @@
     },
     "TKT-290": {
       "title": "G6-02-B: Implement, verify, and sync docs",
-      "state": "in-progress",
+      "state": "backlog",
       "priority": 3,
       "parent": "TKT-211"
     },
@@ -1859,8 +1859,8 @@
     },
     "TKT-339": {
       "title": "INT6-01-A: Define executable spec and red tests",
-      "state": "in-progress",
-      "priority": 2
+      "state": "backlog",
+      "priority": 5
     },
     "TKT-340": {
       "title": "INT6-01-B: Implement, verify, and sync docs",
@@ -1869,8 +1869,8 @@
     },
     "TKT-341": {
       "title": "INT6-02-A: Define executable spec and red tests",
-      "state": "in-progress",
-      "priority": 2
+      "state": "backlog",
+      "priority": 5
     },
     "TKT-342": {
       "title": "INT6-02-B: Implement, verify, and sync docs",
@@ -1891,8 +1891,8 @@
     },
     "TKT-345": {
       "title": "INT4-03-A: Define executable spec and red tests",
-      "state": "in-progress",
-      "priority": 2
+      "state": "backlog",
+      "priority": 5
     },
     "TKT-346": {
       "title": "INT4-03-B: Implement, verify, and sync docs",
@@ -1911,8 +1911,8 @@
     },
     "TKT-349": {
       "title": "INT6-03-A: Define executable spec and red tests",
-      "state": "in-progress",
-      "priority": 2
+      "state": "backlog",
+      "priority": 5
     },
     "TKT-350": {
       "title": "INT6-03-B: Implement, verify, and sync docs",
@@ -1921,8 +1921,8 @@
     },
     "TKT-351": {
       "title": "INT1-03-A: Define executable spec and red tests",
-      "state": "in-progress",
-      "priority": 2
+      "state": "backlog",
+      "priority": 5
     },
     "TKT-352": {
       "title": "INT1-03-B: Implement, verify, and sync docs",
@@ -1931,8 +1931,8 @@
     },
     "TKT-353": {
       "title": "INT5-04-A: Define executable spec and red tests",
-      "state": "in-progress",
-      "priority": 2
+      "state": "backlog",
+      "priority": 5
     },
     "TKT-354": {
       "title": "INT5-04-B: Implement, verify, and sync docs",
@@ -1995,19 +1995,19 @@
     },
     "TKT-364": {
       "title": "G1-10: Add docs lint to reject transition-era wording in canonical architecture docs",
-      "state": "in-progress",
+      "state": "backlog",
       "priority": 4,
       "parent": "TKT-233"
     },
     "TKT-365": {
       "title": "INT3-03: Add managed override UX contract tests for effective source and local read-only behavior",
-      "state": "in-progress",
+      "state": "backlog",
       "priority": 4,
       "parent": "TKT-216"
     },
     "TKT-366": {
       "title": "INT5-05: Enforce PR-only AI deploy guard in orchestration policy",
-      "state": "in-progress",
+      "state": "backlog",
       "priority": 4,
       "parent": "TKT-218"
     },
@@ -2049,7 +2049,7 @@
     },
     "TKT-373": {
       "title": "G5-02.4: Add startup failure-path contract suite",
-      "state": "in-progress",
+      "state": "backlog",
       "priority": 4,
       "parent": "TKT-188"
     },
@@ -2139,7 +2139,7 @@
     },
     "TKT-388": {
       "title": "Battery wiring: make ship module:add notifications insert real wiring",
-      "state": "in-progress",
+      "state": "backlog",
       "priority": 4,
       "parent": "TKT-191"
     },
@@ -2186,25 +2186,25 @@
     },
     "TKT-396": {
       "title": "Enforce canonical ownership of container.go, router.go, and schedules.go with smoke tests.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-392"
     },
     "TKT-397": {
       "title": "Fail CI when framework code reintroduces hidden starter-app assumptions.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-392"
     },
     "TKT-398": {
       "title": "Add a repo-shape doctor check that validates framework, modules, root runtime files, and asset paths.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-392"
     },
     "TKT-399": {
       "title": "Add fixture tests proving a clean GoShip repo passes repo-shape verification.",
-      "state": "backlog",
+      "state": "in-progress",
       "priority": 4,
       "parent": "TKT-392"
     },
@@ -2323,7 +2323,7 @@
     },
     "TKT-419": {
       "title": "Define the canonical generated-app directory layout in code and lock it with golden tests.",
-      "state": "in-progress",
+      "state": "backlog",
       "priority": 4,
       "parent": "TKT-418"
     },
@@ -2478,7 +2478,7 @@
     },
     "TKT-445": {
       "title": "Define the generator lifecycle contract in code for create, install, remove, and upgrade operations.",
-      "state": "in-progress",
+      "state": "backlog",
       "priority": 4,
       "parent": "TKT-444"
     },
@@ -2633,7 +2633,7 @@
     },
     "TKT-471": {
       "title": "Implement a machine-readable upgrade-readiness report and lock its schema with contract tests.",
-      "state": "in-progress",
+      "state": "backlog",
       "priority": 4,
       "parent": "TKT-470"
     },
@@ -2752,8 +2752,8 @@
     },
     "TKT-491": {
       "title": "Add an end-to-end suite that generates a fresh app, migrates it, boots it, and verifies it.",
-      "state": "in-progress",
-      "priority": 4,
+      "state": "backlog",
+      "priority": 3,
       "parent": "TKT-490"
     },
     "TKT-492": {
@@ -3256,6 +3256,90 @@
       "state": "backlog",
       "priority": 4,
       "parent": "TKT-526"
+    },
+    "TKT-577": {
+      "title": "Add Backlite SQLite job queue adapter and wire it as the default dev/single-binary jobs backend",
+      "state": "backlog",
+      "priority": 3,
+      "parent": "TKT-189"
+    },
+    "TKT-578": {
+      "title": "Add Otter in-memory cache adapter and wire it as the default dev/single-binary cache backend",
+      "state": "backlog",
+      "priority": 3,
+      "parent": "TKT-189"
+    },
+    "TKT-579": {
+      "title": "Add in-memory SQLite test DB helper and wire it into the test bootstrap so integration tests run without Docker",
+      "state": "backlog",
+      "priority": 3,
+      "parent": "TKT-189"
+    },
+    "TKT-580": {
+      "title": "Verify and fix ship new generator output to match canonical runtime layout (root runtime files, framework/, modules/)",
+      "state": "backlog",
+      "priority": 3,
+      "parent": "TKT-444"
+    },
+    "TKT-581": {
+      "title": "Implement ship module:remove command to reverse ship module:add deterministically",
+      "state": "backlog",
+      "priority": 3,
+      "parent": "TKT-452"
+    },
+    "TKT-582": {
+      "title": "Add fixture test proving ship new + ship module:add + ship module:remove round-trips cleanly",
+      "state": "backlog",
+      "priority": 3,
+      "parent": "TKT-452"
+    },
+    "TKT-583": {
+      "title": "Battery wiring: make ship module:add profile insert real profile route and service wiring",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-460"
+    },
+    "TKT-584": {
+      "title": "Add Playwright test proving the full auth golden flow: register → login → protected route → logout",
+      "state": "backlog",
+      "priority": 3,
+      "parent": "TKT-188"
+    },
+    "TKT-585": {
+      "title": "Write getting-started guide: ship new myapp → production-credible app walkthrough",
+      "state": "backlog",
+      "priority": 3,
+      "parent": "TKT-417"
+    },
+    "TKT-586": {
+      "title": "Define and document GoShip beta readiness checklist with explicit pass/fail criteria",
+      "state": "backlog",
+      "priority": 2,
+      "parent": "TKT-188"
+    },
+    "TKT-587": {
+      "title": "Verify ship dev and make dev are fully converged and remove the make dev alias if redundant",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-188"
+    },
+    "TKT-589": {
+      "title": "Generate .env.example in ship new with all required and optional env vars documented",
+      "state": "backlog",
+      "priority": 3,
+      "parent": "TKT-580"
+    },
+    "TKT-590": {
+      "title": "Validate required env vars are present when running ship module:add for a battery",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-453"
+    },
+    "TKT-591": {
+      "title": "Declare and enforce inter-module prerequisites so incompatible battery combinations fail fast",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-453"
     }
   }
 }
