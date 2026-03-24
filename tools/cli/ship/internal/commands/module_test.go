@@ -214,6 +214,41 @@ func TestRunModuleAdd_DryRunPrintsInstallContract(t *testing.T) {
 	}
 }
 
+func TestRunModuleAdd_DryRunExplainsOwnershipMap(t *testing.T) {
+	root := t.TempDir()
+	writeModuleFixtureFiles(t, root)
+	writeLocalModuleGoModFixture(t, root, filepath.Join("modules", "jobs"), "github.com/leomorpho/goship-modules/jobs")
+
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	code := RunModule([]string{"add", "jobs", "--dry-run"}, ModuleDeps{
+		Out: out,
+		Err: errOut,
+		FindGoModule: func(start string) (string, string, error) {
+			return root, "example.com/demo", nil
+		},
+	})
+	if code != 0 {
+		t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
+	}
+
+	output := out.String()
+	if !strings.Contains(output, "ownership:") {
+		t.Fatalf("dry-run output missing ownership section:\n%s", output)
+	}
+	for _, token := range []string{
+		"app/foundation/container.go -> config",
+		"config/modules.yaml -> config",
+		"go.mod -> config",
+		"go.work -> config",
+		"modules/jobs/db/migrate/migrations -> migrations",
+	} {
+		if !strings.Contains(output, token) {
+			t.Fatalf("dry-run output missing ownership token %q:\n%s", token, output)
+		}
+	}
+}
+
 func TestRunModuleRemove_AbsentModuleIsNoOp(t *testing.T) {
 	root := t.TempDir()
 	writeModuleFixtureFiles(t, root)

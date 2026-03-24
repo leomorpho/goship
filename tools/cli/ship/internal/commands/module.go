@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	rt "github.com/leomorpho/goship/tools/cli/ship/internal/runtime"
@@ -324,6 +325,7 @@ func printModuleInstallContract(out io.Writer, info moduleInfo) {
 	printInstallContractSection(out, "jobs", contract.Jobs)
 	printInstallContractSection(out, "templates", contract.Templates)
 	printInstallContractSection(out, "migrations", contract.Migrations)
+	printInstallContractOwnership(out, contract)
 }
 
 func printInstallContractSection(out io.Writer, label string, values []string) {
@@ -334,6 +336,43 @@ func printInstallContractSection(out io.Writer, label string, values []string) {
 	}
 	for _, value := range values {
 		fmt.Fprintf(out, "    - %s\n", value)
+	}
+}
+
+func printInstallContractOwnership(out io.Writer, contract moduleInstallContract) {
+	ownership := map[string][]string{}
+	appendOwnership := func(owner string, values []string) {
+		for _, value := range values {
+			v := strings.TrimSpace(value)
+			if v == "" {
+				continue
+			}
+			ownership[v] = appendUniqueStrings(ownership[v], owner)
+		}
+	}
+
+	appendOwnership("routes", contract.Routes)
+	appendOwnership("config", contract.Config)
+	appendOwnership("assets", contract.Assets)
+	appendOwnership("jobs", contract.Jobs)
+	appendOwnership("templates", contract.Templates)
+	appendOwnership("migrations", contract.Migrations)
+
+	fmt.Fprintln(out, "  ownership:")
+	if len(ownership) == 0 {
+		fmt.Fprintln(out, "    - (none)")
+		return
+	}
+
+	files := make([]string, 0, len(ownership))
+	for file := range ownership {
+		files = append(files, file)
+	}
+	sort.Strings(files)
+	for _, file := range files {
+		owners := ownership[file]
+		sort.Strings(owners)
+		fmt.Fprintf(out, "    - %s -> %s\n", file, strings.Join(owners, ", "))
 	}
 }
 
