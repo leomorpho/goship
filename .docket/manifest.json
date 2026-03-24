@@ -3307,7 +3307,7 @@
     },
     "TKT-585": {
       "title": "Write getting-started guide: ship new myapp → production-credible app walkthrough",
-      "state": "backlog",
+      "state": "done",
       "priority": 3,
       "parent": "TKT-417"
     },
