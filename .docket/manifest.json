@@ -2782,7 +2782,7 @@
     },
     "TKT-496": {
       "title": "Add a fresh-app CI lane that runs generation, batteries, verify, and smoke tests together.",
-      "state": "backlog",
+      "state": "in-progress",
       "priority": 4,
       "parent": "TKT-490"
     },
