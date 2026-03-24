@@ -38,7 +38,15 @@ test("vite build emits framework design token CSS", async () => {
 
     const css = cssFiles.map((file) => fs.readFileSync(file, "utf8")).join("\n");
     assert.match(css, /--gs-color-background:/);
+    assert.match(css, /--gs-space-6:/);
+    assert.match(css, /--gs-shadow-float:/);
     assert.match(css, /\.gs-page\b/);
+    assert.match(css, /\.gs-kicker\b/);
+    assert.match(css, /\.gs-stack\b/);
+    assert.match(css, /\.gs-color-muted\b/);
+    assert.match(css, /\.gs-elevation-float\b/);
+    assert.match(css, /\.gs-field-input\b/);
+    assert.match(css, /\.gs-field-hint\b/);
     assert.match(css, /\.gs-field-error\b/);
   } finally {
     fs.rmSync(tempDir, { recursive: true, force: true });

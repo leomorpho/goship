@@ -25,7 +25,12 @@
   --gs-radius-panel: 1.5rem;
   --gs-radius-control: 0.875rem;
   --gs-shadow-panel: 0 24px 60px rgba(15, 23, 42, 0.14);
+  --gs-shadow-float: 0 34px 90px rgba(15, 23, 42, 0.2);
   --gs-space-page: clamp(1.5rem, 3vw, 3rem);
+  --gs-space-2: 0.5rem;
+  --gs-space-4: 1rem;
+  --gs-space-6: 1.5rem;
+  --gs-space-8: 2rem;
   --brightness-normal: 1;
   --brightness-hover-light: 0.15;
   --brightness-hover-dark: 0.3;
@@ -45,6 +50,7 @@
   --gs-color-success: #6fd0a0;
   --gs-color-danger: #ff9b8f;
   --gs-shadow-panel: 0 30px 70px rgba(2, 6, 23, 0.45);
+  --gs-shadow-float: 0 34px 90px rgba(2, 6, 23, 0.58);
   --brightness-hover: var(--brightness-hover-dark);
 }
 

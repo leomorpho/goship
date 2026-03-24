@@ -89,4 +89,8 @@ func TestPage_DesignTokenRecipes(t *testing.T) {
 	assert.Equal(t, "gs-text", p.StarterTextClass())
 	assert.Equal(t, "gs-button gs-button-primary", p.StarterPrimaryActionClass())
 	assert.Equal(t, "gs-button gs-button-secondary", p.StarterSecondaryActionClass())
+	assert.Equal(t, "gs-kicker", p.StarterKickerClass())
+	assert.Equal(t, "gs-stack", p.StarterStackClass())
+	assert.Equal(t, "gs-color-muted", p.StarterMutedColorClass())
+	assert.Equal(t, "gs-elevation-float", p.StarterElevationClass())
 }

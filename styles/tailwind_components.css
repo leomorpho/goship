@@ -15,6 +15,26 @@
     @apply text-base leading-7 text-gs-text-muted;
   }
 
+  .gs-kicker {
+    @apply text-xs font-semibold uppercase tracking-[0.16em] text-gs-accent;
+  }
+
+  .gs-stack {
+    @apply space-y-gs-6;
+  }
+
+  .gs-color-muted {
+    @apply text-gs-text-muted;
+  }
+
+  .gs-color-danger {
+    @apply text-gs-danger;
+  }
+
+  .gs-elevation-float {
+    @apply shadow-gs-float;
+  }
+
   .gs-button {
     @apply inline-flex items-center justify-center rounded-gs-control px-4 py-2.5 text-sm font-semibold transition-colors duration-200;
   }
@@ -35,5 +55,13 @@
   .gs-field-success {
     border-color: var(--gs-color-success);
     --tw-ring-color: var(--gs-color-success);
+  }
+
+  .gs-field-input {
+    @apply w-full rounded-gs-control border border-gs-border bg-gs-surface px-gs-4 py-gs-2 text-sm text-gs-text shadow-sm outline-none transition focus:ring-2;
+  }
+
+  .gs-field-hint {
+    @apply text-xs font-medium;
   }
 }
