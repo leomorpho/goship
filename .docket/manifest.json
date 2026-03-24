@@ -2145,7 +2145,7 @@
     },
     "TKT-389": {
       "title": "Battery wiring: make ship module:add admin insert real wiring",
-      "state": "in-progress",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-191"
     },
