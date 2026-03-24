@@ -264,6 +264,11 @@ var moduleCatalog = map[string]moduleInfo{
 				"modules/admin/views/web/components/gen/admin_form_templ.go",
 				"modules/admin/views/web/components/gen/admin_list_templ.go",
 			},
+			Tests: []string{
+				"modules/admin/routes_test.go",
+				"modules/admin/registry_test.go",
+				"modules/admin/store_test.go",
+			},
 		},
 		RouterSnippets: map[string]string{
 			"auth": `

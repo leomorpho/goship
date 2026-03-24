@@ -827,7 +827,7 @@ func TestAdminModuleCatalog_UsesConcreteWiring(t *testing.T) {
 	}
 }
 
-func TestAdminModuleCatalog_InstallContractCoversRoutesViewsAndAuthGate(t *testing.T) {
+func TestAdminModuleCatalog_InstallContractCoversRoutesViewsAuthGateAndTests(t *testing.T) {
 	t.Parallel()
 
 	info, ok := moduleCatalog["admin"]
@@ -849,6 +849,15 @@ func TestAdminModuleCatalog_InstallContractCoversRoutesViewsAndAuthGate(t *testi
 	} {
 		if !containsExactString(contract.Templates, view) {
 			t.Fatalf("admin contract missing view ownership %q: %#v", view, contract.Templates)
+		}
+	}
+	for _, testSurface := range []string{
+		"modules/admin/routes_test.go",
+		"modules/admin/registry_test.go",
+		"modules/admin/store_test.go",
+	} {
+		if !containsExactString(contract.Tests, testSurface) {
+			t.Fatalf("admin contract missing test ownership %q: %#v", testSurface, contract.Tests)
 		}
 	}
 }
