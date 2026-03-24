@@ -1989,7 +1989,7 @@
     },
     "TKT-363": {
       "title": "G5-06: Enforce UI change verification policy in CI (Playwright + browser evidence)",
-      "state": "in-progress",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-192"
     },
