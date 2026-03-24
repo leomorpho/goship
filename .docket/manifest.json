@@ -2866,7 +2866,7 @@
     },
     "TKT-510": {
       "title": "Add failure-injection tests proving commands fail with actionable output instead of silent drift.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-505"
     },
