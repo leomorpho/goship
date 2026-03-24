@@ -2276,7 +2276,7 @@
     },
     "TKT-411": {
       "title": "Remove transitional alias packages that survived the app removal and update imports with regression tests.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-410"
     },
