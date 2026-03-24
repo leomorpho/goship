@@ -1562,7 +1562,7 @@
     },
     "TKT-288": {
       "title": "G6-01-B: Implement, verify, and sync docs (UI + Playwright)",
-      "state": "backlog",
+      "state": "done",
       "priority": 3,
       "parent": "TKT-210"
     },
