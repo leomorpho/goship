@@ -2639,7 +2639,7 @@
     },
     "TKT-472": {
       "title": "Include framework version, module adoption, drift, and blockers in the readiness report with fixture tests.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-470"
     },
