@@ -2252,7 +2252,7 @@
     },
     "TKT-407": {
       "title": "Normalize route ownership across first-party modules and prove route registration stays deterministic.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-401"
     },
