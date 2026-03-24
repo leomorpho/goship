@@ -2228,7 +2228,7 @@
     },
     "TKT-403": {
       "title": "Audit modules packages for duplicate responsibilities and collapse one duplicate into the canonical owner.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-401"
     },
