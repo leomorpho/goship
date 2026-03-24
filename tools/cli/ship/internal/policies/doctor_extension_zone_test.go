@@ -12,7 +12,7 @@ func TestRunDoctorChecks_ExtensionZoneContract_RedSpec(t *testing.T) {
 
 	zoneDoc := mustReadPolicyContractText(t, filepath.Join(root, "docs", "architecture", "10-extension-zones.md"))
 	cliDoc := mustReadPolicyContractText(t, filepath.Join(root, "docs", "reference", "01-cli.md"))
-	policySource := mustReadPolicyContractText(t, filepath.Join(root, "tools", "cli", "ship", "internal", "policies", "doctor_repo_checks.go"))
+	policySource := mustReadPolicyContractText(t, filepath.Join(root, "tools", "cli", "ship", "internal", "policies", "doctor_docs_checks.go"))
 
 	for _, token := range []string{"Extension Zones", "Protected Contract Zones", "`framework/`", "`container.go`", "`router.go`", "`schedules.go`"} {
 		if !strings.Contains(zoneDoc, token) {
