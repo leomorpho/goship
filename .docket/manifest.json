@@ -1204,7 +1204,7 @@
     },
     "TKT-228": {
       "title": "Interop: make ship upgrade emit readiness and blocker JSON",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-214"
     },
