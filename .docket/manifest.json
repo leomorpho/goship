@@ -2258,7 +2258,7 @@
     },
     "TKT-408": {
       "title": "Normalize config ownership across first-party modules and prove install remove idempotence.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-401"
     },
