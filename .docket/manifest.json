@@ -2097,7 +2097,7 @@
     },
     "TKT-381": {
       "title": "G6-03.4: Implement verify profile tiers (fast, standard, strict)",
-      "state": "in-progress",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-212"
     },
