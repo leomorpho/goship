@@ -3217,7 +3217,7 @@
     },
     "TKT-569": {
       "title": "Implement Cherie compatibility smoke baseline and prove downstream compatibility in CI and browser tests.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-505"
     },
