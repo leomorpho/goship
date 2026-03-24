@@ -2240,7 +2240,7 @@
     },
     "TKT-405": {
       "title": "Enforce forbidden imports from modules into control-plane-specific code paths with boundary tests.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-401"
     },
