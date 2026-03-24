@@ -68,6 +68,22 @@ func (f FormSubmission) GetFieldStatusClass(fieldName string) string {
 	return ""
 }
 
+func (f FormSubmission) GetFieldInputClass(fieldName string) string {
+	base := "gs-field-input"
+	status := f.GetFieldStatusClass(fieldName)
+	if status == "" {
+		return base
+	}
+	return base + " " + status
+}
+
+func (f FormSubmission) GetFieldHintClass(fieldName string) string {
+	if f.FieldHasErrors(fieldName) {
+		return "gs-field-hint gs-color-danger"
+	}
+	return "gs-field-hint gs-color-muted"
+}
+
 // IsDone indicates if the submission is considered done which is when it has been submitted
 // and there are no errors.
 func (f FormSubmission) IsDone() bool {

@@ -139,3 +139,19 @@ func (p Page) StarterPrimaryActionClass() string {
 func (p Page) StarterSecondaryActionClass() string {
 	return "gs-button gs-button-secondary"
 }
+
+func (p Page) StarterKickerClass() string {
+	return "gs-kicker"
+}
+
+func (p Page) StarterStackClass() string {
+	return "gs-stack"
+}
+
+func (p Page) StarterMutedColorClass() string {
+	return "gs-color-muted"
+}
+
+func (p Page) StarterElevationClass() string {
+	return "gs-elevation-float"
+}
