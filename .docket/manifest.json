@@ -1557,7 +1557,7 @@
     },
     "TKT-287": {
       "title": "G6-01-A: Define executable spec and red tests",
-      "state": "backlog",
+      "state": "done",
       "priority": 5
     },
     "TKT-288": {
