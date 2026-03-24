@@ -4416,6 +4416,7 @@ These commands are implemented as wrappers over existing workflows:
 - `ship dev` -> canonical app-on loop:
   - runtime profile `single-node` or `server-db` => web mode (`air -c .air.toml`)
   - runtime profile `distributed` => full mode (`ship dev --all`)
+- `ship dev` now runs a generated-app scaffold fast-path check before launching processes; when required scaffold paths/markers are broken it exits early with root-cause doctor diagnostics and a corrective `ship doctor --json` next step
 - in interactive terminals, prints the local URL and prompts to open it in a browser (`[Y/n]`, Enter = yes); browser launch waits until the URL is reachable
 - `ship profile:set <single-binary|standard|distributed>` -> rewrites the project `.env` runtime profile and process preset values so the canonical topology can be selected deterministically
 - `ship dev --worker` -> `go run ./cmd/worker`
@@ -4428,6 +4429,7 @@ These commands are implemented as wrappers over existing workflows:
 - `ship module:add <name>` -> updates `config/modules.yaml`, app marker snippets, root `go.mod` `require`/`replace` directives, and `go.work` `use` entries for standalone batteries with local `go.mod` files
 - `ship module:remove <name>` -> removes those managed entries when safe; fails with exact blocker file paths when the repo still imports the module outside managed wiring points
 - `ship verify` -> rejects standalone-battery drift when root `go.mod` dependencies on installable modules are not the canonical local-dev shape (`v0.0.0` + local `replace` + matching `go.work use`), enforces the canonical GoShip framework repo layout when run in this repo (including required root runtime seams `container.go`, `router.go`, and `schedules.go`, plus failure on a forbidden top-level `app/` shell), validates the extension-zone manifest for those protected seams, and enforces the canonical no-compatibility/no-deprecation wording invariant across the operator-facing docs set
+- `ship verify` now runs a generated-app scaffold fast-path gate before `templ generate`/`go build`; when scaffold root-cause checks fail (`DX001`, `DX002`, `DX005`, `DX011`) verify stops immediately and points to `ship doctor --json`
 - `ship verify` includes an orchestration contract-mismatch preflight step before deploy/upgrade/promote flows so unsupported runtime combinations fail before orchestration starts, and the preflight stays aligned with the managed-settings access contract used by the runtime report; `--runtime-contract-version` and `--upgrade-contract-version` reject unsupported contract identifiers before the preflight runs
 - `ship infra:up` -> detects `docker-compose`/`docker compose` and runs `up -d cache`, then attempts `up -d mailpit` (non-fatal if mailpit fails)
 - `ship infra:down` -> detects `docker-compose`/`docker compose` and runs `down`

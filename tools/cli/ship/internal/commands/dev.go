@@ -5,19 +5,24 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"time"
+
+	policies "github.com/leomorpho/goship/tools/cli/ship/internal/policies"
 )
 
 type DevDeps struct {
-	Out                io.Writer
-	Err                io.Writer
-	RunCmd             func(name string, args ...string) int
-	RunDevAll          func() int
-	ResolveDefaultMode func() (string, error)
-	ResolveWebURL      func() (string, error)
-	IsInteractive      func() bool
-	PromptOpenURL      func(url string) (bool, error)
-	OpenBrowser        func(url string) error
+	Out                     io.Writer
+	Err                     io.Writer
+	RunCmd                  func(name string, args ...string) int
+	RunDevAll               func() int
+	ResolveDefaultMode      func() (string, error)
+	FindGoModule            func(start string) (string, string, error)
+	FastPathGeneratedIssues func(root string) []policies.DoctorIssue
+	ResolveWebURL           func() (string, error)
+	IsInteractive           func() bool
+	PromptOpenURL           func(url string) (bool, error)
+	OpenBrowser             func(url string) error
 }
 
 func RunDev(args []string, d DevDeps) int {
@@ -70,6 +75,13 @@ func RunDev(args []string, d DevDeps) int {
 		}
 	}
 
+	if issues := runDevFastPathPreflight(d); len(issues) > 0 {
+		fmt.Fprintln(d.Err, "dev preflight failed: generated app scaffold is broken")
+		fmt.Fprintln(d.Err, formatVerifyDoctorIssues(issues))
+		fmt.Fprintln(d.Err, "Next step: run `ship doctor --json` to inspect full scaffold diagnostics before retrying `ship dev`.")
+		return 1
+	}
+
 	var maybeOpenWhenReady func(done <-chan struct{})
 	if mode == "web" || mode == "all" {
 		maybeOpenWhenReady = setupDevURLOpen(d)
@@ -102,6 +114,27 @@ func RunDev(args []string, d DevDeps) int {
 		fmt.Fprintf(d.Err, "unknown dev mode: %s\n", mode)
 		return 1
 	}
+}
+
+func runDevFastPathPreflight(d DevDeps) []policies.DoctorIssue {
+	if d.FindGoModule == nil {
+		return nil
+	}
+
+	wd, err := os.Getwd()
+	if err != nil {
+		return nil
+	}
+	root, _, err := d.FindGoModule(wd)
+	if err != nil || root == "" {
+		return nil
+	}
+
+	check := d.FastPathGeneratedIssues
+	if check == nil {
+		check = policies.FastPathGeneratedAppIssues
+	}
+	return check(root)
 }
 
 func PrintDevHelp(w io.Writer) {

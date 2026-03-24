@@ -757,6 +757,65 @@ func TestScaffoldTodo(t *testing.T) {
 		}
 	})
 
+	t.Run("generated app scaffold failures stop verify before build", func(t *testing.T) {
+		root := t.TempDir()
+		writeVerifyGoMod(t, root)
+		writeVerifyGoWork(t, root)
+		if err := os.MkdirAll(filepath.Join(root, "config"), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.MkdirAll(filepath.Join(root, "docs"), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(root, "config", "modules.yaml"), []byte("modules: []\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(root, "docs", "00-index.md"), []byte("# Index\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+
+		prevWD := chdirVerifyRoot(t, root)
+		t.Cleanup(func() { _ = os.Chdir(prevWD) })
+
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+		calls := make([]string, 0)
+		code := RunVerify([]string{"--skip-tests"}, VerifyDeps{
+			Out:          out,
+			Err:          errOut,
+			FindGoModule: findVerifyGoModule,
+			RelocateTempl: func(rootPath string) error {
+				return nil
+			},
+			RunStep: func(name string, args ...string) (int, string, error) {
+				calls = append(calls, name+" "+strings.Join(args, " "))
+				return 0, "ok", nil
+			},
+			LookPath: func(file string) (string, error) {
+				return "/usr/bin/" + file, nil
+			},
+			RunDoctor: func() (int, string, error) {
+				t.Fatal("doctor should not run after generated app scaffold failure")
+				return 0, "", nil
+			},
+		})
+		if code != 1 {
+			t.Fatalf("exit code = %d, want 1", code)
+		}
+		if len(calls) != 0 {
+			t.Fatalf("verify should fail before subprocesses, got calls %+v", calls)
+		}
+		if !strings.Contains(errOut.String(), "verify failed at generated app scaffold") {
+			t.Fatalf("stderr = %q, want generated scaffold failure step", errOut.String())
+		}
+		if !strings.Contains(errOut.String(), "missing required directory: app") {
+			t.Fatalf("stderr = %q, want required-directory diagnostic", errOut.String())
+		}
+		if !strings.Contains(errOut.String(), "Next step: run `ship doctor --json`") {
+			t.Fatalf("stderr = %q, want operator guidance", errOut.String())
+		}
+	})
+
 	t.Run("framework repo layout rejects legacy app shell runtime fallback paths", func(t *testing.T) {
 		root := t.TempDir()
 		writeVerifyGoMod(t, root)

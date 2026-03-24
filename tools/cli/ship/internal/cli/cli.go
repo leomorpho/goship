@@ -202,6 +202,7 @@ func (c CLI) runDev(args []string) int {
 		RunCmd:             c.runCmd,
 		RunDevAll:          runner,
 		ResolveDefaultMode: resolveMode,
+		FindGoModule:       findGoModule,
 		ResolveWebURL:      rt.ResolveDevWebURL,
 		IsInteractive:      rt.IsInteractiveTerminal,
 		PromptOpenURL:      rt.PromptOpenBrowser,

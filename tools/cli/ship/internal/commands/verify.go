@@ -131,7 +131,9 @@ func RunVerify(args []string, d VerifyDeps) int {
 		}
 	}
 
-	if err := withWorkingDir(root, func() error {
+	if issues := policies.FastPathGeneratedAppIssues(root); len(issues) > 0 {
+		appendStep("generated app scaffold", false, formatVerifyDoctorIssues(issues), "")
+	} else if err := withWorkingDir(root, func() error {
 		repoLayoutIssues := policies.CheckCanonicalRepoTopLevelPaths(".")
 		if repoLayoutIssues != nil {
 			if len(repoLayoutIssues) > 0 {
@@ -252,7 +254,7 @@ func RunVerify(args []string, d VerifyDeps) int {
 			fmt.Fprintln(d.Err, failed.Output)
 		}
 		switch failed.Name {
-		case "canonical repo layout":
+		case "canonical repo layout", "generated app scaffold":
 			fmt.Fprintln(d.Err, "Next step: run `ship doctor --json` to inspect full repo-shape diagnostics before retrying verify.")
 		default:
 			fmt.Fprintln(d.Err, "Next step: run `ship runtime:report --json` to confirm runtime contract state before retrying verify.")
