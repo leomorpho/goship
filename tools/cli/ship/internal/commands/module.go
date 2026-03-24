@@ -248,6 +248,16 @@ var moduleCatalog = map[string]moduleInfo{
 	},
 	"admin": {
 		ID: "admin",
+		InstallContract: moduleInstallContract{
+			Routes: []string{
+				"modules/admin/routes.go",
+			},
+			Templates: []string{
+				"modules/admin/views/web/components/gen/admin_layout_templ.go",
+				"modules/admin/views/web/components/gen/admin_form_templ.go",
+				"modules/admin/views/web/components/gen/admin_list_templ.go",
+			},
+		},
 		RouterSnippets: map[string]string{
 			"auth": `
 	adminPanelModule := adminmodule.New(adminmodule.ModuleDeps{

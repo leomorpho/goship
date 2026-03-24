@@ -804,6 +804,32 @@ func TestAdminModuleCatalog_UsesConcreteWiring(t *testing.T) {
 	}
 }
 
+func TestAdminModuleCatalog_InstallContractCoversRoutesViewsAndAuthGate(t *testing.T) {
+	t.Parallel()
+
+	info, ok := moduleCatalog["admin"]
+	if !ok {
+		t.Fatal("expected admin in module catalog")
+	}
+	contract := info.installContract()
+
+	if !containsExactString(contract.Routes, "app/router.go (auth)") {
+		t.Fatalf("admin contract missing auth route ownership: %#v", contract.Routes)
+	}
+	if !containsExactString(contract.Routes, "modules/admin/routes.go") {
+		t.Fatalf("admin contract missing module route ownership: %#v", contract.Routes)
+	}
+	for _, view := range []string{
+		"modules/admin/views/web/components/gen/admin_layout_templ.go",
+		"modules/admin/views/web/components/gen/admin_form_templ.go",
+		"modules/admin/views/web/components/gen/admin_list_templ.go",
+	} {
+		if !containsExactString(contract.Templates, view) {
+			t.Fatalf("admin contract missing view ownership %q: %#v", view, contract.Templates)
+		}
+	}
+}
+
 func TestApplyModuleAdd_AdminIdempotent(t *testing.T) {
 	root := t.TempDir()
 
