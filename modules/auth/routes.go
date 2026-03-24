@@ -179,6 +179,15 @@ func (s *Service) postRegister(ctx echo.Context) error {
 	if err := ctx.Bind(&form); err != nil {
 		return s.ctr.Fail(err, "unable to parse register form")
 	}
+	if strings.TrimSpace(form.RelationshipStatus) == "" {
+		form.RelationshipStatus = strings.TrimSpace(ctx.QueryParam("relationship_status"))
+	}
+	if strings.TrimSpace(form.RelationshipStatus) == "" {
+		form.RelationshipStatus = strings.TrimSpace(ctx.QueryParam("mode"))
+	}
+	if strings.TrimSpace(form.RelationshipStatus) == "" {
+		form.RelationshipStatus = "single"
+	}
 	if err := form.Submission.Process(ctx, form); err != nil {
 		return s.ctr.Fail(err, "unable to process form submission")
 	}

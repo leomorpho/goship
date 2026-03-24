@@ -1,11 +1,11 @@
 -- name: insert_user_returning_id_postgres
-INSERT INTO users (name, email, password, verified)
-VALUES ($1, $2, $3, $4)
+INSERT INTO users (created_at, updated_at, name, email, password, verified)
+VALUES ($1, $2, $3, $4, $5, $6)
 RETURNING id;
 
 -- name: insert_user_returning_id_sqlite
-INSERT INTO users (name, email, password, verified)
-VALUES (?, ?, ?, ?)
+INSERT INTO users (created_at, updated_at, name, email, password, verified)
+VALUES (?, ?, ?, ?, ?, ?)
 RETURNING id;
 
 -- name: insert_profile_returning_id_postgres
@@ -35,4 +35,3 @@ INSERT INTO profiles (
 )
 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 RETURNING id;
-

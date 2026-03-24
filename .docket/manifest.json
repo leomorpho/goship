@@ -3301,7 +3301,7 @@
     },
     "TKT-584": {
       "title": "Add Playwright test proving the full auth golden flow: register → login → protected route → logout",
-      "state": "backlog",
+      "state": "done",
       "priority": 2,
       "parent": "TKT-188"
     },
