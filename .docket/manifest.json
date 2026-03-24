@@ -2395,7 +2395,7 @@
     },
     "TKT-431": {
       "title": "Make ship doctor the default diagnostic entrypoint and prove actionable output for common setup failures.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-427"
     },
