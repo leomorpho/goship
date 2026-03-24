@@ -1539,7 +1539,7 @@
     },
     "TKT-284": {
       "title": "G5-02-B: Implement, verify, and sync docs",
-      "state": "backlog",
+      "state": "done",
       "priority": 3,
       "parent": "TKT-208"
     },
