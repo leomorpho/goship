@@ -1080,7 +1080,7 @@
     },
     "TKT-207": {
       "title": "G5-01: Rewrite Playwright suite to current GoShip golden flows",
-      "state": "backlog",
+      "state": "done",
       "priority": 3,
       "parent": "TKT-188"
     },
