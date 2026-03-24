@@ -2407,7 +2407,7 @@
     },
     "TKT-433": {
       "title": "Make ship test produce stable machine-readable output for automation and lock it with CLI contract tests.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-427"
     },
