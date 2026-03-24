@@ -274,6 +274,44 @@ func TestJobsModuleCatalog_InstallContractCoversWorkerQueueScheduleTests(t *test
 	}
 }
 
+func TestStorageModuleCatalog_InstallContractCoversAdapterConfigAndFilePathTests(t *testing.T) {
+	t.Parallel()
+
+	info, ok := moduleCatalog["storage"]
+	if !ok {
+		t.Fatal("expected storage in module catalog")
+	}
+	contract := info.installContract()
+
+	for _, configPath := range []string{
+		"config/modules.yaml",
+		"app/foundation/container.go",
+		"go.mod",
+		"go.work",
+	} {
+		if !containsExactString(contract.Config, configPath) {
+			t.Fatalf("storage contract config missing %q: %#v", configPath, contract.Config)
+		}
+	}
+	if !containsExactString(contract.Migrations, "modules/storage/db/migrate/migrations") {
+		t.Fatalf("storage contract missing migration path ownership: %#v", contract.Migrations)
+	}
+	for _, runtimeSurface := range []string{
+		"modules/storage/module.go",
+	} {
+		if !containsExactString(contract.Jobs, runtimeSurface) {
+			t.Fatalf("storage contract missing adapter/runtime surface %q: %#v", runtimeSurface, contract.Jobs)
+		}
+	}
+	for _, testSurface := range []string{
+		"modules/storage/module_test.go",
+	} {
+		if !containsExactString(contract.Tests, testSurface) {
+			t.Fatalf("storage contract missing integration test surface %q: %#v", testSurface, contract.Tests)
+		}
+	}
+}
+
 func TestModuleCatalog_InstallContractCoverage(t *testing.T) {
 	for id, info := range moduleCatalog {
 		if info.installContract().IsEmpty() {

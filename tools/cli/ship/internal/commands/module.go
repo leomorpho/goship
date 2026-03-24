@@ -301,6 +301,14 @@ var moduleCatalog = map[string]moduleInfo{
 		ID:         "storage",
 		ModulePath: "github.com/leomorpho/goship-modules/storage",
 		LocalPath:  filepath.Join("modules", "storage"),
+		InstallContract: moduleInstallContract{
+			Jobs: []string{
+				"modules/storage/module.go",
+			},
+			Tests: []string{
+				"modules/storage/module_test.go",
+			},
+		},
 		ContainerSnippet: `
 	// ship:module:storage
 	// Wire modules/storage.New around the app-facing core.BlobStorage seam.
