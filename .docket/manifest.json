@@ -3331,7 +3331,7 @@
     },
     "TKT-590": {
       "title": "Validate required env vars are present when running ship module:add for a battery",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-453"
     },

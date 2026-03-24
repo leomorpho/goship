@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"bytes"
 	"io"
 	"os"
 	"path/filepath"
@@ -652,6 +653,46 @@ func TestApplyModuleAdd_BillingAppendsStripeEnvExample(t *testing.T) {
 	second := readTestFile(t, envExamplePath)
 	if strings.Count(second, "STRIPE_KEY=") != 1 || strings.Count(second, "STRIPE_WEBHOOK_SECRET=") != 1 {
 		t.Fatalf("expected stripe env vars exactly once in .env.example, got:\n%s", second)
+	}
+}
+
+func TestWarnMissingModuleEnv_BillingWarningsAreNonBlocking(t *testing.T) {
+	root := t.TempDir()
+	writeModuleFixtureFiles(t, root)
+
+	out := &bytes.Buffer{}
+	if err := warnMissingModuleEnv(root, moduleCatalog["billing"], out); err != nil {
+		t.Fatalf("warnMissingModuleEnv error: %v", err)
+	}
+	log := out.String()
+	for _, token := range []string{
+		`module "paidsubscriptions"`,
+		"STRIPE_KEY",
+		"STRIPE_WEBHOOK_SECRET",
+		"Set these in .env or your shell",
+	} {
+		if !strings.Contains(log, token) {
+			t.Fatalf("missing warning token %q:\n%s", token, log)
+		}
+	}
+}
+
+func TestWarnMissingModuleEnv_UsesDotEnvAndShellValues(t *testing.T) {
+	root := t.TempDir()
+	writeModuleFixtureFiles(t, root)
+
+	dotEnvPath := filepath.Join(root, ".env")
+	if err := os.WriteFile(dotEnvPath, []byte("STRIPE_KEY=sk_test_123\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("STRIPE_WEBHOOK_SECRET", "whsec_123")
+
+	out := &bytes.Buffer{}
+	if err := warnMissingModuleEnv(root, moduleCatalog["billing"], out); err != nil {
+		t.Fatalf("warnMissingModuleEnv error: %v", err)
+	}
+	if out.Len() != 0 {
+		t.Fatalf("expected no warning output when vars are configured, got:\n%s", out.String())
 	}
 }
 

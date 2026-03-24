@@ -34,6 +34,12 @@ type moduleInfo struct {
 	ContainerSnippet  string
 	RouterSnippets    map[string]string
 	EnvExampleSnippet string
+	RequiredEnv       []requiredEnvVar
+}
+
+type requiredEnvVar struct {
+	Name        string
+	Description string
 }
 
 var (
@@ -56,6 +62,16 @@ var (
 STRIPE_KEY=
 STRIPE_WEBHOOK_SECRET=
 `
+	paidSubscriptionsRequiredEnv = []requiredEnvVar{
+		{
+			Name:        "STRIPE_KEY",
+			Description: "Stripe API key from your Stripe dashboard.",
+		},
+		{
+			Name:        "STRIPE_WEBHOOK_SECRET",
+			Description: "Stripe webhook signing secret for subscription events.",
+		},
+	}
 )
 
 var moduleCatalog = map[string]moduleInfo{
@@ -92,6 +108,7 @@ var moduleCatalog = map[string]moduleInfo{
 		ContainerSnippet:  paidSubscriptionsContainerSnippet,
 		RouterSnippets:    paidSubscriptionsRouterSnippets,
 		EnvExampleSnippet: paidSubscriptionsEnvExampleSnippet,
+		RequiredEnv:       paidSubscriptionsRequiredEnv,
 	},
 	"billing": {
 		ID:                "paidsubscriptions",
@@ -100,6 +117,7 @@ var moduleCatalog = map[string]moduleInfo{
 		ContainerSnippet:  paidSubscriptionsContainerSnippet,
 		RouterSnippets:    paidSubscriptionsRouterSnippets,
 		EnvExampleSnippet: paidSubscriptionsEnvExampleSnippet,
+		RequiredEnv:       paidSubscriptionsRequiredEnv,
 	},
 	"emailsubscriptions": {
 		ID:         "emailsubscriptions",
@@ -220,6 +238,12 @@ func runModuleAdd(args []string, d ModuleDeps) int {
 	if err := applyModuleAdd(root, info, dryRun, d.Out); err != nil {
 		fmt.Fprintf(d.Err, "module:add failed: %v\n", err)
 		return 1
+	}
+	if !dryRun {
+		if err := warnMissingModuleEnv(root, info, d.Out); err != nil {
+			fmt.Fprintf(d.Err, "module:add env checks failed: %v\n", err)
+			return 1
+		}
 	}
 	if dryRun {
 		fmt.Fprintln(d.Out, "Dry-run mode: no files were written.")
@@ -390,6 +414,65 @@ func appendModuleEnvExample(root string, info moduleInfo, dryRun bool, out io.Wr
 		return false, err
 	}
 	return true, nil
+}
+
+func warnMissingModuleEnv(root string, info moduleInfo, out io.Writer) error {
+	if len(info.RequiredEnv) == 0 {
+		return nil
+	}
+
+	dotEnvKeys, err := readDotEnvKeys(filepath.Join(root, ".env"))
+	if err != nil {
+		return err
+	}
+	missing := make([]requiredEnvVar, 0)
+	for _, requirement := range info.RequiredEnv {
+		if _, ok := dotEnvKeys[requirement.Name]; ok {
+			continue
+		}
+		if _, ok := os.LookupEnv(requirement.Name); ok {
+			continue
+		}
+		missing = append(missing, requirement)
+	}
+	if len(missing) == 0 {
+		return nil
+	}
+
+	fmt.Fprintf(out, "Warning: missing environment variables for module %q (installation continues):\n", info.ID)
+	for _, requirement := range missing {
+		fmt.Fprintf(out, "- %s: %s\n", requirement.Name, requirement.Description)
+	}
+	fmt.Fprintln(out, "Set these in .env or your shell before exercising module runtime paths.")
+	return nil
+}
+
+func readDotEnvKeys(path string) (map[string]struct{}, error) {
+	keys := map[string]struct{}{}
+	body, err := os.ReadFile(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return keys, nil
+		}
+		return nil, fmt.Errorf("read %s: %w", path, err)
+	}
+
+	for _, raw := range strings.Split(string(body), "\n") {
+		line := strings.TrimSpace(raw)
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		eq := strings.Index(line, "=")
+		if eq <= 0 {
+			continue
+		}
+		key := strings.TrimSpace(line[:eq])
+		if key == "" {
+			continue
+		}
+		keys[key] = struct{}{}
+	}
+	return keys, nil
 }
 
 func applyModuleRemove(root string, info moduleInfo, dryRun bool, out io.Writer) error {
