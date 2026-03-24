@@ -1921,7 +1921,7 @@
     },
     "TKT-351": {
       "title": "INT1-03-A: Define executable spec and red tests",
-      "state": "backlog",
+      "state": "done",
       "priority": 5
     },
     "TKT-352": {
