@@ -146,11 +146,13 @@ func TestDocs_UpgradeReadinessContractStaysInSync_RedSpec(t *testing.T) {
 		"`ship upgrade --json`",
 		"upgrade-readiness-v1",
 		"schema_version",
+		"blocker_classification",
 		"target_version",
 		"rollback_target",
 		"canary",
 		"verification",
 		"blockers",
+		"manual_follow_ups",
 		"remediation_hints",
 		"planned_changes",
 	} {
