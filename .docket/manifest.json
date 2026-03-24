@@ -2860,7 +2860,7 @@
     },
     "TKT-509": {
       "title": "Add top-level CI lanes that cover fresh app, upgrades, batteries, and standalone operations.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-505"
     },
