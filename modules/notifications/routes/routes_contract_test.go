@@ -81,6 +81,27 @@ func TestNotificationRouteSurface_UsesCanonicalRouteNameConstants(t *testing.T) 
 	}
 }
 
+func TestNotificationRouteSurface_WiresCanonicalNotificationsView(t *testing.T) {
+	t.Parallel()
+
+	path := filepath.Join("routes.go")
+	content, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read %s: %v", path, err)
+	}
+	text := string(content)
+	for _, token := range []string{
+		"templates.PageNotifications",
+		"pages.NotificationsPage",
+		"domain.BottomNavbarItemNotifications",
+		"viewmodels.NewNormalNotificationsPageData",
+	} {
+		if !strings.Contains(text, token) {
+			t.Fatalf("routes.go missing notifications view wiring token %q", token)
+		}
+	}
+}
+
 func stringPtr(value string) *string {
 	return &value
 }

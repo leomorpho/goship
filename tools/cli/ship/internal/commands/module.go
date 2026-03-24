@@ -143,6 +143,18 @@ var moduleCatalog = map[string]moduleInfo{
 		ID:         "notifications",
 		ModulePath: "github.com/leomorpho/goship-modules/notifications",
 		LocalPath:  filepath.Join("modules", "notifications"),
+		InstallContract: moduleInstallContract{
+			Routes: []string{
+				"modules/notifications/routes/routes.go",
+			},
+			Jobs: []string{
+				"modules/notifications/planned_notifications.go",
+				"modules/notifications/planned_notifications_store_sql.go",
+			},
+			Templates: []string{
+				"framework/web/pages/gen/notifications_templ.go",
+			},
+		},
 		ContainerSnippet: `	// ship:module:notifications
 	c.initNotifier()
 `,

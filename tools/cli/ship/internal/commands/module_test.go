@@ -144,6 +144,40 @@ func TestNotificationsModuleCatalog_UsesConcreteWiring(t *testing.T) {
 	}
 }
 
+func TestNotificationsModuleCatalog_InstallContractCoversRoutesViewsAndJobs(t *testing.T) {
+	t.Parallel()
+
+	info, ok := moduleCatalog["notifications"]
+	if !ok {
+		t.Fatal("expected notifications in module catalog")
+	}
+
+	contract := info.installContract()
+	for _, route := range []string{
+		"app/router.go (auth)",
+		"modules/notifications/routes/routes.go",
+	} {
+		if !containsExactString(contract.Routes, route) {
+			t.Fatalf("notifications contract routes missing %q: %#v", route, contract.Routes)
+		}
+	}
+	for _, tmpl := range []string{
+		"framework/web/pages/gen/notifications_templ.go",
+	} {
+		if !containsExactString(contract.Templates, tmpl) {
+			t.Fatalf("notifications contract templates missing %q: %#v", tmpl, contract.Templates)
+		}
+	}
+	for _, jobSurface := range []string{
+		"modules/notifications/planned_notifications.go",
+		"modules/notifications/planned_notifications_store_sql.go",
+	} {
+		if !containsExactString(contract.Jobs, jobSurface) {
+			t.Fatalf("notifications contract jobs missing %q: %#v", jobSurface, contract.Jobs)
+		}
+	}
+}
+
 func TestModuleCatalogUsesConcreteJobsAndStorageSeams(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -1234,4 +1268,13 @@ func writeLocalModuleGoModFixture(t *testing.T, root, localPath, modulePath stri
 	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
 		t.Fatal(err)
 	}
+}
+
+func containsExactString(items []string, want string) bool {
+	for _, item := range items {
+		if item == want {
+			return true
+		}
+	}
+	return false
 }
