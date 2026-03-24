@@ -2335,7 +2335,7 @@
     },
     "TKT-421": {
       "title": "Ensure a fresh generated app boots without edits and prove it with full integration tests.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-418"
     },
