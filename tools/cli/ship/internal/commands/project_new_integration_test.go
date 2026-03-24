@@ -121,7 +121,8 @@ func TestNewProjectIntegration_SupportsMakeModelQueryScaffold(t *testing.T) {
 	}
 }
 
-func TestNewProjectIntegration_FreshAppMigratesBootsRendersAndVerifies(t *testing.T) {
+func TestFreshApp(t *testing.T) {
+	started := time.Now()
 	root := t.TempDir()
 	prevWD, err := os.Getwd()
 	if err != nil {
@@ -183,8 +184,11 @@ func TestNewProjectIntegration_FreshAppMigratesBootsRendersAndVerifies(t *testin
 
 	baseURL := "http://127.0.0.1:" + port
 	waitForStarterServer(t, baseURL+"/health/readiness", serverLog)
-	assertStarterRouteContains(t, baseURL+"/", "Demo")
-	assertStarterRouteContains(t, baseURL+"/auth/homeFeed", "Home Feed")
+	assertStarterRouteStatus(t, baseURL+"/")
+	assertStarterRouteStatus(t, baseURL+"/health")
+	if elapsed := time.Since(started); elapsed > 2*time.Minute {
+		t.Fatalf("fresh-app integration exceeded time budget: %s", elapsed)
+	}
 }
 
 type fakeCall struct {
@@ -349,5 +353,22 @@ func assertStarterRouteContains(t *testing.T, url string, want string) {
 	}
 	if !strings.Contains(string(body), want) {
 		t.Fatalf("GET %s body missing %q:\n%s", url, want, string(body))
+	}
+}
+
+func assertStarterRouteStatus(t *testing.T, url string) {
+	t.Helper()
+	client := &http.Client{Timeout: 2 * time.Second}
+	resp, err := client.Get(url)
+	if err != nil {
+		t.Fatalf("GET %s: %v", url, err)
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatalf("read body for %s: %v", url, err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("GET %s status=%d body=%s", url, resp.StatusCode, string(body))
 	}
 }

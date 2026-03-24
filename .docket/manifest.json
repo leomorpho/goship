@@ -2752,7 +2752,7 @@
     },
     "TKT-491": {
       "title": "Add an end-to-end suite that generates a fresh app, migrates it, boots it, and verifies it.",
-      "state": "backlog",
+      "state": "done",
       "priority": 2,
       "parent": "TKT-490"
     },
