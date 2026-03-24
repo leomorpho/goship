@@ -1443,7 +1443,7 @@
     },
     "TKT-268": {
       "title": "G2-03-B: Implement, verify, and sync docs",
-      "state": "done",
+      "state": "in-progress",
       "priority": 3,
       "parent": "TKT-200"
     },
@@ -1901,7 +1901,7 @@
     },
     "TKT-347": {
       "title": "INT5-03-A: Define executable spec and red tests",
-      "state": "done",
+      "state": "in-progress",
       "priority": 2
     },
     "TKT-348": {
@@ -1936,7 +1936,7 @@
     },
     "TKT-354": {
       "title": "INT5-04-B: Implement, verify, and sync docs",
-      "state": "done",
+      "state": "in-progress",
       "priority": 3
     },
     "TKT-355": {
@@ -1989,7 +1989,7 @@
     },
     "TKT-363": {
       "title": "G5-06: Enforce UI change verification policy in CI (Playwright + browser evidence)",
-      "state": "done",
+      "state": "in-progress",
       "priority": 4,
       "parent": "TKT-192"
     },
@@ -2097,13 +2097,13 @@
     },
     "TKT-381": {
       "title": "G6-03.4: Implement verify profile tiers (fast, standard, strict)",
-      "state": "done",
+      "state": "in-progress",
       "priority": 4,
       "parent": "TKT-212"
     },
     "TKT-382": {
       "title": "G6-03.5: Add Cherie compatibility sync baseline and smoke gate",
-      "state": "done",
+      "state": "in-progress",
       "priority": 4,
       "parent": "TKT-212"
     },
@@ -2145,13 +2145,13 @@
     },
     "TKT-389": {
       "title": "Battery wiring: make ship module:add admin insert real wiring",
-      "state": "done",
+      "state": "in-progress",
       "priority": 4,
       "parent": "TKT-191"
     },
     "TKT-390": {
       "title": "Battery wiring: make ship module:add jobs and storage insert concrete seams",
-      "state": "done",
+      "state": "in-progress",
       "priority": 4,
       "parent": "TKT-191"
     },
@@ -2174,13 +2174,13 @@
     },
     "TKT-394": {
       "title": "Remove stale tooling references to the deleted internal app shell and update path-based tests.",
-      "state": "done",
+      "state": "in-progress",
       "priority": 4,
       "parent": "TKT-392"
     },
     "TKT-395": {
       "title": "Remove stale docs references to the deleted internal app shell and add doc-link regression checks.",
-      "state": "done",
+      "state": "in-progress",
       "priority": 4,
       "parent": "TKT-392"
     },
@@ -2437,13 +2437,13 @@
     },
     "TKT-438": {
       "title": "Add fast-path failure detection for broken generated apps and prove doctor surfaces root causes first.",
-      "state": "done",
+      "state": "backlog",
       "priority": 4,
       "parent": "TKT-436"
     },
     "TKT-439": {
       "title": "Add startup error messages that name missing config, secrets, or services and prove them in runtime tests.",
-      "state": "in-progress",
+      "state": "backlog",
       "priority": 4,
       "parent": "TKT-436"
     },
@@ -2508,13 +2508,13 @@
     },
     "TKT-450": {
       "title": "Make generator path ownership explicit and fail when output escapes canonical app-owned locations.",
-      "state": "done",
+      "state": "backlog",
       "priority": 4,
       "parent": "TKT-444"
     },
     "TKT-451": {
       "title": "Add a generator acceptance suite that creates and mutates fresh apps through multiple commands.",
-      "state": "in-progress",
+      "state": "backlog",
       "priority": 4,
       "parent": "TKT-444"
     },
@@ -2651,7 +2651,7 @@
     },
     "TKT-474": {
       "title": "Add upgrade blocker classification and prove manual-follow-up items are surfaced consistently.",
-      "state": "in-progress",
+      "state": "backlog",
       "priority": 4,
       "parent": "TKT-470"
     },
@@ -2776,13 +2776,13 @@
     },
     "TKT-495": {
       "title": "Add a route-contract suite that locks starter route names and ownership.",
-      "state": "done",
+      "state": "backlog",
       "priority": 4,
       "parent": "TKT-490"
     },
     "TKT-496": {
       "title": "Add a fresh-app CI lane that runs generation, batteries, verify, and smoke tests together.",
-      "state": "done",
+      "state": "backlog",
       "priority": 4,
       "parent": "TKT-490"
     },
@@ -2794,43 +2794,43 @@
     },
     "TKT-498": {
       "title": "Add golden tests for every generator command output path.",
-      "state": "done",
+      "state": "backlog",
       "priority": 4,
       "parent": "TKT-497"
     },
     "TKT-499": {
       "title": "Add module boundary tests that fail when modules depend on non-canonical framework internals.",
-      "state": "done",
+      "state": "backlog",
       "priority": 4,
       "parent": "TKT-497"
     },
     "TKT-500": {
       "title": "Add route-collision tests across first-party modules.",
-      "state": "done",
+      "state": "backlog",
       "priority": 4,
       "parent": "TKT-497"
     },
     "TKT-501": {
       "title": "Add config-collision tests across first-party modules.",
-      "state": "done",
+      "state": "backlog",
       "priority": 4,
       "parent": "TKT-497"
     },
     "TKT-502": {
       "title": "Add asset-collision tests across first-party modules.",
-      "state": "done",
+      "state": "backlog",
       "priority": 4,
       "parent": "TKT-497"
     },
     "TKT-503": {
       "title": "Add migration-order tests across first-party modules.",
-      "state": "done",
+      "state": "backlog",
       "priority": 4,
       "parent": "TKT-497"
     },
     "TKT-504": {
       "title": "Add a matrix suite proving supported battery combinations install and remove cleanly.",
-      "state": "done",
+      "state": "backlog",
       "priority": 4,
       "parent": "TKT-497"
     },
@@ -2842,31 +2842,31 @@
     },
     "TKT-506": {
       "title": "Add startup smoke tests for health, readiness, web boot, worker boot, and migrations.",
-      "state": "done",
+      "state": "backlog",
       "priority": 4,
       "parent": "TKT-505"
     },
     "TKT-507": {
       "title": "Add fixture-based doctor tests for missing config, broken secrets, and invalid adapters.",
-      "state": "done",
+      "state": "backlog",
       "priority": 4,
       "parent": "TKT-505"
     },
     "TKT-508": {
       "title": "Add verify tests for structural drift, forbidden edits, and invalid generated layout.",
-      "state": "done",
+      "state": "backlog",
       "priority": 4,
       "parent": "TKT-505"
     },
     "TKT-509": {
       "title": "Add top-level CI lanes that cover fresh app, upgrades, batteries, and standalone operations.",
-      "state": "done",
+      "state": "backlog",
       "priority": 4,
       "parent": "TKT-505"
     },
     "TKT-510": {
       "title": "Add failure-injection tests proving commands fail with actionable output instead of silent drift.",
-      "state": "done",
+      "state": "backlog",
       "priority": 4,
       "parent": "TKT-505"
     },
@@ -3211,19 +3211,19 @@
     },
     "TKT-568": {
       "title": "Implement verify profile tiers and prove command behavior across representative project states.",
-      "state": "done",
+      "state": "backlog",
       "priority": 4,
       "parent": "TKT-505"
     },
     "TKT-569": {
       "title": "Implement Cherie compatibility smoke baseline and prove downstream compatibility in CI and browser tests.",
-      "state": "done",
+      "state": "backlog",
       "priority": 4,
       "parent": "TKT-505"
     },
     "TKT-570": {
       "title": "Implement an alpha contract gate and prove pre-release contract drift fails verification.",
-      "state": "done",
+      "state": "backlog",
       "priority": 4,
       "parent": "TKT-505"
     },
