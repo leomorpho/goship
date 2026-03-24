@@ -2764,7 +2764,7 @@
     },
     "TKT-493": {
       "title": "Add a worker process suite that proves generated apps boot web and worker processes together.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-490"
     },
