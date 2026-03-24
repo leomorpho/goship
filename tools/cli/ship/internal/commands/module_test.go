@@ -695,6 +695,41 @@ func TestApplyModuleAdd_BillingAppendsStripeEnvExample(t *testing.T) {
 	}
 }
 
+func TestApplyModuleAddRemove_BillingRestoresEnvExample(t *testing.T) {
+	root := t.TempDir()
+	writeModuleFixtureFiles(t, root)
+	if err := os.MkdirAll(filepath.Join(root, "modules", "paidsubscriptions"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, "modules", "paidsubscriptions", "go.mod"), []byte("module github.com/leomorpho/goship-modules/paidsubscriptions\n\ngo 1.24.0\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	info, ok := moduleCatalog["billing"]
+	if !ok {
+		t.Fatal("expected billing in module catalog")
+	}
+
+	envExamplePath := filepath.Join(root, ".env.example")
+	original := readTestFile(t, envExamplePath)
+
+	if err := applyModuleAdd(root, info, false, io.Discard); err != nil {
+		t.Fatalf("applyModuleAdd error: %v", err)
+	}
+	withBilling := readTestFile(t, envExamplePath)
+	if !strings.Contains(withBilling, "STRIPE_KEY=") || !strings.Contains(withBilling, "STRIPE_WEBHOOK_SECRET=") {
+		t.Fatalf("expected stripe env vars in .env.example after add, got:\n%s", withBilling)
+	}
+
+	if err := applyModuleRemove(root, info, false, io.Discard); err != nil {
+		t.Fatalf("applyModuleRemove error: %v", err)
+	}
+	afterRemove := readTestFile(t, envExamplePath)
+	if afterRemove != original {
+		t.Fatalf(".env.example did not restore after remove:\nwant:\n%s\ngot:\n%s", original, afterRemove)
+	}
+}
+
 func TestWarnMissingModuleEnv_BillingWarningsAreNonBlocking(t *testing.T) {
 	root := t.TempDir()
 	writeModuleFixtureFiles(t, root)
