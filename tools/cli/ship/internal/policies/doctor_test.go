@@ -66,6 +66,36 @@ func TestRunDoctorChecks(t *testing.T) {
 		}
 	})
 
+	t.Run("generated app fast-path root causes map to scaffold generator owner hint", func(t *testing.T) {
+		root := t.TempDir()
+		writeDoctorFixture(t, root)
+		if err := os.RemoveAll(filepath.Join(root, "app", "jobs")); err != nil {
+			t.Fatal(err)
+		}
+
+		issues := FastPathGeneratedAppIssues(root)
+		if len(issues) == 0 {
+			t.Fatalf("expected fast-path issues")
+		}
+		if got, want := IssueOwnerHint(issues[0].Code), "ship new scaffold generator (tools/cli/ship/internal/commands/project_new.go)"; got != want {
+			t.Fatalf("IssueOwnerHint(%q) = %q, want %q", issues[0].Code, got, want)
+		}
+	})
+
+	t.Run("policy drift issue maps to doctor policy owner hint", func(t *testing.T) {
+		root := t.TempDir()
+		writeDoctorFixture(t, root)
+		if err := os.MkdirAll(filepath.Join(root, "scratch"), 0o755); err != nil {
+			t.Fatal(err)
+		}
+
+		issues := RunDoctorChecks(root)
+		mustContainIssueCode(t, issues, "DX013")
+		if got, want := IssueOwnerHint("DX013"), "doctor policy checks (tools/cli/ship/internal/policies/doctor.go)"; got != want {
+			t.Fatalf("IssueOwnerHint(DX013) = %q, want %q", got, want)
+		}
+	})
+
 	t.Run("forbidden legacy path present", func(t *testing.T) {
 		root := t.TempDir()
 		writeDoctorFixture(t, root)
