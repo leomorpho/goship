@@ -231,6 +231,49 @@ func TestModuleCatalogUsesConcreteJobsAndStorageSeams(t *testing.T) {
 	}
 }
 
+func TestJobsModuleCatalog_InstallContractCoversWorkerQueueScheduleTests(t *testing.T) {
+	t.Parallel()
+
+	info, ok := moduleCatalog["jobs"]
+	if !ok {
+		t.Fatal("expected jobs in module catalog")
+	}
+	contract := info.installContract()
+
+	for _, configPath := range []string{
+		"config/modules.yaml",
+		"app/foundation/container.go",
+		"go.mod",
+		"go.work",
+	} {
+		if !containsExactString(contract.Config, configPath) {
+			t.Fatalf("jobs contract config missing %q: %#v", configPath, contract.Config)
+		}
+	}
+	if !containsExactString(contract.Migrations, "modules/jobs/db/migrate/migrations") {
+		t.Fatalf("jobs contract missing migration ownership: %#v", contract.Migrations)
+	}
+	for _, jobSurface := range []string{
+		"modules/jobs/core_jobs_sql.go",
+		"modules/jobs/core_jobs_redis.go",
+		"modules/jobs/core_jobs_backlite.go",
+		"modules/jobs/queue_priority.go",
+	} {
+		if !containsExactString(contract.Jobs, jobSurface) {
+			t.Fatalf("jobs contract missing runtime surface %q: %#v", jobSurface, contract.Jobs)
+		}
+	}
+	for _, testSurface := range []string{
+		"modules/jobs/core_jobs_sql_test.go",
+		"modules/jobs/drivers/sql/client_integration_test.go",
+		"modules/jobs/core_jobs_redis_schedule_test.go",
+	} {
+		if !containsExactString(contract.Tests, testSurface) {
+			t.Fatalf("jobs contract missing integration test surface %q: %#v", testSurface, contract.Tests)
+		}
+	}
+}
+
 func TestModuleCatalog_InstallContractCoverage(t *testing.T) {
 	for id, info := range moduleCatalog {
 		if info.installContract().IsEmpty() {

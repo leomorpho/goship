@@ -221,6 +221,19 @@ var moduleCatalog = map[string]moduleInfo{
 		ID:         "jobs",
 		ModulePath: "github.com/leomorpho/goship-modules/jobs",
 		LocalPath:  filepath.Join("modules", "jobs"),
+		InstallContract: moduleInstallContract{
+			Jobs: []string{
+				"modules/jobs/core_jobs_sql.go",
+				"modules/jobs/core_jobs_redis.go",
+				"modules/jobs/core_jobs_backlite.go",
+				"modules/jobs/queue_priority.go",
+			},
+			Tests: []string{
+				"modules/jobs/core_jobs_sql_test.go",
+				"modules/jobs/drivers/sql/client_integration_test.go",
+				"modules/jobs/core_jobs_redis_schedule_test.go",
+			},
+		},
 		ContainerSnippet: `
 	// ship:module:jobs
 	// Wire framework/bootstrap.WireJobsRuntime into c.CoreJobs and c.CoreJobsInspector.
