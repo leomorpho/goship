@@ -1573,7 +1573,7 @@
     },
     "TKT-290": {
       "title": "G6-02-B: Implement, verify, and sync docs",
-      "state": "backlog",
+      "state": "done",
       "priority": 3,
       "parent": "TKT-211"
     },
