@@ -2437,7 +2437,7 @@
     },
     "TKT-438": {
       "title": "Add fast-path failure detection for broken generated apps and prove doctor surfaces root causes first.",
-      "state": "in-progress",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-436"
     },
