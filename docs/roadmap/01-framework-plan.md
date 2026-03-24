@@ -213,6 +213,8 @@ Not priority:
 
 ## Production Readiness View
 
+Beta gate definition now lives in `docs/beta-readiness.md` and is the release decision checklist for beta labeling.
+
 ### OSS GoShip
 
 Current honest assessment:

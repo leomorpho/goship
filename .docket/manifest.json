@@ -3313,7 +3313,7 @@
     },
     "TKT-586": {
       "title": "Define and document GoShip beta readiness checklist with explicit pass/fail criteria",
-      "state": "backlog",
+      "state": "done",
       "priority": 2,
       "parent": "TKT-188"
     },
