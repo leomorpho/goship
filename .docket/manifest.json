@@ -2645,7 +2645,7 @@
     },
     "TKT-473": {
       "title": "Add explicit upgrade compatibility windows and prove unsupported jumps fail clearly in tests.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-470"
     },
