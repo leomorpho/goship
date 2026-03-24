@@ -2103,7 +2103,7 @@
     },
     "TKT-382": {
       "title": "G6-03.5: Add Cherie compatibility sync baseline and smoke gate",
-      "state": "in-progress",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-212"
     },
