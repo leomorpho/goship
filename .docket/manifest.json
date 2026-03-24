@@ -2431,7 +2431,7 @@
     },
     "TKT-437": {
       "title": "Replace ambiguous CLI failures with corrective messages and prove them with error-path tests.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-436"
     },
