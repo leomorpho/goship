@@ -2794,7 +2794,7 @@
     },
     "TKT-498": {
       "title": "Add golden tests for every generator command output path.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-497"
     },
