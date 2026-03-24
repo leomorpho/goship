@@ -2753,7 +2753,7 @@
     "TKT-491": {
       "title": "Add an end-to-end suite that generates a fresh app, migrates it, boots it, and verifies it.",
       "state": "backlog",
-      "priority": 3,
+      "priority": 2,
       "parent": "TKT-490"
     },
     "TKT-492": {
@@ -3302,7 +3302,7 @@
     "TKT-584": {
       "title": "Add Playwright test proving the full auth golden flow: register → login → protected route → logout",
       "state": "backlog",
-      "priority": 3,
+      "priority": 2,
       "parent": "TKT-188"
     },
     "TKT-585": {
