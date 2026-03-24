@@ -1,8 +1,10 @@
 package generators
 
 import (
+	"errors"
 	"fmt"
 	"io"
+	"path/filepath"
 	"strings"
 	"unicode"
 )
@@ -131,4 +133,23 @@ func insertBeforeAnchor(src, anchor, snippet string) (string, bool, error) {
 		insert += "\n"
 	}
 	return src[:idx] + insert + src[idx:], true, nil
+}
+
+func normalizeOwnedGeneratorPath(raw, owner string) (string, error) {
+	cleanOwner := filepath.ToSlash(filepath.Clean(strings.TrimSpace(owner)))
+	cleanPath := filepath.ToSlash(filepath.Clean(strings.TrimSpace(raw)))
+
+	if strings.TrimSpace(raw) == "" || cleanPath == "." {
+		return "", errors.New("path cannot be empty")
+	}
+	if filepath.IsAbs(strings.TrimSpace(raw)) {
+		return "", fmt.Errorf("path %q escapes canonical %s-owned location %q", raw, cleanOwner, cleanOwner)
+	}
+	if cleanPath == ".." || strings.HasPrefix(cleanPath, "../") {
+		return "", fmt.Errorf("path %q escapes canonical %s-owned location %q", raw, cleanOwner, cleanOwner)
+	}
+	if cleanPath != cleanOwner {
+		return "", fmt.Errorf("path %q escapes canonical %s-owned location %q", raw, cleanOwner, cleanOwner)
+	}
+	return cleanOwner, nil
 }

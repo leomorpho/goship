@@ -34,6 +34,16 @@ func TestParseMakeControllerArgs_InvalidAction(t *testing.T) {
 	}
 }
 
+func TestParseMakeControllerArgs_PathOwnership(t *testing.T) {
+	_, err := ParseMakeControllerArgs([]string{"Posts", "--path", "../app"})
+	if err == nil {
+		t.Fatal("expected path ownership error")
+	}
+	if !strings.Contains(err.Error(), "canonical app-owned location") {
+		t.Fatalf("err = %v, want canonical ownership guidance", err)
+	}
+}
+
 func TestNormalizeControllerName(t *testing.T) {
 	names, err := NormalizeControllerName("BlogPostsController")
 	if err != nil {

@@ -29,15 +29,20 @@ func TestParseMakeModuleArgs(t *testing.T) {
 		},
 		{
 			name: "full flags",
-			args: []string{"EmailSubscriptions", "--path", "pkg/custom", "--module-base", "example.com/mods", "--dry-run", "--force"},
+			args: []string{"EmailSubscriptions", "--path", "modules", "--module-base", "example.com/mods", "--dry-run", "--force"},
 			check: func(t *testing.T, opts ModuleMakeOptions) {
-				if opts.Path != "pkg/custom" || opts.ModuleBase != "example.com/mods" {
+				if opts.Path != "modules" || opts.ModuleBase != "example.com/mods" {
 					t.Fatalf("unexpected opts: %+v", opts)
 				}
 				if !opts.DryRun || !opts.Force {
 					t.Fatalf("expected dry-run+force in %+v", opts)
 				}
 			},
+		},
+		{
+			name:    "path escapes canonical modules root",
+			args:    []string{"EmailSubscriptions", "--path", "../pkg/custom"},
+			wantErr: "canonical modules-owned location",
 		},
 		{
 			name:    "missing name",

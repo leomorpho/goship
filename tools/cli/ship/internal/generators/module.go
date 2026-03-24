@@ -123,6 +123,11 @@ func ParseMakeModuleArgs(args []string) (ModuleMakeOptions, error) {
 	if strings.TrimSpace(opts.ModuleBase) == "" {
 		return opts, errors.New("module-base cannot be empty")
 	}
+	normalizedPath, err := normalizeOwnedGeneratorPath(opts.Path, "modules")
+	if err != nil {
+		return opts, err
+	}
+	opts.Path = normalizedPath
 	return opts, nil
 }
 
