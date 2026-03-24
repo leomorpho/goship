@@ -2288,7 +2288,7 @@
     },
     "TKT-413": {
       "title": "Remove dead compatibility code left over from internal-app extraction and cover package compilation.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-410"
     },
