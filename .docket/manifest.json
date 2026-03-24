@@ -1995,7 +1995,7 @@
     },
     "TKT-364": {
       "title": "G1-10: Add docs lint to reject transition-era wording in canonical architecture docs",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-233"
     },
