@@ -434,6 +434,55 @@ func TestApplyModuleAddRemove_FirstPartyBatteriesGolden(t *testing.T) {
 	}
 }
 
+func TestApplyModuleAdd_IdempotentAcrossFirstPartyBatteries(t *testing.T) {
+	firstPartyBatteries := []string{
+		"notifications",
+		"paidsubscriptions",
+		"emailsubscriptions",
+		"jobs",
+		"storage",
+	}
+
+	for _, battery := range firstPartyBatteries {
+		t.Run(battery, func(t *testing.T) {
+			info, ok := moduleCatalog[battery]
+			if !ok {
+				t.Fatalf("expected %q in module catalog", battery)
+			}
+
+			root := t.TempDir()
+			writeNotificationsModuleFixtureFiles(t, root)
+			writeLocalModuleGoModFixture(t, root, info.LocalPath, info.ModulePath)
+
+			tracked := []string{
+				filepath.Join(root, "app", "foundation", "container.go"),
+				filepath.Join(root, "app", "router.go"),
+				filepath.Join(root, "config", "modules.yaml"),
+				filepath.Join(root, "go.mod"),
+				filepath.Join(root, "go.work"),
+				filepath.Join(root, ".env.example"),
+			}
+
+			if err := applyModuleAdd(root, info, false, io.Discard); err != nil {
+				t.Fatalf("applyModuleAdd first pass error: %v", err)
+			}
+			firstPass := map[string]string{}
+			for _, path := range tracked {
+				firstPass[path] = readTestFile(t, path)
+			}
+
+			if err := applyModuleAdd(root, info, false, io.Discard); err != nil {
+				t.Fatalf("applyModuleAdd second pass error: %v", err)
+			}
+			for _, path := range tracked {
+				if got := readTestFile(t, path); got != firstPass[path] {
+					t.Fatalf("%s changed on second add for %s:\nfirst:\n%s\nsecond:\n%s", path, battery, firstPass[path], got)
+				}
+			}
+		})
+	}
+}
+
 func TestApplyModuleAdd_WiresLocalModuleDependencyContract_RedSpec(t *testing.T) {
 	root := t.TempDir()
 	writeModuleFixtureFiles(t, root)
