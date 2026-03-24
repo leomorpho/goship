@@ -143,6 +143,20 @@ func TestRunMakeModule_Integration(t *testing.T) {
 	if !strings.Contains(string(moduleFile), "package emailsubscriptions") {
 		t.Fatalf("unexpected module.go package:\n%s", string(moduleFile))
 	}
+	for _, token := range []string{
+		"type InstallContract struct",
+		"Routes     []string",
+		"Config     []string",
+		"Assets     []string",
+		"Jobs       []string",
+		"Templates  []string",
+		"Migrations []string",
+		"func Contract() InstallContract",
+	} {
+		if !strings.Contains(string(moduleFile), token) {
+			t.Fatalf("module.go missing install contract token %q:\n%s", token, string(moduleFile))
+		}
+	}
 
 	bobgen, err := os.ReadFile(filepath.Join(moduleDir, "db", "bobgen.yaml"))
 	if err != nil {

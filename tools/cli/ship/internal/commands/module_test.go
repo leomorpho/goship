@@ -175,6 +175,45 @@ func TestModuleCatalogUsesConcreteJobsAndStorageSeams(t *testing.T) {
 	}
 }
 
+func TestModuleCatalog_InstallContractCoverage(t *testing.T) {
+	for id, info := range moduleCatalog {
+		if info.installContract().IsEmpty() {
+			t.Fatalf("module %q must define an install contract", id)
+		}
+	}
+}
+
+func TestRunModuleAdd_DryRunPrintsInstallContract(t *testing.T) {
+	root := t.TempDir()
+	writeModuleFixtureFiles(t, root)
+
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	code := RunModule([]string{"add", "jobs", "--dry-run"}, ModuleDeps{
+		Out: out,
+		Err: errOut,
+		FindGoModule: func(start string) (string, string, error) {
+			return root, "example.com/demo", nil
+		},
+	})
+	if code != 0 {
+		t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
+	}
+	for _, token := range []string{
+		"install contract for module",
+		"routes:",
+		"config:",
+		"assets:",
+		"jobs:",
+		"templates:",
+		"migrations:",
+	} {
+		if !strings.Contains(strings.ToLower(out.String()), token) {
+			t.Fatalf("dry-run output missing %q:\n%s", token, out.String())
+		}
+	}
+}
+
 func TestApplyModuleAdd_TwoFactor(t *testing.T) {
 	root := t.TempDir()
 
