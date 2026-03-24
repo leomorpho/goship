@@ -148,6 +148,11 @@ func ParseGenerateResourceArgs(args []string) (ResourceGenerateOptions, error) {
 	if len(positionals) == 1 {
 		opts.Name = positionals[0]
 	}
+	normalizedPath, err := normalizeOwnedGeneratorPath(opts.Path, "app")
+	if err != nil {
+		return opts, err
+	}
+	opts.Path = normalizedPath
 	return opts, nil
 }
 

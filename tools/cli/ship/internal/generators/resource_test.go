@@ -20,6 +20,24 @@ func TestParseGenerateResourceArgs_WithDomain(t *testing.T) {
 	}
 }
 
+func TestParseGenerateResourceArgs_PathOwnership(t *testing.T) {
+	tests := [][]string{
+		{"inbox", "--path", "../app"},
+		{"inbox", "--path", "/tmp/app"},
+		{"inbox", "--path", "pkg/custom"},
+	}
+
+	for _, args := range tests {
+		_, err := ParseGenerateResourceArgs(args)
+		if err == nil {
+			t.Fatalf("expected path ownership error for args %v", args)
+		}
+		if !strings.Contains(err.Error(), "canonical app-owned location") {
+			t.Fatalf("err = %v, want canonical ownership guidance", err)
+		}
+	}
+}
+
 func TestNormalizeResourceName(t *testing.T) {
 	tests := []struct {
 		name       string

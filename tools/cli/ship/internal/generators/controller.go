@@ -205,9 +205,11 @@ func ParseMakeControllerArgs(args []string) (ControllerMakeOptions, error) {
 	if opts.Auth != "public" && opts.Auth != "auth" {
 		return opts, fmt.Errorf("invalid --auth value %q (expected public|auth)", opts.Auth)
 	}
-	if strings.TrimSpace(opts.Path) == "" {
-		return opts, errors.New("path cannot be empty")
+	normalizedPath, err := normalizeOwnedGeneratorPath(opts.Path, "app")
+	if err != nil {
+		return opts, err
 	}
+	opts.Path = normalizedPath
 	return opts, nil
 }
 
