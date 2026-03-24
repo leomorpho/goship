@@ -285,6 +285,7 @@ func RunVerify(args []string, d VerifyDeps) int {
 	}
 
 	if failed != nil {
+		fmt.Fprintf(d.Err, "verify failed (%dms)\n", elapsedMS)
 		fmt.Fprintf(d.Err, "verify failed at %s (%dms)\n", failed.Name, failed.DurationMS)
 		if failed.Output != "" {
 			fmt.Fprintln(d.Err, failed.Output)

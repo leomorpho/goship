@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 
 	policies "github.com/leomorpho/goship/tools/cli/ship/internal/policies"
 )
@@ -237,6 +238,68 @@ func TestRunVerify(t *testing.T) {
 		}
 		if !strings.Contains(errOut.String(), "Next step: run `ship runtime:report --json`") {
 			t.Fatalf("stderr = %q, want operator guidance", errOut.String())
+		}
+	})
+
+	t.Run("failure output includes concise total elapsed timing", func(t *testing.T) {
+		root := t.TempDir()
+		writeVerifyGoMod(t, root)
+		prevWD := chdirVerifyRoot(t, root)
+		t.Cleanup(func() { _ = os.Chdir(prevWD) })
+
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+		calls := make([]string, 0)
+
+		base := time.Unix(0, 0)
+		timepoints := []time.Time{
+			base,
+			base.Add(10 * time.Millisecond),
+			base.Add(25 * time.Millisecond),
+			base.Add(40 * time.Millisecond),
+			base.Add(70 * time.Millisecond),
+			base.Add(90 * time.Millisecond),
+		}
+		nowCalls := 0
+
+		code := RunVerify([]string{}, VerifyDeps{
+			Out:          out,
+			Err:          errOut,
+			FindGoModule: findVerifyGoModule,
+			RelocateTempl: func(rootPath string) error {
+				return nil
+			},
+			RunStep: func(name string, args ...string) (int, string, error) {
+				calls = append(calls, name+" "+strings.Join(args, " "))
+				if len(calls) == 2 {
+					return 1, "compile failed", nil
+				}
+				return 0, "ok", nil
+			},
+			LookPath: func(file string) (string, error) {
+				return "/usr/bin/" + file, nil
+			},
+			RunDoctor: func() (int, string, error) {
+				t.Fatal("doctor should not run after build failure")
+				return 0, "", nil
+			},
+			Now: func() time.Time {
+				if nowCalls >= len(timepoints) {
+					return timepoints[len(timepoints)-1]
+				}
+				v := timepoints[nowCalls]
+				nowCalls++
+				return v
+			},
+		})
+		if code != 1 {
+			t.Fatalf("exit code = %d, want 1", code)
+		}
+		if !regexp.MustCompile(`verify failed at go build \./\.\.\. \(\d+ms\)`).MatchString(errOut.String()) {
+			t.Fatalf("stderr = %q, want failed-step timing", errOut.String())
+		}
+		if !strings.Contains(errOut.String(), "verify failed (90ms)") {
+			t.Fatalf("stderr = %q, want total elapsed timing", errOut.String())
 		}
 	})
 
