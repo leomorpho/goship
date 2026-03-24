@@ -227,7 +227,7 @@ func (c *Container) Shutdown() error {
 func (c *Container) initConfig() {
 	cfg, err := config.GetConfig()
 	if err != nil {
-		panic(fmt.Sprintf("failed to load config: %v", err))
+		panic(fmt.Sprintf("startup configuration failure: could not load config from .env/environment (%v). Check required PAGODA_* settings and secret values.", err))
 	}
 	c.Config = &cfg
 }
@@ -288,7 +288,11 @@ func (c *Container) initWeb() {
 func (c *Container) initCache() {
 	var err error
 	if c.Cache, err = cacherepo.NewClient(c.Config); err != nil {
-		panic(err)
+		panic(fmt.Sprintf(
+			"startup cache service failure: could not initialize cache adapter %q (%v). Check PAGODA_ADAPTERS_CACHE plus cache service settings (PAGODA_CACHE_HOSTNAME/PAGODA_CACHE_PORT).",
+			c.Adapters.Selection.Cache,
+			err,
+		))
 	}
 }
 
@@ -334,19 +338,23 @@ func (c *Container) initDatabase() {
 
 		c.Database, err = OpenEmbeddedDB(c.Config.Database.EmbeddedDriver, connection)
 		if err != nil {
-			panic(err)
+			panic(fmt.Sprintf(
+				"startup database service failure: could not initialize embedded database driver %q (%v). Check PAGODA_DATABASE_EMBEDDEDDRIVER and PAGODA_DATABASE_EMBEDDEDCONNECTION/PAGODA_DB_PATH.",
+				c.Config.Database.EmbeddedDriver,
+				err,
+			))
 		}
 	} else {
 
 		if c.Config.App.Environment == config.EnvProduction {
 			c.Database, err = sql.Open("pgx", c.getProdDBAddr(c.Config.Database.DatabaseNameProd))
 			if err != nil {
-				panic(fmt.Sprintf("failed to connect to database: %v", err))
+				panic(fmt.Sprintf("startup database service failure: could not open postgres connection for production (%v). Check PAGODA_DATABASE_HOSTNAME/PAGODA_DATABASE_PORT and credentials.", err))
 			}
 		} else {
 			c.Database, err = sql.Open("pgx", c.getDBAddr(c.Config.Database.DatabaseNameLocal))
 			if err != nil {
-				panic(fmt.Sprintf("failed to connect to database: %v", err))
+				panic(fmt.Sprintf("startup database service failure: could not open postgres connection (%v). Check PAGODA_DATABASE_HOSTNAME/PAGODA_DATABASE_PORT and credentials.", err))
 			}
 		}
 
@@ -365,16 +373,16 @@ func (c *Container) initDatabase() {
 			}
 			// Create the test database
 			if _, err = c.Database.Exec(createTestDatabase + c.Config.Database.TestDatabase); err != nil {
-				panic(fmt.Sprintf("failed to create test database: %v", err))
+				panic(fmt.Sprintf("startup database service failure: could not create test database %q (%v). Check PAGODA_DATABASE_HOSTNAME/PAGODA_DATABASE_PORT and privileges.", c.Config.Database.TestDatabase, err))
 			}
 
 			// Connect to the test database
 			if err = c.Database.Close(); err != nil {
-				panic(fmt.Sprintf("failed to close database connection: %v", err))
+				panic(fmt.Sprintf("startup database service failure: could not close bootstrap database connection (%v)", err))
 			}
 			c.Database, err = sql.Open("pgx", c.getDBAddr(c.Config.Database.TestDatabase))
 			if err != nil {
-				panic(fmt.Sprintf("failed to connect to database: %v", err))
+				panic(fmt.Sprintf("startup database service failure: could not open test database connection (%v). Check PAGODA_DATABASE_HOSTNAME/PAGODA_DATABASE_PORT and credentials.", err))
 			}
 		}
 		// Create the pgvector extension
@@ -384,7 +392,7 @@ func (c *Container) initDatabase() {
 		}
 		_, err = c.Database.Exec(createVectorExtension)
 		if err != nil {
-			panic(fmt.Sprintf("failed to enable pgvector: %v", err))
+			panic(fmt.Sprintf("startup database service failure: could not enable pgvector extension (%v). Check postgres service availability plus PAGODA_DATABASE_HOSTNAME/PAGODA_DATABASE_PORT and extension privileges.", err))
 		}
 	}
 }
@@ -437,6 +445,9 @@ func (c *Container) resolveMailImplementation() mailer.MailClientInterface {
 		if apiKey == "" {
 			apiKey = strings.TrimSpace(c.Config.Mail.ResendAPIKey)
 		}
+		if apiKey == "" {
+			panic("startup mail secret missing: resend mail driver requires PAGODA_MAIL_RESEND_API_KEY (or PAGODA_MAIL_RESENDAPIKEY)")
+		}
 		return mailer.NewResendMailClient(apiKey)
 	case "smtp":
 		host := strings.TrimSpace(c.Config.Mail.SMTP.Host)
@@ -457,7 +468,7 @@ func (c *Container) resolveMailImplementation() mailer.MailClientInterface {
 	case "log":
 		return mailer.NewLogMailClient(slog.Default())
 	default:
-		panic(fmt.Sprintf("unsupported mail driver %q", c.Config.Mail.Driver))
+		panic(fmt.Sprintf("startup mail configuration failure: unsupported mail driver %q (set PAGODA_MAIL_DRIVER to log, smtp, or resend)", c.Config.Mail.Driver))
 	}
 }
 
