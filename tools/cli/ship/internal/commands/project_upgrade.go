@@ -29,6 +29,7 @@ type UpgradeReadinessReport struct {
 	RollbackTarget        string                   `json:"rollback_target"`
 	Canary                UpgradeCanaryPlan        `json:"canary"`
 	Verification          UpgradeVerification      `json:"verification"`
+	Result                UpgradeResult            `json:"result"`
 	Blockers              []UpgradeReadinessItem   `json:"blockers"`
 	ManualFollowUps       []UpgradeManualFollowUp  `json:"manual_follow_ups"`
 	RemediationHints      []string                 `json:"remediation_hints"`
@@ -62,6 +63,13 @@ type UpgradeCanaryPlan struct {
 type UpgradeVerification struct {
 	Command string `json:"command"`
 	Note    string `json:"note"`
+}
+
+type UpgradeResult struct {
+	Mode    string `json:"mode"`
+	Outcome string `json:"outcome"`
+	Changed bool   `json:"changed"`
+	Applied bool   `json:"applied"`
 }
 
 func RunUpgrade(args []string, d UpgradeDeps) int {
@@ -184,6 +192,12 @@ func buildUpgradeReadinessReport(path, currentVersion, targetVersion string, cha
 			Command: dryRunCommand,
 			Note:    "Review the readiness report and planned mutation before writing the new pin.",
 		},
+		Result: UpgradeResult{
+			Mode:    "preflight",
+			Outcome: "already-pinned",
+			Changed: changed,
+			Applied: false,
+		},
 		Blockers: []UpgradeReadinessItem{},
 		ManualFollowUps: []UpgradeManualFollowUp{
 			{
@@ -205,6 +219,7 @@ func buildUpgradeReadinessReport(path, currentVersion, targetVersion string, cha
 		PlannedChanges: []UpgradePlannedChange{},
 	}
 	if changed {
+		report.Result.Outcome = "planned-change"
 		report.PlannedChanges = append(report.PlannedChanges, UpgradePlannedChange{
 			File:    path,
 			Current: currentVersion,

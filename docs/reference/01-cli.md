@@ -251,7 +251,7 @@ Safety matrix:
 - `ship upgrade --to <version>` -> upgrades the pinned Goose CLI go-run fallback version (`gooseGoRunRef` in `tools/cli/ship/internal/cli/cli.go`)
 - `ship upgrade --contract-version <schema>` -> requires the supported upgrade readiness contract version before mutating pins
 - `ship upgrade --dry-run` -> prints planned pin change without writing files
-- `ship upgrade --json` -> emits the machine-readable `upgrade-readiness-v1` preflight contract (`schema_version`, `blocker_classification`, `target_version`, `ready`, `rollback_target`, `canary`, `verification`, `blockers`, `manual_follow_ups`, `remediation_hints`, `planned_changes`) without writing files; blocker entries carry `classification`, and `manual_follow_ups` plus `verification.command` use concrete `ship upgrade --to <target>` commands so weaker agents can trust the plan before mutating the pinned Goose reference
+- `ship upgrade --json` -> emits the machine-readable `upgrade-readiness-v1` preflight contract (`schema_version`, `blocker_classification`, `target_version`, `ready`, `rollback_target`, `canary`, `verification`, `result`, `blockers`, `manual_follow_ups`, `remediation_hints`, `planned_changes`) without writing files; `result` reports whether a pin change is planned, blocker entries carry `classification`, and `manual_follow_ups` plus `verification.command` use concrete `ship upgrade --to <target>` commands so weaker agents can trust the plan before mutating the pinned Goose reference
 - current scope: Goose pin only (expandable later)
 
 Doctor checks (current):

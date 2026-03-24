@@ -151,6 +151,7 @@ func TestDocs_UpgradeReadinessContractStaysInSync_RedSpec(t *testing.T) {
 		"rollback_target",
 		"canary",
 		"verification",
+		"result",
 		"blockers",
 		"manual_follow_ups",
 		"remediation_hints",
