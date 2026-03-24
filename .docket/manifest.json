@@ -2383,7 +2383,7 @@
     },
     "TKT-429": {
       "title": "Make ship test the single project test entrypoint and prove target routing across package and suite combinations.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-427"
     },
