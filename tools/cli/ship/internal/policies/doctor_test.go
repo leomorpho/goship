@@ -42,6 +42,30 @@ func TestRunDoctorChecks(t *testing.T) {
 		mustContainIssueCode(t, issues, "DX001")
 	})
 
+	t.Run("generated app fast-path returns root causes before secondary drift", func(t *testing.T) {
+		root := t.TempDir()
+		writeDoctorFixture(t, root)
+		if err := os.RemoveAll(filepath.Join(root, "app", "jobs")); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.MkdirAll(filepath.Join(root, "scratch"), 0o755); err != nil {
+			t.Fatal(err)
+		}
+
+		issues := FastPathGeneratedAppIssues(root)
+		if len(issues) == 0 {
+			t.Fatalf("expected fast-path issues")
+		}
+		if issues[0].Code != "DX001" {
+			t.Fatalf("issues[0].Code = %q, want DX001", issues[0].Code)
+		}
+		for _, issue := range issues {
+			if issue.Code == "DX013" {
+				t.Fatalf("unexpected secondary issue in fast path: %+v", issue)
+			}
+		}
+	})
+
 	t.Run("forbidden legacy path present", func(t *testing.T) {
 		root := t.TempDir()
 		writeDoctorFixture(t, root)

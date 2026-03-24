@@ -2,7 +2,10 @@ package commands
 
 import (
 	"bytes"
+	"strings"
 	"testing"
+
+	policies "github.com/leomorpho/goship/tools/cli/ship/internal/policies"
 )
 
 func TestRunDev_DefaultModeUsesResolver(t *testing.T) {
@@ -82,11 +85,11 @@ func TestRunDev_DefaultModeFallbacksStayOnWebLoop(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name       string
-		resolve    func() (string, error)
-		wantName   string
-		wantArgs   []string
-		wantAll    int
+		name     string
+		resolve  func() (string, error)
+		wantName string
+		wantArgs []string
+		wantAll  int
 	}{
 		{
 			name: "resolver returns web",
@@ -154,6 +157,49 @@ func TestRunDev_DefaultModeFallbacksStayOnWebLoop(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestRunDev_FailsFastWhenGeneratedAppScaffoldBroken(t *testing.T) {
+	t.Parallel()
+
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	runCalls := 0
+
+	code := RunDev([]string{}, DevDeps{
+		Out: out,
+		Err: errOut,
+		RunCmd: func(name string, args ...string) int {
+			runCalls++
+			return 0
+		},
+		FindGoModule: func(start string) (string, string, error) {
+			return "/tmp/example", "example.com/test", nil
+		},
+		FastPathGeneratedIssues: func(root string) []policies.DoctorIssue {
+			return []policies.DoctorIssue{{
+				Code:    "DX001",
+				Message: "missing required directory: app/foundation",
+				Fix:     "create app/foundation or regenerate the app scaffold with `ship new`",
+			}}
+		},
+	})
+	if code != 1 {
+		t.Fatalf("code = %d, want 1", code)
+	}
+	if runCalls != 0 {
+		t.Fatalf("RunCmd calls = %d, want 0", runCalls)
+	}
+	stderr := errOut.String()
+	if !strings.Contains(stderr, "dev preflight failed: generated app scaffold is broken") {
+		t.Fatalf("stderr = %q, want preflight failure", stderr)
+	}
+	if !strings.Contains(stderr, "[DX001] missing required directory: app/foundation") {
+		t.Fatalf("stderr = %q, want root-cause issue", stderr)
+	}
+	if !strings.Contains(stderr, "Next step: run `ship doctor --json`") {
+		t.Fatalf("stderr = %q, want corrective next step", stderr)
 	}
 }
 

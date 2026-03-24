@@ -307,7 +307,84 @@ func RunDoctorChecks(root string) []DoctorIssue {
 	issues = append(issues, checkSoftDeleteQueryFilters(root)...)
 	issues = append(issues, checkI18nLiteralEnforcement(root)...)
 
-	return issues
+	return prioritizeDoctorIssues(issues)
+}
+
+// FastPathGeneratedAppIssues returns high-signal scaffold breakage diagnostics for generated apps.
+// It intentionally excludes secondary drift checks so callers can fail fast with the root cause.
+func FastPathGeneratedAppIssues(root string) []DoctorIssue {
+	if looksLikeCanonicalFrameworkRepo(root) || !looksLikeGeneratedAppWorkspace(root) {
+		return nil
+	}
+
+	issues := RunDoctorChecks(root)
+	fastPath := make([]DoctorIssue, 0, len(issues))
+	for _, issue := range issues {
+		switch issue.Code {
+		case "DX001", "DX002", "DX005", "DX011":
+			fastPath = append(fastPath, issue)
+		}
+	}
+
+	return prioritizeDoctorIssues(fastPath)
+}
+
+func looksLikeGeneratedAppWorkspace(root string) bool {
+	hints := []string{
+		filepath.Join("app"),
+		filepath.Join("app", "router.go"),
+		filepath.Join("config", "modules.yaml"),
+		filepath.Join("db", "bobgen.yaml"),
+		filepath.Join("docs", "00-index.md"),
+	}
+
+	hits := 0
+	for _, rel := range hints {
+		if pathExists(filepath.Join(root, rel)) {
+			hits++
+		}
+	}
+
+	return hits >= 2
+}
+
+func prioritizeDoctorIssues(issues []DoctorIssue) []DoctorIssue {
+	if len(issues) < 2 {
+		return append([]DoctorIssue(nil), issues...)
+	}
+
+	prioritized := append([]DoctorIssue(nil), issues...)
+	sort.SliceStable(prioritized, func(i, j int) bool {
+		iPriority := doctorIssuePriority(prioritized[i].Code)
+		jPriority := doctorIssuePriority(prioritized[j].Code)
+		if iPriority != jPriority {
+			return iPriority < jPriority
+		}
+		if prioritized[i].Code != prioritized[j].Code {
+			return prioritized[i].Code < prioritized[j].Code
+		}
+		if prioritized[i].File != prioritized[j].File {
+			return prioritized[i].File < prioritized[j].File
+		}
+		return prioritized[i].Message < prioritized[j].Message
+	})
+
+	return prioritized
+}
+
+func doctorIssuePriority(code string) int {
+	switch code {
+	case "DX001":
+		return 0
+	case "DX002":
+		return 1
+	case "DX005":
+		return 2
+	case "DX011":
+		return 3
+	default:
+		return 10
+	}
 }
 
 func checkI18nLiteralEnforcement(root string) []DoctorIssue {
