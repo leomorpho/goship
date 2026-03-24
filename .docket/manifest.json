@@ -2180,7 +2180,7 @@
     },
     "TKT-395": {
       "title": "Remove stale docs references to the deleted internal app shell and add doc-link regression checks.",
-      "state": "in-progress",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-392"
     },
