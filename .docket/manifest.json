@@ -2294,7 +2294,7 @@
     },
     "TKT-414": {
       "title": "Remove stale generated artifacts that no longer map to canonical source owners and prove regeneration passes.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-410"
     },
