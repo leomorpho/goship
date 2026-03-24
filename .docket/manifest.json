@@ -3337,7 +3337,7 @@
     },
     "TKT-591": {
       "title": "Declare and enforce inter-module prerequisites so incompatible battery combinations fail fast",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-453"
     }
