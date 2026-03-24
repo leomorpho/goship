@@ -154,9 +154,31 @@ func (c *Container) shouldInitCache() bool {
 func (c *Container) validateAdapterPlan() {
 	resolved, err := ResolveAdapterPlan(c.Config)
 	if err != nil {
-		panic(fmt.Sprintf("invalid adapter plan: %v", err))
+		panic(fmt.Sprintf("startup configuration failure: invalid adapter plan (%v). Check %s.", err, adapterPlanEnvHint(err)))
 	}
 	c.Adapters = resolved
+}
+
+func adapterPlanEnvHint(err error) string {
+	if err == nil {
+		return "PAGODA_ADAPTERS_DB/PAGODA_ADAPTERS_CACHE/PAGODA_ADAPTERS_JOBS/PAGODA_ADAPTERS_PUBSUB"
+	}
+
+	msg := err.Error()
+	switch {
+	case strings.Contains(msg, "db adapter"):
+		return "PAGODA_ADAPTERS_DB"
+	case strings.Contains(msg, "cache adapter"):
+		return "PAGODA_ADAPTERS_CACHE"
+	case strings.Contains(msg, "jobs adapter"):
+		return "PAGODA_ADAPTERS_JOBS"
+	case strings.Contains(msg, "pubsub adapter") && strings.Contains(msg, "requires cache adapter"):
+		return "PAGODA_ADAPTERS_PUBSUB and PAGODA_ADAPTERS_CACHE"
+	case strings.Contains(msg, "pubsub adapter"):
+		return "PAGODA_ADAPTERS_PUBSUB"
+	default:
+		return "PAGODA_ADAPTERS_DB/PAGODA_ADAPTERS_CACHE/PAGODA_ADAPTERS_JOBS/PAGODA_ADAPTERS_PUBSUB"
+	}
 }
 
 // ResolveAdapterPlan validates adapter configuration and returns the resolved runtime selection.

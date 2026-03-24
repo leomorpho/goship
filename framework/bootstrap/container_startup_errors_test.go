@@ -65,6 +65,23 @@ func TestNewContainer_StartupErrorsNameMissingSecretsConfigAndServices(t *testin
 			t.Fatalf("panic=%q should reference database host/port config", message)
 		}
 	})
+
+	t.Run("adapter config failure names env key", func(t *testing.T) {
+		t.Setenv("PAGODA_APP_ENVIRONMENT", "test")
+		t.Setenv("PAGODA_DB_PATH", filepath.Join(t.TempDir(), "app.db"))
+		t.Setenv("PAGODA_MAIL_DRIVER", "log")
+		t.Setenv("PAGODA_ADAPTERS_CACHE", "")
+
+		message := mustPanicMessage(t, func() {
+			_ = NewContainer(nil)
+		})
+		if !strings.Contains(message, "startup configuration failure") {
+			t.Fatalf("panic=%q should name startup configuration failure", message)
+		}
+		if !strings.Contains(message, "PAGODA_ADAPTERS_CACHE") {
+			t.Fatalf("panic=%q should reference adapter env key", message)
+		}
+	})
 }
 
 func mustPanicMessage(t *testing.T, fn func()) (panicMessage string) {
