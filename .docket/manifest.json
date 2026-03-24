@@ -1503,7 +1503,7 @@
     },
     "TKT-278": {
       "title": "G4-02-B: Implement, verify, and sync docs (UI + Playwright)",
-      "state": "backlog",
+      "state": "done",
       "priority": 3,
       "parent": "TKT-191"
     },
