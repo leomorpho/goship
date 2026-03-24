@@ -3283,7 +3283,7 @@
     },
     "TKT-581": {
       "title": "Implement ship module:remove command to reverse ship module:add deterministically",
-      "state": "backlog",
+      "state": "done",
       "priority": 3,
       "parent": "TKT-452"
     },
