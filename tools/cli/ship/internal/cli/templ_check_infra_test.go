@@ -91,13 +91,13 @@ func TestRunTest_UsesProjectPackageLists(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := os.MkdirAll(filepath.Join(root, "scripts", "test"), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Join(root, "tools", "scripts", "test"), 0o755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(root, "scripts", "test", "unit-packages.txt"), []byte("./framework/a\n#c\n./framework/b\n"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(root, "tools", "scripts", "test", "unit-packages.txt"), []byte("./framework/a\n#c\n./framework/b\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(root, "scripts", "test", "compile-packages.txt"), []byte("./app/x\n./app/web/controllers\n"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(root, "tools", "scripts", "test", "compile-packages.txt"), []byte("./app/x\n./app/web/controllers\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
