@@ -245,6 +245,7 @@ Safety matrix:
 - `ship make:scaffold <Name> ...` -> orchestration command that composes `make:model`, `db:make`, `make:controller --domain <plural_model> --wire`, and optionally `make:resource --domain <plural_model>` / `db:migrate`
 - `ship make:module <Name>` -> generate isolated module scaffold in `modules/<name>` with its own `go.mod`, module-facing types/contracts, and service tests
 - generated `modules/<name>/module.go` now includes a battery install-contract scaffold (`Contract()`) with explicit sections for `routes`, `config`, `assets`, `jobs`, `templates`, and `migrations`
+- `ship make:module <Name> --dry-run` now includes explain output for each emitted scaffold file (`- file: <path> -> owner: <battery-contract-owner>`) so generator ownership is explicit during review
 - `ship make:module` path ownership is canonical: `--path` must resolve to `modules`; values that escape or diverge from `modules` fail fast
 - `ship destroy resource:<name>` -> remove generator-managed resource scaffold targets in deterministic order (router marker block, route-name constant, templ page, optional scaffold test, controller); paths without recognized ownership signals are skipped with explicit reasons and the command exits non-zero when nothing is safely removable
 - current first-class installable batteries include `notifications`, `paidsubscriptions`, `emailsubscriptions`, `jobs`, and `storage`; `storage` exposes the canonical `core.BlobStorage` seam as a standalone battery package under `modules/storage`

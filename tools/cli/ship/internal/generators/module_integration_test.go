@@ -90,6 +90,37 @@ func TestRunMakeModule_DryRun(t *testing.T) {
 	}
 }
 
+func TestRunMakeModule_DryRunExplainsEachFileOwnerContract(t *testing.T) {
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	code := RunMakeModule([]string{"EmailSubscriptions", "--dry-run"}, ModuleDeps{Out: out, Err: errOut, PathExists: testHasFile})
+	if code != 0 {
+		t.Fatalf("exit=%d stderr=%s", code, errOut.String())
+	}
+
+	output := out.String()
+	expected := map[string]string{
+		"modules/emailsubscriptions/CLAUDE.md":                               "agent-context",
+		"modules/emailsubscriptions/contracts.go":                            "service-contract",
+		"modules/emailsubscriptions/db/bobgen.yaml":                          "db-codegen",
+		"modules/emailsubscriptions/db/gen/.gitkeep":                         "generated-db",
+		"modules/emailsubscriptions/db/migrate/migrations/.gitkeep":          "migrations",
+		"modules/emailsubscriptions/db/queries/.gitkeep":                     "queries",
+		"modules/emailsubscriptions/errors.go":                               "error-contract",
+		"modules/emailsubscriptions/go.mod":                                  "module-runtime",
+		"modules/emailsubscriptions/module.go":                               "install-contract",
+		"modules/emailsubscriptions/service.go":                              "service-runtime",
+		"modules/emailsubscriptions/service_test.go":                         "service-tests",
+		"modules/emailsubscriptions/types.go":                                "domain-types",
+	}
+	for file, owner := range expected {
+		token := "- file: " + file + " -> owner: " + owner
+		if !strings.Contains(output, token) {
+			t.Fatalf("dry-run output missing ownership token %q:\n%s", token, output)
+		}
+	}
+}
+
 func TestRunMakeModule_Integration(t *testing.T) {
 	root := t.TempDir()
 	prevWD, err := os.Getwd()

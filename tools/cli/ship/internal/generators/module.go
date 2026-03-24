@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 )
 
@@ -21,6 +22,12 @@ type ModuleDeps struct {
 	Out        io.Writer
 	Err        io.Writer
 	PathExists func(path string) bool
+}
+
+type moduleScaffoldFile struct {
+	Path          string
+	Content       string
+	ContractOwner string
 }
 
 func RunMakeModule(args []string, d ModuleDeps) int {
@@ -44,42 +51,50 @@ func RunMakeModule(args []string, d ModuleDeps) int {
 		return 1
 	}
 
-	files := map[string]string{
-		filepath.Join(moduleDir, "go.mod"):                                  renderModuleGoMod(modulePath),
-		filepath.Join(moduleDir, "module.go"):                               renderModuleEntrypoint(moduleName),
-		filepath.Join(moduleDir, "contracts.go"):                            renderModuleContracts(moduleName),
-		filepath.Join(moduleDir, "types.go"):                                renderModuleTypes(moduleName),
-		filepath.Join(moduleDir, "errors.go"):                               renderModuleErrors(moduleName),
-		filepath.Join(moduleDir, "service.go"):                              renderModuleService(moduleName),
-		filepath.Join(moduleDir, "service_test.go"):                         renderModuleServiceTest(moduleName),
-		filepath.Join(moduleDir, "db", "bobgen.yaml"):                       renderModuleBobgenConfig(moduleDir),
-		filepath.Join(moduleDir, "db", "migrate", "migrations", ".gitkeep"): "",
-		filepath.Join(moduleDir, "db", "queries", ".gitkeep"):               "",
-		filepath.Join(moduleDir, "db", "gen", ".gitkeep"):                   "",
-		filepath.Join(moduleDir, "CLAUDE.md"):                               renderModuleClaudeMD(moduleName),
-	}
+	files := moduleScaffoldFiles(moduleDir, moduleName, modulePath)
 
 	if opts.DryRun {
 		fmt.Fprintf(d.Out, "Module scaffold plan (dry-run):\n- module: %s\n- dir: %s\n", modulePath, moduleDir)
-		for p := range files {
-			fmt.Fprintf(d.Out, "- file: %s\n", p)
+		for _, file := range files {
+			fmt.Fprintf(d.Out, "- file: %s -> owner: %s\n", file.Path, file.ContractOwner)
 		}
 		return 0
 	}
 
-	for p, content := range files {
-		if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
-			fmt.Fprintf(d.Err, "failed to create directory for %s: %v\n", p, err)
+	for _, file := range files {
+		if err := os.MkdirAll(filepath.Dir(file.Path), 0o755); err != nil {
+			fmt.Fprintf(d.Err, "failed to create directory for %s: %v\n", file.Path, err)
 			return 1
 		}
-		if err := os.WriteFile(p, []byte(content), 0o644); err != nil {
-			fmt.Fprintf(d.Err, "failed to write %s: %v\n", p, err)
+		if err := os.WriteFile(file.Path, []byte(file.Content), 0o644); err != nil {
+			fmt.Fprintf(d.Err, "failed to write %s: %v\n", file.Path, err)
 			return 1
 		}
 	}
 
 	fmt.Fprintf(d.Out, "Generated module scaffold at %s (%s)\n", moduleDir, modulePath)
 	return 0
+}
+
+func moduleScaffoldFiles(moduleDir, moduleName, modulePath string) []moduleScaffoldFile {
+	files := []moduleScaffoldFile{
+		{Path: filepath.Join(moduleDir, "go.mod"), Content: renderModuleGoMod(modulePath), ContractOwner: "module-runtime"},
+		{Path: filepath.Join(moduleDir, "module.go"), Content: renderModuleEntrypoint(moduleName), ContractOwner: "install-contract"},
+		{Path: filepath.Join(moduleDir, "contracts.go"), Content: renderModuleContracts(moduleName), ContractOwner: "service-contract"},
+		{Path: filepath.Join(moduleDir, "types.go"), Content: renderModuleTypes(moduleName), ContractOwner: "domain-types"},
+		{Path: filepath.Join(moduleDir, "errors.go"), Content: renderModuleErrors(moduleName), ContractOwner: "error-contract"},
+		{Path: filepath.Join(moduleDir, "service.go"), Content: renderModuleService(moduleName), ContractOwner: "service-runtime"},
+		{Path: filepath.Join(moduleDir, "service_test.go"), Content: renderModuleServiceTest(moduleName), ContractOwner: "service-tests"},
+		{Path: filepath.Join(moduleDir, "db", "bobgen.yaml"), Content: renderModuleBobgenConfig(moduleDir), ContractOwner: "db-codegen"},
+		{Path: filepath.Join(moduleDir, "db", "migrate", "migrations", ".gitkeep"), Content: "", ContractOwner: "migrations"},
+		{Path: filepath.Join(moduleDir, "db", "queries", ".gitkeep"), Content: "", ContractOwner: "queries"},
+		{Path: filepath.Join(moduleDir, "db", "gen", ".gitkeep"), Content: "", ContractOwner: "generated-db"},
+		{Path: filepath.Join(moduleDir, "CLAUDE.md"), Content: renderModuleClaudeMD(moduleName), ContractOwner: "agent-context"},
+	}
+	sort.Slice(files, func(i, j int) bool {
+		return files[i].Path < files[j].Path
+	})
+	return files
 }
 
 func ParseMakeModuleArgs(args []string) (ModuleMakeOptions, error) {
