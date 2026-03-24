@@ -2264,7 +2264,7 @@
     },
     "TKT-409": {
       "title": "Normalize asset ownership across first-party modules and prove emitted paths stay canonical.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-401"
     },
