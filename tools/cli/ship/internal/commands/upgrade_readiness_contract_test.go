@@ -83,6 +83,21 @@ const gooseGoRunRef = "github.com/pressly/goose/v3/cmd/goose@v3.26.0"
 	if report.Verification.Command != "ship upgrade --to v3.27.0 --dry-run" {
 		t.Fatalf("verification.command=%q want concrete dry-run command", report.Verification.Command)
 	}
+	if report.Plan.Strategy != "minor-boundary-bridge-v1" {
+		t.Fatalf("plan.strategy=%q want minor-boundary-bridge-v1", report.Plan.Strategy)
+	}
+	if len(report.Plan.SafeSteps) != 1 {
+		t.Fatalf("plan.safe_steps=%d want 1", len(report.Plan.SafeSteps))
+	}
+	if report.Plan.SafeSteps[0].From != "v3.26.0" {
+		t.Fatalf("plan.safe_steps[0].from=%q want v3.26.0", report.Plan.SafeSteps[0].From)
+	}
+	if report.Plan.SafeSteps[0].To != "v3.27.0" {
+		t.Fatalf("plan.safe_steps[0].to=%q want v3.27.0", report.Plan.SafeSteps[0].To)
+	}
+	if report.Plan.SafeSteps[0].Command != "ship upgrade --to v3.27.0" {
+		t.Fatalf("plan.safe_steps[0].command=%q want ship upgrade --to v3.27.0", report.Plan.SafeSteps[0].Command)
+	}
 	if len(report.Blockers) != 0 {
 		t.Fatalf("blockers=%+v want empty", report.Blockers)
 	}
@@ -172,7 +187,7 @@ const gooseGoRunRef = "github.com/pressly/goose/v3/cmd/goose@v3.26.0"
 		t.Fatalf("stdout should be valid JSON: %v\n%s", err, out.String())
 	}
 
-	for _, field := range []string{"rollback_target", "canary", "verification", "blocker_classification", "manual_follow_ups", "result"} {
+	for _, field := range []string{"rollback_target", "canary", "verification", "plan", "blocker_classification", "manual_follow_ups", "result"} {
 		if got := report[field]; got == nil {
 			t.Fatalf("expected upgrade readiness report to include %q contract field", field)
 		}
@@ -195,6 +210,12 @@ func TestBuildUpgradeReadinessReport_UsesConcreteCommands_RedSpec(t *testing.T) 
 	}
 	if got := report.RemediationHints[2]; got != "Run ship upgrade --to v3.27.0 after the readiness report is accepted." {
 		t.Fatalf("remediation_hints[2]=%q", got)
+	}
+	if got := len(report.Plan.SafeSteps); got != 1 {
+		t.Fatalf("plan.safe_steps=%d want 1", got)
+	}
+	if got := report.Plan.SafeSteps[0].Command; got != "ship upgrade --to v3.27.0" {
+		t.Fatalf("plan.safe_steps[0].command=%q want ship upgrade --to v3.27.0", got)
 	}
 }
 

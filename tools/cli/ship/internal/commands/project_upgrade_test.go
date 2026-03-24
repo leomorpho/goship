@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -153,4 +154,74 @@ const gooseGoRunRef = "github.com/pressly/goose/v3/cmd/goose@v3.26.0"
 			t.Fatalf("expected goose version update in cli.go, got:\n%s", string(b))
 		}
 	})
+}
+
+func TestComputeSafeUpgradeSteps_RepresentativeVersions(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		current string
+		target  string
+		wantTo  []string
+	}{
+		{
+			name:    "single patch hop",
+			current: "v3.26.0",
+			target:  "v3.26.3",
+			wantTo:  []string{"v3.26.3"},
+		},
+		{
+			name:    "multi minor hop",
+			current: "v3.26.0",
+			target:  "v3.29.2",
+			wantTo:  []string{"v3.27.0", "v3.28.0", "v3.29.2"},
+		},
+		{
+			name:    "major and minor hop",
+			current: "v3.26.4",
+			target:  "v4.2.1",
+			wantTo:  []string{"v4.0.0", "v4.1.0", "v4.2.1"},
+		},
+		{
+			name:    "already pinned",
+			current: "v3.27.0",
+			target:  "v3.27.0",
+			wantTo:  []string{},
+		},
+		{
+			name:    "fallback when current cannot be parsed",
+			current: "legacy",
+			target:  "v3.27.0",
+			wantTo:  []string{"v3.27.0"},
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			steps := computeSafeUpgradeSteps(tt.current, tt.target)
+			gotTo := make([]string, 0, len(steps))
+			for i, step := range steps {
+				gotTo = append(gotTo, step.To)
+				if step.Command != "ship upgrade --to "+step.To {
+					t.Fatalf("step[%d].command=%q want %q", i, step.Command, "ship upgrade --to "+step.To)
+				}
+				if i == 0 {
+					if step.From != tt.current {
+						t.Fatalf("step[0].from=%q want %q", step.From, tt.current)
+					}
+					continue
+				}
+				if step.From != steps[i-1].To {
+					t.Fatalf("step[%d].from=%q should chain from prior to=%q", i, step.From, steps[i-1].To)
+				}
+			}
+			if !reflect.DeepEqual(gotTo, tt.wantTo) {
+				t.Fatalf("planned step targets=%v want %v", gotTo, tt.wantTo)
+			}
+		})
+	}
 }
