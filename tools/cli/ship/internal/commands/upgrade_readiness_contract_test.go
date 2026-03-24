@@ -101,6 +101,18 @@ const gooseGoRunRef = "github.com/pressly/goose/v3/cmd/goose@v3.26.0"
 	if got := report.RemediationHints[1]; got != "Use ship upgrade --to v3.27.0 --dry-run to preview the text mutation plan." {
 		t.Fatalf("remediation_hints[1]=%q", got)
 	}
+	if got := report.Result.Mode; got != "preflight" {
+		t.Fatalf("result.mode=%q want preflight", got)
+	}
+	if got := report.Result.Outcome; got != "planned-change" {
+		t.Fatalf("result.outcome=%q want planned-change", got)
+	}
+	if got := report.Result.Changed; got != true {
+		t.Fatalf("result.changed=%v want true", got)
+	}
+	if got := report.Result.Applied; got != false {
+		t.Fatalf("result.applied=%v want false", got)
+	}
 	if len(report.PlannedChanges) != 1 {
 		t.Fatalf("planned_changes=%d want 1", len(report.PlannedChanges))
 	}
@@ -160,7 +172,7 @@ const gooseGoRunRef = "github.com/pressly/goose/v3/cmd/goose@v3.26.0"
 		t.Fatalf("stdout should be valid JSON: %v\n%s", err, out.String())
 	}
 
-	for _, field := range []string{"rollback_target", "canary", "verification", "blocker_classification", "manual_follow_ups"} {
+	for _, field := range []string{"rollback_target", "canary", "verification", "blocker_classification", "manual_follow_ups", "result"} {
 		if got := report[field]; got == nil {
 			t.Fatalf("expected upgrade readiness report to include %q contract field", field)
 		}
