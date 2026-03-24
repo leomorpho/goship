@@ -2842,7 +2842,7 @@
     },
     "TKT-506": {
       "title": "Add startup smoke tests for health, readiness, web boot, worker boot, and migrations.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-505"
     },
