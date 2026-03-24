@@ -2490,7 +2490,7 @@
     },
     "TKT-447": {
       "title": "Make generator operations idempotent and prove reruns do not create drift in fixture apps.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-444"
     },
