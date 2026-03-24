@@ -2049,7 +2049,7 @@
     },
     "TKT-373": {
       "title": "G5-02.4: Add startup failure-path contract suite",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-188"
     },
