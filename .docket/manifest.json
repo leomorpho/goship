@@ -2282,7 +2282,7 @@
     },
     "TKT-412": {
       "title": "Remove hidden private-product residue from framework strings, assets, and templates with snapshot tests.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-410"
     },
