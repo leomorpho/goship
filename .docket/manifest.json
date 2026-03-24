@@ -3271,7 +3271,7 @@
     },
     "TKT-579": {
       "title": "Add in-memory SQLite test DB helper and wire it into the test bootstrap so integration tests run without Docker",
-      "state": "backlog",
+      "state": "done",
       "priority": 3,
       "parent": "TKT-189"
     },
