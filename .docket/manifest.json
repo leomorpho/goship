@@ -1359,7 +1359,7 @@
     },
     "TKT-254": {
       "title": "Roadmap Hygiene: Enforce atomic ticket decomposition and TDD/UI verification standards",
-      "state": "todo",
+      "state": "done",
       "priority": 3,
       "parent": "TKT-248"
     },
