@@ -2437,7 +2437,7 @@
     },
     "TKT-438": {
       "title": "Add fast-path failure detection for broken generated apps and prove doctor surfaces root causes first.",
-      "state": "backlog",
+      "state": "in-progress",
       "priority": 4,
       "parent": "TKT-436"
     },
@@ -2508,7 +2508,7 @@
     },
     "TKT-450": {
       "title": "Make generator path ownership explicit and fail when output escapes canonical app-owned locations.",
-      "state": "backlog",
+      "state": "in-progress",
       "priority": 4,
       "parent": "TKT-444"
     },
@@ -2651,7 +2651,7 @@
     },
     "TKT-474": {
       "title": "Add upgrade blocker classification and prove manual-follow-up items are surfaced consistently.",
-      "state": "backlog",
+      "state": "in-progress",
       "priority": 4,
       "parent": "TKT-470"
     },
