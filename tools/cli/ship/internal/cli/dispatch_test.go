@@ -184,6 +184,18 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 			wantErr:  "usage: ship run:command <name>",
 		},
 		{
+			name:     "destroy missing artifact",
+			args:     []string{"destroy"},
+			wantCode: 1,
+			wantErr:  "usage: ship destroy resource:<name>",
+		},
+		{
+			name:     "destroy unsupported kind",
+			args:     []string{"destroy", "island:counter"},
+			wantCode: 1,
+			wantErr:  "unsupported destroy artifact kind",
+		},
+		{
 			name:      "db migrate",
 			args:      []string{"db:migrate"},
 			wantCode:  0,
@@ -492,7 +504,7 @@ func TestRun_DispatchAndArgs(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Setenv("APP_ENV", "local")
 
-			if len(tt.args) > 0 && (tt.args[0] == "dev" || tt.args[0] == "shipdev" || tt.args[0] == "test" || tt.args[0] == "check" || tt.args[0] == "make:model" || tt.args[0] == "make:resource" || tt.args[0] == "make:island" || tt.args[0] == "make:job" || tt.args[0] == "make:mailer") {
+			if len(tt.args) > 0 && (tt.args[0] == "dev" || tt.args[0] == "shipdev" || tt.args[0] == "test" || tt.args[0] == "check" || tt.args[0] == "make:model" || tt.args[0] == "make:resource" || tt.args[0] == "make:island" || tt.args[0] == "make:job" || tt.args[0] == "make:mailer" || tt.args[0] == "destroy") {
 				prevWD, err := os.Getwd()
 				if err != nil {
 					t.Fatal(err)
@@ -561,10 +573,10 @@ func TestRun_DevCanonicalPathContract_RedSpec(t *testing.T) {
 	t.Helper()
 
 	tests := []struct {
-		name    string
-		args    []string
+		name     string
+		args     []string
 		wantCode int
-		wantErr string
+		wantErr  string
 	}{
 		{
 			name:     "shipdev alias rejected",

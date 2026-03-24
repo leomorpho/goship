@@ -159,9 +159,13 @@ func (p *ProfileService) insertProfileWithFallback(
 	}
 
 	// Compatibility path for legacy sqlite schemas used by lightweight e2e startup.
+	legacyInsertQuery, queryErr := dbqueries.Get("insert_profile_returning_id_sqlite_legacy")
+	if queryErr != nil {
+		return queryErr
+	}
 	return tx.QueryRowContext(
 		ctx,
-		`INSERT INTO profiles (created_at, updated_at, user_profile, fully_onboarded) VALUES (?, ?, ?, ?) RETURNING id`,
+		legacyInsertQuery,
 		now,
 		now,
 		userID,

@@ -1062,7 +1062,7 @@
     },
     "TKT-204": {
       "title": "G4-01: Implement ship destroy MVP reverse scaffolding",
-      "state": "backlog",
+      "state": "done",
       "priority": 3,
       "parent": "TKT-191"
     },

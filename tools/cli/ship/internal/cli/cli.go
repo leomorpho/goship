@@ -111,6 +111,8 @@ func (c CLI) Run(args []string) int {
 		return 1
 	case "verify":
 		return c.runVerify(args[1:])
+	case "destroy":
+		return c.runDestroy(args[1:])
 	case "test":
 		return c.runTest(args[1:])
 	case "agent":
@@ -227,6 +229,13 @@ func (c CLI) runDescribe(args []string) int {
 		Out:          c.Out,
 		Err:          c.Err,
 		FindGoModule: findGoModule,
+	})
+}
+
+func (c CLI) runDestroy(args []string) int {
+	return cmd.RunDestroy(args, cmd.DestroyDeps{
+		Out: c.Out,
+		Err: c.Err,
 	})
 }
 

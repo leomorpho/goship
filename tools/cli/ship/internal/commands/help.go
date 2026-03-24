@@ -22,6 +22,7 @@ func PrintRootHelp(w io.Writer) {
 	fmt.Fprintln(w, "  ship describe [--pretty]                 Show runtime/module inventory")
 	fmt.Fprintln(w, "  ship runtime:report --json               Show machine-readable runtime capability report")
 	fmt.Fprintln(w, "  ship run:command <name> [-- <args...>]   Run app-defined CLI command")
+	fmt.Fprintln(w, "  ship destroy resource:<name>             Remove generator-managed resource scaffold")
 	fmt.Fprintln(w, "  ship profile --help                      Runtime profile command help")
 	fmt.Fprintln(w, "  ship adapter --help                      Adapter selection command help")
 	fmt.Fprintln(w, "  ship module:add <name> [--dry-run]       Enable a module")

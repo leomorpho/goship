@@ -35,3 +35,13 @@ INSERT INTO profiles (
 )
 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 RETURNING id;
+
+-- name: insert_profile_returning_id_sqlite_legacy
+INSERT INTO profiles (
+	created_at,
+	updated_at,
+	user_profile,
+	fully_onboarded
+)
+VALUES (?, ?, ?, ?)
+RETURNING id;

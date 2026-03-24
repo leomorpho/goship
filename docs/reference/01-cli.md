@@ -102,7 +102,7 @@ Generation:
 - `ship make:command <Name>`
 - `ship make:scaffold <Name> [fields...] [--path app] [--views templ|none] [--auth public|auth] [--api] [--migrate] [--dry-run] [--force]`
 - `ship make:module <Name> [--path modules] [--module-base github.com/leomorpho/goship-modules] [--dry-run] [--force]`
-- `ship destroy <generated-artifact>` (planned)
+- `ship destroy resource:<name>`
 
 Command grammar policy:
 
@@ -239,6 +239,7 @@ Safety matrix:
 - `ship make:command <Name>` -> scaffold `app/commands/<name>.go` and register it in `cmd/cli/main.go` at `ship:commands` markers
 - `ship make:scaffold <Name> ...` -> orchestration command that composes `make:model`, `db:make`, `make:controller --domain <plural_model> --wire`, and optionally `make:resource --domain <plural_model>` / `db:migrate`
 - `ship make:module <Name>` -> generate isolated module scaffold in `modules/<name>` with its own `go.mod`, module-facing types/contracts, and service tests
+- `ship destroy resource:<name>` -> remove generator-managed resource scaffold targets in deterministic order (router marker block, route-name constant, templ page, optional scaffold test, controller); paths without recognized ownership signals are skipped with explicit reasons and the command exits non-zero when nothing is safely removable
 - current first-class installable batteries include `notifications`, `paidsubscriptions`, `emailsubscriptions`, `jobs`, and `storage`; `storage` exposes the canonical `core.BlobStorage` seam as a standalone battery package under `modules/storage`
 - `ship upgrade --to <version>` -> upgrades the pinned Goose CLI go-run fallback version (`gooseGoRunRef` in `tools/cli/ship/internal/cli/cli.go`)
 - `ship upgrade --contract-version <schema>` -> requires the supported upgrade readiness contract version before mutating pins

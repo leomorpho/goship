@@ -39,6 +39,7 @@ func TestPrintRootHelp_DirectCommandsDiscoverableNoAliases(t *testing.T) {
 		"  ship describe [--pretty]":                                             "Show runtime/module inventory",
 		"  ship runtime:report --json":                                           "Show machine-readable runtime capability report",
 		"  ship run:command <name> [-- <args...>]":                               "Run app-defined CLI command",
+		"  ship destroy resource:<name>":                                         "Remove generator-managed resource scaffold",
 		"  ship profile --help":                                                  "Runtime profile command help",
 		"  ship adapter --help":                                                  "Adapter selection command help",
 		"  ship module:add <name> [--dry-run]":                                   "Enable a module",
