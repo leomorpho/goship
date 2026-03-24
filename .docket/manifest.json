@@ -2800,7 +2800,7 @@
     },
     "TKT-499": {
       "title": "Add module boundary tests that fail when modules depend on non-canonical framework internals.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-497"
     },
