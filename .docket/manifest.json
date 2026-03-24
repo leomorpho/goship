@@ -2377,7 +2377,7 @@
     },
     "TKT-428": {
       "title": "Make ship dev the single local development entrypoint and prove it boots the full stack in fixture apps.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-427"
     },
