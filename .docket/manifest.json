@@ -2389,7 +2389,7 @@
     },
     "TKT-430": {
       "title": "Make ship verify fail on structural violations and prove failure output with broken-project fixtures.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-427"
     },
