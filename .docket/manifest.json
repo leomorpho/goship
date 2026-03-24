@@ -2514,7 +2514,7 @@
     },
     "TKT-451": {
       "title": "Add a generator acceptance suite that creates and mutates fresh apps through multiple commands.",
-      "state": "backlog",
+      "state": "in-progress",
       "priority": 4,
       "parent": "TKT-444"
     },
@@ -2776,7 +2776,7 @@
     },
     "TKT-495": {
       "title": "Add a route-contract suite that locks starter route names and ownership.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-490"
     },
