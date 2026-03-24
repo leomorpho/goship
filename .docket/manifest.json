@@ -2365,7 +2365,7 @@
     },
     "TKT-426": {
       "title": "Emit readable starter code and lock key generated files with readability-focused snapshots.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-418"
     },
