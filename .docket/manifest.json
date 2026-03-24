@@ -2484,7 +2484,7 @@
     },
     "TKT-446": {
       "title": "Make generator output deterministic and prove identical output across repeated runs with golden tests.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-444"
     },
