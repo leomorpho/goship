@@ -49,6 +49,7 @@ type moduleInstallContract struct {
 	Jobs       []string
 	Templates  []string
 	Migrations []string
+	Tests      []string
 }
 
 func (c moduleInstallContract) IsEmpty() bool {
@@ -57,7 +58,8 @@ func (c moduleInstallContract) IsEmpty() bool {
 		len(c.Assets) == 0 &&
 		len(c.Jobs) == 0 &&
 		len(c.Templates) == 0 &&
-		len(c.Migrations) == 0
+		len(c.Migrations) == 0 &&
+		len(c.Tests) == 0
 }
 
 func (m moduleInfo) installContract() moduleInstallContract {
@@ -153,6 +155,11 @@ var moduleCatalog = map[string]moduleInfo{
 			},
 			Templates: []string{
 				"framework/web/pages/gen/notifications_templ.go",
+			},
+			Tests: []string{
+				"modules/notifications/routes/routes_contract_test.go",
+				"modules/notifications/module_sql_mode_test.go",
+				"modules/notifications/planned_notifications_store_sql_test.go",
 			},
 		},
 		ContainerSnippet: `	// ship:module:notifications
@@ -347,6 +354,7 @@ func printModuleInstallContract(out io.Writer, info moduleInfo) {
 	printInstallContractSection(out, "jobs", contract.Jobs)
 	printInstallContractSection(out, "templates", contract.Templates)
 	printInstallContractSection(out, "migrations", contract.Migrations)
+	printInstallContractSection(out, "tests", contract.Tests)
 	printInstallContractOwnership(out, contract)
 }
 
@@ -379,6 +387,7 @@ func printInstallContractOwnership(out io.Writer, contract moduleInstallContract
 	appendOwnership("jobs", contract.Jobs)
 	appendOwnership("templates", contract.Templates)
 	appendOwnership("migrations", contract.Migrations)
+	appendOwnership("tests", contract.Tests)
 
 	fmt.Fprintln(out, "  ownership:")
 	if len(ownership) == 0 {

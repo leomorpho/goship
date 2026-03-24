@@ -153,6 +153,16 @@ func TestNotificationsModuleCatalog_InstallContractCoversRoutesViewsAndJobs(t *t
 	}
 
 	contract := info.installContract()
+	for _, configPath := range []string{
+		"config/modules.yaml",
+		"app/foundation/container.go",
+		"go.mod",
+		"go.work",
+	} {
+		if !containsExactString(contract.Config, configPath) {
+			t.Fatalf("notifications contract config missing %q: %#v", configPath, contract.Config)
+		}
+	}
 	for _, route := range []string{
 		"app/router.go (auth)",
 		"modules/notifications/routes/routes.go",
@@ -174,6 +184,18 @@ func TestNotificationsModuleCatalog_InstallContractCoversRoutesViewsAndJobs(t *t
 	} {
 		if !containsExactString(contract.Jobs, jobSurface) {
 			t.Fatalf("notifications contract jobs missing %q: %#v", jobSurface, contract.Jobs)
+		}
+	}
+	if !containsExactString(contract.Migrations, "modules/notifications/db/migrate/migrations") {
+		t.Fatalf("notifications contract migrations missing module migration path: %#v", contract.Migrations)
+	}
+	for _, testSurface := range []string{
+		"modules/notifications/routes/routes_contract_test.go",
+		"modules/notifications/module_sql_mode_test.go",
+		"modules/notifications/planned_notifications_store_sql_test.go",
+	} {
+		if !containsExactString(contract.Tests, testSurface) {
+			t.Fatalf("notifications contract tests missing %q: %#v", testSurface, contract.Tests)
 		}
 	}
 }
@@ -241,6 +263,7 @@ func TestRunModuleAdd_DryRunPrintsInstallContract(t *testing.T) {
 		"jobs:",
 		"templates:",
 		"migrations:",
+		"tests:",
 	} {
 		if !strings.Contains(strings.ToLower(out.String()), token) {
 			t.Fatalf("dry-run output missing %q:\n%s", token, out.String())
