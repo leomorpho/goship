@@ -2633,7 +2633,7 @@
     },
     "TKT-471": {
       "title": "Implement a machine-readable upgrade-readiness report and lock its schema with contract tests.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-470"
     },
