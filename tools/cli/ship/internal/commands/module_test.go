@@ -381,6 +381,59 @@ func TestApplyModuleAddRemove_NotificationsIdempotent(t *testing.T) {
 	}
 }
 
+func TestApplyModuleAddRemove_FirstPartyBatteriesGolden(t *testing.T) {
+	firstPartyBatteries := []string{
+		"notifications",
+		"paidsubscriptions",
+		"emailsubscriptions",
+		"jobs",
+		"storage",
+	}
+
+	for _, battery := range firstPartyBatteries {
+		t.Run(battery, func(t *testing.T) {
+			info, ok := moduleCatalog[battery]
+			if !ok {
+				t.Fatalf("expected %q in module catalog", battery)
+			}
+
+			root := t.TempDir()
+			writeNotificationsModuleFixtureFiles(t, root)
+			writeLocalModuleGoModFixture(t, root, info.LocalPath, info.ModulePath)
+
+			tracked := []string{
+				filepath.Join(root, "app", "foundation", "container.go"),
+				filepath.Join(root, "app", "router.go"),
+				filepath.Join(root, "config", "modules.yaml"),
+				filepath.Join(root, "go.mod"),
+				filepath.Join(root, "go.work"),
+				filepath.Join(root, ".env.example"),
+			}
+			original := map[string]string{}
+			for _, path := range tracked {
+				original[path] = readTestFile(t, path)
+			}
+
+			if err := applyModuleAdd(root, info, false, io.Discard); err != nil {
+				t.Fatalf("applyModuleAdd error: %v", err)
+			}
+			if manifest := readTestFile(t, filepath.Join(root, "config", "modules.yaml")); !strings.Contains(manifest, "- "+info.ID) {
+				t.Fatalf("expected %q in modules manifest after add, got:\n%s", info.ID, manifest)
+			}
+
+			if err := applyModuleRemove(root, info, false, io.Discard); err != nil {
+				t.Fatalf("applyModuleRemove error: %v", err)
+			}
+
+			for _, path := range tracked {
+				if got := readTestFile(t, path); got != original[path] {
+					t.Fatalf("%s did not restore after add/remove for %s:\nwant:\n%s\ngot:\n%s", path, battery, original[path], got)
+				}
+			}
+		})
+	}
+}
+
 func TestApplyModuleAdd_WiresLocalModuleDependencyContract_RedSpec(t *testing.T) {
 	root := t.TempDir()
 	writeModuleFixtureFiles(t, root)
@@ -897,4 +950,19 @@ func readTestFile(t *testing.T, path string) string {
 		t.Fatal(err)
 	}
 	return string(b)
+}
+
+func writeLocalModuleGoModFixture(t *testing.T, root, localPath, modulePath string) {
+	t.Helper()
+	if strings.TrimSpace(localPath) == "" || strings.TrimSpace(modulePath) == "" {
+		return
+	}
+	path := filepath.Join(root, localPath, "go.mod")
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	content := "module " + modulePath + "\n\ngo 1.24.0\n"
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+		t.Fatal(err)
+	}
 }

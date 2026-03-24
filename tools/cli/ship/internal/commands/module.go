@@ -596,6 +596,7 @@ func applyModuleRemove(root string, info moduleInfo, dryRun bool, out io.Writer)
 		return fmt.Errorf("read container: %w", err)
 	}
 	containerUpdated, containerChanged := removeSnippetFromContent(string(containerContent), info.ContainerSnippet)
+	containerUpdated = normalizeEmptyMarkerGap(containerUpdated, "// ship:container:start", "// ship:container:end")
 	if containerChanged {
 		if err := writeOrDiff(containerPath, containerUpdated, dryRun, out); err != nil {
 			return err
@@ -611,11 +612,16 @@ func applyModuleRemove(root string, info moduleInfo, dryRun bool, out io.Writer)
 	currentRouter := string(routerContent)
 	routerChanged := false
 	var changedSnippet bool
-	for _, snippet := range info.RouterSnippets {
+	for group, snippet := range info.RouterSnippets {
 		currentRouter, changedSnippet = removeSnippetFromContent(currentRouter, snippet)
 		if changedSnippet {
 			routerChanged = true
 		}
+		start, end, markerErr := routeMarkerPair(group)
+		if markerErr != nil {
+			return fmt.Errorf("router marker: %w", markerErr)
+		}
+		currentRouter = normalizeEmptyMarkerGap(currentRouter, start, end)
 	}
 	if routerChanged {
 		if err := writeOrDiff(routerPath, currentRouter, dryRun, out); err != nil {
@@ -732,6 +738,27 @@ func removeSnippetFromContent(src, snippet string) (string, bool) {
 		}
 	}
 	return src[:start] + src[end:], true
+}
+
+func normalizeEmptyMarkerGap(src, startMarker, endMarker string) string {
+	start := strings.Index(src, startMarker)
+	end := strings.Index(src, endMarker)
+	if start == -1 || end == -1 || end <= start {
+		return src
+	}
+	gapStart := start + len(startMarker)
+	gap := src[gapStart:end]
+	if strings.TrimSpace(gap) != "" {
+		return src
+	}
+	lineStart := strings.LastIndex(src[:start], "\n")
+	if lineStart == -1 {
+		lineStart = 0
+	} else {
+		lineStart++
+	}
+	indent := src[lineStart:start]
+	return src[:gapStart] + "\n" + indent + endMarker + src[end+len(endMarker):]
 }
 
 func removeModuleEnvExample(root string, info moduleInfo, dryRun bool, out io.Writer) (bool, error) {
