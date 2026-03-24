@@ -2359,7 +2359,7 @@
     },
     "TKT-425": {
       "title": "Emit clearer starter config defaults and prove generated config works across fresh-project fixtures.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-418"
     },
