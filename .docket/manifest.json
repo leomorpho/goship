@@ -2401,7 +2401,7 @@
     },
     "TKT-432": {
       "title": "Make ship dev validate missing prerequisites and prove corrective guidance in command integration tests.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-427"
     },
