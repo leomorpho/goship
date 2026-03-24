@@ -2306,7 +2306,7 @@
     },
     "TKT-416": {
       "title": "Replace weak migration-era comments with current architectural intent and lock key generated files with snapshots.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-410"
     },
