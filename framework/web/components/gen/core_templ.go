@@ -655,14 +655,13 @@ func darkModeSwitcher() templ.ComponentScript {
 	return templ.ComponentScript{
 		Name: `__templ_darkModeSwitcher_5a44`,
 		Function: `function __templ_darkModeSwitcher_5a44(){// On page load or when changing themes, best to add inline in ` + "`" + `head` + "`" + ` to avoid FOUC
+    document.documentElement.classList.add('uk-theme-zinc'); // Franken UI theme
     if (localStorage.getItem('color-theme') === 'darkmode' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        document.documentElement.classList.add('dark'); // For default tailwind dark: utility
-		document.documentElement.setAttribute('data-theme', 'darkmode'); // For daisyui theme
+        document.documentElement.classList.add('dark'); // For tailwind dark: utility and Franken UI dark mode
 		// Set the hover brightness dynamically
 		document.documentElement.style.setProperty('--brightness-hover', 'var(--brightness-hover-dark)');
     } else {
-        document.documentElement.classList.remove('dark') // For default tailwind dark: utility
-		document.documentElement.setAttribute('data-theme', 'lightmode'); // For daisyui theme
+        document.documentElement.classList.remove('dark') // For tailwind dark: utility and Franken UI dark mode
 		// Set the hover brightness dynamically
 		document.documentElement.style.setProperty('--brightness-hover', 'var(--brightness-hover-light)');
     }

@@ -1,36 +1,36 @@
 {
   "NotificationPermissions": {
-    "script": "/files/islands/NotificationPermissions-F4IIuN8W.js",
+    "script": "/files/islands/NotificationPermissions-DVYzWJJU.js",
     "styles": []
   },
   "PhoneNumberPicker": {
-    "script": "/files/islands/PhoneNumberPicker-Bgr0xok_.js",
+    "script": "/files/islands/PhoneNumberPicker-C5Jb9XZs.js",
     "styles": []
   },
   "PhotoUploader": {
-    "script": "/files/islands/PhotoUploader-DrdTbBsJ.js",
+    "script": "/files/islands/PhotoUploader-DKmZ0NWq.js",
     "styles": [
-      "/files/islands/assets/PhotoUploader-BSBNDcQ5.css"
+      "/files/islands/assets/PhotoUploader-C4E1WPll.css"
     ]
   },
   "ReactCounter": {
-    "script": "/files/islands/ReactCounter-Q43Zbpba.js",
+    "script": "/files/islands/ReactCounter-BQFpq9bQ.js",
     "styles": []
   },
   "SvelteCounter": {
-    "script": "/files/islands/SvelteCounter-D1sMMFcS.js",
+    "script": "/files/islands/SvelteCounter-DQ3EnlyB.js",
     "styles": []
   },
   "ThemeToggle": {
-    "script": "/files/islands/ThemeToggle-CMHvDE-q.js",
+    "script": "/files/islands/ThemeToggle-DeDQc8XT.js",
     "styles": []
   },
   "VanillaCounter": {
-    "script": "/files/islands/VanillaCounter-CXQcFsmc.js",
+    "script": "/files/islands/VanillaCounter-BoCfx2ys.js",
     "styles": []
   },
   "VueCounter": {
-    "script": "/files/islands/VueCounter-CapVNorh.js",
+    "script": "/files/islands/VueCounter-CmYCOPkk.js",
     "styles": []
   }
 }
