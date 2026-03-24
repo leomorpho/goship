@@ -3211,7 +3211,7 @@
     },
     "TKT-568": {
       "title": "Implement verify profile tiers and prove command behavior across representative project states.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-505"
     },
