@@ -2246,7 +2246,7 @@
     },
     "TKT-406": {
       "title": "Normalize first-party module identity constants and fail on duplicate module IDs.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-401"
     },
