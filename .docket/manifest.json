@@ -2234,7 +2234,7 @@
     },
     "TKT-404": {
       "title": "Enforce forbidden imports between framework and modules with package-boundary tests.",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-401"
     },
