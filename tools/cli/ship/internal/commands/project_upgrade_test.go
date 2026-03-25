@@ -86,6 +86,62 @@ func fixtureText(t *testing.T, relPath string) []byte {
 	return b
 }
 
+func TestUpgradeApplyRewrite_RollsBackOnVerificationFailure(t *testing.T) {
+	t.Parallel()
+
+	type writeCall struct {
+		path string
+		body string
+	}
+	var writes []writeCall
+	writeFile := func(path string, data []byte, _ os.FileMode) error {
+		writes = append(writes, writeCall{path: path, body: string(data)})
+		return nil
+	}
+	readFile := func(string) ([]byte, error) {
+		return []byte("unexpected"), nil
+	}
+
+	err := applyUpgradeRewrite("/tmp/cli.go", "new content", "old content", writeFile, readFile)
+	if err == nil {
+		t.Fatal("expected rollback error")
+	}
+	if !strings.Contains(err.Error(), "rolled back") {
+		t.Fatalf("error should mention rollback, got: %v", err)
+	}
+	if len(writes) != 2 {
+		t.Fatalf("writes=%d want 2", len(writes))
+	}
+	if writes[0].body != "new content" {
+		t.Fatalf("first write=%q want new content", writes[0].body)
+	}
+	if writes[1].body != "old content" {
+		t.Fatalf("second write=%q want old content rollback", writes[1].body)
+	}
+}
+
+func TestUpgradeApplyRewrite_NoRollbackWhenInitialWriteFails(t *testing.T) {
+	t.Parallel()
+
+	var writes int
+	writeFile := func(string, []byte, os.FileMode) error {
+		writes++
+		return os.ErrPermission
+	}
+	readFile := func(string) ([]byte, error) {
+		t.Fatal("readFile should not be called when initial write fails")
+		return nil, nil
+	}
+
+	err := applyUpgradeRewrite("/tmp/cli.go", "new content", "old content", writeFile, readFile)
+	if err == nil {
+		t.Fatal("expected write failure")
+	}
+	if writes != 1 {
+		t.Fatalf("writes=%d want 1", writes)
+	}
+}
+
 func TestRewriteGooseVersion(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "cli.go")
 	input := `package ship
