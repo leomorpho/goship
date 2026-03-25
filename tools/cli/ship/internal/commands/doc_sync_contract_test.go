@@ -312,3 +312,52 @@ func TestDocs_SvelteKitReferenceAppContract_RedSpec(t *testing.T) {
 		t.Fatal("API guide should link to the canonical sveltekit-api-only reference app")
 	}
 }
+
+func TestDocs_ReadmeLandingNarrativeStaysAligned_RedSpec(t *testing.T) {
+	root := repoRootFromCommandsTest(t)
+
+	readme := mustReadText(t, filepath.Join(root, "README.md"))
+	indexDoc := mustReadText(t, filepath.Join(root, "docs", "00-index.md"))
+	managedDoc := mustReadText(t, filepath.Join(root, "docs", "architecture", "09-standalone-and-managed-mode.md"))
+
+	for _, token := range []string{
+		"Default path",
+		"single-binary",
+		"SQLite-first",
+		"managed",
+		"api-only-same-origin-sveltekit-v1",
+		"SvelteKit-first",
+	} {
+		if !strings.Contains(readme, token) {
+			t.Fatalf("README should include landing narrative token %q", token)
+		}
+	}
+
+	for _, token := range []string{
+		"README",
+		"repo landing page",
+	} {
+		if !strings.Contains(indexDoc, token) {
+			t.Fatalf("docs index should describe README entrypoint token %q", token)
+		}
+	}
+
+	for _, token := range []string{
+		"api-only-same-origin-sveltekit-v1",
+		"SvelteKit-first",
+	} {
+		if !strings.Contains(managedDoc, token) {
+			t.Fatalf("managed-mode contract should include %q", token)
+		}
+	}
+
+	for _, token := range []string{
+		"Note that any JS framework could be used.",
+		"I have come to regret this",
+		"TODO: the test file can be found",
+	} {
+		if strings.Contains(readme, token) {
+			t.Fatalf("README should not include stale landing copy token %q", token)
+		}
+	}
+}
