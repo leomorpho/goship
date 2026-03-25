@@ -862,6 +862,78 @@ func TestApplyModuleAdd_ComposesSupportedFirstPartyPairs(t *testing.T) {
 	}
 }
 
+func TestApplyModuleAddRemove_SupportedBatteryMatrixLeavesCleanScaffold(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name     string
+		batteries []string
+	}{
+		{name: "notifications and jobs", batteries: []string{"notifications", "jobs"}},
+		{name: "notifications and storage", batteries: []string{"notifications", "storage"}},
+		{name: "notifications realtime and pwa", batteries: []string{"notifications", "realtime", "pwa"}},
+		{name: "billing and emailsubscriptions", batteries: []string{"billing", "emailsubscriptions"}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			root := t.TempDir()
+			writeNotificationsModuleFixtureFiles(t, root)
+
+			infos := make([]moduleInfo, 0, len(tt.batteries))
+			for _, battery := range tt.batteries {
+				info, ok := moduleCatalog[battery]
+				if !ok {
+					t.Fatalf("expected %q in module catalog", battery)
+				}
+				writeLocalModuleGoModFixture(t, root, info.LocalPath, info.ModulePath)
+				if err := applyModuleAdd(root, info, false, io.Discard); err != nil {
+					t.Fatalf("applyModuleAdd(%s) error: %v", battery, err)
+				}
+				infos = append(infos, info)
+			}
+
+			for i := len(infos) - 1; i >= 0; i-- {
+				info := infos[i]
+				if err := applyModuleRemove(root, info, false, io.Discard); err != nil {
+					t.Fatalf("applyModuleRemove(%s) error: %v", info.ID, err)
+				}
+			}
+
+			manifest := readTestFile(t, filepath.Join(root, "config", "modules.yaml"))
+			if manifest != modulesManifestHeader {
+				t.Fatalf("modules manifest should reset to baseline after matrix remove, got:\n%s", manifest)
+			}
+
+			container := readTestFile(t, filepath.Join(root, "app", "foundation", "container.go"))
+			router := readTestFile(t, filepath.Join(root, "app", "router.go"))
+			goMod := readTestFile(t, filepath.Join(root, "go.mod"))
+			goWork := readTestFile(t, filepath.Join(root, "go.work"))
+			for _, info := range infos {
+				if snippet := strings.TrimSpace(info.ContainerSnippet); snippet != "" && strings.Contains(container, snippet) {
+					t.Fatalf("container still contains %q snippet after remove matrix", info.ID)
+				}
+				for group, snippet := range info.RouterSnippets {
+					if snippet = strings.TrimSpace(snippet); snippet != "" && strings.Contains(router, snippet) {
+						t.Fatalf("router still contains %q group snippet for %q after remove matrix", group, info.ID)
+					}
+				}
+				if strings.TrimSpace(info.ModulePath) != "" {
+					if strings.Contains(goMod, info.ModulePath+" v0.0.0") {
+						t.Fatalf("go.mod still contains require for %q after remove matrix", info.ModulePath)
+					}
+					if strings.Contains(goMod, "replace "+info.ModulePath+" => ./"+filepath.ToSlash(info.LocalPath)) {
+						t.Fatalf("go.mod still contains replace for %q after remove matrix", info.ModulePath)
+					}
+				}
+				if strings.TrimSpace(info.LocalPath) != "" && strings.Contains(goWork, "./"+filepath.ToSlash(info.LocalPath)) {
+					t.Fatalf("go.work still contains use for %q after remove matrix", info.LocalPath)
+				}
+			}
+		})
+	}
+}
+
 func TestApplyModuleRemove_ComposedPairLeavesRemainingBatteryIntact(t *testing.T) {
 	t.Parallel()
 
