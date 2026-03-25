@@ -85,6 +85,17 @@ func (s *SQLStore) Delete(ctx context.Context, key string) error {
 	return err
 }
 
+func (s *SQLStore) UpsertDescription(ctx context.Context, key string, description string) error {
+	_, err := s.db.ExecContext(ctx, `
+UPDATE feature_flags
+SET description = ?, updated_at = CURRENT_TIMESTAMP
+WHERE key = ?`,
+		description,
+		key,
+	)
+	return err
+}
+
 func encodeUserIDs(userIDs []int64) string {
 	if len(userIDs) == 0 {
 		return ""
