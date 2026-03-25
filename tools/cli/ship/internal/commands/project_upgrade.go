@@ -51,6 +51,7 @@ type UpgradeReadinessReport struct {
 	Result                UpgradeResult           `json:"result"`
 	Blockers              []UpgradeReadinessItem  `json:"blockers"`
 	ManualFollowUps       []UpgradeManualFollowUp `json:"manual_follow_ups"`
+	ExecutionSteps        []UpgradeExecutionStep  `json:"execution_steps"`
 	RemediationHints      []string                `json:"remediation_hints"`
 	PlannedChanges        []UpgradePlannedChange  `json:"planned_changes"`
 }
@@ -83,6 +84,14 @@ type UpgradeManualFollowUp struct {
 	ID          string `json:"id"`
 	Description string `json:"description"`
 	Command     string `json:"command"`
+}
+
+type UpgradeExecutionStep struct {
+	Kind        string `json:"kind"`
+	ID          string `json:"id"`
+	Description string `json:"description"`
+	Command     string `json:"command"`
+	Status      string `json:"status"`
 }
 
 type UpgradeCanaryPlan struct {
@@ -187,6 +196,8 @@ func upgradeGoose(d UpgradeDeps, root, version string, dryRun, jsonOut, applyMod
 				return 1
 			}
 			fmt.Fprintln(d.Err, "upgrade blocked: canonical generated conventions drifted")
+			fmt.Fprintln(d.Err, "blocked steps:")
+			fmt.Fprintln(d.Err, "- align generated conventions: ship verify --profile strict")
 			fmt.Fprintf(d.Err, "- %s: %s\n", displayPath, driftErr.detail)
 			fmt.Fprintln(d.Err, "run `ship verify --profile strict` and align generated conventions before retrying upgrade apply")
 			return 1
@@ -212,8 +223,11 @@ func upgradeGoose(d UpgradeDeps, root, version string, dryRun, jsonOut, applyMod
 	}
 	if !applyMode {
 		fmt.Fprintln(d.Out, "preflight: no files were written")
-		fmt.Fprintf(d.Out, "planned rewrite: %s: %s -> %s\n", displayPath, old, version)
-		fmt.Fprintf(d.Out, "next: ship upgrade apply --to %s\n", version)
+		fmt.Fprintln(d.Out, "automatic steps (planned):")
+		fmt.Fprintf(d.Out, "- rewrite goose pin: %s: %s -> %s\n", displayPath, old, version)
+		fmt.Fprintf(d.Out, "- apply rewrite plan: ship upgrade apply --to %s\n", version)
+		fmt.Fprintln(d.Out, "manual steps (required):")
+		fmt.Fprintf(d.Out, "- review readiness report: ship upgrade --to %s --json\n", version)
 		return 0
 	}
 	if err := applyUpgradeRewrite(path, newText, originalText, os.WriteFile, os.ReadFile); err != nil {
@@ -317,6 +331,15 @@ func buildUpgradeDriftReport(path, targetVersion, detail string) UpgradeReadines
 				Command:     "ship verify --profile strict",
 			},
 		},
+		ExecutionSteps: []UpgradeExecutionStep{
+			{
+				Kind:        "blocked",
+				ID:          "upgrade.convention_drift",
+				Description: "Canonical generated conventions drifted; align before rewrite apply.",
+				Command:     "ship verify --profile strict",
+				Status:      "blocked",
+			},
+		},
 		RemediationHints: []string{
 			"Upgrade apply rewrites only run against canonical generated conventions.",
 			"Run ship verify --profile strict and repair stale generated files first.",
@@ -366,6 +389,22 @@ func buildUpgradeReadinessReport(path, currentVersion, targetVersion string, cha
 				ID:          "upgrade.pin.apply",
 				Description: "Apply the pinned version mutation once readiness review is complete.",
 				Command:     applyCommand,
+			},
+		},
+		ExecutionSteps: []UpgradeExecutionStep{
+			{
+				Kind:        "automatic",
+				ID:          "upgrade.rewrite.goose_pin",
+				Description: "Apply deterministic Goose pin codemod rewrite.",
+				Command:     applyCommand,
+				Status:      "planned",
+			},
+			{
+				Kind:        "manual",
+				ID:          "upgrade.readiness.review",
+				Description: "Review readiness report before applying rewrites.",
+				Command:     dryRunCommand,
+				Status:      "required",
 			},
 		},
 		RemediationHints: []string{

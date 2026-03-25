@@ -104,6 +104,15 @@ const gooseGoRunRef = "github.com/pressly/goose/v3/cmd/goose@v3.26.0"
 	if len(report.ManualFollowUps) != 2 {
 		t.Fatalf("manual_follow_ups=%d want 2", len(report.ManualFollowUps))
 	}
+	if len(report.ExecutionSteps) < 2 {
+		t.Fatalf("execution_steps=%d want at least 2", len(report.ExecutionSteps))
+	}
+	if got := report.ExecutionSteps[0].Kind; got != "automatic" {
+		t.Fatalf("execution_steps[0].kind=%q want automatic", got)
+	}
+	if got := report.ExecutionSteps[1].Kind; got != "manual" {
+		t.Fatalf("execution_steps[1].kind=%q want manual", got)
+	}
 	if got := report.ManualFollowUps[0].Command; got != "ship upgrade --to v3.27.0 --dry-run" {
 		t.Fatalf("manual_follow_ups[0].command=%q want ship upgrade --to v3.27.0 --dry-run", got)
 	}
@@ -187,7 +196,7 @@ const gooseGoRunRef = "github.com/pressly/goose/v3/cmd/goose@v3.26.0"
 		t.Fatalf("stdout should be valid JSON: %v\n%s", err, out.String())
 	}
 
-	for _, field := range []string{"rollback_target", "canary", "verification", "plan", "blocker_classification", "manual_follow_ups", "result"} {
+	for _, field := range []string{"rollback_target", "canary", "verification", "plan", "blocker_classification", "manual_follow_ups", "execution_steps", "result"} {
 		if got := report[field]; got == nil {
 			t.Fatalf("expected upgrade readiness report to include %q contract field", field)
 		}
@@ -216,6 +225,15 @@ func TestBuildUpgradeReadinessReport_UsesConcreteCommands_RedSpec(t *testing.T) 
 	}
 	if got := report.Plan.SafeSteps[0].Command; got != "ship upgrade apply --to v3.27.0" {
 		t.Fatalf("plan.safe_steps[0].command=%q want ship upgrade apply --to v3.27.0", got)
+	}
+	if len(report.ExecutionSteps) < 2 {
+		t.Fatalf("execution_steps=%d want at least 2", len(report.ExecutionSteps))
+	}
+	if got := report.ExecutionSteps[0].Kind; got != "automatic" {
+		t.Fatalf("execution_steps[0].kind=%q want automatic", got)
+	}
+	if got := report.ExecutionSteps[1].Kind; got != "manual" {
+		t.Fatalf("execution_steps[1].kind=%q want manual", got)
 	}
 }
 

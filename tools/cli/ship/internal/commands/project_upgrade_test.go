@@ -289,8 +289,14 @@ const gooseGoRunRef = "github.com/pressly/goose/v3/cmd/goose@v3.26.0"
 		if !strings.Contains(out.String(), "preflight: no files were written") {
 			t.Fatalf("stdout=%q", out.String())
 		}
+		if !strings.Contains(out.String(), "automatic steps (planned):") {
+			t.Fatalf("stdout should include automatic step section, got:\n%s", out.String())
+		}
+		if !strings.Contains(out.String(), "manual steps (required):") {
+			t.Fatalf("stdout should include manual step section, got:\n%s", out.String())
+		}
 		if !strings.Contains(out.String(), "ship upgrade apply --to v3.27.0") {
-			t.Fatalf("stdout should include explicit apply follow-up command, got:\n%s", out.String())
+			t.Fatalf("stdout should include explicit apply command, got:\n%s", out.String())
 		}
 	})
 
@@ -383,6 +389,45 @@ const gooseGoRunRef = "github.com/pressly/goose/v3/cmd/goose@v3.26.0"
 		}
 		if got := len(report.PlannedChanges); got != 0 {
 			t.Fatalf("planned_changes=%d want 0 when blocked", got)
+		}
+		if got := len(report.ExecutionSteps); got != 1 {
+			t.Fatalf("execution_steps=%d want 1", got)
+		}
+		if got := report.ExecutionSteps[0].Kind; got != "blocked" {
+			t.Fatalf("execution_steps[0].kind=%q want blocked", got)
+		}
+	})
+
+	t.Run("stale convention human output includes blocked section", func(t *testing.T) {
+		root := t.TempDir()
+		if err := os.WriteFile(filepath.Join(root, "go.mod"), []byte("module example.com/demo\n\ngo 1.25\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		cliPath := filepath.Join(root, "tools", "cli", "ship", "internal", "cli", "cli.go")
+		if err := os.MkdirAll(filepath.Dir(cliPath), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(cliPath, fixtureText(t, "testdata/upgrade_codemods/goose_stale_convention.go"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+
+		prevWD, err := os.Getwd()
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Cleanup(func() { _ = os.Chdir(prevWD) })
+		if err := os.Chdir(root); err != nil {
+			t.Fatal(err)
+		}
+
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+		code := RunUpgrade([]string{"--to", "v3.27.0"}, UpgradeDeps{Out: out, Err: errOut, FindGoModule: findGoModuleTest})
+		if code != 1 {
+			t.Fatalf("code=%d want 1", code)
+		}
+		if !strings.Contains(errOut.String(), "blocked steps:") {
+			t.Fatalf("stderr should include blocked steps section, got:\n%s", errOut.String())
 		}
 	})
 }
