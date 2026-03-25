@@ -93,4 +93,11 @@ func TestPage_DesignTokenRecipes(t *testing.T) {
 	assert.Equal(t, "gs-stack", p.StarterStackClass())
 	assert.Equal(t, "gs-color-muted", p.StarterMutedColorClass())
 	assert.Equal(t, "gs-elevation-float", p.StarterElevationClass())
+	assert.Equal(t, "gs-card", p.StarterCardClass())
+	assert.Equal(t, "gs-nav", p.StarterNavClass())
+	assert.Equal(t, "gs-nav-item", p.StarterNavItemClass(false))
+	assert.Equal(t, "gs-nav-item gs-nav-item-active", p.StarterNavItemClass(true))
+	assert.Equal(t, "gs-alert gs-alert-info", p.StarterAlertClass("info"))
+	assert.Equal(t, "gs-alert gs-alert-success", p.StarterAlertClass("success"))
+	assert.Equal(t, "gs-alert gs-alert-danger", p.StarterAlertClass("danger"))
 }

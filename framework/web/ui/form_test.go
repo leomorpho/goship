@@ -37,5 +37,6 @@ func TestFormSubmission(t *testing.T) {
 	assert.Equal(t, "gs-field-input gs-field-success", form.Submission.GetFieldInputClass("Email"))
 	assert.Equal(t, "gs-field-hint gs-color-danger", form.Submission.GetFieldHintClass("Name"))
 	assert.Equal(t, "gs-field-hint gs-color-muted", form.Submission.GetFieldHintClass("Email"))
+	assert.Equal(t, "gs-form", form.Submission.FormClass())
 	assert.False(t, form.Submission.IsDone())
 }

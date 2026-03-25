@@ -133,11 +133,11 @@ func (p Page) StarterTextClass() string {
 }
 
 func (p Page) StarterPrimaryActionClass() string {
-	return recipeClass(RecipeButtonBase) + " " + recipeClass(RecipeButtonPrimary)
+	return buttonClass(true)
 }
 
 func (p Page) StarterSecondaryActionClass() string {
-	return recipeClass(RecipeButtonBase) + " " + recipeClass(RecipeButtonSecondary)
+	return buttonClass(false)
 }
 
 func (p Page) StarterKickerClass() string {
@@ -154,4 +154,20 @@ func (p Page) StarterMutedColorClass() string {
 
 func (p Page) StarterElevationClass() string {
 	return recipeClass(RecipeElevationFloat)
+}
+
+func (p Page) StarterCardClass() string {
+	return cardClass()
+}
+
+func (p Page) StarterNavClass() string {
+	return navClass()
+}
+
+func (p Page) StarterNavItemClass(active bool) string {
+	return navItemClass(active)
+}
+
+func (p Page) StarterAlertClass(variant string) string {
+	return alertClass(variant)
 }
