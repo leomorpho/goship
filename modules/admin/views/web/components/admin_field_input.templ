@@ -15,21 +15,21 @@ templ AdminFieldInput(field admin.AdminField) {
 				<input data-component="admin-field-input" type="checkbox" name={ field.Name } checked?={ checked } class="h-4 w-4"/>
 			}
 		case admin.FieldTypeInt:
-			<input data-component="admin-field-input" type="number" name={ field.Name } value={ fmt.Sprint(field.Value) } class="w-full rounded-md border border-slate-300 px-3 py-2"/>
+			<input data-component="admin-field-input" type="number" name={ field.Name } value={ fmt.Sprint(field.Value) } class="gs-field-input"/>
 		case admin.FieldTypeTime:
 			if value := getTimeValue(field); true {
-				<input data-component="admin-field-input" type="datetime-local" name={ field.Name } value={ value } class="w-full rounded-md border border-slate-300 px-3 py-2"/>
+				<input data-component="admin-field-input" type="datetime-local" name={ field.Name } value={ value } class="gs-field-input"/>
 			}
 		case admin.FieldTypeText:
-			<textarea data-component="admin-field-input" name={ field.Name } rows="5" class="w-full rounded-md border border-slate-300 px-3 py-2">{ fmt.Sprint(field.Value) }</textarea>
+			<textarea data-component="admin-field-input" name={ field.Name } rows="5" class="gs-field-input">{ fmt.Sprint(field.Value) }</textarea>
 		case admin.FieldTypeEmail:
-			<input data-component="admin-field-input" type="email" name={ field.Name } value={ fmt.Sprint(field.Value) } class="w-full rounded-md border border-slate-300 px-3 py-2"/>
+			<input data-component="admin-field-input" type="email" name={ field.Name } value={ fmt.Sprint(field.Value) } class="gs-field-input"/>
 		case admin.FieldTypePassword:
-			<input data-component="admin-field-input" type="password" name={ field.Name } value="" class="w-full rounded-md border border-slate-300 px-3 py-2"/>
+			<input data-component="admin-field-input" type="password" name={ field.Name } value="" class="gs-field-input"/>
 		case admin.FieldTypeReadOnly:
-			<input data-component="admin-field-input" type="text" name={ field.Name } value={ fmt.Sprint(field.Value) } disabled class="w-full rounded-md border border-slate-200 bg-slate-100 px-3 py-2 text-slate-500"/>
+			<input data-component="admin-field-input" type="text" name={ field.Name } value={ fmt.Sprint(field.Value) } disabled class="gs-field-input bg-gs-surface-muted text-gs-text-muted"/>
 		default:
-			<input data-component="admin-field-input" type="text" name={ field.Name } value={ fmt.Sprint(field.Value) } class="w-full rounded-md border border-slate-300 px-3 py-2"/>
+			<input data-component="admin-field-input" type="text" name={ field.Name } value={ fmt.Sprint(field.Value) } class="gs-field-input"/>
 	}
 }
 

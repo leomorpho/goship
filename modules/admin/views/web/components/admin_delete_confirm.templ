@@ -6,6 +6,6 @@ templ AdminDeleteConfirm(action, csrfToken string) {
 		onsubmit="return confirm('Are you sure you want to delete this item?');">
 		<input type="hidden" name="csrf" value={ csrfToken }/>
 		<input type="hidden" name="_method" value="DELETE"/>
-		<button type="submit" class="rounded-md border border-red-200 px-3 py-1 text-sm text-red-700 hover:bg-red-50">Delete</button>
+		<button type="submit" class="gs-button gs-button-secondary px-3 py-1 text-gs-danger border-gs-danger">Delete</button>
 	</form>
 }
