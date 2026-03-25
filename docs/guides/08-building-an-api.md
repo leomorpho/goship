@@ -7,6 +7,10 @@ This guide also defines the one blessed split-frontend integration path.
 
 Current blessed split-frontend contract identifier: `api-only-same-origin-sveltekit-v1`.
 
+Canonical reference implementation:
+
+- `examples/sveltekit-api-only/README.md`
+
 Contract scope:
 
 - one supported custom frontend story for now: `SvelteKit-first`

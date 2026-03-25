@@ -273,3 +273,42 @@ func TestDocs_BlessedExternalFrontendContractStaysInSync_RedSpec(t *testing.T) {
 		}
 	}
 }
+
+func TestDocs_SvelteKitReferenceAppContract_RedSpec(t *testing.T) {
+	root := repoRootFromCommandsTest(t)
+
+	refReadmePath := filepath.Join(root, "examples", "sveltekit-api-only", "README.md")
+	refContractPath := filepath.Join(root, "examples", "sveltekit-api-only", "src", "lib", "server", "goship-contract.ts")
+	apiGuidePath := filepath.Join(root, "docs", "guides", "08-building-an-api.md")
+
+	refReadme := mustReadText(t, refReadmePath)
+	refContract := mustReadText(t, refContractPath)
+	apiGuide := mustReadText(t, apiGuidePath)
+
+	for _, token := range []string{
+		"api-only-same-origin-sveltekit-v1",
+		"ship new demo --module example.com/demo --api-only",
+		"same-origin auth/session",
+		"X-CSRF-Token",
+		"/auth/login",
+	} {
+		if !strings.Contains(refReadme, token) {
+			t.Fatalf("reference app README should include %q", token)
+		}
+	}
+
+	for _, token := range []string{
+		"export type GoshipResponseEnvelope",
+		"export type GoshipAPIError",
+		"export async function goshipFetch",
+		"X-CSRF-Token",
+	} {
+		if !strings.Contains(refContract, token) {
+			t.Fatalf("reference app TypeScript contract should include %q", token)
+		}
+	}
+
+	if !strings.Contains(apiGuide, "examples/sveltekit-api-only/README.md") {
+		t.Fatal("API guide should link to the canonical sveltekit-api-only reference app")
+	}
+}
