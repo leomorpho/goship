@@ -3422,6 +3422,162 @@
       "state": "in-review",
       "priority": 10,
       "parent": "TKT-601"
+    },
+    "TKT-608": {
+      "title": "Epic: P2-E4 Canonical Docs And LLM Surface",
+      "state": "backlog",
+      "priority": 6,
+      "parent": "TKT-417"
+    },
+    "TKT-609": {
+      "title": "Epic: P12-E4 External Frontend Contract",
+      "state": "archived",
+      "priority": 6,
+      "parent": "TKT-551"
+    },
+    "TKT-610": {
+      "title": "Hard-reset architecture docs and AI agent guide to the framework-first repo shape and current runtime seams.",
+      "state": "archived",
+      "priority": 4,
+      "parent": "TKT-608"
+    },
+    "TKT-611": {
+      "title": "Rewrite README, docs index, and LLM.txt so GoShip's entry docs match the actual product surface.",
+      "state": "archived",
+      "priority": 4,
+      "parent": "TKT-608"
+    },
+    "TKT-612": {
+      "title": "Make ship-mcp execute the checked-out ship CLI instead of relying on a stale PATH binary.",
+      "state": "archived",
+      "priority": 4,
+      "parent": "TKT-608"
+    },
+    "TKT-613": {
+      "title": "Epic: P12-E4 External Frontend Contract",
+      "state": "backlog",
+      "priority": 6,
+      "parent": "TKT-551"
+    },
+    "TKT-614": {
+      "title": "Hard-reset architecture docs and AI agent guide to the framework-first repo shape and current runtime seams.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-608"
+    },
+    "TKT-615": {
+      "title": "Rewrite README, docs index, and LLM.txt so GoShip's entry docs match the actual product surface.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-608"
+    },
+    "TKT-616": {
+      "title": "Make ship-mcp execute the checked-out ship CLI instead of relying on a stale PATH binary.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-608"
+    },
+    "TKT-617": {
+      "title": "Add runtime-report and stable access-classification tools to ship-mcp for stronger agent context.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-608"
+    },
+    "TKT-618": {
+      "title": "Promote ship-mcp and MCP docs from optional/future-facing to first-class GoShip LLM workflow guidance.",
+      "state": "backlog",
+      "priority": 5,
+      "parent": "TKT-608"
+    },
+    "TKT-619": {
+      "title": "Add a doc drift gate for README, LLM.txt, MCP docs, and canonical architecture docs.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-608"
+    },
+    "TKT-620": {
+      "title": "Define the blessed external-frontend contract for GoShip: API-only backend, same-origin auth, and one supported custom-frontend story.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-613"
+    },
+    "TKT-621": {
+      "title": "Implement a blessed API-only ship new starter mode and support it in doctor, verify, and golden-path tests.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-613"
+    },
+    "TKT-622": {
+      "title": "Publish the canonical SvelteKit integration guide for GoShip API-only apps.",
+      "state": "backlog",
+      "priority": 5,
+      "parent": "TKT-613"
+    },
+    "TKT-623": {
+      "title": "Add TypeScript contract artifacts for split frontend apps without reviving framework-owned OpenAPI generation.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-613"
+    },
+    "TKT-624": {
+      "title": "Expand framework/testutil with JSON, multipart, and SSE assertions for API-heavy apps.",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-613"
+    },
+    "TKT-625": {
+      "title": "Add a canonical SQLite-to-Postgres promotion runbook for humans and LLMs and surface it from db:promote outputs.",
+      "state": "backlog",
+      "priority": 5,
+      "parent": "TKT-518"
+    },
+    "TKT-626": {
+      "title": "Build a canonical SvelteKit reference app that proves the blessed split-frontend contract end to end.",
+      "state": "backlog",
+      "priority": 10,
+      "parent": "TKT-613"
+    },
+    "TKT-627": {
+      "title": "Rewrite the public landing-page narrative so GoShip's public story matches the actual product and supported frontend model.",
+      "state": "backlog",
+      "priority": 10,
+      "parent": "TKT-608"
+    },
+    "TKT-628": {
+      "title": "Epic: P2-E5 Agent Execution Proof And Context Delivery",
+      "state": "backlog",
+      "priority": 10,
+      "parent": "TKT-417"
+    },
+    "TKT-629": {
+      "title": "Define one canonical project-context bundle for humans and LLMs and lock its schema.",
+      "state": "backlog",
+      "priority": 10,
+      "parent": "TKT-628"
+    },
+    "TKT-630": {
+      "title": "Inject the canonical project-context bundle into ship agent:start and ship-mcp so agents receive task-ready context automatically.",
+      "state": "backlog",
+      "priority": 10,
+      "parent": "TKT-628"
+    },
+    "TKT-631": {
+      "title": "Add a cold-start agent eval task pack that proves weaker models find and use the right GoShip surfaces.",
+      "state": "backlog",
+      "priority": 10,
+      "parent": "TKT-628"
+    },
+    "TKT-632": {
+      "title": "Add a CI regression gate and score reporting for the cold-start agent eval task pack.",
+      "state": "backlog",
+      "priority": 10,
+      "parent": "TKT-628"
+    },
+    "TKT-633": {
+      "title": "Add an API-only fresh-app confidence suite that proves ship new --api boots, verifies, and exposes canonical JSON/auth surfaces.",
+      "state": "backlog",
+      "priority": 10,
+      "parent": "TKT-613"
     }
   }
 }
