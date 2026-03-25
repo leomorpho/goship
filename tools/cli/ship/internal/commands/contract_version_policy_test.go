@@ -116,6 +116,31 @@ func TestManagedHookKeyVersionPolicy_RedSpec(t *testing.T) {
 	if got := result.Blockers[0].Actual; got != "managed-hook-key-version-v2" {
 		t.Fatalf("actual=%q want managed-hook-key-version-v2", got)
 	}
+	if len(result.SecurityEvents) != 1 {
+		t.Fatalf("expected one security event for contract violation, got %+v", result.SecurityEvents)
+	}
+	if got := result.SecurityEvents[0].Kind; got != ContractViolationSecurityEvent {
+		t.Fatalf("security event kind=%q want %q", got, ContractViolationSecurityEvent)
+	}
+	if got := result.SecurityEvents[0].Code; got != "unsupported_managed_hook_key_version" {
+		t.Fatalf("security event code=%q want unsupported_managed_hook_key_version", got)
+	}
+}
+
+func TestDeployContractVersionPolicy_ReportsSecurityEventsForContractViolations(t *testing.T) {
+	result := EvaluateDeployContractVersionPolicy("runtime-contract-v9", "runtime-handshake-v1")
+	if result.OK {
+		t.Fatalf("expected unsupported runtime contract version to fail, got %+v", result)
+	}
+	if len(result.SecurityEvents) != 1 {
+		t.Fatalf("expected one security event for deploy contract violation, got %+v", result.SecurityEvents)
+	}
+	if got := result.SecurityEvents[0].Kind; got != ContractViolationSecurityEvent {
+		t.Fatalf("security event kind=%q want %q", got, ContractViolationSecurityEvent)
+	}
+	if got := result.SecurityEvents[0].Code; got != "unsupported_runtime_contract_version" {
+		t.Fatalf("security event code=%q want unsupported_runtime_contract_version", got)
+	}
 }
 
 func TestContractVersionPolicyDocs_RedSpec(t *testing.T) {

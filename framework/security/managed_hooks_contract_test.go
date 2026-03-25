@@ -212,3 +212,29 @@ func TestManagedHookVerifier_DurableReplayStoreContract(t *testing.T) {
 		}
 	}
 }
+
+func TestManagedHookVerifier_SecurityEventReportingContract(t *testing.T) {
+	root := repoRootForSecurityContractTest(t)
+	securitySource := mustReadSecurityContractText(t, filepath.Join(root, "framework", "security", "managed_hooks.go"))
+	managedDoc := strings.ToLower(mustReadSecurityContractText(t, filepath.Join(root, "docs", "architecture", "09-standalone-and-managed-mode.md")))
+
+	for _, token := range []string{
+		"ManagedHookSecurityEvent",
+		"WithSecurityEventReporter",
+		"ManagedHookSecurityEventInvalidSignature",
+		"ManagedHookSecurityEventReplay",
+	} {
+		if !strings.Contains(securitySource, token) {
+			t.Fatalf("managed hook verifier should include security event reporting token %q", token)
+		}
+	}
+	for _, token := range []string{
+		"security event reporting",
+		"invalid signature",
+		"replay",
+	} {
+		if !strings.Contains(managedDoc, token) {
+			t.Fatalf("managed-mode architecture doc should include token %q", token)
+		}
+	}
+}

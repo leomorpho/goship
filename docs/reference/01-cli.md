@@ -298,6 +298,7 @@ Managed hook replay contract:
 - managed hook key rotation keeps `PAGODA_MANAGED_HOOKS_SECRET` as the active key and accepts `PAGODA_MANAGED_HOOKS_PREVIOUS_SECRET` during the rotation window
 - key rotation supports no-downtime validation windows where old/new signatures continue to verify when callers provide the corresponding key-version header
 - the rotation window does not relax replay protection; nonce and timestamp validation still apply to both secrets
+- managed-hook verification now emits security events for invalid signature and replay outcomes (`invalid_signature`, `replay_detected`) and contract-version policy blockers emit `contract_violation` events keyed by blocker code
 
 run-anywhere verification gate:
 

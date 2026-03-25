@@ -34,6 +34,32 @@ func TestManagedHookVerifierVerifyRequest(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestManagedHookVerifierReportsSecurityEventOnInvalidSignature(t *testing.T) {
+	useIsolatedNonceStore(t)
+	verifier := NewManagedHookVerifier("secret", 5*time.Minute, 5*time.Minute)
+	now := time.Date(2026, time.March, 25, 10, 0, 0, 0, time.UTC)
+	verifier.now = func() time.Time { return now }
+
+	var events []ManagedHookSecurityEvent
+	verifier = verifier.WithSecurityEventReporter(func(event ManagedHookSecurityEvent) {
+		events = append(events, event)
+	})
+
+	body := []byte(`{"hello":"world"}`)
+	req := httptest.NewRequest("POST", "/managed/backup", nil)
+	ts := now.Unix()
+	req.Header.Set(HeaderManagedTimestamp, strconv.FormatInt(ts, 10))
+	req.Header.Set(HeaderManagedNonce, "nonce-1")
+	req.Header.Set(HeaderManagedSignature, "invalid-signature")
+
+	err := verifier.VerifyRequest(req, body)
+	require.Error(t, err)
+	assert.ErrorIs(t, err, ErrManagedSignatureMismatch)
+	require.Len(t, events, 1)
+	assert.Equal(t, ManagedHookSecurityEventInvalidSignature, events[0].Kind)
+	assert.Equal(t, "/managed/backup", events[0].Path)
+}
+
 func TestManagedHookVerifierRejectsReplay(t *testing.T) {
 	useIsolatedNonceStore(t)
 	verifier := NewManagedHookVerifier("secret", 5*time.Minute, 5*time.Minute)
@@ -58,6 +84,41 @@ func TestManagedHookVerifierRejectsReplay(t *testing.T) {
 	err := verifier.VerifyRequest(req2, body)
 	require.Error(t, err)
 	assert.ErrorIs(t, err, ErrManagedReplayDetected)
+}
+
+func TestManagedHookVerifierReportsSecurityEventOnReplay(t *testing.T) {
+	useIsolatedNonceStore(t)
+	verifier := NewManagedHookVerifier("secret", 5*time.Minute, 5*time.Minute)
+	now := time.Date(2026, time.March, 16, 1, 20, 0, 0, time.UTC)
+	verifier.now = func() time.Time { return now }
+
+	var events []ManagedHookSecurityEvent
+	verifier = verifier.WithSecurityEventReporter(func(event ManagedHookSecurityEvent) {
+		events = append(events, event)
+	})
+
+	body := []byte(`{}`)
+	ts := now.Unix()
+	nonce := "shared-nonce"
+
+	req1 := httptest.NewRequest("GET", "/managed/status", nil)
+	sig := SignManagedHookRequest("secret", req1.Method, "/managed/status", ts, nonce, body)
+	req1.Header.Set(HeaderManagedTimestamp, strconv.FormatInt(ts, 10))
+	req1.Header.Set(HeaderManagedNonce, nonce)
+	req1.Header.Set(HeaderManagedSignature, sig)
+	require.NoError(t, verifier.VerifyRequest(req1, body))
+
+	req2 := httptest.NewRequest("GET", "/managed/status", nil)
+	req2.Header.Set(HeaderManagedTimestamp, strconv.FormatInt(ts, 10))
+	req2.Header.Set(HeaderManagedNonce, nonce)
+	req2.Header.Set(HeaderManagedSignature, sig)
+	err := verifier.VerifyRequest(req2, body)
+	require.Error(t, err)
+	assert.ErrorIs(t, err, ErrManagedReplayDetected)
+
+	require.Len(t, events, 1)
+	assert.Equal(t, ManagedHookSecurityEventReplay, events[0].Kind)
+	assert.Equal(t, "/managed/status", events[0].Path)
 }
 
 func TestManagedHookVerifierRejectsReplayAcrossVerifiersWhenNonceStoreIsShared(t *testing.T) {
