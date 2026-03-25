@@ -23,6 +23,7 @@ func TestParseNewArgs(t *testing.T) {
 		{name: "module spaced", args: []string{"demo", "--module", "example.com/demo"}},
 		{name: "dry-run", args: []string{"demo", "--dry-run"}},
 		{name: "force", args: []string{"demo", "--force"}},
+		{name: "api-only", args: []string{"demo", "--api-only"}},
 		{name: "i18n enabled", args: []string{"demo", "--i18n"}},
 		{name: "i18n disabled", args: []string{"demo", "--no-i18n"}},
 		{name: "unsupported locale pack equals", args: []string{"demo", "--i18n-locale-pack=top15"}, wantErr: true},
@@ -508,4 +509,56 @@ func TestCanonicalGeneratedProjectLayoutGolden(t *testing.T) {
 		"project_new_layout_i18n.golden",
 		strings.Join(canonicalGeneratedProjectLayoutSnapshot(opts, defaultNewLayoutArtifactPaths()), "\n")+"\n",
 	)
+
+	opts = NewProjectOptions{
+		Name:     "demo",
+		Module:   "example.com/demo",
+		AppPath:  "demo",
+		APIMode:  true,
+		I18nSet:  true,
+	}
+	assertCLIGoldenSnapshot(
+		t,
+		packageDir,
+		"project_new_layout_api_only.golden",
+		strings.Join(canonicalGeneratedProjectLayoutSnapshot(opts, defaultNewLayoutArtifactPaths()), "\n")+"\n",
+	)
+}
+
+func TestScaffoldNewProject_APIMode(t *testing.T) {
+	root := t.TempDir()
+	opts := NewProjectOptions{
+		Name:     "demo",
+		Module:   "example.com/demo",
+		AppPath:  filepath.Join(root, "demo"),
+		APIMode:  true,
+		I18nSet:  true,
+	}
+
+	if err := ScaffoldNewProject(opts, NewDeps{
+		ParseAgentPolicyBytes:      func(b []byte) (policies.AgentPolicy, error) { return policies.ParsePolicyBytes(b) },
+		RenderAgentPolicyArtifacts: policies.RenderPolicyArtifacts,
+		AgentPolicyFilePath:        policies.AgentPolicyFilePath,
+	}); err != nil {
+		t.Fatalf("ScaffoldNewProject failed: %v", err)
+	}
+
+	webMainBytes, err := os.ReadFile(filepath.Join(opts.AppPath, "cmd", "web", "main.go"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	webMain := string(webMainBytes)
+	if strings.Contains(webMain, "app/views") {
+		t.Fatalf("api-only web main should not import app/views:\n%s", webMain)
+	}
+	if !strings.Contains(webMain, "application/json") {
+		t.Fatalf("api-only web main should emit json responses:\n%s", webMain)
+	}
+
+	if _, err := os.Stat(filepath.Join(opts.AppPath, "app", "views", "web", "pages", "landing.templ")); !os.IsNotExist(err) {
+		t.Fatalf("api-only scaffold should not include templ pages")
+	}
+	if _, err := os.Stat(filepath.Join(opts.AppPath, "static", "styles_bundle.css")); !os.IsNotExist(err) {
+		t.Fatalf("api-only scaffold should not include static styles bundle")
+	}
 }

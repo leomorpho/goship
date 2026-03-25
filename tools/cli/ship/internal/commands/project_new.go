@@ -32,6 +32,7 @@ type NewProjectOptions struct {
 	Force       bool
 	AppPath     string
 	UIProvider  string
+	APIMode     bool
 	I18nEnabled bool
 	I18nSet     bool
 }
@@ -50,7 +51,7 @@ func RunNew(args []string, d NewDeps) int {
 	for _, arg := range args {
 		if arg == "-h" || arg == "--help" || arg == "help" {
 			fmt.Fprintln(d.Out, "ship new:")
-			fmt.Fprintln(d.Out, "  ship new <app> [--module <module-path>] [--dry-run] [--force] [--ui <franken|daisy|bare>] [--i18n|--no-i18n]")
+			fmt.Fprintln(d.Out, "  ship new <app> [--module <module-path>] [--dry-run] [--force] [--ui <franken|daisy|bare>] [--api-only] [--i18n|--no-i18n]")
 			return 0
 		}
 	}
@@ -61,7 +62,7 @@ func RunNew(args []string, d NewDeps) int {
 		return 1
 	}
 	if strings.TrimSpace(opts.Name) == "" {
-		fmt.Fprintln(d.Err, "usage: ship new <app> [--module <module-path>] [--dry-run] [--force] [--ui <franken|daisy|bare>] [--i18n|--no-i18n]")
+		fmt.Fprintln(d.Err, "usage: ship new <app> [--module <module-path>] [--dry-run] [--force] [--ui <franken|daisy|bare>] [--api-only] [--i18n|--no-i18n]")
 		return 1
 	}
 	opts, err = resolveNewI18nOptions(opts, d)
@@ -106,6 +107,8 @@ func ParseNewArgs(args []string) (NewProjectOptions, error) {
 			opts.DryRun = true
 		case arg == "--force":
 			opts.Force = true
+		case arg == "--api-only":
+			opts.APIMode = true
 		case arg == "--i18n":
 			if opts.I18nSet && !opts.I18nEnabled {
 				return opts, fmt.Errorf("cannot combine --i18n and --no-i18n")
@@ -194,6 +197,9 @@ func ScaffoldNewProject(opts NewProjectOptions, d NewDeps) error {
 	for path, content := range starterFiles {
 		files[path] = content
 	}
+	if opts.APIMode {
+		applyAPIModeScaffold(files, opts)
+	}
 	for path, content := range i18nScaffoldFiles(opts) {
 		files[path] = content
 	}
@@ -223,6 +229,25 @@ func ScaffoldNewProject(opts NewProjectOptions, d NewDeps) error {
 		}
 	}
 	return nil
+}
+
+func applyAPIModeScaffold(files map[string]string, opts NewProjectOptions) {
+	relDelete := []string{
+		filepath.Join("app", "views", "web", "pages", "home_feed.templ"),
+		filepath.Join("app", "views", "web", "pages", "home_feed_templ.go"),
+		filepath.Join("app", "views", "web", "pages", "landing.templ"),
+		filepath.Join("app", "views", "web", "pages", "landing_templ.go"),
+		filepath.Join("app", "views", "web", "pages", "profile.templ"),
+		filepath.Join("app", "views", "web", "pages", "profile_templ.go"),
+		filepath.Join("app", "views", "web", "layouts", "base.templ"),
+		filepath.Join("static", "styles_bundle.css"),
+		filepath.Join("styles", "styles.css"),
+	}
+	for _, rel := range relDelete {
+		delete(files, filepath.Join(opts.AppPath, rel))
+	}
+	files[filepath.Join(opts.AppPath, "app", "router.go")] = renderAPIOnlyStarterRouter(opts.Module)
+	files[filepath.Join(opts.AppPath, "cmd", "web", "main.go")] = renderAPIOnlyStarterWebMain(opts.Module)
 }
 
 func baseScaffoldFiles(opts NewProjectOptions) map[string]string {
@@ -510,6 +535,91 @@ import "log"
 
 func main() {
 	log.Println("starter worker ready: no background jobs registered yet")
+}
+`
+}
+
+func renderAPIOnlyStarterRouter(module string) string {
+	return `package goship
+
+import (
+	"` + module + `/app/foundation"
+	"` + module + `/app/web/routenames"
+)
+
+type Route struct {
+	Name string
+	Path string
+}
+
+func BuildRouter(c *foundation.Container) []Route {
+	if c == nil {
+		c = foundation.NewContainer()
+	}
+
+	return []Route{
+		{Name: routenames.RouteNameLandingPage, Path: "/"},
+		// ship:routes:public:start
+		// ship:routes:public:end
+		{Name: routenames.RouteNameLogin, Path: "/auth/login"},
+		{Name: routenames.RouteNameRegister, Path: "/auth/register"},
+		// ship:routes:auth:start
+		// ship:routes:auth:end
+		{Name: routenames.RouteNameHomeFeed, Path: "/auth/homeFeed"},
+		{Name: routenames.RouteNameProfile, Path: "/auth/profile"},
+		// ship:routes:external:start
+		// ship:routes:external:end
+	}
+}
+`
+}
+
+func renderAPIOnlyStarterWebMain(module string) string {
+	return `package main
+
+import (
+	"encoding/json"
+	"log"
+	"net/http"
+	"os"
+
+	goship "` + module + `/app"
+)
+
+func main() {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/health/liveness", func(w http.ResponseWriter, _ *http.Request) {
+		writeJSON(w, http.StatusOK, map[string]string{"status": "alive"})
+	})
+	mux.HandleFunc("/health/readiness", func(w http.ResponseWriter, _ *http.Request) {
+		writeJSON(w, http.StatusOK, map[string]string{"status": "ready"})
+	})
+
+	for _, route := range goship.BuildRouter(nil) {
+		route := route
+		mux.HandleFunc(route.Path, func(w http.ResponseWriter, _ *http.Request) {
+			writeJSON(w, http.StatusOK, map[string]string{"route": route.Name, "path": route.Path})
+		})
+	}
+
+	addr := ":" + envOrDefault("PORT", "3000")
+	log.Printf("starter api web listening on %s", addr)
+	if err := http.ListenAndServe(addr, mux); err != nil && err != http.ErrServerClosed {
+		log.Fatal(err)
+	}
+}
+
+func envOrDefault(key string, fallback string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return fallback
+}
+
+func writeJSON(w http.ResponseWriter, status int, payload any) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(status)
+	_ = json.NewEncoder(w).Encode(payload)
 }
 `
 }

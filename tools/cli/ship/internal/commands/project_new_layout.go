@@ -96,6 +96,27 @@ func defaultNewLayoutArtifactPaths() []string {
 
 func canonicalGeneratedProjectLayoutSnapshot(opts NewProjectOptions, artifactPaths []string) []string {
 	files := append([]string(nil), canonicalGeneratedProjectFiles...)
+	if opts.APIMode {
+		excluded := map[string]struct{}{
+			"app/views/web/layouts/base.templ":      {},
+			"app/views/web/pages/home_feed.templ":   {},
+			"app/views/web/pages/home_feed_templ.go": {},
+			"app/views/web/pages/landing.templ":     {},
+			"app/views/web/pages/landing_templ.go":  {},
+			"app/views/web/pages/profile.templ":     {},
+			"app/views/web/pages/profile_templ.go":  {},
+			"static/styles_bundle.css":              {},
+			"styles/styles.css":                     {},
+		}
+		filtered := make([]string, 0, len(files))
+		for _, file := range files {
+			if _, skip := excluded[file]; skip {
+				continue
+			}
+			filtered = append(filtered, file)
+		}
+		files = filtered
+	}
 	files = append(files, artifactPaths...)
 	if opts.I18nEnabled {
 		files = append(files, canonicalGeneratedProjectI18nFiles...)
