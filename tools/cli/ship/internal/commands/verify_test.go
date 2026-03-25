@@ -787,6 +787,24 @@ import "testing"
 func TestScaffoldTodo(t *testing.T) {
 	t.Skip("scaffold: implement resource behavior")
 }
+
+func TestPrintVerifyHelp_ListsProfileTiersAndContractFlags(t *testing.T) {
+	out := &bytes.Buffer{}
+	PrintVerifyHelp(out)
+	help := out.String()
+
+	for _, token := range []string{
+		"ship verify --profile fast",
+		"ship verify --profile standard",
+		"ship verify --profile strict",
+		"ship verify --runtime-contract-version <version>",
+		"ship verify --upgrade-contract-version <version>",
+	} {
+		if !strings.Contains(help, token) {
+			t.Fatalf("verify help missing %q:\n%s", token, help)
+		}
+	}
+}
 `
 		if err := os.WriteFile(testFile, []byte(content), 0o644); err != nil {
 			t.Fatal(err)
@@ -1035,12 +1053,12 @@ func TestScaffoldTodo(t *testing.T) {
 func registerPublicRoutes() {}
 func registerAuthRoutes() {}
 `,
-			filepath.Join(root, "app", "foundation", "container.go"):        "package foundation\n",
-			filepath.Join(root, "app", "web", "routenames", "routenames.go"): "package routenames\n",
-			filepath.Join(root, "db", "bobgen.yaml"):                         "packages: []\n",
-			filepath.Join(root, "config", "modules.yaml"):                    "modules: []\n",
-			filepath.Join(root, "docs", "00-index.md"):                       "# Index\n",
-			filepath.Join(root, "docs", "architecture", "01-architecture.md"): "# Architecture\n",
+			filepath.Join(root, "app", "foundation", "container.go"):             "package foundation\n",
+			filepath.Join(root, "app", "web", "routenames", "routenames.go"):     "package routenames\n",
+			filepath.Join(root, "db", "bobgen.yaml"):                             "packages: []\n",
+			filepath.Join(root, "config", "modules.yaml"):                        "modules: []\n",
+			filepath.Join(root, "docs", "00-index.md"):                           "# Index\n",
+			filepath.Join(root, "docs", "architecture", "01-architecture.md"):    "# Architecture\n",
 			filepath.Join(root, "docs", "architecture", "08-cognitive-model.md"): "# Cognitive\n",
 		}
 		for path, content := range files {
