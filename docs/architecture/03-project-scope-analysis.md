@@ -1,5 +1,5 @@
 # Project Scope Analysis
-<!-- FRONTEND_SYNC: Landing capability explorer in app/views/web/pages/landing_page.templ links here for Authentication and Authorization, Notifications and Mail, and File Storage. Keep both landing copy and this doc aligned. -->
+<!-- FRONTEND_SYNC: Landing capability explorer in framework/web/pages/landing_page.templ links here for Authentication and Authorization, Notifications and Mail, and File Storage. Keep both landing copy and this doc aligned. -->
 
 ## What This Project Is
 
@@ -16,10 +16,10 @@ GoShip is a Go + Echo + Templ + HTMX starter application that ships with:
 - Frontend asset bundling for vanilla JS plus Svelte/React/Vue islands
 - Framework-owned design tokens compiled to CSS variables and recipe classes through the Vite/Tailwind asset pipeline
 
-GoShip is maintained as a single-app repository: one canonical runtime app under `app/` + `cmd/`, plus framework/modules/tooling packages.
+GoShip is maintained as a framework-first repository: canonical runtime seams live at repo root (`container.go`, `router.go`, `schedules.go`) with framework/modules/tooling packages underneath.
 
 `ship describe --pretty` also exposes a shared-infra adoption summary so contributors can inspect
-installed shared modules versus app-owned controller/job/command counts as a non-blocking
+installed shared modules versus runtime-owned controller/job/command counts as a non-blocking
 upstreaming metric.
 
 `ship runtime:report --json` now also carries per-module adoption metadata so orchestration tooling
@@ -55,7 +55,10 @@ can immediately run `ship db:migrate`, `go run ./cmd/web`, and `ship verify --pr
 - `cmd/web/main.go`: main HTTP application server
 - `cmd/worker/main.go`: asynchronous worker process for task handlers
 - `cmd/seed/main.go`: seed runner for test/dev data
-- `cmd/cli/main.go`: app-level command runner (`app/commands/*`)
+- `cmd/cli/main.go`: repository command runner for local runtime utilities
+- `container.go`: framework-first runtime seam for container construction
+- `router.go`: framework-first runtime seam for route and middleware registration
+- `schedules.go`: framework-first runtime seam for recurring schedule registration
 
 ## Feature Areas
 
@@ -63,13 +66,13 @@ can immediately run `ship db:migrate`, `go run ./cmd/web`, and `ship verify --pr
 
 Core flows implemented in routes and services:
 
-- Login/logout (`app/web/controllers/login.go`, `logout.go`)
+- Login/logout (`framework/web/controllers` auth routes)
 - OAuth/social login for enabled GitHub, Google, and Discord providers (`modules/auth`)
 - Optional TOTP-based two-factor authentication with recovery backup codes (`modules/2fa`)
 - Register (`register.go`)
 - Forgot/reset password (`forgot_password.go`, `reset_password.go`)
 - Email verification (`verify_email.go`)
-- Auth middleware and session handling (`app/web/middleware/auth.go`, `app/foundation/auth.go`)
+- Auth middleware and session handling (`framework/web/middleware/auth.go`, framework bootstrap wiring)
 
 Key implementation choices:
 
@@ -81,7 +84,7 @@ Key implementation choices:
 
 ## 2) Onboarding, Preferences, and Profile
 
-- Onboarding and preferences mostly in `app/web/controllers/preferences.go`
+- Onboarding and preferences mostly in `framework/web/controllers/preferences_*.go`
 - Profile page in `profile.go`
 - Mark onboarding completion (`/welcome/finish-onboarding`)
 - Profile photo and gallery image routes (`profile_photo.go`, `upload_photo.go`)
@@ -92,9 +95,9 @@ Key implementation choices:
 
 ## 3) Payments and Subscription Lifecycle
 
-- Stripe checkout + customer portal + webhook in `app/web/controllers/payments.go`
-- Local subscription state is handled by the paid subscriptions module and app jobs (`modules/paidsubscriptions`, `app/jobs/subscriptions.go`)
-- Product plans are catalog-driven from app runtime composition (`app/foundation/subscription_catalog.go`), with module/service predicates handling paid/free branching without fixed key assumptions.
+- Stripe checkout + customer portal + webhook in framework route/controller wiring plus `modules/paidsubscriptions`
+- Local subscription state is handled by paid subscriptions module services and runtime jobs wiring
+- Product plans are catalog-driven through runtime composition with module/service predicates handling paid/free branching without fixed key assumptions.
 
 Webhook flow currently handles:
 
@@ -113,7 +116,7 @@ Implemented infrastructure includes:
 
 Status of exposure:
 
-- Notification-center routes are owned by `modules/notifications/routes` and wired through the canonical app router
+- Notification-center routes are owned by `modules/notifications/routes` and wired through the canonical root `router.go` seam
 - Active surface includes notification list, unread-count badge, mark-all-read, mark read/unread, delete, and onboarding subscription management endpoints
 - SSE route wiring is runtime-gated and only enabled when notifier/pubsub dependencies are available
 - Invalid realtime/runtime-plan startup combinations now fail fast instead of silently falling back to a reduced route surface
@@ -122,11 +125,11 @@ Status of exposure:
 ## 5) Email Features
 
 - Newsletter-style email subscription flow (`email_subscribe.go`, `verify_email_subscription.go`)
-- Task processor for subscription confirmation emails (`app/jobs/mail.go`)
+- Task processor for subscription confirmation emails (runtime jobs wiring through `core.Jobs`)
 - Reusable subscription repo module (`modules/emailsubscriptions`)
-- App integration wiring for module services (`app/web/wiring.go`, `app/jobs/mail.go`)
+- Runtime integration wiring for module services (root seams + framework bootstrap)
 - Mail provider abstraction supports SMTP and Resend (`framework/repos/mailer`)
-- Email templates render via templ components in `app/views/emails/`, with `framework/repos/mailer.RenderEmail` producing both HTML and plain-text fallback output
+- Email templates render via templ components in `framework/views/emails/`, with `framework/repos/mailer.RenderEmail` producing both HTML and plain-text fallback output
 
 ## 6) File Storage and Images
 
@@ -137,7 +140,7 @@ Status of exposure:
 
 ## 7) Background Tasks
 
-Task processors under `app/jobs`:
+Task processors are wired through the runtime jobs adapter:
 
 - Email subscription confirmation
 - Email updates
@@ -146,7 +149,7 @@ Task processors under `app/jobs`:
 - Stale notification cleanup
 
 Worker bootstrap and registration in `cmd/worker/main.go`.
-Cron schedule registration is app-owned in `app/schedules/schedules.go`; callbacks enqueue jobs
+Cron schedule registration is runtime-owned in `schedules.go`; callbacks enqueue jobs
 through `core.Jobs`, and the worker runtime starts/stops the scheduler lifecycle.
 
 **Supported Backends:**
@@ -157,16 +160,16 @@ through `core.Jobs`, and the worker runtime starts/stops the scheduler lifecycle
 
 - `framework/events` now provides a typed in-process event bus with generic subscription helpers
 - `framework/events` also exposes a jobs-backed async bridge that decodes a typed envelope and republishes supported shared events into the local bus
-- `app/foundation.Container` exposes `EventBus`
+- `container.go` bootstraps a container that exposes `EventBus`
 - Auth flows publish shared events such as `UserRegistered`, `UserLoggedIn`, `UserLoggedOut`, and `PasswordChanged`
 
 ## 9) Frontend Delivery Model
 
-- Server-rendered pages via Templ (`app/views/` + `app/web/ui`)
+- Server-rendered pages via Templ (`framework/web/*`, `framework/views/*`, `framework/web/ui`)
 - HTMX-enhanced interactions
-- Optional client islands built as per-component JS chunks under `app/static/islands/`
-- `ship make:island <Name>` generates the canonical island pair (`frontend/islands/<Name>.js` plus `app/views/web/components/<name>_island.templ`) that the browser runtime mounts through `data-island` / `data-props`
-- Optional vanilla JS bundle into `app/static/vanilla_bundle.js`
+- Optional client islands built as per-component JS chunks under `frontend/islands/` and emitted to `static/`
+- `ship make:island <Name>` generates the canonical island pair (`frontend/islands/<Name>.js` plus framework templ mount scaffolding) that the browser runtime mounts through `data-island` / `data-props`
+- Optional vanilla JS bundle is emitted under `static/`
 - Public demo route `/demo/islands` that renders regression-guarded counter islands for vanilla JS, React, Vue, and Svelte
 
 Build pipeline:
@@ -202,10 +205,10 @@ Reflection-based administrative interface for managing database resources.
 
 ## 13) Request DTO Conventions
 
-- Controller request DTOs now live with their owning controllers/modules instead of a global `app/contracts` package.
+- Controller request DTOs now live with their owning controllers/modules instead of global shared DTO buckets.
 - `ship doctor` (`DX027`) enforces typed request binding patterns and now blocks raw/untyped form parsing patterns in controllers.
-- OpenAPI generation was removed from the core `ship` CLI surface in the app-minimalization cleanup stream.
-- `app/controller` was removed; canonical app page ownership is `app/web/ui.Page`, which now embeds reusable framework-owned base fields/behavior from `framework/web/page.Base`.
+- OpenAPI generation was removed from the core `ship` CLI surface in the minimal runtime cleanup stream.
+- Canonical page ownership is framework-first (`framework/web/ui.Page` + `framework/web/page.Base`).
 
 ## 14) Internationalization Baseline
 

@@ -4,35 +4,36 @@ This guide is for code agents making changes in this repository.
 
 ## Start Here
 
-1. Read `docs/architecture/03-project-scope-analysis.md` and `docs/architecture/06-known-gaps-and-risks.md`.
-2. Every major layer (`framework/`, `app/`) and every module (`modules/<name>/`) contains its own `CLAUDE.md`. Read the scoped guide before making any changes to its directory.
-3. If no scoped `CLAUDE.md` exists for the area you are editing, fall back to this guide.
-4. Inspect route wiring in `app/router.go` before editing handlers.
-5. Inspect `app/foundation/container.go` before assuming a dependency is initialized.
+1. Read `docs/architecture/01-architecture.md`, `docs/architecture/02-structure-and-boundaries.md`, and `docs/architecture/06-known-gaps-and-risks.md`.
+2. Read root seam files before changing runtime behavior: `container.go`, `router.go`, and `schedules.go`.
+3. Read scoped `CLAUDE.md` files in the directory you are editing.
+4. If no scoped guide exists, fall back to this guide.
+
+## Framework-First Runtime Seams
+
+Canonical runtime seams are root-level and must stay synchronized.
+This is framework-first runtime seam guidance and should stay consistent across docs and code:
+
+- `container.go`: container composition seam
+- `router.go`: route + middleware seam
+- `schedules.go`: recurring job registration seam
+
+Do not reintroduce deleted app-shell guidance in canonical architecture docs.
 
 ## Architectural Conventions
 
-- HTTP handlers live in `app/web/controllers`.
-- Domain logic should prefer repository/module packages (`framework/repos/...`, `modules/...`) over route-level DB logic.
-- Rendering is typically done via `controller.Page` + templ components.
-- Enums/constants are centralized in `framework/domain`.
-- Module-specific work should start by reading that module's `CLAUDE.md`. New modules scaffolded via `ship make:module` automatically include a `CLAUDE.md` from the standard template.
+- HTTP handlers live in `framework/web/controllers` and enabled module route packages.
+- Domain logic should prefer framework/module packages (`framework/*`, `modules/*`) over route-level DB logic.
+- Rendering is done via framework controller/page/viewmodel contracts (`framework/web/ui`, `framework/web/viewmodels`).
+- Templates live under framework-owned templ packages (`framework/web/*`, `framework/views/*`).
 
 ## Safe Change Workflow
 
-1. Identify layer to change:
-- routing
-- repository/service
-- domain/schema
-- template/frontend
-
-2. Check for related tests:
-- `rg "func Test" app/... framework/... modules/...`
-- route tests in `app/web/controllers/*_test.go`
-
-3. Implement minimal, local change first.
-4. Run targeted tests, then broader tests if needed.
-5. Update docs in `docs/` when behavior or architecture changes.
+1. Identify layer to change: routing, service/repository, domain/schema, tooling/docs, or UI/templates.
+2. Find related tests (`rg "func Test" framework modules tools`).
+3. Make the smallest coherent change first.
+4. Run targeted tests, then broader tests when crossing package boundaries.
+5. Update docs in the same change stream for behavior/architecture changes.
 
 ## Key Files By Concern
 
@@ -42,46 +43,47 @@ Runtime bootstrap:
 - `cmd/worker/main.go`
 - `cmd/seed/main.go`
 
-Dependency wiring:
+Runtime seams:
 
-- `app/foundation/container.go`
-- `app/foundation/auth.go`
-- `app/foundation/core_jobs_adapter.go`
+- `container.go`
+- `router.go`
+- `schedules.go`
 
 Routing and middleware:
 
-- `app/router.go`
-- `app/web/middleware/*.go`
+- `framework/web/controllers/*.go`
+- `framework/web/middleware/*.go`
+- `modules/*/routes/*.go`
 
 Data and domain:
 
 - `db/queries/*.sql`
+- `db/gen/*.go`
 - `framework/repos/**/*.go`
-- `framework/domain/*.go`
+- `modules/**/*.go`
 
 UI and rendering:
 
-- `app/web/ui/*.go`
-- `app/views/**/*.templ`
-- `frontend/javascript/**/*`
+- `framework/web/ui/*.go`
+- `framework/web/viewmodels/*.go`
+- `framework/web/**/*.templ`
+- `framework/views/**/*.templ`
+- `frontend/islands/**/*`
 
 ## Common Pitfalls
 
-- Assuming cache/notifier/task clients are initialized in the container.
-- Implementing a route but not registering it in `router.go`.
-- Adding schema logic without checking migration/generation workflow.
-- Updating frontend behavior without checking templ + JS integration points.
+- Assuming optional adapters are initialized without checking runtime plan wiring.
+- Adding route handlers without registration in `router.go`.
+- Editing schema/query behavior without migration + generated query updates.
+- Updating templ/UI behavior without regenerating templ outputs when needed.
 
 ## Commands Commonly Used
 
-- `make dev` (default local dev: canonical app-on loop)
-- `make dev-full` (web + worker + JS/CSS watchers)
-- `make test` (Go tests)
-- `make test-integration`
+- `go run ./tools/cli/ship/cmd/ship dev`
+- `make dev`
+- `make test`
 - `go run ./tools/cli/ship/cmd/ship test`
 - `go run ./tools/cli/ship/cmd/ship test --integration`
-- `make build-js`
-- `make build-css`
 - `make templ-gen`
 - `go run ./tools/cli/ship/cmd/ship db:generate`
 - `go run ./tools/cli/ship/cmd/ship db:make your_change`
@@ -90,57 +92,15 @@ UI and rendering:
 
 ## Documentation Rule
 
-When code behavior changes, update at least:
+When behavior or architecture changes, update at least:
 
-- `docs/architecture/03-project-scope-analysis.md` if capability changed
-- `docs/architecture/04-http-routes.md` if route surface changed
-- `docs/architecture/06-known-gaps-and-risks.md` if a risk was added/removed
+- `docs/architecture/03-project-scope-analysis.md` for capability changes
+- `docs/architecture/04-http-routes.md` for route surface changes
+- `docs/architecture/06-known-gaps-and-risks.md` for risk/known-gap changes
+- `docs/reference/01-cli.md` for CLI behavior changes
+- `docs/roadmap/01-framework-plan.md` when plan/decision state changes
 
 ## Test Tagging Rule
 
 - Integration tests must use `//go:build integration`.
-- Keep default tests (`ship test`) stateless and fast by tagging infra-dependent tests.
-
-## Nil Safety
-
-- `nilaway` is part of CI and should be treated as part of the default correctness bar.
-- `ship doctor` surfaces `nilaway` findings as warnings so agents can see nil-flow risks before merge.
-- When touching pointer-heavy code, prefer explicit nil guards or value-based types over relying on downstream callers.
-- `app/web/viewmodels/` must use value types only. Do not add pointer fields or slices of pointers there.
-- Controllers and route handlers own domain-to-viewmodel mapping, including all nil handling for nullable domain data.
-- Templ components should accept viewmodels or primitives, not `*domain` models passed through from handlers.
-
-## UI Agent Convention
-
-Before any UI work, read `docs/ui/style-guide.md` for design system context.
-
-The full `data-*` attribute rules and templ comment rules are defined in `docs/ui/convention.md`.
-
-For Playwright MCP setup, see `MCP_TOOLS.md` at the repo root.
-
-### LLM Workflow for a UI Task
-
-**Without a running dev server (grep-only mode):**
-1. Read `docs/ui/style-guide.md` for design system context.
-2. Grep `data-component="<name>"` to locate the component file.
-3. Read the `// Renders:` comment to understand the visual output.
-4. Grep `data-slot="<slot>"` to locate the target sub-element.
-5. Make the change, preserving existing Tailwind class patterns.
-6. Never use `data-component`, `data-slot`, or `data-action` in CSS selectors.
-
-**With a running dev server + Playwright MCP (preferred):**
-1. Read `docs/ui/style-guide.md` for design system context.
-2. Grep `data-component="<name>"` to locate the component file.
-3. Read the `// Route(s):` comment above the component to know where to navigate.
-4. Use `browser_navigate` to go to that route on the local dev server (`make dev`).
-5. Use `browser_screenshot` to capture the current state (before).
-6. Use `browser_snapshot` to inspect the accessibility tree and confirm component structure.
-7. Make the code change.
-8. After server reload, use `browser_screenshot` again to verify the visual result (after).
-
-**When the route is unknown:**
-- If `// Route(s):` says `embedded in <Parent>`, navigate to the parent's route instead.
-- If route is genuinely unknown: use the GoShip MCP `ship_routes` tool to list all registered routes,
-  then navigate candidate routes and confirm via `browser_snapshot` which `data-component` values appear.
-
-`data-*` attributes are semantic only — never for styling.
+- Keep default tests (`ship test`) fast/stateless when possible.
