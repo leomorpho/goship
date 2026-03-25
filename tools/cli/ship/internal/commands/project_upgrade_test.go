@@ -233,6 +233,30 @@ func TestUpgradeAcceptance_OlderAppFixtureUpgradesAndRemainsReady(t *testing.T) 
 	}
 }
 
+func TestDetectFrameworkVersionFromSource(t *testing.T) {
+	t.Parallel()
+
+	version, ok := detectFrameworkVersionFromSource(`package ship
+const gooseGoRunRef = "github.com/pressly/goose/v3/cmd/goose@v3.26.0"
+`)
+	if !ok {
+		t.Fatal("expected framework version to be detected from canonical goose ref")
+	}
+	if version != "v3.26.0" {
+		t.Fatalf("version=%q want v3.26.0", version)
+	}
+
+	legacyVersion, legacyOK := detectFrameworkVersionFromSource(`package ship
+const gooseGoRunRef = "github.com/pressly/goose/cmd/goose@v3.25.1"
+`)
+	if !legacyOK {
+		t.Fatal("expected framework version to be detected from legacy goose ref")
+	}
+	if legacyVersion != "v3.25.1" {
+		t.Fatalf("legacy version=%q want v3.25.1", legacyVersion)
+	}
+}
+
 func TestRewriteGooseVersion(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "cli.go")
 	input := `package ship

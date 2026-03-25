@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -61,7 +62,7 @@ func TestRunRuntimeReport(t *testing.T) {
 		if err := json.Unmarshal(out.Bytes(), &payload); err != nil {
 			t.Fatalf("decode json: %v\n%s", err, out.String())
 		}
-		for _, key := range []string{"profile", "adapters", "processes", "process_topology", "web", "database", "managed", "module_adoption", "upgrade_readiness"} {
+		for _, key := range []string{"profile", "adapters", "processes", "process_topology", "web", "database", "managed", "framework_version", "module_adoption", "upgrade_readiness"} {
 			if _, ok := payload[key]; !ok {
 				t.Fatalf("missing runtime report key %q in %s", key, out.String())
 			}
@@ -71,6 +72,13 @@ func TestRunRuntimeReport(t *testing.T) {
 	t.Run("json payload includes module adoption metadata", func(t *testing.T) {
 		root := t.TempDir()
 		writeDescribeFixture(t, root)
+		cliPath := filepath.Join(root, "tools", "cli", "ship", "internal", "cli", "cli.go")
+		if err := os.MkdirAll(filepath.Dir(cliPath), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(cliPath, []byte("package cli\nconst gooseGoRunRef = \"github.com/pressly/goose/v3/cmd/goose@v3.26.0\"\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
 
 		prevWD, err := os.Getwd()
 		if err != nil {
@@ -121,6 +129,7 @@ func TestRunRuntimeReport(t *testing.T) {
 		}
 
 		var payload struct {
+			FrameworkVersion string `json:"framework_version"`
 			ModuleAdoption []struct {
 				ID         string `json:"id"`
 				ModulePath string `json:"module_path"`
@@ -134,6 +143,9 @@ func TestRunRuntimeReport(t *testing.T) {
 		}
 		if len(payload.ModuleAdoption) != 1 {
 			t.Fatalf("module adoption len = %d, want 1", len(payload.ModuleAdoption))
+		}
+		if payload.FrameworkVersion != "v3.26.0" {
+			t.Fatalf("framework_version = %q, want v3.26.0", payload.FrameworkVersion)
 		}
 		adoption := payload.ModuleAdoption[0]
 		if adoption.ID != "notifications" {

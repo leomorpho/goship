@@ -145,7 +145,7 @@ Impact:
 
 ## 11) Runtime Capability Reporting Is Now Canonicalized (Low)
 
-`ship runtime:report --json` now exposes the effective profile, adapters, process plan, web features, DB runtime metadata, managed-key sources, per-module adoption metadata, and a versioned handshake envelope for orchestration preflight. Managed runtime metadata now carries explicit registry/schema version identifiers so runtime and control-plane consumers can agree on the authoritative key mapping. The remaining risk is payload drift if future runtime metadata is added without extending the report.
+`ship runtime:report --json` now exposes the effective profile, adapters, process plan, web features, DB runtime metadata, managed-key sources, current framework version, per-module adoption metadata, and a versioned handshake envelope for orchestration preflight. Managed runtime metadata now carries explicit registry/schema version identifiers so runtime and control-plane consumers can agree on the authoritative key mapping. The remaining risk is payload drift if future runtime metadata is added without extending the report.
 The report now also carries divergence classification and escalation metadata so operator tooling can separate ordinary extension-zone drift from protected-contract recovery cases and repeated divergence that should be reviewed for upstreaming.
 
 `ship verify` now runs a named orchestration contract-mismatch preflight gate so unsupported

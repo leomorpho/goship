@@ -218,7 +218,7 @@ GoShip defines one canonical decision payload for staged rollout and canary eval
 This payload is owned jointly by the runtime/control-plane seam:
 
 - `ship runtime:report --json` supplies runtime facts such as active profile, adapters, DB metadata,
-  managed-key sources, and handshake/version identifiers.
+  current framework version, per-module adoption metadata, managed-key sources, and handshake/version identifiers.
 - control-plane policy supplies rollout intent such as cohort rules, target percentage, promotion
   guardrails, and rollback thresholds.
 - the decision payload composes those two inputs into one externalized verdict so downstream

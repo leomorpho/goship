@@ -291,6 +291,36 @@ func RewriteGooseVersion(path, target string) (oldVersion string, rewritten stri
 	}
 }
 
+func detectFrameworkVersionFromSource(text string) (string, bool) {
+	for _, codemod := range gooseRefCodemods {
+		match := codemod.pattern.FindStringSubmatch(text)
+		if len(match) == 0 {
+			continue
+		}
+		return match[codemod.versionSubmatch], true
+	}
+	return "", false
+}
+
+func detectFrameworkVersionFromRoot(root string) (string, error) {
+	if strings.TrimSpace(root) == "" {
+		return "", nil
+	}
+	cliPath := filepath.Join(root, "tools", "cli", "ship", "internal", "cli", "cli.go")
+	body, err := os.ReadFile(cliPath)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return "", nil
+		}
+		return "", err
+	}
+	version, ok := detectFrameworkVersionFromSource(string(body))
+	if !ok {
+		return "", nil
+	}
+	return version, nil
+}
+
 func buildUpgradeDriftReport(path, targetVersion, detail string) UpgradeReadinessReport {
 	return UpgradeReadinessReport{
 		SchemaVersion:         upgradeReadinessSchemaVersion,
