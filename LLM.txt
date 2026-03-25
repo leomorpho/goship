@@ -1029,7 +1029,7 @@ Runtime DB metadata contract:
 
 - `config.Config.RuntimeMetadata()` now provides a normalized DB metadata snapshot for status/reporting surfaces.
 - `ship db:export --json` exposes a structured SQLite export report with a typed `backup-manifest-v1` payload, checksum evidence, suggested next commands, and a planning-only note for agents/tooling.
-- `ship runtime:report --json` emits the canonical machine-readable runtime capability payload from config/runtime-plan metadata, including active profile, adapters, process plan, web features, DB runtime metadata, managed-key sources, per-module adoption metadata, and a versioned handshake envelope.
+- `ship runtime:report --json` emits the canonical machine-readable runtime capability payload from config/runtime-plan metadata, including active profile, adapters, process plan, web features, DB runtime metadata, managed-key sources, current framework version, per-module adoption metadata, and a versioned handshake envelope.
 - The same runtime report is the runtime-side input to `staged-rollout-decision-v1`, where external rollout tooling must preserve the runtime facts it consumed plus the approved `policy_input_version` instead of inventing a second runtime-specific decision payload.
 - The same runtime report now carries a divergence classification contract (`divergence-classification-v1`) plus escalation policy (`divergence-escalation-v1`) so operators can distinguish ordinary extension-zone drift from protected-contract drift and repeated divergence that should be upstreamed or recovered before rollout.
 - Metadata includes DB mode/driver, migration tracking table, portability profile, and SQLite-to-Postgres compatibility path (`sqlite-to-postgres-manual-v1`).
@@ -1474,7 +1474,7 @@ Impact:
 
 ## 11) Runtime Capability Reporting Is Now Canonicalized (Low)
 
-`ship runtime:report --json` now exposes the effective profile, adapters, process plan, web features, DB runtime metadata, managed-key sources, per-module adoption metadata, and a versioned handshake envelope for orchestration preflight. Managed runtime metadata now carries explicit registry/schema version identifiers so runtime and control-plane consumers can agree on the authoritative key mapping. The remaining risk is payload drift if future runtime metadata is added without extending the report.
+`ship runtime:report --json` now exposes the effective profile, adapters, process plan, web features, DB runtime metadata, managed-key sources, current framework version, per-module adoption metadata, and a versioned handshake envelope for orchestration preflight. Managed runtime metadata now carries explicit registry/schema version identifiers so runtime and control-plane consumers can agree on the authoritative key mapping. The remaining risk is payload drift if future runtime metadata is added without extending the report.
 The report now also carries divergence classification and escalation metadata so operator tooling can separate ordinary extension-zone drift from protected-contract recovery cases and repeated divergence that should be reviewed for upstreaming.
 
 `ship verify` now runs a named orchestration contract-mismatch preflight gate so unsupported
@@ -2329,7 +2329,7 @@ GoShip defines one canonical decision payload for staged rollout and canary eval
 This payload is owned jointly by the runtime/control-plane seam:
 
 - `ship runtime:report --json` supplies runtime facts such as active profile, adapters, DB metadata,
-  managed-key sources, and handshake/version identifiers.
+  current framework version, per-module adoption metadata, managed-key sources, and handshake/version identifiers.
 - control-plane policy supplies rollout intent such as cohort rules, target percentage, promotion
   guardrails, and rollback thresholds.
 - the decision payload composes those two inputs into one externalized verdict so downstream
@@ -4495,7 +4495,7 @@ Safety matrix:
 - `ship agent:start --task ... [--id ...]` -> create `.worktrees/<id>` on branch `agent/<id>`, generate `TASK.md` with task text + `ship describe` JSON + discovered `CLAUDE.md` context
 - `ship agent:finish --id ... --message ... [--pr]` -> run `ship verify` in worktree, `git add -A`, validate conventional commit message, commit, optional `git push -u origin agent/<id>` + `gh pr create`, then `git worktree remove`
 - `ship doctor --json` -> machine-readable doctor result on stdout, including `upgrade_readiness` (`ready` + `blockers`) for upgrade automation preflight; exit code 0 when there are no blocking errors and upgrade readiness is clear, 1 otherwise
-- `ship runtime:report --json` -> machine-readable runtime capability report covering active profile, adapters, process plan, source-aware `process_topology` (including web/worker realtime roles when enabled), web features, DB runtime metadata, managed-key sources, per-module adoption metadata, upgrade readiness metadata, and a versioned handshake envelope; downstream staged rollout and canary orchestration must compose those runtime facts plus the approved `policy_input_version` into `staged-rollout-decision-v1` instead of inventing a second runtime-specific decision payload
+- `ship runtime:report --json` -> machine-readable runtime capability report covering active profile, adapters, process plan, source-aware `process_topology` (including web/worker realtime roles when enabled), web features, DB runtime metadata, managed-key sources, current framework version, per-module adoption metadata, upgrade readiness metadata, and a versioned handshake envelope; downstream staged rollout and canary orchestration must compose those runtime facts plus the approved `policy_input_version` into `staged-rollout-decision-v1` instead of inventing a second runtime-specific decision payload
 - `ship runtime:report --json` also emits the divergence-classification contract (`divergence-classification-v1` + `divergence-escalation-v1`) so downstream tooling can distinguish extension-zone drift, protected-contract drift, and repeated local divergence that should trigger upstream review or recovery action
 - `ship describe --pretty` now includes a shared-infra adoption summary (`shared_modules`, `shared_module_ids`, `custom_app_controllers`, `custom_app_jobs`, `custom_app_commands`) as a non-blocking upstreaming metric
 - `ship config:validate` -> prints the known `PAGODA_*` config variables with type/default metadata and fails when any required variable is missing

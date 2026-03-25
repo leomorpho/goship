@@ -264,6 +264,7 @@ func TestRunRuntimeReport_ExposesModuleAdoptionMetadata_RedSpec(t *testing.T) {
 	managedDoc := mustReadRuntimeReportText(t, filepath.Join(root, "docs", "architecture", "09-standalone-and-managed-mode.md"))
 
 	for _, token := range []string{
+		`"framework_version"`,
 		`"module_adoption"`,
 		`"upgrade_readiness"`,
 		"collectDescribeModuleAdoption",
@@ -278,8 +279,14 @@ func TestRunRuntimeReport_ExposesModuleAdoptionMetadata_RedSpec(t *testing.T) {
 	if !strings.Contains(cliRef, "module adoption metadata") {
 		t.Fatal("cli reference should document runtime report module adoption metadata")
 	}
+	if !strings.Contains(cliRef, "current framework version") {
+		t.Fatal("cli reference should document runtime report current framework version metadata")
+	}
 	if !strings.Contains(scopeDoc, "module adoption metadata") {
 		t.Fatal("scope analysis should describe runtime report module adoption metadata")
+	}
+	if !strings.Contains(scopeDoc, "current framework version") {
+		t.Fatal("scope analysis should describe runtime report current framework version metadata")
 	}
 	if !strings.Contains(managedDoc, "per-module adoption metadata") {
 		t.Fatal("managed-mode contract doc should describe the per-module adoption metadata surface")

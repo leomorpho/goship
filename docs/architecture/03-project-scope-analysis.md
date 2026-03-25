@@ -247,7 +247,7 @@ Runtime DB metadata contract:
 
 - `config.Config.RuntimeMetadata()` now provides a normalized DB metadata snapshot for status/reporting surfaces.
 - `ship db:export --json` exposes a structured SQLite export report with a typed `backup-manifest-v1` payload, checksum evidence, suggested next commands, and a planning-only note for agents/tooling.
-- `ship runtime:report --json` emits the canonical machine-readable runtime capability payload from config/runtime-plan metadata, including active profile, adapters, process plan, web features, DB runtime metadata, managed-key sources, per-module adoption metadata, and a versioned handshake envelope.
+- `ship runtime:report --json` emits the canonical machine-readable runtime capability payload from config/runtime-plan metadata, including active profile, adapters, process plan, web features, DB runtime metadata, managed-key sources, current framework version, per-module adoption metadata, and a versioned handshake envelope.
 - The same runtime report is the runtime-side input to `staged-rollout-decision-v1`, where external rollout tooling must preserve the runtime facts it consumed plus the approved `policy_input_version` instead of inventing a second runtime-specific decision payload.
 - The same runtime report now carries a divergence classification contract (`divergence-classification-v1`) plus escalation policy (`divergence-escalation-v1`) so operators can distinguish ordinary extension-zone drift from protected-contract drift and repeated divergence that should be upstreamed or recovered before rollout.
 - Metadata includes DB mode/driver, migration tracking table, portability profile, and SQLite-to-Postgres compatibility path (`sqlite-to-postgres-manual-v1`).

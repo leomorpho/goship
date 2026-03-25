@@ -32,7 +32,8 @@ type runtimeReport struct {
 	Web             runtimeplan.WebFeatures        `json:"web"`
 	Database        config.DatabaseRuntimeMetadata `json:"database"`
 	Managed         config.ManagedRuntimeMetadata  `json:"managed"`
-	ModuleAdoption  []describeModuleAdoption       `json:"module_adoption"`
+	FrameworkVersion string                        `json:"framework_version"`
+	ModuleAdoption   []describeModuleAdoption      `json:"module_adoption"`
 	UpgradeReadiness runtimeReportUpgradeReadiness `json:"upgrade_readiness"`
 }
 
@@ -146,6 +147,7 @@ func RunRuntimeReport(args []string, d RuntimeReportDeps) int {
 	}
 
 	moduleAdoption := make([]describeModuleAdoption, 0)
+	frameworkVersion := ""
 	root := ""
 	if d.FindGoModule != nil {
 		wd, err := os.Getwd()
@@ -167,6 +169,11 @@ func RunRuntimeReport(args []string, d RuntimeReportDeps) int {
 		moduleAdoption, err = collectDescribeModuleAdoption(root, modules)
 		if err != nil {
 			fmt.Fprintf(d.Err, "runtime:report failed to collect module adoption: %v\n", err)
+			return 1
+		}
+		frameworkVersion, err = detectFrameworkVersionFromRoot(root)
+		if err != nil {
+			fmt.Fprintf(d.Err, "runtime:report failed to detect framework version: %v\n", err)
 			return 1
 		}
 	}
@@ -198,9 +205,10 @@ func RunRuntimeReport(args []string, d RuntimeReportDeps) int {
 			stringsTrim(cfg.Adapters.Cache) != "",
 			stringsTrim(cfg.Adapters.PubSub) != "",
 		),
-		Database:       cfg.RuntimeMetadata().Database,
-		Managed:        cfg.RuntimeMetadata().Managed,
-		ModuleAdoption: moduleAdoption,
+		Database:         cfg.RuntimeMetadata().Database,
+		Managed:          cfg.RuntimeMetadata().Managed,
+		FrameworkVersion: frameworkVersion,
+		ModuleAdoption:   moduleAdoption,
 		UpgradeReadiness: evaluateRuntimeUpgradeReadiness(root),
 	}
 	report.ProcessTopology = buildRuntimeReportProcessTopology(cfg, report.Web)
