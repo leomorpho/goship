@@ -296,6 +296,148 @@ func TestRunRuntimeReport_ExposesModuleAdoptionMetadata_RedSpec(t *testing.T) {
 	}
 }
 
+func TestRunRuntimeReport_UpgradedAppsRetainManagedContractShape_RedSpec(t *testing.T) {
+	cases := []struct {
+		name       string
+		fixtureRel string
+	}{
+		{
+			name:       "legacy fixture upgraded to canonical pin",
+			fixtureRel: "testdata/upgrade_codemods/goose_legacy_before.go",
+		},
+		{
+			name:       "canonical fixture upgraded to target pin",
+			fixtureRel: "testdata/upgrade_codemods/goose_v3_before.go",
+		},
+	}
+
+	for _, tc := range cases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			root := t.TempDir()
+			if err := os.WriteFile(filepath.Join(root, "go.mod"), []byte("module example.com/demo\n\ngo 1.25\n"), 0o644); err != nil {
+				t.Fatal(err)
+			}
+			cliPath := filepath.Join(root, "tools", "cli", "ship", "internal", "cli", "cli.go")
+			if err := os.MkdirAll(filepath.Dir(cliPath), 0o755); err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(cliPath, fixtureText(t, tc.fixtureRel), 0o644); err != nil {
+				t.Fatal(err)
+			}
+
+			prevWD, err := os.Getwd()
+			if err != nil {
+				t.Fatal(err)
+			}
+			t.Cleanup(func() { _ = os.Chdir(prevWD) })
+			if err := os.Chdir(root); err != nil {
+				t.Fatal(err)
+			}
+
+			upgradeOut := &bytes.Buffer{}
+			upgradeErr := &bytes.Buffer{}
+			upgradeCode := RunUpgrade([]string{"apply", "--to", "v3.27.0"}, UpgradeDeps{
+				Out:          upgradeOut,
+				Err:          upgradeErr,
+				FindGoModule: findGoModuleTest,
+			})
+			if upgradeCode != 0 {
+				t.Fatalf("upgrade apply exit code=%d stderr=%s", upgradeCode, upgradeErr.String())
+			}
+
+			out := &bytes.Buffer{}
+			errOut := &bytes.Buffer{}
+			code := RunRuntimeReport([]string{"--json"}, RuntimeReportDeps{
+				Out:          out,
+				Err:          errOut,
+				FindGoModule: findGoModuleTest,
+				LoadConfig: func() (config.Config, error) {
+					return config.Config{
+						Runtime: config.RuntimeConfig{Profile: config.RuntimeProfileSingleNode},
+						Adapters: config.AdaptersConfig{
+							DB:     "sqlite",
+							Cache:  "otter",
+							Jobs:   "backlite",
+							PubSub: "inproc",
+						},
+						Processes: config.ProcessesConfig{
+							Web:       true,
+							Worker:    true,
+							Scheduler: true,
+							CoLocated: true,
+						},
+						Database: config.DatabaseConfig{
+							DbMode: config.DBModeEmbedded,
+							Driver: config.DBDriverSQLite,
+						},
+						Managed: config.ManagedConfig{
+							RuntimeReport: runtimeconfig.Report{
+								Mode:      runtimeconfig.ModeManaged,
+								Authority: "control-plane",
+								Keys: map[string]runtimeconfig.KeyState{
+									"adapters.cache": {
+										Value:          "otter",
+										Source:         runtimeconfig.SourceManagedOverride,
+										RollbackTarget: runtimeconfig.SourceFrameworkDefault,
+									},
+								},
+							},
+						},
+					}, nil
+				},
+			})
+			if code != 0 {
+				t.Fatalf("runtime report exit code=%d stderr=%s", code, errOut.String())
+			}
+
+			var payload struct {
+				Managed struct {
+					Mode            string `json:"mode"`
+					Authority       string `json:"authority"`
+					RegistryVersion string `json:"registry_version"`
+					SchemaVersion   string `json:"schema_version"`
+					Keys            map[string]struct {
+						Source         string `json:"source"`
+						RollbackTarget string `json:"rollback_target"`
+					} `json:"keys"`
+				} `json:"managed"`
+				Handshake struct {
+					SchemaVersion string `json:"schema_version"`
+				} `json:"handshake"`
+			}
+			if err := json.Unmarshal(out.Bytes(), &payload); err != nil {
+				t.Fatalf("decode runtime report payload: %v\n%s", err, out.String())
+			}
+			if payload.Handshake.SchemaVersion != "runtime-handshake-v1" {
+				t.Fatalf("handshake.schema_version=%q want runtime-handshake-v1", payload.Handshake.SchemaVersion)
+			}
+			if payload.Managed.Mode != "managed" {
+				t.Fatalf("managed.mode=%q want managed", payload.Managed.Mode)
+			}
+			if payload.Managed.Authority != "control-plane" {
+				t.Fatalf("managed.authority=%q want control-plane", payload.Managed.Authority)
+			}
+			if payload.Managed.RegistryVersion != "managed-key-registry-v1" {
+				t.Fatalf("managed.registry_version=%q want managed-key-registry-v1", payload.Managed.RegistryVersion)
+			}
+			if payload.Managed.SchemaVersion != "managed-key-schema-v1" {
+				t.Fatalf("managed.schema_version=%q want managed-key-schema-v1", payload.Managed.SchemaVersion)
+			}
+			cache, ok := payload.Managed.Keys["adapters.cache"]
+			if !ok {
+				t.Fatalf("managed.keys missing adapters.cache entry: %+v", payload.Managed.Keys)
+			}
+			if cache.Source != "managed-override" {
+				t.Fatalf("managed.keys[adapters.cache].source=%q want managed-override", cache.Source)
+			}
+			if cache.RollbackTarget != "framework-default" {
+				t.Fatalf("managed.keys[adapters.cache].rollback_target=%q want framework-default", cache.RollbackTarget)
+			}
+		})
+	}
+}
+
 func containsRuntimeReportTokens(text string, want ...string) bool {
 	for _, token := range want {
 		if !strings.Contains(text, token) {
