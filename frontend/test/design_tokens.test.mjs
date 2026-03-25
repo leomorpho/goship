@@ -7,6 +7,7 @@ import { build } from "vite";
 
 const frontendRoot = path.resolve(import.meta.dirname, "..");
 const stylesEntry = path.resolve(frontendRoot, "../styles/styles.css");
+const vanillaCounterPath = path.resolve(frontendRoot, "islands/VanillaCounter.js");
 
 test("vite build emits framework design token CSS", async () => {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "goship-vite-build-"));
@@ -43,6 +44,10 @@ test("vite build emits framework design token CSS", async () => {
     assert.match(css, /\.gs-page\b/);
     assert.match(css, /\.gs-kicker\b/);
     assert.match(css, /\.gs-stack\b/);
+    assert.match(css, /\.gs-card\b/);
+    assert.match(css, /\.gs-nav\b/);
+    assert.match(css, /\.gs-nav-item\b/);
+    assert.match(css, /\.gs-alert\b/);
     assert.match(css, /\.gs-color-muted\b/);
     assert.match(css, /\.gs-elevation-float\b/);
     assert.match(css, /\.gs-field-input\b/);
@@ -51,6 +56,16 @@ test("vite build emits framework design token CSS", async () => {
   } finally {
     fs.rmSync(tempDir, { recursive: true, force: true });
   }
+});
+
+test("vanilla counter island uses shared gs recipe classes", () => {
+  const source = fs.readFileSync(vanillaCounterPath, "utf8");
+  assert.match(source, /gs-card/);
+  assert.match(source, /gs-stack/);
+  assert.match(source, /gs-button gs-button-primary/);
+  assert.match(source, /gs-button gs-button-secondary/);
+  assert.doesNotMatch(source, /\bbtn\b/);
+  assert.doesNotMatch(source, /base-300|base-100/);
 });
 
 function findFiles(rootDir, ext) {

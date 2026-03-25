@@ -24,31 +24,31 @@ export function mount(el, props = {}) {
 
   const container = document.createElement("section");
   container.dataset.component = "counter-vanilla";
-  container.className = "rounded-xl border border-base-300 bg-base-100 p-4 space-y-3";
+  container.className = "gs-card gs-stack";
 
   const title = document.createElement("h3");
-  title.className = "text-lg font-semibold";
+  title.className = "gs-title";
   title.textContent = state.label;
 
   const value = document.createElement("p");
-  value.className = "text-3xl font-bold leading-none";
+  value.className = "gs-text";
   value.setAttribute("data-slot", "count");
 
   const framework = document.createElement("p");
-  framework.className = "mt-2 text-xs font-medium uppercase tracking-wide opacity-70";
+  framework.className = "gs-kicker";
   framework.textContent = "Vanilla JS";
 
   const controls = document.createElement("div");
-  controls.className = "flex gap-2";
+  controls.className = "gs-nav";
 
   const decrement = document.createElement("button");
   decrement.type = "button";
-  decrement.className = "btn btn-sm";
+  decrement.className = "gs-button gs-button-secondary";
   decrement.textContent = "-1";
 
   const increment = document.createElement("button");
   increment.type = "button";
-  increment.className = "btn btn-sm";
+  increment.className = "gs-button gs-button-primary";
   increment.textContent = "+1";
 
   const render = () => {
