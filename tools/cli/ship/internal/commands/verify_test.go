@@ -627,6 +627,50 @@ use (
 		if !strings.Contains(errOut.String(), "startup smoke failed") {
 			t.Fatalf("stderr = %q, want startup-smoke subprocess output", errOut.String())
 		}
+		if !strings.Contains(errOut.String(), "Next step: run `go test ./tools/cli/ship/internal/commands -run TestFreshAppStartupSmoke -count=1`") {
+			t.Fatalf("stderr = %q, want startup-smoke remediation guidance", errOut.String())
+		}
+	})
+
+	t.Run("doctor step failure points operators to doctor output", func(t *testing.T) {
+		root := t.TempDir()
+		writeVerifyGoMod(t, root)
+		writeVerifyGoWork(t, root)
+
+		prevWD := chdirVerifyRoot(t, root)
+		t.Cleanup(func() { _ = os.Chdir(prevWD) })
+
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+		code := RunVerify([]string{}, VerifyDeps{
+			Out:          out,
+			Err:          errOut,
+			FindGoModule: findVerifyGoModule,
+			RelocateTempl: func(rootPath string) error {
+				return nil
+			},
+			RunStep: func(name string, args ...string) (int, string, error) {
+				return 0, "ok", nil
+			},
+			LookPath: func(file string) (string, error) {
+				return "/usr/bin/" + file, nil
+			},
+			RunDoctor: func() (int, string, error) {
+				return 1, "doctor found drift", nil
+			},
+		})
+		if code != 1 {
+			t.Fatalf("exit code = %d, want 1", code)
+		}
+		if !strings.Contains(errOut.String(), "verify failed at ship doctor --json") {
+			t.Fatalf("stderr = %q, want doctor failure step", errOut.String())
+		}
+		if !strings.Contains(errOut.String(), "doctor found drift") {
+			t.Fatalf("stderr = %q, want doctor output", errOut.String())
+		}
+		if !strings.Contains(errOut.String(), "Next step: run `ship doctor --json`") {
+			t.Fatalf("stderr = %q, want actionable doctor remediation guidance", errOut.String())
+		}
 	})
 
 	t.Run("fails when managed-settings contract drifts", func(t *testing.T) {

@@ -308,6 +308,10 @@ func RunVerify(args []string, d VerifyDeps) int {
 		switch failed.Name {
 		case "canonical repo layout", "generated app scaffold":
 			fmt.Fprintln(d.Err, "Next step: run `ship doctor --json` to inspect full repo-shape diagnostics before retrying verify.")
+		case "ship doctor --json":
+			fmt.Fprintln(d.Err, "Next step: run `ship doctor --json` and address reported diagnostics before retrying verify.")
+		case "startup smoke checks":
+			fmt.Fprintln(d.Err, "Next step: run `go test ./tools/cli/ship/internal/commands -run TestFreshAppStartupSmoke -count=1` and fix startup regressions before retrying verify.")
 		default:
 			fmt.Fprintln(d.Err, "Next step: run `ship runtime:report --json` to confirm runtime contract state before retrying verify.")
 		}

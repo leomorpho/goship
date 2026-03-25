@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 )
@@ -147,5 +148,65 @@ func TestRunProfileSet_RejectsUnknownPreset(t *testing.T) {
 	}
 	if !strings.Contains(errOut.String(), "unknown profile preset") {
 		t.Fatalf("stderr missing unknown preset error:\n%s", errOut.String())
+	}
+}
+
+func TestRunProfileSet_MissingEnvFile_ProvidesActionableGuidance(t *testing.T) {
+	root := t.TempDir()
+	prevWD, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("getwd: %v", err)
+	}
+	if err := os.Chdir(root); err != nil {
+		t.Fatalf("chdir %s: %v", root, err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(prevWD) })
+
+	errOut := &bytes.Buffer{}
+	code := RunProfile([]string{"set", "standard"}, ProfileDeps{Out: &bytes.Buffer{}, Err: errOut})
+	if code == 0 {
+		t.Fatal("expected non-zero exit code")
+	}
+	if !strings.Contains(errOut.String(), "profile:set requires a .env file") {
+		t.Fatalf("stderr missing .env error:\n%s", errOut.String())
+	}
+	if !strings.Contains(errOut.String(), "Next step: create a .env file") {
+		t.Fatalf("stderr missing remediation guidance:\n%s", errOut.String())
+	}
+}
+
+func TestRunProfileSet_WriteFailure_ProvidesActionableGuidance(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("chmod-based write-permission failure is not portable on windows")
+	}
+
+	root := t.TempDir()
+	envPath := filepath.Join(root, ".env")
+	if err := os.WriteFile(envPath, []byte("PAGODA_RUNTIME_PROFILE=server-db\n"), 0o444); err != nil {
+		t.Fatalf("write env: %v", err)
+	}
+
+	prevWD, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("getwd: %v", err)
+	}
+	if err := os.Chdir(root); err != nil {
+		t.Fatalf("chdir %s: %v", root, err)
+	}
+	t.Cleanup(func() {
+		_ = os.Chmod(envPath, 0o644)
+		_ = os.Chdir(prevWD)
+	})
+
+	errOut := &bytes.Buffer{}
+	code := RunProfile([]string{"set", "distributed"}, ProfileDeps{Out: &bytes.Buffer{}, Err: errOut})
+	if code == 0 {
+		t.Fatal("expected non-zero exit code")
+	}
+	if !strings.Contains(errOut.String(), "failed to write") {
+		t.Fatalf("stderr missing write failure:\n%s", errOut.String())
+	}
+	if !strings.Contains(errOut.String(), "Next step: ensure .env is writable") {
+		t.Fatalf("stderr missing write remediation guidance:\n%s", errOut.String())
 	}
 }
