@@ -104,3 +104,48 @@ var _ = fmt.Sprintf
 		}
 	}
 }
+
+func TestModuleIsolationContract_FailsOnNonCanonicalFrameworkInternalDependency_RedSpec(t *testing.T) {
+	root := t.TempDir()
+	repoRoot := repoRootFromCommandsTest(t)
+	if err := os.MkdirAll(filepath.Join(root, "modules", "local"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, "modules", "local", "go.mod"), []byte("module example.com/local\n\ngo 1.23.0\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, "go.work"), []byte("go 1.25.6\n\nuse ./modules/local\nuse "+repoRoot+"\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, "modules", "local", "bad_internal.go"), []byte(`package local
+
+import (
+	"github.com/leomorpho/goship/framework/web/controllers"
+)
+
+var _ = controllers.Responses{}
+`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	script := filepath.Join(repoRootFromCommandsTest(t), "tools", "scripts", "check-module-isolation.sh")
+	cmd := exec.Command("bash", script)
+	cmd.Env = append(os.Environ(), "ROOT_DIR="+root)
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &out
+	if err := cmd.Run(); err == nil {
+		t.Fatal("expected module isolation script to fail for non-canonical framework internal dependency")
+	}
+
+	text := out.String()
+	for _, token := range []string{
+		"module=modules/local",
+		"file=modules/local/bad_internal.go",
+		"github.com/leomorpho/goship/framework/web/controllers",
+	} {
+		if !strings.Contains(text, token) {
+			t.Fatalf("module isolation output missing %q:\n%s", token, text)
+		}
+	}
+}
