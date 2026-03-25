@@ -146,6 +146,7 @@ These commands are implemented as wrappers over existing workflows:
 - `ship module:remove <name>` -> removes those managed entries (including module-owned `.env.example` snippets) when safe; fails with exact blocker file paths when the repo still imports the module outside managed wiring points
 - `ship verify` -> rejects standalone-battery drift when root `go.mod` dependencies on installable modules are not the canonical local-dev shape (`v0.0.0` + local `replace` + matching `go.work use`), enforces the canonical GoShip framework repo layout when run in this repo (including required root runtime seams `container.go`, `router.go`, and `schedules.go`, plus failure on a forbidden top-level `app/` shell), validates the extension-zone manifest for those protected seams, and enforces the canonical no-compatibility/no-deprecation wording invariant across the operator-facing docs set
 - `ship verify` now runs a generated-app scaffold fast-path gate before `templ generate`/`go build`; when scaffold root-cause checks fail (`DX001`, `DX002`, `DX005`, `DX011`) verify stops immediately and points to `ship doctor --json`
+- `ship verify` now runs `startup smoke checks` in `standard` and `strict` profiles by executing `go test ./tools/cli/ship/internal/commands -run TestFreshAppStartupSmoke -count=1`, which covers generated-app migrations plus web (`/health`, `/health/readiness`) and worker boot startup
 - `ship verify` includes an orchestration contract-mismatch preflight step before deploy/upgrade/promote flows so unsupported runtime combinations fail before orchestration starts, and the preflight stays aligned with the managed-settings access contract used by the runtime report; `--runtime-contract-version` and `--upgrade-contract-version` reject unsupported contract identifiers before the preflight runs
 - `ship infra:up` -> detects `docker-compose`/`docker compose` and runs `up -d cache`, then attempts `up -d mailpit` (non-fatal if mailpit fails)
 - `ship infra:down` -> detects `docker-compose`/`docker compose` and runs `down`
@@ -296,6 +297,7 @@ Managed hook replay contract:
 run-anywhere verification gate:
 
 - `ship verify --profile fast|standard|strict` selects the verification tier (`standard` default; `strict` requires `nilaway`; `fast` skips nilaway and `go test`)
+- `ship verify` includes a `startup smoke checks` step (skipped in `fast` profile)
 - `ship verify` includes a `standalone exportability gate` step
 - `ship verify` includes a `hard-cut wording invariant` step that re-checks canonical docs for transition/deprecation drift after `ship doctor --json`
 - the gate rejects control-plane dependency drift in standalone runtime/starter surfaces

@@ -235,6 +235,28 @@ jobs:
       - name: Strict verify
         run: go run ./tools/cli/ship/cmd/ship verify --profile strict
 
+  startup_smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.x"
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Startup smoke
+        run: go test ./tools/cli/ship/internal/commands -run TestFreshAppStartupSmoke -count=1
+
   cleanroom_bob_verification:
     needs: backend_tests
     runs-on: ubuntu-latest
@@ -299,7 +321,7 @@ jobs:
           retention-days: 7
 
   cherie_compatibility_smoke:
-    needs: verify_strict
+    needs: [verify_strict, startup_smoke]
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:

@@ -5,6 +5,7 @@
 · module compatibility policy (5ms)
 · nilaway ./... (5ms)
 ! go test ./... (0ms): skipped via --skip-tests
+! startup smoke checks (0ms): startup smoke checks skipped via --skip-tests
 · standalone exportability gate (5ms)
 · orchestration contract mismatch preflight (5ms)
 ✓ verify passed (95ms)

@@ -172,6 +172,12 @@ func TestFreshApp(t *testing.T) {
 		t.Fatalf("go test ./app/... failed for scaffolded batteries: %v\n%s", err, output)
 	}
 
+	if output, err := runCommand(projectRoot, env, shipBin, "templ", "generate", "--path", "app"); err != nil {
+		t.Fatalf("ship templ generate --path app failed: %v\n%s", err, output)
+	}
+	if output, err := runCommand(projectRoot, env, "go", "test", "./app/...", "-count=1"); err != nil {
+		t.Fatalf("go test ./app/... failed for startup smoke scaffold: %v\n%s", err, output)
+	}
 	if output, err := runCommand(projectRoot, env, shipBin, "db:migrate"); err != nil {
 		t.Fatalf("ship db:migrate failed: %v\n%s", err, output)
 	}
@@ -211,6 +217,90 @@ func TestFreshApp(t *testing.T) {
 	if elapsed := time.Since(started); elapsed > 2*time.Minute {
 		t.Fatalf("fresh-app integration exceeded time budget: %s", elapsed)
 	}
+}
+
+func TestFreshAppStartupSmoke(t *testing.T) {
+	root := t.TempDir()
+	prevWD, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(prevWD) })
+	if err := os.Chdir(root); err != nil {
+		t.Fatal(err)
+	}
+
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	if code := RunNew([]string{"demo", "--module", "example.com/demo"}, NewDeps{
+		Out:                        out,
+		Err:                        errOut,
+		ParseAgentPolicyBytes:      policies.ParsePolicyBytes,
+		RenderAgentPolicyArtifacts: policies.RenderPolicyArtifacts,
+		AgentPolicyFilePath:        policies.AgentPolicyFilePath,
+	}); code != 0 {
+		t.Fatalf("ship new failed: code=%d stderr=%s", code, errOut.String())
+	}
+
+	projectRoot := filepath.Join(root, "demo")
+	shipBin := buildShipBinaryForProjectNew(t)
+	toolBin := scaffoldFreshAppTooling(t)
+	env := append(os.Environ(), "PATH="+toolBin+string(os.PathListSeparator)+os.Getenv("PATH"))
+
+	if output, err := runCommand(projectRoot, env, shipBin, "db:migrate"); err != nil {
+		t.Fatalf("ship db:migrate failed: %v\n%s", err, output)
+	}
+	if _, err := os.Stat(filepath.Join(projectRoot, "tmp", "starter.db")); err != nil {
+		t.Fatalf("expected migrated sqlite database: %v", err)
+	}
+	if output, err := runCommand(projectRoot, env, shipBin, "verify", "--profile", "fast"); err != nil {
+		t.Fatalf("ship verify --profile fast failed for startup smoke scaffold: %v\n%s", err, output)
+	}
+
+	port := reservePort(t)
+	webBin := filepath.Join(t.TempDir(), "starter-web")
+	if output, err := runCommand(projectRoot, env, "go", "build", "-o", webBin, "./cmd/web"); err != nil {
+		t.Fatalf("build starter web binary failed: %v\n%s", err, output)
+	}
+	serverCtx, cancelServer := context.WithCancel(context.Background())
+	defer cancelServer()
+	serverCmd := exec.CommandContext(serverCtx, webBin)
+	serverCmd.Dir = projectRoot
+	serverCmd.Env = append(env, "PORT="+port)
+	serverLog := &bytes.Buffer{}
+	serverCmd.Stdout = serverLog
+	serverCmd.Stderr = serverLog
+	if err := serverCmd.Start(); err != nil {
+		t.Fatalf("start cmd/web: %v", err)
+	}
+	t.Cleanup(func() {
+		cancelServer()
+		_ = serverCmd.Wait()
+	})
+
+	baseURL := "http://127.0.0.1:" + port
+	waitForStarterServer(t, baseURL+"/health/readiness", serverLog)
+	assertStarterRouteContains(t, baseURL+"/health/readiness", "ready")
+	assertStarterRouteStatus(t, baseURL+"/health")
+
+	workerBin := filepath.Join(t.TempDir(), "starter-worker")
+	if output, err := runCommand(projectRoot, env, "go", "build", "-o", workerBin, "./cmd/worker"); err != nil {
+		t.Fatalf("build starter worker binary failed: %v\n%s", err, output)
+	}
+	workerCtx, cancelWorker := context.WithCancel(context.Background())
+	defer cancelWorker()
+	workerCmd := exec.CommandContext(workerCtx, workerBin)
+	workerCmd.Dir = projectRoot
+	workerCmd.Env = env
+	workerLog := &bytes.Buffer{}
+	workerCmd.Stdout = workerLog
+	workerCmd.Stderr = workerLog
+	if err := workerCmd.Start(); err != nil {
+		t.Fatalf("start cmd/worker: %v", err)
+	}
+	waitForStarterWorker(t, workerLog)
+	cancelWorker()
+	_ = workerCmd.Wait()
 }
 
 type fakeCall struct {
@@ -393,4 +483,16 @@ func assertStarterRouteStatus(t *testing.T, url string) {
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("GET %s status=%d body=%s", url, resp.StatusCode, string(body))
 	}
+}
+
+func waitForStarterWorker(t *testing.T, workerLog *bytes.Buffer) {
+	t.Helper()
+	deadline := time.Now().Add(5 * time.Second)
+	for time.Now().Before(deadline) {
+		if strings.Contains(workerLog.String(), "starter worker ready: no background jobs registered yet") {
+			return
+		}
+		time.Sleep(50 * time.Millisecond)
+	}
+	t.Fatalf("starter worker did not become ready\n%s", workerLog.String())
 }
