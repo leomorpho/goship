@@ -188,6 +188,8 @@ Priority work:
 - DB promotion flow
 - backup/restore evidence
 - narrow but trustworthy browser and CLI golden suites
+- one explicit split-frontend contract (`api-only-same-origin-sveltekit-v1`) with documented `same-origin auth/session` and `cookie/CSRF` boundaries
+- constrained external frontend support (`SvelteKit-first`) until additional contracts are versioned
 
 ### Priority 5: Managed Interop
 

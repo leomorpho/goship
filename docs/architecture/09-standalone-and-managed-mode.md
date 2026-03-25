@@ -71,6 +71,17 @@ Important:
 - managed mode must not remove the standalone capability from GoShip
 - it only changes who is allowed to control certain knobs
 
+## Blessed External Frontend Boundary
+
+GoShip now documents one explicit split-frontend contract: `api-only-same-origin-sveltekit-v1`.
+
+Boundary rules:
+
+- browser auth flows must stay `same-origin auth/session`
+- `cookie/CSRF` protections remain required for browser writes
+- supported custom frontend scope is `SvelteKit-first`
+- cross-origin browser session patterns are outside the blessed contract and should be treated as custom/unsupported until a future contract version is defined
+
 ## Config Resolution Model
 
 GoShip should resolve runtime config from layered sources:

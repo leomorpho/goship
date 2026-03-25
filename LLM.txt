@@ -928,6 +928,12 @@ Build pipeline:
 - JS via `frontend/vite.config.ts` + Vite
 - CSS tokens and recipe classes live in `styles/styles.css` + `styles/tailwind_components.css`, with Vite smoke coverage proving the emitted starter CSS bundle contains the framework-owned token surface
 
+Blessed split-frontend contract:
+
+- `api-only-same-origin-sveltekit-v1` is the only explicit external-frontend contract today.
+- Browser auth writes stay on `same-origin auth/session` with `cookie/CSRF` protections enabled.
+- Supported custom frontend scope is intentionally constrained to `SvelteKit-first` until additional contracts are hardened.
+
 ## 10) AI Integration
 
 - `modules/ai` exposes a provider-agnostic completion boundary via `container.AI`
@@ -2171,6 +2177,17 @@ Important:
 
 - managed mode must not remove the standalone capability from GoShip
 - it only changes who is allowed to control certain knobs
+
+## Blessed External Frontend Boundary
+
+GoShip now documents one explicit split-frontend contract: `api-only-same-origin-sveltekit-v1`.
+
+Boundary rules:
+
+- browser auth flows must stay `same-origin auth/session`
+- `cookie/CSRF` protections remain required for browser writes
+- supported custom frontend scope is `SvelteKit-first`
+- cross-origin browser session patterns are outside the blessed contract and should be treated as custom/unsupported until a future contract version is defined
 
 ## Config Resolution Model
 
@@ -3583,6 +3600,17 @@ FILE: docs/guides/08-building-an-api.md
 
 GoShip supports dual HTML and JSON responses without duplicating handler logic.
 
+## Blessed External Frontend Contract
+
+Current blessed split-frontend contract identifier: `api-only-same-origin-sveltekit-v1`.
+
+Contract scope:
+
+- one supported custom frontend story for now: `SvelteKit-first`
+- `same-origin auth/session` is required for browser flows
+- keep `cookie/CSRF` protections enabled; do not disable CSRF to support cross-origin browser writes
+- CORS support is for controlled non-browser integrations, not for primary browser auth flows
+
 ## Core Pattern
 
 Use `framework/api` when a handler needs a JSON representation:
@@ -4281,6 +4309,12 @@ Design constraints:
 1. Keep commands Rails-like and convention-first.
 2. Keep v1 command set intentionally small.
 3. Expand only after each command is stable and tested.
+
+External frontend contract note:
+
+- blessed split-frontend identifier: `api-only-same-origin-sveltekit-v1`
+- browser boundary: `same-origin auth/session` with `cookie/CSRF` preserved
+- supported custom frontend scope: `SvelteKit-first`
 
 ## Minimal V1 Command Set
 
@@ -5039,6 +5073,8 @@ Priority work:
 - DB promotion flow
 - backup/restore evidence
 - narrow but trustworthy browser and CLI golden suites
+- one explicit split-frontend contract (`api-only-same-origin-sveltekit-v1`) with documented `same-origin auth/session` and `cookie/CSRF` boundaries
+- constrained external frontend support (`SvelteKit-first`) until additional contracts are versioned
 
 ### Priority 5: Managed Interop
 
