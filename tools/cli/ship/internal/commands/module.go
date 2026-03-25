@@ -111,16 +111,37 @@ func appendUniqueStrings(dst []string, values ...string) []string {
 var (
 	paidSubscriptionsContainerSnippet = `
 	// ship:module:paidsubscriptions
-	// TODO: wire the paid subscriptions module (plans catalog, subscription store) here.
+	// Wire modules/paidsubscriptions service + store adapters into deps.PaidSubscriptionsService.
 `
+	paidSubscriptionsInstallContract = moduleInstallContract{
+		Routes: []string{
+			"modules/paidsubscriptions/routes/routes.go",
+		},
+		Jobs: []string{
+			"modules/paidsubscriptions/service.go",
+			"modules/paidsubscriptions/store_sql.go",
+			"modules/paidsubscriptions/plan_catalog.go",
+		},
+		Tests: []string{
+			"modules/paidsubscriptions/service_test.go",
+			"modules/paidsubscriptions/store_sql_test.go",
+			"modules/paidsubscriptions/store_sql_integration_test.go",
+		},
+	}
 	paidSubscriptionsRouterSnippets = map[string]string{
 		"auth": `
 	// ship:module:paidsubscriptions
-	// TODO: register pricing/session routes via modules/paidsubscriptions/routes.go.
+	paidSubscriptionsModule := paidsubscriptionroutes.NewRouteModule(ctr, deps.PaidSubscriptionsService)
+	if err := paidSubscriptionsModule.RegisterRoutes(onboardedGroup); err != nil {
+		return err
+	}
 `,
 		"external": `
 	// ship:module:paidsubscriptions
-	// TODO: register public webhook handlers (e.g., Stripe) via modules/paidsubscriptions/routes.go.
+	paidSubscriptionsExternalModule := paidsubscriptionroutes.NewRouteModule(ctr, deps.PaidSubscriptionsService)
+	if err := paidSubscriptionsExternalModule.RegisterExternalRoutes(externalGroup, "/webhooks/stripe"); err != nil {
+		return err
+	}
 `,
 	}
 	paidSubscriptionsEnvExampleSnippet = `# ship:module:paidsubscriptions
@@ -188,6 +209,7 @@ var moduleCatalog = map[string]moduleInfo{
 		ID:                "paidsubscriptions",
 		ModulePath:        "github.com/leomorpho/goship-modules/paidsubscriptions",
 		LocalPath:         filepath.Join("modules", "paidsubscriptions"),
+		InstallContract:   paidSubscriptionsInstallContract,
 		ContainerSnippet:  paidSubscriptionsContainerSnippet,
 		RouterSnippets:    paidSubscriptionsRouterSnippets,
 		EnvExampleSnippet: paidSubscriptionsEnvExampleSnippet,
@@ -197,6 +219,7 @@ var moduleCatalog = map[string]moduleInfo{
 		ID:                "paidsubscriptions",
 		ModulePath:        "github.com/leomorpho/goship-modules/paidsubscriptions",
 		LocalPath:         filepath.Join("modules", "paidsubscriptions"),
+		InstallContract:   paidSubscriptionsInstallContract,
 		ContainerSnippet:  paidSubscriptionsContainerSnippet,
 		RouterSnippets:    paidSubscriptionsRouterSnippets,
 		EnvExampleSnippet: paidSubscriptionsEnvExampleSnippet,

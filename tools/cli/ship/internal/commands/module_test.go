@@ -943,6 +943,95 @@ func TestAdminModuleCatalog_InstallContractCoversRoutesViewsAuthGateAndTests(t *
 	}
 }
 
+func TestBillingModuleCatalog_UsesConcreteWiring(t *testing.T) {
+	info, ok := moduleCatalog["billing"]
+	if !ok {
+		t.Fatal("expected billing in module catalog")
+	}
+	if strings.Contains(info.ContainerSnippet, "TODO") {
+		t.Fatalf("billing container snippet still contains TODO text:\n%s", info.ContainerSnippet)
+	}
+
+	authSnippet := strings.TrimSpace(info.RouterSnippets["auth"])
+	if authSnippet == "" {
+		t.Fatal("expected billing auth router snippet")
+	}
+	for _, token := range []string{
+		"paidsubscriptionroutes.NewRouteModule",
+		"deps.PaidSubscriptionsService",
+		"RegisterRoutes(onboardedGroup)",
+	} {
+		if !strings.Contains(authSnippet, token) {
+			t.Fatalf("billing auth snippet missing %q:\n%s", token, authSnippet)
+		}
+	}
+
+	externalSnippet := strings.TrimSpace(info.RouterSnippets["external"])
+	if externalSnippet == "" {
+		t.Fatal("expected billing external router snippet")
+	}
+	for _, token := range []string{
+		"paidsubscriptionroutes.NewRouteModule",
+		"RegisterExternalRoutes(externalGroup, \"/webhooks/stripe\")",
+	} {
+		if !strings.Contains(externalSnippet, token) {
+			t.Fatalf("billing external snippet missing %q:\n%s", token, externalSnippet)
+		}
+	}
+}
+
+func TestBillingModuleCatalog_InstallContractCoversBillingRoutesConfigAndTests(t *testing.T) {
+	t.Parallel()
+
+	info, ok := moduleCatalog["billing"]
+	if !ok {
+		t.Fatal("expected billing in module catalog")
+	}
+	contract := info.installContract()
+
+	for _, route := range []string{
+		"app/router.go (auth)",
+		"app/router.go (external)",
+		"modules/paidsubscriptions/routes/routes.go",
+	} {
+		if !containsExactString(contract.Routes, route) {
+			t.Fatalf("billing contract routes missing %q: %#v", route, contract.Routes)
+		}
+	}
+	for _, configPath := range []string{
+		"config/modules.yaml",
+		"app/foundation/container.go",
+		"go.mod",
+		"go.work",
+		".env.example",
+	} {
+		if !containsExactString(contract.Config, configPath) {
+			t.Fatalf("billing contract config missing %q: %#v", configPath, contract.Config)
+		}
+	}
+	if !containsExactString(contract.Migrations, "modules/paidsubscriptions/db/migrate/migrations") {
+		t.Fatalf("billing contract missing migration path ownership: %#v", contract.Migrations)
+	}
+	for _, runtimeSurface := range []string{
+		"modules/paidsubscriptions/service.go",
+		"modules/paidsubscriptions/store_sql.go",
+		"modules/paidsubscriptions/plan_catalog.go",
+	} {
+		if !containsExactString(contract.Jobs, runtimeSurface) {
+			t.Fatalf("billing contract missing runtime/billing surface %q: %#v", runtimeSurface, contract.Jobs)
+		}
+	}
+	for _, testSurface := range []string{
+		"modules/paidsubscriptions/service_test.go",
+		"modules/paidsubscriptions/store_sql_test.go",
+		"modules/paidsubscriptions/store_sql_integration_test.go",
+	} {
+		if !containsExactString(contract.Tests, testSurface) {
+			t.Fatalf("billing contract missing test ownership %q: %#v", testSurface, contract.Tests)
+		}
+	}
+}
+
 func TestApplyModuleAdd_AdminIdempotent(t *testing.T) {
 	root := t.TempDir()
 
