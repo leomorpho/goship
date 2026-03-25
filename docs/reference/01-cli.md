@@ -308,6 +308,7 @@ run-anywhere verification gate:
 - `ship verify` includes a `hard-cut wording invariant` step that re-checks canonical docs for transition/deprecation drift after `ship doctor --json`
 - the gate rejects control-plane dependency drift in standalone runtime/starter surfaces
 - scaffold integration fixtures now prove generated apps boot with managed env vars (`PAGODA_MANAGED_MODE`, `PAGODA_MANAGED_AUTHORITY`, managed hook secret/overrides) without any control-plane source dependency
+- scaffold integration fixtures also prove generated apps boot in pure standalone mode when managed env vars are absent
 - `ship doctor` boundary checks (`DX020`) now fail when runtime/framework source imports control-plane packages (for example `github.com/leomorpho/goship/tools/private/control-plane/*`)
 - `ship doctor` boundary checks (`DX020`) also fail when non-test runtime/framework code hardcodes private control-plane path strings (for example `tools/private/control-plane/...`)
 
