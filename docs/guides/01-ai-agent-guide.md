@@ -104,3 +104,21 @@ When behavior or architecture changes, update at least:
 
 - Integration tests must use `//go:build integration`.
 - Keep default tests (`ship test`) fast/stateless when possible.
+
+## Cold-Start Eval Pack
+
+GoShip includes a deterministic cold-start agent eval pack at:
+
+- `tools/cli/ship/internal/agenteval/testdata/cold_start_task_pack.json`
+
+Scoring and reporting are implemented in:
+
+- `tools/cli/ship/internal/agenteval/eval.go`
+- `tools/cli/ship/internal/agenteval/eval_test.go`
+
+The pack is designed to diagnose weaker-model usability regressions by checking:
+
+1. first-surface selection (`FirstSurface` should hit required canonical docs)
+2. required tools usage (`RequiredTools`)
+3. dead-end avoidance (disallowed surfaces)
+4. task completion outcomes and overall success rate

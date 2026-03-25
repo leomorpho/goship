@@ -1,0 +1,27 @@
+{
+  "name": "goship-cold-start-v1",
+  "description": "Representative cold-start tasks for weaker-model usability checks.",
+  "tasks": [
+    {
+      "id": "discover-cli-surface",
+      "title": "Find canonical CLI docs and identify the ship test loop",
+      "required_surfaces": ["docs/00-index.md", "docs/reference/01-cli.md"],
+      "required_tools": ["rg"],
+      "disallowed_surfaces": ["docs/roadmap/03-atomic-tasks.md"]
+    },
+    {
+      "id": "discover-mcp-surface",
+      "title": "Find supported ship-mcp workflow docs",
+      "required_surfaces": ["docs/reference/02-mcp.md", "MCP_TOOLS.md"],
+      "required_tools": ["rg"],
+      "disallowed_surfaces": ["docs/roadmap/03-atomic-tasks.md"]
+    },
+    {
+      "id": "run-quality-loop",
+      "title": "Run targeted tests and summarize outcome",
+      "required_surfaces": ["docs/guides/01-ai-agent-guide.md", "docs/reference/01-cli.md"],
+      "required_tools": ["go test"],
+      "disallowed_surfaces": []
+    }
+  ]
+}
