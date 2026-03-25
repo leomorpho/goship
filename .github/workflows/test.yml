@@ -144,6 +144,28 @@ jobs:
       - name: Doc sync
         run: make test-doc-sync
 
+  doc_drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.x"
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Doc drift
+        run: make test-doc-drift
+
   dead_route_regression:
     runs-on: ubuntu-latest
     steps:

@@ -70,6 +70,23 @@ func TestCIContract_DefinesDocSyncAndDeadRouteGuards_RedSpec(t *testing.T) {
 	}
 }
 
+func TestCIContract_DefinesDocDriftGate_RedSpec(t *testing.T) {
+	root := repoRootFromCommandsTest(t)
+
+	workflow := mustReadText(t, filepath.Join(root, ".github", "workflows", "test.yml"))
+	makefile := mustReadText(t, filepath.Join(root, "Makefile"))
+
+	if !strings.Contains(workflow, "\n  doc_drift:\n") {
+		t.Fatal("test workflow should define a dedicated doc_drift job")
+	}
+	if !strings.Contains(workflow, "run: make test-doc-drift") {
+		t.Fatal("doc_drift CI job should invoke make test-doc-drift")
+	}
+	if !strings.Contains(makefile, ".PHONY: test-doc-drift") {
+		t.Fatal("Makefile should expose a canonical test-doc-drift entrypoint")
+	}
+}
+
 func TestDocs_DBExportAndRuntimeReportContractsStayInSync_RedSpec(t *testing.T) {
 	root := repoRootFromCommandsTest(t)
 
