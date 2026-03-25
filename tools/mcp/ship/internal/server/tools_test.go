@@ -174,7 +174,7 @@ func TestCallShipDoctor(t *testing.T) {
 		if err != nil {
 			t.Fatalf("callShipDoctor error: %v", err)
 		}
-		if !strings.Contains(res.Content[0].Text, `"ship binary not found in PATH"`) {
+		if !strings.Contains(res.Content[0].Text, `"ship CLI is unavailable: missing"`) {
 			t.Fatalf("content = %q, want missing ship message", res.Content[0].Text)
 		}
 	})
@@ -205,7 +205,7 @@ func TestCallShipRoutes(t *testing.T) {
 	s := &mcpServer{}
 	prev := runShipDescribePayload
 	t.Cleanup(func() { runShipDescribePayload = prev })
-	runShipDescribePayload = func() (shipDescribeResult, error) {
+	runShipDescribePayload = func(string) (shipDescribeResult, error) {
 		return shipDescribeResult{
 			Routes: []shipDescribeRoute{
 				{Path: "/public", Method: "GET", Auth: false},
@@ -243,7 +243,7 @@ func TestCallShipModules(t *testing.T) {
 	s := &mcpServer{}
 	prev := runShipDescribePayload
 	t.Cleanup(func() { runShipDescribePayload = prev })
-	runShipDescribePayload = func() (shipDescribeResult, error) {
+	runShipDescribePayload = func(string) (shipDescribeResult, error) {
 		return shipDescribeResult{
 			Modules: []shipDescribeModule{
 				{ID: "notifications", Installed: true},
@@ -375,7 +375,7 @@ func TestCallShipVerify(t *testing.T) {
 		if err != nil {
 			t.Fatalf("callShipVerify error: %v", err)
 		}
-		if !strings.Contains(res.Content[0].Text, `"ship binary not found in PATH"`) {
+		if !strings.Contains(res.Content[0].Text, `"ship CLI is unavailable: missing"`) {
 			t.Fatalf("content = %q, want missing ship message", res.Content[0].Text)
 		}
 	})
@@ -400,6 +400,94 @@ func TestCallShipVerify(t *testing.T) {
 			t.Fatalf("content = %q, want invalid json message", res.Content[0].Text)
 		}
 	})
+}
+
+func TestResolveShipInvocation_UsesRepoLocalCLIOverPath(t *testing.T) {
+	repoRoot := t.TempDir()
+	localShipDir := filepath.Join(repoRoot, "tools", "cli", "ship", "cmd", "ship")
+	if err := os.MkdirAll(localShipDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(localShipDir, "main.go"), []byte("package main"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	s := &mcpServer{repoRoot: repoRoot}
+	prevLookPath := lookPathShip
+	prevLookPathGo := lookPathGo
+	prevRunShip := runShipJSON
+	t.Cleanup(func() {
+		lookPathShip = prevLookPath
+		lookPathGo = prevLookPathGo
+		runShipJSON = prevRunShip
+	})
+
+	lookPathShip = func(file string) (string, error) { return "/usr/bin/ship", nil }
+	lookPathGo = func(file string) (string, error) { return "/usr/bin/go", nil }
+
+	var gotName string
+	var gotArgs []string
+	runShipJSON = func(name string, args ...string) ([]byte, error) {
+		gotName = name
+		gotArgs = append([]string{}, args...)
+		return []byte(`{"ok":true,"issues":[]}`), nil
+	}
+
+	_, err := s.callShipDoctor(json.RawMessage(`{}`))
+	if err != nil {
+		t.Fatalf("callShipDoctor error: %v", err)
+	}
+	if gotName != "/usr/bin/go" {
+		t.Fatalf("runner = %q, want /usr/bin/go", gotName)
+	}
+	wantPrefix := []string{"run", filepath.Join(repoRoot, "tools", "cli", "ship", "cmd", "ship"), "doctor", "--json"}
+	if len(gotArgs) != len(wantPrefix) {
+		t.Fatalf("args len = %d, want %d (%v)", len(gotArgs), len(wantPrefix), gotArgs)
+	}
+	for i := range wantPrefix {
+		if gotArgs[i] != wantPrefix[i] {
+			t.Fatalf("arg[%d] = %q, want %q (all=%v)", i, gotArgs[i], wantPrefix[i], gotArgs)
+		}
+	}
+}
+
+func TestResolveShipInvocation_MissingGoDoesNotFallbackToPath(t *testing.T) {
+	repoRoot := t.TempDir()
+	localShipDir := filepath.Join(repoRoot, "tools", "cli", "ship", "cmd", "ship")
+	if err := os.MkdirAll(localShipDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(localShipDir, "main.go"), []byte("package main"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	s := &mcpServer{repoRoot: repoRoot}
+	prevLookPath := lookPathShip
+	prevLookPathGo := lookPathGo
+	prevRunShip := runShipJSON
+	t.Cleanup(func() {
+		lookPathShip = prevLookPath
+		lookPathGo = prevLookPathGo
+		runShipJSON = prevRunShip
+	})
+
+	lookPathShip = func(file string) (string, error) { return "/usr/bin/ship", nil }
+	lookPathGo = func(file string) (string, error) { return "", errors.New("no go") }
+	runShipJSON = func(name string, args ...string) ([]byte, error) {
+		t.Fatalf("runShipJSON should not be invoked when repo-local CLI is missing Go toolchain")
+		return nil, nil
+	}
+
+	res, err := s.callShipVerify(json.RawMessage(`{}`))
+	if err != nil {
+		t.Fatalf("callShipVerify error: %v", err)
+	}
+	if !strings.Contains(res.Content[0].Text, "repo-local ship CLI exists") {
+		t.Fatalf("content = %q, want repo-local missing-go failure", res.Content[0].Text)
+	}
+	if strings.Contains(res.Content[0].Text, "/usr/bin/ship") {
+		t.Fatalf("content = %q, should not fallback to PATH ship binary", res.Content[0].Text)
+	}
 }
 
 func TestCallShipScaffold(t *testing.T) {
@@ -500,8 +588,8 @@ func TestCallShipScaffold(t *testing.T) {
 		if !res.IsError {
 			t.Fatalf("expected IsError true")
 		}
-		if len(payload.Errors) == 0 || !strings.Contains(payload.Errors[0], "ship binary not found") {
-			t.Fatalf("errors = %v, want ship binary message", payload.Errors)
+		if len(payload.Errors) == 0 || !strings.Contains(payload.Errors[0], "ship CLI is unavailable") {
+			t.Fatalf("errors = %v, want ship CLI unavailable message", payload.Errors)
 		}
 	})
 }

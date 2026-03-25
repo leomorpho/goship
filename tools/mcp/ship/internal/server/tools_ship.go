@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -21,12 +22,12 @@ func (s *mcpServer) callShipDoctor(arguments json.RawMessage) (toolCallResult, e
 		}
 	}
 
-	shipPath, err := lookPathShip("ship")
+	shipCmd, shipArgs, err := resolveShipInvocation(s.repoRoot)
 	if err != nil {
-		return toolCallResult{Content: []toolContent{{Type: "text", Text: marshalShipDoctorResult(shipBinaryMissingDoctorResult())}}}, nil
+		return toolCallResult{Content: []toolContent{{Type: "text", Text: marshalShipDoctorResult(shipCLIMissingDoctorResult(err))}}}, nil
 	}
 
-	out, err := runShipJSON(shipPath, "doctor", "--json")
+	out, err := runShipJSON(shipCmd, append(shipArgs, "doctor", "--json")...)
 	if err != nil {
 		return toolCallResult{Content: []toolContent{{
 			Type: "text",
@@ -78,7 +79,7 @@ func (s *mcpServer) callShipRoutes(arguments json.RawMessage) (toolCallResult, e
 		return toolCallResult{}, errors.New("ship_routes filter must be one of public, auth, admin")
 	}
 
-	payload, toolErr := runShipDescribePayload()
+	payload, toolErr := runShipDescribePayload(s.repoRoot)
 	if toolErr != nil {
 		return toolCallResult{
 			Content: []toolContent{{Type: "text", Text: `{"routes":[]}`}},
@@ -124,7 +125,7 @@ func (s *mcpServer) callShipModules(arguments json.RawMessage) (toolCallResult, 
 		}
 	}
 
-	payload, toolErr := runShipDescribePayload()
+	payload, toolErr := runShipDescribePayload(s.repoRoot)
 	if toolErr != nil {
 		return toolCallResult{
 			Content: []toolContent{{Type: "text", Text: `{"modules":[]}`}},
@@ -149,11 +150,11 @@ func (s *mcpServer) callShipVerify(arguments json.RawMessage) (toolCallResult, e
 		}
 	}
 
-	shipPath, err := lookPathShip("ship")
+	shipCmd, shipArgs, err := resolveShipInvocation(s.repoRoot)
 	if err != nil {
 		return toolCallResult{Content: []toolContent{{
 			Type: "text",
-			Text: marshalShipVerifyResult(shipBinaryMissingVerifyResult()),
+			Text: marshalShipVerifyResult(shipCLIMissingVerifyResult(err)),
 		}}}, nil
 	}
 
@@ -162,7 +163,7 @@ func (s *mcpServer) callShipVerify(arguments json.RawMessage) (toolCallResult, e
 		args = append(args, "--skip-tests")
 	}
 
-	out, err := runShipJSON(shipPath, args...)
+	out, err := runShipJSON(shipCmd, append(shipArgs, args...)...)
 	if err != nil {
 		return toolCallResult{Content: []toolContent{{
 			Type: "text",
@@ -221,12 +222,12 @@ func (s *mcpServer) callShipScaffold(arguments json.RawMessage) (toolCallResult,
 	}
 	before, beforeErr := runGitStatus(repoRoot)
 
-	shipPath, lookErr := lookPathShip("ship")
+	shipCmd, shipArgs, lookErr := resolveShipInvocation(s.repoRoot)
 	if lookErr != nil {
 		res := shipScaffoldResult{
 			OK:           false,
 			FilesCreated: []string{},
-			Errors:       []string{fmt.Sprintf("ship binary not found: %v", lookErr)},
+			Errors:       []string{fmt.Sprintf("ship CLI is unavailable: %v", lookErr)},
 		}
 		if beforeErr != nil {
 			res.Errors = append(res.Errors, fmt.Sprintf("git status (before) failed: %v", beforeErr))
@@ -237,7 +238,7 @@ func (s *mcpServer) callShipScaffold(arguments json.RawMessage) (toolCallResult,
 		}, nil
 	}
 
-	output, cmdErr := runShipJSON(shipPath, args...)
+	output, cmdErr := runShipJSON(shipCmd, append(shipArgs, args...)...)
 	after, afterErr := runGitStatus(repoRoot)
 	files := diffGitStatus(before, after)
 
@@ -278,13 +279,13 @@ func marshalShipDoctorResult(result shipDoctorResult) string {
 	return string(b)
 }
 
-func shipBinaryMissingDoctorResult() shipDoctorResult {
+func shipCLIMissingDoctorResult(err error) shipDoctorResult {
 	return shipDoctorResult{
 		OK: false,
 		Issues: []shipDoctorIssue{{
 			Type:     "config",
 			File:     "",
-			Detail:   "ship binary not found in PATH",
+			Detail:   fmt.Sprintf("ship CLI is unavailable: %v", err),
 			Severity: "error",
 		}},
 	}
@@ -306,13 +307,13 @@ func marshalShipScaffoldResult(result shipScaffoldResult) string {
 	return string(b)
 }
 
-func shipBinaryMissingVerifyResult() shipVerifyResult {
+func shipCLIMissingVerifyResult(err error) shipVerifyResult {
 	return shipVerifyResult{
 		OK: false,
 		Steps: []shipVerifyStep{{
 			Name:   "ship verify --json",
 			OK:     false,
-			Output: "ship binary not found in PATH",
+			Output: fmt.Sprintf("ship CLI is unavailable: %v", err),
 		}},
 	}
 }
@@ -455,12 +456,32 @@ func extractGitPath(raw string) string {
 	return strings.TrimSpace(raw)
 }
 
-var runShipDescribePayload = func() (shipDescribeResult, error) {
+func resolveShipInvocation(repoRoot string) (string, []string, error) {
+	cleanRoot := strings.TrimSpace(repoRoot)
+	if cleanRoot != "" {
+		localMain := filepath.Join(cleanRoot, "tools", "cli", "ship", "cmd", "ship", "main.go")
+		if info, err := os.Stat(localMain); err == nil && !info.IsDir() {
+			goPath, goErr := lookPathGo("go")
+			if goErr != nil {
+				return "", nil, fmt.Errorf("repo-local ship CLI exists at %s but Go toolchain was not found: %w", localMain, goErr)
+			}
+			return goPath, []string{"run", filepath.Join(cleanRoot, "tools", "cli", "ship", "cmd", "ship")}, nil
+		}
+	}
+
 	shipPath, err := lookPathShip("ship")
+	if err != nil {
+		return "", nil, err
+	}
+	return shipPath, nil, nil
+}
+
+var runShipDescribePayload = func(repoRoot string) (shipDescribeResult, error) {
+	shipCmd, shipArgs, err := resolveShipInvocation(repoRoot)
 	if err != nil {
 		return shipDescribeResult{}, err
 	}
-	out, err := runShipJSON(shipPath, "describe")
+	out, err := runShipJSON(shipCmd, append(shipArgs, "describe")...)
 	if err != nil {
 		return shipDescribeResult{}, err
 	}
