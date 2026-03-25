@@ -2449,19 +2449,19 @@
     },
     "TKT-440": {
       "title": "Add verification hints that point to the owning package or generator and prove hint accuracy in fixture tests.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-436"
     },
     "TKT-441": {
       "title": "Add command timing and progress output that stays concise and test the human and JSON forms.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-436"
     },
     "TKT-442": {
       "title": "Add focused local smoke flows for fresh apps and prove they run under ship test quickly.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-436"
     },
@@ -2562,7 +2562,7 @@
     },
     "TKT-459": {
       "title": "Add generator explain-output tests that map each emitted file to its owning battery contract.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-452"
     },
@@ -2574,49 +2574,49 @@
     },
     "TKT-461": {
       "title": "Finish concrete notifications battery wiring and prove routes, config, views, jobs, and tests land correctly.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-460"
     },
     "TKT-462": {
       "title": "Finish concrete admin battery wiring and prove routes, views, auth gates, and tests land correctly.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-460"
     },
     "TKT-463": {
       "title": "Finish concrete jobs battery wiring and prove worker, queue, and schedule integration in tests.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-460"
     },
     "TKT-464": {
       "title": "Finish concrete storage battery wiring and prove adapter, config, and file-path integration in tests.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-460"
     },
     "TKT-465": {
       "title": "Finish paid-subscriptions battery wiring and prove billing flows, config, and route ownership in tests.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-460"
     },
     "TKT-466": {
       "title": "Finish emailsubscriptions battery wiring and prove routes, jobs, and verification paths in tests.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-460"
     },
     "TKT-467": {
       "title": "Finish realtime battery wiring and prove starter integration and runtime startup in tests.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-460"
     },
     "TKT-468": {
       "title": "Finish PWA battery wiring and prove installable output, assets, and browser behavior in tests.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-460"
     },
