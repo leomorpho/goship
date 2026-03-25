@@ -1,0 +1,14 @@
+make:island result
+Created:
+- frontend/islands/StatusBadge.js
+- app/views/web/components/status_badge_island.templ
+Preview:
+Templ usage snippet:
+@components.StatusBadgeIsland(map[string]any{
+	"label": "StatusBadge",
+	"initialCount": 0,
+})
+Next:
+- ship templ generate --file app/views/web/components/status_badge_island.templ
+- make build-js
+- render @components.StatusBadgeIsland(...) from the page or component that should mount this island

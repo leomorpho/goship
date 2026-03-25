@@ -1,0 +1,7 @@
+make:mailer result
+Created:
+- app/views/emails/welcome_digest.templ
+Updated:
+- app/web/controllers/mail_preview.go
+- app/router.go
+- app/web/routenames/routenames.go

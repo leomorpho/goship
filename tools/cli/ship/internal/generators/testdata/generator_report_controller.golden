@@ -1,0 +1,7 @@
+make:controller result
+Created:
+- app/web/controllers/posts.go
+Preview:
+Router snippet for app/router.go:
+posts := controllers.NewPosts(container)
+g.GET("/posts", posts.Index).Name = routeNames.RouteNamePosts
