@@ -303,6 +303,78 @@ func TestFreshAppStartupSmoke(t *testing.T) {
 	_ = workerCmd.Wait()
 }
 
+func TestFreshAppBootsWithManagedEnvVarsWithoutControlPlaneCode(t *testing.T) {
+	root := t.TempDir()
+	prevWD, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(prevWD) })
+	if err := os.Chdir(root); err != nil {
+		t.Fatal(err)
+	}
+
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	if code := RunNew([]string{"demo", "--module", "example.com/demo"}, NewDeps{
+		Out:                        out,
+		Err:                        errOut,
+		ParseAgentPolicyBytes:      policies.ParsePolicyBytes,
+		RenderAgentPolicyArtifacts: policies.RenderPolicyArtifacts,
+		AgentPolicyFilePath:        policies.AgentPolicyFilePath,
+	}); code != 0 {
+		t.Fatalf("ship new failed: code=%d stderr=%s", code, errOut.String())
+	}
+
+	projectRoot := filepath.Join(root, "demo")
+	if err := checkStandaloneExportability(projectRoot); err != nil {
+		t.Fatalf("managed-env boot fixture should remain free of control-plane dependency drift: %v", err)
+	}
+
+	shipBin := buildShipBinaryForProjectNew(t)
+	toolBin := scaffoldFreshAppTooling(t)
+	env := append(os.Environ(),
+		"PATH="+toolBin+string(os.PathListSeparator)+os.Getenv("PATH"),
+		"PAGODA_MANAGED_MODE=true",
+		"PAGODA_MANAGED_AUTHORITY=control-plane",
+		"PAGODA_MANAGED_HOOKS_SECRET=test-managed-secret",
+		`PAGODA_MANAGED_OVERRIDES={"adapters.cache":"memory"}`,
+	)
+
+	if output, err := runCommand(projectRoot, env, shipBin, "db:migrate"); err != nil {
+		t.Fatalf("ship db:migrate failed under managed env vars: %v\n%s", err, output)
+	}
+	if output, err := runCommand(projectRoot, env, shipBin, "templ", "generate", "--path", "app"); err != nil {
+		t.Fatalf("ship templ generate --path app failed under managed env vars: %v\n%s", err, output)
+	}
+
+	port := reservePort(t)
+	webBin := filepath.Join(t.TempDir(), "starter-web-managed")
+	if output, err := runCommand(projectRoot, env, "go", "build", "-o", webBin, "./cmd/web"); err != nil {
+		t.Fatalf("build starter web binary failed: %v\n%s", err, output)
+	}
+	serverCtx, cancelServer := context.WithCancel(context.Background())
+	defer cancelServer()
+	serverCmd := exec.CommandContext(serverCtx, webBin)
+	serverCmd.Dir = projectRoot
+	serverCmd.Env = append(env, "PORT="+port)
+	serverLog := &bytes.Buffer{}
+	serverCmd.Stdout = serverLog
+	serverCmd.Stderr = serverLog
+	if err := serverCmd.Start(); err != nil {
+		t.Fatalf("start cmd/web: %v", err)
+	}
+	t.Cleanup(func() {
+		cancelServer()
+		_ = serverCmd.Wait()
+	})
+
+	baseURL := "http://127.0.0.1:" + port
+	waitForStarterServer(t, baseURL+"/health/readiness", serverLog)
+	assertStarterRouteContains(t, baseURL+"/health/readiness", "ready")
+	assertStarterRouteStatus(t, baseURL+"/health")
+}
+
 type fakeCall struct {
 	name string
 	args []string

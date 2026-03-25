@@ -20,6 +20,9 @@ func TestVerifyContract_DefinesStandaloneExportabilityGate_RedSpec(t *testing.T)
 	if !strings.Contains(verifyTests, "control-plane dependency") {
 		t.Fatal("project new integration tests should define a standalone exportability check against control-plane dependency drift")
 	}
+	if !strings.Contains(verifyTests, "PAGODA_MANAGED_MODE") {
+		t.Fatal("project new integration tests should prove managed env-var startup without requiring control-plane source")
+	}
 	if !strings.Contains(cliDoc, "run-anywhere verification gate") {
 		t.Fatal("CLI reference should describe the run-anywhere verification gate")
 	}
