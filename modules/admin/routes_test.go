@@ -19,6 +19,7 @@ import (
 	"github.com/leomorpho/goship/framework/core"
 	"github.com/leomorpho/goship/framework/runtimeconfig"
 	"github.com/leomorpho/goship/framework/web/ui"
+	"github.com/leomorpho/goship/modules/flags"
 )
 
 func TestAdminRoutes_NonAdminForbidden(t *testing.T) {
@@ -267,6 +268,112 @@ INSERT INTO feature_flags (key, enabled, rollout_pct, description) VALUES ('new_
 	if enabled != 1 {
 		t.Fatalf("enabled = %d, want 1", enabled)
 	}
+}
+
+func TestFlagsListHandler_ShowsRegisteredConstantKey(t *testing.T) {
+	c := newContainerForAdminRoutes(t, true)
+	seedFeatureFlagForAdminTest(t, c.Database, "admin_flags_constant_key", false, 100, "manual description")
+	ensureFlagDefinition(t, "admin_flags_constant_key", "registry description", true)
+
+	req := httptest.NewRequest(http.MethodGet, "/admin/flags", nil)
+	rec := httptest.NewRecorder()
+	c.Web.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusOK)
+	}
+	if !strings.Contains(rec.Body.String(), "<code>admin_flags_constant_key</code>") {
+		t.Fatalf("body = %q, want constant key code badge", rec.Body.String())
+	}
+}
+
+func TestFlagsListHandler_ShowsCodeDefault(t *testing.T) {
+	c := newContainerForAdminRoutes(t, true)
+	seedFeatureFlagForAdminTest(t, c.Database, "admin_flags_default_on", false, 100, "manual description")
+	ensureFlagDefinition(t, "admin_flags_default_on", "registry description", true)
+
+	req := httptest.NewRequest(http.MethodGet, "/admin/flags", nil)
+	rec := httptest.NewRecorder()
+	c.Web.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusOK)
+	}
+	if !strings.Contains(rec.Body.String(), "Code default: On") {
+		t.Fatalf("body = %q, want code default badge", rec.Body.String())
+	}
+}
+
+func TestFlagsListHandler_MergesRegistryAndDB(t *testing.T) {
+	c := newContainerForAdminRoutes(t, true)
+	seedFeatureFlagForAdminTest(t, c.Database, "admin_flags_merge", false, 100, "manual description")
+	ensureFlagDefinition(t, "admin_flags_merge", "registry description", false)
+
+	req := httptest.NewRequest(http.MethodGet, "/admin/flags", nil)
+	rec := httptest.NewRecorder()
+	c.Web.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusOK)
+	}
+	body := rec.Body.String()
+	if !strings.Contains(body, "admin_flags_merge") {
+		t.Fatalf("body = %q, want db key row", body)
+	}
+	if !strings.Contains(body, "<td>off</td>") {
+		t.Fatalf("body = %q, want db toggle state", body)
+	}
+	if !strings.Contains(body, "registry description") {
+		t.Fatalf("body = %q, want registry description", body)
+	}
+}
+
+func seedFeatureFlagForAdminTest(t *testing.T, db *sql.DB, key string, enabled bool, rolloutPct int, description string) {
+	t.Helper()
+	if _, err := db.Exec(`
+CREATE TABLE IF NOT EXISTS feature_flags (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    key TEXT NOT NULL UNIQUE,
+    enabled INTEGER NOT NULL DEFAULT 0,
+    rollout_pct INTEGER NOT NULL DEFAULT 0,
+    user_ids TEXT,
+    description TEXT,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+`); err != nil {
+		t.Fatalf("create feature_flags: %v", err)
+	}
+
+	if _, err := db.Exec(
+		`INSERT INTO feature_flags (key, enabled, rollout_pct, description) VALUES (?, ?, ?, ?)`,
+		key,
+		boolToInt(enabled),
+		rolloutPct,
+		description,
+	); err != nil {
+		t.Fatalf("seed feature_flags: %v", err)
+	}
+}
+
+func ensureFlagDefinition(t *testing.T, key, description string, defaultEnabled bool) {
+	t.Helper()
+	flagKey := flags.FlagKey(key)
+	if _, ok := flags.Lookup(flagKey); ok {
+		return
+	}
+	flags.Register(flags.FlagDefinition{
+		Key:         flagKey,
+		Description: description,
+		Default:     defaultEnabled,
+	})
+}
+
+func boolToInt(v bool) int {
+	if v {
+		return 1
+	}
+	return 0
 }
 
 func newContainerForAdminRoutes(t *testing.T, admin bool) *frameworkbootstrap.Container {
