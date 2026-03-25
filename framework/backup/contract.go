@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"path"
+	"slices"
 	"strings"
 	"time"
 )
@@ -89,6 +90,20 @@ type RestoreEvidence struct {
 	RecordLinks             RecordLinks        `json:"record_links,omitempty"`
 	PostRestoreChecks       []string           `json:"post_restore_checks"`
 }
+
+type RuntimeContract struct {
+	ManifestVersion string                 `json:"manifest_version"`
+	RestoreEvidence RuntimeRestoreEvidence `json:"restore_evidence"`
+}
+
+type RuntimeRestoreEvidence struct {
+	Status                  string   `json:"status"`
+	AcceptedManifestVersion string   `json:"accepted_manifest_version"`
+	PostRestoreChecks       []string `json:"post_restore_checks"`
+	RecordLinks             []string `json:"record_links"`
+}
+
+var restoreEvidenceRecordLinkFields = []string{"incident_id", "recovery_id", "deploy_id"}
 
 // Driver creates backup manifests from runtime data.
 type Driver interface {
@@ -238,6 +253,19 @@ func BuildRestoreEvidence(manifest Manifest, links RecordLinks) RestoreEvidence 
 			"manifest.validated",
 			"artifact.checksum.sha256",
 			"database.schema_version.present",
+		},
+	}
+}
+
+func RuntimeContractMetadata() RuntimeContract {
+	evidence := BuildRestoreEvidence(Manifest{Version: ManifestVersionV1}, RecordLinks{})
+	return RuntimeContract{
+		ManifestVersion: ManifestVersionV1,
+		RestoreEvidence: RuntimeRestoreEvidence{
+			Status:                  evidence.Status,
+			AcceptedManifestVersion: evidence.AcceptedManifestVersion,
+			PostRestoreChecks:       slices.Clone(evidence.PostRestoreChecks),
+			RecordLinks:             slices.Clone(restoreEvidenceRecordLinkFields),
 		},
 	}
 }

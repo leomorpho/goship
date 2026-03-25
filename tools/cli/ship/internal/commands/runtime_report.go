@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/leomorpho/goship/config"
+	frameworkbackup "github.com/leomorpho/goship/framework/backup"
 	"github.com/leomorpho/goship/framework/runtimeconfig"
 	"github.com/leomorpho/goship/framework/runtimeplan"
 	frameworksecurity "github.com/leomorpho/goship/framework/security"
@@ -35,6 +36,7 @@ type runtimeReport struct {
 	Web              runtimeplan.WebFeatures        `json:"web"`
 	Database         config.DatabaseRuntimeMetadata `json:"database"`
 	Managed          config.ManagedRuntimeMetadata  `json:"managed"`
+	Backup           runtimeReportBackupContract    `json:"backup"`
 	FrameworkVersion string                         `json:"framework_version"`
 	ModuleAdoption   []describeModuleAdoption       `json:"module_adoption"`
 	UpgradeReadiness runtimeReportUpgradeReadiness  `json:"upgrade_readiness"`
@@ -110,6 +112,18 @@ type runtimeReportDivergenceEscalation struct {
 type runtimeReportUpgradeReadiness struct {
 	Ready    bool                          `json:"ready"`
 	Blockers []runtimeReportUpgradeBlocker `json:"blockers"`
+}
+
+type runtimeReportBackupContract struct {
+	ManifestVersion string                           `json:"manifest_version"`
+	RestoreEvidence runtimeReportBackupRestoreSchema `json:"restore_evidence"`
+}
+
+type runtimeReportBackupRestoreSchema struct {
+	Status                  string   `json:"status"`
+	AcceptedManifestVersion string   `json:"accepted_manifest_version"`
+	PostRestoreChecks       []string `json:"post_restore_checks"`
+	RecordLinks             []string `json:"record_links"`
 }
 
 type runtimeReportUpgradeBlocker struct {
@@ -222,6 +236,7 @@ func RunRuntimeReport(args []string, d RuntimeReportDeps) int {
 		),
 		Database:         cfg.RuntimeMetadata().Database,
 		Managed:          cfg.RuntimeMetadata().Managed,
+		Backup:           buildRuntimeReportBackupContract(),
 		FrameworkVersion: frameworkVersion,
 		ModuleAdoption:   moduleAdoption,
 		UpgradeReadiness: evaluateRuntimeUpgradeReadiness(root, cfg),
@@ -235,6 +250,19 @@ func RunRuntimeReport(args []string, d RuntimeReportDeps) int {
 		return 1
 	}
 	return 0
+}
+
+func buildRuntimeReportBackupContract() runtimeReportBackupContract {
+	contract := frameworkbackup.RuntimeContractMetadata()
+	return runtimeReportBackupContract{
+		ManifestVersion: contract.ManifestVersion,
+		RestoreEvidence: runtimeReportBackupRestoreSchema{
+			Status:                  contract.RestoreEvidence.Status,
+			AcceptedManifestVersion: contract.RestoreEvidence.AcceptedManifestVersion,
+			PostRestoreChecks:       contract.RestoreEvidence.PostRestoreChecks,
+			RecordLinks:             contract.RestoreEvidence.RecordLinks,
+		},
+	}
 }
 
 func buildManagedHooksContract(cfg config.Config) runtimeReportManagedHooks {
