@@ -91,17 +91,20 @@ func (s *mcpServer) callShipRoutes(arguments json.RawMessage) (toolCallResult, e
 	if filter != "" {
 		filtered := make([]shipDescribeRoute, 0, len(routes))
 		for _, route := range routes {
+			access := describeRouteAccessClass(route)
 			switch filter {
 			case "public":
-				if !route.Auth {
+				if access == "public" {
 					filtered = append(filtered, route)
 				}
 			case "auth":
-				if route.Auth {
+				if access == "auth" {
 					filtered = append(filtered, route)
 				}
 			case "admin":
-				// Current describe schema does not distinguish admin routes yet.
+				if access == "admin" {
+					filtered = append(filtered, route)
+				}
 			}
 		}
 		routes = filtered
@@ -112,6 +115,57 @@ func (s *mcpServer) callShipRoutes(arguments json.RawMessage) (toolCallResult, e
 		return toolCallResult{}, err
 	}
 	return toolCallResult{Content: []toolContent{{Type: "text", Text: string(b)}}}, nil
+}
+
+func (s *mcpServer) callShipRuntimeReport(arguments json.RawMessage) (toolCallResult, error) {
+	if len(arguments) > 0 && string(arguments) != "{}" {
+		var in map[string]any
+		if err := json.Unmarshal(arguments, &in); err != nil {
+			return toolCallResult{}, fmt.Errorf("invalid ship_runtime_report arguments: %w", err)
+		}
+		if len(in) > 0 {
+			return toolCallResult{}, errors.New("ship_runtime_report does not accept arguments")
+		}
+	}
+
+	shipCmd, shipArgs, err := resolveShipInvocation(s.repoRoot)
+	if err != nil {
+		return toolCallResult{
+			Content: []toolContent{{Type: "text", Text: fmt.Sprintf(`{"error":"ship runtime report unavailable: %s"}`, strings.ReplaceAll(err.Error(), `"`, `'`))}},
+			IsError: true,
+		}, nil
+	}
+	out, err := runShipJSON(shipCmd, append(shipArgs, "runtime:report", "--json")...)
+	if err != nil {
+		return toolCallResult{
+			Content: []toolContent{{Type: "text", Text: fmt.Sprintf(`{"error":"failed to run ship runtime:report --json: %s"}`, strings.ReplaceAll(err.Error(), `"`, `'`))}},
+			IsError: true,
+		}, nil
+	}
+	if !json.Valid(out) {
+		return toolCallResult{
+			Content: []toolContent{{Type: "text", Text: fmt.Sprintf(`{"error":"invalid ship runtime report JSON output: %s"}`, strings.ReplaceAll(strings.TrimSpace(string(out)), `"`, `'`))}},
+			IsError: true,
+		}, nil
+	}
+
+	return toolCallResult{Content: []toolContent{{Type: "text", Text: string(out)}}}, nil
+}
+
+func describeRouteAccessClass(route shipDescribeRoute) string {
+	access := strings.ToLower(strings.TrimSpace(route.Access))
+	if access == "public" || access == "auth" || access == "admin" {
+		return access
+	}
+
+	path := strings.ToLower(strings.Trim(strings.TrimSpace(route.Path), "`\""))
+	if strings.Contains(path, "/auth/admin") || strings.HasPrefix(path, "/admin") {
+		return "admin"
+	}
+	if route.Auth || strings.HasPrefix(path, "/auth") {
+		return "auth"
+	}
+	return "public"
 }
 
 func (s *mcpServer) callShipModules(arguments json.RawMessage) (toolCallResult, error) {
