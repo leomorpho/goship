@@ -593,6 +593,7 @@ func TestApplyModuleAddRemove_FirstPartyBatteriesGolden(t *testing.T) {
 		"paidsubscriptions",
 		"emailsubscriptions",
 		"realtime",
+		"pwa",
 		"jobs",
 		"storage",
 	}
@@ -647,6 +648,7 @@ func TestApplyModuleAdd_IdempotentAcrossFirstPartyBatteries(t *testing.T) {
 		"paidsubscriptions",
 		"emailsubscriptions",
 		"realtime",
+		"pwa",
 		"jobs",
 		"storage",
 	}
@@ -702,6 +704,7 @@ func TestApplyModuleAdd_ComposesSupportedFirstPartyPairs(t *testing.T) {
 		{name: "notifications and jobs", first: "notifications", second: "jobs"},
 		{name: "notifications and storage", first: "notifications", second: "storage"},
 		{name: "notifications and realtime", first: "notifications", second: "realtime"},
+		{name: "notifications and pwa", first: "notifications", second: "pwa"},
 		{name: "billing and emailsubscriptions", first: "billing", second: "emailsubscriptions"},
 	}
 
@@ -1185,6 +1188,87 @@ func TestRealtimeModuleCatalog_InstallContractCoversStarterAndRuntimeStartupTest
 	} {
 		if !containsExactString(contract.Tests, testSurface) {
 			t.Fatalf("realtime contract missing starter/runtime verification test ownership %q: %#v", testSurface, contract.Tests)
+		}
+	}
+}
+
+func TestPWAModuleCatalog_UsesConcreteWiring(t *testing.T) {
+	info, ok := moduleCatalog["pwa"]
+	if !ok {
+		t.Fatal("expected pwa in module catalog")
+	}
+	if strings.Contains(info.ContainerSnippet, "TODO") {
+		t.Fatalf("pwa container snippet still contains TODO text:\n%s", info.ContainerSnippet)
+	}
+
+	publicSnippet := strings.TrimSpace(info.RouterSnippets["public"])
+	if publicSnippet == "" {
+		t.Fatal("expected pwa public router snippet")
+	}
+	if strings.Contains(publicSnippet, "TODO") {
+		t.Fatalf("pwa public router snippet still contains TODO text:\n%s", publicSnippet)
+	}
+	for _, token := range []string{
+		"RegisterStaticRoutes",
+		"pwamodule.NewModule",
+		"RegisterRoutes(g)",
+		"modules/pwa/routes.go",
+	} {
+		if !strings.Contains(info.ContainerSnippet+publicSnippet, token) {
+			t.Fatalf("pwa wiring missing %q:\ncontainer:\n%s\npublic:\n%s", token, info.ContainerSnippet, publicSnippet)
+		}
+	}
+}
+
+func TestPWAModuleCatalog_InstallContractCoversInstallableAssetsAndBrowserTests(t *testing.T) {
+	t.Parallel()
+
+	info, ok := moduleCatalog["pwa"]
+	if !ok {
+		t.Fatal("expected pwa in module catalog")
+	}
+	contract := info.installContract()
+
+	for _, route := range []string{
+		"app/router.go (public)",
+		"modules/pwa/routes.go",
+		"framework/web/wiring.go",
+	} {
+		if !containsExactString(contract.Routes, route) {
+			t.Fatalf("pwa contract routes missing %q: %#v", route, contract.Routes)
+		}
+	}
+	for _, configPath := range []string{
+		"config/modules.yaml",
+		"app/foundation/container.go",
+	} {
+		if !containsExactString(contract.Config, configPath) {
+			t.Fatalf("pwa contract config missing %q: %#v", configPath, contract.Config)
+		}
+	}
+	for _, asset := range []string{
+		"modules/pwa/static/manifest.json",
+		"modules/pwa/static/service-worker.js",
+	} {
+		if !containsExactString(contract.Assets, asset) {
+			t.Fatalf("pwa contract assets missing %q: %#v", asset, contract.Assets)
+		}
+	}
+	for _, tmpl := range []string{
+		"modules/pwa/views/web/pages/gen/install_app_templ.go",
+		"modules/pwa/views/web/components/gen/pwa_install_templ.go",
+	} {
+		if !containsExactString(contract.Templates, tmpl) {
+			t.Fatalf("pwa contract templates missing %q: %#v", tmpl, contract.Templates)
+		}
+	}
+	for _, testSurface := range []string{
+		"modules/pwa/module_test.go",
+		"framework/web/controllers/route_smoke_test.go",
+		"tools/cli/ship/internal/commands/doc_sync_contract_test.go",
+	} {
+		if !containsExactString(contract.Tests, testSurface) {
+			t.Fatalf("pwa contract missing installable/browser verification test ownership %q: %#v", testSurface, contract.Tests)
 		}
 	}
 }

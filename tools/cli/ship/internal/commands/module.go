@@ -164,27 +164,18 @@ STRIPE_WEBHOOK_SECRET=
 	// Wire modules/emailsubscriptions.New(store) at the deps.SubscriptionsRepo seam.
 `
 	emailSubscriptionsInstallContract = moduleInstallContract{
-		Routes: []string{
-			"modules/notifications/routes/routes.go",
-		},
+		Routes: []string{"modules/notifications/routes/routes.go"},
 		Jobs: []string{
-			"modules/emailsubscriptions/service.go",
-			"modules/emailsubscriptions/store_sql.go",
-			"modules/emailsubscriptions/catalog.go",
+			"modules/emailsubscriptions/service.go", "modules/emailsubscriptions/store_sql.go", "modules/emailsubscriptions/catalog.go",
 		},
 		Tests: []string{
-			"modules/emailsubscriptions/service_test.go",
-			"modules/emailsubscriptions/store_sql_test.go",
-			"modules/emailsubscriptions/store_sql_integration_test.go",
-			"modules/emailsubscriptions/catalog_test.go",
-			"modules/notifications/routes/routes_contract_test.go",
+			"modules/emailsubscriptions/service_test.go", "modules/emailsubscriptions/store_sql_test.go", "modules/emailsubscriptions/store_sql_integration_test.go", "modules/emailsubscriptions/catalog_test.go", "modules/notifications/routes/routes_contract_test.go",
 		},
 	}
 	emailSubscriptionsRouterSnippets = map[string]string{
 		"auth": `
 	// ship:module:emailsubscriptions
-	// Email unsubscribe verification is served in modules/notifications/routes/routes.go
-	// through routeNames.RouteNameDeleteEmailSubscriptionWithToken.
+	// Email unsubscribe verification is served in modules/notifications/routes/routes.go through routeNames.RouteNameDeleteEmailSubscriptionWithToken.
 `,
 	}
 	realtimeContainerSnippet = `
@@ -192,27 +183,36 @@ STRIPE_WEBHOOK_SECRET=
 	// Realtime startup is owned by frameworkbootstrap.Container.initSSEHub and notifier wiring.
 `
 	realtimeInstallContract = moduleInstallContract{
-		Routes: []string{
-			"router.go",
-		},
-		Jobs: []string{
-			"container.go",
-			"router.go",
-			"framework/runtimeplan/features.go",
-			"framework/sse/hub.go",
-		},
+		Routes: []string{"router.go"},
+		Jobs:   []string{"container.go", "router.go", "framework/runtimeplan/features.go", "framework/sse/hub.go"},
 		Tests: []string{
-			"startup_contract_test.go",
-			"router_guardrails_test.go",
-			"router_contract_test.go",
-			"framework/runtimeplan/features_test.go",
-			"tools/cli/ship/internal/commands/cherie_ci_contract_test.go",
+			"startup_contract_test.go", "router_guardrails_test.go", "router_contract_test.go", "framework/runtimeplan/features_test.go", "tools/cli/ship/internal/commands/cherie_ci_contract_test.go",
 		},
 	}
 	realtimeRouterSnippets = map[string]string{
 		"auth": `
 	// ship:module:realtime
 	// Realtime route registration is owned by registerRealtimeRoutes and routeNames.RouteNameRealtime.
+`,
+	}
+	pwaContainerSnippet = `
+	// ship:module:pwa
+	// PWA static assets are served via framework/web.RegisterStaticRoutes -> pwaModule.RegisterStaticRoutes.
+`
+	pwaInstallContract = moduleInstallContract{
+		Routes:    []string{"modules/pwa/routes.go", "framework/web/wiring.go"},
+		Assets:    []string{"modules/pwa/static/manifest.json", "modules/pwa/static/service-worker.js"},
+		Templates: []string{"modules/pwa/views/web/pages/gen/install_app_templ.go", "modules/pwa/views/web/components/gen/pwa_install_templ.go"},
+		Tests:     []string{"modules/pwa/module_test.go", "framework/web/controllers/route_smoke_test.go", "tools/cli/ship/internal/commands/doc_sync_contract_test.go"},
+	}
+	pwaRouterSnippets = map[string]string{
+		"public": `
+	// ship:module:pwa
+	pwaModule := pwamodule.NewModule(pwamodule.NewRouteService(ctr))
+	if err := pwaModule.RegisterRoutes(g); err != nil {
+		return err
+	}
+	// See modules/pwa/routes.go for install page route ownership.
 `,
 	}
 )
@@ -332,17 +332,10 @@ var moduleCatalog = map[string]moduleInfo{
 		},
 	},
 	"pwa": {
-		ID: "pwa",
-		ContainerSnippet: `
-	// ship:module:pwa
-	// TODO: wire the PWA install/push helpers.
-`,
-		RouterSnippets: map[string]string{
-			"public": `
-	// ship:module:pwa
-	// TODO: register PWA install/uninstall routes via modules/pwa/routes.go.
-`,
-		},
+		ID:               "pwa",
+		InstallContract:  pwaInstallContract,
+		ContainerSnippet: pwaContainerSnippet,
+		RouterSnippets:   pwaRouterSnippets,
 	},
 	"admin": {
 		ID: "admin",
