@@ -174,3 +174,21 @@ func mustReadSecurityContractText(t *testing.T, path string) string {
 	}
 	return string(content)
 }
+
+func TestManagedHookVerifier_UpgradeReadinessContract(t *testing.T) {
+	ready, reason := NewManagedHookVerifier("", 0, 0).UpgradeReadiness()
+	if ready {
+		t.Fatal("expected verifier without secret to be not ready")
+	}
+	if reason == "" {
+		t.Fatal("expected readiness reason for missing secret")
+	}
+
+	ready, reason = NewManagedHookVerifier("active-secret", 0, 0).UpgradeReadiness()
+	if !ready {
+		t.Fatalf("expected verifier with secret to be ready, reason=%q", reason)
+	}
+	if reason != "" {
+		t.Fatalf("expected empty reason when ready, got %q", reason)
+	}
+}

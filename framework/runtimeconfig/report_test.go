@@ -189,3 +189,8 @@ func TestManagedSourceValuesRemainStableForRuntimeContracts(t *testing.T) {
 	assert.Equal(t, Source("environment"), SourceEnvironment)
 	assert.Equal(t, Source("managed-override"), SourceManagedOverride)
 }
+
+func TestReportIsManagedMode(t *testing.T) {
+	assert.True(t, Report{Mode: ModeManaged}.IsManagedMode())
+	assert.False(t, Report{Mode: ModeStandalone}.IsManagedMode())
+}

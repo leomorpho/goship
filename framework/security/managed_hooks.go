@@ -110,6 +110,14 @@ func NewCronRequestVerifier(secret string, maxSkew, nonceTTL time.Duration) *Cro
 	}
 }
 
+// UpgradeReadiness reports whether managed hook verification is configured for upgrade contracts.
+func (v *ManagedHookVerifier) UpgradeReadiness() (bool, string) {
+	if v == nil || len(v.secret) == 0 {
+		return false, "managed hook secret is not configured"
+	}
+	return true, ""
+}
+
 // WithNonceStore overrides the replay-protection store, allowing shared/distributed implementations.
 func (v *ManagedHookVerifier) WithNonceStore(store NonceStore) *ManagedHookVerifier {
 	if v == nil || store == nil {

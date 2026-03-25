@@ -635,6 +635,72 @@ func containsRuntimeReportTokens(text string, want ...string) bool {
 	return true
 }
 
+func TestRunRuntimeReport_ManagedUpgradeReadinessBlocksWithoutHookSecret(t *testing.T) {
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+
+	code := RunRuntimeReport([]string{"--json"}, RuntimeReportDeps{
+		Out: out,
+		Err: errOut,
+		LoadConfig: func() (config.Config, error) {
+			return config.Config{
+				Runtime: config.RuntimeConfig{Profile: config.RuntimeProfileSingleNode},
+				Adapters: config.AdaptersConfig{
+					DB:     "sqlite",
+					Cache:  "otter",
+					Jobs:   "backlite",
+					PubSub: "inproc",
+				},
+				Processes: config.ProcessesConfig{
+					Web:       true,
+					Worker:    true,
+					Scheduler: true,
+					CoLocated: true,
+				},
+				Database: config.DatabaseConfig{
+					DbMode: config.DBModeEmbedded,
+					Driver: config.DBDriverSQLite,
+				},
+				Managed: config.ManagedConfig{
+					Enabled:   true,
+					Authority: "control-plane",
+					RuntimeReport: runtimeconfig.Report{
+						Mode:      runtimeconfig.ModeManaged,
+						Authority: "control-plane",
+					},
+				},
+			}, nil
+		},
+	})
+	if code != 0 {
+		t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
+	}
+
+	var payload struct {
+		UpgradeReadiness struct {
+			Ready    bool `json:"ready"`
+			Blockers []struct {
+				ID string `json:"id"`
+			} `json:"blockers"`
+		} `json:"upgrade_readiness"`
+	}
+	if err := json.Unmarshal(out.Bytes(), &payload); err != nil {
+		t.Fatalf("decode runtime report: %v\n%s", err, out.String())
+	}
+	if payload.UpgradeReadiness.Ready {
+		t.Fatalf("upgrade_readiness.ready=true, want false\n%s", out.String())
+	}
+	found := false
+	for _, blocker := range payload.UpgradeReadiness.Blockers {
+		if blocker.ID == "upgrade.managed_hooks_secret_missing" {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("upgrade_readiness.blockers missing managed hooks blocker:\n%s", out.String())
+	}
+}
+
 func repoRootForRuntimeReportTest(t *testing.T) string {
 	t.Helper()
 	return repoRootFromCommandsTest(t)
