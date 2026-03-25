@@ -156,6 +156,27 @@ func (v *ManagedHookVerifier) WithKeyVersions(active, previous string) *ManagedH
 	return v
 }
 
+// RotateSecrets promotes a new active key while retaining the previous key/version for rotation windows.
+func (v *ManagedHookVerifier) RotateSecrets(nextSecret, nextVersion string) *ManagedHookVerifier {
+	if v == nil {
+		return v
+	}
+	trimmedSecret := strings.TrimSpace(nextSecret)
+	if trimmedSecret == "" {
+		return v
+	}
+
+	if len(v.secret) > 0 {
+		v.previousSecret = append([]byte(nil), v.secret...)
+		v.previousKeyVersion = v.activeKeyVersion
+	}
+	v.secret = []byte(trimmedSecret)
+	if trimmedVersion := strings.TrimSpace(nextVersion); trimmedVersion != "" {
+		v.activeKeyVersion = trimmedVersion
+	}
+	return v
+}
+
 // WithNonceStore overrides the replay-protection store for cron request verification.
 func (v *CronRequestVerifier) WithNonceStore(store NonceStore) *CronRequestVerifier {
 	if v == nil || v.managed == nil {

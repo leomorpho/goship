@@ -134,6 +134,7 @@ Managed hook key rotation:
 
 - `PAGODA_MANAGED_HOOKS_SECRET` is the active signing key.
 - `PAGODA_MANAGED_HOOKS_PREVIOUS_SECRET` may be supplied during a rotation window so in-flight managed-hook callers can continue to verify successfully.
+- during rotation windows, both old/new signatures can validate when paired with their key-version headers, so rollout does not require managed-hook downtime.
 - The previous secret is read-only compatibility material and must not become the long-term signing key for new requests.
 - The active and previous secrets share the same replay/timestamp contract, so key rotation does not bypass nonce or skew checks.
 

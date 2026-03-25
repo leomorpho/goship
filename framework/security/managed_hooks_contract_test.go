@@ -205,6 +205,7 @@ func TestManagedHookVerifier_DurableReplayStoreContract(t *testing.T) {
 		"ManagedHooksNonceStorePathEnv",
 		"defaultManagedHookNonceStore",
 		"type fileNonceStore struct",
+		"RotateSecrets(",
 	} {
 		if !strings.Contains(securitySource, token) {
 			t.Fatalf("managed hook durability contract should include token %q", token)

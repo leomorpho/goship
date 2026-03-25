@@ -198,6 +198,37 @@ func TestManagedHookVerifier_AcceptsActiveAndPreviousKeyVersions(t *testing.T) {
 	require.NoError(t, verifier.VerifyRequest(reqPrevious, body))
 }
 
+func TestManagedHookVerifier_RotateSecretsWithoutDowntime(t *testing.T) {
+	useIsolatedNonceStore(t)
+	now := time.Date(2026, time.March, 25, 9, 0, 0, 0, time.UTC)
+	body := []byte(`{"action":"status"}`)
+	timestamp := now.Unix()
+
+	verifier := NewManagedHookVerifier("old-secret", 5*time.Minute, 5*time.Minute).WithKeyVersions("v1", "")
+	verifier.now = func() time.Time { return now }
+	verifier.RotateSecrets("new-secret", "v2")
+
+	reqOld := httptest.NewRequest("POST", "/managed/status", nil)
+	reqOld.Header.Set(HeaderManagedTimestamp, strconv.FormatInt(timestamp, 10))
+	reqOld.Header.Set(HeaderManagedNonce, "nonce-old-after-rotation")
+	reqOld.Header.Set(HeaderManagedKeyVersion, "v1")
+	reqOld.Header.Set(
+		HeaderManagedSignature,
+		SignManagedHookRequest("old-secret", reqOld.Method, "/managed/status", timestamp, "nonce-old-after-rotation", body),
+	)
+	require.NoError(t, verifier.VerifyRequest(reqOld, body))
+
+	reqNew := httptest.NewRequest("POST", "/managed/status", nil)
+	reqNew.Header.Set(HeaderManagedTimestamp, strconv.FormatInt(timestamp, 10))
+	reqNew.Header.Set(HeaderManagedNonce, "nonce-new-after-rotation")
+	reqNew.Header.Set(HeaderManagedKeyVersion, "v2")
+	reqNew.Header.Set(
+		HeaderManagedSignature,
+		SignManagedHookRequest("new-secret", reqNew.Method, "/managed/status", timestamp, "nonce-new-after-rotation", body),
+	)
+	require.NoError(t, verifier.VerifyRequest(reqNew, body))
+}
+
 func useIsolatedNonceStore(t *testing.T) {
 	t.Helper()
 	t.Setenv(ManagedHooksNonceStorePathEnv, filepath.Join(t.TempDir(), "isolated-nonces.json"))
