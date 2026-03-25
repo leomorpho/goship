@@ -2252,6 +2252,7 @@ Managed hook key rotation:
 
 - `PAGODA_MANAGED_HOOKS_SECRET` is the active signing key.
 - `PAGODA_MANAGED_HOOKS_PREVIOUS_SECRET` may be supplied during a rotation window so in-flight managed-hook callers can continue to verify successfully.
+- during rotation windows, both old/new signatures can validate when paired with their key-version headers, so rollout does not require managed-hook downtime.
 - The previous secret is read-only compatibility material and must not become the long-term signing key for new requests.
 - The active and previous secrets share the same replay/timestamp contract, so key rotation does not bypass nonce or skew checks.
 
@@ -4600,6 +4601,7 @@ Managed hook replay contract:
 - default behavior now uses a durable file-backed replay store (`PAGODA_MANAGED_HOOKS_NONCE_STORE_PATH`, defaulting to a runtime temp path) so verifier restarts still reject reused nonce+timestamp tuples
 - managed-hook signatures now accept explicit key version labels (`X-GoShip-Key-Version`) so active and previous signing keys can be validated safely during rotation windows
 - managed hook key rotation keeps `PAGODA_MANAGED_HOOKS_SECRET` as the active key and accepts `PAGODA_MANAGED_HOOKS_PREVIOUS_SECRET` during the rotation window
+- key rotation supports no-downtime validation windows where old/new signatures continue to verify when callers provide the corresponding key-version header
 - the rotation window does not relax replay protection; nonce and timestamp validation still apply to both secrets
 
 run-anywhere verification gate:
