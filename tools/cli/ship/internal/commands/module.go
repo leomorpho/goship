@@ -187,6 +187,34 @@ STRIPE_WEBHOOK_SECRET=
 	// through routeNames.RouteNameDeleteEmailSubscriptionWithToken.
 `,
 	}
+	realtimeContainerSnippet = `
+	// ship:module:realtime
+	// Realtime startup is owned by frameworkbootstrap.Container.initSSEHub and notifier wiring.
+`
+	realtimeInstallContract = moduleInstallContract{
+		Routes: []string{
+			"router.go",
+		},
+		Jobs: []string{
+			"container.go",
+			"router.go",
+			"framework/runtimeplan/features.go",
+			"framework/sse/hub.go",
+		},
+		Tests: []string{
+			"startup_contract_test.go",
+			"router_guardrails_test.go",
+			"router_contract_test.go",
+			"framework/runtimeplan/features_test.go",
+			"tools/cli/ship/internal/commands/cherie_ci_contract_test.go",
+		},
+	}
+	realtimeRouterSnippets = map[string]string{
+		"auth": `
+	// ship:module:realtime
+	// Realtime route registration is owned by registerRealtimeRoutes and routeNames.RouteNameRealtime.
+`,
+	}
 )
 
 var moduleCatalog = map[string]moduleInfo{
@@ -260,6 +288,12 @@ var moduleCatalog = map[string]moduleInfo{
 		InstallContract:  emailSubscriptionsInstallContract,
 		ContainerSnippet: emailSubscriptionsContainerSnippet,
 		RouterSnippets:   emailSubscriptionsRouterSnippets,
+	},
+	"realtime": {
+		ID:               "realtime",
+		InstallContract:  realtimeInstallContract,
+		ContainerSnippet: realtimeContainerSnippet,
+		RouterSnippets:   realtimeRouterSnippets,
 	},
 	"jobs": {
 		ID:         "jobs",

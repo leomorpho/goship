@@ -592,6 +592,7 @@ func TestApplyModuleAddRemove_FirstPartyBatteriesGolden(t *testing.T) {
 		"notifications",
 		"paidsubscriptions",
 		"emailsubscriptions",
+		"realtime",
 		"jobs",
 		"storage",
 	}
@@ -645,6 +646,7 @@ func TestApplyModuleAdd_IdempotentAcrossFirstPartyBatteries(t *testing.T) {
 		"notifications",
 		"paidsubscriptions",
 		"emailsubscriptions",
+		"realtime",
 		"jobs",
 		"storage",
 	}
@@ -699,6 +701,7 @@ func TestApplyModuleAdd_ComposesSupportedFirstPartyPairs(t *testing.T) {
 	}{
 		{name: "notifications and jobs", first: "notifications", second: "jobs"},
 		{name: "notifications and storage", first: "notifications", second: "storage"},
+		{name: "notifications and realtime", first: "notifications", second: "realtime"},
 		{name: "billing and emailsubscriptions", first: "billing", second: "emailsubscriptions"},
 	}
 
@@ -1107,6 +1110,81 @@ func TestEmailSubscriptionsModuleCatalog_InstallContractCoversRoutesRuntimeAndVe
 	} {
 		if !containsExactString(contract.Tests, testSurface) {
 			t.Fatalf("emailsubscriptions contract missing verification test ownership %q: %#v", testSurface, contract.Tests)
+		}
+	}
+}
+
+func TestRealtimeModuleCatalog_UsesConcreteWiring(t *testing.T) {
+	info, ok := moduleCatalog["realtime"]
+	if !ok {
+		t.Fatal("expected realtime in module catalog")
+	}
+	if strings.Contains(info.ContainerSnippet, "TODO") {
+		t.Fatalf("realtime container snippet still contains TODO text:\n%s", info.ContainerSnippet)
+	}
+
+	authSnippet := strings.TrimSpace(info.RouterSnippets["auth"])
+	if authSnippet == "" {
+		t.Fatal("expected realtime auth router snippet")
+	}
+	if strings.Contains(authSnippet, "TODO") {
+		t.Fatalf("realtime auth router snippet still contains TODO text:\n%s", authSnippet)
+	}
+	for _, token := range []string{
+		"initSSEHub",
+		"registerRealtimeRoutes",
+		"RouteNameRealtime",
+	} {
+		if !strings.Contains(info.ContainerSnippet+authSnippet, token) {
+			t.Fatalf("realtime wiring missing %q:\ncontainer:\n%s\nauth:\n%s", token, info.ContainerSnippet, authSnippet)
+		}
+	}
+}
+
+func TestRealtimeModuleCatalog_InstallContractCoversStarterAndRuntimeStartupTests(t *testing.T) {
+	t.Parallel()
+
+	info, ok := moduleCatalog["realtime"]
+	if !ok {
+		t.Fatal("expected realtime in module catalog")
+	}
+	contract := info.installContract()
+
+	for _, route := range []string{
+		"app/router.go (auth)",
+		"router.go",
+	} {
+		if !containsExactString(contract.Routes, route) {
+			t.Fatalf("realtime contract routes missing %q: %#v", route, contract.Routes)
+		}
+	}
+	for _, configPath := range []string{
+		"config/modules.yaml",
+		"app/foundation/container.go",
+	} {
+		if !containsExactString(contract.Config, configPath) {
+			t.Fatalf("realtime contract config missing %q: %#v", configPath, contract.Config)
+		}
+	}
+	for _, runtimeSurface := range []string{
+		"container.go",
+		"router.go",
+		"framework/runtimeplan/features.go",
+		"framework/sse/hub.go",
+	} {
+		if !containsExactString(contract.Jobs, runtimeSurface) {
+			t.Fatalf("realtime contract missing runtime/startup surface %q: %#v", runtimeSurface, contract.Jobs)
+		}
+	}
+	for _, testSurface := range []string{
+		"startup_contract_test.go",
+		"router_guardrails_test.go",
+		"router_contract_test.go",
+		"framework/runtimeplan/features_test.go",
+		"tools/cli/ship/internal/commands/cherie_ci_contract_test.go",
+	} {
+		if !containsExactString(contract.Tests, testSurface) {
+			t.Fatalf("realtime contract missing starter/runtime verification test ownership %q: %#v", testSurface, contract.Tests)
 		}
 	}
 }
