@@ -19,12 +19,19 @@ import (
 
 const starterTemplateRoot = "testdata/scaffold"
 
+const (
+	newUIProviderFranken = "franken"
+	newUIProviderDaisy   = "daisy"
+	newUIProviderBare    = "bare"
+)
+
 type NewProjectOptions struct {
 	Name        string
 	Module      string
 	DryRun      bool
 	Force       bool
 	AppPath     string
+	UIProvider  string
 	I18nEnabled bool
 	I18nSet     bool
 }
@@ -43,7 +50,7 @@ func RunNew(args []string, d NewDeps) int {
 	for _, arg := range args {
 		if arg == "-h" || arg == "--help" || arg == "help" {
 			fmt.Fprintln(d.Out, "ship new:")
-			fmt.Fprintln(d.Out, "  ship new <app> [--module <module-path>] [--dry-run] [--force] [--i18n|--no-i18n]")
+			fmt.Fprintln(d.Out, "  ship new <app> [--module <module-path>] [--dry-run] [--force] [--ui <franken|daisy|bare>] [--i18n|--no-i18n]")
 			return 0
 		}
 	}
@@ -54,7 +61,7 @@ func RunNew(args []string, d NewDeps) int {
 		return 1
 	}
 	if strings.TrimSpace(opts.Name) == "" {
-		fmt.Fprintln(d.Err, "usage: ship new <app> [--module <module-path>] [--dry-run] [--force] [--i18n|--no-i18n]")
+		fmt.Fprintln(d.Err, "usage: ship new <app> [--module <module-path>] [--dry-run] [--force] [--ui <franken|daisy|bare>] [--i18n|--no-i18n]")
 		return 1
 	}
 	opts, err = resolveNewI18nOptions(opts, d)
@@ -119,6 +126,14 @@ func ParseNewArgs(args []string) (NewProjectOptions, error) {
 			}
 			i++
 			opts.Module = args[i]
+		case strings.HasPrefix(arg, "--ui="):
+			opts.UIProvider = strings.TrimPrefix(arg, "--ui=")
+		case arg == "--ui":
+			if i+1 >= len(args) {
+				return opts, fmt.Errorf("missing value for --ui")
+			}
+			i++
+			opts.UIProvider = args[i]
 		default:
 			return opts, fmt.Errorf("unknown option: %s", arg)
 		}
@@ -129,10 +144,27 @@ func ParseNewArgs(args []string) (NewProjectOptions, error) {
 	if len(positionals) == 1 {
 		opts.Name = positionals[0]
 	}
+	normalizedUI, err := normalizeNewUIProvider(opts.UIProvider)
+	if err != nil {
+		return opts, err
+	}
+	opts.UIProvider = normalizedUI
 	if err := validateAppName(opts.Name); err != nil {
 		return opts, err
 	}
 	return opts, nil
+}
+
+func normalizeNewUIProvider(raw string) (string, error) {
+	provider := strings.ToLower(strings.TrimSpace(raw))
+	switch provider {
+	case "":
+		return newUIProviderFranken, nil
+	case newUIProviderFranken, newUIProviderDaisy, newUIProviderBare:
+		return provider, nil
+	default:
+		return "", fmt.Errorf("unsupported --ui provider %q (expected franken|daisy|bare)", raw)
+	}
 }
 
 func validateAppName(name string) error {
