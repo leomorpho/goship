@@ -61,15 +61,15 @@ func (f FormSubmission) GetFieldErrors(fieldName string) []string {
 func (f FormSubmission) GetFieldStatusClass(fieldName string) string {
 	if f.IsSubmitted {
 		if f.FieldHasErrors(fieldName) {
-			return "gs-field-error"
+			return recipeClass(RecipeFieldError)
 		}
-		return "gs-field-success"
+		return recipeClass(RecipeFieldSuccess)
 	}
 	return ""
 }
 
 func (f FormSubmission) GetFieldInputClass(fieldName string) string {
-	base := "gs-field-input"
+	base := recipeClass(RecipeFieldInput)
 	status := f.GetFieldStatusClass(fieldName)
 	if status == "" {
 		return base
@@ -79,9 +79,9 @@ func (f FormSubmission) GetFieldInputClass(fieldName string) string {
 
 func (f FormSubmission) GetFieldHintClass(fieldName string) string {
 	if f.FieldHasErrors(fieldName) {
-		return "gs-field-hint gs-color-danger"
+		return recipeClass(RecipeFieldHint) + " " + recipeClass(RecipeDangerColor)
 	}
-	return "gs-field-hint gs-color-muted"
+	return recipeClass(RecipeFieldHint) + " " + recipeClass(RecipeMutedColor)
 }
 
 // IsDone indicates if the submission is considered done which is when it has been submitted

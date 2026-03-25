@@ -117,41 +117,41 @@ func (p Page) Language() string {
 }
 
 func (p Page) StarterPageClass() string {
-	return "gs-page"
+	return recipeClass(RecipePage)
 }
 
 func (p Page) StarterPanelClass() string {
-	return "gs-panel"
+	return recipeClass(RecipePanel)
 }
 
 func (p Page) StarterTitleClass() string {
-	return "gs-title"
+	return recipeClass(RecipeTitle)
 }
 
 func (p Page) StarterTextClass() string {
-	return "gs-text"
+	return recipeClass(RecipeText)
 }
 
 func (p Page) StarterPrimaryActionClass() string {
-	return "gs-button gs-button-primary"
+	return recipeClass(RecipeButtonBase) + " " + recipeClass(RecipeButtonPrimary)
 }
 
 func (p Page) StarterSecondaryActionClass() string {
-	return "gs-button gs-button-secondary"
+	return recipeClass(RecipeButtonBase) + " " + recipeClass(RecipeButtonSecondary)
 }
 
 func (p Page) StarterKickerClass() string {
-	return "gs-kicker"
+	return recipeClass(RecipeKicker)
 }
 
 func (p Page) StarterStackClass() string {
-	return "gs-stack"
+	return recipeClass(RecipeStack)
 }
 
 func (p Page) StarterMutedColorClass() string {
-	return "gs-color-muted"
+	return recipeClass(RecipeMutedColor)
 }
 
 func (p Page) StarterElevationClass() string {
-	return "gs-elevation-float"
+	return recipeClass(RecipeElevationFloat)
 }
