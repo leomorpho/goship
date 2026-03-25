@@ -143,6 +143,9 @@ func TestManagedHookHeaderContractValuesRemainStable(t *testing.T) {
 	if HeaderManagedSignature != "X-GoShip-Signature" {
 		t.Fatalf("HeaderManagedSignature=%q want X-GoShip-Signature", HeaderManagedSignature)
 	}
+	if HeaderManagedKeyVersion != "X-GoShip-Key-Version" {
+		t.Fatalf("HeaderManagedKeyVersion=%q want X-GoShip-Key-Version", HeaderManagedKeyVersion)
+	}
 }
 
 func repoRootForSecurityContractTest(t *testing.T) string {

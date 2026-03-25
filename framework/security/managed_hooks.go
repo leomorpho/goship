@@ -24,6 +24,8 @@ const (
 	HeaderManagedNonce = "X-GoShip-Nonce"
 	// HeaderManagedSignature carries the request HMAC signature.
 	HeaderManagedSignature = "X-GoShip-Signature"
+	// HeaderManagedKeyVersion carries the key version used to sign the request.
+	HeaderManagedKeyVersion = "X-GoShip-Key-Version"
 	// ManagedHooksNonceStorePathEnv overrides the durable replay-store path.
 	ManagedHooksNonceStorePathEnv = "PAGODA_MANAGED_HOOKS_NONCE_STORE_PATH"
 )
@@ -78,6 +80,8 @@ type NonceStore interface {
 type ManagedHookVerifier struct {
 	secret         []byte
 	previousSecret []byte
+	activeKeyVersion   string
+	previousKeyVersion string
 	maxSkew        time.Duration
 	nonceTTL       time.Duration
 	now            func() time.Time
@@ -100,11 +104,12 @@ func NewManagedHookVerifier(secret string, maxSkew, nonceTTL time.Duration) *Man
 	}
 
 	return &ManagedHookVerifier{
-		secret:     []byte(strings.TrimSpace(secret)),
-		maxSkew:    maxSkew,
-		nonceTTL:   nonceTTL,
-		now:        time.Now,
-		nonceStore: defaultManagedHookNonceStore(),
+		secret:           []byte(strings.TrimSpace(secret)),
+		activeKeyVersion: "v1",
+		maxSkew:          maxSkew,
+		nonceTTL:         nonceTTL,
+		now:              time.Now,
+		nonceStore:       defaultManagedHookNonceStore(),
 	}
 }
 
@@ -138,6 +143,16 @@ func (v *ManagedHookVerifier) WithPreviousSecret(secret string) *ManagedHookVeri
 		return v
 	}
 	v.previousSecret = []byte(strings.TrimSpace(secret))
+	return v
+}
+
+// WithKeyVersions configures active/previous key version labels used by managed hook signatures.
+func (v *ManagedHookVerifier) WithKeyVersions(active, previous string) *ManagedHookVerifier {
+	if v == nil {
+		return v
+	}
+	v.activeKeyVersion = strings.TrimSpace(active)
+	v.previousKeyVersion = strings.TrimSpace(previous)
 	return v
 }
 
@@ -188,8 +203,8 @@ func (v *ManagedHookVerifier) VerifyRequest(r *http.Request, body []byte) error 
 	}
 
 	path := managedRequestPath(r)
-	expected := SignManagedHookRequest(string(v.secret), r.Method, path, timestamp, nonce, body)
-	if subtle.ConstantTimeCompare([]byte(signature), []byte(expected)) != 1 && !v.matchesPreviousSecret(signature, r.Method, path, timestamp, nonce, body) {
+	keyVersion := strings.TrimSpace(r.Header.Get(HeaderManagedKeyVersion))
+	if !v.matchesSignatureForVersion(signature, r.Method, path, timestamp, nonce, body, keyVersion) {
 		return ErrManagedSignatureMismatch
 	}
 
@@ -197,6 +212,26 @@ func (v *ManagedHookVerifier) VerifyRequest(r *http.Request, body []byte) error 
 		return ErrManagedReplayDetected
 	}
 	return nil
+}
+
+func (v *ManagedHookVerifier) matchesSignatureForVersion(signature, method, path string, timestamp int64, nonce string, body []byte, keyVersion string) bool {
+	if keyVersion != "" {
+		if v.activeKeyVersion != "" && keyVersion == v.activeKeyVersion {
+			expected := SignManagedHookRequest(string(v.secret), method, path, timestamp, nonce, body)
+			return subtle.ConstantTimeCompare([]byte(signature), []byte(expected)) == 1
+		}
+		if len(v.previousSecret) > 0 && v.previousKeyVersion != "" && keyVersion == v.previousKeyVersion {
+			expected := SignManagedHookRequest(string(v.previousSecret), method, path, timestamp, nonce, body)
+			return subtle.ConstantTimeCompare([]byte(signature), []byte(expected)) == 1
+		}
+		return false
+	}
+
+	expected := SignManagedHookRequest(string(v.secret), method, path, timestamp, nonce, body)
+	if subtle.ConstantTimeCompare([]byte(signature), []byte(expected)) == 1 {
+		return true
+	}
+	return v.matchesPreviousSecret(signature, method, path, timestamp, nonce, body)
 }
 
 func (v *ManagedHookVerifier) matchesPreviousSecret(signature, method, path string, timestamp int64, nonce string, body []byte) bool {

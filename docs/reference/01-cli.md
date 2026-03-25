@@ -294,6 +294,7 @@ Managed hook replay contract:
 
 - `framework/security.ManagedHookVerifier` exposes a pluggable `NonceStore` seam via `WithNonceStore(...)`
 - default behavior now uses a durable file-backed replay store (`PAGODA_MANAGED_HOOKS_NONCE_STORE_PATH`, defaulting to a runtime temp path) so verifier restarts still reject reused nonce+timestamp tuples
+- managed-hook signatures now accept explicit key version labels (`X-GoShip-Key-Version`) so active and previous signing keys can be validated safely during rotation windows
 - managed hook key rotation keeps `PAGODA_MANAGED_HOOKS_SECRET` as the active key and accepts `PAGODA_MANAGED_HOOKS_PREVIOUS_SECRET` during the rotation window
 - the rotation window does not relax replay protection; nonce and timestamp validation still apply to both secrets
 
