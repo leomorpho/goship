@@ -442,6 +442,7 @@ Last updated: 2026-03-25
 11. `G11` - `guides/11-add-endpoint-workflow.md`: canonical workflow for adding a new endpoint with route wiring and validation.
 12. `G12` - `guides/12-add-module-workflow.md`: canonical workflow for adding or installing a module with isolation checks.
 13. `G13` - `guides/13-add-background-job-workflow.md`: canonical workflow for adding an app background job with `core.Jobs`-first wiring.
+14. `G14` - `guides/14-sqlite-to-postgres-promotion-runbook.md`: canonical manual-first SQLite-to-Postgres promotion runbook surfaced by `ship db:promote`.
 
 ### Reference
 
@@ -791,6 +792,7 @@ executable config change by applying the canonical `.env` mutation set for the s
 Postgres/Redis/Asynq adapters, exposes `promotion-state-machine-v1`, and blocks repeated promotion
 attempts once the runtime is already in a partial post-config state; export/import/verification
 remain explicit manual follow-up steps.
+`ship db:promote` now publishes the canonical manual runbook doc path (`docs/guides/14-sqlite-to-postgres-promotion-runbook.md`) in both text and JSON outputs so operators and agents can continue with one deterministic checklist.
 
 `ship verify` and `ship upgrade` now reject unsupported contract-version identifiers up front, reusing
 the same runtime (`runtime-contract-v1`) and upgrade (`upgrade-readiness-v1`) tokens that their
@@ -1443,6 +1445,7 @@ Impact:
 ## 9) SQLite-To-Postgres Promotion Is Contracted But Still Manual (Medium)
 
 GoShip now surfaces the promotion contract through `ship db:promote` and runtime DB metadata. The command now applies the canonical `.env` mutation step for SQLite-to-Postgres promotion (`standard` profile plus `db=postgres cache=redis jobs=asynq`), emits `promotion-state-machine-v1`, and blocks repeated invocations from partial states such as `config-mutated-awaiting-import`. The CLI still exposes separate `ship db:export --json`, `ship db:import --json`, and `ship db:verify-import --json` hooks for the remaining export/import workflow. `ship db:export --json` already emits a structured export report with checksum-backed `backup-manifest-v1` evidence and follow-up command hints, but the underlying import/verification engine is still manual-first.
+Operators should use `docs/guides/14-sqlite-to-postgres-promotion-runbook.md` as the canonical manual-first SQLite-to-Postgres promotion runbook surfaced directly by `ship db:promote` output.
 The underlying import/verification engine is still manual-first, so the next step is wiring those hooks to the actual framework path instead of just surfacing the CLI contract.
 
 Impact:
@@ -4179,6 +4182,43 @@ go test ./cmd/web ./cmd/worker -count=1
 - `docs/guides/02-development-workflows.md`
 
 ---
+FILE: docs/guides/14-sqlite-to-postgres-promotion-runbook.md
+---
+# SQLite To Postgres Promotion Runbook
+
+This is the canonical manual-first runbook for `sqlite-to-postgres-manual-v1`.
+
+Use this runbook whenever `ship db:promote` indicates a SQLite source is promotable.
+
+## Scope
+
+- Source runtime: embedded SQLite (`database.mode=embedded`, `database.driver=sqlite`)
+- Target runtime: standalone Postgres (`database.mode=standalone`, `database.driver=postgres`)
+- State machine: `promotion-state-machine-v1`
+
+## Canonical Sequence
+
+1. Freeze writes for the source app.
+2. Record baseline runtime metadata (`ship runtime:report --json`) and migration status (`ship db:status`).
+3. Apply or preview canonical config mutation with `ship db:promote [--dry-run] [--json]`.
+4. Run target migrations with `ship db:migrate`.
+5. Export SQLite data with `ship db:export --json`.
+6. Import into Postgres with `ship db:import --json`.
+7. Verify import evidence with `ship db:verify-import --json`.
+8. Unfreeze writes after verification checks are accepted.
+
+## State Handling
+
+- If `ship db:promote` reports `sqlite-source-ready`, continue with the sequence above.
+- If it reports `config-mutated-awaiting-import` or `import-complete-awaiting-verify`, do not rerun `ship db:promote`; resume import/verification steps.
+- If it reports `inconsistent-runtime-state`, recover runtime metadata to a known-good state before proceeding.
+
+## Notes
+
+- This runbook is intentionally manual-first.
+- `ship db:export`, `ship db:import`, and `ship db:verify-import` currently expose deterministic planning/report contracts for humans and LLM tooling.
+
+---
 FILE: docs/policies/01-engineering-standards.md
 ---
 # Repository Requirements (Engineering Standards)
@@ -4451,6 +4491,7 @@ These commands are implemented as wrappers over existing workflows:
 - `ship db:import [--json]` -> reports the manual SQLite export/import plan from current runtime metadata and suggests the follow-up post-import verification command; `--json` emits machine-readable plan output for agents/tooling
 - `ship db:promote [--dry-run] [--json]` -> builds the canonical SQLite-to-Postgres config mutation plan from current runtime metadata; default mode rewrites the local `.env` to the standard profile plus `db=postgres cache=redis jobs=asynq`, `--dry-run` previews the exact mutation set without writing files, and `--json` emits the same mutation payload plus `promotion-state-machine-v1` metadata for agents/tooling; export/import/verification steps remain manual follow-up commands
 - `ship db:promote` rejects partial or unsafe states such as `config-mutated-awaiting-import`, so the CLI cannot re-run the config flip after the runtime has already crossed into a post-mutation state
+- `ship db:promote` text and `--json` outputs now surface the canonical SQLite-to-Postgres manual runbook path (`docs/guides/14-sqlite-to-postgres-promotion-runbook.md`) so humans and LLMs can continue the manual-first workflow from one source of truth.
 - `ship db:migrate` -> `goose up` for core migrations, then enabled module migrations in deterministic sorted order
 - `ship db:status` -> `goose status` for core migrations, then enabled module migrations in deterministic sorted order; output is sectioned by scope (`== core migrations ==`, `== module <name> migrations ==`)
 - `ship db:verify-import [--json]` -> reports the post-import verification checks from current runtime metadata; `--json` emits machine-readable verification output for agents/tooling

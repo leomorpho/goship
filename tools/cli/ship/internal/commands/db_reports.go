@@ -17,6 +17,7 @@ type dbPromoteReport struct {
 	StateMachine      dbPromotionStateMachine        `json:"state_machine"`
 	Steps             []string                       `json:"steps"`
 	SuggestedCommands []string                       `json:"suggested_commands,omitempty"`
+	RunbookPath       string                         `json:"runbook_path,omitempty"`
 	MutationPlan      *dbPromoteMutationPlan         `json:"mutation_plan,omitempty"`
 	Note              string                         `json:"note,omitempty"`
 }
@@ -74,6 +75,7 @@ func buildDBPromoteReport(md config.DatabaseRuntimeMetadata, dryRun bool) dbProm
 	report := dbPromoteReport{
 		Database: md,
 		StateMachine: buildDBPromotionStateMachine(md),
+		RunbookPath: "docs/guides/14-sqlite-to-postgres-promotion-runbook.md",
 		Steps: []string{
 			"freeze writes for the source app",
 			"record runtime metadata and migration baseline",
@@ -365,6 +367,9 @@ func printDBPromoteReport(w io.Writer, report dbPromoteReport) {
 	}
 	for _, cmd := range report.SuggestedCommands {
 		fmt.Fprintf(w, "- next: %s\n", cmd)
+	}
+	if report.RunbookPath != "" {
+		fmt.Fprintf(w, "- runbook: %s\n", report.RunbookPath)
 	}
 	if report.MutationPlan != nil {
 		for _, key := range report.MutationPlan.Order {

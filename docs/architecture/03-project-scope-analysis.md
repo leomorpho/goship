@@ -40,6 +40,7 @@ executable config change by applying the canonical `.env` mutation set for the s
 Postgres/Redis/Asynq adapters, exposes `promotion-state-machine-v1`, and blocks repeated promotion
 attempts once the runtime is already in a partial post-config state; export/import/verification
 remain explicit manual follow-up steps.
+`ship db:promote` now publishes the canonical manual runbook doc path (`docs/guides/14-sqlite-to-postgres-promotion-runbook.md`) in both text and JSON outputs so operators and agents can continue with one deterministic checklist.
 
 `ship verify` and `ship upgrade` now reject unsupported contract-version identifiers up front, reusing
 the same runtime (`runtime-contract-v1`) and upgrade (`upgrade-readiness-v1`) tokens that their
