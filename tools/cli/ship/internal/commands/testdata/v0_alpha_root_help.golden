@@ -19,7 +19,8 @@ Direct Commands:
   ship adapter --help                      Adapter selection command help
   ship module:add <name> [--dry-run]       Enable a module
   ship module:remove <name> [--dry-run]    Disable a module
-  ship upgrade --to <version> [--dry-run]  Upgrade pinned CLI tooling
+  ship upgrade --to <version> [--dry-run]          Show upgrade readiness and planned rewrites
+  ship upgrade apply --to <version> [--dry-run]    Apply deterministic upgrade rewrites
 
 Command Groups:
   ship config --help                       Config command help

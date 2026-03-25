@@ -1,0 +1,2 @@
+applied upgrade rewrites:
+- tools/cli/ship/internal/cli/cli.go: v3.26.0 -> v3.27.0

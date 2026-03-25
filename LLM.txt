@@ -4344,6 +4344,7 @@ Project lifecycle:
 - `ship agent:start --task "<description>" [--id TASK-001]`
 - `ship agent:finish --id TASK-001 --message "feat(scope): summary" [--pr]`
 - `ship upgrade --to <version> [--contract-version <schema>] [--dry-run] [--json]`
+- `ship upgrade apply --to <version> [--contract-version <schema>] [--dry-run] [--json]`
 - `ship upgrade` will surface an upgrade readiness report and blocker schema for orchestration preflight before future automation mutates pinned versions.
 
 Local runtime:
@@ -4537,10 +4538,11 @@ Safety matrix:
 - `ship make:module` path ownership is canonical: `--path` must resolve to `modules`; values that escape or diverge from `modules` fail fast
 - `ship destroy resource:<name>` -> remove generator-managed resource scaffold targets in deterministic order (router marker block, route-name constant, templ page, optional scaffold test, controller); paths without recognized ownership signals are skipped with explicit reasons and the command exits non-zero when nothing is safely removable
 - current first-class installable batteries include `notifications`, `paidsubscriptions`, `emailsubscriptions`, `realtime`, `pwa`, `jobs`, and `storage`; `realtime` captures the canonical runtime startup and route contract seams, `pwa` captures installable route/static asset/browser seams, and `storage` exposes the canonical `core.BlobStorage` seam as a standalone battery package under `modules/storage`
-- `ship upgrade --to <version>` -> upgrades the pinned Goose CLI go-run fallback version (`gooseGoRunRef` in `tools/cli/ship/internal/cli/cli.go`)
-- `ship upgrade --contract-version <schema>` -> requires the supported upgrade readiness contract version before mutating pins
-- `ship upgrade --dry-run` -> prints planned pin change without writing files
-- `ship upgrade --json` -> emits the machine-readable `upgrade-readiness-v1` preflight contract (`schema_version`, `blocker_classification`, `target_version`, `ready`, `rollback_target`, `canary`, `verification`, `plan`, `result`, `blockers`, `manual_follow_ups`, `remediation_hints`, `planned_changes`) without writing files; `plan.safe_steps` computes deterministic minor-boundary bridge hops (when needed) and maps each hop to a concrete `ship upgrade --to <version>` command, `result` reports whether a pin change is planned, blocker entries carry `classification`, and `manual_follow_ups` plus `verification.command` remain concrete so weaker agents can trust the plan before mutating the pinned Goose reference
+- `ship upgrade --to <version>` -> runs readiness preflight and prints the deterministic rewrite plan without writing files
+- `ship upgrade apply --to <version>` -> applies the deterministic rewrite plan to the pinned Goose CLI go-run fallback version (`gooseGoRunRef` in `tools/cli/ship/internal/cli/cli.go`)
+- `ship upgrade --contract-version <schema>` / `ship upgrade apply --contract-version <schema>` -> require the supported upgrade readiness contract version
+- `ship upgrade --dry-run` / `ship upgrade apply --dry-run` -> print planned pin changes without writing files
+- `ship upgrade --json` -> emits the machine-readable `upgrade-readiness-v1` preflight contract (`schema_version`, `blocker_classification`, `target_version`, `ready`, `rollback_target`, `canary`, `verification`, `plan`, `result`, `blockers`, `manual_follow_ups`, `remediation_hints`, `planned_changes`) without writing files; `plan.safe_steps` computes deterministic minor-boundary bridge hops (when needed) and maps each hop to a concrete `ship upgrade apply --to <version>` command, `result` reports whether a pin change is planned, blocker entries carry `classification`, and `manual_follow_ups` plus `verification.command` remain concrete so weaker agents can trust the plan before mutating the pinned Goose reference
 - current scope: Goose pin only (expandable later)
 
 Doctor checks (current):

@@ -116,7 +116,7 @@ const gooseGoRunRef = "github.com/pressly/goose/v3/cmd/goose@v3.26.0"
 		}
 	})
 
-	t.Run("goose update writes file", func(t *testing.T) {
+	t.Run("goose preflight without apply does not write file", func(t *testing.T) {
 		root := t.TempDir()
 		if err := os.WriteFile(filepath.Join(root, "go.mod"), []byte("module example.com/demo\n\ngo 1.25\n"), 0o644); err != nil {
 			t.Fatal(err)
@@ -150,10 +150,94 @@ const gooseGoRunRef = "github.com/pressly/goose/v3/cmd/goose@v3.26.0"
 		if err != nil {
 			t.Fatal(err)
 		}
+		if !strings.Contains(string(b), "@v3.26.0") {
+			t.Fatalf("cli.go should remain unchanged until apply mode, got:\n%s", string(b))
+		}
+		if !strings.Contains(out.String(), "preflight: no files were written") {
+			t.Fatalf("stdout=%q", out.String())
+		}
+		if !strings.Contains(out.String(), "ship upgrade apply --to v3.27.0") {
+			t.Fatalf("stdout should include explicit apply follow-up command, got:\n%s", out.String())
+		}
+	})
+
+	t.Run("goose apply writes file", func(t *testing.T) {
+		root := t.TempDir()
+		if err := os.WriteFile(filepath.Join(root, "go.mod"), []byte("module example.com/demo\n\ngo 1.25\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		cliPath := filepath.Join(root, "tools", "cli", "ship", "internal", "cli", "cli.go")
+		if err := os.MkdirAll(filepath.Dir(cliPath), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(cliPath, []byte(`package ship
+const gooseGoRunRef = "github.com/pressly/goose/v3/cmd/goose@v3.26.0"
+`), 0o644); err != nil {
+			t.Fatal(err)
+		}
+
+		prevWD, err := os.Getwd()
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Cleanup(func() { _ = os.Chdir(prevWD) })
+		if err := os.Chdir(root); err != nil {
+			t.Fatal(err)
+		}
+
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+		code := RunUpgrade([]string{"apply", "--to", "v3.27.0"}, UpgradeDeps{Out: out, Err: errOut, FindGoModule: findGoModuleTest})
+		if code != 0 {
+			t.Fatalf("code=%d stderr=%s", code, errOut.String())
+		}
+		b, err := os.ReadFile(cliPath)
+		if err != nil {
+			t.Fatal(err)
+		}
 		if !strings.Contains(string(b), "@v3.27.0") {
 			t.Fatalf("expected goose version update in cli.go, got:\n%s", string(b))
 		}
 	})
+}
+
+func TestRunUpgradeApply_OutputGolden(t *testing.T) {
+	packageDir, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	root := t.TempDir()
+	if err := os.WriteFile(filepath.Join(root, "go.mod"), []byte("module example.com/demo\n\ngo 1.25\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	cliPath := filepath.Join(root, "tools", "cli", "ship", "internal", "cli", "cli.go")
+	if err := os.MkdirAll(filepath.Dir(cliPath), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(cliPath, []byte(`package ship
+const gooseGoRunRef = "github.com/pressly/goose/v3/cmd/goose@v3.26.0"
+`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	prevWD, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(prevWD) })
+	if err := os.Chdir(root); err != nil {
+		t.Fatal(err)
+	}
+
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	code := RunUpgrade([]string{"apply", "--to", "v3.27.0"}, UpgradeDeps{Out: out, Err: errOut, FindGoModule: findGoModuleTest})
+	if code != 0 {
+		t.Fatalf("code=%d stderr=%s", code, errOut.String())
+	}
+	normalized := strings.ReplaceAll(out.String(), root, "<root>")
+	assertCLIGoldenSnapshot(t, packageDir, "upgrade_apply_human.golden", normalized)
 }
 
 func TestComputeSafeUpgradeSteps_RepresentativeVersions(t *testing.T) {
@@ -206,8 +290,8 @@ func TestComputeSafeUpgradeSteps_RepresentativeVersions(t *testing.T) {
 			gotTo := make([]string, 0, len(steps))
 			for i, step := range steps {
 				gotTo = append(gotTo, step.To)
-				if step.Command != "ship upgrade --to "+step.To {
-					t.Fatalf("step[%d].command=%q want %q", i, step.Command, "ship upgrade --to "+step.To)
+				if step.Command != "ship upgrade apply --to "+step.To {
+					t.Fatalf("step[%d].command=%q want %q", i, step.Command, "ship upgrade apply --to "+step.To)
 				}
 				if i == 0 {
 					if step.From != tt.current {
