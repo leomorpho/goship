@@ -237,9 +237,13 @@ func (c *Container) initHealth() {
 			Value: c.Config.Database.Path,
 		})
 	} else {
+		dbPort := ""
+		if c.Config.Database.Port > 0 {
+			dbPort = strconv.Itoa(int(c.Config.Database.Port))
+		}
 		requiredEnv = append(requiredEnv,
 			health.EnvRequirement{Name: "PAGODA_DATABASE_HOSTNAME", Value: c.Config.Database.Hostname},
-			health.EnvRequirement{Name: "PAGODA_DATABASE_PORT", Value: strconv.Itoa(int(c.Config.Database.Port))},
+			health.EnvRequirement{Name: "PAGODA_DATABASE_PORT", Value: dbPort},
 		)
 	}
 
