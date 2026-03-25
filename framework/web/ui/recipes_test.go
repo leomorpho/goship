@@ -29,6 +29,11 @@ func TestSemanticRecipeClassRegistry(t *testing.T) {
 		RecipeNav:             "gs-nav",
 		RecipeNavItem:         "gs-nav-item",
 		RecipeNavItemActive:   "gs-nav-item-active",
+		RecipeLayoutShell:     "gs-layout-shell",
+		RecipeLayoutHeader:    "gs-layout-header",
+		RecipeLayoutContent:   "gs-layout-content",
+		RecipeLayoutFooter:    "gs-layout-footer",
+		RecipeIslandMount:     "gs-island-mount",
 	}
 
 	for recipe, want := range cases {
@@ -74,5 +79,20 @@ func TestSemanticRecipeMarkupConsistency(t *testing.T) {
 	}
 	if got := navItemClass(true); got != "gs-nav-item gs-nav-item-active" {
 		t.Fatalf("navItemClass(true)=%q", got)
+	}
+	if got := layoutShellClass(); got != "gs-layout-shell" {
+		t.Fatalf("layoutShellClass()=%q", got)
+	}
+	if got := layoutHeaderClass(); got != "gs-layout-header" {
+		t.Fatalf("layoutHeaderClass()=%q", got)
+	}
+	if got := layoutContentClass(); got != "gs-layout-content" {
+		t.Fatalf("layoutContentClass()=%q", got)
+	}
+	if got := layoutFooterClass(); got != "gs-layout-footer" {
+		t.Fatalf("layoutFooterClass()=%q", got)
+	}
+	if got := islandMountClass(); got != "gs-island-mount" {
+		t.Fatalf("islandMountClass()=%q", got)
 	}
 }

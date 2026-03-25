@@ -47,6 +47,11 @@ test("vite build emits framework design token CSS", async () => {
     assert.match(css, /\.gs-card\b/);
     assert.match(css, /\.gs-nav\b/);
     assert.match(css, /\.gs-nav-item\b/);
+    assert.match(css, /\.gs-layout-shell\b/);
+    assert.match(css, /\.gs-layout-header\b/);
+    assert.match(css, /\.gs-layout-content\b/);
+    assert.match(css, /\.gs-layout-footer\b/);
+    assert.match(css, /\.gs-island-mount\b/);
     assert.match(css, /\.gs-alert\b/);
     assert.match(css, /\.gs-color-muted\b/);
     assert.match(css, /\.gs-elevation-float\b/);

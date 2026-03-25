@@ -83,6 +83,26 @@
     @apply bg-gs-surface-muted text-gs-text;
   }
 
+  .gs-layout-shell {
+    @apply flex min-h-screen flex-col bg-gs-bg text-gs-text;
+  }
+
+  .gs-layout-header {
+    @apply border-b border-gs-border bg-gs-surface px-gs-page py-gs-4;
+  }
+
+  .gs-layout-content {
+    @apply mx-auto w-full max-w-5xl flex-1 px-gs-page py-gs-8;
+  }
+
+  .gs-layout-footer {
+    @apply border-t border-gs-border px-gs-page py-gs-4 text-sm text-gs-text-muted;
+  }
+
+  .gs-island-mount {
+    @apply rounded-gs-panel border border-gs-border bg-gs-surface p-gs-6 shadow-gs-panel;
+  }
+
   .gs-field-error {
     border-color: var(--gs-color-danger);
     --tw-ring-color: var(--gs-color-danger);

@@ -29,6 +29,11 @@ const (
 	RecipeNav             SemanticRecipe = "nav"
 	RecipeNavItem         SemanticRecipe = "nav-item"
 	RecipeNavItemActive   SemanticRecipe = "nav-item-active"
+	RecipeLayoutShell     SemanticRecipe = "layout-shell"
+	RecipeLayoutHeader    SemanticRecipe = "layout-header"
+	RecipeLayoutContent   SemanticRecipe = "layout-content"
+	RecipeLayoutFooter    SemanticRecipe = "layout-footer"
+	RecipeIslandMount     SemanticRecipe = "island-mount"
 )
 
 var semanticRecipeClasses = map[SemanticRecipe]string{
@@ -57,6 +62,11 @@ var semanticRecipeClasses = map[SemanticRecipe]string{
 	RecipeNav:             "gs-nav",
 	RecipeNavItem:         "gs-nav-item",
 	RecipeNavItemActive:   "gs-nav-item-active",
+	RecipeLayoutShell:     "gs-layout-shell",
+	RecipeLayoutHeader:    "gs-layout-header",
+	RecipeLayoutContent:   "gs-layout-content",
+	RecipeLayoutFooter:    "gs-layout-footer",
+	RecipeIslandMount:     "gs-island-mount",
 }
 
 func recipeClass(recipe SemanticRecipe) string {
@@ -109,4 +119,24 @@ func navItemClass(active bool) string {
 		return item
 	}
 	return item + " " + recipeClass(RecipeNavItemActive)
+}
+
+func layoutShellClass() string {
+	return recipeClass(RecipeLayoutShell)
+}
+
+func layoutHeaderClass() string {
+	return recipeClass(RecipeLayoutHeader)
+}
+
+func layoutContentClass() string {
+	return recipeClass(RecipeLayoutContent)
+}
+
+func layoutFooterClass() string {
+	return recipeClass(RecipeLayoutFooter)
+}
+
+func islandMountClass() string {
+	return recipeClass(RecipeIslandMount)
 }
