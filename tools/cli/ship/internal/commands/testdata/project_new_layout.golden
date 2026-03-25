@@ -29,6 +29,8 @@ app/subscriptions/repo.go
 app/views/
 app/views/templates.go
 app/views/web/
+app/views/web/layouts/
+app/views/web/layouts/base.templ
 app/views/web/pages/
 app/views/web/pages/home_feed.templ
 app/views/web/pages/home_feed_templ.go

@@ -227,7 +227,7 @@ func ScaffoldNewProject(opts NewProjectOptions, d NewDeps) error {
 
 func baseScaffoldFiles(opts NewProjectOptions) map[string]string {
 	return map[string]string{
-		filepath.Join(opts.AppPath, ".env"):                                                       renderStarterDotEnv(),
+		filepath.Join(opts.AppPath, ".env"):                                                       renderStarterDotEnv(opts),
 		filepath.Join(opts.AppPath, ".env.example"):                                               renderStarterDotEnvExample(),
 		filepath.Join(opts.AppPath, "go.mod"):                                                     renderGoMod(opts),
 		filepath.Join(opts.AppPath, "go.sum"):                                                     renderGoSum(),
@@ -249,6 +249,7 @@ func baseScaffoldFiles(opts NewProjectOptions) map[string]string {
 		filepath.Join(opts.AppPath, "app", "notifications", "notifier.go"):                        renderNotificationsDomainSkeleton(),
 		filepath.Join(opts.AppPath, "app", "subscriptions", "repo.go"):                            renderSubscriptionsDomainSkeleton(),
 		filepath.Join(opts.AppPath, "app", "emailsubscriptions", "repo.go"):                       renderEmailSubscriptionsDomainSkeleton(),
+		filepath.Join(opts.AppPath, "app", "views", "web", "layouts", "base.templ"):               renderBaseLayoutTempl(opts.UIProvider),
 		filepath.Join(opts.AppPath, "cmd", "worker", "main.go"):                                   renderWorkerMain(),
 		filepath.Join(opts.AppPath, "docs", "00-index.md"):                                        renderDocsIndexSkeleton(),
 		filepath.Join(opts.AppPath, "docs", "architecture", "01-architecture.md"):                 renderArchitectureSkeleton(),
@@ -398,11 +399,16 @@ run:
 `
 }
 
-func renderStarterDotEnv() string {
+func renderStarterDotEnv(opts NewProjectOptions) string {
+	provider := strings.TrimSpace(opts.UIProvider)
+	if provider == "" {
+		provider = newUIProviderFranken
+	}
 	return `APP_ENV=development
 DB_DRIVER=sqlite
 DATABASE_URL=sqlite://tmp/starter.db
 PORT=3000
+UI_PROVIDER=` + provider + `
 `
 }
 
@@ -420,6 +426,9 @@ QUEUE_DRIVER=backlite
 APP_ENV=development
 DB_DRIVER=sqlite
 PORT=3000
+
+# UI provider used by scaffolded layout assets; valid values: franken, daisy, bare.
+UI_PROVIDER=franken
 `
 }
 
