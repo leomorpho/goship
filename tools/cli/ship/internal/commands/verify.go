@@ -581,6 +581,7 @@ func checkStandaloneExportability(root string) error {
 		filepath.Join(root, "config"),
 		filepath.Join(root, "framework"),
 		filepath.Join(root, "modules"),
+		filepath.Join(root, "tools", "cli", "ship"),
 	}
 	starterRoot := filepath.Join(root, "tools", "cli", "ship", "internal", "templates", "starter", "testdata", "scaffold")
 	if info, err := os.Stat(starterRoot); err == nil && info.IsDir() {
@@ -588,6 +589,8 @@ func checkStandaloneExportability(root string) error {
 	}
 
 	forbidden := []string{
+		"github.com/leomorpho/goship/tools/private/control-plane",
+		"github.com/leomorpho/goship/fleet/control-plane",
 		"tools/private/control-plane",
 		"fleet/control-plane",
 		"control-plane dependency",

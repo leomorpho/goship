@@ -307,6 +307,7 @@ run-anywhere verification gate:
 - `ship verify` includes a `standalone exportability gate` step
 - `ship verify` includes a `hard-cut wording invariant` step that re-checks canonical docs for transition/deprecation drift after `ship doctor --json`
 - the gate rejects control-plane dependency drift in standalone runtime/starter surfaces
+- `ship doctor` boundary checks (`DX020`) now fail when runtime/framework source imports control-plane packages (for example `github.com/leomorpho/goship/tools/private/control-plane/*`)
 
 Field syntax for `make:model`:
 

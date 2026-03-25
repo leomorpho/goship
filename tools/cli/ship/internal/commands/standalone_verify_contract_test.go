@@ -50,3 +50,28 @@ func TestStarterScaffold_RemainsControlPlaneIndependent_RedSpec(t *testing.T) {
 		t.Fatal("starter scaffold should not encode control-plane dependency wording")
 	}
 }
+
+func TestCheckStandaloneExportability_RejectsControlPlaneImports_RedSpec(t *testing.T) {
+	root := t.TempDir()
+	target := filepath.Join(root, "framework", "bridge")
+	if err := os.MkdirAll(target, 0o755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+	source := `package bridge
+
+import cp "github.com/leomorpho/goship/tools/private/control-plane/sdk"
+
+func _() { _ = cp.Client{} }
+`
+	if err := os.WriteFile(filepath.Join(target, "bad.go"), []byte(source), 0o644); err != nil {
+		t.Fatalf("write: %v", err)
+	}
+
+	err := checkStandaloneExportability(root)
+	if err == nil {
+		t.Fatal("expected control-plane import coupling to fail standalone exportability")
+	}
+	if !strings.Contains(strings.ToLower(err.Error()), "control-plane") {
+		t.Fatalf("expected control-plane coupling error, got %v", err)
+	}
+}

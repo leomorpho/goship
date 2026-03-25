@@ -44,6 +44,30 @@ var _ = core.PubSub(nil)
 		issues := RunDoctorChecks(root)
 		mustContainIssueCode(t, issues, "DX020")
 	})
+
+	t.Run("control-plane import coupling violation", func(t *testing.T) {
+		root := t.TempDir()
+		writeDoctorFixture(t, root)
+		targetDir := filepath.Join(root, "framework", "integration")
+		if err := os.MkdirAll(targetDir, 0o755); err != nil {
+			t.Fatal(err)
+		}
+		path := filepath.Join(targetDir, "bad.go")
+		content := `package integration
+
+import "github.com/leomorpho/goship/tools/private/control-plane/sdk"
+
+func _() {}`
+		if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+			t.Fatal(err)
+		}
+
+		issues := RunDoctorChecks(root)
+		mustContainIssueCode(t, issues, "DX020")
+		if !containsDoctorIssueMessage(issues, "control-plane source coupling violated") {
+			t.Fatalf("expected control-plane source coupling issue, got %+v", issues)
+		}
+	})
 }
 
 func TestRunDoctorChecks_ModuleIsolationAllowlistSuppressesKnownExceptions(t *testing.T) {
