@@ -2,6 +2,7 @@ package policies
 
 import (
 	"bufio"
+	"encoding/base64"
 	"fmt"
 	"go/ast"
 	"go/parser"
@@ -14,6 +15,7 @@ import (
 	"unicode"
 
 	appconfig "github.com/leomorpho/goship/config"
+	"github.com/leomorpho/goship/framework/core/adapters"
 	rt "github.com/leomorpho/goship/tools/cli/ship/internal/runtime"
 )
 
@@ -39,7 +41,7 @@ func checkRequiredConfigEnv(root string) []DoctorIssue {
 		}}
 	}
 	if len(missing) == 0 {
-		return nil
+		return checkConfigEnvSemantics(root)
 	}
 
 	issues := make([]DoctorIssue, 0, len(missing))
@@ -50,7 +52,117 @@ func checkRequiredConfigEnv(root string) []DoctorIssue {
 			Fix:     "set it in the shell or add it to .env",
 		})
 	}
+	issues = append(issues, checkConfigEnvSemantics(root)...)
 	return issues
+}
+
+func checkConfigEnvSemantics(root string) []DoctorIssue {
+	values, err := loadDoctorEnvValues(root)
+	if err != nil {
+		return []DoctorIssue{{
+			Code:    "DX022",
+			Message: "failed to read config environment values for semantic validation",
+			Fix:     err.Error(),
+		}}
+	}
+
+	issues := make([]DoctorIssue, 0, 2)
+	if raw := strings.TrimSpace(values["PAGODA_APP_FIREBASEBASE64ACCESSKEYS"]); raw != "" {
+		if _, decodeErr := base64.StdEncoding.DecodeString(raw); decodeErr != nil {
+			issues = append(issues, DoctorIssue{
+				Code:    "DX022",
+				Message: fmt.Sprintf("invalid config secret PAGODA_APP_FIREBASEBASE64ACCESSKEYS: %v", decodeErr),
+				Fix:     "set PAGODA_APP_FIREBASEBASE64ACCESSKEYS to a valid base64-encoded payload or unset it",
+			})
+		}
+	}
+
+	selection := adapters.Selection{
+		DB:     "sqlite",
+		Cache:  "otter",
+		Jobs:   "backlite",
+		PubSub: "inproc",
+	}
+	if value := strings.TrimSpace(values["PAGODA_ADAPTERS_DB"]); value != "" {
+		selection.DB = value
+	}
+	if value := firstNonEmptyEnvValue(values, "PAGODA_ADAPTERS_CACHE", "PAGODA_CACHE_DRIVER"); value != "" {
+		selection.Cache = value
+	}
+	if value := firstNonEmptyEnvValue(values, "PAGODA_ADAPTERS_JOBS", "PAGODA_JOBS_DRIVER"); value != "" {
+		selection.Jobs = value
+	}
+	if value := strings.TrimSpace(values["PAGODA_ADAPTERS_PUBSUB"]); value != "" {
+		selection.PubSub = value
+	}
+	if selectionErr := adapters.NewDefaultRegistry().ValidateSelection(selection); selectionErr != nil {
+		issues = append(issues, DoctorIssue{
+			Code:    "DX022",
+			Message: fmt.Sprintf("invalid adapter config: %v", selectionErr),
+			Fix:     "set PAGODA_ADAPTERS_DB/PAGODA_ADAPTERS_CACHE/PAGODA_ADAPTERS_JOBS/PAGODA_ADAPTERS_PUBSUB to supported values",
+		})
+	}
+
+	return issues
+}
+
+func loadDoctorEnvValues(root string) (map[string]string, error) {
+	values := map[string]string{}
+
+	envPath := filepath.Join(root, ".env")
+	if hasFile(envPath) {
+		file, err := os.Open(envPath)
+		if err != nil {
+			return nil, err
+		}
+		defer file.Close()
+
+		scanner := bufio.NewScanner(file)
+		for scanner.Scan() {
+			line := strings.TrimSpace(scanner.Text())
+			if line == "" || strings.HasPrefix(line, "#") {
+				continue
+			}
+			if strings.HasPrefix(line, "export ") {
+				line = strings.TrimSpace(strings.TrimPrefix(line, "export "))
+			}
+			key, value, ok := strings.Cut(line, "=")
+			if !ok {
+				continue
+			}
+			key = strings.TrimSpace(key)
+			if key == "" {
+				continue
+			}
+			values[key] = strings.TrimSpace(value)
+		}
+		if err := scanner.Err(); err != nil {
+			return nil, err
+		}
+	}
+
+	for _, raw := range os.Environ() {
+		key, value, ok := strings.Cut(raw, "=")
+		if !ok {
+			continue
+		}
+		key = strings.TrimSpace(key)
+		if key == "" {
+			continue
+		}
+		values[key] = strings.TrimSpace(value)
+	}
+
+	return values, nil
+}
+
+func firstNonEmptyEnvValue(values map[string]string, keys ...string) string {
+	for _, key := range keys {
+		if value := strings.TrimSpace(values[key]); value != "" {
+			return value
+		}
+	}
+	return ""
 }
 
 func runNilawayChecks(root string, d DoctorDeps) []DoctorIssue {

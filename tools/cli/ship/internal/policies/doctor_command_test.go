@@ -237,4 +237,130 @@ func TestDoctorCommand_JSONOutput(t *testing.T) {
 			t.Fatalf("stderr = %q, want blocked upgrade readiness section", humanErr.String())
 		}
 	})
+
+	t.Run("fixture with missing config file reports DX002", func(t *testing.T) {
+		root := t.TempDir()
+		writeDoctorFixture(t, root)
+		if err := os.WriteFile(filepath.Join(root, "go.mod"), []byte("module example.com/doctor\n\ngo 1.25\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.Remove(filepath.Join(root, "config", "modules.yaml")); err != nil {
+			t.Fatal(err)
+		}
+
+		prevWD, err := os.Getwd()
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Cleanup(func() { _ = os.Chdir(prevWD) })
+		if err := os.Chdir(root); err != nil {
+			t.Fatal(err)
+		}
+
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+		if code := RunDoctor([]string{"--json"}, doctorDepsForTest(out, errOut)); code != 1 {
+			t.Fatalf("doctor exit code = %d, want 1", code)
+		}
+		if errOut.Len() != 0 {
+			t.Fatalf("stderr = %q, want empty stderr", errOut.String())
+		}
+
+		var payload doctorJSONResult
+		if err := json.Unmarshal(out.Bytes(), &payload); err != nil {
+			t.Fatalf("failed to decode json: %v", err)
+		}
+		if payload.OK {
+			t.Fatalf("payload.OK = true, want false")
+		}
+		if !doctorPayloadHasIssue(payload.Issues, "DX002", "config/modules.yaml") {
+			t.Fatalf("expected DX002 issue for config/modules.yaml, got %+v", payload.Issues)
+		}
+	})
+
+	t.Run("fixture with broken firebase secret reports DX022", func(t *testing.T) {
+		root := t.TempDir()
+		writeDoctorFixture(t, root)
+		if err := os.WriteFile(filepath.Join(root, "go.mod"), []byte("module example.com/doctor\n\ngo 1.25\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(root, ".env"), []byte("PAGODA_APP_FIREBASEBASE64ACCESSKEYS=not-base64\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+
+		prevWD, err := os.Getwd()
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Cleanup(func() { _ = os.Chdir(prevWD) })
+		if err := os.Chdir(root); err != nil {
+			t.Fatal(err)
+		}
+
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+		if code := RunDoctor([]string{"--json"}, doctorDepsForTest(out, errOut)); code != 1 {
+			t.Fatalf("doctor exit code = %d, want 1", code)
+		}
+		if errOut.Len() != 0 {
+			t.Fatalf("stderr = %q, want empty stderr", errOut.String())
+		}
+
+		var payload doctorJSONResult
+		if err := json.Unmarshal(out.Bytes(), &payload); err != nil {
+			t.Fatalf("failed to decode json: %v", err)
+		}
+		if !doctorPayloadHasIssue(payload.Issues, "DX022", "PAGODA_APP_FIREBASEBASE64ACCESSKEYS") {
+			t.Fatalf("expected DX022 firebase secret issue, got %+v", payload.Issues)
+		}
+	})
+
+	t.Run("fixture with invalid adapter reports DX022", func(t *testing.T) {
+		root := t.TempDir()
+		writeDoctorFixture(t, root)
+		if err := os.WriteFile(filepath.Join(root, "go.mod"), []byte("module example.com/doctor\n\ngo 1.25\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(root, ".env"), []byte("PAGODA_ADAPTERS_CACHE=bogus\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+
+		prevWD, err := os.Getwd()
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Cleanup(func() { _ = os.Chdir(prevWD) })
+		if err := os.Chdir(root); err != nil {
+			t.Fatal(err)
+		}
+
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+		if code := RunDoctor([]string{"--json"}, doctorDepsForTest(out, errOut)); code != 1 {
+			t.Fatalf("doctor exit code = %d, want 1", code)
+		}
+		if errOut.Len() != 0 {
+			t.Fatalf("stderr = %q, want empty stderr", errOut.String())
+		}
+
+		var payload doctorJSONResult
+		if err := json.Unmarshal(out.Bytes(), &payload); err != nil {
+			t.Fatalf("failed to decode json: %v", err)
+		}
+		if !doctorPayloadHasIssue(payload.Issues, "DX022", "unknown cache adapter") {
+			t.Fatalf("expected DX022 adapter issue, got %+v", payload.Issues)
+		}
+	})
+}
+
+func doctorPayloadHasIssue(issues []doctorJSONIssue, issueType string, detailContains string) bool {
+	for _, issue := range issues {
+		if issue.Type != issueType {
+			continue
+		}
+		if strings.Contains(issue.Detail, detailContains) {
+			return true
+		}
+	}
+	return false
 }
