@@ -32,7 +32,7 @@ func TestCIContract_DefinesCherieCompatibilitySmokeBaseline_RedSpec(t *testing.T
 	if !strings.Contains(packageJSON, `"test:cherie-smoke": "playwright test tests/cherie_compatibility.spec.ts"`) {
 		t.Fatal("tests/e2e/package.json should define a dedicated test:cherie-smoke script")
 	}
-	for _, token := range []string{`"/up"`, `"/user/login"`, `"/auth/realtime"`} {
+	for _, token := range []string{`"/up"`, `"/user/login"`, `"/auth/realtime"`, `"/auth/admin"`} {
 		if !strings.Contains(spec, token) {
 			t.Fatalf("Cherie compatibility smoke spec should cover %s", token)
 		}
