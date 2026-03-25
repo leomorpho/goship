@@ -62,7 +62,7 @@ func TestRunRuntimeReport(t *testing.T) {
 		if err := json.Unmarshal(out.Bytes(), &payload); err != nil {
 			t.Fatalf("decode json: %v\n%s", err, out.String())
 		}
-		for _, key := range []string{"profile", "adapters", "processes", "process_topology", "web", "database", "managed", "framework_version", "module_adoption", "upgrade_readiness"} {
+		for _, key := range []string{"profile", "adapters", "processes", "process_topology", "metrics", "web", "database", "managed", "framework_version", "module_adoption", "upgrade_readiness"} {
 			if _, ok := payload[key]; !ok {
 				t.Fatalf("missing runtime report key %q in %s", key, out.String())
 			}
@@ -326,6 +326,82 @@ func TestRunRuntimeReport(t *testing.T) {
 		}
 		if !payload.ProcessTopology.CoLocated.Enabled || payload.ProcessTopology.CoLocated.Source != "framework-default" {
 			t.Fatalf("co-located topology = %+v, want enabled framework-default", payload.ProcessTopology.CoLocated)
+		}
+	})
+
+	t.Run("metrics contract reports framework-default export availability", func(t *testing.T) {
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+
+		code := RunRuntimeReport([]string{"--json"}, RuntimeReportDeps{
+			Out: out,
+			Err: errOut,
+			LoadConfig: func() (config.Config, error) {
+				cfg := config.Config{
+					Runtime: config.RuntimeConfig{Profile: config.RuntimeProfileSingleNode},
+					Adapters: config.AdaptersConfig{
+						DB:     "sqlite",
+						Cache:  "otter",
+						Jobs:   "backlite",
+						PubSub: "inproc",
+					},
+					Processes: config.ProcessesConfig{
+						Web:       true,
+						Worker:    true,
+						Scheduler: true,
+						CoLocated: true,
+					},
+					Database: config.DatabaseConfig{
+						DbMode: config.DBModeEmbedded,
+						Driver: config.DBDriverSQLite,
+					},
+					Managed: config.ManagedConfig{
+						RuntimeReport: runtimeconfig.Report{
+							Mode: runtimeconfig.ModeStandalone,
+							Keys: map[string]runtimeconfig.KeyState{
+								"metrics.enabled": {Value: "true", Source: runtimeconfig.SourceFrameworkDefault},
+							},
+						},
+					},
+				}
+				return cfg, nil
+			},
+		})
+		if code != 0 {
+			t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
+		}
+
+		var payload struct {
+			Metrics struct {
+				SchemaVersion string `json:"schema_version"`
+				Enabled       bool   `json:"enabled"`
+				Exporter      string `json:"exporter"`
+				Format        string `json:"format"`
+				Path          string `json:"path"`
+				Source        string `json:"source"`
+			} `json:"metrics"`
+		}
+		if err := json.Unmarshal(out.Bytes(), &payload); err != nil {
+			t.Fatalf("decode runtime report: %v\n%s", err, out.String())
+		}
+
+		if payload.Metrics.SchemaVersion != "metrics-export-contract-v1" {
+			t.Fatalf("metrics.schema_version = %q, want metrics-export-contract-v1", payload.Metrics.SchemaVersion)
+		}
+		if !payload.Metrics.Enabled {
+			t.Fatalf("metrics.enabled = false, want true")
+		}
+		if payload.Metrics.Exporter != "prometheus" {
+			t.Fatalf("metrics.exporter = %q, want prometheus", payload.Metrics.Exporter)
+		}
+		if payload.Metrics.Format != "prometheus-text" {
+			t.Fatalf("metrics.format = %q, want prometheus-text", payload.Metrics.Format)
+		}
+		if payload.Metrics.Path != "/metrics" {
+			t.Fatalf("metrics.path = %q, want /metrics", payload.Metrics.Path)
+		}
+		if payload.Metrics.Source != "framework-default" {
+			t.Fatalf("metrics.source = %q, want framework-default", payload.Metrics.Source)
 		}
 	})
 }

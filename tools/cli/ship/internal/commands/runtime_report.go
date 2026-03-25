@@ -32,6 +32,7 @@ type runtimeReport struct {
 	Adapters         runtimeReportAdapters          `json:"adapters"`
 	Processes        runtimeReportProcesses         `json:"processes"`
 	ProcessTopology  runtimeReportProcessTopology   `json:"process_topology"`
+	Metrics          runtimeReportMetrics           `json:"metrics"`
 	ManagedHooks     runtimeReportManagedHooks      `json:"managed_hooks"`
 	Web              runtimeplan.WebFeatures        `json:"web"`
 	Database         config.DatabaseRuntimeMetadata `json:"database"`
@@ -68,6 +69,15 @@ type runtimeReportProcessTopologyEntry struct {
 	Enabled      bool   `json:"enabled"`
 	Source       string `json:"source"`
 	RealtimeRole string `json:"realtime_role,omitempty"`
+}
+
+type runtimeReportMetrics struct {
+	SchemaVersion string `json:"schema_version"`
+	Enabled       bool   `json:"enabled"`
+	Exporter      string `json:"exporter"`
+	Format        string `json:"format"`
+	Path          string `json:"path"`
+	Source        string `json:"source"`
 }
 
 type runtimeReportManagedHooks struct {
@@ -240,6 +250,7 @@ func RunRuntimeReport(args []string, d RuntimeReportDeps) int {
 			Scheduler: plan.RunScheduler,
 			CoLocated: plan.CoLocated,
 		},
+		Metrics:      buildRuntimeReportMetrics(cfg),
 		ManagedHooks: buildManagedHooksContract(cfg),
 		Web: runtimeplan.ResolveWebFeatures(
 			plan,
@@ -402,6 +413,39 @@ func buildRuntimeReportProcessTopology(cfg config.Config, web runtimeplan.WebFea
 	}
 
 	return payload
+}
+
+func buildRuntimeReportMetrics(cfg config.Config) runtimeReportMetrics {
+	metrics := cfg.Metrics
+	if stringsTrim(metrics.Path) == "" && stringsTrim(metrics.Exporter) == "" && stringsTrim(metrics.Format) == "" {
+		metrics.Enabled = true
+		metrics.Path = "/metrics"
+		metrics.Exporter = "prometheus"
+		metrics.Format = "prometheus-text"
+	}
+	if stringsTrim(metrics.Path) == "" {
+		metrics.Path = "/metrics"
+	}
+	if stringsTrim(metrics.Exporter) == "" {
+		metrics.Exporter = "prometheus"
+	}
+	if stringsTrim(metrics.Format) == "" {
+		metrics.Format = "prometheus-text"
+	}
+
+	source := runtimeconfig.SourceFrameworkDefault
+	if state, ok := cfg.Managed.RuntimeReport.Keys["metrics.enabled"]; ok && stringsTrim(string(state.Source)) != "" {
+		source = state.Source
+	}
+
+	return runtimeReportMetrics{
+		SchemaVersion: "metrics-export-contract-v1",
+		Enabled:       metrics.Enabled,
+		Exporter:      metrics.Exporter,
+		Format:        metrics.Format,
+		Path:          metrics.Path,
+		Source:        string(source),
+	}
 }
 
 func buildRuntimeReportDivergence() runtimeReportDivergence {

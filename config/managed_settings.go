@@ -37,6 +37,7 @@ var managedSettingLabels = map[string]string{
 	"adapters.cache":      "Cache adapter",
 	"adapters.jobs":       "Jobs adapter",
 	"adapters.pubsub":     "PubSub adapter",
+	"metrics.enabled":     "Metrics export enabled",
 	"database.driver":     "Database driver",
 	"database.path":       "Database path",
 	"storage.driver":      "Storage driver",

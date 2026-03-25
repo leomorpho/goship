@@ -25,6 +25,8 @@ func TestRuntimeMetadataSQLitePromotionContract(t *testing.T) {
 	assert.Equal(t, "standalone", managed.Mode)
 	assert.Equal(t, "otter", managed.Keys["adapters.cache"].Value)
 	assert.Equal(t, "framework-default", managed.Keys["adapters.cache"].Source)
+	assert.Equal(t, "true", managed.Keys["metrics.enabled"].Value)
+	assert.Equal(t, "framework-default", managed.Keys["metrics.enabled"].Source)
 }
 
 func TestRuntimeMetadataManagedRegistryContract(t *testing.T) {
