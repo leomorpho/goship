@@ -33,6 +33,12 @@ Design constraints:
 2. Keep v1 command set intentionally small.
 3. Expand only after each command is stable and tested.
 
+External frontend contract note:
+
+- blessed split-frontend identifier: `api-only-same-origin-sveltekit-v1`
+- browser boundary: `same-origin auth/session` with `cookie/CSRF` preserved
+- supported custom frontend scope: `SvelteKit-first`
+
 ## Minimal V1 Command Set
 
 Project lifecycle:

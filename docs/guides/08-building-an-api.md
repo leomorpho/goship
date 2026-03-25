@@ -2,6 +2,17 @@
 
 GoShip supports dual HTML and JSON responses without duplicating handler logic.
 
+## Blessed External Frontend Contract
+
+Current blessed split-frontend contract identifier: `api-only-same-origin-sveltekit-v1`.
+
+Contract scope:
+
+- one supported custom frontend story for now: `SvelteKit-first`
+- `same-origin auth/session` is required for browser flows
+- keep `cookie/CSRF` protections enabled; do not disable CSRF to support cross-origin browser writes
+- CORS support is for controlled non-browser integrations, not for primary browser auth flows
+
 ## Core Pattern
 
 Use `framework/api` when a handler needs a JSON representation:

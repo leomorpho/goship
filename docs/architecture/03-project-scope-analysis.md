@@ -177,6 +177,12 @@ Build pipeline:
 - JS via `frontend/vite.config.ts` + Vite
 - CSS tokens and recipe classes live in `styles/styles.css` + `styles/tailwind_components.css`, with Vite smoke coverage proving the emitted starter CSS bundle contains the framework-owned token surface
 
+Blessed split-frontend contract:
+
+- `api-only-same-origin-sveltekit-v1` is the only explicit external-frontend contract today.
+- Browser auth writes stay on `same-origin auth/session` with `cookie/CSRF` protections enabled.
+- Supported custom frontend scope is intentionally constrained to `SvelteKit-first` until additional contracts are hardened.
+
 ## 10) AI Integration
 
 - `modules/ai` exposes a provider-agnostic completion boundary via `container.AI`
