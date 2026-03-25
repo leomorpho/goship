@@ -768,6 +768,80 @@ func TestRunRuntimeReport_BackupMetadataAndRestoreEvidenceContracts_RedSpec(t *t
 	}
 }
 
+func TestRunRuntimeReport_DecisionInputContractsWithoutOrchestration_RedSpec(t *testing.T) {
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+
+	code := RunRuntimeReport([]string{"--json"}, RuntimeReportDeps{
+		Out: out,
+		Err: errOut,
+		LoadConfig: func() (config.Config, error) {
+			return config.Config{
+				Runtime: config.RuntimeConfig{Profile: config.RuntimeProfileSingleNode},
+				Adapters: config.AdaptersConfig{
+					DB:     "sqlite",
+					Cache:  "otter",
+					Jobs:   "backlite",
+					PubSub: "inproc",
+				},
+				Processes: config.ProcessesConfig{
+					Web:       true,
+					Worker:    true,
+					Scheduler: true,
+					CoLocated: true,
+				},
+				Database: config.DatabaseConfig{
+					DbMode: config.DBModeEmbedded,
+					Driver: config.DBDriverSQLite,
+				},
+			}, nil
+		},
+	})
+	if code != 0 {
+		t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
+	}
+
+	var payload struct {
+		DecisionInput struct {
+			SchemaVersion          string `json:"schema_version"`
+			RuntimeContractVersion string `json:"runtime_contract_version"`
+			RuntimeHandshake       string `json:"runtime_handshake_version"`
+			UpgradeReadiness       string `json:"upgrade_readiness_version"`
+			PolicyInputVersion     string `json:"policy_input_version"`
+			RolloutDecisionSchema  string `json:"rollout_decision_schema"`
+			PromotionStateSchema   string `json:"promotion_state_schema"`
+			OrchestrationEmbedded  bool   `json:"orchestration_embedded"`
+		} `json:"decision_input"`
+	}
+	if err := json.Unmarshal(out.Bytes(), &payload); err != nil {
+		t.Fatalf("decode runtime report: %v\n%s", err, out.String())
+	}
+	if payload.DecisionInput.SchemaVersion != "decision-input-contract-v1" {
+		t.Fatalf("decision_input.schema_version=%q want decision-input-contract-v1", payload.DecisionInput.SchemaVersion)
+	}
+	if payload.DecisionInput.RuntimeContractVersion != "runtime-contract-v1" {
+		t.Fatalf("decision_input.runtime_contract_version=%q want runtime-contract-v1", payload.DecisionInput.RuntimeContractVersion)
+	}
+	if payload.DecisionInput.RuntimeHandshake != "runtime-handshake-v1" {
+		t.Fatalf("decision_input.runtime_handshake_version=%q want runtime-handshake-v1", payload.DecisionInput.RuntimeHandshake)
+	}
+	if payload.DecisionInput.UpgradeReadiness != "upgrade-readiness-v1" {
+		t.Fatalf("decision_input.upgrade_readiness_version=%q want upgrade-readiness-v1", payload.DecisionInput.UpgradeReadiness)
+	}
+	if payload.DecisionInput.PolicyInputVersion != "policy-input-v1" {
+		t.Fatalf("decision_input.policy_input_version=%q want policy-input-v1", payload.DecisionInput.PolicyInputVersion)
+	}
+	if payload.DecisionInput.RolloutDecisionSchema != "staged-rollout-decision-v1" {
+		t.Fatalf("decision_input.rollout_decision_schema=%q want staged-rollout-decision-v1", payload.DecisionInput.RolloutDecisionSchema)
+	}
+	if payload.DecisionInput.PromotionStateSchema != "promotion-state-machine-v1" {
+		t.Fatalf("decision_input.promotion_state_schema=%q want promotion-state-machine-v1", payload.DecisionInput.PromotionStateSchema)
+	}
+	if payload.DecisionInput.OrchestrationEmbedded {
+		t.Fatalf("decision_input.orchestration_embedded=%t want false", payload.DecisionInput.OrchestrationEmbedded)
+	}
+}
+
 func repoRootForRuntimeReportTest(t *testing.T) string {
 	t.Helper()
 	return repoRootFromCommandsTest(t)

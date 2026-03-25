@@ -37,6 +37,7 @@ type runtimeReport struct {
 	Database         config.DatabaseRuntimeMetadata `json:"database"`
 	Managed          config.ManagedRuntimeMetadata  `json:"managed"`
 	Backup           runtimeReportBackupContract    `json:"backup"`
+	DecisionInput    runtimeReportDecisionInput     `json:"decision_input"`
 	FrameworkVersion string                         `json:"framework_version"`
 	ModuleAdoption   []describeModuleAdoption       `json:"module_adoption"`
 	UpgradeReadiness runtimeReportUpgradeReadiness  `json:"upgrade_readiness"`
@@ -130,6 +131,17 @@ type runtimeReportUpgradeBlocker struct {
 	ID          string `json:"id"`
 	Detail      string `json:"detail"`
 	Remediation string `json:"remediation"`
+}
+
+type runtimeReportDecisionInput struct {
+	SchemaVersion          string `json:"schema_version"`
+	RuntimeContractVersion string `json:"runtime_contract_version"`
+	RuntimeHandshake       string `json:"runtime_handshake_version"`
+	UpgradeReadiness       string `json:"upgrade_readiness_version"`
+	PolicyInputVersion     string `json:"policy_input_version"`
+	RolloutDecisionSchema  string `json:"rollout_decision_schema"`
+	PromotionStateSchema   string `json:"promotion_state_schema"`
+	OrchestrationEmbedded  bool   `json:"orchestration_embedded"`
 }
 
 func RunRuntimeReport(args []string, d RuntimeReportDeps) int {
@@ -237,6 +249,7 @@ func RunRuntimeReport(args []string, d RuntimeReportDeps) int {
 		Database:         cfg.RuntimeMetadata().Database,
 		Managed:          cfg.RuntimeMetadata().Managed,
 		Backup:           buildRuntimeReportBackupContract(),
+		DecisionInput:    buildRuntimeReportDecisionInputContract(),
 		FrameworkVersion: frameworkVersion,
 		ModuleAdoption:   moduleAdoption,
 		UpgradeReadiness: evaluateRuntimeUpgradeReadiness(root, cfg),
@@ -250,6 +263,19 @@ func RunRuntimeReport(args []string, d RuntimeReportDeps) int {
 		return 1
 	}
 	return 0
+}
+
+func buildRuntimeReportDecisionInputContract() runtimeReportDecisionInput {
+	return runtimeReportDecisionInput{
+		SchemaVersion:          "decision-input-contract-v1",
+		RuntimeContractVersion: runtimeContractVersion,
+		RuntimeHandshake:       runtimeHandshakeSchemaVersion,
+		UpgradeReadiness:       upgradeReadinessSchemaVersion,
+		PolicyInputVersion:     "policy-input-v1",
+		RolloutDecisionSchema:  "staged-rollout-decision-v1",
+		PromotionStateSchema:   "promotion-state-machine-v1",
+		OrchestrationEmbedded:  false,
+	}
 }
 
 func buildRuntimeReportBackupContract() runtimeReportBackupContract {
