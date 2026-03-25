@@ -144,6 +144,12 @@ func defaultConfig() Config {
 			Jobs:   "backlite",
 			PubSub: "inproc",
 		},
+		Metrics: MetricsConfig{
+			Enabled:  true,
+			Path:     "/metrics",
+			Exporter: "prometheus",
+			Format:   "prometheus-text",
+		},
 		I18n: I18nConfig{
 			Enabled:         true,
 			DefaultLanguage: "en",

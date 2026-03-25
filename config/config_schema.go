@@ -95,6 +95,7 @@ type (
 		Managed     ManagedConfig
 		Processes   ProcessesConfig
 		Adapters    AdaptersConfig
+		Metrics     MetricsConfig
 		I18n        I18nConfig
 		Cache       CacheConfig
 		Database    DatabaseConfig
@@ -149,6 +150,13 @@ type (
 		Cache  string `env:"PAGODA_ADAPTERS_CACHE,PAGODA_CACHE_DRIVER"`
 		Jobs   string `env:"PAGODA_ADAPTERS_JOBS,PAGODA_JOBS_DRIVER"`
 		PubSub string `env:"PAGODA_ADAPTERS_PUBSUB"`
+	}
+
+	MetricsConfig struct {
+		Enabled  bool   `env:"PAGODA_METRICS_ENABLED" env-default:"true"`
+		Path     string `env:"PAGODA_METRICS_PATH" env-default:"/metrics"`
+		Exporter string `env:"PAGODA_METRICS_EXPORTER" env-default:"prometheus"`
+		Format   string `env:"PAGODA_METRICS_FORMAT" env-default:"prometheus-text"`
 	}
 
 	I18nConfig struct {
@@ -457,6 +465,15 @@ var managedOverrideSpecs = map[string]managedKeySpec{
 		},
 		set: func(cfg *Config, raw string) error {
 			return setManagedString(raw, &cfg.Adapters.PubSub, "adapters.pubsub")
+		},
+	},
+	"metrics.enabled": {
+		envVars: []string{"PAGODA_METRICS_ENABLED"},
+		get: func(cfg Config) string {
+			return strconv.FormatBool(cfg.Metrics.Enabled)
+		},
+		set: func(cfg *Config, raw string) error {
+			return setManagedBool(raw, &cfg.Metrics.Enabled, "metrics.enabled")
 		},
 	},
 	"database.driver": {
