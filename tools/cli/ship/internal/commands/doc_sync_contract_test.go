@@ -79,6 +79,7 @@ func TestDocs_DBExportAndRuntimeReportContractsStayInSync_RedSpec(t *testing.T) 
 
 	for _, token := range []string{
 		"`ship db:export [--json]` -> reports the SQLite export manifest checksum contract from current runtime metadata; `--json` emits a structured export report with the typed backup manifest payload, suggested next commands, and planning note for agents/tooling",
+		"`ship db:promote` text and `--json` outputs now surface the canonical SQLite-to-Postgres manual runbook path (`docs/guides/14-sqlite-to-postgres-promotion-runbook.md`) so humans and LLMs can continue the manual-first workflow from one source of truth.",
 		"`ship runtime:report --json` -> machine-readable runtime capability report covering active profile, adapters, process plan, source-aware `process_topology` (including web/worker realtime roles when enabled), web features, DB runtime metadata, managed-key sources, current framework version, per-module adoption metadata, upgrade readiness metadata, and a versioned handshake envelope",
 	} {
 		if !strings.Contains(cliDoc, token) {
@@ -88,6 +89,7 @@ func TestDocs_DBExportAndRuntimeReportContractsStayInSync_RedSpec(t *testing.T) 
 
 	for _, token := range []string{
 		"`ship db:export --json` exposes a structured SQLite export report with a typed `backup-manifest-v1` payload, checksum evidence, suggested next commands, and a planning-only note for agents/tooling.",
+		"`ship db:promote` now publishes the canonical manual runbook doc path (`docs/guides/14-sqlite-to-postgres-promotion-runbook.md`) in both text and JSON outputs so operators and agents can continue with one deterministic checklist.",
 		"`ship runtime:report --json` emits the canonical machine-readable runtime capability payload from config/runtime-plan metadata, including active profile, adapters, process plan, web features, DB runtime metadata, managed-key sources, current framework version, per-module adoption metadata, and a versioned handshake envelope.",
 	} {
 		if !strings.Contains(scopeDoc, token) {
@@ -97,6 +99,7 @@ func TestDocs_DBExportAndRuntimeReportContractsStayInSync_RedSpec(t *testing.T) 
 
 	for _, token := range []string{
 		"`ship db:export --json` already emits a structured export report with checksum-backed `backup-manifest-v1` evidence and follow-up command hints, but the underlying import/verification engine is still manual-first.",
+		"Operators should use `docs/guides/14-sqlite-to-postgres-promotion-runbook.md` as the canonical manual-first SQLite-to-Postgres promotion runbook surfaced directly by `ship db:promote` output.",
 		"`ship runtime:report --json` now exposes the effective profile, adapters, process plan, web features, DB runtime metadata, managed-key sources, current framework version, per-module adoption metadata, and a versioned handshake envelope for orchestration preflight.",
 	} {
 		if !strings.Contains(risksDoc, token) {

@@ -63,6 +63,7 @@ func TestRunDBPromote(t *testing.T) {
 		for _, token := range []string{
 			"DB promote plan:",
 			"- mode: dry-run (no files changed)",
+			"runbook: docs/guides/14-sqlite-to-postgres-promotion-runbook.md",
 			"promotion_state_schema: promotion-state-machine-v1",
 			"current_state: sqlite-source-ready",
 			"next_state: config-mutated-awaiting-import",
@@ -165,6 +166,7 @@ func TestRunDBPromote(t *testing.T) {
 		}
 		for _, token := range []string{
 			"applied canonical promotion config in",
+			"runbook: docs/guides/14-sqlite-to-postgres-promotion-runbook.md",
 			"next: ship db:migrate",
 			"next: ship db:export --json",
 			"next: ship db:import --json",
@@ -211,6 +213,7 @@ func TestRunDBPromote(t *testing.T) {
 			} `json:"state_machine"`
 			Steps             []string `json:"steps"`
 			SuggestedCommands []string `json:"suggested_commands"`
+			RunbookPath       string   `json:"runbook_path"`
 			MutationPlan      struct {
 				DryRun bool              `json:"dry_run"`
 				Values map[string]string `json:"values"`
@@ -236,6 +239,9 @@ func TestRunDBPromote(t *testing.T) {
 		}
 		if len(payload.Steps) == 0 {
 			t.Fatalf("expected steps in %s", out.String())
+		}
+		if payload.RunbookPath != "docs/guides/14-sqlite-to-postgres-promotion-runbook.md" {
+			t.Fatalf("runbook_path = %q", payload.RunbookPath)
 		}
 		if !payload.MutationPlan.DryRun {
 			t.Fatalf("expected dry_run mutation plan in %s", out.String())

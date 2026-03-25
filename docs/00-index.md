@@ -46,6 +46,7 @@ Last updated: 2026-03-25
 11. `G11` - `guides/11-add-endpoint-workflow.md`: canonical workflow for adding a new endpoint with route wiring and validation.
 12. `G12` - `guides/12-add-module-workflow.md`: canonical workflow for adding or installing a module with isolation checks.
 13. `G13` - `guides/13-add-background-job-workflow.md`: canonical workflow for adding an app background job with `core.Jobs`-first wiring.
+14. `G14` - `guides/14-sqlite-to-postgres-promotion-runbook.md`: canonical manual-first SQLite-to-Postgres promotion runbook surfaced by `ship db:promote`.
 
 ### Reference
 
