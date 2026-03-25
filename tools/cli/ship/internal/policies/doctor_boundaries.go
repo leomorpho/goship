@@ -211,6 +211,28 @@ func checkForbiddenCrossBoundaryImports(root string) []DoctorIssue {
 	// Module isolation: no direct imports from root app/framework packages, except explicit allowlist paths.
 	issues = append(issues, checkModuleSourceIsolation(root)...)
 
+	// Framework/runtime code must stay decoupled from control-plane source imports.
+	for _, scanDir := range []string{
+		filepath.Join(root, "app"),
+		filepath.Join(root, "cmd"),
+		filepath.Join(root, "config"),
+		filepath.Join(root, "framework"),
+		filepath.Join(root, "modules"),
+	} {
+		for _, forbiddenPrefix := range []string{
+			"github.com/leomorpho/goship/tools/private/control-plane",
+			"github.com/leomorpho/goship/fleet/control-plane",
+		} {
+			issues = append(issues, checkGoImportPrefixForbidden(
+				scanDir,
+				forbiddenPrefix,
+				"DX020",
+				"control-plane source coupling violated: runtime code must not import control-plane source packages",
+				"remove control-plane imports and keep runtime/framework boundaries control-plane agnostic",
+			)...)
+		}
+	}
+
 	return issues
 }
 
@@ -533,6 +555,42 @@ func checkImportPrefixForbidden(dir string, forbiddenPrefix string, code string,
 				Message: message,
 				Fix:     fix,
 			})
+		}
+		return nil
+	})
+	return issues
+}
+
+func checkGoImportPrefixForbidden(dir string, forbiddenPrefix string, code string, message string, fix string) []DoctorIssue {
+	issues := make([]DoctorIssue, 0)
+	if !isDir(dir) {
+		return issues
+	}
+	_ = filepath.WalkDir(dir, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return nil
+		}
+		if d.IsDir() || !strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "_test.go") {
+			return nil
+		}
+
+		fset := token.NewFileSet()
+		file, parseErr := parser.ParseFile(fset, path, nil, parser.ImportsOnly)
+		if parseErr != nil {
+			return nil
+		}
+		for _, imp := range file.Imports {
+			importPath := strings.Trim(imp.Path.Value, "\"")
+			if !strings.HasPrefix(importPath, forbiddenPrefix) {
+				continue
+			}
+			issues = append(issues, DoctorIssue{
+				Code:    code,
+				File:    filepath.ToSlash(path),
+				Message: message,
+				Fix:     fix,
+			})
+			break
 		}
 		return nil
 	})
