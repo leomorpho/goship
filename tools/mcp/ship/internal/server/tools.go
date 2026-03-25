@@ -245,6 +245,7 @@ type shipScaffoldResult struct {
 
 var (
 	lookPathShip = exec.LookPath
+	lookPathGo   = exec.LookPath
 	runShipJSON  = func(name string, args ...string) ([]byte, error) {
 		return exec.Command(name, args...).CombinedOutput()
 	}
