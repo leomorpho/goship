@@ -27,6 +27,7 @@ type dbmode string
 type runtimeprofile string
 type dbdriver string
 type storagedriver string
+type uiprovider string
 
 const (
 	// EnvLocal represents the local environment
@@ -73,6 +74,15 @@ const (
 
 	// StorageDriverMinIO uses MinIO/S3 compatible storage.
 	StorageDriverMinIO storagedriver = "minio"
+
+	// UIProviderFranken is the default GoShip UI provider.
+	UIProviderFranken uiprovider = "franken"
+
+	// UIProviderDaisy selects the Daisy UI provider.
+	UIProviderDaisy uiprovider = "daisy"
+
+	// UIProviderBare selects the minimal bare UI provider.
+	UIProviderBare uiprovider = "bare"
 )
 
 // SwitchEnvironment sets the environment variable used to dictate which environment the application is
@@ -93,6 +103,7 @@ type (
 		Security    SecurityConfig
 		Runtime     RuntimeConfig
 		Managed     ManagedConfig
+		UI          UIConfig
 		Processes   ProcessesConfig
 		Adapters    AdaptersConfig
 		I18n        I18nConfig
@@ -135,6 +146,10 @@ type (
 		HooksMaxSkewSeconds  int                  `env:"PAGODA_MANAGED_HOOKS_MAX_SKEW_SECONDS" env-default:"300"`
 		HooksNonceTTLSeconds int                  `env:"PAGODA_MANAGED_HOOKS_NONCE_TTL_SECONDS" env-default:"300"`
 		RuntimeReport        runtimeconfig.Report `env:"-"`
+	}
+
+	UIConfig struct {
+		Provider uiprovider `env:"PAGODA_UI_PROVIDER"`
 	}
 
 	ProcessesConfig struct {
