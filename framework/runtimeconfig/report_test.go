@@ -97,6 +97,18 @@ func TestParseManagedOverridesInvalidJSON(t *testing.T) {
 	require.Error(t, err)
 }
 
+func TestParseManagedOverridesRejectsNonObjectPayload(t *testing.T) {
+	_, err := ParseManagedOverrides(`["adapters.cache","redis"]`)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "managed overrides must be a JSON object")
+}
+
+func TestParseManagedOverridesRejectsTrailingJSON(t *testing.T) {
+	_, err := ParseManagedOverrides(`{"adapters.cache":"redis"} {"extra":"payload"}`)
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "managed overrides must contain exactly one JSON object")
+}
+
 func TestRejectUnknownKeys(t *testing.T) {
 	rejected := RejectUnknownKeys(map[string]string{
 		"adapters.cache": "redis",

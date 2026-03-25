@@ -2,10 +2,13 @@ package security
 
 import (
 	"encoding/hex"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestManagedHookVerifier_SharedReplayStoreContract_RedSpec(t *testing.T) {
@@ -108,6 +111,24 @@ func TestManagedHookSignatureVectors_JSONContract_RedSpec(t *testing.T) {
 		if got := string(CanonicalManagedHookPayload(vector.Method, vector.Path, vector.Timestamp, vector.Nonce, vector.Body)); got == "" {
 			t.Fatalf("canonical payload should be non-empty for %s %s", vector.Method, vector.Path)
 		}
+	}
+}
+
+func TestManagedHookVerifier_AcceptsPreviousSecretDuringRotation_RedSpec(t *testing.T) {
+	now := time.Date(2026, time.March, 25, 7, 0, 0, 0, time.UTC)
+	verifier := NewManagedHookVerifier("active-secret", 5*time.Minute, 5*time.Minute).WithPreviousSecret("previous-secret")
+	verifier.now = func() time.Time { return now }
+
+	body := []byte(`{"action":"backup"}`)
+	req := httptest.NewRequest("POST", "/managed/backup", nil)
+	nonce := "rotation-window-nonce"
+	timestamp := now.Unix()
+	req.Header.Set(HeaderManagedTimestamp, strconv.FormatInt(timestamp, 10))
+	req.Header.Set(HeaderManagedNonce, nonce)
+	req.Header.Set(HeaderManagedSignature, SignManagedHookRequest("previous-secret", req.Method, "/managed/backup", timestamp, nonce, body))
+
+	if err := verifier.VerifyRequest(req, body); err != nil {
+		t.Fatalf("VerifyRequest should accept previous secret during rotation window: %v", err)
 	}
 }
 
