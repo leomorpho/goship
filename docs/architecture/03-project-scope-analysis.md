@@ -291,7 +291,7 @@ Health endpoints:
 
 - Go tests are distributed across `app/**`, `framework/**`, `modules/**`, and `tools/**`
 - `framework/factory` + `tests/factories` now provide a typed baseline for building and inserting repeatable test data records
-- `framework/testutil` now provides typed HTTP test helpers (`NewTestServer`, `PostForm` with automatic CSRF, `AsUser`, fluent response assertions) for app-route integration tests
+- `framework/testutil` now provides typed HTTP test helpers (`NewTestServer`, `PostForm` with automatic CSRF, `PostJSON`, `PostMultipart`, `AsUser`, fluent response assertions including `AssertSSEEvent`) for app-route integration tests
 - Playwright e2e folder exists (`tests/e2e/`), but specs are currently product-domain stale and marked TODO
 
 ## Operational Tooling

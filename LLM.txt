@@ -1042,7 +1042,7 @@ Health endpoints:
 
 - Go tests are distributed across `app/**`, `framework/**`, `modules/**`, and `tools/**`
 - `framework/factory` + `tests/factories` now provide a typed baseline for building and inserting repeatable test data records
-- `framework/testutil` now provides typed HTTP test helpers (`NewTestServer`, `PostForm` with automatic CSRF, `AsUser`, fluent response assertions) for app-route integration tests
+- `framework/testutil` now provides typed HTTP test helpers (`NewTestServer`, `PostForm` with automatic CSRF, `PostJSON`, `PostMultipart`, `AsUser`, fluent response assertions including `AssertSSEEvent`) for app-route integration tests
 - Playwright e2e folder exists (`tests/e2e/`), but specs are currently product-domain stale and marked TODO
 
 ## Operational Tooling
@@ -1826,14 +1826,14 @@ Impact:
 - Teams get consistent factory structure and naming with less boilerplate.
 - Rich domain-specific traits still require local customization after scaffold generation.
 
-## 18) HTTP Test Helper Coverage Is Form-Focused Baseline (Low)
+## 18) HTTP Test Helper Coverage Is Expanded For API And Upload Flows (Low)
 
-`framework/testutil` now covers the most common app-route testing flow (GET + form POST with CSRF, auth session cookie injection, fluent response assertions), but it does not yet include first-class helpers for JSON request bodies, multipart uploads, or websocket/SSE assertions.
+`framework/testutil` now covers the common app-route testing flow (GET + form POST with CSRF, auth session cookie injection, fluent response assertions) and adds first-class helpers for JSON request bodies (`PostJSON`), multipart uploads (`PostMultipart`), and SSE stream assertions (`AssertSSEEvent`).
 
 Impact:
 
 - Integration tests for HTML/form routes are shorter and less error-prone by default.
-- API-heavy and realtime-heavy tests still need some manual request/transport setup.
+- API-heavy, upload-heavy, and SSE-heavy tests now use one shared helper surface with less manual request/transport setup.
 
 ## 19) I18n Adoption Is Runtime-Ready But App Migration Is Incomplete (Low)
 
@@ -2946,12 +2946,15 @@ HTTP integration test helpers:
 
 - `framework/testutil` provides `NewTestServer(t)` for app-level request tests with a real container + in-memory DB.
 - `PostForm` automatically fetches and submits CSRF tokens for form routes.
+- `PostJSON` sends JSON request bodies for API routes without transport boilerplate.
+- `PostMultipart` builds multipart form uploads (fields + files) for upload-oriented routes.
 - `AsUser(userID)` signs an auth session cookie so tests can hit authenticated routes without manually building session cookies.
 - Response assertions support fluent checks:
   - `AssertStatus(code)`
   - `AssertRedirectsTo(path)`
   - `AssertContains(text)`
   - `AssertJSON(&target)`
+  - `AssertSSEEvent(event, data)`
 - Example:
   - `s := testutil.NewTestServer(t)`
   - `s.PostForm("/user/login", form).AssertRedirectsTo("/welcome/preferences")`

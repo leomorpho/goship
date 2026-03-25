@@ -4,10 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"net/http/cookiejar"
 	"net/http/httptest"
 	"net/url"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -25,6 +28,13 @@ type RequestOpt func(*requestConfig) error
 type requestConfig struct {
 	headers map[string]string
 	cookies []*http.Cookie
+}
+
+type MultipartFile struct {
+	FieldName   string
+	FileName    string
+	Path        string
+	ContentType string
 }
 
 type TestServer struct {
@@ -153,6 +163,76 @@ func (s *TestServer) PostForm(path string, form url.Values, opts ...RequestOpt) 
 	return &TestResponse{Response: resp, t: s.t}
 }
 
+func (s *TestServer) PostJSON(path string, payload any, opts ...RequestOpt) *TestResponse {
+	body, err := json.Marshal(payload)
+	if err != nil {
+		s.t.Fatalf("marshal JSON payload: %v", err)
+	}
+
+	req, err := http.NewRequest(http.MethodPost, s.url(path), bytes.NewReader(body))
+	if err != nil {
+		s.t.Fatalf("build JSON POST request: %v", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	if err := applyRequestOpts(req, opts...); err != nil {
+		s.t.Fatalf("apply JSON POST request options: %v", err)
+	}
+
+	resp, err := s.client.Do(req)
+	if err != nil {
+		s.t.Fatalf("run JSON POST request: %v", err)
+	}
+	return &TestResponse{Response: resp, t: s.t}
+}
+
+func (s *TestServer) PostMultipart(path string, fields map[string]string, files []MultipartFile, opts ...RequestOpt) *TestResponse {
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	for key, value := range fields {
+		if err := writer.WriteField(key, value); err != nil {
+			s.t.Fatalf("write multipart field %q: %v", key, err)
+		}
+	}
+	for _, file := range files {
+		if strings.TrimSpace(file.FieldName) == "" {
+			s.t.Fatalf("multipart file field name is required")
+		}
+		contents, err := os.ReadFile(file.Path)
+		if err != nil {
+			s.t.Fatalf("read multipart file %q: %v", file.Path, err)
+		}
+		filename := strings.TrimSpace(file.FileName)
+		if filename == "" {
+			filename = filepath.Base(file.Path)
+		}
+		part, err := writer.CreateFormFile(file.FieldName, filename)
+		if err != nil {
+			s.t.Fatalf("create multipart file part %q: %v", file.FieldName, err)
+		}
+		if _, err := part.Write(contents); err != nil {
+			s.t.Fatalf("write multipart file part %q: %v", file.FieldName, err)
+		}
+	}
+	if err := writer.Close(); err != nil {
+		s.t.Fatalf("close multipart writer: %v", err)
+	}
+
+	req, err := http.NewRequest(http.MethodPost, s.url(path), body)
+	if err != nil {
+		s.t.Fatalf("build multipart POST request: %v", err)
+	}
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	if err := applyRequestOpts(req, opts...); err != nil {
+		s.t.Fatalf("apply multipart POST request options: %v", err)
+	}
+
+	resp, err := s.client.Do(req)
+	if err != nil {
+		s.t.Fatalf("run multipart POST request: %v", err)
+	}
+	return &TestResponse{Response: resp, t: s.t}
+}
+
 func WithHeader(key, value string) RequestOpt {
 	return func(cfg *requestConfig) error {
 		if cfg == nil {
@@ -248,6 +328,37 @@ func (r *TestResponse) AssertJSON(v any) *TestResponse {
 	if err := jsonUnmarshal(body, v); err != nil {
 		r.t.Errorf("failed to decode JSON response: %v", err)
 	}
+	return r
+}
+
+func (r *TestResponse) AssertSSEEvent(event, data string) *TestResponse {
+	r.t.Helper()
+	body := string(r.body())
+	blocks := strings.Split(body, "\n\n")
+	expectedEvent := strings.TrimSpace(event)
+	expectedData := strings.TrimSpace(data)
+	for _, block := range blocks {
+		block = strings.TrimSpace(block)
+		if block == "" {
+			continue
+		}
+		var eventValue string
+		dataLines := make([]string, 0)
+		for _, line := range strings.Split(block, "\n") {
+			line = strings.TrimSpace(line)
+			if strings.HasPrefix(line, "event:") {
+				eventValue = strings.TrimSpace(strings.TrimPrefix(line, "event:"))
+				continue
+			}
+			if strings.HasPrefix(line, "data:") {
+				dataLines = append(dataLines, strings.TrimSpace(strings.TrimPrefix(line, "data:")))
+			}
+		}
+		if eventValue == expectedEvent && strings.Join(dataLines, "\n") == expectedData {
+			return r
+		}
+	}
+	r.t.Errorf("response body does not contain SSE event=%q data=%q", event, data)
 	return r
 }
 
