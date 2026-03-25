@@ -87,6 +87,30 @@ func TestCIContract_DefinesDocDriftGate_RedSpec(t *testing.T) {
 	}
 }
 
+func TestCIContract_DefinesAgentEvalGate_RedSpec(t *testing.T) {
+	root := repoRootFromCommandsTest(t)
+
+	workflow := mustReadText(t, filepath.Join(root, ".github", "workflows", "test.yml"))
+	makefile := mustReadText(t, filepath.Join(root, "Makefile"))
+	devGuide := mustReadText(t, filepath.Join(root, "docs", "guides", "02-development-workflows.md"))
+
+	if !strings.Contains(workflow, "\n  agent_evals:\n") {
+		t.Fatal("test workflow should define a dedicated agent_evals job")
+	}
+	if !strings.Contains(workflow, "run: make test-agent-evals") {
+		t.Fatal("agent_evals CI job should invoke make test-agent-evals")
+	}
+	if !strings.Contains(workflow, "name: Upload agent eval report") {
+		t.Fatal("agent_evals CI job should upload the agent eval report artifact")
+	}
+	if !strings.Contains(makefile, ".PHONY: test-agent-evals") {
+		t.Fatal("Makefile should expose a canonical test-agent-evals entrypoint")
+	}
+	if !strings.Contains(devGuide, "make test-agent-evals") {
+		t.Fatal("development workflow guide should document how to run the agent eval lane locally")
+	}
+}
+
 func TestDocs_DBExportAndRuntimeReportContractsStayInSync_RedSpec(t *testing.T) {
 	root := repoRootFromCommandsTest(t)
 

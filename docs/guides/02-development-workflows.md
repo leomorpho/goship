@@ -172,6 +172,7 @@ Go tests:
 - `make test-generator-idempotency` (standalone generator duplicate-run matrix without snapshot refresh)
 - `make test-alpha-contracts` (frozen `v0.1.0-alpha` root-help + route-inventory gate used by CI)
 - `make test-doc-sync` (route/scope documentation guard used by CI)
+- `make test-agent-evals` (cold-start agent eval gate with JSON score report at `artifacts/agent-eval-report.json`)
 - `make test-dead-routes` (route inventory regression guard used by CI)
 - `go run ./tools/cli/ship/cmd/ship test`
 - `make cover`
@@ -236,6 +237,7 @@ When a generator output change is intentional, refresh the golden file locally w
 The `alpha_contract` CI job runs `make test-alpha-contracts` and freezes the current root CLI help plus route inventory as the `v0.1.0-alpha` public surface.
 Only refresh those snapshots when the alpha surface change has approved review before merge, then run `UPDATE_ALPHA_CONTRACTS=1 make test-alpha-contracts` and commit the snapshot update with the contract change.
 The `doc_sync` CI job runs `make test-doc-sync` and keeps the HTTP route map plus project-scope docs aligned with canonical managed/admin/realtime surfaces.
+The `agent_evals` CI job runs `make test-agent-evals`, enforces the cold-start eval success threshold, and uploads `artifacts/agent-eval-report.json` for regression triage.
 The `dead_route_regression` CI job runs `make test-dead-routes` and keeps the canonical route inventory checks from silently regressing.
 The `bootstrap_budget` CI job runs `make test-bootstrap-budget` and measures the canonical starter flow as `ship new <app> --no-i18n`, `ship db:migrate`, `go run ./cmd/web`, and HTTP checks against `/health/readiness` plus `/` inside the generated scaffold.
 The default budget is 120 seconds via `BOOTSTRAP_BUDGET_SECONDS=120`; keep local reruns on comparable hardware or raise the variable only when investigating runner variance rather than changing the committed CI threshold.

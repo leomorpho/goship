@@ -2,7 +2,9 @@ package agenteval
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
+	"path/filepath"
 	"sort"
 )
 
@@ -21,11 +23,11 @@ type TaskSpec struct {
 }
 
 type TaskAttempt struct {
-	FirstSurface   string
-	UsedSurfaces   []string
-	UsedTools      []string
-	Completed      bool
-	AvoidedDeadEnds bool
+	FirstSurface    string   `json:"first_surface"`
+	UsedSurfaces    []string `json:"used_surfaces"`
+	UsedTools       []string `json:"used_tools"`
+	Completed       bool     `json:"completed"`
+	AvoidedDeadEnds bool     `json:"avoided_dead_ends"`
 }
 
 type TaskScore struct {
@@ -44,6 +46,18 @@ type PackSummary struct {
 	SuccessRate  float64
 	AverageScore float64
 	Results      []TaskScore
+}
+
+type AttemptSet struct {
+	Attempts map[string]TaskAttempt `json:"attempts"`
+}
+
+type RunReport struct {
+	PackName   string      `json:"pack_name"`
+	Threshold  float64     `json:"threshold"`
+	Passed     bool        `json:"passed"`
+	Summary    PackSummary `json:"summary"`
+	GeneratedBy string     `json:"generated_by"`
 }
 
 func LoadColdStartTaskPack(path string) (TaskPack, error) {
@@ -121,6 +135,46 @@ func EvaluatePack(pack TaskPack, attempts map[string]TaskAttempt) PackSummary {
 	summary.SuccessRate = float64(passed) / float64(len(pack.Tasks))
 	summary.AverageScore = float64(totalScore) / float64(len(pack.Tasks))
 	return summary
+}
+
+func LoadTaskAttempts(path string) (map[string]TaskAttempt, error) {
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	var set AttemptSet
+	if err := json.Unmarshal(b, &set); err != nil {
+		return nil, err
+	}
+	if set.Attempts == nil {
+		return map[string]TaskAttempt{}, nil
+	}
+	return set.Attempts, nil
+}
+
+func EvaluatePackWithThreshold(pack TaskPack, attempts map[string]TaskAttempt, threshold float64) RunReport {
+	summary := EvaluatePack(pack, attempts)
+	return RunReport{
+		PackName:    pack.Name,
+		Threshold:   threshold,
+		Passed:      summary.SuccessRate >= threshold,
+		Summary:     summary,
+		GeneratedBy: "agenteval-v1",
+	}
+}
+
+func WriteRunReport(path string, report RunReport) error {
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return fmt.Errorf("create report directory: %w", err)
+	}
+	payload, err := json.MarshalIndent(report, "", "  ")
+	if err != nil {
+		return fmt.Errorf("marshal report: %w", err)
+	}
+	if err := os.WriteFile(path, payload, 0o644); err != nil {
+		return fmt.Errorf("write report: %w", err)
+	}
+	return nil
 }
 
 func inList(items []string, needle string) bool {

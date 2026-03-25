@@ -1,0 +1,25 @@
+{
+  "attempts": {
+    "discover-cli-surface": {
+      "first_surface": "docs/00-index.md",
+      "used_surfaces": ["docs/00-index.md", "docs/reference/01-cli.md"],
+      "used_tools": ["rg"],
+      "completed": true,
+      "avoided_dead_ends": true
+    },
+    "discover-mcp-surface": {
+      "first_surface": "docs/reference/02-mcp.md",
+      "used_surfaces": ["docs/reference/02-mcp.md", "MCP_TOOLS.md"],
+      "used_tools": ["rg"],
+      "completed": true,
+      "avoided_dead_ends": true
+    },
+    "run-quality-loop": {
+      "first_surface": "README.md",
+      "used_surfaces": ["README.md", "docs/reference/01-cli.md"],
+      "used_tools": ["go test"],
+      "completed": false,
+      "avoided_dead_ends": false
+    }
+  }
+}
