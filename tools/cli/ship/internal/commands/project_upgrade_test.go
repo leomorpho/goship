@@ -3,9 +3,12 @@ package commands
 import (
 	"bytes"
 	"encoding/json"
+	"go/parser"
+	"go/token"
 	"os"
 	"path/filepath"
 	"reflect"
+	"runtime"
 	"strings"
 	"testing"
 )
@@ -79,9 +82,14 @@ func TestUpgradeRewriteGooseVersion_CodemodFixtures(t *testing.T) {
 
 func fixtureText(t *testing.T, relPath string) []byte {
 	t.Helper()
-	b, err := os.ReadFile(relPath)
+	_, thisFile, _, ok := runtime.Caller(0)
+	if !ok {
+		t.Fatal("failed to resolve test file path for fixture lookup")
+	}
+	absPath := filepath.Join(filepath.Dir(thisFile), relPath)
+	b, err := os.ReadFile(absPath)
 	if err != nil {
-		t.Fatalf("read fixture %s: %v", relPath, err)
+		t.Fatalf("read fixture %s (%s): %v", relPath, absPath, err)
 	}
 	return b
 }
@@ -139,6 +147,89 @@ func TestUpgradeApplyRewrite_NoRollbackWhenInitialWriteFails(t *testing.T) {
 	}
 	if writes != 1 {
 		t.Fatalf("writes=%d want 1", writes)
+	}
+}
+
+func TestUpgradeAcceptance_OlderAppFixtureUpgradesAndRemainsReady(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name       string
+		fixtureRel string
+	}{
+		{
+			name:       "legacy goose path fixture",
+			fixtureRel: "testdata/upgrade_codemods/goose_legacy_before.go",
+		},
+		{
+			name:       "canonical v3 fixture",
+			fixtureRel: "testdata/upgrade_codemods/goose_v3_before.go",
+		},
+	}
+
+	for _, tc := range cases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			root := t.TempDir()
+			if err := os.WriteFile(filepath.Join(root, "go.mod"), []byte("module example.com/demo\n\ngo 1.25\n"), 0o644); err != nil {
+				t.Fatal(err)
+			}
+			cliPath := filepath.Join(root, "tools", "cli", "ship", "internal", "cli", "cli.go")
+			if err := os.MkdirAll(filepath.Dir(cliPath), 0o755); err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(cliPath, fixtureText(t, tc.fixtureRel), 0o644); err != nil {
+				t.Fatal(err)
+			}
+
+			prevWD, err := os.Getwd()
+			if err != nil {
+				t.Fatal(err)
+			}
+			t.Cleanup(func() { _ = os.Chdir(prevWD) })
+			if err := os.Chdir(root); err != nil {
+				t.Fatal(err)
+			}
+
+			applyOut := &bytes.Buffer{}
+			applyErr := &bytes.Buffer{}
+			applyCode := RunUpgrade([]string{"apply", "--to", "v3.27.0"}, UpgradeDeps{Out: applyOut, Err: applyErr, FindGoModule: findGoModuleTest})
+			if applyCode != 0 {
+				t.Fatalf("apply code=%d stderr=%s", applyCode, applyErr.String())
+			}
+
+			after, err := os.ReadFile(cliPath)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !strings.Contains(string(after), `gooseGoRunRef = "github.com/pressly/goose/v3/cmd/goose@v3.27.0"`) {
+				t.Fatalf("expected upgraded canonical goose ref, got:\n%s", string(after))
+			}
+			if _, err := parser.ParseFile(token.NewFileSet(), cliPath, after, parser.AllErrors); err != nil {
+				t.Fatalf("upgraded cli.go should remain parseable (boot-compatible): %v", err)
+			}
+
+			reportOut := &bytes.Buffer{}
+			reportErr := &bytes.Buffer{}
+			reportCode := RunUpgrade([]string{"--to", "v3.27.0", "--json"}, UpgradeDeps{Out: reportOut, Err: reportErr, FindGoModule: findGoModuleTest})
+			if reportCode != 0 {
+				t.Fatalf("readiness code=%d stderr=%s", reportCode, reportErr.String())
+			}
+
+			var report UpgradeReadinessReport
+			if err := json.Unmarshal(reportOut.Bytes(), &report); err != nil {
+				t.Fatalf("readiness report should be valid JSON: %v\n%s", err, reportOut.String())
+			}
+			if !report.Ready {
+				t.Fatalf("ready=%v want true", report.Ready)
+			}
+			if got := report.Result.Outcome; got != "already-pinned" {
+				t.Fatalf("result.outcome=%q want already-pinned", got)
+			}
+			if report.Verification.Command == "" {
+				t.Fatal("verification.command should be present for follow-up verify loop")
+			}
+		})
 	}
 }
 
