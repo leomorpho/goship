@@ -61,15 +61,40 @@ func TestHealthcheckReadiness503WhenAnyCheckFails(t *testing.T) {
 }
 
 func TestNewHealthCheckRouteUsesContainerHealthRegistry(t *testing.T) {
-	registry := health.NewRegistry(testChecker{
-		name:   "db",
-		result: health.CheckResult{Status: health.StatusOK},
-	})
+	registry := health.NewRegistry(
+		testChecker{name: "db", result: health.CheckResult{Status: health.StatusOK}},
+		testChecker{name: "cache", result: health.CheckResult{Status: health.StatusOK}},
+		testChecker{name: "jobs", result: health.CheckResult{Status: health.StatusOK}},
+	)
 
 	route := NewHealthCheckRoute(ui.NewController(&frameworkbootstrap.Container{Health: registry}))
 	if route.registry != registry {
 		t.Fatal("expected route to use container health registry")
 	}
+}
+
+func TestNewHealthCheckRoutePanicsWithoutHealthRegistry(t *testing.T) {
+	defer func() {
+		if recover() == nil {
+			t.Fatal("expected panic when health registry is missing")
+		}
+	}()
+
+	_ = NewHealthCheckRoute(ui.NewController(&frameworkbootstrap.Container{}))
+}
+
+func TestNewHealthCheckRoutePanicsWhenHealthContractIsInvalid(t *testing.T) {
+	defer func() {
+		if recover() == nil {
+			t.Fatal("expected panic when health contract is invalid")
+		}
+	}()
+
+	brokenRegistry := health.NewRegistry(testChecker{
+		name:   "db",
+		result: health.CheckResult{Status: health.StatusOK},
+	})
+	_ = NewHealthCheckRoute(ui.NewController(&frameworkbootstrap.Container{Health: brokenRegistry}))
 }
 
 type testChecker struct {

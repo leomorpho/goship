@@ -128,6 +128,7 @@ func NewContainer(registerSchedules func(*cron.Cron, func() core.Jobs)) *Contain
 	// ship:container:end
 	c.initCoreAdapters()
 	c.initHealth()
+	c.validateStartupContract()
 	c.initSSEHub()
 	return c
 }
@@ -227,6 +228,15 @@ func (c *Container) initHealth() {
 		health.NewCacheChecker(c.CoreCache, 2*time.Second),
 		health.NewJobsChecker(c.CoreJobsInspector, 2*time.Second),
 	)
+}
+
+func (c *Container) validateStartupContract() {
+	if c == nil {
+		panic("startup configuration failure: container is not configured")
+	}
+	if err := c.Health.ValidateStartupContract(); err != nil {
+		panic(fmt.Sprintf("startup configuration failure: %v", err))
+	}
 }
 
 // Shutdown shuts the Container down and disconnects all connections
