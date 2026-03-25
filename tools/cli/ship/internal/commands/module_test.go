@@ -258,6 +258,51 @@ func TestModuleCatalog_FirstPartyConfigOwnershipHasNoNonCanonicalCollisions(t *t
 	t.Fatalf("non-canonical config ownership collisions detected:\n%s", strings.Join(collisions, "\n"))
 }
 
+func TestModuleCatalog_FirstPartyAssetOwnershipHasNoCollisions(t *testing.T) {
+	t.Parallel()
+
+	moduleByID := map[string]moduleInfo{}
+	ids := make([]string, 0, len(moduleCatalog))
+	for _, info := range moduleCatalog {
+		if strings.TrimSpace(info.ID) == "" {
+			continue
+		}
+		if _, exists := moduleByID[info.ID]; exists {
+			continue
+		}
+		moduleByID[info.ID] = info
+		ids = append(ids, info.ID)
+	}
+	sort.Strings(ids)
+
+	assetOwners := map[string][]string{}
+	for _, id := range ids {
+		contract := moduleByID[id].installContract()
+		for _, asset := range contract.Assets {
+			asset = strings.TrimSpace(asset)
+			if asset == "" {
+				continue
+			}
+			assetOwners[asset] = append(assetOwners[asset], id)
+		}
+	}
+
+	var collisions []string
+	for asset, owners := range assetOwners {
+		owners = dedupeStrings(owners)
+		if len(owners) < 2 {
+			continue
+		}
+		sort.Strings(owners)
+		collisions = append(collisions, fmt.Sprintf("%s -> %s", asset, strings.Join(owners, ", ")))
+	}
+	if len(collisions) == 0 {
+		return
+	}
+	sort.Strings(collisions)
+	t.Fatalf("asset ownership collisions detected across first-party modules:\n%s", strings.Join(collisions, "\n"))
+}
+
 func TestModuleCatalogUsesConcreteJobsAndStorageSeams(t *testing.T) {
 	tests := []struct {
 		name    string
