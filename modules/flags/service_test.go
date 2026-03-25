@@ -51,12 +51,17 @@ func (f *fakeCache) Close() error                                   { return nil
 
 var _ core.Cache = (*fakeCache)(nil)
 
+const (
+	testMyFlagKey     FlagKey = "my_flag"
+	testCachedFlagKey FlagKey = "cached_flag"
+)
+
 func TestServiceEnabled_UsesCacheAfterFirstLookup(t *testing.T) {
-	store := &fakeStore{flag: Flag{Key: "my_flag", Enabled: true, RolloutPct: 100}}
+	store := &fakeStore{flag: Flag{Key: string(testMyFlagKey), Enabled: true, RolloutPct: 100}}
 	cache := &fakeCache{values: map[string][]byte{}}
 	service := NewService(store, cache)
 
-	enabled, err := service.Enabled(context.Background(), "my_flag")
+	enabled, err := service.Enabled(context.Background(), testMyFlagKey)
 	if err != nil {
 		t.Fatalf("Enabled() error = %v", err)
 	}
@@ -64,7 +69,7 @@ func TestServiceEnabled_UsesCacheAfterFirstLookup(t *testing.T) {
 		t.Fatal("expected flag to be enabled")
 	}
 
-	enabled, err = service.Enabled(context.Background(), "my_flag")
+	enabled, err = service.Enabled(context.Background(), testMyFlagKey)
 	if err != nil {
 		t.Fatalf("Enabled() second call error = %v", err)
 	}
@@ -82,14 +87,14 @@ func TestServiceEnabled_UsesCacheAfterFirstLookup(t *testing.T) {
 
 func TestServiceEnabled_TargetingAndRolloutAreDeterministic(t *testing.T) {
 	store := &fakeStore{flag: Flag{
-		Key:        "my_flag",
+		Key:        string(testMyFlagKey),
 		Enabled:    true,
 		RolloutPct: 25,
 		UserIDs:    []int64{99},
 	}}
 	service := NewService(store, nil)
 
-	targeted, err := service.Enabled(context.Background(), "my_flag", 99)
+	targeted, err := service.Enabled(context.Background(), testMyFlagKey, 99)
 	if err != nil {
 		t.Fatalf("Enabled(targeted) error = %v", err)
 	}
@@ -97,11 +102,11 @@ func TestServiceEnabled_TargetingAndRolloutAreDeterministic(t *testing.T) {
 		t.Fatal("expected targeted user to be enabled")
 	}
 
-	first, err := service.Enabled(context.Background(), "my_flag", 42)
+	first, err := service.Enabled(context.Background(), testMyFlagKey, 42)
 	if err != nil {
 		t.Fatalf("Enabled(first) error = %v", err)
 	}
-	second, err := service.Enabled(context.Background(), "my_flag", 42)
+	second, err := service.Enabled(context.Background(), testMyFlagKey, 42)
 	if err != nil {
 		t.Fatalf("Enabled(second) error = %v", err)
 	}
@@ -111,16 +116,16 @@ func TestServiceEnabled_TargetingAndRolloutAreDeterministic(t *testing.T) {
 }
 
 func TestServiceEnabled_UsesCachedFlagPayload(t *testing.T) {
-	flag := Flag{Key: "cached_flag", Enabled: true, RolloutPct: 100}
+	flag := Flag{Key: string(testCachedFlagKey), Enabled: true, RolloutPct: 100}
 	payload, err := json.Marshal(flag)
 	if err != nil {
 		t.Fatalf("Marshal() error = %v", err)
 	}
-	store := &fakeStore{flag: Flag{Key: "cached_flag", Enabled: false}}
-	cache := &fakeCache{values: map[string][]byte{cacheKey("cached_flag"): payload}}
+	store := &fakeStore{flag: Flag{Key: string(testCachedFlagKey), Enabled: false}}
+	cache := &fakeCache{values: map[string][]byte{cacheKey(testCachedFlagKey): payload}}
 	service := NewService(store, cache)
 
-	enabled, err := service.Enabled(context.Background(), "cached_flag")
+	enabled, err := service.Enabled(context.Background(), testCachedFlagKey)
 	if err != nil {
 		t.Fatalf("Enabled() error = %v", err)
 	}

@@ -21,8 +21,8 @@ func NewService(store Store, cache core.Cache) *Service {
 	return &Service{store: store, cache: cache}
 }
 
-func (s *Service) Enabled(ctx context.Context, key string, userID ...int64) (bool, error) {
-	flag, err := s.lookup(ctx, key)
+func (s *Service) Enabled(ctx context.Context, key FlagKey, userID ...int64) (bool, error) {
+	flag, err := s.lookup(ctx, string(key))
 	if err != nil {
 		return false, err
 	}
@@ -35,7 +35,7 @@ func (s *Service) Enabled(ctx context.Context, key string, userID ...int64) (boo
 	if flag.IsUserTargeted(userID[0]) {
 		return true, nil
 	}
-	return inRollout(key, userID[0], flag.RolloutPct), nil
+	return inRollout(string(key), userID[0], flag.RolloutPct), nil
 }
 
 func (s *Service) List(ctx context.Context) ([]Flag, error) {
@@ -90,7 +90,7 @@ func (s *Service) lookup(ctx context.Context, key string) (Flag, error) {
 		return Flag{}, fmt.Errorf("flag store unavailable")
 	}
 	if s.cache != nil {
-		if payload, found, err := s.cache.Get(ctx, cacheKey(key)); err == nil && found {
+		if payload, found, err := s.cache.Get(ctx, cacheKeyFromString(key)); err == nil && found {
 			var flag Flag
 			if err := json.Unmarshal(payload, &flag); err == nil {
 				return flag, nil
@@ -103,7 +103,7 @@ func (s *Service) lookup(ctx context.Context, key string) (Flag, error) {
 	}
 	if s.cache != nil {
 		if payload, err := json.Marshal(flag); err == nil {
-			_ = s.cache.Set(ctx, cacheKey(key), payload, cacheTTL)
+			_ = s.cache.Set(ctx, cacheKeyFromString(key), payload, cacheTTL)
 		}
 	}
 	return flag, nil
@@ -113,10 +113,14 @@ func (s *Service) deleteCache(ctx context.Context, key string) error {
 	if s.cache == nil {
 		return nil
 	}
-	return s.cache.Delete(ctx, cacheKey(key))
+	return s.cache.Delete(ctx, cacheKeyFromString(key))
 }
 
-func cacheKey(key string) string {
+func cacheKey(key FlagKey) string {
+	return "flags::" + string(key)
+}
+
+func cacheKeyFromString(key string) string {
 	return "flags::" + key
 }
 
