@@ -165,6 +165,39 @@ func TestFileNonceStoreConsumeConcurrentSingleWinner(t *testing.T) {
 	}
 }
 
+func TestManagedHookVerifier_AcceptsActiveAndPreviousKeyVersions(t *testing.T) {
+	useIsolatedNonceStore(t)
+	now := time.Date(2026, time.March, 25, 7, 0, 0, 0, time.UTC)
+	body := []byte(`{"action":"restore"}`)
+
+	verifier := NewManagedHookVerifier("active-secret", 5*time.Minute, 5*time.Minute).
+		WithPreviousSecret("previous-secret").
+		WithKeyVersions("v2", "v1")
+	verifier.now = func() time.Time { return now }
+
+	timestamp := now.Unix()
+
+	reqActive := httptest.NewRequest("POST", "/managed/restore", nil)
+	reqActive.Header.Set(HeaderManagedTimestamp, strconv.FormatInt(timestamp, 10))
+	reqActive.Header.Set(HeaderManagedNonce, "nonce-active")
+	reqActive.Header.Set(HeaderManagedKeyVersion, "v2")
+	reqActive.Header.Set(
+		HeaderManagedSignature,
+		SignManagedHookRequest("active-secret", reqActive.Method, "/managed/restore", timestamp, "nonce-active", body),
+	)
+	require.NoError(t, verifier.VerifyRequest(reqActive, body))
+
+	reqPrevious := httptest.NewRequest("POST", "/managed/restore", nil)
+	reqPrevious.Header.Set(HeaderManagedTimestamp, strconv.FormatInt(timestamp, 10))
+	reqPrevious.Header.Set(HeaderManagedNonce, "nonce-previous")
+	reqPrevious.Header.Set(HeaderManagedKeyVersion, "v1")
+	reqPrevious.Header.Set(
+		HeaderManagedSignature,
+		SignManagedHookRequest("previous-secret", reqPrevious.Method, "/managed/restore", timestamp, "nonce-previous", body),
+	)
+	require.NoError(t, verifier.VerifyRequest(reqPrevious, body))
+}
+
 func useIsolatedNonceStore(t *testing.T) {
 	t.Helper()
 	t.Setenv(ManagedHooksNonceStorePathEnv, filepath.Join(t.TempDir(), "isolated-nonces.json"))

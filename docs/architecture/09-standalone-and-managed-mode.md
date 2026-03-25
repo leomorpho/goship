@@ -111,6 +111,7 @@ All managed hook requests must include:
 - `X-GoShip-Timestamp` (unix seconds)
 - `X-GoShip-Nonce` (single-use nonce)
 - `X-GoShip-Signature` (hex HMAC-SHA256)
+- `X-GoShip-Key-Version` (active/previous key version label for rollout-safe key rotation)
 
 Canonical signature payload:
 

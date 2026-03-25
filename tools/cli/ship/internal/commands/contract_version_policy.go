@@ -1,12 +1,14 @@
 package commands
 
 const (
-	SupportedRuntimeContractVersion   = "runtime-contract-v1"
-	SupportedRuntimeHandshakeVersion  = "runtime-handshake-v1"
-	SupportedUpgradeReadinessVersion  = "upgrade-readiness-v1"
-	BlockerUnsupportedRuntimeContract = "unsupported_runtime_contract_version"
+	SupportedRuntimeContractVersion    = "runtime-contract-v1"
+	SupportedRuntimeHandshakeVersion   = "runtime-handshake-v1"
+	SupportedUpgradeReadinessVersion   = "upgrade-readiness-v1"
+	SupportedManagedHookKeyVersion     = "managed-hook-key-version-v1"
+	BlockerUnsupportedRuntimeContract  = "unsupported_runtime_contract_version"
 	BlockerUnsupportedRuntimeHandshake = "unsupported_runtime_handshake_version"
 	BlockerUnsupportedUpgradeReadiness = "unsupported_upgrade_readiness_version"
+	BlockerUnsupportedManagedHookKey   = "unsupported_managed_hook_key_version"
 )
 
 type ContractVersionPolicyResult struct {
@@ -61,6 +63,21 @@ func EvaluateUpgradeContractVersionPolicy(upgradeReadinessVersion string) Contra
 		Expected:    SupportedUpgradeReadinessVersion,
 		Actual:      upgradeReadinessVersion,
 		Remediation: "Re-run ship upgrade --json from a supported CLI build before upgrade orchestration proceeds.",
+	})
+	return result
+}
+
+func EvaluateManagedHookKeyVersionPolicy(keyVersion string) ContractVersionPolicyResult {
+	result := ContractVersionPolicyResult{OK: true}
+	if keyVersion == SupportedManagedHookKeyVersion {
+		return result
+	}
+	result.OK = false
+	result.Blockers = append(result.Blockers, ContractVersionBlocker{
+		ID:          BlockerUnsupportedManagedHookKey,
+		Expected:    SupportedManagedHookKeyVersion,
+		Actual:      keyVersion,
+		Remediation: "Refresh managed hook caller configuration so requests use the supported key-version contract.",
 	})
 	return result
 }

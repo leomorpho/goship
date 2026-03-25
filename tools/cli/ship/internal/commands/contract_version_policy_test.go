@@ -76,6 +76,25 @@ func TestUpgradeContractVersionPolicy_RedSpec(t *testing.T) {
 	}
 }
 
+func TestManagedHookKeyVersionPolicy_RedSpec(t *testing.T) {
+	result := EvaluateManagedHookKeyVersionPolicy("managed-hook-key-version-v2")
+	if result.OK {
+		t.Fatalf("expected unsupported managed hook key-version contract to fail, got %+v", result)
+	}
+	if len(result.Blockers) != 1 {
+		t.Fatalf("expected one blocker, got %+v", result.Blockers)
+	}
+	if got := result.Blockers[0].ID; got != "unsupported_managed_hook_key_version" {
+		t.Fatalf("blocker id=%q want unsupported_managed_hook_key_version", got)
+	}
+	if got := result.Blockers[0].Expected; got != "managed-hook-key-version-v1" {
+		t.Fatalf("expected=%q want managed-hook-key-version-v1", got)
+	}
+	if got := result.Blockers[0].Actual; got != "managed-hook-key-version-v2" {
+		t.Fatalf("actual=%q want managed-hook-key-version-v2", got)
+	}
+}
+
 func TestContractVersionPolicyDocs_RedSpec(t *testing.T) {
 	root := repoRootFromCommandsTest(t)
 
