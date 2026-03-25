@@ -3,6 +3,7 @@ package runtimeconfig
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"sort"
 	"strconv"
 	"strings"
@@ -144,9 +145,18 @@ func ParseManagedOverrides(raw string) (map[string]string, error) {
 	decoder := json.NewDecoder(strings.NewReader(trimmed))
 	decoder.UseNumber()
 
-	var payload map[string]any
-	if err := decoder.Decode(&payload); err != nil {
+	var rawPayload any
+	if err := decoder.Decode(&rawPayload); err != nil {
 		return nil, fmt.Errorf("parse managed overrides: %w", err)
+	}
+	var trailing any
+	if err := decoder.Decode(&trailing); err != io.EOF {
+		return nil, fmt.Errorf("managed overrides must contain exactly one JSON object")
+	}
+
+	payload, ok := rawPayload.(map[string]any)
+	if !ok {
+		return nil, fmt.Errorf("managed overrides must be a JSON object")
 	}
 
 	overrides := make(map[string]string, len(payload))

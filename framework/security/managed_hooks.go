@@ -71,10 +71,11 @@ type NonceStore interface {
 
 // ManagedHookVerifier verifies signed managed hook requests with replay protection.
 type ManagedHookVerifier struct {
-	secret   []byte
-	maxSkew  time.Duration
-	nonceTTL time.Duration
-	now      func() time.Time
+	secret         []byte
+	previousSecret []byte
+	maxSkew        time.Duration
+	nonceTTL       time.Duration
+	now            func() time.Time
 
 	nonceStore NonceStore
 }
@@ -115,6 +116,15 @@ func (v *ManagedHookVerifier) WithNonceStore(store NonceStore) *ManagedHookVerif
 		return v
 	}
 	v.nonceStore = store
+	return v
+}
+
+// WithPreviousSecret configures the optional previous signing key accepted during rotation windows.
+func (v *ManagedHookVerifier) WithPreviousSecret(secret string) *ManagedHookVerifier {
+	if v == nil {
+		return v
+	}
+	v.previousSecret = []byte(strings.TrimSpace(secret))
 	return v
 }
 
@@ -166,7 +176,7 @@ func (v *ManagedHookVerifier) VerifyRequest(r *http.Request, body []byte) error 
 
 	path := managedRequestPath(r)
 	expected := SignManagedHookRequest(string(v.secret), r.Method, path, timestamp, nonce, body)
-	if subtle.ConstantTimeCompare([]byte(signature), []byte(expected)) != 1 {
+	if subtle.ConstantTimeCompare([]byte(signature), []byte(expected)) != 1 && !v.matchesPreviousSecret(signature, r.Method, path, timestamp, nonce, body) {
 		return ErrManagedSignatureMismatch
 	}
 
@@ -174,6 +184,14 @@ func (v *ManagedHookVerifier) VerifyRequest(r *http.Request, body []byte) error 
 		return ErrManagedReplayDetected
 	}
 	return nil
+}
+
+func (v *ManagedHookVerifier) matchesPreviousSecret(signature, method, path string, timestamp int64, nonce string, body []byte) bool {
+	if v == nil || len(v.previousSecret) == 0 {
+		return false
+	}
+	expected := SignManagedHookRequest(string(v.previousSecret), method, path, timestamp, nonce, body)
+	return subtle.ConstantTimeCompare([]byte(signature), []byte(expected)) == 1
 }
 
 // VerifyCronRequest validates a signed cron request using the shared managed-hook verifier contract.

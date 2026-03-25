@@ -12,6 +12,7 @@ import (
 	"github.com/leomorpho/goship/config"
 	"github.com/leomorpho/goship/framework/runtimeconfig"
 	"github.com/leomorpho/goship/framework/runtimeplan"
+	frameworksecurity "github.com/leomorpho/goship/framework/security"
 )
 
 type RuntimeReportDeps struct {
@@ -22,19 +23,20 @@ type RuntimeReportDeps struct {
 }
 
 type runtimeReport struct {
-	ContractVersion string                         `json:"contract_version"`
-	Handshake       runtimeReportHandshake         `json:"handshake"`
-	Divergence      runtimeReportDivergence        `json:"divergence"`
-	Profile         string                         `json:"profile"`
-	Adapters        runtimeReportAdapters          `json:"adapters"`
-	Processes       runtimeReportProcesses         `json:"processes"`
-	ProcessTopology runtimeReportProcessTopology   `json:"process_topology"`
-	Web             runtimeplan.WebFeatures        `json:"web"`
-	Database        config.DatabaseRuntimeMetadata `json:"database"`
-	Managed         config.ManagedRuntimeMetadata  `json:"managed"`
-	FrameworkVersion string                        `json:"framework_version"`
-	ModuleAdoption   []describeModuleAdoption      `json:"module_adoption"`
-	UpgradeReadiness runtimeReportUpgradeReadiness `json:"upgrade_readiness"`
+	ContractVersion  string                         `json:"contract_version"`
+	Handshake        runtimeReportHandshake         `json:"handshake"`
+	Divergence       runtimeReportDivergence        `json:"divergence"`
+	Profile          string                         `json:"profile"`
+	Adapters         runtimeReportAdapters          `json:"adapters"`
+	Processes        runtimeReportProcesses         `json:"processes"`
+	ProcessTopology  runtimeReportProcessTopology   `json:"process_topology"`
+	ManagedHooks     runtimeReportManagedHooks      `json:"managed_hooks"`
+	Web              runtimeplan.WebFeatures        `json:"web"`
+	Database         config.DatabaseRuntimeMetadata `json:"database"`
+	Managed          config.ManagedRuntimeMetadata  `json:"managed"`
+	FrameworkVersion string                         `json:"framework_version"`
+	ModuleAdoption   []describeModuleAdoption       `json:"module_adoption"`
+	UpgradeReadiness runtimeReportUpgradeReadiness  `json:"upgrade_readiness"`
 }
 
 type runtimeReportAdapters struct {
@@ -62,6 +64,17 @@ type runtimeReportProcessTopologyEntry struct {
 	Enabled      bool   `json:"enabled"`
 	Source       string `json:"source"`
 	RealtimeRole string `json:"realtime_role,omitempty"`
+}
+
+type runtimeReportManagedHooks struct {
+	SchemaVersion    string `json:"schema_version"`
+	TimestampHeader  string `json:"timestamp_header"`
+	NonceHeader      string `json:"nonce_header"`
+	SignatureHeader  string `json:"signature_header"`
+	SignaturePayload string `json:"signature_payload"`
+	MaxSkewSeconds   int    `json:"max_skew_seconds"`
+	NonceTTLSeconds  int    `json:"nonce_ttl_seconds"`
+	RotationHeader   string `json:"rotation_header"`
 }
 
 type runtimeReportHandshake struct {
@@ -94,7 +107,7 @@ type runtimeReportDivergenceEscalation struct {
 }
 
 type runtimeReportUpgradeReadiness struct {
-	Ready    bool                         `json:"ready"`
+	Ready    bool                          `json:"ready"`
 	Blockers []runtimeReportUpgradeBlocker `json:"blockers"`
 }
 
@@ -187,7 +200,7 @@ func RunRuntimeReport(args []string, d RuntimeReportDeps) int {
 			Database:      cfg.RuntimeMetadata().Database,
 		},
 		Divergence: buildRuntimeReportDivergence(),
-		Profile: plan.Profile,
+		Profile:    plan.Profile,
 		Adapters: runtimeReportAdapters{
 			DB:     cfg.Adapters.DB,
 			Cache:  cfg.Adapters.Cache,
@@ -200,6 +213,7 @@ func RunRuntimeReport(args []string, d RuntimeReportDeps) int {
 			Scheduler: plan.RunScheduler,
 			CoLocated: plan.CoLocated,
 		},
+		ManagedHooks: buildManagedHooksContract(cfg),
 		Web: runtimeplan.ResolveWebFeatures(
 			plan,
 			stringsTrim(cfg.Adapters.Cache) != "",
@@ -220,6 +234,28 @@ func RunRuntimeReport(args []string, d RuntimeReportDeps) int {
 		return 1
 	}
 	return 0
+}
+
+func buildManagedHooksContract(cfg config.Config) runtimeReportManagedHooks {
+	maxSkewSeconds := cfg.Managed.HooksMaxSkewSeconds
+	if maxSkewSeconds <= 0 {
+		maxSkewSeconds = 300
+	}
+	nonceTTLSeconds := cfg.Managed.HooksNonceTTLSeconds
+	if nonceTTLSeconds <= 0 {
+		nonceTTLSeconds = maxSkewSeconds
+	}
+
+	return runtimeReportManagedHooks{
+		SchemaVersion:    "managed-hook-contract-v1",
+		TimestampHeader:  frameworksecurity.HeaderManagedTimestamp,
+		NonceHeader:      frameworksecurity.HeaderManagedNonce,
+		SignatureHeader:  frameworksecurity.HeaderManagedSignature,
+		SignaturePayload: "METHOD\\nPATH_WITH_QUERY\\nTIMESTAMP\\nNONCE\\nRAW_BODY",
+		MaxSkewSeconds:   maxSkewSeconds,
+		NonceTTLSeconds:  nonceTTLSeconds,
+		RotationHeader:   "PAGODA_MANAGED_HOOKS_PREVIOUS_SECRET",
+	}
 }
 
 func evaluateRuntimeUpgradeReadiness(root string) runtimeReportUpgradeReadiness {

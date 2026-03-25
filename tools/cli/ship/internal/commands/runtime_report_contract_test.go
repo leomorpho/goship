@@ -97,6 +97,9 @@ func TestRunRuntimeReport_EmitsVersionedHandshakeEnvelope_RedSpec(t *testing.T) 
 	if _, ok := payload["upgrade_readiness"]; !ok {
 		t.Fatalf("runtime report missing upgrade_readiness contract section:\n%s", out.String())
 	}
+	if _, ok := payload["managed_hooks"]; !ok {
+		t.Fatalf("runtime report missing managed_hooks contract section:\n%s", out.String())
+	}
 
 	handshakeRaw, ok := payload["handshake"]
 	if !ok {
@@ -236,8 +239,8 @@ func TestRunRuntimeReport_EmitsVersionedHandshakeEnvelope_RedSpec(t *testing.T) 
 		t.Fatalf("divergence repeated_threshold = %d, want 3", divergence.Escalation.RepeatedThreshold)
 	}
 	wantClasses := map[string]string{
-		"extension-zone-drift":    "observe",
-		"protected-contract-drift": "recover",
+		"extension-zone-drift":      "observe",
+		"protected-contract-drift":  "recover",
 		"repeated-local-divergence": "upstream-review",
 	}
 	if len(divergence.Classes) != len(wantClasses) {
@@ -251,6 +254,89 @@ func TestRunRuntimeReport_EmitsVersionedHandshakeEnvelope_RedSpec(t *testing.T) 
 		if class.Escalation != wantEscalation {
 			t.Fatalf("divergence class %q escalation = %q, want %q", class.ID, class.Escalation, wantEscalation)
 		}
+	}
+}
+
+func TestRunRuntimeReport_ManagedHooksContractShape_RedSpec(t *testing.T) {
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+
+	code := RunRuntimeReport([]string{"--json"}, RuntimeReportDeps{
+		Out: out,
+		Err: errOut,
+		LoadConfig: func() (config.Config, error) {
+			return config.Config{
+				Runtime: config.RuntimeConfig{Profile: config.RuntimeProfileSingleNode},
+				Adapters: config.AdaptersConfig{
+					DB:     "sqlite",
+					Cache:  "otter",
+					Jobs:   "backlite",
+					PubSub: "inproc",
+				},
+				Processes: config.ProcessesConfig{
+					Web:       true,
+					Worker:    true,
+					Scheduler: true,
+					CoLocated: true,
+				},
+				Database: config.DatabaseConfig{
+					DbMode: config.DBModeEmbedded,
+					Driver: config.DBDriverSQLite,
+				},
+				Managed: config.ManagedConfig{
+					HooksMaxSkewSeconds:  120,
+					HooksNonceTTLSeconds: 240,
+					RuntimeReport: runtimeconfig.Report{
+						Mode: runtimeconfig.ModeStandalone,
+						Keys: map[string]runtimeconfig.KeyState{},
+					},
+				},
+			}, nil
+		},
+	})
+	if code != 0 {
+		t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
+	}
+
+	var payload struct {
+		ManagedHooks struct {
+			SchemaVersion    string `json:"schema_version"`
+			TimestampHeader  string `json:"timestamp_header"`
+			NonceHeader      string `json:"nonce_header"`
+			SignatureHeader  string `json:"signature_header"`
+			SignaturePayload string `json:"signature_payload"`
+			MaxSkewSeconds   int    `json:"max_skew_seconds"`
+			NonceTTLSeconds  int    `json:"nonce_ttl_seconds"`
+			RotationHeader   string `json:"rotation_header"`
+		} `json:"managed_hooks"`
+	}
+	if err := json.Unmarshal(out.Bytes(), &payload); err != nil {
+		t.Fatalf("decode runtime report: %v\n%s", err, out.String())
+	}
+
+	if payload.ManagedHooks.SchemaVersion != "managed-hook-contract-v1" {
+		t.Fatalf("managed_hooks.schema_version = %q, want managed-hook-contract-v1", payload.ManagedHooks.SchemaVersion)
+	}
+	if payload.ManagedHooks.TimestampHeader != "X-GoShip-Timestamp" {
+		t.Fatalf("managed_hooks.timestamp_header = %q, want X-GoShip-Timestamp", payload.ManagedHooks.TimestampHeader)
+	}
+	if payload.ManagedHooks.NonceHeader != "X-GoShip-Nonce" {
+		t.Fatalf("managed_hooks.nonce_header = %q, want X-GoShip-Nonce", payload.ManagedHooks.NonceHeader)
+	}
+	if payload.ManagedHooks.SignatureHeader != "X-GoShip-Signature" {
+		t.Fatalf("managed_hooks.signature_header = %q, want X-GoShip-Signature", payload.ManagedHooks.SignatureHeader)
+	}
+	if payload.ManagedHooks.SignaturePayload != "METHOD\\nPATH_WITH_QUERY\\nTIMESTAMP\\nNONCE\\nRAW_BODY" {
+		t.Fatalf("managed_hooks.signature_payload = %q, want canonical payload format", payload.ManagedHooks.SignaturePayload)
+	}
+	if payload.ManagedHooks.MaxSkewSeconds != 120 {
+		t.Fatalf("managed_hooks.max_skew_seconds = %d, want 120", payload.ManagedHooks.MaxSkewSeconds)
+	}
+	if payload.ManagedHooks.NonceTTLSeconds != 240 {
+		t.Fatalf("managed_hooks.nonce_ttl_seconds = %d, want 240", payload.ManagedHooks.NonceTTLSeconds)
+	}
+	if payload.ManagedHooks.RotationHeader != "PAGODA_MANAGED_HOOKS_PREVIOUS_SECRET" {
+		t.Fatalf("managed_hooks.rotation_header = %q, want PAGODA_MANAGED_HOOKS_PREVIOUS_SECRET", payload.ManagedHooks.RotationHeader)
 	}
 }
 

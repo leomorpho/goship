@@ -285,7 +285,7 @@ func registerExternalRoutes(c *frameworkbootstrap.Container, e *echo.Group, ctr 
 			c.Config.Managed.HooksSecret,
 			time.Duration(c.Config.Managed.HooksMaxSkewSeconds)*time.Second,
 			time.Duration(c.Config.Managed.HooksNonceTTLSeconds)*time.Second,
-		)
+		).WithPreviousSecret(c.Config.Managed.HooksPreviousSecret)
 
 		managedGroup := e.Group("/managed", middleware.RequireManagedHookSignature(verifier))
 		managedGroup.GET("/status", managedHooks.GetRuntimeStatus).Name = routeNames.RouteNameManagedStatus
