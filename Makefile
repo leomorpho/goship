@@ -263,6 +263,10 @@ test-bootstrap-budget: ## Verify ship new scaffold plus starter boot stays withi
 test-fresh-app-ci: ## Verify the fresh-app CI lane (generation, batteries, verify, smoke) in one pass
 	bash tools/scripts/check-fresh-app-ci.sh
 
+.PHONY: test-agent-evals
+test-agent-evals: ## Run deterministic cold-start agent eval pack and emit score report
+	bash tools/scripts/check-agent-evals.sh
+
 .PHONY: test-integration
 test-integration: ## Run integration test package set (may require Docker/infra)
 	bash tools/scripts/test-integration.sh
