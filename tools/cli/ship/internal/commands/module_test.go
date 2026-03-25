@@ -2,9 +2,11 @@ package commands
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"testing"
 )
@@ -198,6 +200,62 @@ func TestNotificationsModuleCatalog_InstallContractCoversRoutesViewsAndJobs(t *t
 			t.Fatalf("notifications contract tests missing %q: %#v", testSurface, contract.Tests)
 		}
 	}
+}
+
+func TestModuleCatalog_FirstPartyConfigOwnershipHasNoNonCanonicalCollisions(t *testing.T) {
+	t.Parallel()
+
+	allowedSharedConfigSurfaces := map[string]struct{}{
+		"config/modules.yaml":          {},
+		"app/foundation/container.go":  {},
+		"go.mod":                       {},
+		"go.work":                      {},
+		".env.example":                 {},
+	}
+
+	moduleByID := map[string]moduleInfo{}
+	ids := make([]string, 0, len(moduleCatalog))
+	for _, info := range moduleCatalog {
+		if strings.TrimSpace(info.ID) == "" {
+			continue
+		}
+		if _, exists := moduleByID[info.ID]; exists {
+			continue
+		}
+		moduleByID[info.ID] = info
+		ids = append(ids, info.ID)
+	}
+	sort.Strings(ids)
+
+	configOwners := map[string][]string{}
+	for _, id := range ids {
+		contract := moduleByID[id].installContract()
+		for _, cfg := range contract.Config {
+			cfg = strings.TrimSpace(cfg)
+			if cfg == "" {
+				continue
+			}
+			if _, ok := allowedSharedConfigSurfaces[cfg]; ok {
+				continue
+			}
+			configOwners[cfg] = append(configOwners[cfg], id)
+		}
+	}
+
+	var collisions []string
+	for cfg, owners := range configOwners {
+		owners = dedupeStrings(owners)
+		if len(owners) < 2 {
+			continue
+		}
+		sort.Strings(owners)
+		collisions = append(collisions, fmt.Sprintf("%s -> %s", cfg, strings.Join(owners, ", ")))
+	}
+	if len(collisions) == 0 {
+		return
+	}
+	sort.Strings(collisions)
+	t.Fatalf("non-canonical config ownership collisions detected:\n%s", strings.Join(collisions, "\n"))
 }
 
 func TestModuleCatalogUsesConcreteJobsAndStorageSeams(t *testing.T) {
@@ -1746,4 +1804,17 @@ func containsExactString(items []string, want string) bool {
 		}
 	}
 	return false
+}
+
+func dedupeStrings(values []string) []string {
+	seen := make(map[string]struct{}, len(values))
+	out := make([]string, 0, len(values))
+	for _, value := range values {
+		if _, ok := seen[value]; ok {
+			continue
+		}
+		seen[value] = struct{}{}
+		out = append(out, value)
+	}
+	return out
 }
