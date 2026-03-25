@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/leomorpho/goship/config"
 	"github.com/leomorpho/goship/framework/runtimeconfig"
@@ -223,7 +224,7 @@ func RunRuntimeReport(args []string, d RuntimeReportDeps) int {
 		Managed:          cfg.RuntimeMetadata().Managed,
 		FrameworkVersion: frameworkVersion,
 		ModuleAdoption:   moduleAdoption,
-		UpgradeReadiness: evaluateRuntimeUpgradeReadiness(root),
+		UpgradeReadiness: evaluateRuntimeUpgradeReadiness(root, cfg),
 	}
 	report.ProcessTopology = buildRuntimeReportProcessTopology(cfg, report.Web)
 
@@ -258,44 +259,56 @@ func buildManagedHooksContract(cfg config.Config) runtimeReportManagedHooks {
 	}
 }
 
-func evaluateRuntimeUpgradeReadiness(root string) runtimeReportUpgradeReadiness {
-	if strings.TrimSpace(root) == "" {
-		return runtimeReportUpgradeReadiness{
-			Ready:    true,
-			Blockers: []runtimeReportUpgradeBlocker{},
-		}
-	}
-	cliPath := filepath.Join(root, "tools", "cli", "ship", "internal", "cli", "cli.go")
-	body, err := os.ReadFile(cliPath)
-	if err != nil {
-		return runtimeReportUpgradeReadiness{
-			Ready: false,
-			Blockers: []runtimeReportUpgradeBlocker{
-				{
-					ID:          "upgrade.convention_drift",
-					Detail:      "missing tools/cli/ship/internal/cli/cli.go for upgrade rewrite contract",
-					Remediation: "restore canonical CLI path and rerun ship runtime:report --json",
-				},
-			},
-		}
-	}
-	text := string(body)
-	if strings.Contains(text, `gooseGoRunRef = "github.com/pressly/goose/v3/cmd/goose@`) ||
-		strings.Contains(text, `gooseGoRunRef = "github.com/pressly/goose/cmd/goose@`) {
-		return runtimeReportUpgradeReadiness{
-			Ready:    true,
-			Blockers: []runtimeReportUpgradeBlocker{},
-		}
-	}
-	return runtimeReportUpgradeReadiness{
-		Ready: false,
-		Blockers: []runtimeReportUpgradeBlocker{
-			{
+func evaluateRuntimeUpgradeReadiness(root string, cfg config.Config) runtimeReportUpgradeReadiness {
+	blockers := make([]runtimeReportUpgradeBlocker, 0)
+
+	if strings.TrimSpace(root) != "" {
+		cliPath := filepath.Join(root, "tools", "cli", "ship", "internal", "cli", "cli.go")
+		body, err := os.ReadFile(cliPath)
+		if err != nil {
+			blockers = append(blockers, runtimeReportUpgradeBlocker{
 				ID:          "upgrade.convention_drift",
-				Detail:      "gooseGoRunRef constant not found in canonical CLI path",
-				Remediation: "run `ship verify --profile strict` and align upgrade scaffolding markers",
-			},
-		},
+				Detail:      "missing tools/cli/ship/internal/cli/cli.go for upgrade rewrite contract",
+				Remediation: "restore canonical CLI path and rerun ship runtime:report --json",
+			})
+		} else {
+			text := string(body)
+			if !strings.Contains(text, `gooseGoRunRef = "github.com/pressly/goose/v3/cmd/goose@`) &&
+				!strings.Contains(text, `gooseGoRunRef = "github.com/pressly/goose/cmd/goose@`) {
+				blockers = append(blockers, runtimeReportUpgradeBlocker{
+					ID:          "upgrade.convention_drift",
+					Detail:      "gooseGoRunRef constant not found in canonical CLI path",
+					Remediation: "run `ship verify --profile strict` and align upgrade scaffolding markers",
+				})
+			}
+		}
+	}
+
+	if cfg.Managed.RuntimeReport.IsManagedMode() {
+		if strings.TrimSpace(cfg.Managed.RuntimeReport.Authority) == "" {
+			blockers = append(blockers, runtimeReportUpgradeBlocker{
+				ID:          "upgrade.managed_authority_missing",
+				Detail:      "managed runtime report authority is required for managed upgrade orchestration",
+				Remediation: "set PAGODA_MANAGED_AUTHORITY and rerun ship runtime:report --json",
+			})
+		}
+		verifier := frameworksecurity.NewManagedHookVerifier(
+			cfg.Managed.HooksSecret,
+			time.Duration(cfg.Managed.HooksMaxSkewSeconds)*time.Second,
+			time.Duration(cfg.Managed.HooksNonceTTLSeconds)*time.Second,
+		).WithPreviousSecret(cfg.Managed.HooksPreviousSecret)
+		if ready, reason := verifier.UpgradeReadiness(); !ready {
+			blockers = append(blockers, runtimeReportUpgradeBlocker{
+				ID:          "upgrade.managed_hooks_secret_missing",
+				Detail:      reason,
+				Remediation: "set PAGODA_MANAGED_HOOKS_SECRET and rerun ship runtime:report --json",
+			})
+		}
+	}
+
+	return runtimeReportUpgradeReadiness{
+		Ready:    len(blockers) == 0,
+		Blockers: blockers,
 	}
 }
 

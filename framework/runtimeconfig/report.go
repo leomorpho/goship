@@ -41,6 +41,10 @@ type Report struct {
 	Keys      map[string]KeyState `json:"keys"`
 }
 
+func (r Report) IsManagedMode() bool {
+	return r.Mode == ModeManaged
+}
+
 // ProcessDefaults holds fallback process values when report keys are absent.
 type ProcessDefaults struct {
 	Web       bool
