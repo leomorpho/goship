@@ -129,6 +129,7 @@ Verification/runtime rules:
 - replay protection rejects reuse of the same nonce+timestamp tuple inside the TTL window
 - replay protection uses a durable local store by default and still exposes a shared/distributed replay store contract for multi-replica deployments
 - the same signed-request pattern is used for the control-plane cron entrypoint contract so scheduler-driven actions reuse the replay/timestamp verification model
+- security event reporting emits explicit managed-hook events for invalid signature and replay failures so runtime telemetry can classify auth failures without parsing response bodies
 
 Managed hook key rotation:
 

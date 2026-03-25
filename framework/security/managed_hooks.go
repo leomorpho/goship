@@ -1,11 +1,11 @@
 package security
 
 import (
-	"encoding/json"
 	"crypto/hmac"
 	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -76,17 +76,29 @@ type NonceStore interface {
 	Consume(key string, now time.Time, ttl time.Duration) bool
 }
 
+const (
+	ManagedHookSecurityEventInvalidSignature = "invalid_signature"
+	ManagedHookSecurityEventReplay           = "replay_detected"
+)
+
+// ManagedHookSecurityEvent captures managed-hook verification failures for security telemetry.
+type ManagedHookSecurityEvent struct {
+	Kind string `json:"kind"`
+	Path string `json:"path"`
+}
+
 // ManagedHookVerifier verifies signed managed hook requests with replay protection.
 type ManagedHookVerifier struct {
-	secret         []byte
-	previousSecret []byte
+	secret             []byte
+	previousSecret     []byte
 	activeKeyVersion   string
 	previousKeyVersion string
-	maxSkew        time.Duration
-	nonceTTL       time.Duration
-	now            func() time.Time
+	maxSkew            time.Duration
+	nonceTTL           time.Duration
+	now                func() time.Time
 
 	nonceStore NonceStore
+	reporter   func(ManagedHookSecurityEvent)
 }
 
 // CronRequestVerifier verifies signed cron entrypoint contract requests.
@@ -110,6 +122,7 @@ func NewManagedHookVerifier(secret string, maxSkew, nonceTTL time.Duration) *Man
 		nonceTTL:         nonceTTL,
 		now:              time.Now,
 		nonceStore:       defaultManagedHookNonceStore(),
+		reporter:         func(ManagedHookSecurityEvent) {},
 	}
 }
 
@@ -143,6 +156,15 @@ func (v *ManagedHookVerifier) WithPreviousSecret(secret string) *ManagedHookVeri
 		return v
 	}
 	v.previousSecret = []byte(strings.TrimSpace(secret))
+	return v
+}
+
+// WithSecurityEventReporter registers the callback used for verification security events.
+func (v *ManagedHookVerifier) WithSecurityEventReporter(reporter func(ManagedHookSecurityEvent)) *ManagedHookVerifier {
+	if v == nil || reporter == nil {
+		return v
+	}
+	v.reporter = reporter
 	return v
 }
 
@@ -226,10 +248,18 @@ func (v *ManagedHookVerifier) VerifyRequest(r *http.Request, body []byte) error 
 	path := managedRequestPath(r)
 	keyVersion := strings.TrimSpace(r.Header.Get(HeaderManagedKeyVersion))
 	if !v.matchesSignatureForVersion(signature, r.Method, path, timestamp, nonce, body, keyVersion) {
+		v.reportSecurityEvent(ManagedHookSecurityEvent{
+			Kind: ManagedHookSecurityEventInvalidSignature,
+			Path: path,
+		})
 		return ErrManagedSignatureMismatch
 	}
 
 	if !v.consumeNonce(nonce, ts, now) {
+		v.reportSecurityEvent(ManagedHookSecurityEvent{
+			Kind: ManagedHookSecurityEventReplay,
+			Path: path,
+		})
 		return ErrManagedReplayDetected
 	}
 	return nil
@@ -342,6 +372,13 @@ func (v *ManagedHookVerifier) consumeNonce(nonce string, timestamp, now time.Tim
 		v.nonceStore = store
 	}
 	return store.Consume(key, now, v.nonceTTL)
+}
+
+func (v *ManagedHookVerifier) reportSecurityEvent(event ManagedHookSecurityEvent) {
+	if v == nil || v.reporter == nil {
+		return
+	}
+	v.reporter(event)
 }
 
 type inMemoryNonceStore struct {

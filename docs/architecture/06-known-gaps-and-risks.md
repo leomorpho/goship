@@ -184,6 +184,9 @@ follow-up implementation concern: deploy policy negotiates supported runtime/han
 `unsupported_runtime_contract_pair`, or `unsupported_upgrade_readiness_version` and include
 remediation that points operators back to `ship runtime:report --json`, `ship upgrade --json`, or
 `ship verify` instead of ad hoc wording.
+Contract-version policy mismatches now also emit explicit security event reporting entries with kind
+`contract_violation` and the blocker code, so automation can classify contract violations without
+scraping human-readable remediation strings.
 
 Impact:
 

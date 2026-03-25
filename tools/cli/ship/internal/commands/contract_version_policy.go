@@ -12,11 +12,13 @@ const (
 	BlockerUnsupportedRuntimePair      = "unsupported_runtime_contract_pair"
 	BlockerUnsupportedUpgradeReadiness = "unsupported_upgrade_readiness_version"
 	BlockerUnsupportedManagedHookKey   = "unsupported_managed_hook_key_version"
+	ContractViolationSecurityEvent     = "contract_violation"
 )
 
 type ContractVersionPolicyResult struct {
-	OK       bool
-	Blockers []ContractVersionBlocker
+	OK             bool
+	Blockers       []ContractVersionBlocker
+	SecurityEvents []ContractVersionSecurityEvent
 }
 
 type ContractVersionBlocker struct {
@@ -24,6 +26,11 @@ type ContractVersionBlocker struct {
 	Expected    string
 	Actual      string
 	Remediation string
+}
+
+type ContractVersionSecurityEvent struct {
+	Kind string
+	Code string
 }
 
 // These helpers pin the exact version-policy contract for deploy/upgrade orchestration.
@@ -43,6 +50,10 @@ func EvaluateDeployContractVersionPolicy(runtimeContractVersion, runtimeHandshak
 			Actual:      runtimeContractVersion + " + " + runtimeHandshakeVersion,
 			Remediation: "Use a supported runtime-contract/runtime-handshake pair from ship runtime:report --json before deploy orchestration proceeds.",
 		})
+		result.SecurityEvents = append(result.SecurityEvents, ContractVersionSecurityEvent{
+			Kind: ContractViolationSecurityEvent,
+			Code: BlockerUnsupportedRuntimePair,
+		})
 		return result
 	}
 
@@ -54,6 +65,10 @@ func EvaluateDeployContractVersionPolicy(runtimeContractVersion, runtimeHandshak
 			Actual:      runtimeContractVersion,
 			Remediation: "Re-run ship runtime:report --json from a supported runtime build before deploy orchestration proceeds.",
 		})
+		result.SecurityEvents = append(result.SecurityEvents, ContractVersionSecurityEvent{
+			Kind: ContractViolationSecurityEvent,
+			Code: BlockerUnsupportedRuntimeContract,
+		})
 	}
 
 	if runtimeHandshakeVersion != SupportedRuntimeHandshakeVersion {
@@ -63,6 +78,10 @@ func EvaluateDeployContractVersionPolicy(runtimeContractVersion, runtimeHandshak
 			Expected:    SupportedRuntimeHandshakeVersion,
 			Actual:      runtimeHandshakeVersion,
 			Remediation: "Refresh the runtime handshake payload via ship runtime:report --json so deploy orchestration uses a supported contract version.",
+		})
+		result.SecurityEvents = append(result.SecurityEvents, ContractVersionSecurityEvent{
+			Kind: ContractViolationSecurityEvent,
+			Code: BlockerUnsupportedRuntimeHandshake,
 		})
 	}
 
@@ -101,6 +120,10 @@ func EvaluateUpgradeContractVersionPolicy(upgradeReadinessVersion string) Contra
 		Actual:      upgradeReadinessVersion,
 		Remediation: "Re-run ship upgrade --json from a supported CLI build before upgrade orchestration proceeds.",
 	})
+	result.SecurityEvents = append(result.SecurityEvents, ContractVersionSecurityEvent{
+		Kind: ContractViolationSecurityEvent,
+		Code: BlockerUnsupportedUpgradeReadiness,
+	})
 	return result
 }
 
@@ -115,6 +138,10 @@ func EvaluateManagedHookKeyVersionPolicy(keyVersion string) ContractVersionPolic
 		Expected:    SupportedManagedHookKeyVersion,
 		Actual:      keyVersion,
 		Remediation: "Refresh managed hook caller configuration so requests use the supported key-version contract.",
+	})
+	result.SecurityEvents = append(result.SecurityEvents, ContractVersionSecurityEvent{
+		Kind: ContractViolationSecurityEvent,
+		Code: BlockerUnsupportedManagedHookKey,
 	})
 	return result
 }
