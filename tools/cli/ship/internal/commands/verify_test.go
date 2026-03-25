@@ -95,6 +95,9 @@ func TestRunVerify(t *testing.T) {
 		if !strings.Contains(out.String(), "skipped via --skip-tests") {
 			t.Fatalf("stdout = %q, want skip-tests message", out.String())
 		}
+		if !strings.Contains(out.String(), "startup smoke checks skipped via --skip-tests") {
+			t.Fatalf("stdout = %q, want startup-smoke skip message", out.String())
+		}
 	})
 
 	t.Run("fast profile skips nilaway and tests", func(t *testing.T) {
@@ -139,6 +142,9 @@ func TestRunVerify(t *testing.T) {
 				t.Fatalf("stdout missing %q:\n%s", token, out.String())
 			}
 		}
+		if !strings.Contains(out.String(), "startup smoke checks skipped in fast profile") {
+			t.Fatalf("stdout = %q, want fast-profile startup-smoke skip message", out.String())
+		}
 	})
 
 	t.Run("standard profile runs nilaway and tests", func(t *testing.T) {
@@ -175,8 +181,11 @@ func TestRunVerify(t *testing.T) {
 		if errOut.Len() != 0 {
 			t.Fatalf("stderr = %q, want empty", errOut.String())
 		}
-		if len(calls) != 4 {
-			t.Fatalf("calls len = %d, want 4", len(calls))
+		if len(calls) != 5 {
+			t.Fatalf("calls len = %d, want 5", len(calls))
+		}
+		if calls[4] != "go test ./tools/cli/ship/internal/commands -run TestFreshAppStartupSmoke -count=1" {
+			t.Fatalf("startup smoke call = %q, want startup smoke verify gate", calls[4])
 		}
 		for _, token := range []string{"verify passed"} {
 			if !strings.Contains(out.String(), token) {
@@ -346,8 +355,8 @@ func TestRunVerify(t *testing.T) {
 		if !payload.OK {
 			t.Fatalf("payload.OK = false, want true")
 		}
-		if len(payload.Steps) != 9 {
-			t.Fatalf("steps len = %d, want 9", len(payload.Steps))
+		if len(payload.Steps) != 10 {
+			t.Fatalf("steps len = %d, want 10", len(payload.Steps))
 		}
 		if payload.Steps[2].Name != "ship doctor --json" {
 			t.Fatalf("doctor step name = %q, want ship doctor --json", payload.Steps[2].Name)
@@ -358,11 +367,14 @@ func TestRunVerify(t *testing.T) {
 		if payload.Steps[4].Name != "module compatibility policy" {
 			t.Fatalf("module compatibility step name = %q, want module compatibility policy", payload.Steps[4].Name)
 		}
-		if payload.Steps[7].Name != "standalone exportability gate" {
-			t.Fatalf("exportability step name = %q, want standalone exportability gate", payload.Steps[7].Name)
+		if payload.Steps[7].Name != "startup smoke checks" {
+			t.Fatalf("startup smoke step name = %q, want startup smoke checks", payload.Steps[7].Name)
 		}
-		if payload.Steps[8].Name != "orchestration contract mismatch preflight" {
-			t.Fatalf("final step name = %q, want orchestration contract mismatch preflight", payload.Steps[8].Name)
+		if payload.Steps[8].Name != "standalone exportability gate" {
+			t.Fatalf("exportability step name = %q, want standalone exportability gate", payload.Steps[8].Name)
+		}
+		if payload.Steps[9].Name != "orchestration contract mismatch preflight" {
+			t.Fatalf("final step name = %q, want orchestration contract mismatch preflight", payload.Steps[9].Name)
 		}
 
 		var raw map[string]any
@@ -576,6 +588,47 @@ use (
 		t.Fatalf("verify JSON missing orchestration contract mismatch preflight step:\n%s", out.String())
 	})
 
+	t.Run("fails when startup smoke checks fail", func(t *testing.T) {
+		root := t.TempDir()
+		writeVerifyGoMod(t, root)
+		writeVerifyGoWork(t, root)
+
+		prevWD := chdirVerifyRoot(t, root)
+		t.Cleanup(func() { _ = os.Chdir(prevWD) })
+
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+		code := RunVerify([]string{}, VerifyDeps{
+			Out:          out,
+			Err:          errOut,
+			FindGoModule: findVerifyGoModule,
+			RelocateTempl: func(rootPath string) error {
+				return nil
+			},
+			RunStep: func(name string, args ...string) (int, string, error) {
+				if name == "go" && len(args) == 5 && args[0] == "test" && args[1] == "./tools/cli/ship/internal/commands" && args[2] == "-run" && args[3] == "TestFreshAppStartupSmoke" {
+					return 1, "startup smoke failed", nil
+				}
+				return 0, "ok", nil
+			},
+			LookPath: func(file string) (string, error) {
+				return "/usr/bin/" + file, nil
+			},
+			RunDoctor: func() (int, string, error) {
+				return 0, `{"ok":true,"issues":[]}`, nil
+			},
+		})
+		if code != 1 {
+			t.Fatalf("exit code = %d, want 1", code)
+		}
+		if !strings.Contains(errOut.String(), "verify failed at startup smoke checks") {
+			t.Fatalf("stderr = %q, want startup-smoke step failure", errOut.String())
+		}
+		if !strings.Contains(errOut.String(), "startup smoke failed") {
+			t.Fatalf("stderr = %q, want startup-smoke subprocess output", errOut.String())
+		}
+	})
+
 	t.Run("fails when managed-settings contract drifts", func(t *testing.T) {
 		root := t.TempDir()
 		writeVerifyGoMod(t, root)
@@ -627,8 +680,8 @@ func managedSettingAccess() string { return "editable" }
 		if payload.OK {
 			t.Fatalf("payload.OK = true, want false")
 		}
-		if len(payload.Steps) != 9 {
-			t.Fatalf("steps len = %d, want 9", len(payload.Steps))
+		if len(payload.Steps) != 10 {
+			t.Fatalf("steps len = %d, want 10", len(payload.Steps))
 		}
 		last := payload.Steps[len(payload.Steps)-1]
 		if last.Name != "orchestration contract mismatch preflight" {

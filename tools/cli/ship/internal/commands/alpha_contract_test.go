@@ -55,8 +55,14 @@ func TestCIContract_DefinesAlphaFreezeGate_RedSpec(t *testing.T) {
 	if !bytes.Contains([]byte(workflow), []byte("\n  alpha_contract:\n")) {
 		t.Fatal("test workflow should define a dedicated alpha_contract job")
 	}
+	if !bytes.Contains([]byte(workflow), []byte("\n  startup_smoke:\n")) {
+		t.Fatal("test workflow should define a dedicated startup_smoke job")
+	}
 	if !bytes.Contains([]byte(workflow), []byte("run: make test-alpha-contracts")) {
 		t.Fatal("alpha contract CI job should invoke make test-alpha-contracts")
+	}
+	if !bytes.Contains([]byte(workflow), []byte("go test ./tools/cli/ship/internal/commands -run TestFreshAppStartupSmoke -count=1")) {
+		t.Fatal("startup smoke CI job should invoke the fresh-app startup smoke test")
 	}
 	if !bytes.Contains([]byte(makefile), []byte(".PHONY: test-alpha-contracts")) {
 		t.Fatal("Makefile should expose a canonical test-alpha-contracts entrypoint for CI")

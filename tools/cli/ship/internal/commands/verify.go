@@ -125,7 +125,7 @@ func RunVerify(args []string, d VerifyDeps) int {
 	}
 	verifyStartedAt := now()
 
-	results := make([]verifyJSONStep, 0, 5)
+	results := make([]verifyJSONStep, 0, 10)
 	var failed *verifyJSONStep
 
 	appendStep := func(name string, ok bool, output string, severity string, durationMS int64) {
@@ -242,6 +242,21 @@ func RunVerify(args []string, d VerifyDeps) int {
 		}
 		if failed != nil {
 			return nil
+		}
+
+		if *skipTests || *profile == verifyProfileFast {
+			reason := "startup smoke checks skipped via --skip-tests"
+			if *profile == verifyProfileFast && !*skipTests {
+				reason = "startup smoke checks skipped in fast profile"
+			}
+			appendStep("startup smoke checks", true, reason, "warning", 0)
+		} else {
+			stepStartedAt = now()
+			code, output, runErr = runStep("go", "test", "./tools/cli/ship/internal/commands", "-run", "TestFreshAppStartupSmoke", "-count=1")
+			appendStep("startup smoke checks", code == 0 && runErr == nil, mergeVerifyOutput(output, runErr), "", elapsedMilliseconds(now().Sub(stepStartedAt)))
+			if failed != nil {
+				return nil
+			}
 		}
 
 		stepStartedAt = now()

@@ -1,6 +1,6 @@
 {
   "ok": true,
-  "elapsed_ms": 105,
+  "elapsed_ms": 115,
   "steps": [
     {
       "name": "templ generate",
@@ -40,6 +40,12 @@
     },
     {
       "name": "go test ./...",
+      "ok": true,
+      "output": "go ok",
+      "duration_ms": 5
+    },
+    {
+      "name": "startup smoke checks",
       "ok": true,
       "output": "go ok",
       "duration_ms": 5

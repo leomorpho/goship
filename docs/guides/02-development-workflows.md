@@ -218,8 +218,9 @@ UI-impacting changes should add or update Playwright coverage for the affected f
 browser evidence should be attached or referenced in ticket or PR notes.
 Primary artifact paths remain `tests/e2e/playwright-report` and `tests/e2e/test-results`.
 The `verify_strict` CI job runs `ship verify --profile strict` and serves as the precondition for the downstream Cherie compatibility gate.
+The `startup_smoke` CI job runs `go test ./tools/cli/ship/internal/commands -run TestFreshAppStartupSmoke -count=1` and enforces generated-app startup checks for migrations, web boot (`/health`, `/health/readiness`), and worker boot.
 The Cherie compatibility lane runs `tests/e2e/tests/cherie_compatibility.spec.ts` with a web-only process env (`PAGODA_PROCESSES_WEB=true`, `PAGODA_PROCESSES_WORKER=false`, `PAGODA_PROCESSES_SCHEDULER=false`, `PAGODA_PROCESSES_COLOCATED=false`) so the baseline only measures boot, auth, and realtime route compatibility.
-Treat `verify_strict` and `cherie_compatibility_smoke` as the required status checks for Cherie-facing sync work.
+Treat `verify_strict`, `startup_smoke`, and `cherie_compatibility_smoke` as the required status checks for Cherie-facing sync work.
 The `generator_contracts` CI job runs `make test-generator-contracts` and blocks merges on generator snapshot or idempotency drift.
 Use `make test-generator-idempotency` when only the duplicate-run matrix is relevant and you do not need to touch snapshots.
 When a generator output change is intentional, refresh the golden file locally with `UPDATE_GENERATOR_SNAPSHOTS=1 make test-generator-contracts` and commit the updated snapshot in the same change.
