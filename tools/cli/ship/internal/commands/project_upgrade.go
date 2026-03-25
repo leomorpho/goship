@@ -168,6 +168,12 @@ func RunUpgrade(args []string, d UpgradeDeps) int {
 func upgradeGoose(d UpgradeDeps, root, version string, dryRun, jsonOut, applyMode bool) int {
 	displayPath := filepath.ToSlash(filepath.Join("tools", "cli", "ship", "internal", "cli", "cli.go"))
 	path := filepath.Join(root, filepath.FromSlash(displayPath))
+	originalTextBytes, err := os.ReadFile(path)
+	if err != nil {
+		fmt.Fprintf(d.Err, "failed to read %s: %v\n", path, err)
+		return 1
+	}
+	originalText := string(originalTextBytes)
 	old, newText, changed, err := RewriteGooseVersion(path, version)
 	if err != nil {
 		var driftErr upgradeConventionDriftError
@@ -210,13 +216,37 @@ func upgradeGoose(d UpgradeDeps, root, version string, dryRun, jsonOut, applyMod
 		fmt.Fprintf(d.Out, "next: ship upgrade apply --to %s\n", version)
 		return 0
 	}
-	if err := os.WriteFile(path, []byte(newText), 0o644); err != nil {
-		fmt.Fprintf(d.Err, "failed to write %s: %v\n", path, err)
+	if err := applyUpgradeRewrite(path, newText, originalText, os.WriteFile, os.ReadFile); err != nil {
+		fmt.Fprintf(d.Err, "failed to apply upgrade rewrite in %s: %v\n", path, err)
 		return 1
 	}
 	fmt.Fprintln(d.Out, "applied upgrade rewrites:")
 	fmt.Fprintf(d.Out, "- %s: %s -> %s\n", displayPath, old, version)
 	return 0
+}
+
+func applyUpgradeRewrite(
+	path, newText, oldText string,
+	writeFile func(string, []byte, os.FileMode) error,
+	readFile func(string) ([]byte, error),
+) error {
+	if err := writeFile(path, []byte(newText), 0o644); err != nil {
+		return err
+	}
+	after, err := readFile(path)
+	if err != nil {
+		if rollbackErr := writeFile(path, []byte(oldText), 0o644); rollbackErr != nil {
+			return fmt.Errorf("post-write verification read failed: %w; rollback failed: %v", err, rollbackErr)
+		}
+		return fmt.Errorf("post-write verification read failed: %w; rolled back", err)
+	}
+	if string(after) != newText {
+		if rollbackErr := writeFile(path, []byte(oldText), 0o644); rollbackErr != nil {
+			return fmt.Errorf("post-write verification mismatch; rollback failed: %v", rollbackErr)
+		}
+		return fmt.Errorf("post-write verification mismatch; rolled back")
+	}
+	return nil
 }
 
 func RewriteGooseVersion(path, target string) (oldVersion string, rewritten string, changed bool, err error) {

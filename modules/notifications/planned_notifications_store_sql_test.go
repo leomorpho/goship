@@ -50,7 +50,7 @@ func TestPlannedNotificationsService_SQLStore_CreateTimesAndSelectCandidates(t *
 	require.NoError(t, err)
 	require.Equal(t, 0, countProfile2)
 
-	timestamp := time.Date(2026, 3, 5, 23, 0, 0, 0, time.UTC)
+	timestamp := time.Date(2026, 3, 5, 23, 59, 0, 0, time.UTC)
 	candidates, err := svc.ProfileIDsCanGetPlannedNotificationNow(
 		ctx, timestamp, domain.NotificationTypeDailyConversationReminder, nil,
 	)
