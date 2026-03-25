@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"runtime/debug"
 	"time"
@@ -19,9 +20,12 @@ type HealthcheckRoute struct {
 var processStartedAt = time.Now()
 
 func NewHealthCheckRoute(ctr ui.Controller) HealthcheckRoute {
-	registry := health.NewRegistry()
-	if ctr.Container != nil && ctr.Container.Health != nil {
-		registry = ctr.Container.Health
+	if ctr.Container == nil || ctr.Container.Health == nil {
+		panic("startup configuration failure: health registry is not configured")
+	}
+	registry := ctr.Container.Health
+	if err := registry.ValidateStartupContract(); err != nil {
+		panic(fmt.Sprintf("startup configuration failure: %v", err))
 	}
 
 	return HealthcheckRoute{

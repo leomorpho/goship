@@ -2,6 +2,7 @@ package health
 
 import (
 	"context"
+	"strings"
 	"testing"
 )
 
@@ -86,5 +87,38 @@ func TestNewRegistryRegistersInitialCheckers(t *testing.T) {
 	}
 	if len(results) != 2 {
 		t.Fatalf("expected 2 results, got %d", len(results))
+	}
+}
+
+func TestRegistryValidateStartupContract(t *testing.T) {
+	registry := NewRegistry(
+		testChecker{name: "db", result: CheckResult{Status: StatusOK}},
+		testChecker{name: "cache", result: CheckResult{Status: StatusOK}},
+		testChecker{name: "jobs", result: CheckResult{Status: StatusOK}},
+	)
+
+	if err := registry.ValidateStartupContract(); err != nil {
+		t.Fatalf("ValidateStartupContract() error = %v", err)
+	}
+}
+
+func TestRegistryValidateStartupContractMissingChecks(t *testing.T) {
+	registry := NewRegistry(
+		testChecker{name: "db", result: CheckResult{Status: StatusOK}},
+	)
+
+	err := registry.ValidateStartupContract()
+	if err == nil {
+		t.Fatal("expected validation error when checks are missing")
+	}
+	if !strings.Contains(err.Error(), "cache") || !strings.Contains(err.Error(), "jobs") {
+		t.Fatalf("validation error = %q, want missing cache/jobs", err.Error())
+	}
+}
+
+func TestRegistryValidateStartupContractNilRegistry(t *testing.T) {
+	var registry *Registry
+	if err := registry.ValidateStartupContract(); err == nil {
+		t.Fatal("expected error for nil registry")
 	}
 }

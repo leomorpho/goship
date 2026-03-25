@@ -2,6 +2,9 @@ package health
 
 import (
 	"context"
+	"fmt"
+	"slices"
+	"strings"
 	"sync"
 )
 
@@ -9,6 +12,8 @@ const (
 	StatusOK    = "ok"
 	StatusError = "error"
 )
+
+var defaultStartupChecks = []string{"db", "cache", "jobs"}
 
 type Checker interface {
 	Name() string
@@ -43,6 +48,41 @@ func (r *Registry) Register(checker Checker) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.checkers = append(r.checkers, checker)
+}
+
+func (r *Registry) ValidateStartupContract(requiredChecks ...string) error {
+	if r == nil {
+		return fmt.Errorf("health registry is not configured")
+	}
+
+	required := requiredChecks
+	if len(required) == 0 {
+		required = defaultStartupChecks
+	}
+
+	r.mu.RLock()
+	checkers := append([]Checker(nil), r.checkers...)
+	r.mu.RUnlock()
+
+	registeredNames := make([]string, 0, len(checkers))
+	for _, checker := range checkers {
+		name := strings.TrimSpace(checker.Name())
+		if name == "" {
+			continue
+		}
+		registeredNames = append(registeredNames, name)
+	}
+
+	missing := make([]string, 0)
+	for _, name := range required {
+		if !slices.Contains(registeredNames, name) {
+			missing = append(missing, name)
+		}
+	}
+	if len(missing) > 0 {
+		return fmt.Errorf("missing required health checks: %s", strings.Join(missing, ", "))
+	}
+	return nil
 }
 
 func (r *Registry) Run(ctx context.Context) (map[string]CheckResult, bool) {

@@ -138,3 +138,17 @@ func TestNewContainerEmbeddedBootHasHealthyReadiness(t *testing.T) {
 		t.Fatalf("expected db status ok, got %q", results["db"].Status)
 	}
 }
+
+func TestContainerValidateStartupContractPanicsWhenHealthChecksMissing(t *testing.T) {
+	container := &Container{
+		Health: health.NewRegistry(),
+	}
+
+	defer func() {
+		if recover() == nil {
+			t.Fatal("expected panic when startup health contract is invalid")
+		}
+	}()
+
+	container.validateStartupContract()
+}
