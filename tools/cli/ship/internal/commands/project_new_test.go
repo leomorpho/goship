@@ -70,6 +70,67 @@ func TestParseNewArgsI18nFlags(t *testing.T) {
 
 }
 
+func TestParseNewUIFlag(t *testing.T) {
+	tests := []struct {
+		name          string
+		args          []string
+		wantProvider  string
+		wantErrSubstr string
+	}{
+		{
+			name:         "defaults to franken",
+			args:         []string{"demo"},
+			wantProvider: "franken",
+		},
+		{
+			name:         "explicit franken",
+			args:         []string{"demo", "--ui", "franken"},
+			wantProvider: "franken",
+		},
+		{
+			name:         "explicit daisy",
+			args:         []string{"demo", "--ui=daisy"},
+			wantProvider: "daisy",
+		},
+		{
+			name:         "explicit bare",
+			args:         []string{"demo", "--ui", "bare"},
+			wantProvider: "bare",
+		},
+		{
+			name:          "invalid provider",
+			args:          []string{"demo", "--ui", "unknown"},
+			wantErrSubstr: "unsupported --ui provider",
+		},
+		{
+			name:          "missing provider value",
+			args:          []string{"demo", "--ui"},
+			wantErrSubstr: "missing value for --ui",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			opts, err := ParseNewArgs(tt.args)
+			if tt.wantErrSubstr != "" {
+				if err == nil {
+					t.Fatalf("expected error containing %q, got nil", tt.wantErrSubstr)
+				}
+				if !strings.Contains(err.Error(), tt.wantErrSubstr) {
+					t.Fatalf("error = %q, want substring %q", err.Error(), tt.wantErrSubstr)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if opts.UIProvider != tt.wantProvider {
+				t.Fatalf("UIProvider = %q, want %q", opts.UIProvider, tt.wantProvider)
+			}
+		})
+	}
+}
+
 func TestScaffoldNewProject(t *testing.T) {
 	root := t.TempDir()
 	opts := NewProjectOptions{
