@@ -216,7 +216,22 @@ func buildDescribeResult(root string) (describeResult, error) {
 }
 
 func collectDescribeModuleAdoption(root string, modules []describeModule) ([]describeModuleAdoption, error) {
-	adoption := make([]describeModuleAdoption, 0, len(modules))
+	adoptionByID := make(map[string]describeModuleAdoption, len(modules))
+	for _, info := range moduleCatalog {
+		id := strings.TrimSpace(info.ID)
+		modulePath := strings.TrimSpace(info.ModulePath)
+		if id == "" || modulePath == "" {
+			continue
+		}
+		adoptionByID[id] = describeModuleAdoption{
+			ID:         id,
+			ModulePath: modulePath,
+			Version:    "v0.0.0",
+			Source:     "first-party-catalog",
+			Installed:  false,
+		}
+	}
+
 	for _, module := range modules {
 		if !module.Installed {
 			continue
@@ -236,15 +251,19 @@ func collectDescribeModuleAdoption(root string, modules []describeModule) ([]des
 			return nil, err
 		}
 
-		adoption = append(adoption, describeModuleAdoption{
+		adoptionByID[module.ID] = describeModuleAdoption{
 			ID:         module.ID,
 			ModulePath: modulePath,
 			Version:    version,
 			Source:     source,
 			Installed:  true,
-		})
+		}
 	}
 
+	adoption := make([]describeModuleAdoption, 0, len(adoptionByID))
+	for _, entry := range adoptionByID {
+		adoption = append(adoption, entry)
+	}
 	sort.Slice(adoption, func(i, j int) bool {
 		return adoption[i].ID < adoption[j].ID
 	})

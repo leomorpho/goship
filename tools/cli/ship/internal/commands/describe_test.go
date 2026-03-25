@@ -99,24 +99,51 @@ func TestRunDescribe(t *testing.T) {
 		if err := json.Unmarshal(out.Bytes(), &payload); err != nil {
 			t.Fatalf("decode json: %v", err)
 		}
-		if len(payload.ModuleAdoption) != 1 {
-			t.Fatalf("module adoption len = %d, want 1", len(payload.ModuleAdoption))
+		if len(payload.ModuleAdoption) != 5 {
+			t.Fatalf("module adoption len = %d, want 5", len(payload.ModuleAdoption))
 		}
-		adoption := payload.ModuleAdoption[0]
-		if adoption.ID != "notifications" {
-			t.Fatalf("module adoption id = %q, want notifications", adoption.ID)
+		entries := map[string]struct {
+			ModulePath string
+			Source     string
+			Installed  bool
+		}{}
+		for _, entry := range payload.ModuleAdoption {
+			entries[entry.ID] = struct {
+				ModulePath string
+				Source     string
+				Installed  bool
+			}{
+				ModulePath: entry.ModulePath,
+				Source:     entry.Source,
+				Installed:  entry.Installed,
+			}
 		}
-		if adoption.ModulePath != "github.com/leomorpho/goship-modules/notifications" {
-			t.Fatalf("module path = %q, want notifications module path", adoption.ModulePath)
+
+		notifications, ok := entries["notifications"]
+		if !ok {
+			t.Fatal("module adoption missing notifications")
 		}
-		if adoption.Version != "v0.0.0" {
-			t.Fatalf("version = %q, want v0.0.0", adoption.Version)
+		if notifications.ModulePath != "github.com/leomorpho/goship-modules/notifications" {
+			t.Fatalf("module path = %q, want notifications module path", notifications.ModulePath)
 		}
-		if adoption.Source != "local-replace" {
-			t.Fatalf("source = %q, want local-replace", adoption.Source)
+		if notifications.Source != "local-replace" {
+			t.Fatalf("source = %q, want local-replace", notifications.Source)
 		}
-		if !adoption.Installed {
-			t.Fatal("installed = false, want true")
+		if !notifications.Installed {
+			t.Fatal("notifications installed = false, want true")
+		}
+
+		for _, id := range []string{"emailsubscriptions", "jobs", "paidsubscriptions", "storage"} {
+			entry, ok := entries[id]
+			if !ok {
+				t.Fatalf("module adoption missing %s", id)
+			}
+			if entry.Source != "first-party-catalog" {
+				t.Fatalf("module %s source = %q, want first-party-catalog", id, entry.Source)
+			}
+			if entry.Installed {
+				t.Fatalf("module %s installed=true, want false", id)
+			}
 		}
 	})
 

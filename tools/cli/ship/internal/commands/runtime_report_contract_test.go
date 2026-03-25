@@ -382,6 +382,108 @@ func TestRunRuntimeReport_ExposesModuleAdoptionMetadata_RedSpec(t *testing.T) {
 	}
 }
 
+func TestRunRuntimeReport_ModuleAdoptionIncludesFirstPartyBaseline_RedSpec(t *testing.T) {
+	root := t.TempDir()
+	cliPath := filepath.Join(root, "tools", "cli", "ship", "internal", "cli", "cli.go")
+	if err := os.MkdirAll(filepath.Dir(cliPath), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, "go.mod"), []byte("module example.com/runtime-report\n\ngo 1.25\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(cliPath, []byte("package cli\nconst gooseGoRunRef = \"github.com/pressly/goose/v3/cmd/goose@v3.26.0\"\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	prevWD, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(prevWD) })
+	if err := os.Chdir(root); err != nil {
+		t.Fatal(err)
+	}
+
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	code := RunRuntimeReport([]string{"--json"}, RuntimeReportDeps{
+		Out:          out,
+		Err:          errOut,
+		FindGoModule: findDescribeGoModule,
+		LoadConfig: func() (config.Config, error) {
+			return config.Config{
+				Runtime: config.RuntimeConfig{Profile: config.RuntimeProfileSingleNode},
+				Adapters: config.AdaptersConfig{
+					DB:     "sqlite",
+					Cache:  "otter",
+					Jobs:   "backlite",
+					PubSub: "inproc",
+				},
+				Processes: config.ProcessesConfig{
+					Web:       true,
+					Worker:    true,
+					Scheduler: true,
+					CoLocated: true,
+				},
+				Database: config.DatabaseConfig{
+					DbMode: config.DBModeEmbedded,
+					Driver: config.DBDriverSQLite,
+				},
+				Managed: config.ManagedConfig{
+					RuntimeReport: runtimeconfig.Report{
+						Mode: runtimeconfig.ModeStandalone,
+					},
+				},
+			}, nil
+		},
+	})
+	if code != 0 {
+		t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
+	}
+
+	var payload struct {
+		ModuleAdoption []struct {
+			ID         string `json:"id"`
+			ModulePath string `json:"module_path"`
+			Version    string `json:"version"`
+			Source     string `json:"source"`
+			Installed  bool   `json:"installed"`
+		} `json:"module_adoption"`
+	}
+	if err := json.Unmarshal(out.Bytes(), &payload); err != nil {
+		t.Fatalf("decode runtime report: %v\n%s", err, out.String())
+	}
+
+	expected := map[string]string{
+		"emailsubscriptions": "github.com/leomorpho/goship-modules/emailsubscriptions",
+		"jobs":               "github.com/leomorpho/goship-modules/jobs",
+		"notifications":      "github.com/leomorpho/goship-modules/notifications",
+		"paidsubscriptions":  "github.com/leomorpho/goship-modules/paidsubscriptions",
+		"storage":            "github.com/leomorpho/goship-modules/storage",
+	}
+	if len(payload.ModuleAdoption) != len(expected) {
+		t.Fatalf("module adoption len = %d, want %d", len(payload.ModuleAdoption), len(expected))
+	}
+	for _, entry := range payload.ModuleAdoption {
+		wantPath, ok := expected[entry.ID]
+		if !ok {
+			t.Fatalf("unexpected first-party module adoption entry id=%q", entry.ID)
+		}
+		if entry.ModulePath != wantPath {
+			t.Fatalf("module %q path = %q, want %q", entry.ID, entry.ModulePath, wantPath)
+		}
+		if entry.Version != "v0.0.0" {
+			t.Fatalf("module %q version = %q, want v0.0.0", entry.ID, entry.Version)
+		}
+		if entry.Source != "first-party-catalog" {
+			t.Fatalf("module %q source = %q, want first-party-catalog", entry.ID, entry.Source)
+		}
+		if entry.Installed {
+			t.Fatalf("module %q installed = true, want false", entry.ID)
+		}
+	}
+}
+
 func TestRunRuntimeReport_UpgradedAppsRetainManagedContractShape_RedSpec(t *testing.T) {
 	cases := []struct {
 		name       string
