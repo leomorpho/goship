@@ -99,15 +99,27 @@ func (r *routes) Flags(ctx echo.Context) error {
 		return ctx.HTML(http.StatusOK, b.String())
 	}
 
-	b.WriteString("<table><thead><tr><th>Key</th><th>Enabled</th><th>Rollout %</th><th>Action</th></tr></thead><tbody>")
+	b.WriteString("<table><thead><tr><th>Constant key</th><th>Description</th><th>Enabled</th><th>Code default</th><th>Rollout %</th><th>Action</th></tr></thead><tbody>")
 	for _, item := range items {
 		status := "off"
 		if item.Enabled {
 			status = "on"
 		}
+		description := item.Description
+		codeDefault := "Code default: n/a"
+		if def, ok := flags.Lookup(flags.FlagKey(item.Key)); ok {
+			description = def.Description
+			if def.Default {
+				codeDefault = "Code default: On"
+			} else {
+				codeDefault = "Code default: Off"
+			}
+		}
 		b.WriteString("<tr>")
-		b.WriteString("<td>" + html.EscapeString(item.Key) + "</td>")
+		b.WriteString("<td><code>" + html.EscapeString(item.Key) + "</code></td>")
+		b.WriteString("<td>" + html.EscapeString(description) + "</td>")
 		b.WriteString("<td>" + status + "</td>")
+		b.WriteString("<td>" + html.EscapeString(codeDefault) + "</td>")
 		b.WriteString("<td>" + strconv.Itoa(item.RolloutPct) + "</td>")
 		b.WriteString(`<td><form method="post" action="/admin/flags/` + html.EscapeString(item.Key) + `/toggle">`)
 		b.WriteString(`<button type="submit">Toggle</button></form></td>`)
