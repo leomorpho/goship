@@ -40,7 +40,7 @@ Last updated: 2026-03-25
 5. `G05` - `guides/05-jobs-module.md`: jobs module install/wiring contract, backend rules, and migration notes.
 6. `G06` - `guides/06-ai-module.md`: AI module provider selection, request contract, and SSE demo pattern.
 7. `G07` - `guides/07-domain-events.md`: domain event bus, shared event types, and async enqueue contract.
-8. `G08` - `guides/08-building-an-api.md`: JSON response helpers, content negotiation, and versioned API route convention.
+8. `G08` - `guides/08-building-an-api.md`: JSON response helpers plus the canonical API-only same-origin SvelteKit integration contract.
 9. `G09` - `guides/09-i18n-adapter-contract.md`: redirect stub to canonical i18n guide.
 10. `G10` - `guides/10-i18n-llm-migration-workflow.md`: canonical i18n guide (adapter contract, migration loop, coverage/enforcement policy, diagnostics schema, strict rollout, translator workflow, CI profile).
 11. `G11` - `guides/11-add-endpoint-workflow.md`: canonical workflow for adding a new endpoint with route wiring and validation.

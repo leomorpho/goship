@@ -1,6 +1,7 @@
 # Building an API
 
 GoShip supports dual HTML and JSON responses without duplicating handler logic.
+This guide also defines the one blessed split-frontend integration path.
 
 ## Blessed External Frontend Contract
 
@@ -12,6 +13,16 @@ Contract scope:
 - `same-origin auth/session` is required for browser flows
 - keep `cookie/CSRF` protections enabled; do not disable CSRF to support cross-origin browser writes
 - CORS support is for controlled non-browser integrations, not for primary browser auth flows
+
+## Canonical API-Only Scaffold
+
+Start from the API-only starter mode:
+
+```bash
+ship new demo --module example.com/demo --api-only
+```
+
+This scaffold keeps route naming and auth endpoints while removing templ-first page assets.
 
 ## Core Pattern
 
@@ -104,3 +115,33 @@ v1 := e.Group("/api/v1") // ship:routes:api:v1:start
 ```
 
 Keep JSON-specific routes inside that marker block so generators and doctor checks have one canonical place to inspect.
+
+## Local Development Topology (SvelteKit + GoShip API)
+
+Use two local processes:
+
+1. GoShip API app from the API-only scaffold.
+2. SvelteKit frontend app.
+
+Recommended local browser topology:
+
+- Browser origin: `http://localhost:5173` (SvelteKit dev server).
+- SvelteKit server-side handlers proxy API/auth requests to GoShip.
+- Browser does not call GoShip cross-origin directly for session-authenticated writes.
+
+Keep browser session semantics stable:
+
+- login/logout and session endpoints remain on GoShip (`/auth/login`, `/auth/register`, `/auth/logout`)
+- SvelteKit form actions and server endpoints forward cookies and CSRF headers
+- write requests include the `X-CSRF-Token` header value from the same-origin session flow
+
+## Deployment Topology (Same-Origin Requirement)
+
+Production deployment must preserve same-origin browser behavior:
+
+- serve SvelteKit and GoShip behind one public origin (same scheme + host + port)
+- route `/api/*` and `/auth/*` to GoShip
+- route page/UI requests to SvelteKit
+
+Do not rely on cross-origin browser cookie sessions as the primary integration mode.
+If you need third-party or server-to-server integration, use explicit API tokens and scoped CORS rules.

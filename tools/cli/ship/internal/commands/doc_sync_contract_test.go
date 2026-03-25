@@ -260,4 +260,16 @@ func TestDocs_BlessedExternalFrontendContractStaysInSync_RedSpec(t *testing.T) {
 			t.Fatalf("CLI doc should include %q", token)
 		}
 	}
+
+	for _, token := range []string{
+		"ship new demo --module example.com/demo --api-only",
+		"Local Development Topology (SvelteKit + GoShip API)",
+		"Deployment Topology (Same-Origin Requirement)",
+		"/auth/login",
+		"X-CSRF-Token",
+	} {
+		if !strings.Contains(apiGuide, token) {
+			t.Fatalf("API guide should include concrete integration token %q", token)
+		}
+	}
 }
