@@ -94,6 +94,9 @@ func TestRunRuntimeReport_EmitsVersionedHandshakeEnvelope_RedSpec(t *testing.T) 
 	if contractVersion != "runtime-contract-v1" {
 		t.Fatalf("contract_version = %q, want runtime-contract-v1", contractVersion)
 	}
+	if _, ok := payload["upgrade_readiness"]; !ok {
+		t.Fatalf("runtime report missing upgrade_readiness contract section:\n%s", out.String())
+	}
 
 	handshakeRaw, ok := payload["handshake"]
 	if !ok {
@@ -262,6 +265,7 @@ func TestRunRuntimeReport_ExposesModuleAdoptionMetadata_RedSpec(t *testing.T) {
 
 	for _, token := range []string{
 		`"module_adoption"`,
+		`"upgrade_readiness"`,
 		"collectDescribeModuleAdoption",
 	} {
 		if !strings.Contains(runtimeSource, token) {
@@ -279,6 +283,9 @@ func TestRunRuntimeReport_ExposesModuleAdoptionMetadata_RedSpec(t *testing.T) {
 	}
 	if !strings.Contains(managedDoc, "per-module adoption metadata") {
 		t.Fatal("managed-mode contract doc should describe the per-module adoption metadata surface")
+	}
+	if !strings.Contains(cliRef, "upgrade readiness") {
+		t.Fatal("cli reference should document runtime report upgrade readiness metadata")
 	}
 }
 

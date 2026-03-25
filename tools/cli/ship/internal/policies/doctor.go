@@ -58,7 +58,7 @@ func RunDoctor(args []string, d DoctorDeps) int {
 				Code:     "config",
 				Message:  fmt.Sprintf("unexpected doctor arguments: %v", fs.Args()),
 				Severity: "error",
-			}})
+			}}, doctorUpgradeReadinessJSON{Ready: false})
 		}
 		fmt.Fprintf(d.Err, "unexpected doctor arguments: %v\n", fs.Args())
 		return 1
@@ -71,7 +71,7 @@ func RunDoctor(args []string, d DoctorDeps) int {
 				Code:     "config",
 				Message:  fmt.Sprintf("failed to resolve working directory: %v", err),
 				Severity: "error",
-			}})
+			}}, doctorUpgradeReadinessJSON{Ready: false})
 		}
 		fmt.Fprintf(d.Err, "failed to resolve working directory: %v\n", err)
 		return 1
@@ -83,7 +83,7 @@ func RunDoctor(args []string, d DoctorDeps) int {
 				Code:     "config",
 				Message:  fmt.Sprintf("failed to resolve project root (go.mod): %v", err),
 				Severity: "error",
-			}})
+			}}, doctorUpgradeReadinessJSON{Ready: false})
 		}
 		fmt.Fprintf(d.Err, "failed to resolve project root (go.mod): %v\n", err)
 		return 1
@@ -91,22 +91,27 @@ func RunDoctor(args []string, d DoctorDeps) int {
 
 	issues := RunDoctorChecks(root)
 	issues = append(issues, runNilawayChecks(root, d)...)
+	upgradeReadiness := evaluateDoctorUpgradeReadiness(root)
+	ok := !hasDoctorErrors(issues) && upgradeReadiness.Ready
 	if *jsonOutput {
-		return writeDoctorJSON(d.Out, !hasDoctorErrors(issues), issues)
+		return writeDoctorJSON(d.Out, ok, issues, upgradeReadiness)
 	}
 
-	if !hasDoctorErrors(issues) && len(issues) == 0 {
+	if !hasDoctorErrors(issues) && len(issues) == 0 && upgradeReadiness.Ready {
 		fmt.Fprintf(d.Out, "ship doctor: OK (%s)\n", root)
+		printDoctorUpgradeReadiness(d.Out, upgradeReadiness)
 		return 0
 	}
-	if !hasDoctorErrors(issues) {
+	if !hasDoctorErrors(issues) && upgradeReadiness.Ready {
 		fmt.Fprintf(d.Out, "ship doctor: OK with %d warning(s) (%s)\n", len(issues), root)
 		printDoctorIssues(d.Out, issues)
+		printDoctorUpgradeReadiness(d.Out, upgradeReadiness)
 		return 0
 	}
 
 	fmt.Fprintf(d.Err, "ship doctor: found %d issue(s)\n", len(issues))
 	printDoctorIssues(d.Err, issues)
+	printDoctorUpgradeReadiness(d.Err, upgradeReadiness)
 	return 1
 }
 
@@ -117,15 +122,28 @@ type doctorJSONIssue struct {
 	Severity string `json:"severity"`
 }
 
-type doctorJSONResult struct {
-	OK     bool              `json:"ok"`
-	Issues []doctorJSONIssue `json:"issues"`
+type doctorUpgradeBlockerJSON struct {
+	ID          string `json:"id"`
+	Detail      string `json:"detail"`
+	Remediation string `json:"remediation"`
 }
 
-func writeDoctorJSON(w io.Writer, ok bool, issues []DoctorIssue) int {
+type doctorUpgradeReadinessJSON struct {
+	Ready    bool                       `json:"ready"`
+	Blockers []doctorUpgradeBlockerJSON `json:"blockers"`
+}
+
+type doctorJSONResult struct {
+	OK               bool                       `json:"ok"`
+	Issues           []doctorJSONIssue          `json:"issues"`
+	UpgradeReadiness doctorUpgradeReadinessJSON `json:"upgrade_readiness"`
+}
+
+func writeDoctorJSON(w io.Writer, ok bool, issues []DoctorIssue, upgradeReadiness doctorUpgradeReadinessJSON) int {
 	payload := doctorJSONResult{
-		OK:     ok,
-		Issues: make([]doctorJSONIssue, 0, len(issues)),
+		OK:               ok,
+		Issues:           make([]doctorJSONIssue, 0, len(issues)),
+		UpgradeReadiness: upgradeReadiness,
 	}
 	for _, issue := range issues {
 		payload.Issues = append(payload.Issues, doctorJSONIssue{
@@ -169,6 +187,61 @@ func printDoctorIssues(w io.Writer, issues []DoctorIssue) {
 		if issue.Fix != "" {
 			fmt.Fprintf(w, "  fix: %s\n", issue.Fix)
 		}
+	}
+}
+
+func printDoctorUpgradeReadiness(w io.Writer, readiness doctorUpgradeReadinessJSON) {
+	if readiness.Ready {
+		fmt.Fprintln(w, "upgrade readiness: ready")
+		return
+	}
+	fmt.Fprintln(w, "upgrade readiness: blocked")
+	for _, blocker := range readiness.Blockers {
+		fmt.Fprintf(w, "- [%s] %s\n", blocker.ID, blocker.Detail)
+		if blocker.Remediation != "" {
+			fmt.Fprintf(w, "  fix: %s\n", blocker.Remediation)
+		}
+	}
+}
+
+func evaluateDoctorUpgradeReadiness(root string) doctorUpgradeReadinessJSON {
+	cliPath := filepath.Join(root, "tools", "cli", "ship", "internal", "cli", "cli.go")
+	body, err := os.ReadFile(cliPath)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return doctorUpgradeReadinessJSON{
+				Ready:    true,
+				Blockers: []doctorUpgradeBlockerJSON{},
+			}
+		}
+		return doctorUpgradeReadinessJSON{
+			Ready: false,
+			Blockers: []doctorUpgradeBlockerJSON{
+				{
+					ID:          "upgrade.convention_drift",
+					Detail:      "failed to read tools/cli/ship/internal/cli/cli.go for upgrade rewrite contract",
+					Remediation: "restore canonical CLI path permissions and rerun ship doctor",
+				},
+			},
+		}
+	}
+	text := string(body)
+	if strings.Contains(text, `gooseGoRunRef = "github.com/pressly/goose/v3/cmd/goose@`) ||
+		strings.Contains(text, `gooseGoRunRef = "github.com/pressly/goose/cmd/goose@`) {
+		return doctorUpgradeReadinessJSON{
+			Ready:    true,
+			Blockers: []doctorUpgradeBlockerJSON{},
+		}
+	}
+	return doctorUpgradeReadinessJSON{
+		Ready: false,
+		Blockers: []doctorUpgradeBlockerJSON{
+			{
+				ID:          "upgrade.convention_drift",
+				Detail:      "gooseGoRunRef constant not found in canonical CLI path",
+				Remediation: "run `ship verify --profile strict` and align upgrade scaffolding markers",
+			},
+		},
 	}
 }
 
