@@ -26,6 +26,7 @@ type shipDescribeRoute struct {
 	Method  string `json:"method"`
 	Path    string `json:"path"`
 	Handler string `json:"handler"`
+	Access  string `json:"access,omitempty"`
 	Auth    bool   `json:"auth"`
 	File    string `json:"file"`
 }
@@ -107,6 +108,14 @@ func toolDefinitions() []map[string]any {
 			},
 		},
 		{
+			"name":        "ship_runtime_report",
+			"description": "Run `ship runtime:report --json` and return runtime capability facts.",
+			"inputSchema": map[string]any{
+				"type":       "object",
+				"properties": map[string]any{},
+			},
+		},
+		{
 			"name":        "ship_scaffold",
 			"description": "Run `ship make:scaffold` and report the files that were touched.",
 			"inputSchema": map[string]any{
@@ -177,6 +186,8 @@ func (s *mcpServer) handleToolsCall(paramsJSON json.RawMessage) (toolCallResult,
 		return s.callShipRoutes(params.Arguments)
 	case "ship_modules":
 		return s.callShipModules(params.Arguments)
+	case "ship_runtime_report":
+		return s.callShipRuntimeReport(params.Arguments)
 	case "ship_scaffold":
 		return s.callShipScaffold(params.Arguments)
 	case "ship_verify":

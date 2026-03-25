@@ -158,6 +158,31 @@ func TestRunDescribe(t *testing.T) {
 	})
 }
 
+func TestDescribeRouteAccessClassification(t *testing.T) {
+	tests := []struct {
+		name     string
+		pathExpr string
+		fnName   string
+		receiver string
+		want     string
+	}{
+		{name: "public route", pathExpr: `"/"`, fnName: "registerPublicRoutes", receiver: "g", want: "public"},
+		{name: "auth path", pathExpr: `"/auth/profile"`, fnName: "registerAuthRoutes", receiver: "g", want: "auth"},
+		{name: "auth receiver", pathExpr: `"/welcome/preferences"`, fnName: "registerAuthRoutes", receiver: "onboardedGroup", want: "auth"},
+		{name: "admin path", pathExpr: `"/auth/admin/flags"`, fnName: "registerAuthRoutes", receiver: "g", want: "admin"},
+		{name: "admin receiver", pathExpr: `"/ops"`, fnName: "registerAuthRoutes", receiver: "adminGroup", want: "admin"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got := describeRouteAccess(tc.pathExpr, tc.fnName, tc.receiver)
+			if got != tc.want {
+				t.Fatalf("describeRouteAccess(%q, %q, %q) = %q, want %q", tc.pathExpr, tc.fnName, tc.receiver, got, tc.want)
+			}
+		})
+	}
+}
+
 func writeDescribeFixture(t *testing.T, root string) {
 	t.Helper()
 	dirs := []string{

@@ -29,6 +29,7 @@ type describeRoute struct {
 	Method  string `json:"method"`
 	Path    string `json:"path"`
 	Handler string `json:"handler"`
+	Access  string `json:"access"`
 	Auth    bool   `json:"auth"`
 	File    string `json:"file"`
 }
@@ -361,11 +362,13 @@ func collectDescribeRoutes(root string) ([]describeRoute, error) {
 			handler := describeExprString(fset, call.Args, 1)
 			receiver := describeExpr(fset, sel.X)
 			line := fset.Position(call.Pos()).Line
+			access := describeRouteAccess(pathExpr, fn.Name.Name, receiver)
 			routes = append(routes, describeRoute{
 				Method:  method,
 				Path:    pathExpr,
 				Handler: handler,
-				Auth:    describeRouteAuth(fn.Name.Name, receiver),
+				Access:  access,
+				Auth:    access != "public",
 				File:    fmt.Sprintf("%s:%d", filepath.ToSlash(mustRelPath(root, path)), line),
 			})
 			return true
@@ -724,15 +727,32 @@ func describeExpr(fset *token.FileSet, expr ast.Expr) string {
 }
 
 func describeRouteAuth(fnName string, receiver string) bool {
+	return describeRouteAccess("", fnName, receiver) != "public"
+}
+
+func describeRouteAccess(pathExpr, fnName, receiver string) string {
+	path := strings.Trim(strings.TrimSpace(pathExpr), "`\"")
+	lowerPath := strings.ToLower(path)
+	lowerFn := strings.ToLower(strings.TrimSpace(fnName))
+	lowerReceiver := strings.ToLower(strings.TrimSpace(receiver))
+
+	if strings.Contains(lowerPath, "/auth/admin") || strings.HasPrefix(lowerPath, "/admin") {
+		return "admin"
+	}
+	if strings.Contains(lowerFn, "admin") || strings.Contains(lowerReceiver, "admin") {
+		return "admin"
+	}
 	if fnName == "registerRealtimeRoutes" {
-		return true
+		return "auth"
 	}
 	switch receiver {
 	case "allGroup", "onboardingGroup", "onboardedGroup":
-		return true
-	default:
-		return false
+		return "auth"
 	}
+	if strings.HasPrefix(lowerPath, "/auth") {
+		return "auth"
+	}
+	return "public"
 }
 
 func describeHandlerLike(fn *ast.FuncDecl) bool {

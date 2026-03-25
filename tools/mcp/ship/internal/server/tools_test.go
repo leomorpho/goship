@@ -208,8 +208,9 @@ func TestCallShipRoutes(t *testing.T) {
 	runShipDescribePayload = func(string) (shipDescribeResult, error) {
 		return shipDescribeResult{
 			Routes: []shipDescribeRoute{
-				{Path: "/public", Method: "GET", Auth: false},
-				{Path: "/auth", Method: "POST", Auth: true},
+				{Path: "/public", Method: "GET", Access: "public", Auth: false},
+				{Path: "/auth", Method: "POST", Access: "auth", Auth: true},
+				{Path: "/auth/admin/flags", Method: "GET", Access: "admin", Auth: true},
 			},
 		}, nil
 	}
@@ -236,6 +237,20 @@ func TestCallShipRoutes(t *testing.T) {
 	}
 	if strings.Contains(res.Content[0].Text, `/public`) {
 		t.Fatalf("filter did not exclude public route: %s", res.Content[0].Text)
+	}
+	if strings.Contains(res.Content[0].Text, `/auth/admin/flags`) {
+		t.Fatalf("auth filter should not include admin routes: %s", res.Content[0].Text)
+	}
+
+	res, err = s.callShipRoutes(json.RawMessage(`{"filter":"admin"}`))
+	if err != nil {
+		t.Fatalf("filter error: %v", err)
+	}
+	if !strings.Contains(res.Content[0].Text, `/auth/admin/flags`) {
+		t.Fatalf("admin filter missing admin route: %s", res.Content[0].Text)
+	}
+	if strings.Contains(res.Content[0].Text, `/public`) || strings.Contains(res.Content[0].Text, `"/auth"`) {
+		t.Fatalf("admin filter should only include admin routes: %s", res.Content[0].Text)
 	}
 }
 
@@ -265,7 +280,7 @@ func TestCallShipRoutesAndModules(t *testing.T) {
 	docsRoot := t.TempDir()
 	s := &mcpServer{docsRoot: docsRoot, repoRoot: docsRoot}
 
-	baseDescribeJSON := `{"routes":[{"method":"GET","path":"/","handler":"landingPage.Get","auth":false,"file":"app/router.go:1"},{"method":"GET","path":"/auth","handler":"home.Get","auth":true,"file":"app/router.go:2"}],"modules":[{"id":"notifications","installed":true,"routes":0,"migrations":1}]}`
+	baseDescribeJSON := `{"routes":[{"method":"GET","path":"/","handler":"landingPage.Get","access":"public","auth":false,"file":"app/router.go:1"},{"method":"GET","path":"/auth","handler":"home.Get","access":"auth","auth":true,"file":"app/router.go:2"},{"method":"GET","path":"/auth/admin/flags","handler":"adminFlags.Get","access":"admin","auth":true,"file":"app/router.go:3"}],"modules":[{"id":"notifications","installed":true,"routes":0,"migrations":1}]}`
 
 	t.Run("ship_routes returns filtered routes", func(t *testing.T) {
 		prevLookPath := lookPathShip
@@ -288,6 +303,9 @@ func TestCallShipRoutesAndModules(t *testing.T) {
 		}
 		if !strings.Contains(res.Content[0].Text, `"/auth"`) || strings.Contains(res.Content[0].Text, `"path":"/"`) {
 			t.Fatalf("content = %q, want only auth route", res.Content[0].Text)
+		}
+		if strings.Contains(res.Content[0].Text, `"/auth/admin/flags"`) {
+			t.Fatalf("auth filter should exclude admin route: %q", res.Content[0].Text)
 		}
 	})
 
@@ -330,6 +348,68 @@ func TestCallShipRoutesAndModules(t *testing.T) {
 		}
 		if !res.IsError || res.Content[0].Text != `{"routes":[]}` {
 			t.Fatalf("result = %+v, want empty error payload", res)
+		}
+	})
+
+	t.Run("ship_routes admin filter returns only admin routes", func(t *testing.T) {
+		prevLookPath := lookPathShip
+		prevRunShip := runShipJSON
+		t.Cleanup(func() {
+			lookPathShip = prevLookPath
+			runShipJSON = prevRunShip
+		})
+		lookPathShip = func(file string) (string, error) { return "/usr/bin/ship", nil }
+		runShipJSON = func(name string, args ...string) ([]byte, error) {
+			return []byte(baseDescribeJSON), nil
+		}
+
+		res, err := s.callShipRoutes(json.RawMessage(`{"filter":"admin"}`))
+		if err != nil {
+			t.Fatalf("callShipRoutes error: %v", err)
+		}
+		if !strings.Contains(res.Content[0].Text, `"/auth/admin/flags"`) {
+			t.Fatalf("content = %q, want admin route", res.Content[0].Text)
+		}
+		if strings.Contains(res.Content[0].Text, `"path":"/"`) || strings.Contains(res.Content[0].Text, `"path":"/auth"`) {
+			t.Fatalf("content = %q, want only admin route", res.Content[0].Text)
+		}
+	})
+}
+
+func TestCallShipRuntimeReport(t *testing.T) {
+	s := &mcpServer{repoRoot: t.TempDir()}
+
+	t.Run("returns runtime report payload", func(t *testing.T) {
+		prevLookPath := lookPathShip
+		prevRunShip := runShipJSON
+		t.Cleanup(func() {
+			lookPathShip = prevLookPath
+			runShipJSON = prevRunShip
+		})
+		lookPathShip = func(file string) (string, error) { return "/usr/bin/ship", nil }
+		runShipJSON = func(name string, args ...string) ([]byte, error) {
+			if strings.Join(args, " ") != "runtime:report --json" {
+				t.Fatalf("args = %q, want runtime:report --json", strings.Join(args, " "))
+			}
+			return []byte(`{"contract_version":"runtime-contract-v1"}`), nil
+		}
+
+		res, err := s.callShipRuntimeReport(json.RawMessage(`{}`))
+		if err != nil {
+			t.Fatalf("callShipRuntimeReport error: %v", err)
+		}
+		if res.IsError {
+			t.Fatalf("expected non-error result, got %+v", res)
+		}
+		if len(res.Content) == 0 || !strings.Contains(res.Content[0].Text, `"runtime-contract-v1"`) {
+			t.Fatalf("content = %+v, want runtime report payload", res.Content)
+		}
+	})
+
+	t.Run("invalid args returns error", func(t *testing.T) {
+		_, err := s.callShipRuntimeReport(json.RawMessage(`{"unexpected":true}`))
+		if err == nil {
+			t.Fatal("expected validation error")
 		}
 	})
 }
