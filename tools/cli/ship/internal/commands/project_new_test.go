@@ -23,6 +23,7 @@ func TestParseNewArgs(t *testing.T) {
 		{name: "module spaced", args: []string{"demo", "--module", "example.com/demo"}},
 		{name: "dry-run", args: []string{"demo", "--dry-run"}},
 		{name: "force", args: []string{"demo", "--force"}},
+		{name: "api", args: []string{"demo", "--api"}},
 		{name: "api-only", args: []string{"demo", "--api-only"}},
 		{name: "i18n enabled", args: []string{"demo", "--i18n"}},
 		{name: "i18n disabled", args: []string{"demo", "--no-i18n"}},

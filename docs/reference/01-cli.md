@@ -43,7 +43,7 @@ External frontend contract note:
 
 Project lifecycle:
 
-- `ship new <app> [--module <module-path>] [--dry-run] [--force] [--api-only] [--i18n|--no-i18n]`
+- `ship new <app> [--module <module-path>] [--dry-run] [--force] [--api|--api-only] [--i18n|--no-i18n]`
 - `ship doctor [--json]`
 - `ship config:validate [--json]`
 - `ship routes [--json]`
@@ -205,7 +205,7 @@ Safety matrix:
 | `db:create` | safe; supports `--dry-run` | safe; supports `--dry-run` | safe; supports `--dry-run` |
 - `ship templ generate --path app` -> `templ generate -path app`, then move each `*_templ.go` into sibling `gen/` directory
 - `ship new <app>` -> create minimal deterministic project scaffold in a new directory from CLI-embedded starter templates (no network calls)
-  - `--api-only` enables the blessed backend-only starter mode aligned with `api-only-same-origin-sveltekit-v1`
+  - `--api` (alias: `--api-only`) enables the blessed backend-only starter mode aligned with `api-only-same-origin-sveltekit-v1`
   - interactive terminals prompt for i18n starter enablement unless `--i18n`/`--no-i18n` is provided
   - when enabled, starter locale files are scaffolded at `locales/en.toml` and `locales/fr.toml`
   - validates scaffold template layout before rendering and returns explicit diagnostics when required starter files are missing
