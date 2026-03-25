@@ -86,6 +86,57 @@ func TestGeneratorOutputSnapshotContract(t *testing.T) {
 				"cmd/cli/main.go",
 			},
 		},
+		{
+			name:     "controller output",
+			snapshot: "generator_report_controller.golden",
+			kind:     "controller",
+			created: []string{
+				"app/web/controllers/posts.go",
+			},
+			previews: []generatorPreview{
+				{
+					Title: "Router snippet for app/router.go",
+					Body: `posts := controllers.NewPosts(container)
+g.GET("/posts", posts.Index).Name = routeNames.RouteNamePosts`,
+				},
+			},
+		},
+		{
+			name:     "mailer output",
+			snapshot: "generator_report_mailer.golden",
+			kind:     "mailer",
+			created: []string{
+				"app/views/emails/welcome_digest.templ",
+			},
+			updated: []string{
+				"app/web/controllers/mail_preview.go",
+				"app/router.go",
+				"app/web/routenames/routenames.go",
+			},
+		},
+		{
+			name:     "island output",
+			snapshot: "generator_report_island.golden",
+			kind:     "island",
+			created: []string{
+				"frontend/islands/StatusBadge.js",
+				"app/views/web/components/status_badge_island.templ",
+			},
+			previews: []generatorPreview{
+				{
+					Title: "Templ usage snippet",
+					Body: `@components.StatusBadgeIsland(map[string]any{
+	"label": "StatusBadge",
+	"initialCount": 0,
+})`,
+				},
+			},
+			next: []string{
+				"ship templ generate --file app/views/web/components/status_badge_island.templ",
+				"make build-js",
+				"render @components.StatusBadgeIsland(...) from the page or component that should mount this island",
+			},
+		},
 	}
 
 	for _, tc := range cases {
