@@ -55,6 +55,29 @@ func TestDeployContractVersionPolicy_RedSpec(t *testing.T) {
 			t.Fatalf("actual version=%q want runtime-handshake-v2", got)
 		}
 	})
+
+	t.Run("accepts backward-compatible legacy runtime/handshake contract pair", func(t *testing.T) {
+		result := EvaluateDeployContractVersionPolicy("runtime-contract-v0", "runtime-handshake-v0")
+		if !result.OK {
+			t.Fatalf("expected legacy pair to pass negotiation, got %+v", result)
+		}
+		if len(result.Blockers) != 0 {
+			t.Fatalf("expected no blockers for legacy pair, got %+v", result.Blockers)
+		}
+	})
+
+	t.Run("rejects mismatched supported contract pair", func(t *testing.T) {
+		result := EvaluateDeployContractVersionPolicy("runtime-contract-v1", "runtime-handshake-v0")
+		if result.OK {
+			t.Fatalf("expected mixed runtime/handshake versions to fail, got %+v", result)
+		}
+		if len(result.Blockers) != 1 {
+			t.Fatalf("expected one pair mismatch blocker, got %+v", result.Blockers)
+		}
+		if got := result.Blockers[0].ID; got != "unsupported_runtime_contract_pair" {
+			t.Fatalf("blocker id=%q want unsupported_runtime_contract_pair", got)
+		}
+	})
 }
 
 func TestUpgradeContractVersionPolicy_RedSpec(t *testing.T) {

@@ -5,8 +5,11 @@ const (
 	SupportedRuntimeHandshakeVersion   = "runtime-handshake-v1"
 	SupportedUpgradeReadinessVersion   = "upgrade-readiness-v1"
 	SupportedManagedHookKeyVersion     = "managed-hook-key-version-v1"
+	LegacyRuntimeContractVersion       = "runtime-contract-v0"
+	LegacyRuntimeHandshakeVersion      = "runtime-handshake-v0"
 	BlockerUnsupportedRuntimeContract  = "unsupported_runtime_contract_version"
 	BlockerUnsupportedRuntimeHandshake = "unsupported_runtime_handshake_version"
+	BlockerUnsupportedRuntimePair      = "unsupported_runtime_contract_pair"
 	BlockerUnsupportedUpgradeReadiness = "unsupported_upgrade_readiness_version"
 	BlockerUnsupportedManagedHookKey   = "unsupported_managed_hook_key_version"
 )
@@ -26,7 +29,22 @@ type ContractVersionBlocker struct {
 // These helpers pin the exact version-policy contract for deploy/upgrade orchestration.
 // Wiring can reuse them later without redefining blocker IDs or accepted versions.
 func EvaluateDeployContractVersionPolicy(runtimeContractVersion, runtimeHandshakeVersion string) ContractVersionPolicyResult {
+	if _, _, ok := negotiateRuntimeContractPair(runtimeContractVersion, runtimeHandshakeVersion); ok {
+		return ContractVersionPolicyResult{OK: true}
+	}
+
 	result := ContractVersionPolicyResult{OK: true}
+
+	if isSupportedRuntimeContract(runtimeContractVersion) && isSupportedRuntimeHandshake(runtimeHandshakeVersion) {
+		result.OK = false
+		result.Blockers = append(result.Blockers, ContractVersionBlocker{
+			ID:          BlockerUnsupportedRuntimePair,
+			Expected:    SupportedRuntimeContractVersion + " + " + SupportedRuntimeHandshakeVersion + " or " + LegacyRuntimeContractVersion + " + " + LegacyRuntimeHandshakeVersion,
+			Actual:      runtimeContractVersion + " + " + runtimeHandshakeVersion,
+			Remediation: "Use a supported runtime-contract/runtime-handshake pair from ship runtime:report --json before deploy orchestration proceeds.",
+		})
+		return result
+	}
 
 	if runtimeContractVersion != SupportedRuntimeContractVersion {
 		result.OK = false
@@ -49,6 +67,25 @@ func EvaluateDeployContractVersionPolicy(runtimeContractVersion, runtimeHandshak
 	}
 
 	return result
+}
+
+func negotiateRuntimeContractPair(runtimeContractVersion, runtimeHandshakeVersion string) (string, string, bool) {
+	pairs := map[string]string{
+		SupportedRuntimeContractVersion: SupportedRuntimeHandshakeVersion,
+		LegacyRuntimeContractVersion:    LegacyRuntimeHandshakeVersion,
+	}
+	if handshake, ok := pairs[runtimeContractVersion]; ok && handshake == runtimeHandshakeVersion {
+		return runtimeContractVersion, runtimeHandshakeVersion, true
+	}
+	return "", "", false
+}
+
+func isSupportedRuntimeContract(version string) bool {
+	return version == SupportedRuntimeContractVersion || version == LegacyRuntimeContractVersion
+}
+
+func isSupportedRuntimeHandshake(version string) bool {
+	return version == SupportedRuntimeHandshakeVersion || version == LegacyRuntimeHandshakeVersion
 }
 
 func EvaluateUpgradeContractVersionPolicy(upgradeReadinessVersion string) ContractVersionPolicyResult {
