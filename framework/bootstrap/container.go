@@ -538,7 +538,13 @@ func (c *Container) initAuditLogs() {
 }
 
 func (c *Container) initFlags() {
-	module := flags.NewModule(flags.NewService(flags.NewSQLStore(c.Database), adapters.NewCoreCacheAdapter(c.Cache)))
+	store := flags.NewSQLStore(c.Database)
+	service := flags.NewService(store, adapters.NewCoreCacheAdapter(c.Cache))
+	syncer := flags.NewSyncer(store, logging.NewLogger(c.Config.Log))
+	module := flags.NewModule(service, syncer)
+	if err := module.Start(context.Background()); err != nil {
+		panic(fmt.Sprintf("flags startup sync failed: %v", err))
+	}
 	c.Flags = module.Service()
 }
 

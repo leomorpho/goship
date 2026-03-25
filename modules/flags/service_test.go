@@ -21,6 +21,9 @@ func (f *fakeStore) Find(context.Context, string) (Flag, error) {
 func (f *fakeStore) List(context.Context) ([]Flag, error) { return []Flag{f.flag}, nil }
 func (f *fakeStore) Create(context.Context, Flag) error   { return nil }
 func (f *fakeStore) Update(context.Context, Flag) error   { return nil }
+func (f *fakeStore) UpsertDescription(context.Context, string, string) error {
+	return nil
+}
 func (f *fakeStore) Delete(context.Context, string) error { return nil }
 
 type fakeCache struct {
