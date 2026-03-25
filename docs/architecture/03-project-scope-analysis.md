@@ -272,9 +272,10 @@ Security baseline:
 Health endpoints:
 
 - `GET /health` is now a JSON liveness endpoint (`{"status":"ok"}` when process is running).
-- `GET /health/ready` is a JSON readiness endpoint that runs registered dependency checks (DB, cache, jobs inspector) and returns `503` when any critical check fails.
+- `GET /health/ready` is a JSON readiness endpoint that runs registered dependency checks (DB, cache, jobs inspector, required runtime env contract) and returns `503` when any critical check fails.
 - The framework bootstrap container now owns the default health registry, and framework web wiring registers `/up`, `/health`, and `/health/ready` without app-specific route assembly.
-- Startup now validates the framework health contract (`db`, `cache`, `jobs` checks present) and fails fast when misconfigured rather than silently serving incomplete readiness behavior.
+- Startup now validates the framework health contract (`db`, `cache`, `jobs`, `env` checks present) and fails fast when misconfigured rather than silently serving incomplete readiness behavior.
+- Startup also validates the framework-default runtime env contract (`PAGODA_APP_ENVIRONMENT`, adapter selectors, and DB location/host fields by DB mode) so missing required runtime variables fail before serving traffic.
 - Startup validation failures now emit a deterministic health startup summary (`required`, `registered`, `missing`, `ready`) so operators can diagnose misconfiguration quickly.
 
 ## Testing Surface

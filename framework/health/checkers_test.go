@@ -3,6 +3,7 @@ package health
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -104,5 +105,28 @@ func TestJobsChecker(t *testing.T) {
 	result = checker.Check(context.Background())
 	if result.Status != StatusOK {
 		t.Fatalf("expected ok status for non-fatal inspector error, got %q", result.Status)
+	}
+}
+
+func TestEnvChecker(t *testing.T) {
+	checker := NewEnvChecker(
+		EnvRequirement{Name: "PAGODA_APP_ENVIRONMENT", Value: "test"},
+		EnvRequirement{Name: "PAGODA_ADAPTERS_DB", Value: "sqlite"},
+	)
+	result := checker.Check(context.Background())
+	if result.Status != StatusOK {
+		t.Fatalf("expected ok status, got %q (%s)", result.Status, result.Error)
+	}
+
+	checker = NewEnvChecker(
+		EnvRequirement{Name: "PAGODA_APP_ENVIRONMENT", Value: ""},
+		EnvRequirement{Name: "PAGODA_ADAPTERS_DB", Value: "sqlite"},
+	)
+	result = checker.Check(context.Background())
+	if result.Status != StatusError {
+		t.Fatalf("expected error status, got %q", result.Status)
+	}
+	if !strings.Contains(result.Error, "PAGODA_APP_ENVIRONMENT") {
+		t.Fatalf("error = %q, want missing variable name", result.Error)
 	}
 }

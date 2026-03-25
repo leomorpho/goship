@@ -8,8 +8,23 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/leomorpho/goship/config"
+	"github.com/leomorpho/goship/framework/core/adapters"
 	"github.com/leomorpho/goship/framework/health"
 )
+
+type testChecker struct {
+	name   string
+	result health.CheckResult
+}
+
+func (t testChecker) Name() string {
+	return t.name
+}
+
+func (t testChecker) Check(context.Context) health.CheckResult {
+	return t.result
+}
 
 func TestOpenEmbeddedDBConfiguresSQLitePragmas(t *testing.T) {
 	conn := filepath.Join(t.TempDir(), "db", "app.db") + "?_journal=WAL&_timeout=5000&_fk=true"
@@ -154,10 +169,111 @@ func TestContainerValidateStartupContractPanicsWhenHealthChecksMissing(t *testin
 		if !strings.Contains(message, "health startup contract") {
 			t.Fatalf("panic = %q, want startup contract summary", message)
 		}
-		if !strings.Contains(message, "missing=[db cache jobs]") {
+		if !strings.Contains(message, "missing=[db cache jobs env]") {
 			t.Fatalf("panic = %q, want missing checks summary", message)
 		}
 	}()
 
 	container.validateStartupContract()
+}
+
+func TestContainerValidateStartupContractPanicsWhenRuntimeEnvIsMissing(t *testing.T) {
+	container := &Container{
+		Health: health.NewRegistry(
+			testChecker{name: "db", result: health.CheckResult{Status: health.StatusOK}},
+			testChecker{name: "cache", result: health.CheckResult{Status: health.StatusOK}},
+			testChecker{name: "jobs", result: health.CheckResult{Status: health.StatusOK}},
+			health.NewEnvChecker(
+				health.EnvRequirement{Name: "PAGODA_APP_ENVIRONMENT", Value: "test"},
+				health.EnvRequirement{Name: "PAGODA_ADAPTERS_DB", Value: ""},
+			),
+		),
+	}
+
+	var panicValue any
+	defer func() {
+		panicValue = recover()
+		if panicValue == nil {
+			t.Fatal("expected panic when required runtime env values are missing")
+		}
+		message := panicValue.(string)
+		if !strings.Contains(message, "required runtime environment variables are missing") {
+			t.Fatalf("panic = %q, want missing runtime env error", message)
+		}
+		if !strings.Contains(message, "PAGODA_ADAPTERS_DB") {
+			t.Fatalf("panic = %q, want missing env variable name", message)
+		}
+	}()
+
+	container.validateStartupContract()
+}
+
+func TestContainerValidateStartupContractPanicsForStandaloneDBMissingRuntimeFields(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name        string
+		hostname    string
+		port        uint16
+		wantMissing string
+	}{
+		{
+			name:        "missing hostname",
+			hostname:    "",
+			port:        5432,
+			wantMissing: "PAGODA_DATABASE_HOSTNAME",
+		},
+		{
+			name:        "missing port",
+			hostname:    "db.internal",
+			port:        0,
+			wantMissing: "PAGODA_DATABASE_PORT",
+		},
+	}
+
+	for _, tc := range cases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			container := &Container{
+				Config: &config.Config{
+					App: config.AppConfig{
+						Environment: config.EnvDevelop,
+					},
+					Database: config.DatabaseConfig{
+						DbMode:   config.DBModeStandalone,
+						Hostname: tc.hostname,
+						Port:     tc.port,
+					},
+				},
+				Adapters: adapters.Resolved{
+					Selection: adapters.Selection{
+						DB:     "postgres",
+						Cache:  "otter",
+						Jobs:   "backlite",
+						PubSub: "inproc",
+					},
+				},
+			}
+			container.initHealth()
+
+			var panicValue any
+			defer func() {
+				panicValue = recover()
+				if panicValue == nil {
+					t.Fatal("expected panic when standalone runtime db fields are missing")
+				}
+				message := panicValue.(string)
+				if !strings.Contains(message, "required runtime environment variables are missing") {
+					t.Fatalf("panic = %q, want missing runtime env error", message)
+				}
+				if !strings.Contains(message, tc.wantMissing) {
+					t.Fatalf("panic = %q, want missing env variable name %q", message, tc.wantMissing)
+				}
+			}()
+
+			container.validateStartupContract()
+		})
+	}
 }

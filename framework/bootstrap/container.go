@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log/slog"
+	"strconv"
 	"strings"
 	"time"
 
@@ -223,10 +224,34 @@ func (c *Container) initHealth() {
 		return
 	}
 
+	requiredEnv := []health.EnvRequirement{
+		{Name: "PAGODA_APP_ENVIRONMENT", Value: string(c.Config.App.Environment)},
+		{Name: "PAGODA_ADAPTERS_DB", Value: c.Adapters.Selection.DB},
+		{Name: "PAGODA_ADAPTERS_CACHE", Value: c.Adapters.Selection.Cache},
+		{Name: "PAGODA_ADAPTERS_JOBS", Value: c.Adapters.Selection.Jobs},
+		{Name: "PAGODA_ADAPTERS_PUBSUB", Value: c.Adapters.Selection.PubSub},
+	}
+	if c.Config.Database.DbMode == config.DBModeEmbedded {
+		requiredEnv = append(requiredEnv, health.EnvRequirement{
+			Name:  "PAGODA_DB_PATH",
+			Value: c.Config.Database.Path,
+		})
+	} else {
+		dbPort := ""
+		if c.Config.Database.Port > 0 {
+			dbPort = strconv.Itoa(int(c.Config.Database.Port))
+		}
+		requiredEnv = append(requiredEnv,
+			health.EnvRequirement{Name: "PAGODA_DATABASE_HOSTNAME", Value: c.Config.Database.Hostname},
+			health.EnvRequirement{Name: "PAGODA_DATABASE_PORT", Value: dbPort},
+		)
+	}
+
 	c.Health = health.NewRegistry(
 		health.NewDBChecker(c.Database, 2*time.Second),
 		health.NewCacheChecker(c.CoreCache, 2*time.Second),
 		health.NewJobsChecker(c.CoreJobsInspector, 2*time.Second),
+		health.NewEnvChecker(requiredEnv...),
 	)
 }
 

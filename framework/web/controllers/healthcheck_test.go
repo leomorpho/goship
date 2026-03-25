@@ -66,6 +66,7 @@ func TestNewHealthCheckRouteUsesContainerHealthRegistry(t *testing.T) {
 		testChecker{name: "db", result: health.CheckResult{Status: health.StatusOK}},
 		testChecker{name: "cache", result: health.CheckResult{Status: health.StatusOK}},
 		testChecker{name: "jobs", result: health.CheckResult{Status: health.StatusOK}},
+		testChecker{name: "env", result: health.CheckResult{Status: health.StatusOK}},
 	)
 
 	route := NewHealthCheckRoute(ui.NewController(&frameworkbootstrap.Container{Health: registry}))
@@ -95,7 +96,7 @@ func TestNewHealthCheckRoutePanicsWhenHealthContractIsInvalid(t *testing.T) {
 		if !strings.Contains(message, "health startup contract") {
 			t.Fatalf("panic = %q, want startup contract summary", message)
 		}
-		if !strings.Contains(message, "missing=[cache jobs]") {
+		if !strings.Contains(message, "missing=[cache jobs env]") {
 			t.Fatalf("panic = %q, want missing checks summary", message)
 		}
 	}()

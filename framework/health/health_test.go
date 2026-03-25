@@ -95,6 +95,9 @@ func TestRegistryValidateStartupContract(t *testing.T) {
 		testChecker{name: "db", result: CheckResult{Status: StatusOK}},
 		testChecker{name: "cache", result: CheckResult{Status: StatusOK}},
 		testChecker{name: "jobs", result: CheckResult{Status: StatusOK}},
+		NewEnvChecker(
+			EnvRequirement{Name: "PAGODA_APP_ENVIRONMENT", Value: "test"},
+		),
 	)
 
 	if err := registry.ValidateStartupContract(); err != nil {
@@ -111,8 +114,8 @@ func TestRegistryValidateStartupContractMissingChecks(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected validation error when checks are missing")
 	}
-	if !strings.Contains(err.Error(), "cache") || !strings.Contains(err.Error(), "jobs") {
-		t.Fatalf("validation error = %q, want missing cache/jobs", err.Error())
+	if !strings.Contains(err.Error(), "cache") || !strings.Contains(err.Error(), "jobs") || !strings.Contains(err.Error(), "env") {
+		t.Fatalf("validation error = %q, want missing cache/jobs/env", err.Error())
 	}
 }
 
@@ -133,14 +136,14 @@ func TestRegistryStartupSummary(t *testing.T) {
 	if summary.Ready {
 		t.Fatal("expected startup summary to be not ready when checks are missing")
 	}
-	if strings.Join(summary.Required, ",") != "db,cache,jobs" {
-		t.Fatalf("required = %v, want db,cache,jobs", summary.Required)
+	if strings.Join(summary.Required, ",") != "db,cache,jobs,env" {
+		t.Fatalf("required = %v, want db,cache,jobs,env", summary.Required)
 	}
 	if strings.Join(summary.Registered, ",") != "db,jobs" {
 		t.Fatalf("registered = %v, want db,jobs", summary.Registered)
 	}
-	if strings.Join(summary.Missing, ",") != "cache" {
-		t.Fatalf("missing = %v, want cache", summary.Missing)
+	if strings.Join(summary.Missing, ",") != "cache,env" {
+		t.Fatalf("missing = %v, want cache,env", summary.Missing)
 	}
 }
 
@@ -154,7 +157,7 @@ func TestRegistryValidateStartupContractIncludesStructuredSummary(t *testing.T) 
 	if !strings.Contains(err.Error(), "health startup contract") {
 		t.Fatalf("error = %q, want structured startup contract prefix", err.Error())
 	}
-	if !strings.Contains(err.Error(), "missing=[cache jobs]") {
+	if !strings.Contains(err.Error(), "missing=[cache jobs env]") {
 		t.Fatalf("error = %q, want missing check list", err.Error())
 	}
 }
