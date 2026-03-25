@@ -2895,13 +2895,13 @@
     },
     "TKT-515": {
       "title": "Add framework-default startup contract validation and prove misconfiguration fails early in runtime tests.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-512"
     },
     "TKT-516": {
       "title": "Add structured startup summaries for operators and lock expected output with tests.",
-      "state": "backlog",
+      "state": "in-progress",
       "priority": 4,
       "parent": "TKT-512"
     },
@@ -3378,7 +3378,7 @@
     },
     "TKT-599": {
       "title": "[Flags Admin UI] Detect and mark orphaned DB flags",
-      "state": "in-progress",
+      "state": "in-review",
       "priority": 3,
       "parent": "TKT-593"
     },
