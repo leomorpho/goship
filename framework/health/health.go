@@ -3,6 +3,7 @@ package health
 import (
 	"context"
 	"fmt"
+	"sort"
 	"slices"
 	"strings"
 	"sync"
@@ -33,6 +34,13 @@ type Registry struct {
 	checkers []Checker
 }
 
+type StartupSummary struct {
+	Ready      bool     `json:"ready"`
+	Required   []string `json:"required"`
+	Registered []string `json:"registered"`
+	Missing    []string `json:"missing"`
+}
+
 func NewRegistry(checkers ...Checker) *Registry {
 	registry := &Registry{}
 	for _, checker := range checkers {
@@ -51,38 +59,58 @@ func (r *Registry) Register(checker Checker) {
 }
 
 func (r *Registry) ValidateStartupContract(requiredChecks ...string) error {
-	if r == nil {
-		return fmt.Errorf("health registry is not configured")
+	summary := r.StartupSummary(requiredChecks...)
+	if !summary.Ready {
+		return fmt.Errorf(
+			"health startup contract: ready=%t required=%v registered=%v missing=%v",
+			summary.Ready,
+			summary.Required,
+			summary.Registered,
+			summary.Missing,
+		)
+	}
+	return nil
+}
+
+func (r *Registry) StartupSummary(requiredChecks ...string) StartupSummary {
+	required := slices.Clone(requiredChecks)
+	if len(required) == 0 {
+		required = slices.Clone(defaultStartupChecks)
 	}
 
-	required := requiredChecks
-	if len(required) == 0 {
-		required = defaultStartupChecks
+	summary := StartupSummary{
+		Required: required,
+	}
+
+	if r == nil {
+		summary.Missing = slices.Clone(required)
+		return summary
 	}
 
 	r.mu.RLock()
 	checkers := append([]Checker(nil), r.checkers...)
 	r.mu.RUnlock()
 
-	registeredNames := make([]string, 0, len(checkers))
+	registered := make([]string, 0, len(checkers))
 	for _, checker := range checkers {
 		name := strings.TrimSpace(checker.Name())
-		if name == "" {
+		if name == "" || slices.Contains(registered, name) {
 			continue
 		}
-		registeredNames = append(registeredNames, name)
+		registered = append(registered, name)
 	}
+	sort.Strings(registered)
+	summary.Registered = registered
 
 	missing := make([]string, 0)
 	for _, name := range required {
-		if !slices.Contains(registeredNames, name) {
+		if !slices.Contains(registered, name) {
 			missing = append(missing, name)
 		}
 	}
-	if len(missing) > 0 {
-		return fmt.Errorf("missing required health checks: %s", strings.Join(missing, ", "))
-	}
-	return nil
+	summary.Missing = missing
+	summary.Ready = len(missing) == 0
+	return summary
 }
 
 func (r *Registry) Run(ctx context.Context) (map[string]CheckResult, bool) {

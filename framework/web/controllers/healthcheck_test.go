@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -84,9 +85,18 @@ func TestNewHealthCheckRoutePanicsWithoutHealthRegistry(t *testing.T) {
 }
 
 func TestNewHealthCheckRoutePanicsWhenHealthContractIsInvalid(t *testing.T) {
+	var panicValue any
 	defer func() {
-		if recover() == nil {
+		panicValue = recover()
+		if panicValue == nil {
 			t.Fatal("expected panic when health contract is invalid")
+		}
+		message := panicValue.(string)
+		if !strings.Contains(message, "health startup contract") {
+			t.Fatalf("panic = %q, want startup contract summary", message)
+		}
+		if !strings.Contains(message, "missing=[cache jobs]") {
+			t.Fatalf("panic = %q, want missing checks summary", message)
 		}
 	}()
 

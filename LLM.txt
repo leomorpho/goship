@@ -1052,6 +1052,7 @@ Health endpoints:
 - `GET /health/ready` is a JSON readiness endpoint that runs registered dependency checks (DB, cache, jobs inspector) and returns `503` when any critical check fails.
 - The framework bootstrap container now owns the default health registry, and framework web wiring registers `/up`, `/health`, and `/health/ready` without app-specific route assembly.
 - Startup now validates the framework health contract (`db`, `cache`, `jobs` checks present) and fails fast when misconfigured rather than silently serving incomplete readiness behavior.
+- Startup validation failures now emit a deterministic health startup summary (`required`, `registered`, `missing`, `ready`) so operators can diagnose misconfiguration quickly.
 
 ## Testing Surface
 
