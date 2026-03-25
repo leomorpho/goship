@@ -308,6 +308,24 @@ func TestGetConfig_BackupDefaultsUseDatabasePath(t *testing.T) {
 	assert.Equal(t, "sqlite-file", cfg.Backup.Driver)
 }
 
+func TestUIProviderDefault(t *testing.T) {
+	useIsolatedWorkingDir(t)
+	t.Setenv("PAGODA_UI_PROVIDER", "")
+
+	cfg, err := GetConfig()
+	require.NoError(t, err)
+	assert.Equal(t, UIProviderFranken, cfg.UI.Provider)
+}
+
+func TestUIProviderValidation(t *testing.T) {
+	useIsolatedWorkingDir(t)
+	t.Setenv("PAGODA_UI_PROVIDER", "unknown")
+
+	_, err := GetConfig()
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "unsupported ui provider")
+}
+
 func useIsolatedWorkingDir(t *testing.T) {
 	t.Helper()
 

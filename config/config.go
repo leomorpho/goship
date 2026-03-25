@@ -43,6 +43,9 @@ func GetConfig() (Config, error) {
 	applyDatabaseDriverConfig(&c)
 	applyBackupDefaults(&c)
 	applyRuntimeDefaults(&c)
+	if err := applyUIProviderDefaults(&c); err != nil {
+		return c, err
+	}
 	applyProcessesProfileIfUnset(&c, hasExplicitProcessSelection(repoPresence, envPresence, managedSet))
 	c.Managed.RuntimeReport = runtimeconfig.BuildReport(runtimeconfig.LayerInputs{
 		Defaults:        managedKeyValues(normalizedDefaultConfigForReporting()),
@@ -137,6 +140,7 @@ func defaultConfig() Config {
 			HooksMaxSkewSeconds:  300,
 			HooksNonceTTLSeconds: 300,
 		},
+		UI:        UIConfig{},
 		Processes: ProcessesConfig{},
 		Adapters: AdaptersConfig{
 			DB:     "sqlite",
@@ -380,6 +384,26 @@ func normalizeStorageDriver(raw string) storagedriver {
 	default:
 		return ""
 	}
+}
+
+func applyUIProviderDefaults(c *Config) error {
+	if c == nil {
+		return nil
+	}
+	provider := strings.ToLower(strings.TrimSpace(string(c.UI.Provider)))
+	switch provider {
+	case "":
+		c.UI.Provider = UIProviderFranken
+	case string(UIProviderFranken):
+		c.UI.Provider = UIProviderFranken
+	case string(UIProviderDaisy):
+		c.UI.Provider = UIProviderDaisy
+	case string(UIProviderBare):
+		c.UI.Provider = UIProviderBare
+	default:
+		return fmt.Errorf("unsupported ui provider %q", c.UI.Provider)
+	}
+	return nil
 }
 
 func setManagedString(raw string, target *string, key string) error {
