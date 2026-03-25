@@ -23,6 +23,10 @@
     @apply space-y-gs-6;
   }
 
+  .gs-form {
+    @apply space-y-gs-4;
+  }
+
   .gs-color-muted {
     @apply text-gs-text-muted;
   }
@@ -45,6 +49,38 @@
 
   .gs-button-secondary {
     @apply border border-gs-border bg-gs-surface text-gs-text hover:bg-gs-surface-muted;
+  }
+
+  .gs-alert {
+    @apply rounded-gs-control border px-gs-4 py-gs-2 text-sm font-medium;
+  }
+
+  .gs-alert-info {
+    @apply border-gs-border bg-gs-surface-muted text-gs-text;
+  }
+
+  .gs-alert-success {
+    @apply border-gs-success bg-gs-surface text-gs-success;
+  }
+
+  .gs-alert-danger {
+    @apply border-gs-danger bg-gs-surface text-gs-danger;
+  }
+
+  .gs-card {
+    @apply rounded-gs-panel border border-gs-border bg-gs-surface p-gs-6 shadow-gs-panel;
+  }
+
+  .gs-nav {
+    @apply flex items-center gap-gs-2;
+  }
+
+  .gs-nav-item {
+    @apply rounded-gs-control px-gs-4 py-gs-2 text-sm font-medium text-gs-text-muted hover:text-gs-text;
+  }
+
+  .gs-nav-item-active {
+    @apply bg-gs-surface-muted text-gs-text;
   }
 
   .gs-field-error {

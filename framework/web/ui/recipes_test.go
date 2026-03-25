@@ -20,11 +20,59 @@ func TestSemanticRecipeClassRegistry(t *testing.T) {
 		RecipeFieldHint:       "gs-field-hint",
 		RecipeFieldError:      "gs-field-error",
 		RecipeFieldSuccess:    "gs-field-success",
+		RecipeForm:            "gs-form",
+		RecipeAlert:           "gs-alert",
+		RecipeAlertInfo:       "gs-alert-info",
+		RecipeAlertSuccess:    "gs-alert-success",
+		RecipeAlertDanger:     "gs-alert-danger",
+		RecipeCard:            "gs-card",
+		RecipeNav:             "gs-nav",
+		RecipeNavItem:         "gs-nav-item",
+		RecipeNavItemActive:   "gs-nav-item-active",
 	}
 
 	for recipe, want := range cases {
 		if got := recipeClass(recipe); got != want {
 			t.Fatalf("recipe %q class = %q, want %q", recipe, got, want)
 		}
+	}
+}
+
+func TestSemanticRecipeMarkupConsistency(t *testing.T) {
+	if got := buttonClass(true); got != "gs-button gs-button-primary" {
+		t.Fatalf("buttonClass(true)=%q", got)
+	}
+	if got := buttonClass(false); got != "gs-button gs-button-secondary" {
+		t.Fatalf("buttonClass(false)=%q", got)
+	}
+	if got := inputClass(""); got != "gs-field-input" {
+		t.Fatalf("inputClass(empty)=%q", got)
+	}
+	if got := inputClass("gs-field-error"); got != "gs-field-input gs-field-error" {
+		t.Fatalf("inputClass(error)=%q", got)
+	}
+	if got := formClass(); got != "gs-form" {
+		t.Fatalf("formClass()=%q", got)
+	}
+	if got := alertClass("info"); got != "gs-alert gs-alert-info" {
+		t.Fatalf("alertClass(info)=%q", got)
+	}
+	if got := alertClass("success"); got != "gs-alert gs-alert-success" {
+		t.Fatalf("alertClass(success)=%q", got)
+	}
+	if got := alertClass("danger"); got != "gs-alert gs-alert-danger" {
+		t.Fatalf("alertClass(danger)=%q", got)
+	}
+	if got := cardClass(); got != "gs-card" {
+		t.Fatalf("cardClass()=%q", got)
+	}
+	if got := navClass(); got != "gs-nav" {
+		t.Fatalf("navClass()=%q", got)
+	}
+	if got := navItemClass(false); got != "gs-nav-item" {
+		t.Fatalf("navItemClass(false)=%q", got)
+	}
+	if got := navItemClass(true); got != "gs-nav-item gs-nav-item-active" {
+		t.Fatalf("navItemClass(true)=%q", got)
 	}
 }
