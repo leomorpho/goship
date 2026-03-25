@@ -144,9 +144,18 @@ func TestContainerValidateStartupContractPanicsWhenHealthChecksMissing(t *testin
 		Health: health.NewRegistry(),
 	}
 
+	var panicValue any
 	defer func() {
-		if recover() == nil {
+		panicValue = recover()
+		if panicValue == nil {
 			t.Fatal("expected panic when startup health contract is invalid")
+		}
+		message := panicValue.(string)
+		if !strings.Contains(message, "health startup contract") {
+			t.Fatalf("panic = %q, want startup contract summary", message)
+		}
+		if !strings.Contains(message, "missing=[db cache jobs]") {
+			t.Fatalf("panic = %q, want missing checks summary", message)
 		}
 	}()
 

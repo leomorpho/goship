@@ -122,3 +122,39 @@ func TestRegistryValidateStartupContractNilRegistry(t *testing.T) {
 		t.Fatal("expected error for nil registry")
 	}
 }
+
+func TestRegistryStartupSummary(t *testing.T) {
+	registry := NewRegistry(
+		testChecker{name: "db", result: CheckResult{Status: StatusOK}},
+		testChecker{name: "jobs", result: CheckResult{Status: StatusOK}},
+	)
+
+	summary := registry.StartupSummary()
+	if summary.Ready {
+		t.Fatal("expected startup summary to be not ready when checks are missing")
+	}
+	if strings.Join(summary.Required, ",") != "db,cache,jobs" {
+		t.Fatalf("required = %v, want db,cache,jobs", summary.Required)
+	}
+	if strings.Join(summary.Registered, ",") != "db,jobs" {
+		t.Fatalf("registered = %v, want db,jobs", summary.Registered)
+	}
+	if strings.Join(summary.Missing, ",") != "cache" {
+		t.Fatalf("missing = %v, want cache", summary.Missing)
+	}
+}
+
+func TestRegistryValidateStartupContractIncludesStructuredSummary(t *testing.T) {
+	registry := NewRegistry(testChecker{name: "db", result: CheckResult{Status: StatusOK}})
+
+	err := registry.ValidateStartupContract()
+	if err == nil {
+		t.Fatal("expected error when startup checks are missing")
+	}
+	if !strings.Contains(err.Error(), "health startup contract") {
+		t.Fatalf("error = %q, want structured startup contract prefix", err.Error())
+	}
+	if !strings.Contains(err.Error(), "missing=[cache jobs]") {
+		t.Fatalf("error = %q, want missing check list", err.Error())
+	}
+}
