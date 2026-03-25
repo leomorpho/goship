@@ -171,3 +171,23 @@ func (p Page) StarterNavItemClass(active bool) string {
 func (p Page) StarterAlertClass(variant string) string {
 	return alertClass(variant)
 }
+
+func (p Page) StarterLayoutShellClass() string {
+	return layoutShellClass()
+}
+
+func (p Page) StarterLayoutHeaderClass() string {
+	return layoutHeaderClass()
+}
+
+func (p Page) StarterLayoutContentClass() string {
+	return layoutContentClass()
+}
+
+func (p Page) StarterLayoutFooterClass() string {
+	return layoutFooterClass()
+}
+
+func (p Page) StarterIslandMountClass() string {
+	return islandMountClass()
+}

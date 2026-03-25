@@ -100,4 +100,9 @@ func TestPage_DesignTokenRecipes(t *testing.T) {
 	assert.Equal(t, "gs-alert gs-alert-info", p.StarterAlertClass("info"))
 	assert.Equal(t, "gs-alert gs-alert-success", p.StarterAlertClass("success"))
 	assert.Equal(t, "gs-alert gs-alert-danger", p.StarterAlertClass("danger"))
+	assert.Equal(t, "gs-layout-shell", p.StarterLayoutShellClass())
+	assert.Equal(t, "gs-layout-header", p.StarterLayoutHeaderClass())
+	assert.Equal(t, "gs-layout-content", p.StarterLayoutContentClass())
+	assert.Equal(t, "gs-layout-footer", p.StarterLayoutFooterClass())
+	assert.Equal(t, "gs-island-mount", p.StarterIslandMountClass())
 }
