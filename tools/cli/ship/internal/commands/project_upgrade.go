@@ -2,6 +2,7 @@ package commands
 
 import (
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -101,6 +102,15 @@ type UpgradeResult struct {
 	Applied bool   `json:"applied"`
 }
 
+type upgradeConventionDriftError struct {
+	path   string
+	detail string
+}
+
+func (e upgradeConventionDriftError) Error() string {
+	return fmt.Sprintf("canonical generated conventions drifted in %s: %s", e.path, e.detail)
+}
+
 func RunUpgrade(args []string, d UpgradeDeps) int {
 	for _, arg := range args {
 		if arg == "-h" || arg == "--help" || arg == "help" {
@@ -160,6 +170,21 @@ func upgradeGoose(d UpgradeDeps, root, version string, dryRun, jsonOut, applyMod
 	path := filepath.Join(root, filepath.FromSlash(displayPath))
 	old, newText, changed, err := RewriteGooseVersion(path, version)
 	if err != nil {
+		var driftErr upgradeConventionDriftError
+		if errors.As(err, &driftErr) {
+			report := buildUpgradeDriftReport(displayPath, version, driftErr.detail)
+			if jsonOut {
+				if encodeErr := json.NewEncoder(d.Out).Encode(report); encodeErr != nil {
+					fmt.Fprintf(d.Err, "failed to encode upgrade readiness report: %v\n", encodeErr)
+					return 1
+				}
+				return 1
+			}
+			fmt.Fprintln(d.Err, "upgrade blocked: canonical generated conventions drifted")
+			fmt.Fprintf(d.Err, "- %s: %s\n", displayPath, driftErr.detail)
+			fmt.Fprintln(d.Err, "run `ship verify --profile strict` and align generated conventions before retrying upgrade apply")
+			return 1
+		}
 		fmt.Fprintf(d.Err, "failed to update goose version: %v\n", err)
 		return 1
 	}
@@ -216,8 +241,60 @@ func RewriteGooseVersion(path, target string) (oldVersion string, rewritten stri
 		updated := codemod.pattern.ReplaceAllString(text, replacement)
 		return old, updated, true, nil
 	}
-	return "", "", false, fmt.Errorf("gooseGoRunRef constant not found in %s", path)
+	return "", "", false, upgradeConventionDriftError{
+		path:   path,
+		detail: "gooseGoRunRef constant not found",
+	}
 }
+
+func buildUpgradeDriftReport(path, targetVersion, detail string) UpgradeReadinessReport {
+	return UpgradeReadinessReport{
+		SchemaVersion:         upgradeReadinessSchemaVersion,
+		BlockerClassification: "upgrade-blocker-classification-v1",
+		TargetVersion:         targetVersion,
+		Ready:                 false,
+		RollbackTarget:        "",
+		Canary: UpgradeCanaryPlan{
+			Strategy: "cli-pin-preflight",
+			Scope:    "single pinned goose reference",
+		},
+		Verification: UpgradeVerification{
+			Command: "ship verify --profile strict",
+			Note:    "Canonical generated conventions must be aligned before applying upgrade rewrites.",
+		},
+		Plan: UpgradePlan{
+			Strategy:  "minor-boundary-bridge-v1",
+			SafeSteps: []UpgradeSafeStep{},
+		},
+		Result: UpgradeResult{
+			Mode:    "preflight",
+			Outcome: "blocked",
+			Changed: false,
+			Applied: false,
+		},
+		Blockers: []UpgradeReadinessItem{
+			{
+				ID:             "upgrade.convention_drift",
+				Classification: "convention-drift",
+				Title:          "Canonical generated conventions have drifted",
+				Remediation:    fmt.Sprintf("%s; run `ship verify --profile strict` and update stale generated files before retrying.", detail),
+			},
+		},
+		ManualFollowUps: []UpgradeManualFollowUp{
+			{
+				ID:          "upgrade.convention.align",
+				Description: "Align stale generated conventions before applying rewrites.",
+				Command:     "ship verify --profile strict",
+			},
+		},
+		RemediationHints: []string{
+			"Upgrade apply rewrites only run against canonical generated conventions.",
+			"Run ship verify --profile strict and repair stale generated files first.",
+		},
+		PlannedChanges: []UpgradePlannedChange{},
+	}
+}
+
 
 func buildUpgradeReadinessReport(path, currentVersion, targetVersion string, changed bool) UpgradeReadinessReport {
 	dryRunCommand := fmt.Sprintf("ship upgrade --to %s --dry-run", targetVersion)

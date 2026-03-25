@@ -2,6 +2,7 @@ package commands
 
 import (
 	"bytes"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -273,6 +274,59 @@ const gooseGoRunRef = "github.com/pressly/goose/v3/cmd/goose@v3.26.0"
 		}
 		if !strings.Contains(string(b), "@v3.27.0") {
 			t.Fatalf("expected goose version update in cli.go, got:\n%s", string(b))
+		}
+	})
+
+	t.Run("stale convention emits blocker report", func(t *testing.T) {
+		root := t.TempDir()
+		if err := os.WriteFile(filepath.Join(root, "go.mod"), []byte("module example.com/demo\n\ngo 1.25\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		cliPath := filepath.Join(root, "tools", "cli", "ship", "internal", "cli", "cli.go")
+		if err := os.MkdirAll(filepath.Dir(cliPath), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(cliPath, fixtureText(t, "testdata/upgrade_codemods/goose_stale_convention.go"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+
+		prevWD, err := os.Getwd()
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Cleanup(func() { _ = os.Chdir(prevWD) })
+		if err := os.Chdir(root); err != nil {
+			t.Fatal(err)
+		}
+
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+		code := RunUpgrade([]string{"--to", "v3.27.0", "--json"}, UpgradeDeps{Out: out, Err: errOut, FindGoModule: findGoModuleTest})
+		if code != 1 {
+			t.Fatalf("code=%d want 1", code)
+		}
+
+		var report UpgradeReadinessReport
+		if err := json.Unmarshal(out.Bytes(), &report); err != nil {
+			t.Fatalf("stdout should be valid JSON report: %v\n%s", err, out.String())
+		}
+		if report.Ready {
+			t.Fatalf("ready=%v want false", report.Ready)
+		}
+		if got := report.Result.Outcome; got != "blocked" {
+			t.Fatalf("result.outcome=%q want blocked", got)
+		}
+		if len(report.Blockers) != 1 {
+			t.Fatalf("blockers=%d want 1", len(report.Blockers))
+		}
+		if got := report.Blockers[0].ID; got != "upgrade.convention_drift" {
+			t.Fatalf("blockers[0].id=%q want upgrade.convention_drift", got)
+		}
+		if got := report.Blockers[0].Classification; got != "convention-drift" {
+			t.Fatalf("blockers[0].classification=%q want convention-drift", got)
+		}
+		if got := len(report.PlannedChanges); got != 0 {
+			t.Fatalf("planned_changes=%d want 0 when blocked", got)
 		}
 	})
 }
