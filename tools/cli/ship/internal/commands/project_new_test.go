@@ -134,9 +134,10 @@ func TestParseNewUIFlag(t *testing.T) {
 func TestScaffoldNewProject(t *testing.T) {
 	root := t.TempDir()
 	opts := NewProjectOptions{
-		Name:    "demo",
-		Module:  "example.com/demo",
-		AppPath: filepath.Join(root, "demo"),
+		Name:       "demo",
+		Module:     "example.com/demo",
+		AppPath:    filepath.Join(root, "demo"),
+		UIProvider: newUIProviderDaisy,
 	}
 
 	if err := ScaffoldNewProject(opts, NewDeps{
@@ -162,6 +163,7 @@ func TestScaffoldNewProject(t *testing.T) {
 		filepath.Join(opts.AppPath, "app", "web", "middleware", "middleware.go"),
 		filepath.Join(opts.AppPath, "app", "web", "ui", "ui.go"),
 		filepath.Join(opts.AppPath, "app", "web", "viewmodels", "viewmodels.go"),
+		filepath.Join(opts.AppPath, "app", "views", "web", "layouts", "base.templ"),
 		filepath.Join(opts.AppPath, "app", "jobs", "jobs.go"),
 		filepath.Join(opts.AppPath, "app", "foundation", "container.go"),
 		filepath.Join(opts.AppPath, "app", "profiles", "repo.go"),
@@ -209,6 +211,38 @@ func TestScaffoldNewProject(t *testing.T) {
 	}
 	if !strings.Contains(container, "EnabledModules") {
 		t.Fatalf("expected starter container content copied into scaffold:\n%s", container)
+	}
+
+	dotEnvBytes, err := os.ReadFile(filepath.Join(opts.AppPath, ".env"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(dotEnvBytes), "UI_PROVIDER=daisy") {
+		t.Fatalf(".env missing provider line:\n%s", string(dotEnvBytes))
+	}
+
+	dotEnvExampleBytes, err := os.ReadFile(filepath.Join(opts.AppPath, ".env.example"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	dotEnvExample := string(dotEnvExampleBytes)
+	if !strings.Contains(dotEnvExample, "UI_PROVIDER=franken") {
+		t.Fatalf(".env.example missing default provider line:\n%s", dotEnvExample)
+	}
+	if !strings.Contains(dotEnvExample, "valid values: franken, daisy, bare") {
+		t.Fatalf(".env.example missing provider options comment:\n%s", dotEnvExample)
+	}
+
+	baseLayoutBytes, err := os.ReadFile(filepath.Join(opts.AppPath, "app", "views", "web", "layouts", "base.templ"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	baseLayout := string(baseLayoutBytes)
+	if !strings.Contains(baseLayout, "https://cdn.jsdelivr.net/npm/flowbite") {
+		t.Fatalf("base.templ missing daisy provider asset:\n%s", baseLayout)
+	}
+	if strings.Contains(baseLayout, "https://cdn.jsdelivr.net/npm/uikit") {
+		t.Fatalf("base.templ should not include uikit for daisy:\n%s", baseLayout)
 	}
 
 	gotLayout, err := snapshotGeneratedProjectLayout(opts.AppPath)

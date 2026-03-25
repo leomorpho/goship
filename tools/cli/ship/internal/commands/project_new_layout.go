@@ -48,6 +48,7 @@ var canonicalGeneratedProjectFiles = []string{
 	"app/router_test.go",
 	"app/subscriptions/repo.go",
 	"app/views/templates.go",
+	"app/views/web/layouts/base.templ",
 	"app/views/web/pages/home_feed.templ",
 	"app/views/web/pages/home_feed_templ.go",
 	"app/views/web/pages/landing.templ",
@@ -174,4 +175,35 @@ func starterTemplateLayoutSnapshot(templateFS fs.FS, root string) ([]string, err
 	}
 	sort.Strings(snapshot)
 	return snapshot, nil
+}
+
+func renderBaseLayoutTempl(provider string) string {
+	headAssets := ""
+	switch strings.ToLower(strings.TrimSpace(provider)) {
+	case newUIProviderDaisy:
+		headAssets = `		<script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js"></script>
+`
+	case newUIProviderBare:
+		headAssets = ""
+	default:
+		headAssets = `		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/franken-ui@2.0.0/dist/css/core.min.css" />
+		<script src="https://cdn.jsdelivr.net/npm/uikit@3.21.16/dist/js/uikit.min.js"></script>
+`
+	}
+
+	return `package layouts
+
+// Renders: base app layout shell with provider-selected head assets.
+templ Base(children templ.Component) {
+	<html lang="en" data-component="base">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+` + headAssets + `	</head>
+	<body>
+		@children
+	</body>
+	</html>
+}
+`
 }
