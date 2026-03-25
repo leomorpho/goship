@@ -79,6 +79,9 @@ func TestNewProjectIntegration_SupportsMakeModelQueryScaffold(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	if err := os.Chdir(projectRoot); err != nil {
+		t.Fatal(err)
+	}
 	out.Reset()
 	errOut.Reset()
 	if code := policies.RunDoctor([]string{}, policies.DoctorDeps{
@@ -301,6 +304,55 @@ func TestFreshAppStartupSmoke(t *testing.T) {
 	waitForStarterWorker(t, workerLog)
 	cancelWorker()
 	_ = workerCmd.Wait()
+}
+
+func TestFreshApp_APIModeDoctorAndVerifyFast(t *testing.T) {
+	root := t.TempDir()
+	prevWD, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(prevWD) })
+	if err := os.Chdir(root); err != nil {
+		t.Fatal(err)
+	}
+
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	if code := RunNew([]string{"demo", "--module", "example.com/demo", "--api-only"}, NewDeps{
+		Out:                        out,
+		Err:                        errOut,
+		ParseAgentPolicyBytes:      policies.ParsePolicyBytes,
+		RenderAgentPolicyArtifacts: policies.RenderPolicyArtifacts,
+		AgentPolicyFilePath:        policies.AgentPolicyFilePath,
+	}); code != 0 {
+		t.Fatalf("ship new --api-only failed: code=%d stderr=%s", code, errOut.String())
+	}
+
+	projectRoot := filepath.Join(root, "demo")
+	if _, err := os.Stat(filepath.Join(projectRoot, "app", "views", "web", "pages", "landing.templ")); !os.IsNotExist(err) {
+		t.Fatalf("api-only scaffold should not include templ pages")
+	}
+	if err := os.Chdir(projectRoot); err != nil {
+		t.Fatal(err)
+	}
+
+	out.Reset()
+	errOut.Reset()
+	if code := policies.RunDoctor([]string{}, policies.DoctorDeps{
+		Out:          out,
+		Err:          errOut,
+		FindGoModule: findGoModuleTestProjectNew,
+	}); code != 0 {
+		t.Fatalf("ship doctor failed on api-only scaffold: code=%d stderr=%s", code, errOut.String())
+	}
+
+	shipBin := buildShipBinaryForProjectNew(t)
+	toolBin := scaffoldFreshAppTooling(t)
+	env := append(os.Environ(), "PATH="+toolBin+string(os.PathListSeparator)+os.Getenv("PATH"))
+	if output, err := runCommand(projectRoot, env, shipBin, "verify", "--profile", "fast"); err != nil {
+		t.Fatalf("ship verify --profile fast failed for api-only scaffold: %v\n%s", err, output)
+	}
 }
 
 func TestFreshAppBootsWithManagedEnvVarsWithoutControlPlaneCode(t *testing.T) {
