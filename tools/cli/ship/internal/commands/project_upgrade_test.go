@@ -9,6 +9,82 @@ import (
 	"testing"
 )
 
+func TestUpgradeRewriteGooseVersion_CodemodFixtures(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name        string
+		beforeFile  string
+		afterFile   string
+		target      string
+		wantOld     string
+		wantChanged bool
+	}{
+		{
+			name:        "canonical v3 ref version bump",
+			beforeFile:  "testdata/upgrade_codemods/goose_v3_before.go",
+			afterFile:   "testdata/upgrade_codemods/goose_v3_after.go",
+			target:      "v3.27.0",
+			wantOld:     "v3.26.0",
+			wantChanged: true,
+		},
+		{
+			name:        "legacy ref canonicalization and version bump",
+			beforeFile:  "testdata/upgrade_codemods/goose_legacy_before.go",
+			afterFile:   "testdata/upgrade_codemods/goose_legacy_after.go",
+			target:      "v3.27.0",
+			wantOld:     "v3.25.1",
+			wantChanged: true,
+		},
+		{
+			name:        "legacy ref canonicalization with same version",
+			beforeFile:  "testdata/upgrade_codemods/goose_legacy_same_version_before.go",
+			afterFile:   "testdata/upgrade_codemods/goose_legacy_same_version_after.go",
+			target:      "v3.26.0",
+			wantOld:     "v3.26.0",
+			wantChanged: true,
+		},
+	}
+
+	for _, tc := range cases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			root := t.TempDir()
+			path := filepath.Join(root, "cli.go")
+			if err := os.WriteFile(path, fixtureText(t, tc.beforeFile), 0o644); err != nil {
+				t.Fatal(err)
+			}
+
+			old, updated, changed, err := RewriteGooseVersion(path, tc.target)
+			if err != nil {
+				t.Fatalf("RewriteGooseVersion failed: %v", err)
+			}
+			if old != tc.wantOld {
+				t.Fatalf("old=%q want %q", old, tc.wantOld)
+			}
+			if changed != tc.wantChanged {
+				t.Fatalf("changed=%v want %v", changed, tc.wantChanged)
+			}
+
+			want := string(fixtureText(t, tc.afterFile))
+			if updated != want {
+				t.Fatalf("updated text mismatch for %s", tc.name)
+			}
+		})
+	}
+}
+
+func fixtureText(t *testing.T, relPath string) []byte {
+	t.Helper()
+	b, err := os.ReadFile(relPath)
+	if err != nil {
+		t.Fatalf("read fixture %s: %v", relPath, err)
+	}
+	return b
+}
+
 func TestRewriteGooseVersion(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "cli.go")
 	input := `package ship

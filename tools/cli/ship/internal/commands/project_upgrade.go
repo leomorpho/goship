@@ -13,7 +13,23 @@ import (
 )
 
 var (
-	gooseRefPattern = regexp.MustCompile(`(?m)^(\s*(?:const\s+)?gooseGoRunRef\s*=\s*"github\.com/pressly/goose/v3/cmd/goose@)v[^"]+("\s*)$`)
+	canonicalGooseRefPrefix = "github.com/pressly/goose/v3/cmd/goose@"
+	gooseRefCodemods        = []struct {
+		pattern         *regexp.Regexp
+		rewritePrefix   string
+		versionSubmatch int
+	}{
+		{
+			pattern:         regexp.MustCompile(`(?m)^(\s*(?:const\s+)?gooseGoRunRef\s*=\s*")github\.com/pressly/goose/v3/cmd/goose@(v[^"]+)("\s*)$`),
+			rewritePrefix:   canonicalGooseRefPrefix,
+			versionSubmatch: 2,
+		},
+		{
+			pattern:         regexp.MustCompile(`(?m)^(\s*(?:const\s+)?gooseGoRunRef\s*=\s*")github\.com/pressly/goose/cmd/goose@(v[^"]+)("\s*)$`),
+			rewritePrefix:   canonicalGooseRefPrefix,
+			versionSubmatch: 2,
+		},
+	}
 )
 
 type UpgradeDeps struct {
@@ -184,20 +200,23 @@ func RewriteGooseVersion(path, target string) (oldVersion string, rewritten stri
 		return "", "", false, err
 	}
 	text := string(b)
-	match := gooseRefPattern.FindStringSubmatch(text)
-	if len(match) == 0 {
-		return "", "", false, fmt.Errorf("gooseGoRunRef constant not found in %s", path)
+	for _, codemod := range gooseRefCodemods {
+		match := codemod.pattern.FindStringSubmatch(text)
+		if len(match) == 0 {
+			continue
+		}
+		full := match[0]
+		quotePrefix := match[1]
+		old := match[codemod.versionSubmatch]
+		quoteSuffix := match[3]
+		replacement := quotePrefix + codemod.rewritePrefix + target + quoteSuffix
+		if full == replacement {
+			return old, text, false, nil
+		}
+		updated := codemod.pattern.ReplaceAllString(text, replacement)
+		return old, updated, true, nil
 	}
-	full := match[0]
-	prefix := match[1]
-	suffix := match[2]
-	old := strings.TrimSuffix(strings.TrimPrefix(full, prefix), suffix)
-	if old == target {
-		return old, text, false, nil
-	}
-	replacement := prefix + target + suffix
-	updated := gooseRefPattern.ReplaceAllString(text, replacement)
-	return old, updated, true, nil
+	return "", "", false, fmt.Errorf("gooseGoRunRef constant not found in %s", path)
 }
 
 func buildUpgradeReadinessReport(path, currentVersion, targetVersion string, changed bool) UpgradeReadinessReport {
