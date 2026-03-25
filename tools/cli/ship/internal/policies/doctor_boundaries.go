@@ -232,6 +232,26 @@ func checkForbiddenCrossBoundaryImports(root string) []DoctorIssue {
 			)...)
 		}
 	}
+	for _, scanDir := range []string{
+		filepath.Join(root, "app"),
+		filepath.Join(root, "cmd"),
+		filepath.Join(root, "config"),
+		filepath.Join(root, "framework"),
+		filepath.Join(root, "modules"),
+	} {
+		for _, forbiddenToken := range []string{
+			"tools/private/control-plane",
+			"fleet/control-plane",
+		} {
+			issues = append(issues, checkTextForbiddenInDirNonTest(
+				scanDir,
+				forbiddenToken,
+				"DX020",
+				"control-plane private path assumption violated: runtime code must not hardcode private control-plane paths",
+				"remove private control-plane path assumptions and route contracts through runtime-owned shared seams",
+			)...)
+		}
+	}
 
 	return issues
 }
@@ -630,6 +650,34 @@ func checkTextForbiddenInDir(dir string, token string, code string, message stri
 			return nil
 		}
 		if d.IsDir() || !strings.HasSuffix(path, ".go") {
+			return nil
+		}
+		b, readErr := os.ReadFile(path)
+		if readErr != nil {
+			return nil
+		}
+		if strings.Contains(string(b), token) {
+			issues = append(issues, DoctorIssue{
+				Code:    code,
+				Message: message,
+				Fix:     fix,
+			})
+		}
+		return nil
+	})
+	return issues
+}
+
+func checkTextForbiddenInDirNonTest(dir string, token string, code string, message string, fix string) []DoctorIssue {
+	issues := make([]DoctorIssue, 0)
+	if !isDir(dir) {
+		return issues
+	}
+	_ = filepath.WalkDir(dir, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return nil
+		}
+		if d.IsDir() || !strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "_test.go") {
 			return nil
 		}
 		b, readErr := os.ReadFile(path)

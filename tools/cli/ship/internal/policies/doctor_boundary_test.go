@@ -68,6 +68,29 @@ func _() {}`
 			t.Fatalf("expected control-plane source coupling issue, got %+v", issues)
 		}
 	})
+
+	t.Run("control-plane private path assumption violation", func(t *testing.T) {
+		root := t.TempDir()
+		writeDoctorFixture(t, root)
+		targetDir := filepath.Join(root, "framework", "contracts")
+		if err := os.MkdirAll(targetDir, 0o755); err != nil {
+			t.Fatal(err)
+		}
+		path := filepath.Join(targetDir, "bad.go")
+		content := `package contracts
+
+const privateRuntimeContractPath = "../../tools/private/control-plane/docs/runtime.md"
+`
+		if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+			t.Fatal(err)
+		}
+
+		issues := RunDoctorChecks(root)
+		mustContainIssueCode(t, issues, "DX020")
+		if !containsDoctorIssueMessage(issues, "control-plane private path assumption violated") {
+			t.Fatalf("expected control-plane private path assumption issue, got %+v", issues)
+		}
+	})
 }
 
 func TestRunDoctorChecks_ModuleIsolationAllowlistSuppressesKnownExceptions(t *testing.T) {

@@ -75,3 +75,26 @@ func _() { _ = cp.Client{} }
 		t.Fatalf("expected control-plane coupling error, got %v", err)
 	}
 }
+
+func TestCheckStandaloneExportability_RejectsPrivateControlPlanePathStrings_RedSpec(t *testing.T) {
+	root := t.TempDir()
+	target := filepath.Join(root, "framework", "contracts")
+	if err := os.MkdirAll(target, 0o755); err != nil {
+		t.Fatalf("mkdir: %v", err)
+	}
+	source := `package contracts
+
+const privateRuntimeContractPath = "../../tools/private/control-plane/docs/runtime.md"
+`
+	if err := os.WriteFile(filepath.Join(target, "bad.go"), []byte(source), 0o644); err != nil {
+		t.Fatalf("write: %v", err)
+	}
+
+	err := checkStandaloneExportability(root)
+	if err == nil {
+		t.Fatal("expected private control-plane path assumption to fail standalone exportability")
+	}
+	if !strings.Contains(strings.ToLower(err.Error()), "control-plane") {
+		t.Fatalf("expected control-plane coupling error, got %v", err)
+	}
+}
