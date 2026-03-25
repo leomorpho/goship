@@ -1,5 +1,9 @@
 {
   "ok": true,
-  "issues": []
+  "issues": [],
+  "upgrade_readiness": {
+    "ready": true,
+    "blockers": []
+  }
 }
 

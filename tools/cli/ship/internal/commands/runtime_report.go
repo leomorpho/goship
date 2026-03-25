@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/leomorpho/goship/config"
@@ -32,6 +33,7 @@ type runtimeReport struct {
 	Database        config.DatabaseRuntimeMetadata `json:"database"`
 	Managed         config.ManagedRuntimeMetadata  `json:"managed"`
 	ModuleAdoption  []describeModuleAdoption       `json:"module_adoption"`
+	UpgradeReadiness runtimeReportUpgradeReadiness `json:"upgrade_readiness"`
 }
 
 type runtimeReportAdapters struct {
@@ -90,6 +92,17 @@ type runtimeReportDivergenceEscalation struct {
 	RecoveryAction    string `json:"recovery_action"`
 }
 
+type runtimeReportUpgradeReadiness struct {
+	Ready    bool                         `json:"ready"`
+	Blockers []runtimeReportUpgradeBlocker `json:"blockers"`
+}
+
+type runtimeReportUpgradeBlocker struct {
+	ID          string `json:"id"`
+	Detail      string `json:"detail"`
+	Remediation string `json:"remediation"`
+}
+
 func RunRuntimeReport(args []string, d RuntimeReportDeps) int {
 	for _, arg := range args {
 		if arg == "-h" || arg == "--help" || arg == "help" {
@@ -133,17 +146,19 @@ func RunRuntimeReport(args []string, d RuntimeReportDeps) int {
 	}
 
 	moduleAdoption := make([]describeModuleAdoption, 0)
+	root := ""
 	if d.FindGoModule != nil {
 		wd, err := os.Getwd()
 		if err != nil {
 			fmt.Fprintf(d.Err, "runtime:report failed to resolve working directory: %v\n", err)
 			return 1
 		}
-		root, _, err := d.FindGoModule(wd)
+		resolvedRoot, _, err := d.FindGoModule(wd)
 		if err != nil {
 			fmt.Fprintf(d.Err, "runtime:report failed to resolve project root (go.mod): %v\n", err)
 			return 1
 		}
+		root = resolvedRoot
 		modules, err := collectDescribeModules(root)
 		if err != nil {
 			fmt.Fprintf(d.Err, "runtime:report failed to collect module inventory: %v\n", err)
@@ -186,6 +201,7 @@ func RunRuntimeReport(args []string, d RuntimeReportDeps) int {
 		Database:       cfg.RuntimeMetadata().Database,
 		Managed:        cfg.RuntimeMetadata().Managed,
 		ModuleAdoption: moduleAdoption,
+		UpgradeReadiness: evaluateRuntimeUpgradeReadiness(root),
 	}
 	report.ProcessTopology = buildRuntimeReportProcessTopology(cfg, report.Web)
 
@@ -196,6 +212,47 @@ func RunRuntimeReport(args []string, d RuntimeReportDeps) int {
 		return 1
 	}
 	return 0
+}
+
+func evaluateRuntimeUpgradeReadiness(root string) runtimeReportUpgradeReadiness {
+	if strings.TrimSpace(root) == "" {
+		return runtimeReportUpgradeReadiness{
+			Ready:    true,
+			Blockers: []runtimeReportUpgradeBlocker{},
+		}
+	}
+	cliPath := filepath.Join(root, "tools", "cli", "ship", "internal", "cli", "cli.go")
+	body, err := os.ReadFile(cliPath)
+	if err != nil {
+		return runtimeReportUpgradeReadiness{
+			Ready: false,
+			Blockers: []runtimeReportUpgradeBlocker{
+				{
+					ID:          "upgrade.convention_drift",
+					Detail:      "missing tools/cli/ship/internal/cli/cli.go for upgrade rewrite contract",
+					Remediation: "restore canonical CLI path and rerun ship runtime:report --json",
+				},
+			},
+		}
+	}
+	text := string(body)
+	if strings.Contains(text, `gooseGoRunRef = "github.com/pressly/goose/v3/cmd/goose@`) ||
+		strings.Contains(text, `gooseGoRunRef = "github.com/pressly/goose/cmd/goose@`) {
+		return runtimeReportUpgradeReadiness{
+			Ready:    true,
+			Blockers: []runtimeReportUpgradeBlocker{},
+		}
+	}
+	return runtimeReportUpgradeReadiness{
+		Ready: false,
+		Blockers: []runtimeReportUpgradeBlocker{
+			{
+				ID:          "upgrade.convention_drift",
+				Detail:      "gooseGoRunRef constant not found in canonical CLI path",
+				Remediation: "run `ship verify --profile strict` and align upgrade scaffolding markers",
+			},
+		},
+	}
 }
 
 func buildRuntimeReportProcessTopology(cfg config.Config, web runtimeplan.WebFeatures) runtimeReportProcessTopology {

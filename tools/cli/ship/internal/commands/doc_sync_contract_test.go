@@ -79,7 +79,7 @@ func TestDocs_DBExportAndRuntimeReportContractsStayInSync_RedSpec(t *testing.T) 
 
 	for _, token := range []string{
 		"`ship db:export [--json]` -> reports the SQLite export manifest checksum contract from current runtime metadata; `--json` emits a structured export report with the typed backup manifest payload, suggested next commands, and planning note for agents/tooling",
-		"`ship runtime:report --json` -> machine-readable runtime capability report covering active profile, adapters, process plan, source-aware `process_topology` (including web/worker realtime roles when enabled), web features, DB runtime metadata, managed-key sources, per-module adoption metadata, and a versioned handshake envelope",
+		"`ship runtime:report --json` -> machine-readable runtime capability report covering active profile, adapters, process plan, source-aware `process_topology` (including web/worker realtime roles when enabled), web features, DB runtime metadata, managed-key sources, per-module adoption metadata, upgrade readiness metadata, and a versioned handshake envelope",
 	} {
 		if !strings.Contains(cliDoc, token) {
 			t.Fatalf("CLI reference should include %q", token)
