@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"slices"
+	"strings"
 	"time"
 
 	"github.com/leomorpho/goship/framework/core"
@@ -108,6 +110,56 @@ func (c *CacheChecker) Check(ctx context.Context) CheckResult {
 type JobsChecker struct {
 	inspector core.JobsInspector
 	timeout   time.Duration
+}
+
+type EnvRequirement struct {
+	Name  string
+	Value string
+}
+
+type EnvChecker struct {
+	required []EnvRequirement
+}
+
+func NewEnvChecker(required ...EnvRequirement) *EnvChecker {
+	return &EnvChecker{required: slices.Clone(required)}
+}
+
+func (c *EnvChecker) Name() string {
+	return "env"
+}
+
+func (c *EnvChecker) ValidateStartup() error {
+	if c == nil {
+		return fmt.Errorf("required runtime environment variables are missing: [env checker not configured]")
+	}
+
+	missing := make([]string, 0)
+	for _, requirement := range c.required {
+		name := strings.TrimSpace(requirement.Name)
+		if name == "" {
+			continue
+		}
+		if strings.TrimSpace(requirement.Value) == "" {
+			missing = append(missing, name)
+		}
+	}
+
+	if len(missing) > 0 {
+		return fmt.Errorf("required runtime environment variables are missing: %v", missing)
+	}
+
+	return nil
+}
+
+func (c *EnvChecker) Check(context.Context) CheckResult {
+	if err := c.ValidateStartup(); err != nil {
+		return CheckResult{
+			Status: StatusError,
+			Error:  err.Error(),
+		}
+	}
+	return CheckResult{Status: StatusOK}
 }
 
 func NewJobsChecker(inspector core.JobsInspector, timeout time.Duration) *JobsChecker {

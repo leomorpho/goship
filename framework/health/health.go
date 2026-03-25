@@ -3,8 +3,8 @@ package health
 import (
 	"context"
 	"fmt"
-	"sort"
 	"slices"
+	"sort"
 	"strings"
 	"sync"
 )
@@ -14,7 +14,11 @@ const (
 	StatusError = "error"
 )
 
-var defaultStartupChecks = []string{"db", "cache", "jobs"}
+var defaultStartupChecks = []string{"db", "cache", "jobs", "env"}
+
+type StartupValidator interface {
+	ValidateStartup() error
+}
 
 type Checker interface {
 	Name() string
@@ -69,6 +73,21 @@ func (r *Registry) ValidateStartupContract(requiredChecks ...string) error {
 			summary.Missing,
 		)
 	}
+
+	r.mu.RLock()
+	checkers := append([]Checker(nil), r.checkers...)
+	r.mu.RUnlock()
+
+	for _, checker := range checkers {
+		validator, ok := checker.(StartupValidator)
+		if !ok {
+			continue
+		}
+		if err := validator.ValidateStartup(); err != nil {
+			return fmt.Errorf("health startup contract: %w", err)
+		}
+	}
+
 	return nil
 }
 

@@ -68,6 +68,8 @@ dependencies, invalid runtime profiles, and realtime capability mismatches. Rout
 also has explicit public/auth contract coverage over `method`, `path`, `auth`, `handler`, and
 `file` metadata. Operator-facing CLI surfaces such as `ship verify`, `ship routes`, and
 `ship describe --pretty` also have stateless golden-contract coverage in the default test loop.
+Startup contract coverage now also includes framework-default required runtime env validation for
+health startup checks, so missing adapter/runtime env wiring fails with explicit variable names.
 
 Impact:
 
