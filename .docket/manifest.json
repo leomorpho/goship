@@ -2675,37 +2675,37 @@
     },
     "TKT-478": {
       "title": "Implement ship upgrade apply for safe automatic rewrites and prove file changes with golden tests.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-476"
     },
     "TKT-479": {
       "title": "Add codemods for common framework rewrites and prove before-and-after output with fixtures.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-476"
     },
     "TKT-480": {
       "title": "Add drift detection against canonical generated conventions and prove blocker output in stale fixture apps.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-476"
     },
     "TKT-481": {
       "title": "Add upgrade rollback support for failed automatic rewrites and prove rollback in failure-path tests.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-476"
     },
     "TKT-482": {
       "title": "Add upgrade command output that distinguishes automatic, manual, and blocked steps with contract tests.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-476"
     },
     "TKT-483": {
       "title": "Add upgrade acceptance tests that create older apps, upgrade them, and verify they still boot and verify.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-476"
     },
@@ -2717,25 +2717,25 @@
     },
     "TKT-485": {
       "title": "Make ship doctor surface upgrade readiness and blockers and prove both human and JSON output.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-484"
     },
     "TKT-486": {
       "title": "Make runtime reports expose current framework version and module adoption for fleet visibility.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-484"
     },
     "TKT-487": {
       "title": "Add tests proving control-plane consumers can parse upgrade reports from multiple supported app versions.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-484"
     },
     "TKT-488": {
       "title": "Add tests proving upgraded apps still emit valid managed runtime contracts.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-484"
     },
@@ -2794,43 +2794,43 @@
     },
     "TKT-498": {
       "title": "Add golden tests for every generator command output path.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-497"
     },
     "TKT-499": {
       "title": "Add module boundary tests that fail when modules depend on non-canonical framework internals.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-497"
     },
     "TKT-500": {
       "title": "Add route-collision tests across first-party modules.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-497"
     },
     "TKT-501": {
       "title": "Add config-collision tests across first-party modules.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-497"
     },
     "TKT-502": {
       "title": "Add asset-collision tests across first-party modules.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-497"
     },
     "TKT-503": {
       "title": "Add migration-order tests across first-party modules.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-497"
     },
     "TKT-504": {
       "title": "Add a matrix suite proving supported battery combinations install and remove cleanly.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-497"
     },
@@ -2842,31 +2842,31 @@
     },
     "TKT-506": {
       "title": "Add startup smoke tests for health, readiness, web boot, worker boot, and migrations.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-505"
     },
     "TKT-507": {
       "title": "Add fixture-based doctor tests for missing config, broken secrets, and invalid adapters.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-505"
     },
     "TKT-508": {
       "title": "Add verify tests for structural drift, forbidden edits, and invalid generated layout.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-505"
     },
     "TKT-509": {
       "title": "Add top-level CI lanes that cover fresh app, upgrades, batteries, and standalone operations.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-505"
     },
     "TKT-510": {
       "title": "Add failure-injection tests proving commands fail with actionable output instead of silent drift.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-505"
     },
@@ -3340,6 +3340,88 @@
       "state": "done",
       "priority": 4,
       "parent": "TKT-453"
+    },
+    "TKT-593": {
+      "title": "Epic: Code-defined feature flags with auto-sync and capabilities API",
+      "state": "backlog",
+      "priority": 2
+    },
+    "TKT-594": {
+      "title": "[Flags Layer A] Define FlagKey typed constant and FlagDefinition registry",
+      "state": "in-review",
+      "priority": 2,
+      "parent": "TKT-593"
+    },
+    "TKT-595": {
+      "title": "[Flags Layer B] Implement idempotent startup syncer",
+      "state": "in-review",
+      "priority": 2,
+      "parent": "TKT-593"
+    },
+    "TKT-596": {
+      "title": "[Flags Layer C] Add code-default fallback to Service.Enabled()",
+      "state": "in-progress",
+      "priority": 2,
+      "parent": "TKT-593"
+    },
+    "TKT-597": {
+      "title": "[Flags Layer D] Implement GET /api/me/capabilities endpoint",
+      "state": "backlog",
+      "priority": 2,
+      "parent": "TKT-593"
+    },
+    "TKT-598": {
+      "title": "[Flags Admin UI] Show constant key and code-defined default in flags list",
+      "state": "in-review",
+      "priority": 3,
+      "parent": "TKT-593"
+    },
+    "TKT-599": {
+      "title": "[Flags Admin UI] Detect and mark orphaned DB flags",
+      "state": "in-progress",
+      "priority": 3,
+      "parent": "TKT-593"
+    },
+    "TKT-601": {
+      "title": "Epic: Pluggable UI Provider System",
+      "state": "backlog",
+      "priority": 10
+    },
+    "TKT-602": {
+      "title": "Add UIConfig with Provider field to config schema",
+      "state": "backlog",
+      "priority": 10,
+      "parent": "TKT-601"
+    },
+    "TKT-603": {
+      "title": "Add --ui flag to ship new and thread UIProvider through NewProjectOptions",
+      "state": "backlog",
+      "priority": 10,
+      "parent": "TKT-601"
+    },
+    "TKT-604": {
+      "title": "Strip starter scaffold templ pages to bare structural HTML with HTMX wiring only",
+      "state": "backlog",
+      "priority": 10,
+      "parent": "TKT-601"
+    },
+    "TKT-605": {
+      "title": "Scaffold layout shell and .env entry from UIProvider in ship new",
+      "state": "backlog",
+      "priority": 10,
+      "parent": "TKT-601"
+    },
+    "TKT-606": {
+      "title": "Prove end-to-end scaffold output for all three UI providers with golden contract tests",
+      "state": "backlog",
+      "priority": 10,
+      "parent": "TKT-601"
+    },
+    "TKT-607": {
+      "title": "Document UI provider contract in docs/ui/providers.md",
+      "state": "backlog",
+      "priority": 10,
+      "parent": "TKT-601"
     }
   }
 }
