@@ -2901,13 +2901,13 @@
     },
     "TKT-516": {
       "title": "Add structured startup summaries for operators and lock expected output with tests.",
-      "state": "in-progress",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-512"
     },
     "TKT-517": {
       "title": "Add framework-default environment validation for required runtime variables and prove failure modes in tests.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-512"
     },
@@ -2919,43 +2919,43 @@
     },
     "TKT-519": {
       "title": "Implement executable backup creation for standalone apps and prove backup artifacts are valid in tests.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-518"
     },
     "TKT-520": {
       "title": "Implement executable restore for standalone apps and prove restored apps boot and verify.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-518"
     },
     "TKT-521": {
       "title": "Implement backup metadata emission in runtime reports and lock the schema with contract tests.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-518"
     },
     "TKT-522": {
       "title": "Implement restore evidence emission and lock the schema with contract tests.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-518"
     },
     "TKT-523": {
       "title": "Implement SQLite-to-Postgres promotion steps and prove promoted apps pass verify and boot.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-518"
     },
     "TKT-524": {
       "title": "Add CLI commands for backup, restore, and promotion and cover them with integration tests.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-518"
     },
     "TKT-525": {
       "title": "Add regression tests for backup, restore, and promotion across representative fixture apps.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-518"
     },
@@ -2967,7 +2967,7 @@
     },
     "TKT-527": {
       "title": "Add framework-default secret validation before runtime boot and prove failure output in tests.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-526"
     },
@@ -3014,31 +3014,31 @@
     },
     "TKT-535": {
       "title": "Implement the signed managed-hook contract and prove request verification in tests.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-532"
     },
     "TKT-536": {
       "title": "Implement module-adoption reporting in runtime reports and prove consistent first-party coverage.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-532"
     },
     "TKT-537": {
       "title": "Implement upgrade-readiness reporting for managed apps and prove contract consumption with tests.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-532"
     },
     "TKT-538": {
       "title": "Implement backup metadata and restore evidence contracts and prove managed consumers can parse them.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-532"
     },
     "TKT-539": {
       "title": "Implement rollout and promotion decision input contracts without embedding rollout orchestration in GoShip.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-532"
     },
@@ -3050,31 +3050,31 @@
     },
     "TKT-541": {
       "title": "Replace in-memory managed-hook replay protection with durable storage and prove concurrency safety in tests.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-540"
     },
     "TKT-542": {
       "title": "Add managed key versioning and key rollover support and prove old and new keys validate correctly.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-540"
     },
     "TKT-543": {
       "title": "Add secret rotation support for managed contracts and prove rotation without downtime in tests.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-540"
     },
     "TKT-544": {
       "title": "Add contract-version negotiation for managed runtime reports and lock backward compatibility with tests.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-540"
     },
     "TKT-545": {
       "title": "Add security event reporting for invalid signatures, replays, and contract violations with tests.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-540"
     },
@@ -3086,25 +3086,25 @@
     },
     "TKT-547": {
       "title": "Add forbidden-import tests that fail on control-plane source coupling inside GoShip.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-546"
     },
     "TKT-548": {
       "title": "Add forbidden-string path tests that fail on hidden private control-plane assumptions in GoShip.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-546"
     },
     "TKT-549": {
       "title": "Add fixture tests proving GoShip apps boot under managed env vars without control-plane code present.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-546"
     },
     "TKT-550": {
       "title": "Add fixture tests proving GoShip apps remain fully standalone without managed env vars present.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-546"
     },
@@ -3139,7 +3139,7 @@
     },
     "TKT-556": {
       "title": "Implement a semantic recipe layer for common UI patterns and prove recipe output with render tests.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-552"
     },
@@ -3151,25 +3151,25 @@
     },
     "TKT-558": {
       "title": "Implement shared button, input, form, alert, card, and nav recipes for templ and prove markup consistency.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-557"
     },
     "TKT-559": {
       "title": "Implement the same token and recipe usage in one canonical JS island set and prove parity in browser tests.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-557"
     },
     "TKT-560": {
       "title": "Implement starter layout primitives shared by server-rendered pages and islands and prove visual consistency in tests.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-557"
     },
     "TKT-561": {
       "title": "Remove conflicting ad hoc styling patterns from first-party modules and prove modules render with shared tokens.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-557"
     },
@@ -3181,49 +3181,49 @@
     },
     "TKT-563": {
       "title": "Implement a module UI contract that defines how batteries add styles without breaking app coherence.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-562"
     },
     "TKT-564": {
       "title": "Implement a starter theme built on tokens and recipes and lock it with visual regression tests.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-562"
     },
     "TKT-565": {
       "title": "Implement the landing-page app as a downstream GoShip app using the shared token and recipe system.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-562"
     },
     "TKT-566": {
       "title": "Implement JS runtime showcase pages in the landing-page app and prove style parity across server and island surfaces.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-562"
     },
     "TKT-567": {
       "title": "Implement a frontend regression suite that proves templ pages and islands stay token-consistent over time.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-562"
     },
     "TKT-568": {
       "title": "Implement verify profile tiers and prove command behavior across representative project states.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-505"
     },
     "TKT-569": {
       "title": "Implement Cherie compatibility smoke baseline and prove downstream compatibility in CI and browser tests.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-505"
     },
     "TKT-570": {
       "title": "Implement an alpha contract gate and prove pre-release contract drift fails verification.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-505"
     },
@@ -3235,25 +3235,25 @@
     },
     "TKT-572": {
       "title": "Implement framework-default metrics export contracts and prove metrics availability in runtime tests.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-526"
     },
     "TKT-573": {
       "title": "Implement framework-default error-reporting hooks and prove error emission on controlled failure paths.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-526"
     },
     "TKT-574": {
       "title": "Implement job and worker health reporting and prove worker-state visibility in runtime tests.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-526"
     },
     "TKT-575": {
       "title": "Implement deployment success failure reporting and prove status appears in runtime reports and tests.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-526"
     },
@@ -3360,13 +3360,13 @@
     },
     "TKT-596": {
       "title": "[Flags Layer C] Add code-default fallback to Service.Enabled()",
-      "state": "in-progress",
+      "state": "in-review",
       "priority": 2,
       "parent": "TKT-593"
     },
     "TKT-597": {
       "title": "[Flags Layer D] Implement GET /api/me/capabilities endpoint",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 2,
       "parent": "TKT-593"
     },
@@ -3389,37 +3389,37 @@
     },
     "TKT-602": {
       "title": "Add UIConfig with Provider field to config schema",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 10,
       "parent": "TKT-601"
     },
     "TKT-603": {
       "title": "Add --ui flag to ship new and thread UIProvider through NewProjectOptions",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 10,
       "parent": "TKT-601"
     },
     "TKT-604": {
       "title": "Strip starter scaffold templ pages to bare structural HTML with HTMX wiring only",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 10,
       "parent": "TKT-601"
     },
     "TKT-605": {
       "title": "Scaffold layout shell and .env entry from UIProvider in ship new",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 10,
       "parent": "TKT-601"
     },
     "TKT-606": {
       "title": "Prove end-to-end scaffold output for all three UI providers with golden contract tests",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 10,
       "parent": "TKT-601"
     },
     "TKT-607": {
       "title": "Document UI provider contract in docs/ui/providers.md",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 10,
       "parent": "TKT-601"
     }
