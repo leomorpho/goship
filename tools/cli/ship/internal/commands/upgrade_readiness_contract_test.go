@@ -95,8 +95,8 @@ const gooseGoRunRef = "github.com/pressly/goose/v3/cmd/goose@v3.26.0"
 	if report.Plan.SafeSteps[0].To != "v3.27.0" {
 		t.Fatalf("plan.safe_steps[0].to=%q want v3.27.0", report.Plan.SafeSteps[0].To)
 	}
-	if report.Plan.SafeSteps[0].Command != "ship upgrade --to v3.27.0" {
-		t.Fatalf("plan.safe_steps[0].command=%q want ship upgrade --to v3.27.0", report.Plan.SafeSteps[0].Command)
+	if report.Plan.SafeSteps[0].Command != "ship upgrade apply --to v3.27.0" {
+		t.Fatalf("plan.safe_steps[0].command=%q want ship upgrade apply --to v3.27.0", report.Plan.SafeSteps[0].Command)
 	}
 	if len(report.Blockers) != 0 {
 		t.Fatalf("blockers=%+v want empty", report.Blockers)
@@ -107,8 +107,8 @@ const gooseGoRunRef = "github.com/pressly/goose/v3/cmd/goose@v3.26.0"
 	if got := report.ManualFollowUps[0].Command; got != "ship upgrade --to v3.27.0 --dry-run" {
 		t.Fatalf("manual_follow_ups[0].command=%q want ship upgrade --to v3.27.0 --dry-run", got)
 	}
-	if got := report.ManualFollowUps[1].Command; got != "ship upgrade --to v3.27.0" {
-		t.Fatalf("manual_follow_ups[1].command=%q want ship upgrade --to v3.27.0", got)
+	if got := report.ManualFollowUps[1].Command; got != "ship upgrade apply --to v3.27.0" {
+		t.Fatalf("manual_follow_ups[1].command=%q want ship upgrade apply --to v3.27.0", got)
 	}
 	if len(report.RemediationHints) != 3 {
 		t.Fatalf("remediation_hints=%d want 3", len(report.RemediationHints))
@@ -208,14 +208,14 @@ func TestBuildUpgradeReadinessReport_UsesConcreteCommands_RedSpec(t *testing.T) 
 	if got := report.RemediationHints[1]; got != "Use ship upgrade --to v3.27.0 --dry-run to preview the text mutation plan." {
 		t.Fatalf("remediation_hints[1]=%q", got)
 	}
-	if got := report.RemediationHints[2]; got != "Run ship upgrade --to v3.27.0 after the readiness report is accepted." {
+	if got := report.RemediationHints[2]; got != "Run ship upgrade apply --to v3.27.0 after the readiness report is accepted." {
 		t.Fatalf("remediation_hints[2]=%q", got)
 	}
 	if got := len(report.Plan.SafeSteps); got != 1 {
 		t.Fatalf("plan.safe_steps=%d want 1", got)
 	}
-	if got := report.Plan.SafeSteps[0].Command; got != "ship upgrade --to v3.27.0" {
-		t.Fatalf("plan.safe_steps[0].command=%q want ship upgrade --to v3.27.0", got)
+	if got := report.Plan.SafeSteps[0].Command; got != "ship upgrade apply --to v3.27.0" {
+		t.Fatalf("plan.safe_steps[0].command=%q want ship upgrade apply --to v3.27.0", got)
 	}
 }
 

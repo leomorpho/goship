@@ -44,7 +44,8 @@ func TestPrintRootHelp_DirectCommandsDiscoverableNoAliases(t *testing.T) {
 		"  ship adapter --help":                                                  "Adapter selection command help",
 		"  ship module:add <name> [--dry-run]":                                   "Enable a module",
 		"  ship module:remove <name> [--dry-run]":                                "Disable a module",
-		"  ship upgrade --to <version> [--dry-run]":                              "Upgrade pinned CLI tooling",
+		"  ship upgrade --to <version> [--dry-run]":                              "Show upgrade readiness and planned rewrites",
+		"  ship upgrade apply --to <version> [--dry-run]":                        "Apply deterministic upgrade rewrites",
 	}
 
 	for prefix, desc := range want {
@@ -293,13 +294,14 @@ func TestPrintAdditionalScopedHelp_IncludeDescriptions(t *testing.T) {
 				"  ship templ generate [--path <dir>] [--file <file.templ>]": "Generate templ code",
 			},
 		},
-		{
-			name: "upgrade",
-			out:  captureHelp(t, PrintUpgradeHelp),
-			want: map[string]string{
-				"  ship upgrade --to <version> [--contract-version <schema>] [--dry-run] [--json]": "Update pinned CLI tooling references",
+			{
+				name: "upgrade",
+				out:  captureHelp(t, PrintUpgradeHelp),
+				want: map[string]string{
+					"  ship upgrade --to <version> [--contract-version <schema>] [--dry-run] [--json]":       "readiness report, blocker schema, and planned rewrites",
+					"  ship upgrade apply --to <version> [--contract-version <schema>] [--dry-run] [--json]": "Apply the deterministic rewrite plan",
+				},
 			},
-		},
 	}
 
 	for _, tc := range cases {

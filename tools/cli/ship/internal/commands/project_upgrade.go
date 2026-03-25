@@ -92,6 +92,11 @@ func RunUpgrade(args []string, d UpgradeDeps) int {
 			return 0
 		}
 	}
+	applyMode := false
+	if len(args) > 0 && strings.TrimSpace(args[0]) == "apply" {
+		applyMode = true
+		args = args[1:]
+	}
 	fs := flag.NewFlagSet("upgrade", flag.ContinueOnError)
 	fs.SetOutput(io.Discard)
 	to := fs.String("to", "", "target pinned version, e.g. v0.3.1001")
@@ -131,17 +136,18 @@ func RunUpgrade(args []string, d UpgradeDeps) int {
 		return 1
 	}
 
-	return upgradeGoose(d, root, *to, *dryRun, *jsonOut)
+	return upgradeGoose(d, root, *to, *dryRun, *jsonOut, applyMode)
 }
 
-func upgradeGoose(d UpgradeDeps, root, version string, dryRun, jsonOut bool) int {
-	path := filepath.Join(root, "tools", "cli", "ship", "internal", "cli", "cli.go")
+func upgradeGoose(d UpgradeDeps, root, version string, dryRun, jsonOut, applyMode bool) int {
+	displayPath := filepath.ToSlash(filepath.Join("tools", "cli", "ship", "internal", "cli", "cli.go"))
+	path := filepath.Join(root, filepath.FromSlash(displayPath))
 	old, newText, changed, err := RewriteGooseVersion(path, version)
 	if err != nil {
 		fmt.Fprintf(d.Err, "failed to update goose version: %v\n", err)
 		return 1
 	}
-	report := buildUpgradeReadinessReport(path, old, version, changed)
+	report := buildUpgradeReadinessReport(displayPath, old, version, changed)
 	if jsonOut {
 		if err := json.NewEncoder(d.Out).Encode(report); err != nil {
 			fmt.Fprintf(d.Err, "failed to encode upgrade readiness report: %v\n", err)
@@ -157,11 +163,18 @@ func upgradeGoose(d UpgradeDeps, root, version string, dryRun, jsonOut bool) int
 		fmt.Fprintf(d.Out, "dry-run: would update goose in %s: %s -> %s\n", path, old, version)
 		return 0
 	}
+	if !applyMode {
+		fmt.Fprintln(d.Out, "preflight: no files were written")
+		fmt.Fprintf(d.Out, "planned rewrite: %s: %s -> %s\n", displayPath, old, version)
+		fmt.Fprintf(d.Out, "next: ship upgrade apply --to %s\n", version)
+		return 0
+	}
 	if err := os.WriteFile(path, []byte(newText), 0o644); err != nil {
 		fmt.Fprintf(d.Err, "failed to write %s: %v\n", path, err)
 		return 1
 	}
-	fmt.Fprintf(d.Out, "updated goose pin in %s: %s -> %s\n", path, old, version)
+	fmt.Fprintln(d.Out, "applied upgrade rewrites:")
+	fmt.Fprintf(d.Out, "- %s: %s -> %s\n", displayPath, old, version)
 	return 0
 }
 
@@ -189,7 +202,7 @@ func RewriteGooseVersion(path, target string) (oldVersion string, rewritten stri
 
 func buildUpgradeReadinessReport(path, currentVersion, targetVersion string, changed bool) UpgradeReadinessReport {
 	dryRunCommand := fmt.Sprintf("ship upgrade --to %s --dry-run", targetVersion)
-	applyCommand := fmt.Sprintf("ship upgrade --to %s", targetVersion)
+	applyCommand := fmt.Sprintf("ship upgrade apply --to %s", targetVersion)
 	planSteps := computeSafeUpgradeSteps(currentVersion, targetVersion)
 
 	report := UpgradeReadinessReport{
@@ -265,7 +278,7 @@ func computeSafeUpgradeSteps(currentVersion, targetVersion string) []UpgradeSafe
 			{
 				From:    currentVersion,
 				To:      targetVersion,
-				Command: fmt.Sprintf("ship upgrade --to %s", targetVersion),
+				Command: fmt.Sprintf("ship upgrade apply --to %s", targetVersion),
 			},
 		}
 	}
@@ -304,7 +317,7 @@ func computeSafeUpgradeSteps(currentVersion, targetVersion string) []UpgradeSafe
 		steps = append(steps, UpgradeSafeStep{
 			From:    from,
 			To:      to,
-			Command: fmt.Sprintf("ship upgrade --to %s", to),
+			Command: fmt.Sprintf("ship upgrade apply --to %s", to),
 		})
 		from = to
 	}
@@ -351,5 +364,6 @@ func formatSimpleSemver(version semverTriple) string {
 
 func PrintUpgradeHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship upgrade commands:")
-	fmt.Fprintln(w, "  ship upgrade --to <version> [--contract-version <schema>] [--dry-run] [--json]  Update pinned CLI tooling references and surface the upgrade readiness report/blocker schema contract (currently Goose only; no auto-latest)")
+	fmt.Fprintln(w, "  ship upgrade --to <version> [--contract-version <schema>] [--dry-run] [--json]        Show the upgrade readiness report, blocker schema, and planned rewrites without writing")
+	fmt.Fprintln(w, "  ship upgrade apply --to <version> [--contract-version <schema>] [--dry-run] [--json]  Apply the deterministic rewrite plan after review")
 }
