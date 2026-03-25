@@ -23,7 +23,8 @@ Contract scope:
 Start from the API-only starter mode:
 
 ```bash
-ship new demo --module example.com/demo --api-only
+ship new demo --module example.com/demo --api
+# alias: ship new demo --module example.com/demo --api-only
 ```
 
 This scaffold keeps route naming and auth endpoints while removing templ-first page assets.

@@ -355,6 +355,75 @@ func TestFreshApp_APIModeDoctorAndVerifyFast(t *testing.T) {
 	}
 }
 
+func TestFreshApp_APIModeBootVerifyAndJSONAuthSurfaces(t *testing.T) {
+	root := t.TempDir()
+	prevWD, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(prevWD) })
+	if err := os.Chdir(root); err != nil {
+		t.Fatal(err)
+	}
+
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+	if code := RunNew([]string{"demo", "--module", "example.com/demo", "--api"}, NewDeps{
+		Out:                        out,
+		Err:                        errOut,
+		ParseAgentPolicyBytes:      policies.ParsePolicyBytes,
+		RenderAgentPolicyArtifacts: policies.RenderPolicyArtifacts,
+		AgentPolicyFilePath:        policies.AgentPolicyFilePath,
+	}); code != 0 {
+		t.Fatalf("ship new --api failed: code=%d stderr=%s", code, errOut.String())
+	}
+
+	projectRoot := filepath.Join(root, "demo")
+	if _, err := os.Stat(filepath.Join(projectRoot, "app", "views", "web", "pages", "landing.templ")); !os.IsNotExist(err) {
+		t.Fatalf("api mode scaffold should not include templ pages")
+	}
+
+	shipBin := buildShipBinaryForProjectNew(t)
+	toolBin := scaffoldFreshAppTooling(t)
+	env := append(os.Environ(), "PATH="+toolBin+string(os.PathListSeparator)+os.Getenv("PATH"))
+
+	if output, err := runCommand(projectRoot, env, shipBin, "db:migrate"); err != nil {
+		t.Fatalf("ship db:migrate failed for api mode scaffold: %v\n%s", err, output)
+	}
+	if output, err := runCommand(projectRoot, env, shipBin, "verify", "--profile", "fast"); err != nil {
+		t.Fatalf("ship verify --profile fast failed for api mode scaffold: %v\n%s", err, output)
+	}
+
+	port := reservePort(t)
+	webBin := filepath.Join(t.TempDir(), "starter-web-api")
+	if output, err := runCommand(projectRoot, env, "go", "build", "-o", webBin, "./cmd/web"); err != nil {
+		t.Fatalf("build api mode web binary failed: %v\n%s", err, output)
+	}
+
+	serverCtx, cancelServer := context.WithCancel(context.Background())
+	defer cancelServer()
+	serverCmd := exec.CommandContext(serverCtx, webBin)
+	serverCmd.Dir = projectRoot
+	serverCmd.Env = append(env, "PORT="+port)
+	serverLog := &bytes.Buffer{}
+	serverCmd.Stdout = serverLog
+	serverCmd.Stderr = serverLog
+	if err := serverCmd.Start(); err != nil {
+		t.Fatalf("start cmd/web for api mode scaffold: %v", err)
+	}
+	t.Cleanup(func() {
+		cancelServer()
+		_ = serverCmd.Wait()
+	})
+
+	baseURL := "http://127.0.0.1:" + port
+	waitForStarterServer(t, baseURL+"/health/readiness", serverLog)
+	assertStarterRouteContains(t, baseURL+"/health/liveness", `"status":"alive"`)
+	assertStarterRouteContains(t, baseURL+"/auth/login", `"/auth/login"`)
+	assertStarterRouteContains(t, baseURL+"/auth/register", `"/auth/register"`)
+	assertStarterRouteContains(t, baseURL+"/", `"route":"landing_page"`)
+}
+
 func TestFreshAppBootsWithManagedEnvVarsWithoutControlPlaneCode(t *testing.T) {
 	root := t.TempDir()
 	prevWD, err := os.Getwd()

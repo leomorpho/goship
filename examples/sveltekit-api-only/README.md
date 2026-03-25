@@ -18,6 +18,10 @@ Create the API backend with the canonical command:
 ship new demo --module example.com/demo --api-only
 ```
 
+```bash
+ship new demo --module example.com/demo --api
+```
+
 The backend keeps standard auth/session endpoints such as `/auth/login` and `/auth/register`.
 
 ## Frontend Contract

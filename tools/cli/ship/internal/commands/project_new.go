@@ -51,7 +51,7 @@ func RunNew(args []string, d NewDeps) int {
 	for _, arg := range args {
 		if arg == "-h" || arg == "--help" || arg == "help" {
 			fmt.Fprintln(d.Out, "ship new:")
-			fmt.Fprintln(d.Out, "  ship new <app> [--module <module-path>] [--dry-run] [--force] [--ui <franken|daisy|bare>] [--api-only] [--i18n|--no-i18n]")
+			fmt.Fprintln(d.Out, "  ship new <app> [--module <module-path>] [--dry-run] [--force] [--ui <franken|daisy|bare>] [--api|--api-only] [--i18n|--no-i18n]")
 			return 0
 		}
 	}
@@ -62,7 +62,7 @@ func RunNew(args []string, d NewDeps) int {
 		return 1
 	}
 	if strings.TrimSpace(opts.Name) == "" {
-		fmt.Fprintln(d.Err, "usage: ship new <app> [--module <module-path>] [--dry-run] [--force] [--ui <franken|daisy|bare>] [--api-only] [--i18n|--no-i18n]")
+		fmt.Fprintln(d.Err, "usage: ship new <app> [--module <module-path>] [--dry-run] [--force] [--ui <franken|daisy|bare>] [--api|--api-only] [--i18n|--no-i18n]")
 		return 1
 	}
 	opts, err = resolveNewI18nOptions(opts, d)
@@ -107,7 +107,7 @@ func ParseNewArgs(args []string) (NewProjectOptions, error) {
 			opts.DryRun = true
 		case arg == "--force":
 			opts.Force = true
-		case arg == "--api-only":
+		case arg == "--api" || arg == "--api-only":
 			opts.APIMode = true
 		case arg == "--i18n":
 			if opts.I18nSet && !opts.I18nEnabled {
