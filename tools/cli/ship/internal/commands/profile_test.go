@@ -151,6 +151,31 @@ func TestRunProfileSet_RejectsUnknownPreset(t *testing.T) {
 	}
 }
 
+func TestRunProfileSet_AcceptsCanonicalAliases(t *testing.T) {
+	root := t.TempDir()
+	envPath := filepath.Join(root, ".env")
+	if err := os.WriteFile(envPath, []byte("PAGODA_RUNTIME_PROFILE=distributed\n"), 0o644); err != nil {
+		t.Fatalf("write env: %v", err)
+	}
+
+	prevWD, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("getwd: %v", err)
+	}
+	if err := os.Chdir(root); err != nil {
+		t.Fatalf("chdir %s: %v", root, err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(prevWD) })
+
+	for _, alias := range []string{"single-node", "server-db", "single", "local"} {
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+		if code := RunProfile([]string{"set", alias}, ProfileDeps{Out: out, Err: errOut}); code != 0 {
+			t.Fatalf("alias %q exit code=%d stderr=%s", alias, code, errOut.String())
+		}
+	}
+}
+
 func TestRunProfileSet_MissingEnvFile_ProvidesActionableGuidance(t *testing.T) {
 	root := t.TempDir()
 	prevWD, err := os.Getwd()
