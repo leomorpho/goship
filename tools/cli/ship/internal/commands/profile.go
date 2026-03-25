@@ -122,6 +122,7 @@ func runProfileSet(args []string, d ProfileDeps) int {
 	envPath, err := findEnvFile(".")
 	if err != nil {
 		fmt.Fprintf(d.Err, "profile:set requires a .env file: %v\n", err)
+		fmt.Fprintln(d.Err, "Next step: create a .env file (for example from .env.example), then rerun `ship profile:set <preset>`.")
 		return 1
 	}
 
@@ -143,6 +144,7 @@ func runProfileSet(args []string, d ProfileDeps) int {
 
 	if err := os.WriteFile(envPath, []byte(updated), 0o644); err != nil {
 		fmt.Fprintf(d.Err, "failed to write %s: %v\n", envPath, err)
+		fmt.Fprintln(d.Err, "Next step: ensure .env is writable and rerun `ship profile:set <preset>`.")
 		return 1
 	}
 
