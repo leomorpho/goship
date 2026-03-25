@@ -221,6 +221,62 @@ func TestScaffoldNewProject(t *testing.T) {
 	}
 }
 
+func TestScaffoldNewProject_StripsStarterStyleClasses(t *testing.T) {
+	root := t.TempDir()
+	opts := NewProjectOptions{
+		Name:    "demo",
+		Module:  "example.com/demo",
+		AppPath: filepath.Join(root, "demo"),
+	}
+
+	if err := ScaffoldNewProject(opts, NewDeps{
+		ParseAgentPolicyBytes:      func(b []byte) (policies.AgentPolicy, error) { return policies.ParsePolicyBytes(b) },
+		RenderAgentPolicyArtifacts: policies.RenderPolicyArtifacts,
+		AgentPolicyFilePath:        policies.AgentPolicyFilePath,
+	}); err != nil {
+		t.Fatalf("ScaffoldNewProject failed: %v", err)
+	}
+
+	for _, rel := range []string{
+		filepath.Join("app", "views", "web", "pages", "landing.templ"),
+		filepath.Join("app", "views", "web", "pages", "home_feed.templ"),
+		filepath.Join("app", "views", "web", "pages", "profile.templ"),
+	} {
+		contentBytes, err := os.ReadFile(filepath.Join(opts.AppPath, rel))
+		if err != nil {
+			t.Fatalf("read %s: %v", rel, err)
+		}
+		content := string(contentBytes)
+
+		if strings.Contains(content, "starter-") {
+			t.Fatalf("%s should not include starter-* tokens:\n%s", rel, content)
+		}
+		if strings.Contains(content, `class="`) {
+			t.Fatalf("%s should not include style classes:\n%s", rel, content)
+		}
+		if !strings.Contains(content, "data-component=") {
+			t.Fatalf("%s should preserve data-component hook:\n%s", rel, content)
+		}
+	}
+
+	stylesBundleBytes, err := os.ReadFile(filepath.Join(opts.AppPath, "static", "styles_bundle.css"))
+	if err != nil {
+		t.Fatalf("read static/styles_bundle.css: %v", err)
+	}
+	if strings.TrimSpace(string(stylesBundleBytes)) != "" {
+		t.Fatalf("static/styles_bundle.css should be empty, got:\n%s", string(stylesBundleBytes))
+	}
+
+	stylesSourceBytes, err := os.ReadFile(filepath.Join(opts.AppPath, "styles", "styles.css"))
+	if err != nil {
+		t.Fatalf("read styles/styles.css: %v", err)
+	}
+	stylesSource := string(stylesSourceBytes)
+	if strings.Contains(stylesSource, "starter-") {
+		t.Fatalf("styles/styles.css should not include starter-* tokens, got:\n%s", stylesSource)
+	}
+}
+
 func TestScaffoldNewProjectDryRun(t *testing.T) {
 	root := t.TempDir()
 	opts := NewProjectOptions{

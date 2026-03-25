@@ -603,19 +603,12 @@ DROP TABLE IF EXISTS starter_bootstrap;
 }
 
 func renderStarterStylesSource() string {
-	return `:root {
-  --starter-bg: #f5efe4;
-  --starter-panel: #fffaf2;
-  --starter-ink: #1e1b18;
-  --starter-accent: #bb5a3c;
-  --starter-muted: #6f655a;
-  --starter-border: #ddc9a9;
-}
+	return `/* Starter scaffold ships structural HTML only. Add your own design system styles here. */
 `
 }
 
 func renderStarterStylesBundle() string {
-	return `:root{--starter-bg:#f5efe4;--starter-panel:#fffaf2;--starter-ink:#1e1b18;--starter-accent:#bb5a3c;--starter-muted:#6f655a;--starter-border:#ddc9a9}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#fff8ef 0,#f5efe4 48%,#eadcc4 100%);color:var(--starter-ink);font-family:Georgia,"Times New Roman",serif}a{color:inherit}.starter-shell{max-width:960px;margin:0 auto;padding:32px 20px 64px}.starter-header{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:24px}.starter-brand{font-size:28px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}.starter-nav{display:flex;gap:12px;flex-wrap:wrap}.starter-nav a{padding:10px 14px;border:1px solid var(--starter-border);border-radius:999px;background:rgba(255,250,242,.8);text-decoration:none}.starter-panel{background:var(--starter-panel);border:1px solid var(--starter-border);border-radius:24px;padding:28px;box-shadow:0 24px 80px rgba(62,38,20,.08)}.starter-panel h1{font-size:42px;line-height:1.05;margin:0 0 12px}.starter-panel p{font-size:18px;line-height:1.6;color:var(--starter-muted);margin:0}.starter-status{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:rgba(187,90,60,.12);color:var(--starter-accent);font-size:14px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-bottom:16px}.starter-footer{margin-top:18px;font-size:14px;color:var(--starter-muted)}@media (max-width:640px){.starter-shell{padding:24px 16px 40px}.starter-header{flex-direction:column;align-items:flex-start}.starter-panel{padding:22px}.starter-panel h1{font-size:34px}}`
+	return ""
 }
 
 func renderGithubCI() string {
