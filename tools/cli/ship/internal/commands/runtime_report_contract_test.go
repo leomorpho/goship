@@ -701,6 +701,73 @@ func TestRunRuntimeReport_ManagedUpgradeReadinessBlocksWithoutHookSecret(t *test
 	}
 }
 
+func TestRunRuntimeReport_BackupMetadataAndRestoreEvidenceContracts_RedSpec(t *testing.T) {
+	out := &bytes.Buffer{}
+	errOut := &bytes.Buffer{}
+
+	code := RunRuntimeReport([]string{"--json"}, RuntimeReportDeps{
+		Out: out,
+		Err: errOut,
+		LoadConfig: func() (config.Config, error) {
+			return config.Config{
+				Runtime: config.RuntimeConfig{Profile: config.RuntimeProfileSingleNode},
+				Adapters: config.AdaptersConfig{
+					DB:     "sqlite",
+					Cache:  "otter",
+					Jobs:   "backlite",
+					PubSub: "inproc",
+				},
+				Processes: config.ProcessesConfig{
+					Web:       true,
+					Worker:    true,
+					Scheduler: true,
+					CoLocated: true,
+				},
+				Database: config.DatabaseConfig{
+					DbMode: config.DBModeEmbedded,
+					Driver: config.DBDriverSQLite,
+				},
+			}, nil
+		},
+	})
+	if code != 0 {
+		t.Fatalf("exit code = %d, stderr=%s", code, errOut.String())
+	}
+
+	var payload struct {
+		Backup struct {
+			ManifestVersion string `json:"manifest_version"`
+			RestoreEvidence struct {
+				Status                  string   `json:"status"`
+				AcceptedManifestVersion string   `json:"accepted_manifest_version"`
+				PostRestoreChecks       []string `json:"post_restore_checks"`
+				RecordLinks             []string `json:"record_links"`
+			} `json:"restore_evidence"`
+		} `json:"backup"`
+	}
+	if err := json.Unmarshal(out.Bytes(), &payload); err != nil {
+		t.Fatalf("decode runtime report: %v\n%s", err, out.String())
+	}
+	if payload.Backup.ManifestVersion != "backup-manifest-v1" {
+		t.Fatalf("backup.manifest_version=%q want backup-manifest-v1", payload.Backup.ManifestVersion)
+	}
+	if payload.Backup.RestoreEvidence.Status != "accepted" {
+		t.Fatalf("backup.restore_evidence.status=%q want accepted", payload.Backup.RestoreEvidence.Status)
+	}
+	if payload.Backup.RestoreEvidence.AcceptedManifestVersion != "backup-manifest-v1" {
+		t.Fatalf(
+			"backup.restore_evidence.accepted_manifest_version=%q want backup-manifest-v1",
+			payload.Backup.RestoreEvidence.AcceptedManifestVersion,
+		)
+	}
+	if len(payload.Backup.RestoreEvidence.PostRestoreChecks) == 0 {
+		t.Fatalf("backup.restore_evidence.post_restore_checks should be non-empty\n%s", out.String())
+	}
+	if len(payload.Backup.RestoreEvidence.RecordLinks) != 3 {
+		t.Fatalf("backup.restore_evidence.record_links len=%d want 3", len(payload.Backup.RestoreEvidence.RecordLinks))
+	}
+}
+
 func repoRootForRuntimeReportTest(t *testing.T) string {
 	t.Helper()
 	return repoRootFromCommandsTest(t)
