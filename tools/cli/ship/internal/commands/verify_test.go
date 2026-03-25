@@ -960,6 +960,134 @@ func TestScaffoldTodo(t *testing.T) {
 		}
 	})
 
+	t.Run("generated app scaffold fails on invalid router marker layout", func(t *testing.T) {
+		root := t.TempDir()
+		writeVerifyGoMod(t, root)
+		writeVerifyGoWork(t, root)
+
+		requiredDirs := []string{
+			filepath.Join(root, "app"),
+			filepath.Join(root, "app", "foundation"),
+			filepath.Join(root, "app", "web", "controllers"),
+			filepath.Join(root, "app", "web", "middleware"),
+			filepath.Join(root, "app", "web", "ui"),
+			filepath.Join(root, "app", "web", "viewmodels"),
+			filepath.Join(root, "app", "web", "routenames"),
+			filepath.Join(root, "app", "jobs"),
+			filepath.Join(root, "app", "views"),
+			filepath.Join(root, "db", "queries"),
+			filepath.Join(root, "db", "migrate", "migrations"),
+			filepath.Join(root, "config"),
+			filepath.Join(root, "docs", "architecture"),
+		}
+		for _, dir := range requiredDirs {
+			if err := os.MkdirAll(dir, 0o755); err != nil {
+				t.Fatal(err)
+			}
+		}
+		files := map[string]string{
+			filepath.Join(root, "app", "router.go"): `package goship
+
+func registerPublicRoutes() {}
+func registerAuthRoutes() {}
+`,
+			filepath.Join(root, "app", "foundation", "container.go"):        "package foundation\n",
+			filepath.Join(root, "app", "web", "routenames", "routenames.go"): "package routenames\n",
+			filepath.Join(root, "db", "bobgen.yaml"):                         "packages: []\n",
+			filepath.Join(root, "config", "modules.yaml"):                    "modules: []\n",
+			filepath.Join(root, "docs", "00-index.md"):                       "# Index\n",
+			filepath.Join(root, "docs", "architecture", "01-architecture.md"): "# Architecture\n",
+			filepath.Join(root, "docs", "architecture", "08-cognitive-model.md"): "# Cognitive\n",
+		}
+		for path, content := range files {
+			if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+				t.Fatal(err)
+			}
+		}
+
+		prevWD := chdirVerifyRoot(t, root)
+		t.Cleanup(func() { _ = os.Chdir(prevWD) })
+
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+		calls := make([]string, 0)
+		code := RunVerify([]string{"--skip-tests"}, VerifyDeps{
+			Out:          out,
+			Err:          errOut,
+			FindGoModule: findVerifyGoModule,
+			RelocateTempl: func(rootPath string) error {
+				return nil
+			},
+			RunStep: func(name string, args ...string) (int, string, error) {
+				calls = append(calls, name+" "+strings.Join(args, " "))
+				return 0, "ok", nil
+			},
+			LookPath: func(file string) (string, error) {
+				return "/usr/bin/" + file, nil
+			},
+			RunDoctor: func() (int, string, error) {
+				t.Fatal("doctor should not run after generated app scaffold marker failure")
+				return 0, "", nil
+			},
+		})
+		if code != 1 {
+			t.Fatalf("exit code = %d, want 1", code)
+		}
+		if len(calls) != 0 {
+			t.Fatalf("verify should fail before subprocesses, got calls %+v", calls)
+		}
+		if !strings.Contains(errOut.String(), "verify failed at generated app scaffold") {
+			t.Fatalf("stderr = %q, want generated scaffold failure step", errOut.String())
+		}
+		if !strings.Contains(errOut.String(), "DX005") {
+			t.Fatalf("stderr = %q, want DX005 marker drift diagnostic", errOut.String())
+		}
+	})
+
+	t.Run("fails on standalone exportability drift token", func(t *testing.T) {
+		root := t.TempDir()
+		writeVerifyGoMod(t, root)
+		writeVerifyGoWork(t, root)
+		if err := os.MkdirAll(filepath.Join(root, "app"), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(root, "app", "drift.go"), []byte("package app\n// control-plane dependency\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+
+		prevWD := chdirVerifyRoot(t, root)
+		t.Cleanup(func() { _ = os.Chdir(prevWD) })
+
+		out := &bytes.Buffer{}
+		errOut := &bytes.Buffer{}
+		code := RunVerify([]string{"--skip-tests"}, VerifyDeps{
+			Out:          out,
+			Err:          errOut,
+			FindGoModule: findVerifyGoModule,
+			RelocateTempl: func(rootPath string) error {
+				return nil
+			},
+			RunStep: func(name string, args ...string) (int, string, error) {
+				return 0, "ok", nil
+			},
+			LookPath: func(file string) (string, error) {
+				return "/usr/bin/" + file, nil
+			},
+			RunDoctor: func() (int, string, error) {
+				return 0, `{"ok":true,"issues":[]}`, nil
+			},
+		})
+		if code != 1 {
+			t.Fatalf("exit code = %d, want 1", code)
+		}
+		if !strings.Contains(errOut.String(), "verify failed at standalone exportability gate") {
+			t.Fatalf("stderr = %q, want standalone exportability failure", errOut.String())
+		}
+		if !strings.Contains(errOut.String(), "control-plane dependency drift detected") {
+			t.Fatalf("stderr = %q, want structural drift diagnostic", errOut.String())
+		}
+	})
+
 	t.Run("framework repo layout rejects legacy app shell runtime fallback paths", func(t *testing.T) {
 		root := t.TempDir()
 		writeVerifyGoMod(t, root)
