@@ -159,6 +159,34 @@ STRIPE_WEBHOOK_SECRET=
 			Description: "Stripe webhook signing secret for subscription events.",
 		},
 	}
+	emailSubscriptionsContainerSnippet = `
+	// ship:module:emailsubscriptions
+	// Wire modules/emailsubscriptions.New(store) at the deps.SubscriptionsRepo seam.
+`
+	emailSubscriptionsInstallContract = moduleInstallContract{
+		Routes: []string{
+			"modules/notifications/routes/routes.go",
+		},
+		Jobs: []string{
+			"modules/emailsubscriptions/service.go",
+			"modules/emailsubscriptions/store_sql.go",
+			"modules/emailsubscriptions/catalog.go",
+		},
+		Tests: []string{
+			"modules/emailsubscriptions/service_test.go",
+			"modules/emailsubscriptions/store_sql_test.go",
+			"modules/emailsubscriptions/store_sql_integration_test.go",
+			"modules/emailsubscriptions/catalog_test.go",
+			"modules/notifications/routes/routes_contract_test.go",
+		},
+	}
+	emailSubscriptionsRouterSnippets = map[string]string{
+		"auth": `
+	// ship:module:emailsubscriptions
+	// Email unsubscribe verification is served in modules/notifications/routes/routes.go
+	// through routeNames.RouteNameDeleteEmailSubscriptionWithToken.
+`,
+	}
 )
 
 var moduleCatalog = map[string]moduleInfo{
@@ -226,19 +254,12 @@ var moduleCatalog = map[string]moduleInfo{
 		RequiredEnv:       paidSubscriptionsRequiredEnv,
 	},
 	"emailsubscriptions": {
-		ID:         "emailsubscriptions",
-		ModulePath: "github.com/leomorpho/goship-modules/emailsubscriptions",
-		LocalPath:  filepath.Join("modules", "emailsubscriptions"),
-		ContainerSnippet: `
-	// ship:module:emailsubscriptions
-	// TODO: wire the email subscriptions module (store, confirmation) here.
-`,
-		RouterSnippets: map[string]string{
-			"public": `
-	// ship:module:emailsubscriptions
-	// TODO: register email subscription routes via modules/emailsubscriptions/routes.go.
-`,
-		},
+		ID:               "emailsubscriptions",
+		ModulePath:       "github.com/leomorpho/goship-modules/emailsubscriptions",
+		LocalPath:        filepath.Join("modules", "emailsubscriptions"),
+		InstallContract:  emailSubscriptionsInstallContract,
+		ContainerSnippet: emailSubscriptionsContainerSnippet,
+		RouterSnippets:   emailSubscriptionsRouterSnippets,
 	},
 	"jobs": {
 		ID:         "jobs",

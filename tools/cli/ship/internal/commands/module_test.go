@@ -1032,6 +1032,85 @@ func TestBillingModuleCatalog_InstallContractCoversBillingRoutesConfigAndTests(t
 	}
 }
 
+func TestEmailSubscriptionsModuleCatalog_UsesConcreteWiring(t *testing.T) {
+	info, ok := moduleCatalog["emailsubscriptions"]
+	if !ok {
+		t.Fatal("expected emailsubscriptions in module catalog")
+	}
+	if strings.Contains(info.ContainerSnippet, "TODO") {
+		t.Fatalf("emailsubscriptions container snippet still contains TODO text:\n%s", info.ContainerSnippet)
+	}
+
+	authSnippet := strings.TrimSpace(info.RouterSnippets["auth"])
+	if authSnippet == "" {
+		t.Fatal("expected emailsubscriptions auth router snippet")
+	}
+	if strings.Contains(authSnippet, "TODO") {
+		t.Fatalf("emailsubscriptions auth router snippet still contains TODO text:\n%s", authSnippet)
+	}
+	for _, token := range []string{
+		"modules/emailsubscriptions.New",
+		"RouteNameDeleteEmailSubscriptionWithToken",
+		"modules/notifications/routes/routes.go",
+	} {
+		if !strings.Contains(info.ContainerSnippet+authSnippet, token) {
+			t.Fatalf("emailsubscriptions wiring missing %q:\ncontainer:\n%s\nauth:\n%s", token, info.ContainerSnippet, authSnippet)
+		}
+	}
+}
+
+func TestEmailSubscriptionsModuleCatalog_InstallContractCoversRoutesRuntimeAndVerificationTests(t *testing.T) {
+	t.Parallel()
+
+	info, ok := moduleCatalog["emailsubscriptions"]
+	if !ok {
+		t.Fatal("expected emailsubscriptions in module catalog")
+	}
+	contract := info.installContract()
+
+	for _, route := range []string{
+		"app/router.go (auth)",
+		"modules/notifications/routes/routes.go",
+	} {
+		if !containsExactString(contract.Routes, route) {
+			t.Fatalf("emailsubscriptions contract routes missing %q: %#v", route, contract.Routes)
+		}
+	}
+	for _, configPath := range []string{
+		"config/modules.yaml",
+		"app/foundation/container.go",
+		"go.mod",
+		"go.work",
+	} {
+		if !containsExactString(contract.Config, configPath) {
+			t.Fatalf("emailsubscriptions contract config missing %q: %#v", configPath, contract.Config)
+		}
+	}
+	if !containsExactString(contract.Migrations, "modules/emailsubscriptions/db/migrate/migrations") {
+		t.Fatalf("emailsubscriptions contract missing migration path ownership: %#v", contract.Migrations)
+	}
+	for _, runtimeSurface := range []string{
+		"modules/emailsubscriptions/service.go",
+		"modules/emailsubscriptions/store_sql.go",
+		"modules/emailsubscriptions/catalog.go",
+	} {
+		if !containsExactString(contract.Jobs, runtimeSurface) {
+			t.Fatalf("emailsubscriptions contract missing runtime surface %q: %#v", runtimeSurface, contract.Jobs)
+		}
+	}
+	for _, testSurface := range []string{
+		"modules/emailsubscriptions/service_test.go",
+		"modules/emailsubscriptions/store_sql_test.go",
+		"modules/emailsubscriptions/store_sql_integration_test.go",
+		"modules/emailsubscriptions/catalog_test.go",
+		"modules/notifications/routes/routes_contract_test.go",
+	} {
+		if !containsExactString(contract.Tests, testSurface) {
+			t.Fatalf("emailsubscriptions contract missing verification test ownership %q: %#v", testSurface, contract.Tests)
+		}
+	}
+}
+
 func TestApplyModuleAdd_AdminIdempotent(t *testing.T) {
 	root := t.TempDir()
 
