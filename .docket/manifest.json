@@ -3461,31 +3461,31 @@
     },
     "TKT-614": {
       "title": "Hard-reset architecture docs and AI agent guide to the framework-first repo shape and current runtime seams.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-608"
     },
     "TKT-615": {
       "title": "Rewrite README, docs index, and LLM.txt so GoShip's entry docs match the actual product surface.",
-      "state": "backlog",
+      "state": "in-progress",
       "priority": 4,
       "parent": "TKT-608"
     },
     "TKT-616": {
       "title": "Make ship-mcp execute the checked-out ship CLI instead of relying on a stale PATH binary.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-608"
     },
     "TKT-617": {
       "title": "Add runtime-report and stable access-classification tools to ship-mcp for stronger agent context.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-608"
     },
     "TKT-618": {
       "title": "Promote ship-mcp and MCP docs from optional/future-facing to first-class GoShip LLM workflow guidance.",
-      "state": "backlog",
+      "state": "in-progress",
       "priority": 5,
       "parent": "TKT-608"
     },
@@ -3497,13 +3497,13 @@
     },
     "TKT-620": {
       "title": "Define the blessed external-frontend contract for GoShip: API-only backend, same-origin auth, and one supported custom-frontend story.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-613"
     },
     "TKT-621": {
       "title": "Implement a blessed API-only ship new starter mode and support it in doctor, verify, and golden-path tests.",
-      "state": "backlog",
+      "state": "in-progress",
       "priority": 4,
       "parent": "TKT-613"
     },
@@ -3515,13 +3515,13 @@
     },
     "TKT-623": {
       "title": "Add TypeScript contract artifacts for split frontend apps without reviving framework-owned OpenAPI generation.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-613"
     },
     "TKT-624": {
       "title": "Expand framework/testutil with JSON, multipart, and SSE assertions for API-heavy apps.",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 4,
       "parent": "TKT-613"
     },
