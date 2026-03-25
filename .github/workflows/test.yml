@@ -257,6 +257,28 @@ jobs:
       - name: Startup smoke
         run: go test ./tools/cli/ship/internal/commands -run TestFreshAppStartupSmoke -count=1
 
+  upgrade_readiness:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.x"
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Upgrade readiness contracts
+        run: go test ./tools/cli/ship/internal/commands -run 'TestRunUpgrade_JSONReadinessReport_RedSpec|TestRunUpgrade_RejectsUnsupportedContractVersion_RedSpec' -count=1
+
   cleanroom_bob_verification:
     needs: backend_tests
     runs-on: ubuntu-latest
@@ -359,3 +381,41 @@ jobs:
             tests/e2e/playwright-report
             tests/e2e/test-results
           retention-days: 7
+
+  top_level_fresh_app:
+    if: ${{ always() }}
+    needs: [fresh_app_ci]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fresh app lane status
+        run: test "${{ needs.fresh_app_ci.result }}" = "success"
+
+  top_level_upgrades:
+    if: ${{ always() }}
+    needs: [upgrade_readiness]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Upgrade lane status
+        run: test "${{ needs.upgrade_readiness.result }}" = "success"
+
+  top_level_batteries:
+    if: ${{ always() }}
+    needs: [module_isolation, sql_portability, generator_contracts]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Batteries lane status
+        run: |
+          test "${{ needs.module_isolation.result }}" = "success"
+          test "${{ needs.sql_portability.result }}" = "success"
+          test "${{ needs.generator_contracts.result }}" = "success"
+
+  top_level_standalone_operations:
+    if: ${{ always() }}
+    needs: [bootstrap_budget, startup_smoke, cleanroom_bob_verification]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Standalone operations lane status
+        run: |
+          test "${{ needs.bootstrap_budget.result }}" = "success"
+          test "${{ needs.startup_smoke.result }}" = "success"
+          test "${{ needs.cleanroom_bob_verification.result }}" = "success"

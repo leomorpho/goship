@@ -58,11 +58,29 @@ func TestCIContract_DefinesAlphaFreezeGate_RedSpec(t *testing.T) {
 	if !bytes.Contains([]byte(workflow), []byte("\n  startup_smoke:\n")) {
 		t.Fatal("test workflow should define a dedicated startup_smoke job")
 	}
+	if !bytes.Contains([]byte(workflow), []byte("\n  upgrade_readiness:\n")) {
+		t.Fatal("test workflow should define a dedicated upgrade_readiness job")
+	}
+	if !bytes.Contains([]byte(workflow), []byte("\n  top_level_fresh_app:\n")) {
+		t.Fatal("test workflow should define a top-level fresh-app lane")
+	}
+	if !bytes.Contains([]byte(workflow), []byte("\n  top_level_upgrades:\n")) {
+		t.Fatal("test workflow should define a top-level upgrades lane")
+	}
+	if !bytes.Contains([]byte(workflow), []byte("\n  top_level_batteries:\n")) {
+		t.Fatal("test workflow should define a top-level batteries lane")
+	}
+	if !bytes.Contains([]byte(workflow), []byte("\n  top_level_standalone_operations:\n")) {
+		t.Fatal("test workflow should define a top-level standalone-operations lane")
+	}
 	if !bytes.Contains([]byte(workflow), []byte("run: make test-alpha-contracts")) {
 		t.Fatal("alpha contract CI job should invoke make test-alpha-contracts")
 	}
 	if !bytes.Contains([]byte(workflow), []byte("go test ./tools/cli/ship/internal/commands -run TestFreshAppStartupSmoke -count=1")) {
 		t.Fatal("startup smoke CI job should invoke the fresh-app startup smoke test")
+	}
+	if !bytes.Contains([]byte(workflow), []byte("go test ./tools/cli/ship/internal/commands -run 'TestRunUpgrade_JSONReadinessReport_RedSpec|TestRunUpgrade_RejectsUnsupportedContractVersion_RedSpec' -count=1")) {
+		t.Fatal("upgrade_readiness CI job should run the canonical upgrade readiness regression contract tests")
 	}
 	if !bytes.Contains([]byte(makefile), []byte(".PHONY: test-alpha-contracts")) {
 		t.Fatal("Makefile should expose a canonical test-alpha-contracts entrypoint for CI")
