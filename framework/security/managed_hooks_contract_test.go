@@ -132,6 +132,18 @@ func TestManagedHookVerifier_AcceptsPreviousSecretDuringRotation_RedSpec(t *test
 	}
 }
 
+func TestManagedHookHeaderContractValuesRemainStable(t *testing.T) {
+	if HeaderManagedTimestamp != "X-GoShip-Timestamp" {
+		t.Fatalf("HeaderManagedTimestamp=%q want X-GoShip-Timestamp", HeaderManagedTimestamp)
+	}
+	if HeaderManagedNonce != "X-GoShip-Nonce" {
+		t.Fatalf("HeaderManagedNonce=%q want X-GoShip-Nonce", HeaderManagedNonce)
+	}
+	if HeaderManagedSignature != "X-GoShip-Signature" {
+		t.Fatalf("HeaderManagedSignature=%q want X-GoShip-Signature", HeaderManagedSignature)
+	}
+}
+
 func repoRootForSecurityContractTest(t *testing.T) string {
 	t.Helper()
 

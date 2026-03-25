@@ -24,6 +24,8 @@ upstreaming metric.
 
 `ship runtime:report --json` now also carries per-module adoption metadata so orchestration tooling
 can inspect installed module identity, source, and version without parsing repo internals.
+The payload also includes a stable first-party baseline with `installed=false` for non-enabled
+first-party modules so adoption comparisons stay consistent across runtimes.
 
 `ship profile:set <single-binary|standard|distributed>` now rewrites the local `.env` runtime
 profile and process preset values deterministically, giving the CLI a first-class way to move

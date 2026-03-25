@@ -169,3 +169,23 @@ func TestBuildProcessTopologyDefaultsWhenKeysMissing(t *testing.T) {
 	assert.Equal(t, ProcessTopologyEntry{Enabled: false, Source: SourceFrameworkDefault}, topology.Scheduler)
 	assert.Equal(t, ProcessTopologyEntry{Enabled: true, Source: SourceFrameworkDefault}, topology.CoLocated)
 }
+
+func TestManagedSourceValuesRemainStableForRuntimeContracts(t *testing.T) {
+	sources := []Source{
+		SourceFrameworkDefault,
+		SourceAppRepo,
+		SourceEnvironment,
+		SourceManagedOverride,
+	}
+	seen := map[Source]struct{}{}
+	for _, source := range sources {
+		assert.NotEmpty(t, string(source))
+		_, exists := seen[source]
+		assert.False(t, exists)
+		seen[source] = struct{}{}
+	}
+	assert.Equal(t, Source("framework-default"), SourceFrameworkDefault)
+	assert.Equal(t, Source("app-repo"), SourceAppRepo)
+	assert.Equal(t, Source("environment"), SourceEnvironment)
+	assert.Equal(t, Source("managed-override"), SourceManagedOverride)
+}
