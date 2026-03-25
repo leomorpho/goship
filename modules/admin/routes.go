@@ -99,29 +99,52 @@ func (r *routes) Flags(ctx echo.Context) error {
 		return ctx.HTML(http.StatusOK, b.String())
 	}
 
-	b.WriteString("<table><thead><tr><th>Constant key</th><th>Description</th><th>Enabled</th><th>Code default</th><th>Rollout %</th><th>Action</th></tr></thead><tbody>")
+	type flagsRow struct {
+		flag      flags.Flag
+		def       flags.FlagDefinition
+		registered bool
+	}
+	registeredRows := make([]flagsRow, 0, len(items))
+	orphanRows := make([]flagsRow, 0, len(items))
 	for _, item := range items {
+		def, ok := flags.Lookup(flags.FlagKey(item.Key))
+		row := flagsRow{flag: item, def: def, registered: ok}
+		if ok {
+			registeredRows = append(registeredRows, row)
+			continue
+		}
+		orphanRows = append(orphanRows, row)
+	}
+	rows := append(registeredRows, orphanRows...)
+
+	b.WriteString("<table><thead><tr><th>Constant key</th><th>Description</th><th>Enabled</th><th>Code default</th><th>Rollout %</th><th>Action</th></tr></thead><tbody>")
+	for _, row := range rows {
 		status := "off"
-		if item.Enabled {
+		if row.flag.Enabled {
 			status = "on"
 		}
-		description := item.Description
+		description := row.flag.Description
 		codeDefault := "Code default: n/a"
-		if def, ok := flags.Lookup(flags.FlagKey(item.Key)); ok {
-			description = def.Description
-			if def.Default {
+		warningBadge := ""
+		rowStyle := ""
+		if row.registered {
+			description = row.def.Description
+			if row.def.Default {
 				codeDefault = "Code default: On"
 			} else {
 				codeDefault = "Code default: Off"
 			}
+		} else {
+			warningBadge = ` <span>[Orphaned - not in code]</span>`
+			rowStyle = ` style="opacity:0.75"`
 		}
-		b.WriteString("<tr>")
-		b.WriteString("<td><code>" + html.EscapeString(item.Key) + "</code></td>")
+		b.WriteString("<tr" + rowStyle + ">")
+		b.WriteString("<td><code>" + html.EscapeString(row.flag.Key) + "</code>" + warningBadge + "</td>")
 		b.WriteString("<td>" + html.EscapeString(description) + "</td>")
 		b.WriteString("<td>" + status + "</td>")
 		b.WriteString("<td>" + html.EscapeString(codeDefault) + "</td>")
-		b.WriteString("<td>" + strconv.Itoa(item.RolloutPct) + "</td>")
-		b.WriteString(`<td><form method="post" action="/admin/flags/` + html.EscapeString(item.Key) + `/toggle">`)
+		b.WriteString("<td>" + strconv.Itoa(row.flag.RolloutPct) + "</td>")
+		b.WriteString(`<td><form method="post" action="/admin/flags/` + html.EscapeString(row.flag.Key) + `/toggle">`)
 		b.WriteString(`<button type="submit">Toggle</button></form></td>`)
 		b.WriteString("</tr>")
 	}

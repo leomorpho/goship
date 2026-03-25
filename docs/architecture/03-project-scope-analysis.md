@@ -187,7 +187,7 @@ Reflection-based administrative interface for managing database resources.
 - Resource registration and CRUD operations for Bob-generated models.
 - Queue monitoring reads through `core.JobsInspector`, with unsupported backends surfacing an explicit unavailable state in the admin UI.
 - Managed settings status page at `/auth/admin/managed-settings` for operator visibility into effective value/source/access state.
-- Feature flags page at `/auth/admin/flags` with server-side toggle actions plus registry-backed metadata (constant key badge, code default indicator, canonical description).
+- Feature flags page at `/auth/admin/flags` with server-side toggle actions plus registry-backed metadata (constant key badge, code default indicator, canonical description) and orphaned DB-row warnings for keys no longer defined in code.
 - Trash page at `/auth/admin/trash` for operator visibility into soft-deleted row counts by table.
 - Built-in Templ components for common admin UI patterns.
 - Playwright baseline smoke coverage lives at `tests/e2e/tests/admin_scaffold.spec.ts` and protects the auth/managed-settings/flags/trash flow.

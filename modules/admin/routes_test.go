@@ -328,6 +328,67 @@ func TestFlagsListHandler_MergesRegistryAndDB(t *testing.T) {
 	}
 }
 
+func TestFlagsListHandler_MarksOrphanedRows(t *testing.T) {
+	c := newContainerForAdminRoutes(t, true)
+	seedFeatureFlagForAdminTest(t, c.Database, "admin_flags_orphaned", true, 100, "orphaned description")
+
+	req := httptest.NewRequest(http.MethodGet, "/admin/flags", nil)
+	rec := httptest.NewRecorder()
+	c.Web.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusOK)
+	}
+	body := rec.Body.String()
+	if !strings.Contains(body, "admin_flags_orphaned") {
+		t.Fatalf("body = %q, want orphaned key", body)
+	}
+	if !strings.Contains(body, "Orphaned - not in code") {
+		t.Fatalf("body = %q, want orphaned warning badge", body)
+	}
+}
+
+func TestFlagsListHandler_OrphansAtBottom(t *testing.T) {
+	c := newContainerForAdminRoutes(t, true)
+	ensureFlagDefinition(t, "admin_flags_registered_first", "registered description", true)
+	seedFeatureFlagForAdminTest(t, c.Database, "admin_flags_registered_first", true, 100, "manual description")
+	seedFeatureFlagForAdminTest(t, c.Database, "admin_flags_orphan_last", false, 100, "orphaned description")
+
+	req := httptest.NewRequest(http.MethodGet, "/admin/flags", nil)
+	rec := httptest.NewRecorder()
+	c.Web.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusOK)
+	}
+	body := rec.Body.String()
+	registeredPos := strings.Index(body, "admin_flags_registered_first")
+	orphanPos := strings.Index(body, "admin_flags_orphan_last")
+	if registeredPos < 0 || orphanPos < 0 {
+		t.Fatalf("body = %q, want both registered and orphan rows", body)
+	}
+	if orphanPos < registeredPos {
+		t.Fatalf("body = %q, want orphan row after registered row", body)
+	}
+}
+
+func TestFlagsListHandler_NoOrphans(t *testing.T) {
+	c := newContainerForAdminRoutes(t, true)
+	ensureFlagDefinition(t, "admin_flags_no_orphan", "registered description", true)
+	seedFeatureFlagForAdminTest(t, c.Database, "admin_flags_no_orphan", true, 100, "manual description")
+
+	req := httptest.NewRequest(http.MethodGet, "/admin/flags", nil)
+	rec := httptest.NewRecorder()
+	c.Web.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusOK)
+	}
+	if strings.Contains(rec.Body.String(), "Orphaned - not in code") {
+		t.Fatalf("body = %q, did not expect orphan warning", rec.Body.String())
+	}
+}
+
 func seedFeatureFlagForAdminTest(t *testing.T, db *sql.DB, key string, enabled bool, rolloutPct int, description string) {
 	t.Helper()
 	if _, err := db.Exec(`
