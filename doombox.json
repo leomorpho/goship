@@ -1,15 +1,16 @@
 {
-  "version": 1,
   "default_profile": "go-codex",
+  "mcp": "docket",
   "profiles": {
     "go-codex": {
-      "default_agent": "codex",
       "agents": [
         "codex"
       ],
+      "default_agent": "codex",
       "languages": [
         "go"
       ]
     }
-  }
+  },
+  "version": 1
 }

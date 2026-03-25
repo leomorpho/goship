@@ -147,7 +147,7 @@ A task is done when:
 <!-- docket.skill.pack.version: docket.skills/v1 -->
 <!-- docket.contract.hash: 4215e96e76b073e7c5b58adccdafa2958d65153bd2e869b3255f7560e863f2e0 -->
 <!-- docket.skill.metadata.checksum: 4bbadff18330725650ed9e6233332d2f19ad7494eecfb23b9f4cb939b3b375fc -->
-<!-- docket.skill.ids: ticket-discovery,ticket-authoring-apply,context-optimize,learning-replay,wrap-up-readiness -->
+<!-- docket.skill.names: ticket-discovery,ticket-authoring-apply,context-optimize,learning-replay,wrap-up-readiness -->
 
 Use `docket start` to pick up prioritized ticket work.
 
@@ -183,6 +183,10 @@ Use `docket start` to pick up prioritized ticket work.
   - triggers: session_end, pre_review, handoff
   - summary: Run wrap-up readiness checks for AC completion, handoff quality, blockers, and review transition readiness.
 <!-- docket:skill-pack:end -->
+
+
+
+
 
 
 
