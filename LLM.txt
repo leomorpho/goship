@@ -4544,6 +4544,7 @@ Safety matrix:
 - `ship upgrade --contract-version <schema>` / `ship upgrade apply --contract-version <schema>` -> require the supported upgrade readiness contract version
 - `ship upgrade --dry-run` / `ship upgrade apply --dry-run` -> print planned pin changes without writing files
 - `ship upgrade --json` -> emits the machine-readable `upgrade-readiness-v1` preflight contract (`schema_version`, `blocker_classification`, `target_version`, `ready`, `rollback_target`, `canary`, `verification`, `plan`, `result`, `blockers`, `manual_follow_ups`, `remediation_hints`, `planned_changes`) without writing files; `plan.safe_steps` computes deterministic minor-boundary bridge hops (when needed) and maps each hop to a concrete `ship upgrade apply --to <version>` command, `result` reports whether a pin change is planned, blocker entries carry `classification`, and `manual_follow_ups` plus `verification.command` remain concrete so weaker agents can trust the plan before mutating the pinned Goose reference
+- upgrade output now includes `execution_steps` classification (`automatic`, `manual`, `blocked`) so command/report consumers can distinguish rewrite automation, operator-required actions, and hard blockers consistently
 - when canonical generated conventions drift (for example missing `gooseGoRunRef` in stale scaffolds), `ship upgrade` returns a blocked readiness report (`result.outcome=blocked`, `blockers[0].id=upgrade.convention_drift`) instead of applying rewrites
 - current scope: Goose pin only (expandable later)
 
