@@ -233,6 +233,99 @@ func TestUpgradeAcceptance_OlderAppFixtureUpgradesAndRemainsReady(t *testing.T) 
 	}
 }
 
+func TestUpgradeReadinessReport_ControlPlaneCompatibilityAcrossSupportedFixtures(t *testing.T) {
+	cases := []struct {
+		name            string
+		fixtureRel      string
+		target          string
+		wantExitCode    int
+		wantReady       bool
+		wantRollback    string
+		wantHasBlockers bool
+	}{
+		{
+			name:         "canonical goose fixture",
+			fixtureRel:   "testdata/upgrade_codemods/goose_v3_before.go",
+			target:       "v3.27.0",
+			wantExitCode: 0,
+			wantReady:    true,
+			wantRollback: "v3.26.0",
+		},
+		{
+			name:         "legacy goose fixture",
+			fixtureRel:   "testdata/upgrade_codemods/goose_legacy_before.go",
+			target:       "v3.27.0",
+			wantExitCode: 0,
+			wantReady:    true,
+			wantRollback: "v3.25.1",
+		},
+		{
+			name:            "stale convention fixture",
+			fixtureRel:      "testdata/upgrade_codemods/goose_stale_convention.go",
+			target:          "v3.27.0",
+			wantExitCode:    1,
+			wantReady:       false,
+			wantHasBlockers: true,
+		},
+	}
+
+	for _, tc := range cases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			root := t.TempDir()
+			if err := os.WriteFile(filepath.Join(root, "go.mod"), []byte("module example.com/demo\n\ngo 1.25\n"), 0o644); err != nil {
+				t.Fatal(err)
+			}
+			cliPath := filepath.Join(root, "tools", "cli", "ship", "internal", "cli", "cli.go")
+			if err := os.MkdirAll(filepath.Dir(cliPath), 0o755); err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(cliPath, fixtureText(t, tc.fixtureRel), 0o644); err != nil {
+				t.Fatal(err)
+			}
+
+			prevWD, err := os.Getwd()
+			if err != nil {
+				t.Fatal(err)
+			}
+			t.Cleanup(func() { _ = os.Chdir(prevWD) })
+			if err := os.Chdir(root); err != nil {
+				t.Fatal(err)
+			}
+
+			out := &bytes.Buffer{}
+			errOut := &bytes.Buffer{}
+			code := RunUpgrade([]string{"--to", tc.target, "--json"}, UpgradeDeps{Out: out, Err: errOut, FindGoModule: findGoModuleTest})
+			if code != tc.wantExitCode {
+				t.Fatalf("exit code = %d, want %d, stderr=%s", code, tc.wantExitCode, errOut.String())
+			}
+
+			var report UpgradeReadinessReport
+			if err := json.Unmarshal(out.Bytes(), &report); err != nil {
+				t.Fatalf("control-plane parser should decode upgrade report JSON: %v\n%s", err, out.String())
+			}
+			if report.SchemaVersion != upgradeReadinessSchemaVersion {
+				t.Fatalf("schema_version=%q want %q", report.SchemaVersion, upgradeReadinessSchemaVersion)
+			}
+			if report.TargetVersion != tc.target {
+				t.Fatalf("target_version=%q want %q", report.TargetVersion, tc.target)
+			}
+			if report.Ready != tc.wantReady {
+				t.Fatalf("ready=%v want %v", report.Ready, tc.wantReady)
+			}
+			if tc.wantRollback != "" && report.RollbackTarget != tc.wantRollback {
+				t.Fatalf("rollback_target=%q want %q", report.RollbackTarget, tc.wantRollback)
+			}
+			if tc.wantHasBlockers && len(report.Blockers) == 0 {
+				t.Fatal("expected control-plane parser fixture to surface blockers")
+			}
+			if !tc.wantHasBlockers && len(report.ManualFollowUps) == 0 {
+				t.Fatal("expected ready fixture to include manual follow-up commands")
+			}
+		})
+	}
+}
+
 func TestDetectFrameworkVersionFromSource(t *testing.T) {
 	t.Parallel()
 
