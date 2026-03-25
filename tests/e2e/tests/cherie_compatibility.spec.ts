@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("cherie compatibility: boot, auth, and realtime baseline", async ({ page, request }) => {
+test("cherie compatibility: boot, auth, realtime, and admin baseline", async ({ page, request }) => {
   const health = await request.get("/up");
   expect(health.ok()).toBeTruthy();
 
@@ -20,4 +20,8 @@ test("cherie compatibility: boot, auth, and realtime baseline", async ({ page, r
   const realtime = await request.get("/auth/realtime", { maxRedirects: 0 });
   expect(realtime.status()).toBe(303);
   expect(realtime.headers()["location"]).toBe("/user/login");
+
+  const admin = await request.get("/auth/admin", { maxRedirects: 0 });
+  expect(admin.status()).toBe(303);
+  expect(admin.headers()["location"]).toBe("/user/login");
 });
