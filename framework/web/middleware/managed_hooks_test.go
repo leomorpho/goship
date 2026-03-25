@@ -3,6 +3,7 @@ package middleware
 import (
 	"net/http"
 	"net/http/httptest"
+	"path/filepath"
 	"strconv"
 	"testing"
 	"time"
@@ -14,6 +15,7 @@ import (
 )
 
 func TestRequireManagedHookSignature_AllowsValidSignedRequest(t *testing.T) {
+	t.Setenv(frameworksecurity.ManagedHooksNonceStorePathEnv, filepath.Join(t.TempDir(), "nonces.json"))
 	e := echo.New()
 	verifier := frameworksecurity.NewManagedHookVerifier("secret", 5*time.Minute, 5*time.Minute)
 
@@ -41,6 +43,7 @@ func TestRequireManagedHookSignature_AllowsValidSignedRequest(t *testing.T) {
 }
 
 func TestRequireManagedHookSignature_RejectsUnsignedRequest(t *testing.T) {
+	t.Setenv(frameworksecurity.ManagedHooksNonceStorePathEnv, filepath.Join(t.TempDir(), "nonces.json"))
 	e := echo.New()
 	verifier := frameworksecurity.NewManagedHookVerifier("secret", 5*time.Minute, 5*time.Minute)
 	h := RequireManagedHookSignature(verifier)(func(c echo.Context) error {
