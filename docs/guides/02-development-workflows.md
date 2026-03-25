@@ -190,12 +190,15 @@ HTTP integration test helpers:
 
 - `framework/testutil` provides `NewTestServer(t)` for app-level request tests with a real container + in-memory DB.
 - `PostForm` automatically fetches and submits CSRF tokens for form routes.
+- `PostJSON` sends JSON request bodies for API routes without transport boilerplate.
+- `PostMultipart` builds multipart form uploads (fields + files) for upload-oriented routes.
 - `AsUser(userID)` signs an auth session cookie so tests can hit authenticated routes without manually building session cookies.
 - Response assertions support fluent checks:
   - `AssertStatus(code)`
   - `AssertRedirectsTo(path)`
   - `AssertContains(text)`
   - `AssertJSON(&target)`
+  - `AssertSSEEvent(event, data)`
 - Example:
   - `s := testutil.NewTestServer(t)`
   - `s.PostForm("/user/login", form).AssertRedirectsTo("/welcome/preferences")`
