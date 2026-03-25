@@ -3,7 +3,7 @@
 This `docs/` directory is internal and implementation-focused.
 It is not intended as user-facing product documentation.
 
-Last updated: 2026-03-04
+Last updated: 2026-03-25
 
 ## Goals
 
@@ -22,7 +22,7 @@ Last updated: 2026-03-04
 ### Architecture
 
 1. `A01` - `architecture/01-architecture.md`: runtime architecture, request flow, and service composition.
-2. `A02` - `architecture/02-structure-and-boundaries.md`: canonical placement rules for app vs framework code.
+2. `A02` - `architecture/02-structure-and-boundaries.md`: canonical placement rules for framework-first repo boundaries.
 3. `A03` - `architecture/03-project-scope-analysis.md`: end-to-end feature and capability analysis.
 4. `A04` - `architecture/04-http-routes.md`: route inventory grouped by access level and purpose.
 5. `A05` - `architecture/05-data-model.md`: Data queries and domain model coverage.
@@ -80,16 +80,15 @@ Last updated: 2026-03-04
 - `cmd/seed/main.go`
 - `tools/cli/ship/cmd/ship/main.go`
 - `tools/cli/ship/internal/cli/cli.go`
-- `app/foundation/container.go`
+- `container.go`
 - `framework/core/interfaces.go`
 - `framework/core/adapters/registry.go`
 - `framework/core/adapters/resolve.go`
-- `app/foundation/core_cache_adapter.go`
-- `app/foundation/core_jobs_adapter.go`
-- `app/foundation/core_pubsub_adapter.go`
-- `app/router.go`
-- `app/web/controllers/*.go`
-- `app/jobs/*.go`
+- `router.go`
+- `schedules.go`
+- `framework/bootstrap/*.go`
+- `framework/web/controllers/*.go`
+- `modules/*/routes/*.go`
 - `framework/repos/**/*.go`
 - `db/queries/*.sql`
 - `config/config.go`

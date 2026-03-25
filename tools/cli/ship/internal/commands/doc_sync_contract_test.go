@@ -164,3 +164,64 @@ func TestDocs_UpgradeReadinessContractStaysInSync_RedSpec(t *testing.T) {
 		}
 	}
 }
+
+func TestDocs_FrameworkFirstRuntimeSeamsStayCanonical_RedSpec(t *testing.T) {
+	root := repoRootFromCommandsTest(t)
+
+	architectureDoc := mustReadText(t, filepath.Join(root, "docs", "architecture", "01-architecture.md"))
+	scopeDoc := mustReadText(t, filepath.Join(root, "docs", "architecture", "03-project-scope-analysis.md"))
+	cognitiveDoc := mustReadText(t, filepath.Join(root, "docs", "architecture", "08-cognitive-model.md"))
+	agentGuide := mustReadText(t, filepath.Join(root, "docs", "guides", "01-ai-agent-guide.md"))
+	indexDoc := mustReadText(t, filepath.Join(root, "docs", "00-index.md"))
+
+	for _, token := range []string{
+		"`container.go`",
+		"`router.go`",
+		"`schedules.go`",
+	} {
+		if !strings.Contains(architectureDoc, token) {
+			t.Fatalf("architecture doc should include %q", token)
+		}
+		if !strings.Contains(cognitiveDoc, token) {
+			t.Fatalf("cognitive model doc should include %q", token)
+		}
+		if !strings.Contains(agentGuide, token) {
+			t.Fatalf("agent guide should include %q", token)
+		}
+		if !strings.Contains(indexDoc, token) {
+			t.Fatalf("docs index should include %q", token)
+		}
+	}
+
+	for _, token := range []string{
+		"framework-first",
+		"runtime seam",
+	} {
+		if !strings.Contains(architectureDoc, token) {
+			t.Fatalf("architecture doc should include %q", token)
+		}
+		if !strings.Contains(scopeDoc, token) {
+			t.Fatalf("scope doc should include %q", token)
+		}
+		if !strings.Contains(agentGuide, token) {
+			t.Fatalf("agent guide should include %q", token)
+		}
+	}
+
+	for _, token := range []string{
+		"app/foundation",
+		"app/router.go",
+		"app/web/controllers",
+		"app/views",
+	} {
+		if strings.Contains(architectureDoc, token) {
+			t.Fatalf("architecture doc should not include deleted path %q", token)
+		}
+		if strings.Contains(cognitiveDoc, token) {
+			t.Fatalf("cognitive model doc should not include deleted path %q", token)
+		}
+		if strings.Contains(agentGuide, token) {
+			t.Fatalf("agent guide should not include deleted path %q", token)
+		}
+	}
+}

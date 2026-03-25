@@ -2,125 +2,95 @@
 
 ## High-Level Layout
 
-The application follows a layered structure:
+GoShip is now framework-first. The canonical runtime seams live at repository root and compose framework + modules.
 
-- `cmd/*`: process entrypoints (`web`, `worker`, `seed`)
-- `app/foundation`: app composition container and app-bound infrastructure adapters
-- `app/web/controllers`: HTTP handlers
-- `app/web/wiring.go`: HTTP stack wiring (middleware/static/deps)
-- `app/web/middleware`: auth/session/cache/onboarding/request middleware
-- `framework/repos` + `modules/*`: reusable data access and external service adapters
-- `app/web/ui`: rendering, page object, redirect helpers
-- `app/views`: Templ source files (`.templ`) and generated Go (`gen/*_templ.go`)
-- `db/queries` + `db/gen`: Bob SQL query sources and generated DB layer
-- `app/jobs`: task processors
+- `container.go`: canonical container construction seam
+- `router.go`: canonical HTTP route registration seam
+- `schedules.go`: canonical cron/schedule registration seam
+- `cmd/*`: process entrypoints (`web`, `worker`, `seed`, `cli`)
+- `framework/*`: framework runtime, web stack, adapters, templates, repositories
+- `modules/*`: installable capabilities (for example auth, profile, notifications, paid subscriptions)
+- `db/queries` + `db/gen`: Bob SQL sources and generated query layer
+- `config/*`: runtime config schema and module/profile toggles
+- `frontend/*`, `styles/*`, `static/*`: frontend toolchain and emitted assets
+
+## Runtime Seam Contract
+
+Root runtime seams are the only canonical mutation points for app-runtime wiring:
+
+1. `container.go` composes the bootstrap container and schedule callback.
+2. `router.go` registers static routes, middleware stacks, public/auth/external routes, and runtime-gated realtime routes.
+3. `schedules.go` registers recurring job enqueue callbacks.
+
+Any generated or module wiring that touches runtime composition must preserve these seams.
 
 ## Operating Modes
 
-GoShip is designed to run in two operational contexts without changing app code:
+GoShip runs in two contexts without changing framework code:
 
-- standalone/self-managed: the app owns its own settings, backup actions, and deployment choices
-- externally managed: the app keeps the same runtime capability, but an external authority may provide secrets, managed overrides, and restore orchestration
+- standalone/self-managed: runtime owns settings and lifecycle directly
+- externally managed: runtime remains authoritative for capability execution while accepting signed managed hooks/overrides
 
-The runtime itself must stay standalone-capable. External control-plane logic is not a required part of the app architecture.
+The runtime must remain standalone-capable even when managed integrations are enabled.
 
 ## Web Runtime Flow
 
-1. `cmd/web/main.go` creates container via `foundation.NewContainer()`.
-2. `goship.BuildRouter(c)` is the canonical app router entrypoint and contains the route manifest.
-3. Echo server starts with request timeout middleware (SSE-aware).
-4. Request path executes middleware chain, route handler, and page rendering.
+1. `cmd/web/main.go` creates the container via `goship.NewContainer()`.
+2. `router.go` executes `goship.BuildRouter(...)` to register the full route graph.
+3. Echo starts with the canonical middleware stack and framework error handler.
+4. Requests run through middleware, controller handlers, and server-rendered templ output.
 
 ## Worker Runtime Flow
 
-1. `cmd/worker/main.go` creates app container and validates that the jobs adapter supports a dedicated worker process (e.g., `asynq`). Single-binary mode (`backlite`) runs the dispatcher in-process with the web server instead.
-2. Initializes the jobs adapter (driver-specific: Asynq server for Redis-backed; Backlite dispatcher for SQLite-backed).
-3. Constructs repo instances needed by task processors.
-4. Registers task handlers and starts the worker.
+1. `cmd/worker/main.go` creates container + module service graph.
+2. Jobs backend is selected by runtime plan (`asynq` or `backlite`).
+3. Job handlers are registered and worker lifecycle starts.
+4. Scheduler lifecycle is driven through the same root seam registration contract.
 
 ## Container Composition
 
-`app/foundation/container.go` is the core app composition root.
+`container.go` delegates to `framework/bootstrap` and exposes the typed container surface used by route/controller/module wiring.
 
-Currently initialized in `NewContainer()`:
+Core initialized dependencies include:
 
-- Config
-- Validator
-- Echo web server + logger
-- DB connection
-- DB migrations + Bob query generation
-- Auth client
-- Mail client
-- Stripe API key setup
-
-Not currently initialized (commented out):
-
-- Cache client
-- Notifier repo
-- Task client
-
-This mismatch affects parts of the runtime that assume those dependencies exist. See `known-gaps-and-risks.md`.
+- config + validation
+- Echo server + structured logging
+- DB + migration/query runtime integration
+- cache/jobs/pubsub/storage/mailer adapters (runtime-plan dependent)
+- module services surfaced to route wiring
 
 ## HTTP Middleware Stack
 
-Primary middleware set in `app/web/wiring.go` includes:
+`router.go` applies canonical middleware through framework wiring:
 
-- Trailing slash normalization
-- Panic recovery
-- Security headers
-- Request ID
-- Gzip
-- Structured request logging
-- Request timeout (SSE skipped)
-- Session middleware
-- Authenticated user hydration
-- CSRF middleware
-- Device type tagging
+- security headers
+- panic recovery
+- request ID + request logging
+- compression + timeout behavior (SSE-aware)
+- session/auth context middleware
+- CSRF and request guards
 
-Additional gatekeepers:
-
-- `RequireAuthentication`
-- `RequireNoAuthentication`
-- `RedirectToOnboardingIfNotComplete`
-- Password token validity loader
+Additional route groups apply auth and managed-hook verification gates where required.
 
 ## Rendering Model
 
-The UI is server-rendered using Templ components.
+Rendering is server-first via templ + framework page/viewmodel helpers.
 
-- Base page abstraction: `app/web/ui/page.go`
-- Render orchestration: `app/web/ui/controller.go`
-- Layout wrappers (source): `app/views/web/layouts/*.templ`
-- Page components (source): `app/views/web/pages/*.templ`
-- Generated packages: `app/views/**/gen/*_templ.go`
+- page/controller primitives: `framework/web/ui/*`
+- controllers: `framework/web/controllers/*`
+- viewmodels: `framework/web/viewmodels/*`
+- templ sources + generated output: `framework/web/*` and `framework/views/*`
 
-HTMX behavior is integrated in the page object (`Page.HTMX`) and controller render logic.
+## Data and Async Model
 
-## Data Layer
+- schema history is authoritative in `db/migrate/migrations`
+- query contracts are authoritative in `db/queries/*.sql`
+- generated DB access is in `db/gen`
+- recurring jobs are registered in `schedules.go` and dispatched through `core.Jobs`
 
-- Goose SQL migrations (`db/migrate/migrations`) are authoritative for schema changes.
-- Bob query files (`db/queries/*.sql`) are authoritative for generated DB access code in `db/gen`.
-- Repository packages encapsulate higher-level domain operations.
+## Frontend and Assets
 
-## Async + Notifications Architecture
-
-- Jobs adapter handles background tasks. Driver is configurable: `asynq` (Redis-backed, separate worker process) or `backlite` (SQLite-backed, runs in-process for single-binary mode).
-- Notification system is designed around:
-  - persistent DB notifications
-  - pub/sub events for SSE
-  - push channels (PWA + FCM)
-- SSE endpoint (`app/web/controllers/realtime.go`) is registered conditionally based on runtime plan web features (notifier + pubsub dependency availability).
-
-## Frontend Asset Architecture
-
-- `frontend/vite.config.ts` builds the vanilla bundle plus per-island JS chunks from `frontend/islands/`
-- The islands runtime loads component JS and CSS on demand via `app/static/islands-manifest.json`
-- Islands can be authored in vanilla JS/TS, Svelte, React, or Vue entry files under `frontend/islands/`
-- Frontend build output is written to `app/static/`
-- Tailwind build pipeline outputs `app/static/styles_bundle.css`
-
-## Deployment/Operations Shape
-
-- Local process orchestration via Overmind (`Procfile*` at project root; scaffolded by `ship new`)
-- Docker Compose for Redis + Mailpit in current config
-- Kamal deployment files present (`infra/deploy/`, `.kamal/`)
+- Vite config lives in `frontend/vite.config.ts`
+- islands sources live in `frontend/islands/`
+- compiled static outputs are written to `static/`
+- framework design tokens/recipes are emitted through the styles pipeline
