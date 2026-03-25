@@ -1,6 +1,7 @@
 package security
 
 import (
+	"encoding/json"
 	"crypto/hmac"
 	"crypto/sha256"
 	"crypto/subtle"
@@ -8,6 +9,8 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -21,6 +24,8 @@ const (
 	HeaderManagedNonce = "X-GoShip-Nonce"
 	// HeaderManagedSignature carries the request HMAC signature.
 	HeaderManagedSignature = "X-GoShip-Signature"
+	// ManagedHooksNonceStorePathEnv overrides the durable replay-store path.
+	ManagedHooksNonceStorePathEnv = "PAGODA_MANAGED_HOOKS_NONCE_STORE_PATH"
 )
 
 var (
@@ -99,7 +104,7 @@ func NewManagedHookVerifier(secret string, maxSkew, nonceTTL time.Duration) *Man
 		maxSkew:    maxSkew,
 		nonceTTL:   nonceTTL,
 		now:        time.Now,
-		nonceStore: newInMemoryNonceStore(),
+		nonceStore: defaultManagedHookNonceStore(),
 	}
 }
 
@@ -277,7 +282,7 @@ func (v *ManagedHookVerifier) consumeNonce(nonce string, timestamp, now time.Tim
 	key := strings.TrimSpace(nonce) + ":" + strconv.FormatInt(timestamp.Unix(), 10)
 	store := v.nonceStore
 	if store == nil {
-		store = newInMemoryNonceStore()
+		store = defaultManagedHookNonceStore()
 		v.nonceStore = store
 	}
 	return store.Consume(key, now, v.nonceTTL)
@@ -294,6 +299,32 @@ func newInMemoryNonceStore() *inMemoryNonceStore {
 	}
 }
 
+type fileNonceStore struct {
+	mu   sync.Mutex
+	path string
+}
+
+var (
+	fileNonceStoresMu sync.Mutex
+	fileNonceStores   = map[string]*fileNonceStore{}
+)
+
+func defaultManagedHookNonceStore() NonceStore {
+	path := strings.TrimSpace(os.Getenv(ManagedHooksNonceStorePathEnv))
+	if path == "" {
+		path = filepath.Join(os.TempDir(), "goship-managed-hooks-nonces.json")
+	}
+
+	fileNonceStoresMu.Lock()
+	defer fileNonceStoresMu.Unlock()
+	if store, ok := fileNonceStores[path]; ok {
+		return store
+	}
+	store := &fileNonceStore{path: path}
+	fileNonceStores[path] = store
+	return store
+}
+
 func (s *inMemoryNonceStore) Consume(key string, now time.Time, ttl time.Duration) bool {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -308,5 +339,72 @@ func (s *inMemoryNonceStore) Consume(key string, now time.Time, ttl time.Duratio
 	}
 
 	s.seenNonces[key] = now.Add(ttl)
+	return true
+}
+
+func (s *fileNonceStore) Consume(key string, now time.Time, ttl time.Duration) bool {
+	if s == nil || strings.TrimSpace(s.path) == "" {
+		return false
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	state, ok := s.loadState(now)
+	if !ok {
+		return false
+	}
+	if expiry, exists := state[key]; exists && expiry.After(now) {
+		return false
+	}
+	state[key] = now.Add(ttl)
+	return s.saveState(state)
+}
+
+func (s *fileNonceStore) loadState(now time.Time) (map[string]time.Time, bool) {
+	state := map[string]time.Time{}
+	body, err := os.ReadFile(s.path)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return state, true
+		}
+		return nil, false
+	}
+
+	raw := map[string]int64{}
+	if err := json.Unmarshal(body, &raw); err != nil {
+		return nil, false
+	}
+	for key, unix := range raw {
+		expiresAt := time.Unix(unix, 0)
+		if expiresAt.After(now) {
+			state[key] = expiresAt
+		}
+	}
+	return state, true
+}
+
+func (s *fileNonceStore) saveState(state map[string]time.Time) bool {
+	if err := os.MkdirAll(filepath.Dir(s.path), 0o755); err != nil {
+		return false
+	}
+
+	raw := make(map[string]int64, len(state))
+	for key, expiresAt := range state {
+		raw[key] = expiresAt.Unix()
+	}
+	body, err := json.Marshal(raw)
+	if err != nil {
+		return false
+	}
+
+	tempPath := s.path + ".tmp"
+	if err := os.WriteFile(tempPath, body, 0o600); err != nil {
+		return false
+	}
+	if err := os.Rename(tempPath, s.path); err != nil {
+		_ = os.Remove(tempPath)
+		return false
+	}
 	return true
 }

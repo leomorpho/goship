@@ -239,9 +239,9 @@ Impact:
 - The app now blocks inline script blocks unless they carry the request nonce.
 - Inline script attributes remain permitted until those attributes are removed/refactored.
 
-## 14) Managed Hook Replay Cache Is Process-Local (Medium)
+## 14) Managed Hook Replay Store Is Durable-Local By Default (Low)
 
-Managed hook signatures now expose a shared/distributed replay-store contract, but the active runtime still uses the default in-memory nonce store until app wiring adopts a shared backend.
+Managed hook signatures now use a durable local replay store by default and still expose a shared/distributed replay-store seam for multi-replica wiring.
 
 Managed backup/restore evidence now exposes optional `record_links` identifiers for incident,
 recovery, and deploy correlation, but the remaining risk is consumer drift if downstream tooling
@@ -249,8 +249,8 @@ fails to preserve those IDs verbatim across its own audit records.
 
 Impact:
 
-- Replays are blocked per process instance, but not across independently running replicas.
-- Process restarts clear replay history and reopen the short nonce window until entries are rebuilt.
+- Replays remain blocked across verifier restarts on the same runtime instance.
+- Multi-replica deployments still require shared/distributed store wiring for cross-replica replay guarantees.
 - Runtime/control-plane audit correlation now has one canonical identifier surface to share.
 
 ## 15) Soft-Delete Query Guardrail Is Warning-Only (Low)

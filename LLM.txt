@@ -1575,9 +1575,9 @@ Impact:
 - The app now blocks inline script blocks unless they carry the request nonce.
 - Inline script attributes remain permitted until those attributes are removed/refactored.
 
-## 14) Managed Hook Replay Cache Is Process-Local (Medium)
+## 14) Managed Hook Replay Store Is Durable-Local By Default (Low)
 
-Managed hook signatures now expose a shared/distributed replay-store contract, but the active runtime still uses the default in-memory nonce store until app wiring adopts a shared backend.
+Managed hook signatures now use a durable local replay store by default and still expose a shared/distributed replay-store seam for multi-replica wiring.
 
 Managed backup/restore evidence now exposes optional `record_links` identifiers for incident,
 recovery, and deploy correlation, but the remaining risk is consumer drift if downstream tooling
@@ -1585,8 +1585,8 @@ fails to preserve those IDs verbatim across its own audit records.
 
 Impact:
 
-- Replays are blocked per process instance, but not across independently running replicas.
-- Process restarts clear replay history and reopen the short nonce window until entries are rebuilt.
+- Replays remain blocked across verifier restarts on the same runtime instance.
+- Multi-replica deployments still require shared/distributed store wiring for cross-replica replay guarantees.
 - Runtime/control-plane audit correlation now has one canonical identifier surface to share.
 
 ## 15) Soft-Delete Query Guardrail Is Warning-Only (Low)
@@ -2242,8 +2242,9 @@ Verification/runtime rules:
 - shared secret: `PAGODA_MANAGED_HOOKS_SECRET`
 - max clock skew: `PAGODA_MANAGED_HOOKS_MAX_SKEW_SECONDS` (default `300`)
 - replay nonce TTL: `PAGODA_MANAGED_HOOKS_NONCE_TTL_SECONDS` (default `300`)
+- durable replay store path: `PAGODA_MANAGED_HOOKS_NONCE_STORE_PATH` (default temp-file path)
 - replay protection rejects reuse of the same nonce+timestamp tuple inside the TTL window
-- replay protection should run through a shared/distributed replay store contract in multi-replica deployments; process-local memory is only the default fallback implementation
+- replay protection uses a durable local store by default and still exposes a shared/distributed replay store contract for multi-replica deployments
 - the same signed-request pattern is used for the control-plane cron entrypoint contract so scheduler-driven actions reuse the replay/timestamp verification model
 
 Managed hook key rotation:
@@ -4595,7 +4596,7 @@ Doctor checks (current):
 Managed hook replay contract:
 
 - `framework/security.ManagedHookVerifier` exposes a pluggable `NonceStore` seam via `WithNonceStore(...)`
-- default behavior remains process-local in-memory replay protection until app/runtime wiring provides a shared backend
+- default behavior now uses a durable file-backed replay store (`PAGODA_MANAGED_HOOKS_NONCE_STORE_PATH`, defaulting to a runtime temp path) so verifier restarts still reject reused nonce+timestamp tuples
 - managed hook key rotation keeps `PAGODA_MANAGED_HOOKS_SECRET` as the active key and accepts `PAGODA_MANAGED_HOOKS_PREVIOUS_SECRET` during the rotation window
 - the rotation window does not relax replay protection; nonce and timestamp validation still apply to both secrets
 

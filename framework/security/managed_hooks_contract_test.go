@@ -115,6 +115,7 @@ func TestManagedHookSignatureVectors_JSONContract_RedSpec(t *testing.T) {
 }
 
 func TestManagedHookVerifier_AcceptsPreviousSecretDuringRotation_RedSpec(t *testing.T) {
+	t.Setenv(ManagedHooksNonceStorePathEnv, filepath.Join(t.TempDir(), "rotation-nonces.json"))
 	now := time.Date(2026, time.March, 25, 7, 0, 0, 0, time.UTC)
 	verifier := NewManagedHookVerifier("active-secret", 5*time.Minute, 5*time.Minute).WithPreviousSecret("previous-secret")
 	verifier.now = func() time.Time { return now }
@@ -190,5 +191,20 @@ func TestManagedHookVerifier_UpgradeReadinessContract(t *testing.T) {
 	}
 	if reason != "" {
 		t.Fatalf("expected empty reason when ready, got %q", reason)
+	}
+}
+
+func TestManagedHookVerifier_DurableReplayStoreContract(t *testing.T) {
+	root := repoRootForSecurityContractTest(t)
+	securitySource := mustReadSecurityContractText(t, filepath.Join(root, "framework", "security", "managed_hooks.go"))
+
+	for _, token := range []string{
+		"ManagedHooksNonceStorePathEnv",
+		"defaultManagedHookNonceStore",
+		"type fileNonceStore struct",
+	} {
+		if !strings.Contains(securitySource, token) {
+			t.Fatalf("managed hook durability contract should include token %q", token)
+		}
 	}
 }

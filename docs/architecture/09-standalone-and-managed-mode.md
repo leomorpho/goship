@@ -124,8 +124,9 @@ Verification/runtime rules:
 - shared secret: `PAGODA_MANAGED_HOOKS_SECRET`
 - max clock skew: `PAGODA_MANAGED_HOOKS_MAX_SKEW_SECONDS` (default `300`)
 - replay nonce TTL: `PAGODA_MANAGED_HOOKS_NONCE_TTL_SECONDS` (default `300`)
+- durable replay store path: `PAGODA_MANAGED_HOOKS_NONCE_STORE_PATH` (default temp-file path)
 - replay protection rejects reuse of the same nonce+timestamp tuple inside the TTL window
-- replay protection should run through a shared/distributed replay store contract in multi-replica deployments; process-local memory is only the default fallback implementation
+- replay protection uses a durable local store by default and still exposes a shared/distributed replay store contract for multi-replica deployments
 - the same signed-request pattern is used for the control-plane cron entrypoint contract so scheduler-driven actions reuse the replay/timestamp verification model
 
 Managed hook key rotation:
