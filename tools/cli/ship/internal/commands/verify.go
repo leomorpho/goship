@@ -365,6 +365,10 @@ func mergeVerifyOutput(output string, err error) string {
 }
 
 func checkModuleCompatibilityPolicy(root string) error {
+	if err := checkModuleSurfaceResetPolicy(root); err != nil {
+		return err
+	}
+
 	goModPath := filepath.Join(root, "go.mod")
 	goModBody, err := os.ReadFile(goModPath)
 	if err != nil {
