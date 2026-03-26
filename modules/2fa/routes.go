@@ -5,7 +5,7 @@ import (
 
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/framework/context"
+	"github.com/leomorpho/goship/framework/appcontext"
 	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
 	layouts "github.com/leomorpho/goship/framework/web/layouts/gen"
 	"github.com/leomorpho/goship/framework/web/middleware"
@@ -31,7 +31,7 @@ func registerRoutes(r routeRegistrar, ctr ui.Controller, service *Service) {
 
 func getSetup(ctr ui.Controller, service *Service) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
-		userEmail, _ := ctx.Get(context.AuthenticatedUserEmailKey).(string)
+		userEmail, _ := ctx.Get(appcontext.AuthenticatedUserEmailKey).(string)
 		secret, qrCodeDataURL, err := service.GenerateSecret(userEmail)
 		if err != nil {
 			return ctr.Fail(err, "unable to generate totp secret")
@@ -79,7 +79,7 @@ func postSetup(ctr ui.Controller, service *Service) echo.HandlerFunc {
 			return ctr.Fail(err, "unable to clear two factor setup session")
 		}
 
-		userID, _ := ctx.Get(context.AuthenticatedUserIDKey).(int)
+		userID, _ := ctx.Get(appcontext.AuthenticatedUserIDKey).(int)
 		codes := service.GenerateBackupCodes()
 		if err := service.Enable(ctx.Request().Context(), userID, secret, codes); err != nil {
 			return ctr.Fail(err, "unable to enable two factor authentication")
@@ -99,7 +99,7 @@ func postSetup(ctr ui.Controller, service *Service) echo.HandlerFunc {
 
 func getBackupCodes(ctr ui.Controller, service *Service) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
-		userID, _ := ctx.Get(context.AuthenticatedUserIDKey).(int)
+		userID, _ := ctx.Get(appcontext.AuthenticatedUserIDKey).(int)
 		codes, err := service.RegenerateBackupCodes(ctx.Request().Context(), userID)
 		if err != nil {
 			return ctr.Fail(err, "unable to regenerate backup codes")

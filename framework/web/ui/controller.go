@@ -11,8 +11,8 @@ import (
 	"strings"
 
 	"github.com/a-h/templ"
+	"github.com/leomorpho/goship/framework/appcontext"
 	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
-	"github.com/leomorpho/goship/framework/context"
 	frameworkmiddleware "github.com/leomorpho/goship/framework/middleware"
 	redirector "github.com/leomorpho/goship/framework/redirect"
 	webmiddleware "github.com/leomorpho/goship/framework/web/middleware"
@@ -208,7 +208,7 @@ func (c *Controller) cachePage(ctx echo.Context, page Page, html *bytes.Buffer) 
 	switch {
 	case err == nil:
 		ctx.Logger().Info("cached page")
-	case !context.IsCanceledError(err):
+	case !appcontext.IsCanceledError(err):
 		ctx.Logger().Errorf("failed to cache page: %v", err)
 	}
 }

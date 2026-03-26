@@ -7,7 +7,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	echomw "github.com/labstack/echo/v4/middleware"
-	frameworkctx "github.com/leomorpho/goship/framework/context"
+	frameworkctx "github.com/leomorpho/goship/framework/appcontext"
 	"github.com/leomorpho/goship/framework/web/page"
 	"github.com/stretchr/testify/assert"
 )

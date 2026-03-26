@@ -9,7 +9,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	modnotifications "github.com/leomorpho/goship-modules/notifications/routes"
-	customctx "github.com/leomorpho/goship/framework/context"
+	customctx "github.com/leomorpho/goship/framework/appcontext"
 	frameworkauthcontext "github.com/leomorpho/goship/framework/web/authcontext"
 	"github.com/leomorpho/goship/framework/web/ui"
 )

@@ -3,7 +3,7 @@ package ui
 import (
 	"github.com/a-h/templ"
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/framework/context"
+	"github.com/leomorpho/goship/framework/appcontext"
 	"github.com/leomorpho/goship/framework/domain"
 	frameworkpage "github.com/leomorpho/goship/framework/web/page"
 	templates "github.com/leomorpho/goship/framework/web/templates"
@@ -25,7 +25,7 @@ type (
 // functionality both on the back and frontend. The Page can be expanded to include anything else
 // your app wants to support.
 // Methods on this page also then become available in the templates, which can be more useful than
-// the funcmap if your methods require data stored in the page, such as the context.
+// the funcmap if your methods require data stored in the page, such as the appcontext.
 type Page struct {
 	// Base stores app-agnostic page fields/behavior owned by framework.
 	frameworkpage.Base
@@ -77,26 +77,26 @@ func NewPage(ctx echo.Context) Page {
 		Pager: NewPager(ctx, DefaultItemsPerPage),
 	}
 
-	if u := ctx.Get(context.AuthenticatedUserIDKey); u != nil {
+	if u := ctx.Get(appcontext.AuthenticatedUserIDKey); u != nil {
 		userID, ok := u.(int)
 		if ok && userID > 0 {
 			p.AuthUser = &AuthUserView{
 				ID: userID,
 			}
-			if userName, ok := ctx.Get(context.AuthenticatedUserNameKey).(string); ok {
+			if userName, ok := ctx.Get(appcontext.AuthenticatedUserNameKey).(string); ok {
 				p.AuthUser.Name = userName
 			}
-			if userEmail, ok := ctx.Get(context.AuthenticatedUserEmailKey).(string); ok {
+			if userEmail, ok := ctx.Get(appcontext.AuthenticatedUserEmailKey).(string); ok {
 				p.AuthUser.Email = userEmail
 			}
 		}
-		if fullyOnboarded := ctx.Get(context.ProfileFullyOnboarded); fullyOnboarded != nil {
+		if fullyOnboarded := ctx.Get(appcontext.ProfileFullyOnboarded); fullyOnboarded != nil {
 			p.IsFullyOnboarded = fullyOnboarded.(bool)
 		} else {
 			p.IsFullyOnboarded = false
 		}
 	}
-	if u := ctx.Get(context.AuthenticatedUserProfilePicURL); u != nil {
+	if u := ctx.Get(appcontext.AuthenticatedUserProfilePicURL); u != nil {
 		p.AuthUserProfilePicURL = u.(string)
 	}
 

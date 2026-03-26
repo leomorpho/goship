@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/framework/context"
+	"github.com/leomorpho/goship/framework/appcontext"
 	layouts "github.com/leomorpho/goship/framework/web/layouts/gen"
 	pages "github.com/leomorpho/goship/framework/web/pages/gen"
 	"github.com/leomorpho/goship/framework/web/templates"
@@ -13,7 +13,7 @@ import (
 )
 
 func (p *preferences) GetDisplayName(ctx echo.Context) error {
-	userIDRaw := ctx.Get(context.AuthenticatedUserIDKey)
+	userIDRaw := ctx.Get(appcontext.AuthenticatedUserIDKey)
 	userID, ok := userIDRaw.(int)
 	if !ok || userID <= 0 {
 		return echo.NewHTTPError(http.StatusUnauthorized, "authenticated user id missing from context")
@@ -31,7 +31,7 @@ func (p *preferences) GetDisplayName(ctx echo.Context) error {
 	form.DisplayName = displayName
 	page.Form = form
 
-	if form := ctx.Get(context.FormKey); form != nil {
+	if form := ctx.Get(appcontext.FormKey); form != nil {
 		page.Form = form.(*viewmodels.DisplayNameForm)
 	}
 
@@ -41,7 +41,7 @@ func (p *preferences) GetDisplayName(ctx echo.Context) error {
 func (p *preferences) SaveDisplayName(ctx echo.Context) error {
 	req := updateDisplayNameRequest{}
 	form := viewmodels.NewDisplayNameForm()
-	ctx.Set(context.FormKey, form)
+	ctx.Set(appcontext.FormKey, form)
 
 	if err := ctx.Bind(&req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid display name data")
@@ -56,7 +56,7 @@ func (p *preferences) SaveDisplayName(ctx echo.Context) error {
 		return p.GetDisplayName(ctx)
 	}
 
-	userIDRaw := ctx.Get(context.AuthenticatedUserIDKey)
+	userIDRaw := ctx.Get(appcontext.AuthenticatedUserIDKey)
 	userID, ok := userIDRaw.(int)
 	if !ok || userID <= 0 {
 		return echo.NewHTTPError(http.StatusUnauthorized, "authenticated user id missing from context")

@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/leomorpho/goship/framework/context"
+	"github.com/leomorpho/goship/framework/appcontext"
 	"github.com/leomorpho/goship/framework/tests"
 
 	"github.com/stretchr/testify/require"
@@ -20,7 +20,7 @@ func TestLoadAuthenticatedUser(t *testing.T) {
 
 	// Not authenticated
 	_ = tests.ExecuteMiddleware(ctx, mw)
-	assert.Nil(t, ctx.Get(context.AuthenticatedUserIDKey))
+	assert.Nil(t, ctx.Get(appcontext.AuthenticatedUserIDKey))
 
 	// Login
 	err := c.Auth.Login(ctx, usr.ID)
@@ -28,16 +28,16 @@ func TestLoadAuthenticatedUser(t *testing.T) {
 
 	// Verify the midldeware returns the authenticated user
 	_ = tests.ExecuteMiddleware(ctx, mw)
-	authUserID, ok := ctx.Get(context.AuthenticatedUserIDKey).(int)
+	authUserID, ok := ctx.Get(appcontext.AuthenticatedUserIDKey).(int)
 	require.True(t, ok)
 	assert.Equal(t, usr.ID, authUserID)
-	authUserName, ok := ctx.Get(context.AuthenticatedUserNameKey).(string)
+	authUserName, ok := ctx.Get(appcontext.AuthenticatedUserNameKey).(string)
 	require.True(t, ok)
 	assert.Equal(t, usr.Name, authUserName)
-	authUserEmail, ok := ctx.Get(context.AuthenticatedUserEmailKey).(string)
+	authUserEmail, ok := ctx.Get(appcontext.AuthenticatedUserEmailKey).(string)
 	require.True(t, ok)
 	assert.Equal(t, usr.Email, authUserEmail)
-	if raw := ctx.Get(context.AuthenticatedProfileIDKey); raw != nil {
+	if raw := ctx.Get(appcontext.AuthenticatedProfileIDKey); raw != nil {
 		profileID, ok := raw.(int)
 		require.True(t, ok)
 		assert.Positive(t, profileID)
@@ -125,12 +125,12 @@ func TestRequireAdmin(t *testing.T) {
 	err := tests.ExecuteMiddleware(ctx, RequireAdmin())
 	tests.AssertHTTPErrorCode(t, err, http.StatusUnauthorized)
 
-	ctx.Set(context.AuthenticatedUserIDKey, usr.ID)
-	ctx.Set(context.AuthenticatedUserIsAdminKey, false)
+	ctx.Set(appcontext.AuthenticatedUserIDKey, usr.ID)
+	ctx.Set(appcontext.AuthenticatedUserIsAdminKey, false)
 	err = tests.ExecuteMiddleware(ctx, RequireAdmin())
 	tests.AssertHTTPErrorCode(t, err, http.StatusForbidden)
 
-	ctx.Set(context.AuthenticatedUserIsAdminKey, true)
+	ctx.Set(appcontext.AuthenticatedUserIsAdminKey, true)
 	err = tests.ExecuteMiddleware(ctx, RequireAdmin())
 	require.NoError(t, err)
 }

@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
-	appcontext "github.com/leomorpho/goship/framework/context"
+	appcontext "github.com/leomorpho/goship/framework/appcontext"
 	"github.com/leomorpho/goship/framework/repos/ratelimit"
 )
 

@@ -11,7 +11,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
-	customctx "github.com/leomorpho/goship/framework/context"
+	customctx "github.com/leomorpho/goship/framework/appcontext"
 	"github.com/leomorpho/goship/framework/core"
 	"github.com/leomorpho/goship/framework/domain"
 	frameworkauthcontext "github.com/leomorpho/goship/framework/web/authcontext"

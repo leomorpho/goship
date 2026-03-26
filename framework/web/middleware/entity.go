@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/leomorpho/goship/framework/context"
+	"github.com/leomorpho/goship/framework/appcontext"
 	"github.com/leomorpho/goship/framework/dberrors"
 	"github.com/leomorpho/goship/modules/authsupport"
 
@@ -24,8 +24,8 @@ func LoadUser(authClient *authsupport.AuthClient) echo.MiddlewareFunc {
 			identity, err := authClient.GetIdentityByUserID(c.Request().Context(), userID)
 			switch {
 			case err == nil:
-				c.Set(context.AuthenticatedUserIDKey, identity.UserID)
-				c.Set(context.AuthenticatedUserEmailKey, identity.UserEmail)
+				c.Set(appcontext.AuthenticatedUserIDKey, identity.UserID)
+				c.Set(appcontext.AuthenticatedUserEmailKey, identity.UserEmail)
 				return next(c)
 			case dberrors.IsNotFound(err):
 				return echo.NewHTTPError(http.StatusNotFound)

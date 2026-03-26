@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"github.com/leomorpho/goship/framework/context"
+	"github.com/leomorpho/goship/framework/appcontext"
 
 	"github.com/labstack/echo/v4"
 )
@@ -17,7 +17,7 @@ func SetDeviceTypeToServe() echo.MiddlewareFunc {
 			if err == nil && appPlatformCookie != nil {
 				isiOSApp = appPlatformCookie.Value == "iOS App Store"
 			}
-			c.Set(context.IsFromIOSApp, isiOSApp)
+			c.Set(appcontext.IsFromIOSApp, isiOSApp)
 
 			return next(c)
 		}

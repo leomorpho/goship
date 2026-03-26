@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/leomorpho/goship/framework/context"
+	"github.com/leomorpho/goship/framework/appcontext"
 	cacherepo "github.com/leomorpho/goship/framework/repos/cache"
 
 	"github.com/go-redis/redis/v8"
@@ -47,7 +47,7 @@ func ServeCachedPage(ch *cacherepo.CacheClient) echo.MiddlewareFunc {
 			}
 
 			// Skip if the user is authenticated
-			if c.Get(context.AuthenticatedUserIDKey) != nil {
+			if c.Get(appcontext.AuthenticatedUserIDKey) != nil {
 				return next(c)
 			}
 
@@ -63,7 +63,7 @@ func ServeCachedPage(ch *cacherepo.CacheClient) echo.MiddlewareFunc {
 				switch {
 				case err == redis.Nil:
 					c.Logger().Info("no cached page found")
-				case context.IsCanceledError(err):
+				case appcontext.IsCanceledError(err):
 					return nil
 				default:
 					c.Logger().Errorf("failed getting cached page: %v", err)

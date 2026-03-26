@@ -11,7 +11,7 @@ import (
 	"github.com/golang-jwt/jwt"
 	"github.com/gorilla/sessions"
 	"github.com/leomorpho/goship/config"
-	"github.com/leomorpho/goship/framework/context"
+	"github.com/leomorpho/goship/framework/appcontext"
 	"github.com/leomorpho/goship/framework/dberrors"
 
 	"github.com/labstack/echo-contrib/session"
@@ -233,7 +233,7 @@ func (c *AuthClient) GetValidPasswordToken(ctx echo.Context, userID, tokenID int
 			return nil
 		}
 	default:
-		if !context.IsCanceledError(err) {
+		if !appcontext.IsCanceledError(err) {
 			return err
 		}
 	}

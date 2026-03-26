@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/framework/context"
+	"github.com/leomorpho/goship/framework/appcontext"
 	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
 	frameworkauthcontext "github.com/leomorpho/goship/framework/web/authcontext"
 	layouts "github.com/leomorpho/goship/framework/web/layouts/gen"
@@ -59,7 +59,7 @@ func (p *preferences) GetPhoneVerificationComponent(ctx echo.Context) error {
 	data.ExpirationInMinutes = p.ctr.Container.Config.Phone.ValidationCodeExpirationMinutes
 	page.Data = data
 
-	if form := ctx.Get(context.FormKey); form != nil {
+	if form := ctx.Get(appcontext.FormKey); form != nil {
 		page.Form = form.(*viewmodels.PhoneNumberVerification)
 	}
 
@@ -76,7 +76,7 @@ func (p *preferences) GetPhoneVerificationComponent(ctx echo.Context) error {
 func (p *preferences) SubmitPhoneVerificationCode(ctx echo.Context) error {
 	req := verifyPhoneRequest{}
 	form := viewmodels.NewPhoneNumberVerification()
-	ctx.Set(context.FormKey, form)
+	ctx.Set(appcontext.FormKey, form)
 
 	if err := ctx.Bind(&req); err != nil {
 		return p.ctr.Fail(err, "unable to parse verification code form")
@@ -119,7 +119,7 @@ func (p *preferences) SubmitPhoneVerificationCode(ctx echo.Context) error {
 
 func (p *preferences) SavePhoneInfo(ctx echo.Context) error {
 	req := updatePhoneRequest{}
-	ctx.Set(context.FormKey, &req)
+	ctx.Set(appcontext.FormKey, &req)
 
 	if err := ctx.Bind(&req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid bio data")

@@ -8,7 +8,7 @@ import (
 
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/framework/context"
+	"github.com/leomorpho/goship/framework/appcontext"
 	"github.com/leomorpho/goship/framework/dberrors"
 	"github.com/leomorpho/goship/framework/domain"
 	"github.com/leomorpho/goship/framework/repos/ratelimit"
@@ -91,7 +91,7 @@ func (s *Service) getLogin(ctx echo.Context) error {
 
 	s.ctr.Container.Auth.Logout(ctx)
 
-	if form := ctx.Get(context.FormKey); form != nil {
+	if form := ctx.Get(appcontext.FormKey); form != nil {
 		page.Form = form.(*viewmodels.LoginForm)
 	}
 
@@ -100,7 +100,7 @@ func (s *Service) getLogin(ctx echo.Context) error {
 
 func (s *Service) postLogin(ctx echo.Context) error {
 	var form viewmodels.LoginForm
-	ctx.Set(context.FormKey, &form)
+	ctx.Set(appcontext.FormKey, &form)
 
 	authFailed := func() error {
 		uxflashmessages.Danger(ctx, "Invalid credentials. Please try again.")
@@ -164,7 +164,7 @@ func (s *Service) getRegister(ctx echo.Context) error {
 	data.RelationshipStatus = mode
 	data.MinDate = yearsAgo.Format("2006-01-02")
 	page.Data = data
-	if form := ctx.Get(context.FormKey); form != nil {
+	if form := ctx.Get(appcontext.FormKey); form != nil {
 		page.Form = form.(*viewmodels.RegisterForm)
 	}
 	page.HTMX.Request.Boosted = true
@@ -174,7 +174,7 @@ func (s *Service) getRegister(ctx echo.Context) error {
 
 func (s *Service) postRegister(ctx echo.Context) error {
 	var form viewmodels.RegisterForm
-	ctx.Set(context.FormKey, &form)
+	ctx.Set(appcontext.FormKey, &form)
 
 	if err := ctx.Bind(&form); err != nil {
 		return s.ctr.Fail(err, "unable to parse register form")
@@ -372,7 +372,7 @@ func (s *Service) getForgotPassword(ctx echo.Context) error {
 	page.Component = pages.ForgotPassword(&page)
 	page.HTMX.Request.Boosted = true
 
-	if form := ctx.Get(context.FormKey); form != nil {
+	if form := ctx.Get(appcontext.FormKey); form != nil {
 		page.Form = form.(*viewmodels.ForgotPasswordForm)
 	}
 
@@ -381,10 +381,10 @@ func (s *Service) getForgotPassword(ctx echo.Context) error {
 
 func (s *Service) postForgotPassword(ctx echo.Context) error {
 	var form viewmodels.ForgotPasswordForm
-	ctx.Set(context.FormKey, &form)
+	ctx.Set(appcontext.FormKey, &form)
 
 	succeed := func() error {
-		ctx.Set(context.FormKey, nil)
+		ctx.Set(appcontext.FormKey, nil)
 		uxflashmessages.Success(ctx, "An email was sent to reset your password.")
 		return s.getForgotPassword(ctx)
 	}
@@ -429,7 +429,7 @@ func (s *Service) getResetPassword(ctx echo.Context) error {
 	page.Form = viewmodels.NewResetPasswordForm()
 	page.Component = pages.ResetPassword(&page)
 
-	if form := ctx.Get(context.FormKey); form != nil {
+	if form := ctx.Get(appcontext.FormKey); form != nil {
 		page.Form = form.(*viewmodels.ResetPasswordForm)
 	}
 
@@ -438,7 +438,7 @@ func (s *Service) getResetPassword(ctx echo.Context) error {
 
 func (s *Service) postResetPassword(ctx echo.Context) error {
 	var form viewmodels.ResetPasswordForm
-	ctx.Set(context.FormKey, &form)
+	ctx.Set(appcontext.FormKey, &form)
 
 	if err := ctx.Bind(&form); err != nil {
 		return s.ctr.Fail(err, "unable to parse password reset form")
@@ -455,7 +455,7 @@ func (s *Service) postResetPassword(ctx echo.Context) error {
 		return s.ctr.Fail(err, "unable to hash password")
 	}
 
-	userIDRaw := ctx.Get(context.AuthenticatedUserIDKey)
+	userIDRaw := ctx.Get(appcontext.AuthenticatedUserIDKey)
 	userID, ok := userIDRaw.(int)
 	if !ok || userID <= 0 {
 		return echo.NewHTTPError(http.StatusUnauthorized, "authenticated user id missing from context")
@@ -474,7 +474,7 @@ func (s *Service) postResetPassword(ctx echo.Context) error {
 }
 
 func (s *Service) getLogout(ctx echo.Context) error {
-	if userID, ok := ctx.Get(context.AuthenticatedUserIDKey).(int); ok && userID > 0 {
+	if userID, ok := ctx.Get(appcontext.AuthenticatedUserIDKey).(int); ok && userID > 0 {
 		s.publishUserLoggedOut(ctx, userID)
 	}
 	if err := s.ctr.Container.Auth.Logout(ctx); err != nil {
@@ -491,8 +491,8 @@ func (s *Service) getVerifyEmail(ctx echo.Context) error {
 		return s.ctr.Redirect(ctx, routeNames.RouteNameLandingPage)
 	}
 
-	authEmail, authEmailOK := ctx.Get(context.AuthenticatedUserEmailKey).(string)
-	authUserID, authUserIDOK := ctx.Get(context.AuthenticatedUserIDKey).(int)
+	authEmail, authEmailOK := ctx.Get(appcontext.AuthenticatedUserEmailKey).(string)
+	authUserID, authUserIDOK := ctx.Get(appcontext.AuthenticatedUserIDKey).(int)
 	if authEmailOK && authUserIDOK && authEmail == email {
 		if err = s.ctr.Container.Auth.MarkUserVerifiedByUserID(ctx, authUserID); err != nil {
 			return s.ctr.Fail(err, "failed to set authenticated user as verified")
@@ -510,7 +510,7 @@ func (s *Service) getVerifyEmail(ctx echo.Context) error {
 	}
 
 	uxflashmessages.Success(ctx, "Your email has been successfully verified.")
-	if ctx.Get(context.AuthenticatedUserIDKey) != nil {
+	if ctx.Get(appcontext.AuthenticatedUserIDKey) != nil {
 		return s.ctr.Redirect(ctx, routeNames.RouteNamePreferences)
 	}
 	return s.ctr.Redirect(ctx, routeNames.RouteNameLogin)

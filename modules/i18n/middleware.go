@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/labstack/echo/v4"
-	appctx "github.com/leomorpho/goship/framework/context"
+	appctx "github.com/leomorpho/goship/framework/appcontext"
 	"golang.org/x/text/language"
 )
 

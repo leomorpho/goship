@@ -11,7 +11,7 @@ import (
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
-	"github.com/leomorpho/goship/framework/context"
+	"github.com/leomorpho/goship/framework/appcontext"
 	"github.com/leomorpho/goship/framework/dberrors"
 	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
 	"github.com/leomorpho/goship/framework/web/routenames"
@@ -32,25 +32,25 @@ func LoadAuthenticatedUser(
 			u, err := authClient.GetAuthenticatedIdentity(c)
 			switch {
 			case err == nil:
-				c.Set(context.AuthenticatedUserIDKey, u.UserID)
-				c.Set(context.AuthenticatedUserNameKey, u.UserName)
-				c.Set(context.AuthenticatedUserEmailKey, u.UserEmail)
-				c.Set(context.AuthenticatedUserIsAdminKey, userIsAdmin(u.UserEmail))
+				c.Set(appcontext.AuthenticatedUserIDKey, u.UserID)
+				c.Set(appcontext.AuthenticatedUserNameKey, u.UserName)
+				c.Set(appcontext.AuthenticatedUserEmailKey, u.UserEmail)
+				c.Set(appcontext.AuthenticatedUserIsAdminKey, userIsAdmin(u.UserEmail))
 				if u.HasProfile {
-					c.Set(context.AuthenticatedProfileIDKey, u.ProfileID)
-					c.Set(context.ProfileFullyOnboarded, u.ProfileFullyOnboarded)
+					c.Set(appcontext.AuthenticatedProfileIDKey, u.ProfileID)
+					c.Set(appcontext.ProfileFullyOnboarded, u.ProfileFullyOnboarded)
 				}
 				// if subscriptionsService != nil {
 				// 	activeProduct, _, err := subscriptionsService.GetCurrentlyActiveProduct(c.Request().Context(), u.Edges.Profile.ID)
 				// 	if err != nil {
 				// 		log.Error().Err(err).Int("userID", u.ID).Int("profileID", u.Edges.Profile.ID).Msg("failed to get active product in middleware for user")
 				// 	}
-				// 	c.Set(context.ActiveProductPlan, activeProduct)
+				// 	c.Set(appcontext.ActiveProductPlan, activeProduct)
 
 				// }
 				if profileService != nil {
 					// TODO: cache profile photo URL somewhere in the stack
-					c.Set(context.AuthenticatedUserProfilePicURL, profileService.GetProfilePhotoThumbnailURL(u.UserID))
+					c.Set(appcontext.AuthenticatedUserProfilePicURL, profileService.GetProfilePhotoThumbnailURL(u.UserID))
 				}
 				c.Logger().Infof("auth user loaded in to context: %d", u.UserID)
 			case dberrors.IsNotFound(err):
@@ -76,7 +76,7 @@ func LoadAuthenticatedUser(
 func LoadValidPasswordToken(authClient *authsupport.AuthClient) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			userIDRaw := c.Get(context.AuthenticatedUserIDKey)
+			userIDRaw := c.Get(appcontext.AuthenticatedUserIDKey)
 			userID, ok := userIDRaw.(int)
 			if !ok || userID <= 0 {
 				return echo.NewHTTPError(http.StatusInternalServerError)
@@ -117,7 +117,7 @@ func LoadValidPasswordToken(authClient *authsupport.AuthClient) echo.MiddlewareF
 func RequireAuthentication() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			if c.Get(context.AuthenticatedUserIDKey) == nil {
+			if c.Get(appcontext.AuthenticatedUserIDKey) == nil {
 				// Get the session
 				sess, err := session.Get("session", c)
 				if err != nil {
@@ -146,7 +146,7 @@ func RequireAuthentication() echo.MiddlewareFunc {
 func RequireNoAuthentication() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			if u := c.Get(context.AuthenticatedUserIDKey); u != nil {
+			if u := c.Get(appcontext.AuthenticatedUserIDKey); u != nil {
 				url := c.Echo().Reverse("home_feed")
 				return c.Redirect(http.StatusSeeOther, url)
 			}
@@ -160,10 +160,10 @@ func RequireNoAuthentication() echo.MiddlewareFunc {
 func RequireAdmin() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			if c.Get(context.AuthenticatedUserIDKey) == nil {
+			if c.Get(appcontext.AuthenticatedUserIDKey) == nil {
 				return echo.NewHTTPError(http.StatusUnauthorized)
 			}
-			isAdmin, _ := c.Get(context.AuthenticatedUserIsAdminKey).(bool)
+			isAdmin, _ := c.Get(appcontext.AuthenticatedUserIsAdminKey).(bool)
 			if !isAdmin {
 				return echo.NewHTTPError(http.StatusForbidden, "admin access required")
 			}

@@ -8,7 +8,7 @@ import (
 	"github.com/a-h/templ"
 	"github.com/labstack/echo/v4"
 	echomw "github.com/labstack/echo/v4/middleware"
-	"github.com/leomorpho/goship/framework/context"
+	"github.com/leomorpho/goship/framework/appcontext"
 	"github.com/leomorpho/goship/framework/htmx"
 	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
 )
@@ -67,13 +67,13 @@ func NewBase(ctx echo.Context) Base {
 	if csrf := ctx.Get(echomw.DefaultCSRFConfig.ContextKey); csrf != nil {
 		p.CSRF = csrf.(string)
 	}
-	if u := ctx.Get(context.AuthenticatedUserIDKey); u != nil {
+	if u := ctx.Get(appcontext.AuthenticatedUserIDKey); u != nil {
 		p.IsAuth = true
 	}
-	if isAdmin, ok := ctx.Get(context.AuthenticatedUserIsAdminKey).(bool); ok {
+	if isAdmin, ok := ctx.Get(appcontext.AuthenticatedUserIsAdminKey).(bool); ok {
 		p.IsAdmin = isAdmin
 	}
-	if u := ctx.Get(context.IsFromIOSApp); u != nil {
+	if u := ctx.Get(appcontext.IsFromIOSApp); u != nil {
 		p.IsIosDevice = u.(bool)
 	}
 

@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/framework/context"
+	"github.com/leomorpho/goship/framework/appcontext"
 	frameworkauthcontext "github.com/leomorpho/goship/framework/web/authcontext"
 	layouts "github.com/leomorpho/goship/framework/web/layouts/gen"
 	pages "github.com/leomorpho/goship/framework/web/pages/gen"
@@ -40,7 +40,7 @@ func (p *profilePrefsRoute) GetBio(ctx echo.Context) error {
 	form.Bio = prof.Bio
 	page.Form = form
 
-	if form := ctx.Get(context.FormKey); form != nil {
+	if form := ctx.Get(appcontext.FormKey); form != nil {
 		page.Form = form.(*viewmodels.ProfileBioFormData)
 	}
 
@@ -50,7 +50,7 @@ func (p *profilePrefsRoute) GetBio(ctx echo.Context) error {
 func (p *profilePrefsRoute) UpdateBio(ctx echo.Context) error {
 	req := updateBioRequest{}
 	form := viewmodels.NewProfileBioFormData()
-	ctx.Set(context.FormKey, form)
+	ctx.Set(appcontext.FormKey, form)
 
 	if err := ctx.Bind(&req); err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid bio data")

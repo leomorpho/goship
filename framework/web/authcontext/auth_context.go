@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	customctx "github.com/leomorpho/goship/framework/context"
+	customctx "github.com/leomorpho/goship/framework/appcontext"
 )
 
 var errMissingAuthenticatedProfileID = errors.New("authenticated profile id missing from context")

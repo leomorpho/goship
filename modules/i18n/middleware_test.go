@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v4"
-	appctx "github.com/leomorpho/goship/framework/context"
+	appctx "github.com/leomorpho/goship/framework/appcontext"
 )
 
 func TestDetectLanguage_UsesAcceptLanguageHeader(t *testing.T) {

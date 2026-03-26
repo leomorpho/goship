@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	echomw "github.com/labstack/echo/v4/middleware"
-	"github.com/leomorpho/goship/framework/context"
+	"github.com/leomorpho/goship/framework/appcontext"
 	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
 	"github.com/leomorpho/goship/framework/tests"
 	"github.com/leomorpho/goship/framework/web/ui"
@@ -32,9 +32,9 @@ func TestNewPage(t *testing.T) {
 	ctx, _ = tests.NewContext(c.Web, "/abc?def=123")
 	usr, err := tests.CreateRandomUserDB(c.Database)
 	require.NoError(t, err)
-	ctx.Set(context.AuthenticatedUserIDKey, usr.ID)
-	ctx.Set(context.AuthenticatedUserNameKey, usr.Name)
-	ctx.Set(context.AuthenticatedUserEmailKey, usr.Email)
+	ctx.Set(appcontext.AuthenticatedUserIDKey, usr.ID)
+	ctx.Set(appcontext.AuthenticatedUserNameKey, usr.Name)
+	ctx.Set(appcontext.AuthenticatedUserEmailKey, usr.Email)
 	ctx.Set(echomw.DefaultCSRFConfig.ContextKey, "csrf")
 	p = ui.NewPage(ctx)
 	assert.Equal(t, "/abc", p.Path)

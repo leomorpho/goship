@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/framework/context"
+	"github.com/leomorpho/goship/framework/appcontext"
 	layouts "github.com/leomorpho/goship/framework/web/layouts/gen"
 	pages "github.com/leomorpho/goship/framework/web/pages/gen"
 	"github.com/leomorpho/goship/framework/web/templates"
@@ -20,7 +20,7 @@ func NewErrorHandler(ctr ui.Controller) ErrorHandler {
 }
 
 func (e *ErrorHandler) Get(err error, ctx echo.Context) {
-	if ctx.Response().Committed || context.IsCanceledError(err) {
+	if ctx.Response().Committed || appcontext.IsCanceledError(err) {
 		return
 	}
 

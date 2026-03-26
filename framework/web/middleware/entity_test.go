@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/leomorpho/goship/framework/context"
+	"github.com/leomorpho/goship/framework/appcontext"
 	"github.com/leomorpho/goship/framework/tests"
 
 	"github.com/stretchr/testify/assert"
@@ -16,10 +16,10 @@ func TestLoadUser(t *testing.T) {
 	ctx.SetParamNames("user")
 	ctx.SetParamValues(fmt.Sprintf("%d", usr.ID))
 	_ = tests.ExecuteMiddleware(ctx, LoadUser(c.Auth))
-	authUserID, ok := ctx.Get(context.AuthenticatedUserIDKey).(int)
+	authUserID, ok := ctx.Get(appcontext.AuthenticatedUserIDKey).(int)
 	require.True(t, ok)
 	assert.Equal(t, usr.ID, authUserID)
-	authUserEmail, ok := ctx.Get(context.AuthenticatedUserEmailKey).(string)
+	authUserEmail, ok := ctx.Get(appcontext.AuthenticatedUserEmailKey).(string)
 	require.True(t, ok)
 	assert.Equal(t, usr.Email, authUserEmail)
 }

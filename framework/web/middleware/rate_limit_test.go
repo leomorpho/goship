@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/leomorpho/goship/framework/context"
+	"github.com/leomorpho/goship/framework/appcontext"
 	"github.com/leomorpho/goship/framework/repos/ratelimit"
 	"github.com/leomorpho/goship/framework/tests"
 )
@@ -47,13 +47,13 @@ func TestRateLimit_KeysAuthenticatedUsersSeparately(t *testing.T) {
 	ctxA.SetPath("/user/login")
 	ctxA.Request().Method = http.MethodPost
 	ctxA.Request().RemoteAddr = "198.51.100.10:3210"
-	ctxA.Set(context.AuthenticatedUserIDKey, 101)
+	ctxA.Set(appcontext.AuthenticatedUserIDKey, 101)
 
 	ctxB, _ := tests.NewContext(c.Web, "/user/login")
 	ctxB.SetPath("/user/login")
 	ctxB.Request().Method = http.MethodPost
 	ctxB.Request().RemoteAddr = "198.51.100.10:3210"
-	ctxB.Set(context.AuthenticatedUserIDKey, 202)
+	ctxB.Set(appcontext.AuthenticatedUserIDKey, 202)
 
 	if err := tests.ExecuteMiddleware(ctxA, mw); err != nil {
 		t.Fatalf("user A request err = %v, want nil", err)

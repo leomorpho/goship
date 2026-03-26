@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/labstack/echo/v4"
-	customctx "github.com/leomorpho/goship/framework/context"
+	customctx "github.com/leomorpho/goship/framework/appcontext"
 	frameworkauthcontext "github.com/leomorpho/goship/framework/web/authcontext"
 )
 
