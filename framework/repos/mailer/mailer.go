@@ -35,7 +35,7 @@ type (
 	}
 
 	MailClientInterface interface {
-		Send(email *mail) error
+		Send(ctx context.Context, email *mail) error
 	}
 )
 
@@ -80,7 +80,7 @@ func (m *MailClient) send(email *mail, ctx context.Context) error {
 	}
 
 	// Delegate sending to the mailSender
-	return m.MailSender.Send(email)
+	return m.MailSender.Send(ctx, email)
 }
 
 // From sets the email from address

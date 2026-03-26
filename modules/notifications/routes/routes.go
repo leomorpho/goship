@@ -387,9 +387,9 @@ func (r *OutgoingNotificationsRoute) RegisterSubscription(ctx echo.Context) erro
 
 	switch *platform {
 	case domain.NotificationPlatformPush:
-		hasPermissionsAlready, err := r.pwaPushService.HasPermissionsLeftAndEndpointIsRegistered(ctx.Request().Context(), profileID, req.Endpoint)
+		hasPermissionsAlready, err := r.pwaPushService.HasEndpointRegistered(ctx.Request().Context(), profileID, req.Endpoint)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, "error checking if user still has push permissions and registered endpoints left")
+			return echo.NewHTTPError(http.StatusInternalServerError, "error checking if user still has registered endpoints")
 		}
 		if !hasPermissionsAlready {
 			if err := r.pwaPushService.AddPushSubscription(
@@ -402,9 +402,9 @@ func (r *OutgoingNotificationsRoute) RegisterSubscription(ctx echo.Context) erro
 		}
 
 	case domain.NotificationPlatformFCMPush:
-		hasPermissionsAlready, err := r.fcmPushService.HasPermissionsLeftAndTokenIsRegistered(ctx.Request().Context(), profileID, req.FCMToken)
+		hasPermissionsAlready, err := r.fcmPushService.HasTokenRegistered(ctx.Request().Context(), profileID, req.FCMToken)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, "error checking if user still has push permissions and registered fcm subscriptions left")
+			return echo.NewHTTPError(http.StatusInternalServerError, "error checking if user still has registered fcm subscriptions")
 		}
 		if !hasPermissionsAlready {
 			if err := r.fcmPushService.AddPushSubscription(
@@ -457,9 +457,9 @@ func (r *OutgoingNotificationsRoute) DeleteSubscription(ctx echo.Context) error 
 
 	switch *platform {
 	case domain.NotificationPlatformPush:
-		hasPermissionsLeft, err := r.pwaPushService.HasPermissionsLeftAndEndpointIsRegistered(ctx.Request().Context(), profileID, req.Endpoint)
+		hasPermissionsLeft, err := r.pwaPushService.HasEndpointRegistered(ctx.Request().Context(), profileID, req.Endpoint)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, "error checking if user still has push permissions and registered pwa endpoints left")
+			return echo.NewHTTPError(http.StatusInternalServerError, "error checking if user still has registered pwa endpoints")
 		}
 		if !hasPermissionsLeft {
 			if err := r.pwaPushService.DeletePushSubscriptionByEndpoint(ctx.Request().Context(), profileID, req.Endpoint); err != nil {
@@ -468,9 +468,9 @@ func (r *OutgoingNotificationsRoute) DeleteSubscription(ctx echo.Context) error 
 		}
 
 	case domain.NotificationPlatformFCMPush:
-		hasPermissionsLeft, err := r.fcmPushService.HasPermissionsLeftAndTokenIsRegistered(ctx.Request().Context(), profileID, req.FCMToken)
+		hasPermissionsLeft, err := r.fcmPushService.HasTokenRegistered(ctx.Request().Context(), profileID, req.FCMToken)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, "error checking if user still has push permissions and registered fcm registration left")
+			return echo.NewHTTPError(http.StatusInternalServerError, "error checking if user still has registered fcm registration")
 		}
 		if !hasPermissionsLeft {
 			if err := r.fcmPushService.DeletePushSubscriptionByToken(ctx.Request().Context(), profileID, req.FCMToken); err != nil {

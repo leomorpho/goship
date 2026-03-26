@@ -23,6 +23,7 @@ type Services struct {
 
 // RuntimeDeps are the composition-root inputs required to build module services.
 type RuntimeDeps struct {
+	InitContext                         context.Context
 	DB                                  *sql.DB
 	DBDialect                           string
 	PubSub                              PubSub
@@ -50,7 +51,6 @@ func New(deps RuntimeDeps) (*Services, error) {
 	pwaPushService = NewSQLPwaPushService(
 		deps.DB,
 		deps.DBDialect,
-		permissionService,
 		deps.VapidPublicKey,
 		deps.VapidPrivateKey,
 		deps.MailFromAddress,
@@ -58,7 +58,6 @@ func New(deps RuntimeDeps) (*Services, error) {
 	fcmPushService, err = NewSQLFcmPushService(
 		deps.DB,
 		deps.DBDialect,
-		permissionService,
 		deps.FirebaseJSONAccessKeys,
 	)
 	if err != nil {
@@ -69,7 +68,12 @@ func New(deps RuntimeDeps) (*Services, error) {
 	if region == "" {
 		region = "us-east-1"
 	}
+	initCtx := deps.InitContext
+	if initCtx == nil {
+		initCtx = context.Background()
+	}
 	smsSenderService, err := NewSQLSMSSender(
+		initCtx,
 		deps.DB,
 		deps.DBDialect,
 		region,
@@ -87,6 +91,7 @@ func New(deps RuntimeDeps) (*Services, error) {
 	notifierService := NewNotifierService(
 		deps.PubSub,
 		notificationStore,
+		permissionService,
 		pwaPushService,
 		fcmPushService,
 		deps.GetNumNotificationsForProfileByIDFn,

@@ -17,12 +17,10 @@ type sqlFcmPushSubscriptionStore struct {
 func NewSQLFcmPushService(
 	db *sql.DB,
 	dialect string,
-	permissionService *NotificationPermissionService,
 	firebaseJSONAccessKeys *[]byte,
 ) (*FcmPushService, error) {
 	return newFcmPushServiceWithStore(
 		newSQLFcmPushSubscriptionStore(db, dialect),
-		permissionService,
 		firebaseJSONAccessKeys,
 	)
 }

@@ -4,11 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"log/slog"
+	"net/http"
 
 	"github.com/SherClockHolmes/webpush-go"
-	"github.com/leomorpho/goship/framework/domain"
 )
 
 type Subscription struct {
@@ -23,10 +22,9 @@ type VAPIDDetails struct {
 }
 
 type PwaPushService struct {
-	vapidDetails                  *VAPIDDetails
-	subscriberEmail               string
-	store                         pwaPushSubscriptionStore
-	notificationPermissionService *NotificationPermissionService
+	vapidDetails    *VAPIDDetails
+	subscriberEmail string
+	store           pwaPushSubscriptionStore
 }
 
 type pwaPushSubscriptionRecord struct {
@@ -46,7 +44,6 @@ type pwaPushSubscriptionStore interface {
 
 func newPwaPushService(
 	store pwaPushSubscriptionStore,
-	permissionService *NotificationPermissionService,
 	vapidPublicKey, vapidPrivateKey, subscriberEmail string,
 ) *PwaPushService {
 	return &PwaPushService{
@@ -54,9 +51,8 @@ func newPwaPushService(
 			PublicKey:  vapidPublicKey,
 			PrivateKey: vapidPrivateKey,
 		},
-		subscriberEmail:               subscriberEmail,
-		store:                         store,
-		notificationPermissionService: permissionService,
+		subscriberEmail: subscriberEmail,
+		store:           store,
 	}
 }
 
@@ -143,28 +139,10 @@ func (p *PwaPushService) hasProfilePushSubscriptionEndpoints(ctx context.Context
 	return p.store.hasAnyByProfileID(ctx, profileID)
 }
 
-// TODO: this is bad design, this repo should know NOTHING about permissions
-func (p *PwaPushService) HasPermissionsLeftAndEndpointIsRegistered(
+func (p *PwaPushService) HasEndpointRegistered(
 	ctx context.Context,
 	profileID int,
 	endpoint string,
 ) (bool, error) {
-	// Check if the endpoint exists
-	exists, err := p.store.hasEndpoint(ctx, profileID, endpoint)
-	if err != nil {
-		return false, err
-	}
-	if !exists {
-		return false, nil
-	}
-
-	// Check if there are any permissions for the given platform.
-	hasPerms, err := p.notificationPermissionService.HasPermissionsForPlatform(
-		ctx, profileID, domain.NotificationPlatformPush,
-	)
-	if err != nil {
-		return false, err
-	}
-
-	return hasPerms, nil
+	return p.store.hasEndpoint(ctx, profileID, endpoint)
 }

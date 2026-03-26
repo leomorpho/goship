@@ -19,8 +19,11 @@ type sqlSMSCodeStore struct {
 }
 
 // NewSQLSMSSender initializes a new SMSSender with SQL-backed storage and AWS SNS.
-func NewSQLSMSSender(db *sql.DB, dialect, region, senderID string, validationTextExpirationMinutes int) (*SMSSender, error) {
-	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(region))
+func NewSQLSMSSender(ctx context.Context, db *sql.DB, dialect, region, senderID string, validationTextExpirationMinutes int) (*SMSSender, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(region))
 	if err != nil {
 		return nil, fmt.Errorf("configuration error: %w", err)
 	}

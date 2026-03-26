@@ -128,7 +128,7 @@ func TestCreateNotification(t *testing.T) {
 				Return(nil)
 
 			// Create notifier repo
-			notifierService := notifications.NewNotifierService(mockPubSubClient, mockNotificationStore, nil, nil, nil)
+			notifierService := notifications.NewNotifierService(mockPubSubClient, mockNotificationStore, nil, nil, nil, nil)
 
 			// Test CreateNotification
 			err := notifierService.PublishNotification(ctx, notification, tc.storeInDB, false)
@@ -153,7 +153,7 @@ func TestGetNotifications(t *testing.T) {
 	mockNotificationStore.On("GetNotificationsByProfileID", ctx, profileID, false).Return(notificationList, nil)
 
 	// Create notifier repo
-	notifierService := notifications.NewNotifierService(mockPubSubClient, mockNotificationStore, nil, nil, nil)
+	notifierService := notifications.NewNotifierService(mockPubSubClient, mockNotificationStore, nil, nil, nil, nil)
 
 	// Test GetNotifications
 	result, err := notifierService.GetNotifications(ctx, profileID, false, nil, nil)
@@ -173,7 +173,7 @@ func TestMarkNotificationRead(t *testing.T) {
 	mockNotificationStore.On("MarkNotificationAsRead", ctx, notificationID).Return(nil)
 
 	// Create notifier repo
-	notifierService := notifications.NewNotifierService(mockPubSubClient, mockNotificationStore, nil, nil, nil)
+	notifierService := notifications.NewNotifierService(mockPubSubClient, mockNotificationStore, nil, nil, nil, nil)
 
 	// Test MarkNotificationRead
 	err := notifierService.MarkNotificationRead(ctx, notificationID, nil)
@@ -206,7 +206,7 @@ func TestSubscribe(t *testing.T) {
 		Return(notifications.PubSubSubscription(mockSub), nil)
 
 	// Create notifier repo
-	notifierService := notifications.NewNotifierService(mockPubSubClient, mockNotificationStore, nil, nil, nil)
+	notifierService := notifications.NewNotifierService(mockPubSubClient, mockNotificationStore, nil, nil, nil, nil)
 
 	// Test SSESubscribe
 	receivedCh, err := notifierService.SSESubscribe(ctx, topic)

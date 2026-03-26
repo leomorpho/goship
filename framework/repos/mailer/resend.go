@@ -25,7 +25,7 @@ func NewResendMailClientWithSender(sender resendSender) *ResendMailClient {
 	return &ResendMailClient{sender: sender}
 }
 
-func (r *ResendMailClient) Send(email *mail) error {
+func (r *ResendMailClient) Send(ctx context.Context, email *mail) error {
 	if r == nil || r.sender == nil {
 		return errors.New("resend mail client not initialized")
 	}
@@ -42,7 +42,6 @@ func (r *ResendMailClient) Send(email *mail) error {
 		params.Text = email.body
 	}
 
-	ctx := context.TODO()
 	_, err := r.sender.SendWithContext(ctx, params)
 	if err != nil {
 		return fmt.Errorf("resend mail client failed to send email: %w", err)

@@ -17,12 +17,10 @@ type sqlPwaPushSubscriptionStore struct {
 func NewSQLPwaPushService(
 	db *sql.DB,
 	dialect string,
-	permissionService *NotificationPermissionService,
 	vapidPublicKey, vapidPrivateKey, subscriberEmail string,
 ) *PwaPushService {
 	return newPwaPushService(
 		newSQLPwaPushSubscriptionStore(db, dialect),
-		permissionService,
 		vapidPublicKey,
 		vapidPrivateKey,
 		subscriberEmail,

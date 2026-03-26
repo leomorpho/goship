@@ -17,11 +17,12 @@ NotifierService manages the full lifecycle of notifications. That includes:
 - Create push notifications (TODO) for mobile apps.
 */
 type NotifierService struct {
-	pubSubClient      PubSub
-	notificationStore NotificationStorage
-	pwaPushService    *PwaPushService
-	fcmPushService    *FcmPushService
-	getNumNotifsCount func(context.Context, int) (int, error)
+	pubSubClient              PubSub
+	notificationStore         NotificationStorage
+	notificationPermissionSvc *NotificationPermissionService
+	pwaPushService            *PwaPushService
+	fcmPushService            *FcmPushService
+	getNumNotifsCount         func(context.Context, int) (int, error)
 }
 
 // SSEEvent is the notifier-level realtime event payload exposed to callers.
@@ -33,16 +34,18 @@ type SSEEvent struct {
 func NewNotifierService(
 	pubSubClient PubSub,
 	notificationStore NotificationStorage,
+	notificationPermissionService *NotificationPermissionService,
 	pwaPushService *PwaPushService,
 	fcmPushService *FcmPushService,
 	getNumNotifsCount func(context.Context, int) (int, error),
 ) *NotifierService {
 	return &NotifierService{
-		pubSubClient:      pubSubClient,
-		notificationStore: notificationStore,
-		pwaPushService:    pwaPushService,
-		fcmPushService:    fcmPushService,
-		getNumNotifsCount: getNumNotifsCount,
+		pubSubClient:              pubSubClient,
+		notificationStore:         notificationStore,
+		notificationPermissionSvc: notificationPermissionService,
+		pwaPushService:            pwaPushService,
+		fcmPushService:            fcmPushService,
+		getNumNotifsCount:         getNumNotifsCount,
 	}
 }
 
@@ -88,24 +91,36 @@ func (s *NotifierService) PublishNotification(
 		}
 
 		if s.pwaPushService != nil {
-			err = s.pwaPushService.SendPushNotifications(ctx, notification.ProfileID, notification.Title, notification.Text, numNotifs)
+			canSend, err := s.canSendPushForPlatform(ctx, notification.ProfileID, domain.NotificationPlatformPush)
 			if err != nil {
 				return err
 			}
-			slog.Debug("sent pwa push notifications",
-				"profileID", notification.ProfileID,
-				"profileIDWhoCausedNotif", notification.ProfileIDWhoCausedNotif,
-				"notificationType", notification.Type.Value)
+			if canSend {
+				err = s.pwaPushService.SendPushNotifications(ctx, notification.ProfileID, notification.Title, notification.Text, numNotifs)
+				if err != nil {
+					return err
+				}
+				slog.Debug("sent pwa push notifications",
+					"profileID", notification.ProfileID,
+					"profileIDWhoCausedNotif", notification.ProfileIDWhoCausedNotif,
+					"notificationType", notification.Type.Value)
+			}
 		}
 		if s.fcmPushService != nil {
-			err = s.fcmPushService.SendPushNotifications(ctx, notification.ProfileID, notification.Title, notification.Text, numNotifs, true)
+			canSend, err := s.canSendPushForPlatform(ctx, notification.ProfileID, domain.NotificationPlatformFCMPush)
 			if err != nil {
 				return err
 			}
-			slog.Debug("sent fcm push notifications",
-				"profileID", notification.ProfileID,
-				"profileIDWhoCausedNotif", notification.ProfileIDWhoCausedNotif,
-				"notificationType", notification.Type.Value)
+			if canSend {
+				err = s.fcmPushService.SendPushNotifications(ctx, notification.ProfileID, notification.Title, notification.Text, numNotifs, true)
+				if err != nil {
+					return err
+				}
+				slog.Debug("sent fcm push notifications",
+					"profileID", notification.ProfileID,
+					"profileIDWhoCausedNotif", notification.ProfileIDWhoCausedNotif,
+					"notificationType", notification.Type.Value)
+			}
 		}
 
 	}
@@ -115,6 +130,17 @@ func (s *NotifierService) PublishNotification(
 		Type: notification.Type.Value,
 		Data: notification.Text,
 	})
+}
+
+func (s *NotifierService) canSendPushForPlatform(
+	ctx context.Context,
+	profileID int,
+	platform domain.NotificationPlatform,
+) (bool, error) {
+	if s.notificationPermissionSvc == nil {
+		return true, nil
+	}
+	return s.notificationPermissionSvc.HasPermissionsForPlatform(ctx, profileID, platform)
 }
 
 // SendSSEUpdate sends an SSE HTML blob update to a profile

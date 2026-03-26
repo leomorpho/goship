@@ -7,20 +7,17 @@ import (
 
 	firebase "firebase.google.com/go/v4"
 	"firebase.google.com/go/v4/messaging"
-	"github.com/leomorpho/goship/framework/domain"
-	"log/slog"
 	"google.golang.org/api/option"
-	)
-
+	"log/slog"
+)
 
 type FcmSubscription struct {
 	Token string
 }
 
 type FcmPushService struct {
-	store                         fcmPushSubscriptionStore
-	fcmClient                     *messaging.Client
-	notificationPermissionService *NotificationPermissionService
+	store     fcmPushSubscriptionStore
+	fcmClient *messaging.Client
 }
 
 type fcmPushSubscriptionRecord struct {
@@ -38,19 +35,16 @@ type fcmPushSubscriptionStore interface {
 
 func newFcmPushService(
 	store fcmPushSubscriptionStore,
-	permissionService *NotificationPermissionService,
 	fcmClient *messaging.Client,
 ) *FcmPushService {
 	return &FcmPushService{
-		store:                         store,
-		fcmClient:                     fcmClient,
-		notificationPermissionService: permissionService,
+		store:     store,
+		fcmClient: fcmClient,
 	}
 }
 
 func newFcmPushServiceWithStore(
 	store fcmPushSubscriptionStore,
-	permissionService *NotificationPermissionService,
 	firebaseJSONAccessKeys *[]byte,
 ) (*FcmPushService, error) {
 
@@ -72,11 +66,8 @@ func newFcmPushServiceWithStore(
 	if store == nil {
 		return nil, errors.New("fcm store must be set")
 	}
-	if permissionService == nil {
-		return nil, errors.New("notification permission service must be set")
-	}
 
-	return newFcmPushService(store, permissionService, fcmClient), nil
+	return newFcmPushService(store, fcmClient), nil
 }
 
 func (p *FcmPushService) AddPushSubscription(ctx context.Context, profileID int, sub FcmSubscription) error {
@@ -152,28 +143,10 @@ func (p *FcmPushService) hasProfilePushSubscriptions(ctx context.Context, profil
 	return p.store.hasAnyByProfileID(ctx, profileID)
 }
 
-// TODO: this is bad design, this repo should know NOTHING about permissions
-func (p *FcmPushService) HasPermissionsLeftAndTokenIsRegistered(
+func (p *FcmPushService) HasTokenRegistered(
 	ctx context.Context,
 	profileID int,
 	token string,
 ) (bool, error) {
-	// Check if the endpoint exists
-	exists, err := p.store.hasToken(ctx, profileID, token)
-	if err != nil {
-		return false, err
-	}
-	if !exists {
-		return false, nil
-	}
-
-	// Check if there are any permissions for the given platform.
-	hasPerms, err := p.notificationPermissionService.HasPermissionsForPlatform(
-		ctx, profileID, domain.NotificationPlatformFCMPush,
-	)
-	if err != nil {
-		return false, err
-	}
-
-	return hasPerms, nil
+	return p.store.hasToken(ctx, profileID, token)
 }

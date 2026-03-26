@@ -1,6 +1,7 @@
 package mailer
 
 import (
+	"context"
 	"fmt"
 	"net/smtp"
 )
@@ -31,7 +32,7 @@ func NewSMTPMailClientWithAuth(host string, port int, user, pass string) *SMTPMa
 }
 
 // Send sends an email using SMTP
-func (c *SMTPMailClient) Send(email *mail) error {
+func (c *SMTPMailClient) Send(_ context.Context, email *mail) error {
 	// Define email headers and body
 	msg := fmt.Sprintf("From: %s\nTo: %s\nSubject: %s\nMIME-Version: 1.0\nContent-Type: text/html; charset=\"utf-8\"\n\n%s", email.from, email.to, email.subject, email.body)
 
