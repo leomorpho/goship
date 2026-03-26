@@ -13,7 +13,7 @@ import (
 	echomiddleware "github.com/labstack/echo/v4/middleware"
 	"github.com/leomorpho/goship/framework/domain"
 	frameworkauthcontext "github.com/leomorpho/goship/framework/web/authcontext"
-	"github.com/leomorpho/goship/framework/web/layouts/gen"
+	layouts "github.com/leomorpho/goship/framework/web/layouts/gen"
 	routeNames "github.com/leomorpho/goship/framework/web/routenames"
 	templates "github.com/leomorpho/goship/framework/web/templates"
 	"github.com/leomorpho/goship/framework/web/ui"

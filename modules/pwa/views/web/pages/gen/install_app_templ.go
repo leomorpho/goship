@@ -125,7 +125,7 @@ func installIos(installArtHeight string) templ.Component {
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var4).String())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pwa/views/web/pages/install_app.templ`, Line: 1, Col: 0}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `modules/pwa/views/web/pages/install_app.templ`, Line: 1, Col: 0}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
@@ -172,7 +172,7 @@ func installAndroid(installArtHeight string) templ.Component {
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var7).String())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pwa/views/web/pages/install_app.templ`, Line: 1, Col: 0}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `modules/pwa/views/web/pages/install_app.templ`, Line: 1, Col: 0}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
@@ -219,7 +219,7 @@ func addToHomeScreen(installArtHeight string) templ.Component {
 		var templ_7745c5c3_Var11 string
 		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var10).String())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pwa/views/web/pages/install_app.templ`, Line: 1, Col: 0}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `modules/pwa/views/web/pages/install_app.templ`, Line: 1, Col: 0}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 		if templ_7745c5c3_Err != nil {
@@ -318,7 +318,7 @@ func iPhone() templ.Component {
 		var templ_7745c5c3_Var14 string
 		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs("Open Safari on your device and navigate to the Goship website:")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pwa/views/web/pages/install_app.templ`, Line: 121, Col: 72}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `modules/pwa/views/web/pages/install_app.templ`, Line: 121, Col: 72}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 		if templ_7745c5c3_Err != nil {
@@ -331,7 +331,7 @@ func iPhone() templ.Component {
 		var templ_7745c5c3_Var15 string
 		templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs("Open the share menu:")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pwa/views/web/pages/install_app.templ`, Line: 122, Col: 30}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `modules/pwa/views/web/pages/install_app.templ`, Line: 122, Col: 30}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 		if templ_7745c5c3_Err != nil {
@@ -344,7 +344,7 @@ func iPhone() templ.Component {
 		var templ_7745c5c3_Var16 string
 		templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs("Select \"Add to home Screen\":")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pwa/views/web/pages/install_app.templ`, Line: 123, Col: 40}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `modules/pwa/views/web/pages/install_app.templ`, Line: 123, Col: 40}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 		if templ_7745c5c3_Err != nil {
@@ -357,7 +357,7 @@ func iPhone() templ.Component {
 		var templ_7745c5c3_Var17 string
 		templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs("Confirm by tapping \"Add\":")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pwa/views/web/pages/install_app.templ`, Line: 124, Col: 37}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `modules/pwa/views/web/pages/install_app.templ`, Line: 124, Col: 37}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 		if templ_7745c5c3_Err != nil {
@@ -370,7 +370,7 @@ func iPhone() templ.Component {
 		var templ_7745c5c3_Var18 string
 		templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs("App will be installed to home screen:")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pwa/views/web/pages/install_app.templ`, Line: 125, Col: 47}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `modules/pwa/views/web/pages/install_app.templ`, Line: 125, Col: 47}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 		if templ_7745c5c3_Err != nil {
@@ -383,7 +383,7 @@ func iPhone() templ.Component {
 		var templ_7745c5c3_Var19 string
 		templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs("Open the app, enjoy!")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pwa/views/web/pages/install_app.templ`, Line: 126, Col: 30}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `modules/pwa/views/web/pages/install_app.templ`, Line: 126, Col: 30}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 		if templ_7745c5c3_Err != nil {
@@ -429,7 +429,7 @@ func android() templ.Component {
 		var templ_7745c5c3_Var21 string
 		templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs("Open Chrome on your device and navigate to the Goship website:")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pwa/views/web/pages/install_app.templ`, Line: 133, Col: 72}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `modules/pwa/views/web/pages/install_app.templ`, Line: 133, Col: 72}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 		if templ_7745c5c3_Err != nil {
@@ -442,7 +442,7 @@ func android() templ.Component {
 		var templ_7745c5c3_Var22 string
 		templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs("Open the 3-dot options menu:")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pwa/views/web/pages/install_app.templ`, Line: 134, Col: 38}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `modules/pwa/views/web/pages/install_app.templ`, Line: 134, Col: 38}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 		if templ_7745c5c3_Err != nil {
@@ -455,7 +455,7 @@ func android() templ.Component {
 		var templ_7745c5c3_Var23 string
 		templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs("Select \"Install app\" (or \"Add to home Screen\" on older devices):")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pwa/views/web/pages/install_app.templ`, Line: 135, Col: 78}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `modules/pwa/views/web/pages/install_app.templ`, Line: 135, Col: 78}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 		if templ_7745c5c3_Err != nil {
@@ -468,7 +468,7 @@ func android() templ.Component {
 		var templ_7745c5c3_Var24 string
 		templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs("Confirm by tapping \"Install\" (or \"Add to home screen \" on older devices):")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pwa/views/web/pages/install_app.templ`, Line: 136, Col: 87}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `modules/pwa/views/web/pages/install_app.templ`, Line: 136, Col: 87}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 		if templ_7745c5c3_Err != nil {
@@ -481,7 +481,7 @@ func android() templ.Component {
 		var templ_7745c5c3_Var25 string
 		templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs("App will be installed to home screen:")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pwa/views/web/pages/install_app.templ`, Line: 137, Col: 47}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `modules/pwa/views/web/pages/install_app.templ`, Line: 137, Col: 47}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
 		if templ_7745c5c3_Err != nil {
@@ -494,7 +494,7 @@ func android() templ.Component {
 		var templ_7745c5c3_Var26 string
 		templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs("Open the app, enjoy!")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pwa/views/web/pages/install_app.templ`, Line: 138, Col: 30}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `modules/pwa/views/web/pages/install_app.templ`, Line: 138, Col: 30}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
 		if templ_7745c5c3_Err != nil {
@@ -536,7 +536,7 @@ func warningDontDoTheseStepsJustYet() templ.Component {
 		var templ_7745c5c3_Var28 string
 		templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs("Don't do these steps just yet,")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pwa/views/web/pages/install_app.templ`, Line: 149, Col: 63}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `modules/pwa/views/web/pages/install_app.templ`, Line: 149, Col: 63}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 		if templ_7745c5c3_Err != nil {
@@ -549,7 +549,7 @@ func warningDontDoTheseStepsJustYet() templ.Component {
 		var templ_7745c5c3_Var29 string
 		templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs("you will need to do them from the correct browser, see below steps.")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pwa/views/web/pages/install_app.templ`, Line: 149, Col: 144}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `modules/pwa/views/web/pages/install_app.templ`, Line: 149, Col: 144}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
 		if templ_7745c5c3_Err != nil {
@@ -591,7 +591,7 @@ func screen(url, alt string) templ.Component {
 		var templ_7745c5c3_Var31 string
 		templ_7745c5c3_Var31, templ_7745c5c3_Err = templ.JoinStringErrs(url)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pwa/views/web/pages/install_app.templ`, Line: 158, Col: 12}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `modules/pwa/views/web/pages/install_app.templ`, Line: 158, Col: 12}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var31))
 		if templ_7745c5c3_Err != nil {
@@ -604,7 +604,7 @@ func screen(url, alt string) templ.Component {
 		var templ_7745c5c3_Var32 string
 		templ_7745c5c3_Var32, templ_7745c5c3_Err = templ.JoinStringErrs(alt)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pwa/views/web/pages/install_app.templ`, Line: 159, Col: 12}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `modules/pwa/views/web/pages/install_app.templ`, Line: 159, Col: 12}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var32))
 		if templ_7745c5c3_Err != nil {

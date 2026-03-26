@@ -3,7 +3,7 @@ package pwa
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/leomorpho/goship/framework/core"
-	"github.com/leomorpho/goship/framework/web/layouts/gen"
+	layouts "github.com/leomorpho/goship/framework/web/layouts/gen"
 	"github.com/leomorpho/goship/framework/web/routenames"
 	templates "github.com/leomorpho/goship/framework/web/templates"
 	"github.com/leomorpho/goship/framework/web/ui"

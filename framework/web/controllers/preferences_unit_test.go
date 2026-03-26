@@ -9,7 +9,7 @@ import (
 	"github.com/leomorpho/goship/config"
 	"github.com/leomorpho/goship/framework/runtimeconfig"
 	"github.com/leomorpho/goship/framework/tests"
-	"github.com/leomorpho/goship/framework/web/pages/gen"
+	pages "github.com/leomorpho/goship/framework/web/pages/gen"
 	"github.com/leomorpho/goship/framework/web/ui"
 	viewmodels "github.com/leomorpho/goship/framework/web/viewmodels"
 	"github.com/stretchr/testify/assert"

@@ -12,10 +12,10 @@ import (
 	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
 	"github.com/leomorpho/goship/framework/htmx"
 	"github.com/leomorpho/goship/framework/tests"
-	"github.com/leomorpho/goship/framework/web/components/gen"
-	"github.com/leomorpho/goship/framework/web/layouts/gen"
+	components "github.com/leomorpho/goship/framework/web/components/gen"
+	layouts "github.com/leomorpho/goship/framework/web/layouts/gen"
 	"github.com/leomorpho/goship/framework/web/middleware"
-	"github.com/leomorpho/goship/framework/web/pages/gen"
+	pages "github.com/leomorpho/goship/framework/web/pages/gen"
 	"github.com/leomorpho/goship/framework/web/ui"
 
 	"github.com/stretchr/testify/assert"

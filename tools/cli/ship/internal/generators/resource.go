@@ -344,8 +344,8 @@ func renderResourceTemplHandler(n NormalizedResourceName, domain NormalizedDomai
 		imports = `import (
 	"github.com/labstack/echo/v4"
 	"github.com/leomorpho/goship/framework/web/templates"
-	"github.com/leomorpho/goship/framework/web/layouts/gen"
-	"github.com/leomorpho/goship/framework/web/pages/gen"
+	layouts "github.com/leomorpho/goship/framework/web/layouts/gen"
+	pages "github.com/leomorpho/goship/framework/web/pages/gen"
 	"github.com/leomorpho/goship/framework/web/ui"
 )`
 	}

@@ -9,7 +9,7 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	"github.com/leomorpho/goship/framework/web/components/gen"
+	components "github.com/leomorpho/goship/framework/web/components/gen"
 	controller "github.com/leomorpho/goship/framework/web/ui"
 	"github.com/leomorpho/goship/framework/web/viewmodels"
 )

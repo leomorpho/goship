@@ -36,19 +36,19 @@ func AdminLayout(resources []admin.AdminResource, content templ.Component) templ
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div data-component=\"admin-layout\" class=\"min-h-screen grid grid-cols-1 md:grid-cols-[260px_1fr] bg-slate-50 text-slate-900\"><aside class=\"border-r border-slate-200 bg-white p-4\"><h1 class=\"text-lg font-bold mb-4\">Admin</h1><nav class=\"space-y-2\"><a class=\"block rounded-md px-3 py-2 text-sm hover:bg-slate-100\" href=\"/admin/queues\">Queue Monitor</a> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div data-component=\"admin-layout\" class=\"gs-layout-shell grid grid-cols-1 md:grid-cols-[260px_1fr]\"><aside class=\"gs-card gs-stack m-gs-4\"><h1 class=\"gs-title text-2xl\">Admin</h1><nav class=\"gs-nav flex-col items-stretch\"><a class=\"gs-nav-item\" href=\"/admin/queues\">Queue Monitor</a> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		for _, res := range resources {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<a class=\"block rounded-md px-3 py-2 text-sm hover:bg-slate-100\" href=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<a class=\"gs-nav-item\" href=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var2 templ.SafeURL
 			templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL("/admin/" + strings.ToLower(res.PluralName)))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `admin/views/web/components/admin_layout.templ`, Line: 19, Col: 67}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `modules/admin/views/web/components/admin_layout.templ`, Line: 19, Col: 67}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 			if templ_7745c5c3_Err != nil {
@@ -61,7 +61,7 @@ func AdminLayout(resources []admin.AdminResource, content templ.Component) templ
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(res.PluralName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `admin/views/web/components/admin_layout.templ`, Line: 19, Col: 86}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `modules/admin/views/web/components/admin_layout.templ`, Line: 19, Col: 86}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -72,7 +72,7 @@ func AdminLayout(resources []admin.AdminResource, content templ.Component) templ
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</nav></aside><main class=\"p-6\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "</nav></aside><main class=\"gs-layout-content\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

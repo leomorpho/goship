@@ -32,14 +32,14 @@ func AdminForm(res admin.AdminResource, values map[string]any, errs map[string]s
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<form data-component=\"admin-form\" method=\"post\" class=\"space-y-4 rounded-lg border border-slate-200 bg-white p-4\"><input type=\"hidden\" name=\"csrf\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<form data-component=\"admin-form\" method=\"post\" class=\"gs-form gs-card\"><input type=\"hidden\" name=\"csrf\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(csrfToken)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `admin/views/web/components/admin_form.templ`, Line: 8, Col: 52}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `modules/admin/views/web/components/admin_form.templ`, Line: 8, Col: 52}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -51,14 +51,14 @@ func AdminForm(res admin.AdminResource, values map[string]any, errs map[string]s
 		}
 		for _, field := range res.Fields {
 			if bound := getFieldWithValue(field, values); true {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div class=\"space-y-1\"><label class=\"block text-sm font-semibold text-slate-700\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<div class=\"space-y-1\"><label class=\"block text-sm font-semibold text-gs-text\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var3 string
 				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(field.Label)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `admin/views/web/components/admin_form.templ`, Line: 12, Col: 76}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `modules/admin/views/web/components/admin_form.templ`, Line: 12, Col: 74}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 				if templ_7745c5c3_Err != nil {
@@ -73,14 +73,14 @@ func AdminForm(res admin.AdminResource, values map[string]any, errs map[string]s
 					return templ_7745c5c3_Err
 				}
 				if errText, ok := errs[field.Name]; ok && errText != "" {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<p class=\"text-sm text-red-600\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 5, "<p class=\"text-sm text-gs-danger\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var4 string
 					templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(errText)
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `admin/views/web/components/admin_form.templ`, Line: 15, Col: 47}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `modules/admin/views/web/components/admin_form.templ`, Line: 15, Col: 49}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 					if templ_7745c5c3_Err != nil {
@@ -97,7 +97,7 @@ func AdminForm(res admin.AdminResource, values map[string]any, errs map[string]s
 				}
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<div class=\"pt-2\"><button type=\"submit\" class=\"rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800\">Save</button></div></form>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<div class=\"pt-2\"><button type=\"submit\" class=\"gs-button gs-button-primary\">Save</button></div></form>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

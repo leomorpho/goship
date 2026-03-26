@@ -12,8 +12,8 @@ import (
 	"github.com/leomorpho/goship-modules/notifications"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/framework/events/types"
-	"github.com/leomorpho/goship/framework/views/emails/gen"
-	"github.com/leomorpho/goship/framework/web/layouts/gen"
+	emailviews "github.com/leomorpho/goship/framework/views/emails/gen"
+	layouts "github.com/leomorpho/goship/framework/web/layouts/gen"
 	routeNames "github.com/leomorpho/goship/framework/web/routenames"
 	"github.com/leomorpho/goship/framework/web/ui"
 	"github.com/leomorpho/goship/framework/web/viewmodels"
@@ -87,7 +87,7 @@ func (s *Service) sendVerificationEmail(ctx echo.Context, userEmail string) {
 		To(userEmail).
 		Subject("Confirm your email address").
 		TemplateLayout(layouts.Email).
-		Component(emails.RegistrationConfirmation(&page)).
+		Component(emailviews.RegistrationConfirmation(&page)).
 		Send(ctx.Request().Context())
 	if err != nil {
 		ctx.Logger().Errorf("unable to send email verification link: %v", err)
@@ -115,7 +115,7 @@ func (s *Service) sendPasswordResetEmail(ctx echo.Context, profileName, email, u
 		To(email).
 		Subject("Reset your password").
 		TemplateLayout(layouts.Email).
-		Component(emails.PasswordReset(&page)).
+		Component(emailviews.PasswordReset(&page)).
 		Send(ctx.Request().Context())
 	if err != nil {
 		ctx.Logger().Errorf("unable to send email reset link: %v", err)

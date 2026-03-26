@@ -37,14 +37,14 @@ func AdminList(res admin.AdminResource, rows []admin.AdminRow, pager admin.Pager
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div data-component=\"admin-list\" class=\"space-y-4\"><div class=\"flex items-center justify-between\"><h2 class=\"text-xl font-bold\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div data-component=\"admin-list\" class=\"gs-stack\"><div class=\"flex items-center justify-between\"><h2 class=\"gs-title text-3xl\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(res.PluralName)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `admin/views/web/components/admin_list.templ`, Line: 14, Col: 49}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `modules/admin/views/web/components/admin_list.templ`, Line: 14, Col: 49}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -57,26 +57,26 @@ func AdminList(res admin.AdminResource, rows []admin.AdminRow, pager admin.Pager
 		var templ_7745c5c3_Var3 templ.SafeURL
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL("/admin/" + strings.ToLower(res.PluralName) + "/new"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `admin/views/web/components/admin_list.templ`, Line: 15, Col: 76}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `modules/admin/views/web/components/admin_list.templ`, Line: 15, Col: 76}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\" class=\"rounded-md bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800\">Add new</a></div><div class=\"overflow-x-auto rounded-lg border border-slate-200 bg-white\"><table class=\"min-w-full text-sm\"><thead class=\"bg-slate-50 text-left\"><tr>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "\" class=\"gs-button gs-button-primary\">Add new</a></div><div class=\"gs-card overflow-x-auto\"><table class=\"min-w-full text-sm\"><thead class=\"bg-gs-surface-muted text-left\"><tr>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		for _, field := range res.Fields {
 			if !field.Sensitive {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<th class=\"px-4 py-3 font-semibold text-slate-700\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "<th class=\"px-4 py-3 font-semibold text-gs-text\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var4 string
 				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(field.Label)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `admin/views/web/components/admin_list.templ`, Line: 25, Col: 72}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `modules/admin/views/web/components/admin_list.templ`, Line: 25, Col: 70}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 				if templ_7745c5c3_Err != nil {
@@ -88,19 +88,19 @@ func AdminList(res admin.AdminResource, rows []admin.AdminRow, pager admin.Pager
 				}
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<th class=\"px-4 py-3 font-semibold text-slate-700\">Actions</th></tr></thead> <tbody>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<th class=\"px-4 py-3 font-semibold text-gs-text\">Actions</th></tr></thead> <tbody>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		if len(rows) == 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<tr><td class=\"px-4 py-4 text-slate-500\" colspan=\"99\">No records found.</td></tr>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<tr><td class=\"px-4 py-4 text-gs-text-muted\" colspan=\"99\">No records found.</td></tr>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		} else {
 			for _, row := range rows {
 				if idValue := fmt.Sprint(row[res.IDField]); true {
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<tr class=\"border-t border-slate-100\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<tr class=\"border-t border-gs-border\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -113,7 +113,7 @@ func AdminList(res admin.AdminResource, rows []admin.AdminRow, pager admin.Pager
 							var templ_7745c5c3_Var5 string
 							templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprint(row[field.Name]))
 							if templ_7745c5c3_Err != nil {
-								return templ.Error{Err: templ_7745c5c3_Err, FileName: `admin/views/web/components/admin_list.templ`, Line: 42, Col: 62}
+								return templ.Error{Err: templ_7745c5c3_Err, FileName: `modules/admin/views/web/components/admin_list.templ`, Line: 42, Col: 62}
 							}
 							_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 							if templ_7745c5c3_Err != nil {
@@ -125,14 +125,14 @@ func AdminList(res admin.AdminResource, rows []admin.AdminRow, pager admin.Pager
 							}
 						}
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<td class=\"px-4 py-3\"><div class=\"flex items-center gap-2\"><a class=\"rounded-md border border-slate-200 px-3 py-1 hover:bg-slate-50\" href=\"")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<td class=\"px-4 py-3\"><div class=\"flex items-center gap-2\"><a class=\"gs-button gs-button-secondary px-3 py-1\" href=\"")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 					var templ_7745c5c3_Var6 templ.SafeURL
 					templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL("/admin/" + strings.ToLower(res.PluralName) + "/" + idValue))
 					if templ_7745c5c3_Err != nil {
-						return templ.Error{Err: templ_7745c5c3_Err, FileName: `admin/views/web/components/admin_list.templ`, Line: 48, Col: 89}
+						return templ.Error{Err: templ_7745c5c3_Err, FileName: `modules/admin/views/web/components/admin_list.templ`, Line: 48, Col: 89}
 					}
 					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 					if templ_7745c5c3_Err != nil {
@@ -153,14 +153,14 @@ func AdminList(res admin.AdminResource, rows []admin.AdminRow, pager admin.Pager
 				}
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</tbody></table></div><p class=\"text-sm text-slate-600\">Page ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 14, "</tbody></table></div><p class=\"gs-text text-sm\">Page ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var7 string
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprint(pager.Page))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `admin/views/web/components/admin_list.templ`, Line: 61, Col: 32}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `modules/admin/views/web/components/admin_list.templ`, Line: 61, Col: 32}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {
@@ -173,7 +173,7 @@ func AdminList(res admin.AdminResource, rows []admin.AdminRow, pager admin.Pager
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprint(pager.PerPage))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `admin/views/web/components/admin_list.templ`, Line: 61, Col: 79}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `modules/admin/views/web/components/admin_list.templ`, Line: 61, Col: 79}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
@@ -186,7 +186,7 @@ func AdminList(res admin.AdminResource, rows []admin.AdminRow, pager admin.Pager
 		var templ_7745c5c3_Var9 string
 		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprint(pager.Total))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `admin/views/web/components/admin_list.templ`, Line: 61, Col: 125}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `modules/admin/views/web/components/admin_list.templ`, Line: 61, Col: 125}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {

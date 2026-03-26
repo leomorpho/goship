@@ -10,8 +10,8 @@ import (
 
 func TestCronEntrypointContract_RedSpec(t *testing.T) {
 	candidates := []string{
-		"../../tools/private/control-plane/docs/03-customer-runtime-contract.md",
-		"../../../control-plane/docs/03-customer-runtime-contract.md",
+		"../../docs/architecture/09-standalone-and-managed-mode.md",
+		"../docs/architecture/09-standalone-and-managed-mode.md",
 	}
 
 	var (
@@ -25,12 +25,12 @@ func TestCronEntrypointContract_RedSpec(t *testing.T) {
 		}
 	}
 	if err != nil {
-		t.Skipf("control-plane runtime contract doc not present in this checkout; looked in %v", candidates)
+		t.Skipf("runtime contract doc not present in this checkout; looked in %v", candidates)
 	}
 
 	text := string(contents)
-	assert.Contains(t, text, "signed internal cron endpoint(s)")
 	assert.Contains(t, text, "cron entrypoint contract")
+	assert.Contains(t, text, "signed-request pattern")
 
 	source, err := os.ReadFile("managed_hooks.go")
 	require.NoError(t, err)
