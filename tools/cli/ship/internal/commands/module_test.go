@@ -206,11 +206,11 @@ func TestModuleCatalog_FirstPartyConfigOwnershipHasNoNonCanonicalCollisions(t *t
 	t.Parallel()
 
 	allowedSharedConfigSurfaces := map[string]struct{}{
-		"config/modules.yaml":          {},
-		"app/foundation/container.go":  {},
-		"go.mod":                       {},
-		"go.work":                      {},
-		".env.example":                 {},
+		"config/modules.yaml":         {},
+		"app/foundation/container.go": {},
+		"go.mod":                      {},
+		"go.work":                     {},
+		".env.example":                {},
 	}
 
 	moduleByID := map[string]moduleInfo{}
@@ -523,78 +523,6 @@ func TestRunModuleRemove_AbsentModuleIsNoOp(t *testing.T) {
 	}
 }
 
-func TestApplyModuleAdd_TwoFactor(t *testing.T) {
-	root := t.TempDir()
-
-	containerPath := filepath.Join(root, "app", "foundation", "container.go")
-	if err := os.MkdirAll(filepath.Dir(containerPath), 0o755); err != nil {
-		t.Fatal(err)
-	}
-	containerContent := `package foundation
-
-func NewContainer() *Container {
-	c := &Container{}
-	// ship:container:start
-	// ship:container:end
-	return c
-}
-
-type Container struct{}
-`
-	if err := os.WriteFile(containerPath, []byte(containerContent), 0o644); err != nil {
-		t.Fatal(err)
-	}
-
-	routerPath := filepath.Join(root, "app", "router.go")
-	if err := os.MkdirAll(filepath.Dir(routerPath), 0o755); err != nil {
-		t.Fatal(err)
-	}
-	routerContent := `package goship
-
-func registerPublicRoutes() {
-	// ship:routes:public:start
-	// ship:routes:public:end
-}
-
-func registerAuthRoutes() {
-	// ship:routes:auth:start
-	// ship:routes:auth:end
-}
-
-func registerExternalRoutes() {
-	// ship:routes:external:start
-	// ship:routes:external:end
-}
-`
-	if err := os.WriteFile(routerPath, []byte(routerContent), 0o644); err != nil {
-		t.Fatal(err)
-	}
-
-	manifestPath := filepath.Join(root, "config", "modules.yaml")
-	if err := os.MkdirAll(filepath.Dir(manifestPath), 0o755); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(manifestPath, []byte(modulesManifestHeader), 0o644); err != nil {
-		t.Fatal(err)
-	}
-
-	info, ok := moduleCatalog["2fa"]
-	if !ok {
-		t.Fatal("expected 2fa in module catalog")
-	}
-	if err := applyModuleAdd(root, info, false, io.Discard); err != nil {
-		t.Fatalf("applyModuleAdd error: %v", err)
-	}
-
-	manifest, err := os.ReadFile(manifestPath)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !strings.Contains(string(manifest), "- 2fa") {
-		t.Fatalf("expected 2fa in modules manifest, got:\n%s", string(manifest))
-	}
-}
-
 func TestApplyModuleAddRemove_NotificationsIdempotent(t *testing.T) {
 	root := t.TempDir()
 	info, ok := moduleCatalog["notifications"]
@@ -808,7 +736,7 @@ func TestApplyModuleAdd_ComposesSupportedFirstPartyPairs(t *testing.T) {
 		{name: "notifications and storage", first: "notifications", second: "storage"},
 		{name: "notifications and realtime", first: "notifications", second: "realtime"},
 		{name: "notifications and pwa", first: "notifications", second: "pwa"},
-		{name: "billing and emailsubscriptions", first: "billing", second: "emailsubscriptions"},
+		{name: "paidsubscriptions and emailsubscriptions", first: "paidsubscriptions", second: "emailsubscriptions"},
 	}
 
 	for _, tt := range tests {
@@ -866,13 +794,13 @@ func TestApplyModuleAddRemove_SupportedBatteryMatrixLeavesCleanScaffold(t *testi
 	t.Parallel()
 
 	tests := []struct {
-		name     string
+		name      string
 		batteries []string
 	}{
 		{name: "notifications and jobs", batteries: []string{"notifications", "jobs"}},
 		{name: "notifications and storage", batteries: []string{"notifications", "storage"}},
 		{name: "notifications realtime and pwa", batteries: []string{"notifications", "realtime", "pwa"}},
-		{name: "billing and emailsubscriptions", batteries: []string{"billing", "emailsubscriptions"}},
+		{name: "paidsubscriptions and emailsubscriptions", batteries: []string{"paidsubscriptions", "emailsubscriptions"}},
 	}
 
 	for _, tt := range tests {
@@ -1068,105 +996,12 @@ func TestApplyModuleRemove_AbsentModuleIsIdempotentNoOp(t *testing.T) {
 	}
 }
 
-func TestAdminModuleCatalog_UsesConcreteWiring(t *testing.T) {
-	info, ok := moduleCatalog["admin"]
-	if !ok {
-		t.Fatal("expected admin in module catalog")
-	}
-
-	snippet := strings.TrimSpace(info.RouterSnippets["auth"])
-	if snippet == "" {
-		t.Fatal("expected admin auth router snippet")
-	}
-	if !strings.Contains(snippet, "adminmodule.New(adminmodule.ModuleDeps{") {
-		t.Fatalf("expected concrete admin module constructor, got:\n%s", snippet)
-	}
-	if !strings.Contains(snippet, "RegisterRoutes(onboardedGroup)") {
-		t.Fatalf("expected concrete admin route registration, got:\n%s", snippet)
-	}
-	if strings.Contains(snippet, "TODO") {
-		t.Fatalf("admin router snippet still uses TODO placeholder: %q", snippet)
-	}
-}
-
-func TestAdminModuleCatalog_InstallContractCoversRoutesViewsAuthGateAndTests(t *testing.T) {
+func TestPaidSubscriptionsModuleCatalog_InstallContractCoversRoutesConfigAndTests(t *testing.T) {
 	t.Parallel()
 
-	info, ok := moduleCatalog["admin"]
+	info, ok := moduleCatalog["paidsubscriptions"]
 	if !ok {
-		t.Fatal("expected admin in module catalog")
-	}
-	contract := info.installContract()
-
-	if !containsExactString(contract.Routes, "app/router.go (auth)") {
-		t.Fatalf("admin contract missing auth route ownership: %#v", contract.Routes)
-	}
-	if !containsExactString(contract.Routes, "modules/admin/routes.go") {
-		t.Fatalf("admin contract missing module route ownership: %#v", contract.Routes)
-	}
-	for _, view := range []string{
-		"modules/admin/views/web/components/gen/admin_layout_templ.go",
-		"modules/admin/views/web/components/gen/admin_form_templ.go",
-		"modules/admin/views/web/components/gen/admin_list_templ.go",
-	} {
-		if !containsExactString(contract.Templates, view) {
-			t.Fatalf("admin contract missing view ownership %q: %#v", view, contract.Templates)
-		}
-	}
-	for _, testSurface := range []string{
-		"modules/admin/routes_test.go",
-		"modules/admin/registry_test.go",
-		"modules/admin/store_test.go",
-	} {
-		if !containsExactString(contract.Tests, testSurface) {
-			t.Fatalf("admin contract missing test ownership %q: %#v", testSurface, contract.Tests)
-		}
-	}
-}
-
-func TestBillingModuleCatalog_UsesConcreteWiring(t *testing.T) {
-	info, ok := moduleCatalog["billing"]
-	if !ok {
-		t.Fatal("expected billing in module catalog")
-	}
-	if strings.Contains(info.ContainerSnippet, "TODO") {
-		t.Fatalf("billing container snippet still contains TODO text:\n%s", info.ContainerSnippet)
-	}
-
-	authSnippet := strings.TrimSpace(info.RouterSnippets["auth"])
-	if authSnippet == "" {
-		t.Fatal("expected billing auth router snippet")
-	}
-	for _, token := range []string{
-		"paidsubscriptionroutes.NewRouteModule",
-		"deps.PaidSubscriptionsService",
-		"RegisterRoutes(onboardedGroup)",
-	} {
-		if !strings.Contains(authSnippet, token) {
-			t.Fatalf("billing auth snippet missing %q:\n%s", token, authSnippet)
-		}
-	}
-
-	externalSnippet := strings.TrimSpace(info.RouterSnippets["external"])
-	if externalSnippet == "" {
-		t.Fatal("expected billing external router snippet")
-	}
-	for _, token := range []string{
-		"paidsubscriptionroutes.NewRouteModule",
-		"RegisterExternalRoutes(externalGroup, \"/webhooks/stripe\")",
-	} {
-		if !strings.Contains(externalSnippet, token) {
-			t.Fatalf("billing external snippet missing %q:\n%s", token, externalSnippet)
-		}
-	}
-}
-
-func TestBillingModuleCatalog_InstallContractCoversBillingRoutesConfigAndTests(t *testing.T) {
-	t.Parallel()
-
-	info, ok := moduleCatalog["billing"]
-	if !ok {
-		t.Fatal("expected billing in module catalog")
+		t.Fatal("expected paidsubscriptions in module catalog")
 	}
 	contract := info.installContract()
 
@@ -1176,7 +1011,7 @@ func TestBillingModuleCatalog_InstallContractCoversBillingRoutesConfigAndTests(t
 		"modules/paidsubscriptions/routes/routes.go",
 	} {
 		if !containsExactString(contract.Routes, route) {
-			t.Fatalf("billing contract routes missing %q: %#v", route, contract.Routes)
+			t.Fatalf("paidsubscriptions contract routes missing %q: %#v", route, contract.Routes)
 		}
 	}
 	for _, configPath := range []string{
@@ -1187,11 +1022,11 @@ func TestBillingModuleCatalog_InstallContractCoversBillingRoutesConfigAndTests(t
 		".env.example",
 	} {
 		if !containsExactString(contract.Config, configPath) {
-			t.Fatalf("billing contract config missing %q: %#v", configPath, contract.Config)
+			t.Fatalf("paidsubscriptions contract config missing %q: %#v", configPath, contract.Config)
 		}
 	}
 	if !containsExactString(contract.Migrations, "modules/paidsubscriptions/db/migrate/migrations") {
-		t.Fatalf("billing contract missing migration path ownership: %#v", contract.Migrations)
+		t.Fatalf("paidsubscriptions contract missing migration path ownership: %#v", contract.Migrations)
 	}
 	for _, runtimeSurface := range []string{
 		"modules/paidsubscriptions/service.go",
@@ -1199,7 +1034,7 @@ func TestBillingModuleCatalog_InstallContractCoversBillingRoutesConfigAndTests(t
 		"modules/paidsubscriptions/plan_catalog.go",
 	} {
 		if !containsExactString(contract.Jobs, runtimeSurface) {
-			t.Fatalf("billing contract missing runtime/billing surface %q: %#v", runtimeSurface, contract.Jobs)
+			t.Fatalf("paidsubscriptions contract missing runtime surface %q: %#v", runtimeSurface, contract.Jobs)
 		}
 	}
 	for _, testSurface := range []string{
@@ -1208,7 +1043,7 @@ func TestBillingModuleCatalog_InstallContractCoversBillingRoutesConfigAndTests(t
 		"modules/paidsubscriptions/store_sql_integration_test.go",
 	} {
 		if !containsExactString(contract.Tests, testSurface) {
-			t.Fatalf("billing contract missing test ownership %q: %#v", testSurface, contract.Tests)
+			t.Fatalf("paidsubscriptions contract missing test ownership %q: %#v", testSurface, contract.Tests)
 		}
 	}
 }
@@ -1448,93 +1283,6 @@ func TestPWAModuleCatalog_InstallContractCoversInstallableAssetsAndBrowserTests(
 	}
 }
 
-func TestApplyModuleAdd_AdminIdempotent(t *testing.T) {
-	root := t.TempDir()
-
-	containerPath := filepath.Join(root, "app", "foundation", "container.go")
-	if err := os.MkdirAll(filepath.Dir(containerPath), 0o755); err != nil {
-		t.Fatal(err)
-	}
-	containerContent := `package foundation
-
-func NewContainer() *Container {
-	c := &Container{}
-	// ship:container:start
-	// ship:container:end
-	return c
-}
-
-type Container struct{}
-`
-	if err := os.WriteFile(containerPath, []byte(containerContent), 0o644); err != nil {
-		t.Fatal(err)
-	}
-
-	routerPath := filepath.Join(root, "app", "router.go")
-	if err := os.MkdirAll(filepath.Dir(routerPath), 0o755); err != nil {
-		t.Fatal(err)
-	}
-	routerContent := `package goship
-
-import (
-	adminmodule "github.com/leomorpho/goship/modules/admin"
-)
-
-func registerAuthRoutes() {
-	// ship:routes:auth:start
-	// ship:routes:auth:end
-
-	_ = adminmodule.ModuleDeps{}
-}
-`
-	if err := os.WriteFile(routerPath, []byte(routerContent), 0o644); err != nil {
-		t.Fatal(err)
-	}
-
-	manifestPath := filepath.Join(root, "config", "modules.yaml")
-	if err := os.MkdirAll(filepath.Dir(manifestPath), 0o755); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(manifestPath, []byte(modulesManifestHeader), 0o644); err != nil {
-		t.Fatal(err)
-	}
-
-	info, ok := moduleCatalog["admin"]
-	if !ok {
-		t.Fatal("expected admin in module catalog")
-	}
-	if err := applyModuleAdd(root, info, false, io.Discard); err != nil {
-		t.Fatalf("applyModuleAdd error: %v", err)
-	}
-
-	firstRouter := readTestFile(t, routerPath)
-	if !strings.Contains(firstRouter, "adminmodule.New(adminmodule.ModuleDeps{") {
-		t.Fatalf("expected admin router wiring, got:\n%s", firstRouter)
-	}
-	if !strings.Contains(firstRouter, "RegisterRoutes(onboardedGroup)") {
-		t.Fatalf("expected admin route registration, got:\n%s", firstRouter)
-	}
-
-	if err := applyModuleAdd(root, info, false, io.Discard); err != nil {
-		t.Fatalf("applyModuleAdd second pass error: %v", err)
-	}
-	secondRouter := readTestFile(t, routerPath)
-	if secondRouter != firstRouter {
-		t.Fatalf("admin router changed on reapply:\nfirst:\n%s\nsecond:\n%s", firstRouter, secondRouter)
-	}
-
-	if err := applyModuleRemove(root, info, false, io.Discard); err != nil {
-		t.Fatalf("applyModuleRemove error: %v", err)
-	}
-	removedRouter := readTestFile(t, routerPath)
-	if strings.Contains(removedRouter, "adminmodule.New(adminmodule.ModuleDeps{") {
-		t.Fatalf("expected admin router wiring removed, got:\n%s", removedRouter)
-	}
-	if strings.Contains(removedRouter, "RegisterRoutes(onboardedGroup)") {
-		t.Fatalf("expected admin route registration removed, got:\n%s", removedRouter)
-	}
-}
-
 func TestApplyModuleAdd_StorageBatteryContract_RedSpec(t *testing.T) {
 	root := t.TempDir()
 	writeModuleFixtureFiles(t, root)
@@ -1662,7 +1410,7 @@ func TestApplyModuleAdd_JobsAndStorageConcreteSeams_Idempotent(t *testing.T) {
 	}
 }
 
-func TestApplyModuleAdd_BillingAppendsStripeEnvExample(t *testing.T) {
+func TestApplyModuleAdd_PaidSubscriptionsAppendsStripeEnvExample(t *testing.T) {
 	root := t.TempDir()
 	writeModuleFixtureFiles(t, root)
 	if err := os.MkdirAll(filepath.Join(root, "modules", "paidsubscriptions"), 0o755); err != nil {
@@ -1672,9 +1420,9 @@ func TestApplyModuleAdd_BillingAppendsStripeEnvExample(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	info, ok := moduleCatalog["billing"]
+	info, ok := moduleCatalog["paidsubscriptions"]
 	if !ok {
-		t.Fatal("expected billing in module catalog")
+		t.Fatal("expected paidsubscriptions in module catalog")
 	}
 	if err := applyModuleAdd(root, info, false, io.Discard); err != nil {
 		t.Fatalf("applyModuleAdd error: %v", err)
@@ -1695,7 +1443,7 @@ func TestApplyModuleAdd_BillingAppendsStripeEnvExample(t *testing.T) {
 	}
 }
 
-func TestApplyModuleAddRemove_BillingRestoresEnvExample(t *testing.T) {
+func TestApplyModuleAddRemove_PaidSubscriptionsRestoresEnvExample(t *testing.T) {
 	root := t.TempDir()
 	writeModuleFixtureFiles(t, root)
 	if err := os.MkdirAll(filepath.Join(root, "modules", "paidsubscriptions"), 0o755); err != nil {
@@ -1705,9 +1453,9 @@ func TestApplyModuleAddRemove_BillingRestoresEnvExample(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	info, ok := moduleCatalog["billing"]
+	info, ok := moduleCatalog["paidsubscriptions"]
 	if !ok {
-		t.Fatal("expected billing in module catalog")
+		t.Fatal("expected paidsubscriptions in module catalog")
 	}
 
 	envExamplePath := filepath.Join(root, ".env.example")
@@ -1716,9 +1464,9 @@ func TestApplyModuleAddRemove_BillingRestoresEnvExample(t *testing.T) {
 	if err := applyModuleAdd(root, info, false, io.Discard); err != nil {
 		t.Fatalf("applyModuleAdd error: %v", err)
 	}
-	withBilling := readTestFile(t, envExamplePath)
-	if !strings.Contains(withBilling, "STRIPE_KEY=") || !strings.Contains(withBilling, "STRIPE_WEBHOOK_SECRET=") {
-		t.Fatalf("expected stripe env vars in .env.example after add, got:\n%s", withBilling)
+	withPaidSubscriptions := readTestFile(t, envExamplePath)
+	if !strings.Contains(withPaidSubscriptions, "STRIPE_KEY=") || !strings.Contains(withPaidSubscriptions, "STRIPE_WEBHOOK_SECRET=") {
+		t.Fatalf("expected stripe env vars in .env.example after add, got:\n%s", withPaidSubscriptions)
 	}
 
 	if err := applyModuleRemove(root, info, false, io.Discard); err != nil {
@@ -1730,12 +1478,12 @@ func TestApplyModuleAddRemove_BillingRestoresEnvExample(t *testing.T) {
 	}
 }
 
-func TestWarnMissingModuleEnv_BillingWarningsAreNonBlocking(t *testing.T) {
+func TestWarnMissingModuleEnv_PaidSubscriptionsWarningsAreNonBlocking(t *testing.T) {
 	root := t.TempDir()
 	writeModuleFixtureFiles(t, root)
 
 	out := &bytes.Buffer{}
-	if err := warnMissingModuleEnv(root, moduleCatalog["billing"], out); err != nil {
+	if err := warnMissingModuleEnv(root, moduleCatalog["paidsubscriptions"], out); err != nil {
 		t.Fatalf("warnMissingModuleEnv error: %v", err)
 	}
 	log := out.String()
@@ -1762,7 +1510,7 @@ func TestWarnMissingModuleEnv_UsesDotEnvAndShellValues(t *testing.T) {
 	t.Setenv("STRIPE_WEBHOOK_SECRET", "whsec_123")
 
 	out := &bytes.Buffer{}
-	if err := warnMissingModuleEnv(root, moduleCatalog["billing"], out); err != nil {
+	if err := warnMissingModuleEnv(root, moduleCatalog["paidsubscriptions"], out); err != nil {
 		t.Fatalf("warnMissingModuleEnv error: %v", err)
 	}
 	if out.Len() != 0 {

@@ -2,6 +2,8 @@
 
 This file freezes the old mixed module tree as legacy reference and defines the new first-party battery direction.
 
+Canonical machine-readable source: `config/module-surface.yaml`.
+
 ## Canonical Battery Contract
 
 A first-party installable battery must satisfy all of the following:

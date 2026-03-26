@@ -151,7 +151,7 @@ Account linking works (same email = same user). CSRF state validation prevents o
 `go.mod` (`github.com/pquerna/otp`)
 
 **Context:** TOTP (RFC 6238) — Time-based One-Time Passwords. Compatible with Google Authenticator,
-Authy, 1Password, Bitwarden, and any standard TOTP app. Installable via `ship module:add 2fa`.
+Authy, 1Password, Bitwarden, and any standard TOTP app. Integrated through starter-app auth wiring (`modules/2fa`).
 Once installed, users can optionally enable 2FA from their profile. Admins can enforce it.
 
 **Database additions (migration on auth module's users table):**
@@ -203,7 +203,7 @@ After primary auth (password or OAuth) succeeds:
 
 **Done when:** User can enable 2FA from profile. QR code works with Google Authenticator.
 Login with 2FA enabled requires the 6-digit code. Backup codes work. Invalid codes are rejected.
-`ship module:add 2fa` installs the module. `ship verify` passes.
+Starter-app auth wiring integrates `modules/2fa`. `ship verify` passes.
 
 ---
 

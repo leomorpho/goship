@@ -271,16 +271,6 @@ var moduleCatalog = map[string]moduleInfo{
 		EnvExampleSnippet: paidSubscriptionsEnvExampleSnippet,
 		RequiredEnv:       paidSubscriptionsRequiredEnv,
 	},
-	"billing": {
-		ID:                "paidsubscriptions",
-		ModulePath:        "github.com/leomorpho/goship-modules/paidsubscriptions",
-		LocalPath:         filepath.Join("modules", "paidsubscriptions"),
-		InstallContract:   paidSubscriptionsInstallContract,
-		ContainerSnippet:  paidSubscriptionsContainerSnippet,
-		RouterSnippets:    paidSubscriptionsRouterSnippets,
-		EnvExampleSnippet: paidSubscriptionsEnvExampleSnippet,
-		RequiredEnv:       paidSubscriptionsRequiredEnv,
-	},
 	"emailsubscriptions": {
 		ID:               "emailsubscriptions",
 		ModulePath:       "github.com/leomorpho/goship-modules/emailsubscriptions",
@@ -318,55 +308,11 @@ var moduleCatalog = map[string]moduleInfo{
 `,
 		RouterSnippets: map[string]string{},
 	},
-	"2fa": {
-		ID: "2fa",
-		ContainerSnippet: `
-	// ship:module:2fa
-	// TODO: wire the two-factor authentication module services.
-`,
-		RouterSnippets: map[string]string{
-			"auth": `
-	// ship:module:2fa
-	// TODO: register 2FA setup/verify routes via modules/2fa/routes.go.
-`,
-		},
-	},
 	"pwa": {
 		ID:               "pwa",
 		InstallContract:  pwaInstallContract,
 		ContainerSnippet: pwaContainerSnippet,
 		RouterSnippets:   pwaRouterSnippets,
-	},
-	"admin": {
-		ID: "admin",
-		InstallContract: moduleInstallContract{
-			Routes: []string{
-				"modules/admin/routes.go",
-			},
-			Templates: []string{
-				"modules/admin/views/web/components/gen/admin_layout_templ.go",
-				"modules/admin/views/web/components/gen/admin_form_templ.go",
-				"modules/admin/views/web/components/gen/admin_list_templ.go",
-			},
-			Tests: []string{
-				"modules/admin/routes_test.go",
-				"modules/admin/registry_test.go",
-				"modules/admin/store_test.go",
-			},
-		},
-		RouterSnippets: map[string]string{
-			"auth": `
-	adminPanelModule := adminmodule.New(adminmodule.ModuleDeps{
-		Controller: ctr,
-		DB:         c.Database,
-		AuditLogs:  c.AuditLogs,
-		Flags:      c.Flags,
-	})
-	if err := adminPanelModule.RegisterRoutes(onboardedGroup); err != nil {
-		return err
-	}
-`,
-		},
 	},
 	"storage": {
 		ID:         "storage",

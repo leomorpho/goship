@@ -1,0 +1,87 @@
+version: module-surface-v1
+candidates:
+  - id: 2fa
+    class: starter-app
+    decision: eject
+    destination: starter app auth hardening preset
+    rationale: Keep as app-level flow, not a framework battery.
+  - id: admin
+    class: starter-app
+    decision: eject
+    destination: starter app operator UI preset
+    rationale: Admin UI is app policy and operations specific.
+  - id: ai
+    class: battery
+    decision: rewrite
+    destination: standalone installable battery contract
+    rationale: Capability is useful but current shape is not canonical.
+  - id: auditlog
+    class: battery
+    decision: rewrite
+    destination: standalone installable battery contract
+    rationale: Keep capability while rebuilding around clean seams.
+  - id: auth
+    class: starter-app
+    decision: eject
+    destination: starter app auth flow package
+    rationale: Auth UX and flows are app-domain defaults.
+  - id: authsupport
+    class: core
+    decision: rewrite
+    destination: framework core seams under framework/
+    rationale: Shared auth seams belong to framework ownership.
+  - id: emailsubscriptions
+    class: battery
+    decision: keep
+    destination: canonical standalone battery
+    rationale: Matches install contract and standalone packaging.
+  - id: flags
+    class: battery
+    decision: rewrite
+    destination: standalone installable battery contract
+    rationale: Keep concept but rebuild package surface.
+  - id: i18n
+    class: battery
+    decision: rewrite
+    destination: standalone installable battery contract
+    rationale: Keep capability while normalizing battery contract.
+  - id: jobs
+    class: battery
+    decision: keep
+    destination: canonical standalone battery
+    rationale: Core reusable capability with proper standalone ownership.
+  - id: notifications
+    class: battery
+    decision: keep
+    destination: temporary bridge battery pending split batteries
+    rationale: Needed now; split plan is documented and enforced separately.
+  - id: paidsubscriptions
+    class: battery
+    decision: keep
+    destination: canonical standalone battery
+    rationale: Installable and reusable across starter apps.
+  - id: profile
+    class: starter-app
+    decision: eject
+    destination: starter app profile package
+    rationale: App-domain profile flows are not framework batteries.
+  - id: pwa
+    class: battery
+    decision: rewrite
+    destination: standalone installable battery contract
+    rationale: Keep capability while rebuilding contract consistency.
+  - id: storage
+    class: battery
+    decision: keep
+    destination: canonical standalone battery
+    rationale: Clean module around the core blob storage seam.
+  - id: realtime
+    class: battery
+    decision: rewrite
+    destination: explicit standalone battery contract or core seam fold
+    rationale: Current placement is transitional and must be normalized.
+  - id: billing
+    class: delete
+    decision: eject
+    destination: remove alias in favor of paidsubscriptions
+    rationale: Alias causes naming ambiguity and drift.

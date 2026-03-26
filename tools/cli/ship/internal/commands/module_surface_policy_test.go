@@ -7,6 +7,32 @@ import (
 	"testing"
 )
 
+func TestParseModuleSurfaceCatalog(t *testing.T) {
+	t.Parallel()
+
+	content := []byte(`
+version: module-surface-v1
+candidates:
+  - id: notifications
+    class: battery
+    decision: keep
+  - id: profile
+    class: starter-app
+    decision: eject
+`)
+
+	decisions, err := parseModuleSurfaceCatalog(content)
+	if err != nil {
+		t.Fatalf("parseModuleSurfaceCatalog error: %v", err)
+	}
+	if got := decisions["notifications"]; got.Class != "battery" || got.Decision != "keep" {
+		t.Fatalf("notifications decision=%+v, want class=battery decision=keep", got)
+	}
+	if got := decisions["profile"]; got.Class != "starter-app" || got.Decision != "eject" {
+		t.Fatalf("profile decision=%+v, want class=starter-app decision=eject", got)
+	}
+}
+
 func TestParseModuleSurfaceDecisions(t *testing.T) {
 	t.Parallel()
 
@@ -64,6 +90,10 @@ func TestCheckModuleSurfaceResetPolicy_RejectsMissingModuleDecision(t *testing.T
 	mustWriteFileSurface(t, filepath.Join(root, moduleSurfaceResetDocRelPath), syntheticModuleSurfaceDoc(
 		[]string{"emailsubscriptions", "jobs", "notifications", "paidsubscriptions", "storage"},
 	))
+	mustMkdirAllSurface(t, filepath.Join(root, "config"))
+	mustWriteFileSurface(t, filepath.Join(root, moduleSurfaceCatalogRelPath), syntheticModuleSurfaceCatalog(
+		[]string{"emailsubscriptions", "jobs", "notifications", "paidsubscriptions", "storage"},
+	))
 
 	err := checkModuleSurfaceResetPolicy(root)
 	if err == nil {
@@ -82,6 +112,8 @@ func syntheticModuleSurfaceDoc(keepBatteries []string) string {
 	return strings.Join([]string{
 		"# Module Surface Reset",
 		"",
+		"Canonical machine-readable source: `config/module-surface.yaml`.",
+		"",
 		"## Canonical Battery Contract",
 		"- single entrypoint",
 		"",
@@ -97,6 +129,18 @@ func syntheticModuleSurfaceDoc(keepBatteries []string) string {
 		"- notifications-email",
 		"- notifications-sms",
 		"- notifications-schedule",
+	}, "\n")
+}
+
+func syntheticModuleSurfaceCatalog(keepBatteries []string) string {
+	rows := make([]string, 0, len(keepBatteries))
+	for _, id := range keepBatteries {
+		rows = append(rows, "  - id: "+id+"\n    class: battery\n    decision: keep")
+	}
+	return strings.Join([]string{
+		"version: module-surface-v1",
+		"candidates:",
+		strings.Join(rows, "\n"),
 	}, "\n")
 }
 

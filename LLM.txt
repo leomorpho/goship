@@ -2242,6 +2242,8 @@ FILE: docs/architecture/11-module-surface-reset.md
 
 This file freezes the old mixed module tree as legacy reference and defines the new first-party battery direction.
 
+Canonical machine-readable source: `config/module-surface.yaml`.
+
 ## Canonical Battery Contract
 
 A first-party installable battery must satisfy all of the following:
@@ -2525,12 +2527,12 @@ ship dev --web
 ship dev --all
 ```
 
-## 4. Add an Auth Battery Surface
+## 4. Add Auth Hardening
 
-The starter includes core auth routes; add the `2fa` battery to harden auth flows:
+The starter includes core auth routes; integrate `modules/2fa` directly in starter-app auth wiring (not via `ship module:add`):
 
 ```bash
-ship module:add 2fa
+# wire modules/2fa routes/services in starter app auth flow
 ```
 
 Re-run verification after module wiring:
@@ -2571,9 +2573,8 @@ If you are using the default Kamal workflow, continue with the deployment steps 
 - A booting GoShip app created by `ship new`
 - Local DB migrated with `ship db:migrate`
 - Dev loop running via `ship dev`
-- Auth hardening battery added with `ship module:add 2fa`
+- Auth hardening integrated via starter-app auth wiring (`modules/2fa`)
 - Test and verification commands passing
-
 
 ---
 FILE: docs/guides/02-development-workflows.md
@@ -4450,7 +4451,7 @@ Safety matrix:
 - `ship make:module <Name> --dry-run` now includes explain output for each emitted scaffold file (`- file: <path> -> owner: <battery-contract-owner>`) so generator ownership is explicit during review
 - `ship make:module` path ownership is canonical: `--path` must resolve to `modules`; values that escape or diverge from `modules` fail fast
 - `ship destroy resource:<name>` -> remove generator-managed resource scaffold targets in deterministic order (router marker block, route-name constant, templ page, optional scaffold test, controller); paths without recognized ownership signals are skipped with explicit reasons and the command exits non-zero when nothing is safely removable
-- current first-class installable batteries include `notifications`, `paidsubscriptions`, `emailsubscriptions`, `realtime`, `pwa`, `jobs`, and `storage`; `realtime` captures the canonical runtime startup and route contract seams, `pwa` captures installable route/static asset/browser seams, and `storage` exposes the canonical `core.BlobStorage` seam as a standalone battery package under `modules/storage`
+- canonical first-class installable batteries are `notifications`, `paidsubscriptions`, `emailsubscriptions`, `jobs`, and `storage`; this baseline is authored in `config/module-surface.yaml` and verified against `docs/architecture/11-module-surface-reset.md`
 - `ship upgrade --to <version>` -> runs readiness preflight and prints the deterministic rewrite plan without writing files
 - `ship upgrade apply --to <version>` -> applies the deterministic rewrite plan to the pinned Goose CLI go-run fallback version (`gooseGoRunRef` in `tools/cli/ship/internal/cli/cli.go`) and canonicalizes legacy Goose command paths when present
 - upgrade apply writes include post-write verification and automatic rollback to the previous file content when verification fails in failure paths
@@ -9124,7 +9125,7 @@ Account linking works (same email = same user). CSRF state validation prevents o
 `go.mod` (`github.com/pquerna/otp`)
 
 **Context:** TOTP (RFC 6238) — Time-based One-Time Passwords. Compatible with Google Authenticator,
-Authy, 1Password, Bitwarden, and any standard TOTP app. Installable via `ship module:add 2fa`.
+Authy, 1Password, Bitwarden, and any standard TOTP app. Integrated through starter-app auth wiring (`modules/2fa`).
 Once installed, users can optionally enable 2FA from their profile. Admins can enforce it.
 
 **Database additions (migration on auth module's users table):**
@@ -9176,7 +9177,7 @@ After primary auth (password or OAuth) succeeds:
 
 **Done when:** User can enable 2FA from profile. QR code works with Google Authenticator.
 Login with 2FA enabled requires the 6-digit code. Backup codes work. Invalid codes are rejected.
-`ship module:add 2fa` installs the module. `ship verify` passes.
+Starter-app auth wiring integrates `modules/2fa`. `ship verify` passes.
 
 ---
 

@@ -53,12 +53,12 @@ ship dev --web
 ship dev --all
 ```
 
-## 4. Add an Auth Battery Surface
+## 4. Add Auth Hardening
 
-The starter includes core auth routes; add the `2fa` battery to harden auth flows:
+The starter includes core auth routes; integrate `modules/2fa` directly in starter-app auth wiring (not via `ship module:add`):
 
 ```bash
-ship module:add 2fa
+# wire modules/2fa routes/services in starter app auth flow
 ```
 
 Re-run verification after module wiring:
@@ -99,6 +99,5 @@ If you are using the default Kamal workflow, continue with the deployment steps 
 - A booting GoShip app created by `ship new`
 - Local DB migrated with `ship db:migrate`
 - Dev loop running via `ship dev`
-- Auth hardening battery added with `ship module:add 2fa`
+- Auth hardening integrated via starter-app auth wiring (`modules/2fa`)
 - Test and verification commands passing
-
