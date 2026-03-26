@@ -3578,6 +3578,209 @@
       "state": "in-review",
       "priority": 10,
       "parent": "TKT-613"
+    },
+    "TKT-635": {
+      "title": "epic: codebase cleanup — naming collisions, notifications fix, framework sprawl",
+      "state": "backlog",
+      "priority": 10
+    },
+    "TKT-636": {
+      "title": "rename framework/context → framework/appcontext (stdlib name collision)",
+      "state": "backlog",
+      "priority": 2,
+      "parent": "TKT-635"
+    },
+    "TKT-637": {
+      "title": "rename framework/pubsub and framework/repos/pubsub to remove name ambiguity",
+      "state": "backlog",
+      "priority": 2,
+      "parent": "TKT-635"
+    },
+    "TKT-638": {
+      "title": "deduplicate SSEEvent type — defined identically in two packages",
+      "state": "backlog",
+      "priority": 2,
+      "parent": "TKT-635"
+    },
+    "TKT-639": {
+      "title": "audit and clean up root-level Go files in goship/",
+      "state": "in-progress",
+      "priority": 3,
+      "parent": "TKT-635"
+    },
+    "TKT-640": {
+      "title": "decouple permissions logic from push notification services",
+      "state": "backlog",
+      "priority": 2,
+      "parent": "TKT-635"
+    },
+    "TKT-641": {
+      "title": "fix: push notification delivery blocks request goroutine — enqueue as background jobs",
+      "state": "backlog",
+      "priority": 1,
+      "parent": "TKT-635"
+    },
+    "TKT-642": {
+      "title": "refactor: consolidate RenderPage and RenderToHTMLBlob, fix domain context bug",
+      "state": "backlog",
+      "priority": 3,
+      "parent": "TKT-635"
+    },
+    "TKT-643": {
+      "title": "wire Sentry error reporting into bootstrap",
+      "state": "backlog",
+      "priority": 3,
+      "parent": "TKT-635"
+    },
+    "TKT-644": {
+      "title": "propagate context through mailer — replace context.TODO() in resend driver",
+      "state": "backlog",
+      "priority": 2,
+      "parent": "TKT-635"
+    },
+    "TKT-645": {
+      "title": "remove context.TODO() from SQL SMS sender bootstrap",
+      "state": "backlog",
+      "priority": 2,
+      "parent": "TKT-635"
+    },
+    "TKT-646": {
+      "title": "restore request logging middleware coverage",
+      "state": "backlog",
+      "priority": 3,
+      "parent": "TKT-635"
+    },
+    "TKT-647": {
+      "title": "codify auth redirect and logout session semantics",
+      "state": "backlog",
+      "priority": 3,
+      "parent": "TKT-635"
+    },
+    "TKT-648": {
+      "title": "improve profile service test strategy and assertions",
+      "state": "backlog",
+      "priority": 3,
+      "parent": "TKT-635"
+    },
+    "TKT-649": {
+      "title": "standardize storage repo image APIs and bucket ergonomics",
+      "state": "backlog",
+      "priority": 3,
+      "parent": "TKT-635"
+    },
+    "TKT-650": {
+      "title": "restore flash message dismissal behavior and session-error policy",
+      "state": "backlog",
+      "priority": 3,
+      "parent": "TKT-635"
+    },
+    "TKT-651": {
+      "title": "finish ship module:add 2fa install contract",
+      "state": "backlog",
+      "priority": 2,
+      "parent": "TKT-635"
+    },
+    "TKT-652": {
+      "title": "upgrade ship generators from raw TODO placeholders to intentional scaffolds",
+      "state": "backlog",
+      "priority": 2,
+      "parent": "TKT-635"
+    },
+    "TKT-653": {
+      "title": "make embedded test database lifecycle deterministic",
+      "state": "backlog",
+      "priority": 3,
+      "parent": "TKT-635"
+    },
+    "TKT-654": {
+      "title": "eliminate stale persisted-age behavior in profiles",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-635"
+    },
+    "TKT-655": {
+      "title": "move notification enums out of framework/domain and fix platform naming",
+      "state": "backlog",
+      "priority": 2,
+      "parent": "TKT-635"
+    },
+    "TKT-656": {
+      "title": "fix non-interactive Playwright make targets",
+      "state": "backlog",
+      "priority": 3,
+      "parent": "TKT-635"
+    },
+    "TKT-657": {
+      "title": "restore ctrl/cmd-click new-tab behavior for HTMX navigation",
+      "state": "backlog",
+      "priority": 3,
+      "parent": "TKT-635"
+    },
+    "TKT-658": {
+      "title": "epic: reset first-party module surface around clean standalone batteries",
+      "state": "backlog",
+      "priority": 1,
+      "parent": "TKT-191"
+    },
+    "TKT-659": {
+      "title": "classify every first-party module candidate as core, battery, starter-app, or delete",
+      "state": "backlog",
+      "priority": 1,
+      "parent": "TKT-658"
+    },
+    "TKT-660": {
+      "title": "define and enforce the canonical standalone battery contract",
+      "state": "backlog",
+      "priority": 1,
+      "parent": "TKT-658"
+    },
+    "TKT-661": {
+      "title": "freeze legacy modules tree and define the quarantine boundary",
+      "state": "backlog",
+      "priority": 1,
+      "parent": "TKT-658"
+    },
+    "TKT-662": {
+      "title": "rebuild foundation batteries as the canonical first-party reference set",
+      "state": "backlog",
+      "priority": 1,
+      "parent": "TKT-658"
+    },
+    "TKT-663": {
+      "title": "replace the notifications monolith with smaller battery packages",
+      "state": "backlog",
+      "priority": 1,
+      "parent": "TKT-658"
+    },
+    "TKT-664": {
+      "title": "eject profile and other app-domain flows from the framework battery surface",
+      "state": "backlog",
+      "priority": 1,
+      "parent": "TKT-658"
+    },
+    "TKT-665": {
+      "title": "centralize first-party battery installation and process wiring",
+      "state": "backlog",
+      "priority": 2,
+      "parent": "TKT-658"
+    },
+    "TKT-666": {
+      "title": "normalize retained supporting batteries to the canonical contract",
+      "state": "backlog",
+      "priority": 2,
+      "parent": "TKT-658"
+    },
+    "TKT-667": {
+      "title": "rebuild auth and two-factor batteries against core seams instead of app-domain modules",
+      "state": "backlog",
+      "priority": 2,
+      "parent": "TKT-658"
+    },
+    "TKT-668": {
+      "title": "duplicate placeholder for TKT-667 — ignore",
+      "state": "backlog",
+      "priority": 9,
+      "parent": "TKT-658"
     }
   }
 }
