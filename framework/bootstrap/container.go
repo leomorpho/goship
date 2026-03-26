@@ -29,7 +29,7 @@ import (
 	"github.com/leomorpho/goship/framework/logging"
 	cacherepo "github.com/leomorpho/goship/framework/repos/cache"
 	"github.com/leomorpho/goship/framework/repos/mailer"
-	pubsubrepo "github.com/leomorpho/goship/framework/repos/pubsub"
+	pubsubrepo "github.com/leomorpho/goship/framework/repos/ssepubsub"
 	"github.com/leomorpho/goship/framework/sse"
 	frameworkvalidation "github.com/leomorpho/goship/framework/web/validation"
 	"github.com/leomorpho/goship/modules/ai"

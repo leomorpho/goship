@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/leomorpho/goship/framework/core"
-	pubsubrepo "github.com/leomorpho/goship/framework/repos/pubsub"
+	pubsubrepo "github.com/leomorpho/goship/framework/repos/ssepubsub"
 )
 
 type testPubSubClient struct {

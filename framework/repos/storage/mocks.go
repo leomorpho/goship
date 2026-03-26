@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/leomorpho/goship/framework/domain"
-	"github.com/leomorpho/goship/framework/repos/pubsub"
+	ssepubsub "github.com/leomorpho/goship/framework/repos/ssepubsub"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -78,7 +78,7 @@ func (m *MockNotifierService) MarkNotificationUnread(ctx context.Context, notifi
 	return args.Error(0)
 }
 
-func (m *MockNotifierService) SSESubscribe(ctx context.Context, topic string, handler pubsub.MessageHandler) error {
+func (m *MockNotifierService) SSESubscribe(ctx context.Context, topic string, handler ssepubsub.MessageHandler) error {
 	args := m.Called(ctx, topic, handler)
 	return args.Error(0)
 }
