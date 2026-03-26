@@ -262,6 +262,7 @@ Safety matrix:
 - `ship make:module` path ownership is canonical: `--path` must resolve to `modules`; values that escape or diverge from `modules` fail fast
 - `ship destroy resource:<name>` -> remove generator-managed resource scaffold targets in deterministic order (router marker block, route-name constant, templ page, optional scaffold test, controller); paths without recognized ownership signals are skipped with explicit reasons and the command exits non-zero when nothing is safely removable
 - canonical first-class installable batteries are `notifications`, `paidsubscriptions`, `emailsubscriptions`, `jobs`, and `storage`; this baseline is authored in `config/module-surface.yaml` and verified against `docs/architecture/11-module-surface-reset.md`
+- canonical reference-set batteries for install-contract examples are `jobs`, `storage`, `emailsubscriptions`, and `paidsubscriptions`
 - `ship upgrade --to <version>` -> runs readiness preflight and prints the deterministic rewrite plan without writing files
 - `ship upgrade apply --to <version>` -> applies the deterministic rewrite plan to the pinned Goose CLI go-run fallback version (`gooseGoRunRef` in `tools/cli/ship/internal/cli/cli.go`) and canonicalizes legacy Goose command paths when present
 - upgrade apply writes include post-write verification and automatic rollback to the previous file content when verification fails in failure paths

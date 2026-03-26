@@ -1530,6 +1530,26 @@ func NewContainer() *Container {
 	return c
 }
 
+func TestCanonicalReferenceBatteryIDs_AreInstallableCatalogEntries(t *testing.T) {
+	t.Parallel()
+
+	for _, id := range canonicalReferenceBatteryIDs() {
+		info, ok := moduleCatalog[id]
+		if !ok {
+			t.Fatalf("canonical reference battery %q missing from module catalog", id)
+		}
+		if strings.TrimSpace(info.ModulePath) == "" {
+			t.Fatalf("canonical reference battery %q must declare ModulePath", id)
+		}
+		if strings.TrimSpace(info.LocalPath) == "" {
+			t.Fatalf("canonical reference battery %q must declare LocalPath", id)
+		}
+		if contract := info.installContract(); contract.IsEmpty() {
+			t.Fatalf("canonical reference battery %q must expose a non-empty install contract", id)
+		}
+	}
+}
+
 type Container struct{}
 `,
 		filepath.Join(root, "app", "router.go"): `package goship

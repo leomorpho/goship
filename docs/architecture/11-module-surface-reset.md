@@ -16,6 +16,17 @@ A first-party installable battery must satisfy all of the following:
 
 `framework/` is core seam ownership only. `modules/` is installable battery ownership only.
 
+## Reference Set
+
+The canonical first implementation/reference batteries are:
+
+- `jobs`
+- `storage`
+- `emailsubscriptions`
+- `paidsubscriptions`
+
+These four are the contract examples for first-party installable batteries.
+
 ## Decision Matrix
 
 | Candidate | Class | Decision | Direction |

@@ -10,6 +10,42 @@ import (
 
 const ModuleID = "jobs"
 
+// InstallContract declares the expected install ownership surfaces for this battery.
+type InstallContract struct {
+	Routes     []string
+	Config     []string
+	Assets     []string
+	Jobs       []string
+	Templates  []string
+	Migrations []string
+	Tests      []string
+}
+
+// Contract returns the canonical install contract for the jobs battery.
+func Contract() InstallContract {
+	return InstallContract{
+		Config: []string{
+			"config/modules.yaml",
+			"go.mod",
+			"go.work",
+		},
+		Jobs: []string{
+			"modules/jobs/core_jobs_sql.go",
+			"modules/jobs/core_jobs_redis.go",
+			"modules/jobs/core_jobs_backlite.go",
+			"modules/jobs/queue_priority.go",
+		},
+		Migrations: []string{
+			"modules/jobs/db/migrate/migrations",
+		},
+		Tests: []string{
+			"modules/jobs/core_jobs_sql_test.go",
+			"modules/jobs/drivers/sql/client_integration_test.go",
+			"modules/jobs/core_jobs_redis_schedule_test.go",
+		},
+	}
+}
+
 type Module struct {
 	backend   Backend
 	jobs      Jobs

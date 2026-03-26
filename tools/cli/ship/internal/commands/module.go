@@ -334,6 +334,15 @@ var moduleCatalog = map[string]moduleInfo{
 	},
 }
 
+func canonicalReferenceBatteryIDs() []string {
+	return []string{
+		"jobs",
+		"storage",
+		"emailsubscriptions",
+		"paidsubscriptions",
+	}
+}
+
 // RunModule dispatches the module namespace commands.
 func RunModule(args []string, d ModuleDeps) int {
 	if len(args) == 0 {
