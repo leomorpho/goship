@@ -3586,19 +3586,19 @@
     },
     "TKT-636": {
       "title": "rename framework/context → framework/appcontext (stdlib name collision)",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 2,
       "parent": "TKT-635"
     },
     "TKT-637": {
       "title": "rename framework/pubsub and framework/repos/pubsub to remove name ambiguity",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 2,
       "parent": "TKT-635"
     },
     "TKT-638": {
       "title": "deduplicate SSEEvent type — defined identically in two packages",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 2,
       "parent": "TKT-635"
     },
@@ -3610,13 +3610,13 @@
     },
     "TKT-640": {
       "title": "decouple permissions logic from push notification services",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 2,
       "parent": "TKT-635"
     },
     "TKT-641": {
       "title": "fix: push notification delivery blocks request goroutine — enqueue as background jobs",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 1,
       "parent": "TKT-635"
     },
@@ -3634,13 +3634,13 @@
     },
     "TKT-644": {
       "title": "propagate context through mailer — replace context.TODO() in resend driver",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 2,
       "parent": "TKT-635"
     },
     "TKT-645": {
       "title": "remove context.TODO() from SQL SMS sender bootstrap",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 2,
       "parent": "TKT-635"
     },
@@ -3676,13 +3676,13 @@
     },
     "TKT-651": {
       "title": "finish ship module:add 2fa install contract",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 2,
       "parent": "TKT-635"
     },
     "TKT-652": {
       "title": "upgrade ship generators from raw TODO placeholders to intentional scaffolds",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 2,
       "parent": "TKT-635"
     },
@@ -3700,7 +3700,7 @@
     },
     "TKT-655": {
       "title": "move notification enums out of framework/domain and fix platform naming",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 2,
       "parent": "TKT-635"
     },
@@ -3718,31 +3718,31 @@
     },
     "TKT-658": {
       "title": "epic: reset first-party module surface around clean standalone batteries",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 1,
       "parent": "TKT-191"
     },
     "TKT-659": {
       "title": "classify every first-party module candidate as core, battery, starter-app, or delete",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 1,
       "parent": "TKT-658"
     },
     "TKT-660": {
       "title": "define and enforce the canonical standalone battery contract",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 1,
       "parent": "TKT-658"
     },
     "TKT-661": {
       "title": "freeze legacy modules tree and define the quarantine boundary",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 1,
       "parent": "TKT-658"
     },
     "TKT-662": {
       "title": "rebuild foundation batteries as the canonical first-party reference set",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 1,
       "parent": "TKT-658"
     },
@@ -3754,7 +3754,7 @@
     },
     "TKT-664": {
       "title": "eject profile and other app-domain flows from the framework battery surface",
-      "state": "backlog",
+      "state": "in-review",
       "priority": 1,
       "parent": "TKT-658"
     },
@@ -3781,6 +3781,30 @@
       "state": "backlog",
       "priority": 9,
       "parent": "TKT-658"
+    },
+    "TKT-669": {
+      "title": "Epic: frontend contract surface for templ islands and SvelteKit",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-613"
+    },
+    "TKT-670": {
+      "title": "define the official frontend lanes and the v1 backend contract boundary",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-669"
+    },
+    "TKT-671": {
+      "title": "extend ship route and endpoint metadata so frontend contract codegen has real inputs",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-669"
+    },
+    "TKT-672": {
+      "title": "generate a versioned TypeScript contract package and make the canonical SvelteKit app consume it",
+      "state": "backlog",
+      "priority": 4,
+      "parent": "TKT-669"
     }
   }
 }
