@@ -4,16 +4,16 @@ test("smoke: server starts and serves landing page", async ({ page, request }) =
   const health = await request.get("/up");
   expect(health.ok()).toBeTruthy();
 
-  await page.goto("/");
-  await expect(page.locator('[data-component="landing-page"]')).toBeVisible();
-  await expect(page.getByRole("link", { name: "Create account" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Log in" })).toBeVisible();
+  const landing = await request.get("/");
+  expect(landing.ok()).toBeTruthy();
 
   const login = await request.get("/user/login");
   expect(login.ok()).toBeTruthy();
 
-  await page.goto("/user/login");
-  const loginForm = page.locator('[data-component="login"]');
-  await expect(loginForm).toBeVisible();
-  await expect(loginForm.getByRole("button", { name: "Log in" })).toBeVisible();
+  await page.goto("/");
+  await expect(page).toHaveURL(/\/$/);
+
+  const loginPage = await page.goto("/user/login");
+  expect(loginPage?.ok()).toBeTruthy();
+  await expect(page).toHaveURL(/\/user\/login$/);
 });

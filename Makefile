@@ -320,26 +320,33 @@ tailwind-compile: ## Compile and minify your CSS for production
 deploy-goship: ## Deploy new Goship version
 	kamal deploy -c infra/deploy/kamal/deploy.yml
 
-# TODO: below is not working, only interactive mode is
-.PHONY: test-e2e
+.PHONY: e2e-deps
+e2e-deps:
+	@cd tests/e2e && npm install && npx playwright install chromium
+
+.PHONY: e2e
 e2e: ## Run Playwright tests
 	@echo "Running end-to-end tests..."
-	@cd tests/e2e && npm install && npx playwright test
+	@$(MAKE) e2e-deps
+	@cd tests/e2e && npx playwright test
 
 .PHONY: e2e-smoke
 e2e-smoke: ## Run Playwright smoke test with managed app startup
 	@echo "Running Playwright smoke test..."
-	@cd tests/e2e && npm install && npx playwright test tests/smoke.spec.ts
+	@$(MAKE) e2e-deps
+	@cd tests/e2e && npx playwright test tests/smoke.spec.ts
 
 .PHONY: e2e-admin-smoke
 e2e-admin-smoke: ## Run Playwright admin smoke test with managed app startup
 	@echo "Running Playwright admin smoke test..."
-	@cd tests/e2e && npm install && npx playwright test tests/admin_scaffold.spec.ts
+	@$(MAKE) e2e-deps
+	@cd tests/e2e && npx playwright test tests/admin_scaffold.spec.ts
 
-.PHONY: test-e2e
+.PHONY: e2eui
 e2eui: ## Run Playwright tests
-	@echo "Running end-to-end tests..."
-	@cd tests/e2e && npm install && npx playwright test --ui
+	@echo "Running end-to-end tests (interactive UI mode)..."
+	@$(MAKE) e2e-deps
+	@cd tests/e2e && npx playwright test --ui
 
 # To run for mobile: `make codegen mobile=true`
 .PHONY: codegen
