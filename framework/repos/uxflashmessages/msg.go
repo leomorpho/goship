@@ -51,7 +51,7 @@ func Danger(ctx echo.Context, message string) {
 // Set adds a new flash message of a given type into the session storage
 // Errors will logged and not returned
 func Set(ctx echo.Context, typ Type, message string) {
-	if sess, err := getSession(ctx); err == nil {
+	if sess, err := getSession(ctx, "write"); err == nil {
 		sess.AddFlash(message, string(typ))
 		save(ctx, sess)
 	}
@@ -62,7 +62,7 @@ func Set(ctx echo.Context, typ Type, message string) {
 func Get(ctx echo.Context, typ Type) []string {
 	var msgs []string
 
-	if sess, err := getSession(ctx); err == nil {
+	if sess, err := getSession(ctx, "read"); err == nil {
 		if flash := sess.Flashes(string(typ)); len(flash) > 0 {
 			save(ctx, sess)
 
@@ -76,11 +76,14 @@ func Get(ctx echo.Context, typ Type) []string {
 }
 
 // getSession gets the flash message session
-func getSession(ctx echo.Context) (*sessions.Session, error) {
+func getSession(ctx echo.Context, operation string) (*sessions.Session, error) {
 	sess, err := session.Get(sessionName, ctx)
 	if err != nil {
-		// TODO: downgrading to warning for now because it doesn't seem terrible and gives me a lot of errors.
-		ctx.Logger().Warnf("cannot load flash message session: %v", err)
+		if operation == "read" {
+			ctx.Logger().Warnf("cannot load flash message session for read: %v", err)
+		} else {
+			ctx.Logger().Errorf("cannot load flash message session for write: %v", err)
+		}
 	}
 	return sess, err
 }
