@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
+	"github.com/leomorpho/goship/framework/flash"
 	frameworkroutenames "github.com/leomorpho/goship/framework/web/routenames"
 	"github.com/leomorpho/goship/framework/web/ui"
 )

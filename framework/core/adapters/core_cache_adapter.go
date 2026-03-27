@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/leomorpho/goship/framework/core"
-	cacherepo "github.com/leomorpho/goship/framework/repos/cache"
+	cacherepo "github.com/leomorpho/goship/framework/cache"
 )
 
 var _ core.Cache = (*CoreCacheAdapter)(nil)

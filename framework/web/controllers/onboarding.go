@@ -7,7 +7,7 @@ import (
 	frameworkauthcontext "github.com/leomorpho/goship/framework/web/authcontext"
 	"github.com/leomorpho/goship/framework/web/routenames"
 	"github.com/leomorpho/goship/framework/web/ui"
-	profilesvc "github.com/leomorpho/goship/modules/profile"
+	profilesvc "github.com/leomorpho/goship/framework/profile"
 )
 
 func NewOnboardingRoute(ctr ui.Controller, profileService *profilesvc.ProfileService) onboarding {

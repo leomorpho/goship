@@ -11,9 +11,9 @@ import (
 	"testing"
 	"time"
 
-	frameworktests "github.com/leomorpho/goship/framework/tests"
+	frameworktests "github.com/leomorpho/goship/framework/testkit"
 	routeNames "github.com/leomorpho/goship/framework/web/routenames"
-	profilesvc "github.com/leomorpho/goship/modules/profile"
+	profilesvc "github.com/leomorpho/goship/framework/profile"
 	"github.com/stretchr/testify/require"
 )
 

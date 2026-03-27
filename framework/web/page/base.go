@@ -10,7 +10,7 @@ import (
 	echomw "github.com/labstack/echo/v4/middleware"
 	"github.com/leomorpho/goship/framework/appcontext"
 	"github.com/leomorpho/goship/framework/htmx"
-	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
+	"github.com/leomorpho/goship/framework/flash"
 )
 
 // Base captures reusable web-page fields and behavior that are app-agnostic.

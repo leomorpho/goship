@@ -6,7 +6,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/leomorpho/goship/framework/appcontext"
-	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
+	"github.com/leomorpho/goship/framework/flash"
 	frameworkauthcontext "github.com/leomorpho/goship/framework/web/authcontext"
 	layouts "github.com/leomorpho/goship/framework/web/layouts/gen"
 	pages "github.com/leomorpho/goship/framework/web/pages/gen"

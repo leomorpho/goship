@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/leomorpho/goship/framework/appcontext"
-	"github.com/leomorpho/goship/framework/tests"
+	"github.com/leomorpho/goship/framework/testkit"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

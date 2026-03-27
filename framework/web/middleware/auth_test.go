@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/leomorpho/goship/framework/appcontext"
-	"github.com/leomorpho/goship/framework/tests"
+	"github.com/leomorpho/goship/framework/testkit"
 	"github.com/leomorpho/goship/framework/web/routenames"
 
 	"github.com/labstack/echo-contrib/session"

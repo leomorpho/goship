@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/leomorpho/goship/framework/tests"
+	"github.com/leomorpho/goship/framework/testkit"
 
 	"github.com/labstack/echo/v4"
 	echomw "github.com/labstack/echo/v4/middleware"

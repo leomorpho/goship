@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/leomorpho/goship/framework/appcontext"
-	cacherepo "github.com/leomorpho/goship/framework/repos/cache"
+	cacherepo "github.com/leomorpho/goship/framework/cache"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/labstack/echo/v4"

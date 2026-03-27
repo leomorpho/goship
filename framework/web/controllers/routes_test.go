@@ -19,8 +19,8 @@ import (
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/config"
 	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
-	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
-	profilesvc "github.com/leomorpho/goship/modules/profile"
+	storagerepo "github.com/leomorpho/goship/framework/storage"
+	profilesvc "github.com/leomorpho/goship/framework/profile"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/stretchr/testify/assert"

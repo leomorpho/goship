@@ -3,7 +3,7 @@ package controllers
 import (
 	"github.com/labstack/echo/v4"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
-	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
+	"github.com/leomorpho/goship/framework/flash"
 	frameworkauthcontext "github.com/leomorpho/goship/framework/web/authcontext"
 	layouts "github.com/leomorpho/goship/framework/web/layouts/gen"
 	pages "github.com/leomorpho/goship/framework/web/pages/gen"
@@ -11,7 +11,7 @@ import (
 	"github.com/leomorpho/goship/framework/web/templates"
 	"github.com/leomorpho/goship/framework/web/ui"
 	"github.com/leomorpho/goship/framework/web/viewmodels"
-	profilesvc "github.com/leomorpho/goship/modules/profile"
+	profilesvc "github.com/leomorpho/goship/framework/profile"
 )
 
 type deleteAccount struct {

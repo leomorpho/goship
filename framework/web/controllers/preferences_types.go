@@ -4,7 +4,7 @@ import (
 	"github.com/leomorpho/goship-modules/notifications"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/framework/web/ui"
-	profilesvc "github.com/leomorpho/goship/modules/profile"
+	profilesvc "github.com/leomorpho/goship/framework/profile"
 )
 
 type profilePrefsRoute struct {

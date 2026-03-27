@@ -6,8 +6,8 @@ import (
 
 	echomw "github.com/labstack/echo/v4/middleware"
 	"github.com/leomorpho/goship/framework/appcontext"
-	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
-	"github.com/leomorpho/goship/framework/tests"
+	"github.com/leomorpho/goship/framework/flash"
+	"github.com/leomorpho/goship/framework/testkit"
 	"github.com/leomorpho/goship/framework/web/ui"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

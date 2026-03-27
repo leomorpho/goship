@@ -1,0 +1,16 @@
+package pages
+
+import (
+	controller "github.com/leomorpho/goship/framework/web/ui"
+	"github.com/leomorpho/goship/framework/web/viewmodels"
+	components "github.com/leomorpho/goship/framework/web/components/gen"
+)
+
+// Renders: profile-page component.
+templ ProfilePage(page *controller.Page) {
+	if data, ok := page.Data.(viewmodels.ProfilePageData); ok {
+		@components.PrevNavBarWithTitle(page.ToURL("convo", data.Profile.ID), "", "❤️ Your Partner")
+		@components.Profile(page, data.Profile, data.IsSelf, false, data.UploadGalleryPicUrl, data.UploadProfilePicUrl, data.GalleryPicsMaxCount)
+	}
+}
+

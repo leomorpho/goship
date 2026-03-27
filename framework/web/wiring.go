@@ -17,15 +17,15 @@ import (
 	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
 	"github.com/leomorpho/goship/framework/logging"
 	frameworkmiddleware "github.com/leomorpho/goship/framework/middleware"
-	storagerepo "github.com/leomorpho/goship/framework/repos/storage"
+	storagerepo "github.com/leomorpho/goship/framework/storage"
 	"github.com/leomorpho/goship/framework/runtimeplan"
 	frameworkcontrollers "github.com/leomorpho/goship/framework/web/controllers"
 	webmiddleware "github.com/leomorpho/goship/framework/web/middleware"
 	routeNames "github.com/leomorpho/goship/framework/web/routenames"
 	"github.com/leomorpho/goship/framework/web/ui"
 	i18nmodule "github.com/leomorpho/goship/modules/i18n"
-	profilesvc "github.com/leomorpho/goship/modules/profile"
-	pwamodule "github.com/leomorpho/goship/modules/pwa"
+	profilesvc "github.com/leomorpho/goship/framework/profile"
+	pwamodule "github.com/leomorpho/goship/framework/pwa"
 	slogecho "github.com/samber/slog-echo"
 )
 

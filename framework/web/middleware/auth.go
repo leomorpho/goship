@@ -13,7 +13,7 @@ import (
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/framework/appcontext"
 	"github.com/leomorpho/goship/framework/dberrors"
-	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
+	"github.com/leomorpho/goship/framework/flash"
 	"github.com/leomorpho/goship/framework/web/routenames"
 	"github.com/leomorpho/goship/modules/authsupport"
 	"log/slog"

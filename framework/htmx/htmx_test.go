@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/leomorpho/goship/framework/tests"
+	"github.com/leomorpho/goship/framework/testkit"
 
 	"github.com/stretchr/testify/assert"
 

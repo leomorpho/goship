@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/leomorpho/goship/framework/tests"
+	"github.com/leomorpho/goship/framework/testkit"
 	"github.com/leomorpho/goship/framework/web/ui"
 
 	"github.com/stretchr/testify/assert"

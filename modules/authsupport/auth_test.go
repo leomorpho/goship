@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo-contrib/session"
-	"github.com/leomorpho/goship/framework/tests"
+	"github.com/leomorpho/goship/framework/testkit"
 	"github.com/leomorpho/goship/modules/authsupport"
 	"github.com/stretchr/testify/require"
 

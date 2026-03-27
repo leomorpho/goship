@@ -9,7 +9,7 @@ import (
 
 	"github.com/leomorpho/goship/framework/core"
 	"github.com/leomorpho/goship/framework/domain"
-	"github.com/leomorpho/goship/framework/repos/ssepubsub"
+	"github.com/leomorpho/goship/framework/pubsub"
 )
 
 /*

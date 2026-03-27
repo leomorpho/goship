@@ -13,7 +13,7 @@ import (
 	"github.com/leomorpho/goship/config"
 	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
 	"github.com/leomorpho/goship/framework/htmx"
-	"github.com/leomorpho/goship/framework/tests"
+	"github.com/leomorpho/goship/framework/testkit"
 	layouts "github.com/leomorpho/goship/framework/web/layouts/gen"
 	"github.com/leomorpho/goship/framework/web/middleware"
 	pages "github.com/leomorpho/goship/framework/web/pages/gen"

@@ -9,7 +9,7 @@ import (
 
 	"github.com/leomorpho/goship-modules/notifications"
 	"github.com/leomorpho/goship/framework/domain"
-	"github.com/leomorpho/goship/framework/repos/ssepubsub"
+	"github.com/leomorpho/goship/framework/pubsub"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

@@ -11,7 +11,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	appcontext "github.com/leomorpho/goship/framework/appcontext"
-	"github.com/leomorpho/goship/framework/repos/ratelimit"
+	"github.com/leomorpho/goship/framework/ratelimit"
 )
 
 // RateLimit limits requests by route+method and caller identity.
