@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/leomorpho/goship/framework/runtimeconfig"
+	"github.com/leomorpho/goship/config/runtimeconfig"
 )
 
 const (

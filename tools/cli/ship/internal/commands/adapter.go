@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/leomorpho/goship/config"
+	"github.com/leomorpho/goship/config/runtimeplan"
 	coreadapters "github.com/leomorpho/goship/framework/core/adapters"
-	"github.com/leomorpho/goship/framework/runtimeplan"
 )
 
 type AdapterDeps struct {

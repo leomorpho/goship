@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/ilyakaznacheev/cleanenv"
-	"github.com/leomorpho/goship/framework/runtimeconfig"
+	"github.com/leomorpho/goship/config/runtimeconfig"
 )
 
 func GetConfig() (Config, error) {

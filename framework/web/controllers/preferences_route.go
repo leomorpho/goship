@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/labstack/echo/v4"
+	"github.com/leomorpho/goship/config/runtimeconfig"
 	"github.com/leomorpho/goship/framework/domain"
-	"github.com/leomorpho/goship/framework/runtimeconfig"
 	frameworkauthcontext "github.com/leomorpho/goship/framework/web/authcontext"
 	layouts "github.com/leomorpho/goship/framework/web/layouts/gen"
 	pages "github.com/leomorpho/goship/framework/web/pages/gen"

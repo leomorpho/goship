@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/leomorpho/goship/config"
-	"github.com/leomorpho/goship/framework/runtimeconfig"
+	"github.com/leomorpho/goship/config/runtimeconfig"
 )
 
 func TestRunRuntimeReport(t *testing.T) {

@@ -11,10 +11,9 @@ import (
 	"time"
 
 	"github.com/leomorpho/goship/config"
+	"github.com/leomorpho/goship/config/runtimeconfig"
+	"github.com/leomorpho/goship/config/runtimeplan"
 	frameworkbackup "github.com/leomorpho/goship/framework/backup"
-	"github.com/leomorpho/goship/framework/runtimeconfig"
-	"github.com/leomorpho/goship/framework/runtimeplan"
-	frameworksecurity "github.com/leomorpho/goship/framework/security"
 )
 
 type RuntimeReportDeps struct {
@@ -33,7 +32,6 @@ type runtimeReport struct {
 	Processes        runtimeReportProcesses         `json:"processes"`
 	ProcessTopology  runtimeReportProcessTopology   `json:"process_topology"`
 	Metrics          runtimeReportMetrics           `json:"metrics"`
-	ManagedHooks     runtimeReportManagedHooks      `json:"managed_hooks"`
 	Web              runtimeplan.WebFeatures        `json:"web"`
 	Database         config.DatabaseRuntimeMetadata `json:"database"`
 	Managed          config.ManagedRuntimeMetadata  `json:"managed"`
@@ -78,17 +76,6 @@ type runtimeReportMetrics struct {
 	Format        string `json:"format"`
 	Path          string `json:"path"`
 	Source        string `json:"source"`
-}
-
-type runtimeReportManagedHooks struct {
-	SchemaVersion    string `json:"schema_version"`
-	TimestampHeader  string `json:"timestamp_header"`
-	NonceHeader      string `json:"nonce_header"`
-	SignatureHeader  string `json:"signature_header"`
-	SignaturePayload string `json:"signature_payload"`
-	MaxSkewSeconds   int    `json:"max_skew_seconds"`
-	NonceTTLSeconds  int    `json:"nonce_ttl_seconds"`
-	RotationHeader   string `json:"rotation_header"`
 }
 
 type runtimeReportHandshake struct {
@@ -250,14 +237,12 @@ func RunRuntimeReport(args []string, d RuntimeReportDeps) int {
 			Scheduler: plan.RunScheduler,
 			CoLocated: plan.CoLocated,
 		},
-		Metrics:      buildRuntimeReportMetrics(cfg),
-		ManagedHooks: buildManagedHooksContract(cfg),
+		Metrics: buildRuntimeReportMetrics(cfg),
 		Web: runtimeplan.ResolveWebFeatures(
 			plan,
 			stringsTrim(cfg.Adapters.Cache) != "",
 			stringsTrim(cfg.Adapters.PubSub) != "",
 		),
-		Database:         cfg.RuntimeMetadata().Database,
 		Managed:          cfg.RuntimeMetadata().Managed,
 		Backup:           buildRuntimeReportBackupContract(),
 		DecisionInput:    buildRuntimeReportDecisionInputContract(),
@@ -302,28 +287,6 @@ func buildRuntimeReportBackupContract() runtimeReportBackupContract {
 	}
 }
 
-func buildManagedHooksContract(cfg config.Config) runtimeReportManagedHooks {
-	maxSkewSeconds := cfg.Managed.HooksMaxSkewSeconds
-	if maxSkewSeconds <= 0 {
-		maxSkewSeconds = 300
-	}
-	nonceTTLSeconds := cfg.Managed.HooksNonceTTLSeconds
-	if nonceTTLSeconds <= 0 {
-		nonceTTLSeconds = maxSkewSeconds
-	}
-
-	return runtimeReportManagedHooks{
-		SchemaVersion:    "managed-hook-contract-v1",
-		TimestampHeader:  frameworksecurity.HeaderManagedTimestamp,
-		NonceHeader:      frameworksecurity.HeaderManagedNonce,
-		SignatureHeader:  frameworksecurity.HeaderManagedSignature,
-		SignaturePayload: "METHOD\\nPATH_WITH_QUERY\\nTIMESTAMP\\nNONCE\\nRAW_BODY",
-		MaxSkewSeconds:   maxSkewSeconds,
-		NonceTTLSeconds:  nonceTTLSeconds,
-		RotationHeader:   "PAGODA_MANAGED_HOOKS_PREVIOUS_SECRET",
-	}
-}
-
 func evaluateRuntimeUpgradeReadiness(root string, cfg config.Config) runtimeReportUpgradeReadiness {
 	blockers := make([]runtimeReportUpgradeBlocker, 0)
 
@@ -355,18 +318,6 @@ func evaluateRuntimeUpgradeReadiness(root string, cfg config.Config) runtimeRepo
 				ID:          "upgrade.managed_authority_missing",
 				Detail:      "managed runtime report authority is required for managed upgrade orchestration",
 				Remediation: "set PAGODA_MANAGED_AUTHORITY and rerun ship runtime:report --json",
-			})
-		}
-		verifier := frameworksecurity.NewManagedHookVerifier(
-			cfg.Managed.HooksSecret,
-			time.Duration(cfg.Managed.HooksMaxSkewSeconds)*time.Second,
-			time.Duration(cfg.Managed.HooksNonceTTLSeconds)*time.Second,
-		).WithPreviousSecret(cfg.Managed.HooksPreviousSecret)
-		if ready, reason := verifier.UpgradeReadiness(); !ready {
-			blockers = append(blockers, runtimeReportUpgradeBlocker{
-				ID:          "upgrade.managed_hooks_secret_missing",
-				Detail:      reason,
-				Remediation: "set PAGODA_MANAGED_HOOKS_SECRET and rerun ship runtime:report --json",
 			})
 		}
 	}

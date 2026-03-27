@@ -4,7 +4,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/leomorpho/goship/framework/runtimeconfig"
+	"github.com/leomorpho/goship/config/runtimeconfig"
 )
 
 // SettingAccess defines whether a setting is locally editable, locked, or controlled externally.

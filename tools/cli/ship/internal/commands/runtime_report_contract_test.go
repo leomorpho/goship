@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/leomorpho/goship/config"
-	"github.com/leomorpho/goship/framework/runtimeconfig"
+	"github.com/leomorpho/goship/config/runtimeconfig"
 )
 
 func TestPrintRootHelp_ListsRuntimeReport_RedSpec(t *testing.T) {

@@ -4,18 +4,15 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/leomorpho/goship-modules/notifications"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	paidsubscriptionroutes "github.com/leomorpho/goship-modules/paidsubscriptions/routes"
 	"github.com/leomorpho/goship/config"
-	"github.com/leomorpho/goship/framework/backup"
+	"github.com/leomorpho/goship/config/runtimeplan"
 	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
 	"github.com/leomorpho/goship/framework/logging"
-	"github.com/leomorpho/goship/framework/runtimeplan"
-	frameworksecurity "github.com/leomorpho/goship/framework/security"
 	frameworkweb "github.com/leomorpho/goship/framework/web"
 	frameworkcontrollers "github.com/leomorpho/goship/framework/web/controllers"
 	"github.com/leomorpho/goship/framework/web/middleware"
@@ -173,23 +170,6 @@ func registerExternalRoutes(c *frameworkbootstrap.Container, e *echo.Group, ctr 
 	paymentsModule := paidsubscriptionroutes.NewRouteModule(ctr, deps.SubscriptionsRepo)
 	if err := paymentsModule.RegisterExternalRoutes(e, deps.StripeWebhookPath); err != nil {
 		return err
-	}
-
-	if c.Config.Managed.Enabled {
-		managedHooks := frameworkcontrollers.NewManagedHooksRoute(ctr, frameworkcontrollers.ManagedHooksDeps{
-			BackupDriver:  backup.NewSQLiteDriver(),
-			RestoreDriver: backup.NoopRestorer{},
-		})
-		verifier := frameworksecurity.NewManagedHookVerifier(
-			c.Config.Managed.HooksSecret,
-			time.Duration(c.Config.Managed.HooksMaxSkewSeconds)*time.Second,
-			time.Duration(c.Config.Managed.HooksNonceTTLSeconds)*time.Second,
-		).WithPreviousSecret(c.Config.Managed.HooksPreviousSecret)
-
-		managedGroup := e.Group("/managed", middleware.RequireManagedHookSignature(verifier))
-		managedGroup.GET("/status", managedHooks.GetRuntimeStatus).Name = routeNames.RouteNameManagedStatus
-		managedGroup.POST("/backup", managedHooks.StartBackup).Name = routeNames.RouteNameManagedBackup
-		managedGroup.POST("/restore", managedHooks.StartRestore).Name = routeNames.RouteNameManagedRestore
 	}
 
 	// ship:routes:external:start
