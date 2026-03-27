@@ -123,12 +123,13 @@ type %sCommand struct {
 func (c *%sCommand) Name() string { return %q }
 
 func (c *%sCommand) Description() string {
-	return "TODO: describe this command."
+	return "Runs the %s command scaffold."
 }
 
 func (c *%sCommand) Run(_ context.Context, args []string) error {
-	fmt.Printf("%s executed with %%d arg(s)\n", len(args))
+	fmt.Printf("%s executed\n")
+	_ = args
 	return nil
 }
-	`, pascal, pascal, commandName, pascal, pascal, commandName)
+	`, pascal, pascal, commandName, pascal, commandName, pascal, commandName)
 }

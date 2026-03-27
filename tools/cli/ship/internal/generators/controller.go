@@ -281,9 +281,9 @@ func RenderControllerFile(names ControllerNames, actions []string, domain Normal
 			b.WriteString("\tpanic(\"not implemented\")\n}\n\n")
 		} else {
 			if domain.Name != "" {
-				b.WriteString("\t// TODO: delegate to domain service in app/" + domain.Snake + "\n")
+				b.WriteString("\t// SCAFFOLD: delegate to domain service in app/" + domain.Snake + ".\n")
 			}
-			b.WriteString("\treturn ctx.String(http.StatusNotImplemented, \"TODO: " + names.BaseTitle + "." + methodName + "\")\n}\n\n")
+			b.WriteString("\treturn ctx.String(http.StatusNotImplemented, \"" + names.BaseTitle + "." + methodName + " scaffold\")\n}\n\n")
 		}
 	}
 	src, err := format.Source([]byte(b.String()))

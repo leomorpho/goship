@@ -285,6 +285,61 @@ var moduleCatalog = map[string]moduleInfo{
 		ContainerSnippet: realtimeContainerSnippet,
 		RouterSnippets:   realtimeRouterSnippets,
 	},
+	"2fa": {
+		ID:        "2fa",
+		LocalPath: filepath.Join("modules", "2fa"),
+		InstallContract: moduleInstallContract{
+			Routes: []string{
+				"modules/2fa/routes.go",
+			},
+			Jobs: []string{
+				"modules/2fa/service.go",
+				"modules/2fa/store_sql.go",
+				"modules/2fa/pending_login.go",
+			},
+			Templates: []string{
+				"modules/2fa/views/web/pages/gen/setup_templ.go",
+				"modules/2fa/views/web/pages/gen/verify_templ.go",
+				"modules/2fa/views/web/pages/gen/backup_codes_templ.go",
+			},
+			Tests: []string{
+				"modules/2fa/routes_test.go",
+				"modules/2fa/pending_login_test.go",
+				"modules/auth/two_factor_login_test.go",
+			},
+		},
+		ContainerSnippet: `
+	// ship:module:2fa
+	twoFactorService := twofa.NewService(
+		twofa.NewSQLStore(c.Database, c.Config.Adapters.DB),
+		string(c.Config.App.Name),
+		c.Config.App.EncryptionKey,
+	)
+`,
+		RouterSnippets: map[string]string{
+			"auth": `
+	// ship:module:2fa
+	authModule := authmodule.New(authmodule.Deps{
+		Controller:                    ctr,
+		ProfileService:                *deps.ProfileService,
+		SubscriptionsService:          deps.SubscriptionsRepo,
+		NotificationPermissionService: deps.NotificationPermissionService,
+		TwoFactorAuth:                 twoFactorService,
+	})
+	if err := authModule.RegisterRoutes(g); err != nil {
+		return err
+	}
+
+	twoFactorModule := twofa.NewModule(twofa.ModuleDeps{
+		Controller: ctr,
+		Service:    twoFactorService,
+	})
+	if err := twoFactorModule.RegisterRoutes(g); err != nil {
+		return err
+	}
+`,
+		},
+	},
 	"jobs": {
 		ID:         "jobs",
 		ModulePath: "github.com/leomorpho/goship-modules/jobs",

@@ -289,14 +289,14 @@ func renderResourceBasicHandler(n NormalizedResourceName, domain NormalizedDomai
 		domainField = "\tdomainService any\n"
 		constructorArg = ", domainService any"
 		constructorAssign = ", domainService: domainService"
-		domainComment = "\t// TODO: delegate to domain service in app/" + domain.Snake + "\n"
+		domainComment = "\t// SCAFFOLD: delegate to domain service in app/" + domain.Snake + ".\n"
 	}
 
 	body := ""
 	if testFirst {
 		body = "\tpanic(\"not implemented\")"
 	} else {
-		body = fmt.Sprintf("%s	// TODO: Replace with templ/page rendering or real handler logic.\n\treturn ctx.String(http.StatusOK, \"%s resource\")", domainComment, n.Kebab)
+		body = fmt.Sprintf("%s\treturn ctx.String(http.StatusOK, \"%s resource\")", domainComment, n.Kebab)
 	}
 
 	return fmt.Sprintf(`package controllers
@@ -331,7 +331,7 @@ func renderResourceTemplHandler(n NormalizedResourceName, domain NormalizedDomai
 		domainField = "\tdomainService any\n"
 		constructorArg = ", domainService any"
 		constructorAssign = ", domainService: domainService"
-		domainComment = "\t// TODO: delegate to domain service in app/" + domain.Snake + "\n"
+		domainComment = "\t// SCAFFOLD: delegate to domain service in app/" + domain.Snake + ".\n"
 	}
 
 	imports := ""
@@ -404,7 +404,7 @@ import "github.com/leomorpho/goship/framework/web/ui"
 templ %sPage(page *ui.Page) {
 	<section>
 		<h1>%s</h1>
-		<p>TODO: implement %s page.</p>
+		<p>Scaffold page for %s. Replace with your real UI.</p>
 	</section>
 }
 `, n.Pascal, n.Pascal, n.Kebab)

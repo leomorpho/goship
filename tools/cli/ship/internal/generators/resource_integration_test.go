@@ -100,7 +100,7 @@ import "github.com/leomorpho/goship/framework/web/ui"
 templ ContactFormPage(page *ui.Page) {
 	<section>
 		<h1>ContactForm</h1>
-		<p>TODO: implement contact-form page.</p>
+		<p>Scaffold page for contact-form. Replace with your real UI.</p>
 	</section>
 }
 `

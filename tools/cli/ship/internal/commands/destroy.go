@@ -99,7 +99,7 @@ func runDestroyResource(name string, d DestroyDeps) int {
 			Apply: func(absPath string) (string, error) {
 				return removeManagedFile(absPath, []string{
 					"templ " + norm.Pascal + "Page(",
-					"TODO: implement " + norm.Kebab + " page.",
+					"Scaffold page for " + norm.Kebab + ". Replace with your real UI.",
 				})
 			},
 		},

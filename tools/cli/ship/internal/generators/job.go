@@ -115,7 +115,7 @@ import (
 const Type%s = %q
 
 type %sPayload struct {
-	// TODO: add typed payload fields.
+	// SCAFFOLD: add typed payload fields.
 }
 
 func Register%s(jobs core.Jobs, handler core.JobHandler) error {
@@ -138,7 +138,7 @@ func Handle%s(_ context.Context, payload []byte) error {
 		return fmt.Errorf("decode %%s payload: %%w", Type%s, err)
 	}
 
-	// TODO: implement job behavior.
+	// SCAFFOLD: implement job behavior.
 	return nil
 }
 `, pascal, typeName, pascal, pascal, pascal, pascal, pascal, pascal)

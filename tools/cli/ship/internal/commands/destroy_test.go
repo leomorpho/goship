@@ -100,7 +100,7 @@ func TestContactRoute_Get(t *testing.T) {
 	mustWriteFile(t, viewPath, `package pages
 
 templ ContactPage(page *ui.Page) {
-	<p>TODO: implement contact page.</p>
+	<p>Scaffold page for contact. Replace with your real UI.</p>
 }
 `)
 

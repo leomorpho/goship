@@ -202,6 +202,37 @@ func TestNotificationsModuleCatalog_InstallContractCoversRoutesViewsAndJobs(t *t
 	}
 }
 
+func TestTwoFactorModuleCatalog_UsesConcreteWiring(t *testing.T) {
+	info, ok := moduleCatalog["2fa"]
+	if !ok {
+		t.Fatal("expected 2fa in module catalog")
+	}
+	if strings.Contains(info.ContainerSnippet, "TODO:") {
+		t.Fatalf("container snippet still contains TODO text: %q", info.ContainerSnippet)
+	}
+	if strings.Contains(info.RouterSnippets["auth"], "TODO:") {
+		t.Fatalf("router snippet still contains TODO text: %q", info.RouterSnippets["auth"])
+	}
+	for _, want := range []string{
+		"twofa.NewService(",
+		"twofa.NewSQLStore(",
+		"c.Config.App.EncryptionKey",
+	} {
+		if !strings.Contains(info.ContainerSnippet, want) {
+			t.Fatalf("container snippet missing %q: %q", want, info.ContainerSnippet)
+		}
+	}
+	for _, want := range []string{
+		"TwoFactorAuth:                 twoFactorService",
+		"twoFactorModule := twofa.NewModule(twofa.ModuleDeps{",
+		"twoFactorModule.RegisterRoutes(g)",
+	} {
+		if !strings.Contains(info.RouterSnippets["auth"], want) {
+			t.Fatalf("router snippet missing %q: %q", want, info.RouterSnippets["auth"])
+		}
+	}
+}
+
 func TestModuleCatalog_FirstPartyConfigOwnershipHasNoNonCanonicalCollisions(t *testing.T) {
 	t.Parallel()
 
