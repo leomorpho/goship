@@ -20,7 +20,7 @@ import (
 	"github.com/leomorpho/goship/config"
 	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
 	storagerepo "github.com/leomorpho/goship/framework/storage"
-	profilesvc "github.com/leomorpho/goship/framework/profile"
+	profilesvc "github.com/leomorpho/goship/framework/account"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/stretchr/testify/assert"

@@ -16,7 +16,7 @@ import (
 
 	"github.com/leomorpho/goship-modules/notifications"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
-	profilesvc "github.com/leomorpho/goship/framework/profile"
+	profilesvc "github.com/leomorpho/goship/framework/account"
 )
 
 func NewPreferencesRoute(

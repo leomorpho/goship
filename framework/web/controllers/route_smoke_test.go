@@ -13,7 +13,7 @@ import (
 
 	frameworktests "github.com/leomorpho/goship/framework/testkit"
 	routeNames "github.com/leomorpho/goship/framework/web/routenames"
-	profilesvc "github.com/leomorpho/goship/framework/profile"
+	profilesvc "github.com/leomorpho/goship/framework/account"
 	"github.com/stretchr/testify/require"
 )
 

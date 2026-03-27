@@ -13,7 +13,7 @@ import (
 	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
 	"github.com/leomorpho/goship/framework/events"
 	storagerepo "github.com/leomorpho/goship/framework/storage"
-	profilesvc "github.com/leomorpho/goship/framework/profile"
+	profilesvc "github.com/leomorpho/goship/framework/account"
 )
 
 func main() {

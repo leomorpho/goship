@@ -24,7 +24,7 @@ import (
 	routeNames "github.com/leomorpho/goship/framework/web/routenames"
 	"github.com/leomorpho/goship/framework/web/ui"
 	i18nmodule "github.com/leomorpho/goship/modules/i18n"
-	profilesvc "github.com/leomorpho/goship/framework/profile"
+	profilesvc "github.com/leomorpho/goship/framework/account"
 	pwamodule "github.com/leomorpho/goship/framework/pwa"
 	slogecho "github.com/samber/slog-echo"
 )

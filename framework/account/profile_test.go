@@ -18,7 +18,7 @@ import (
 	"github.com/leomorpho/goship/framework/domain"
 	storagerepo "github.com/leomorpho/goship/framework/storage"
 	"github.com/leomorpho/goship/framework/testkit"
-	profilesvc "github.com/leomorpho/goship/framework/profile"
+	profilesvc "github.com/leomorpho/goship/framework/account"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

@@ -22,7 +22,7 @@ import (
 	"github.com/leomorpho/goship/framework/web/templates"
 	"github.com/leomorpho/goship/framework/web/ui"
 	"github.com/leomorpho/goship/framework/web/viewmodels"
-	profilesvc "github.com/leomorpho/goship/framework/profile"
+	profilesvc "github.com/leomorpho/goship/framework/account"
 )
 
 const notificationQueryParam = "notif"
