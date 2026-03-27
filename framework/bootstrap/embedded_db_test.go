@@ -2,7 +2,9 @@ package bootstrap
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -85,6 +87,82 @@ func TestOpenEmbeddedDBConfiguresSQLitePragmas(t *testing.T) {
 	}
 	if tempStore != 2 {
 		t.Fatalf("temp_store = %d, want 2 (MEMORY)", tempStore)
+	}
+}
+
+func TestResetEmbeddedTestDB_RemovesFileBackedState(t *testing.T) {
+	dbPath := filepath.Join(t.TempDir(), "db", "test.db")
+	conn := dbPath + "?_journal=WAL&_timeout=5000&_fk=true"
+	db, err := OpenEmbeddedDB("sqlite", conn)
+	if err != nil {
+		t.Fatalf("open embedded sqlite: %v", err)
+	}
+	if _, err := db.Exec(`CREATE TABLE stateful (id INTEGER PRIMARY KEY, value TEXT)`); err != nil {
+		t.Fatalf("create table: %v", err)
+	}
+	if _, err := db.Exec(`INSERT INTO stateful(id, value) VALUES (1, 'before-reset')`); err != nil {
+		t.Fatalf("insert row: %v", err)
+	}
+	if err := db.Close(); err != nil {
+		t.Fatalf("close db: %v", err)
+	}
+
+	if err := resetEmbeddedTestDB(conn); err != nil {
+		t.Fatalf("resetEmbeddedTestDB error: %v", err)
+	}
+
+	if _, err := os.Stat(dbPath); !os.IsNotExist(err) {
+		t.Fatalf("expected sqlite file to be removed, stat err=%v", err)
+	}
+}
+
+func TestResetEmbeddedTestDB_NoOpForMemoryConnection(t *testing.T) {
+	if err := resetEmbeddedTestDB(":memory:?_journal=WAL"); err != nil {
+		t.Fatalf("reset memory sqlite should be no-op: %v", err)
+	}
+	if err := resetEmbeddedTestDB("file::memory:?cache=shared"); err != nil {
+		t.Fatalf("reset file::memory sqlite should be no-op: %v", err)
+	}
+}
+
+func TestFileBackedEmbeddedDBLifecycleIsDeterministic(t *testing.T) {
+	dbPath := filepath.Join(t.TempDir(), "deterministic", "test.db")
+	conn := dbPath + "?_journal=WAL&_timeout=5000&_fk=true"
+
+	openAndSeed := func() {
+		if err := resetEmbeddedTestDB(conn); err != nil {
+			t.Fatalf("resetEmbeddedTestDB error: %v", err)
+		}
+		db, err := OpenEmbeddedDB("sqlite", conn)
+		if err != nil {
+			t.Fatalf("open embedded sqlite: %v", err)
+		}
+		t.Cleanup(func() { _ = db.Close() })
+		if _, err := db.Exec(`CREATE TABLE IF NOT EXISTS deterministic_state (id INTEGER PRIMARY KEY, value TEXT)`); err != nil {
+			t.Fatalf("create table: %v", err)
+		}
+		if _, err := db.Exec(`INSERT INTO deterministic_state(id, value) VALUES (1, 'seeded')`); err != nil {
+			t.Fatalf("insert row: %v", err)
+		}
+		if err := db.Close(); err != nil {
+			t.Fatalf("close db: %v", err)
+		}
+	}
+
+	openAndSeed()
+	openAndSeed()
+
+	verifyDB, err := sql.Open("sqlite", conn)
+	if err != nil {
+		t.Fatalf("open sqlite verify: %v", err)
+	}
+	defer verifyDB.Close()
+	var count int
+	if err := verifyDB.QueryRow(`SELECT COUNT(*) FROM deterministic_state`).Scan(&count); err != nil {
+		t.Fatalf("count deterministic_state: %v", err)
+	}
+	if count != 1 {
+		t.Fatalf("deterministic_state count=%d, want 1", count)
 	}
 }
 

@@ -362,8 +362,10 @@ func (c *Container) initDatabase() {
 	if c.Config.Database.DbMode == config.DBModeEmbedded {
 		switch c.Config.App.Environment {
 		case config.EnvTest:
-			// TODO: Drop/recreate the DB, if this isn't in memory?
 			connection = c.Config.Database.EmbeddedTestConnection
+			if err := resetEmbeddedTestDB(connection); err != nil {
+				panic(fmt.Sprintf("startup database service failure: could not reset embedded test database (%v)", err))
+			}
 		default:
 			connection = c.Config.Database.EmbeddedConnection
 		}

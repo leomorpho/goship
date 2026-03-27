@@ -44,12 +44,8 @@ func OpenEmbeddedDB(driver, connection string) (*sql.DB, error) {
 }
 
 func ensureSQLiteDataDir(connection string) error {
-	path := strings.TrimSpace(connection)
+	path := sqliteFilePath(connection)
 	if path == "" {
-		return nil
-	}
-	path = strings.SplitN(path, "?", 2)[0]
-	if path == "" || path == ":memory:" {
 		return nil
 	}
 	dir := filepath.Dir(path)
@@ -57,6 +53,33 @@ func ensureSQLiteDataDir(connection string) error {
 		return nil
 	}
 	return os.MkdirAll(dir, 0o755)
+}
+
+func sqliteFilePath(connection string) string {
+	path := strings.TrimSpace(connection)
+	if path == "" {
+		return ""
+	}
+	base := strings.SplitN(path, "?", 2)[0]
+	if base == "" || base == ":memory:" || strings.Contains(strings.ToLower(path), "mode=memory") {
+		return ""
+	}
+	base = strings.TrimPrefix(base, "file:")
+	return base
+}
+
+func resetEmbeddedTestDB(connection string) error {
+	path := sqliteFilePath(connection)
+	if path == "" {
+		return nil
+	}
+	for _, candidate := range []string{path, path + "-wal", path + "-shm"} {
+		err := os.Remove(candidate)
+		if err != nil && !os.IsNotExist(err) {
+			return fmt.Errorf("remove sqlite test file %q: %w", candidate, err)
+		}
+	}
+	return nil
 }
 
 func configureSQLiteConnection(db *sql.DB) error {
