@@ -137,7 +137,7 @@ SELECT
   pf.friend_id,
   u.id AS user_id,
   u.name,
-  p.age,
+  EXTRACT(YEAR FROM age(CURRENT_DATE, p.birthdate))::int AS age,
   p.bio,
   p.phone_number_e164,
   p.country_code
@@ -152,7 +152,8 @@ SELECT
   pf.friend_id,
   u.id AS user_id,
   u.name,
-  p.age,
+  CAST((strftime('%Y', 'now') - strftime('%Y', p.birthdate))
+    - (strftime('%m-%d', 'now') < strftime('%m-%d', p.birthdate)) AS INTEGER) AS age,
   p.bio,
   p.phone_number_e164,
   p.country_code
@@ -206,7 +207,7 @@ ORDER BY i.created_at DESC, sz.id ASC;
 SELECT
   p.id,
   u.name,
-  p.age,
+  EXTRACT(YEAR FROM age(CURRENT_DATE, p.birthdate))::int AS age,
   p.bio,
   p.phone_number_e164,
   p.country_code
@@ -219,7 +220,8 @@ LIMIT 1;
 SELECT
   p.id,
   u.name,
-  p.age,
+  CAST((strftime('%Y', 'now') - strftime('%Y', p.birthdate))
+    - (strftime('%m-%d', 'now') < strftime('%m-%d', p.birthdate)) AS INTEGER) AS age,
   p.bio,
   p.phone_number_e164,
   p.country_code

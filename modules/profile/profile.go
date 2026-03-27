@@ -39,16 +39,17 @@ func NewProfileServiceWithDBDeps(
 	}
 }
 
-// TODO: I originally did that to not have to dynamically derive the ages
-// each time I calculated matches for the dating portion of the app, but
-// this should be recalculated in a task, where every day we look at who's
-// birthday is today, and update their age.
+// CalculateAge computes age from birthdate at request time.
+// Read paths derive age from birthdate in SQL to avoid stale persisted values.
 func CalculateAge(birthdate time.Time) int {
-	now := time.Now()
-	age := now.Year() - birthdate.Year()
+	return calculateAgeAt(birthdate, time.Now())
+}
+
+func calculateAgeAt(birthdate time.Time, at time.Time) int {
+	age := at.Year() - birthdate.Year()
 	// If birthdate is not yet reached in the current year, subtract one year from age.
-	if now.Month() < birthdate.Month() ||
-		(now.Month() == birthdate.Month() && now.Day() < birthdate.Day()) {
+	if at.Month() < birthdate.Month() ||
+		(at.Month() == birthdate.Month() && at.Day() < birthdate.Day()) {
 		age--
 	}
 	return age

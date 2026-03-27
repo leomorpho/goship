@@ -175,3 +175,64 @@ INSERT INTO users (id, name, email) VALUES (1, 'Alice', 'alice@example.com');
 		t.Fatalf("expected updated phone, got %q", settings.PhoneNumberE164)
 	}
 }
+
+func TestGetProfileByID_DerivesAgeFromBirthdate(t *testing.T) {
+	db, err := sql.Open("sqlite3", ":memory:")
+	if err != nil {
+		t.Fatalf("open sqlite: %v", err)
+	}
+	defer db.Close()
+
+	if _, err := db.Exec(`
+CREATE TABLE users (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  email TEXT NOT NULL
+);
+CREATE TABLE profiles (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_profile INTEGER NOT NULL,
+  birthdate DATETIME,
+  age INTEGER,
+  bio TEXT,
+  phone_number_e164 TEXT,
+  country_code TEXT,
+  profile_profile_image INTEGER
+);
+CREATE TABLE images (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  profile_photos INTEGER,
+  created_at DATETIME
+);
+CREATE TABLE image_sizes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  size TEXT NOT NULL,
+  width INTEGER NOT NULL,
+  height INTEGER NOT NULL,
+  image_sizes INTEGER,
+  image_size_file INTEGER NOT NULL
+);
+CREATE TABLE file_storages (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  object_key TEXT NOT NULL
+);
+INSERT INTO users (id, name, email) VALUES (1, 'Alice', 'alice@example.com');
+INSERT INTO profiles (id, user_profile, birthdate, age, bio) VALUES (1, 1, '2000-03-27T00:00:00Z', 99, 'bio');
+`); err != nil {
+		t.Fatalf("seed sqlite: %v", err)
+	}
+
+	svc := NewProfileServiceWithDBDeps(db, "sqlite", storagerepo.NewMockStorageClient(), nil, nil)
+	profile, err := svc.GetProfileByID(context.Background(), 1, nil)
+	if err != nil {
+		t.Fatalf("GetProfileByID error: %v", err)
+	}
+	now := time.Now().UTC()
+	expected := now.Year() - 2000
+	if now.Month() < time.March || (now.Month() == time.March && now.Day() < 27) {
+		expected--
+	}
+	if profile.Age != expected {
+		t.Fatalf("profile age = %d, want %d", profile.Age, expected)
+	}
+}
