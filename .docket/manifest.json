@@ -3622,13 +3622,13 @@
     },
     "TKT-642": {
       "title": "refactor: consolidate RenderPage and RenderToHTMLBlob, fix domain context bug",
-      "state": "backlog",
+      "state": "done",
       "priority": 3,
       "parent": "TKT-635"
     },
     "TKT-643": {
       "title": "wire Sentry error reporting into bootstrap",
-      "state": "backlog",
+      "state": "done",
       "priority": 3,
       "parent": "TKT-635"
     },
@@ -3646,31 +3646,31 @@
     },
     "TKT-646": {
       "title": "restore request logging middleware coverage",
-      "state": "backlog",
+      "state": "done",
       "priority": 3,
       "parent": "TKT-635"
     },
     "TKT-647": {
       "title": "codify auth redirect and logout session semantics",
-      "state": "backlog",
+      "state": "done",
       "priority": 3,
       "parent": "TKT-635"
     },
     "TKT-648": {
       "title": "improve profile service test strategy and assertions",
-      "state": "backlog",
+      "state": "done",
       "priority": 3,
       "parent": "TKT-635"
     },
     "TKT-649": {
       "title": "standardize storage repo image APIs and bucket ergonomics",
-      "state": "backlog",
+      "state": "done",
       "priority": 3,
       "parent": "TKT-635"
     },
     "TKT-650": {
       "title": "restore flash message dismissal behavior and session-error policy",
-      "state": "backlog",
+      "state": "done",
       "priority": 3,
       "parent": "TKT-635"
     },
@@ -3688,13 +3688,13 @@
     },
     "TKT-653": {
       "title": "make embedded test database lifecycle deterministic",
-      "state": "backlog",
+      "state": "done",
       "priority": 3,
       "parent": "TKT-635"
     },
     "TKT-654": {
       "title": "eliminate stale persisted-age behavior in profiles",
-      "state": "backlog",
+      "state": "done",
       "priority": 4,
       "parent": "TKT-635"
     },
@@ -3706,13 +3706,13 @@
     },
     "TKT-656": {
       "title": "fix non-interactive Playwright make targets",
-      "state": "backlog",
+      "state": "done",
       "priority": 3,
       "parent": "TKT-635"
     },
     "TKT-657": {
       "title": "restore ctrl/cmd-click new-tab behavior for HTMX navigation",
-      "state": "backlog",
+      "state": "done",
       "priority": 3,
       "parent": "TKT-635"
     },
@@ -3778,7 +3778,7 @@
     },
     "TKT-668": {
       "title": "duplicate placeholder for TKT-667 — ignore",
-      "state": "backlog",
+      "state": "archived",
       "priority": 9,
       "parent": "TKT-658"
     },
