@@ -31,13 +31,14 @@ func (e *NoImagesInFiles) Error() string {
 	return fmt.Sprintf("NoImagesInFiles: %s", e.Message)
 }
 
-// TODO: use github.com/orsinium-labs/enum
-type Bucket int
+type Bucket string
 
 const (
-	BucketMainApp Bucket = iota
-	BucketStaticFiles
+	BucketMainApp     Bucket = "main-app"
+	BucketStaticFiles Bucket = "static-files"
 )
+
+var defaultImagePresignedURLExpiry = 48 * time.Hour
 
 var ErrBucketDoesNotExist = errors.New("requested bucket does not exist")
 
@@ -49,6 +50,21 @@ type StorageClientInterface interface {
 	GetPresignedURL(bucket Bucket, objectName string, expiry time.Duration) (string, error)
 	GetImageObjectFromFile(file *ImageFile) (*domain.Photo, error)
 	GetImageObjectsFromFiles(files []*ImageFile) ([]domain.Photo, error)
+}
+
+func (b Bucket) String() string {
+	return string(b)
+}
+
+func ParseBucket(raw string) (Bucket, error) {
+	switch strings.ToLower(strings.TrimSpace(raw)) {
+	case "main-app", "main", "app":
+		return BucketMainApp, nil
+	case "static-files", "static":
+		return BucketStaticFiles, nil
+	default:
+		return "", ErrBucketDoesNotExist
+	}
 }
 
 type ImageFile struct {
@@ -265,57 +281,71 @@ func (sc *StorageClient) DeleteFile(bucket Bucket, objectName string) error {
 // to return a specific file object. Expiration can also be parametrized if necessary.
 // getPhotoObjectFromFile generates a signed URL for a single file.
 func (sc *StorageClient) GetImageObjectFromFile(image *ImageFile) (*domain.Photo, error) {
-	if image == nil || len(image.Sizes) == 0 {
-		return nil, nil
+	photo, err := sc.hydratePhoto(image, sc.imagePresignedURLExpiry())
+	if err != nil {
+		return nil, err
 	}
-
-	p := &domain.Photo{
-		ID: image.ID,
-	}
-
-	for _, size := range image.Sizes {
-		if size.ObjectKey == "" {
-			continue
-		}
-		// Generate a presigned URL with a specified duration
-		url, err := sc.GetPresignedURL(BucketMainApp, size.ObjectKey, 2*24*time.Hour) // Adjust duration as needed
-		if err != nil {
-			return nil, err
-		}
-		switch *domain.ImageSizes.Parse(size.Size) {
-		case domain.ImageSizeFull:
-			p.FullURL = url
-			p.FullHeight = size.Height
-			p.FullWidth = size.Width
-		case domain.ImageSizePreview:
-			p.PreviewURL = url
-			p.PreviewHeight = size.Height
-			p.PreviewWidth = size.Width
-		case domain.ImageSizeThumbnail:
-			p.ThumbnailURL = url
-			p.ThumbnailHeight = size.Height
-			p.ThumbnailWidth = size.Width
-		}
-	}
-
-	return p, nil
+	return photo, nil
 }
 
 func (sc *StorageClient) GetImageObjectsFromFiles(
 	files []*ImageFile,
 ) ([]domain.Photo, error) {
+	return sc.hydratePhotos(files, sc.imagePresignedURLExpiry())
+}
+
+func (sc *StorageClient) imagePresignedURLExpiry() time.Duration {
+	return defaultImagePresignedURLExpiry
+}
+
+func (sc *StorageClient) hydratePhotos(files []*ImageFile, expiry time.Duration) ([]domain.Photo, error) {
 	if len(files) == 0 {
 		return nil, &NoImagesInFiles{Message: "no images in files"}
 	}
-	var photos []domain.Photo
-	for _, f := range files {
-		photo, err := sc.GetImageObjectFromFile(f)
+	photos := make([]domain.Photo, 0, len(files))
+	for _, file := range files {
+		photo, err := sc.hydratePhoto(file, expiry)
 		if err != nil {
 			return nil, err
+		}
+		if photo == nil {
+			continue
 		}
 		photos = append(photos, *photo)
 	}
 	return photos, nil
+}
+
+func (sc *StorageClient) hydratePhoto(image *ImageFile, expiry time.Duration) (*domain.Photo, error) {
+	if image == nil || len(image.Sizes) == 0 {
+		return nil, nil
+	}
+
+	photo := &domain.Photo{ID: image.ID}
+	for _, size := range image.Sizes {
+		if size.ObjectKey == "" {
+			continue
+		}
+		url, err := sc.GetPresignedURL(BucketMainApp, size.ObjectKey, expiry)
+		if err != nil {
+			return nil, err
+		}
+		switch *domain.ImageSizes.Parse(size.Size) {
+		case domain.ImageSizeFull:
+			photo.FullURL = url
+			photo.FullHeight = size.Height
+			photo.FullWidth = size.Width
+		case domain.ImageSizePreview:
+			photo.PreviewURL = url
+			photo.PreviewHeight = size.Height
+			photo.PreviewWidth = size.Width
+		case domain.ImageSizeThumbnail:
+			photo.ThumbnailURL = url
+			photo.ThumbnailHeight = size.Height
+			photo.ThumbnailWidth = size.Width
+		}
+	}
+	return photo, nil
 }
 
 func (sc *StorageClient) insertFileStorageRow(

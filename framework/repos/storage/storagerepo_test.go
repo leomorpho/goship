@@ -13,6 +13,29 @@ import (
 	_ "modernc.org/sqlite"
 )
 
+func TestParseBucket(t *testing.T) {
+	t.Run("main app aliases", func(t *testing.T) {
+		for _, raw := range []string{"main-app", "main", "app"} {
+			b, err := ParseBucket(raw)
+			require.NoError(t, err)
+			assert.Equal(t, BucketMainApp, b)
+		}
+	})
+
+	t.Run("static aliases", func(t *testing.T) {
+		for _, raw := range []string{"static-files", "static"} {
+			b, err := ParseBucket(raw)
+			require.NoError(t, err)
+			assert.Equal(t, BucketStaticFiles, b)
+		}
+	})
+
+	t.Run("invalid", func(t *testing.T) {
+		_, err := ParseBucket("unknown")
+		require.ErrorIs(t, err, ErrBucketDoesNotExist)
+	})
+}
+
 func TestStorageClient_Local_TestEnv(t *testing.T) {
 	db, err := sql.Open("sqlite", ":memory:")
 	require.NoError(t, err)
@@ -82,6 +105,7 @@ func TestStorageClient_Local_TestEnv(t *testing.T) {
 	url, err := sc.GetPresignedURL(BucketMainApp, objectName, 1*time.Hour)
 	require.NoError(t, err)
 	assert.Equal(t, "/uploads/"+appBucket+"/"+objectName, url)
+	assert.Equal(t, "main-app", BucketMainApp.String())
 
 	// Test DeleteFile
 	err = sc.DeleteFile(BucketMainApp, objectName)
