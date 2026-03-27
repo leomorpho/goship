@@ -88,9 +88,7 @@ func defaultNewLayoutArtifactPaths() []string {
 	return []string{
 		filepath.ToSlash(filepath.Join(policies.AgentGeneratedDir, "INSTALL.md")),
 		filepath.ToSlash(filepath.Join(policies.AgentGeneratedDir, "allowed-prefixes.json")),
-		filepath.ToSlash(filepath.Join(policies.AgentGeneratedDir, "claude-prefixes.txt")),
-		filepath.ToSlash(filepath.Join(policies.AgentGeneratedDir, "codex-prefixes.txt")),
-		filepath.ToSlash(filepath.Join(policies.AgentGeneratedDir, "gemini-prefixes.txt")),
+		filepath.ToSlash(filepath.Join(policies.AgentGeneratedDir, "agent-prefixes.txt")),
 	}
 }
 

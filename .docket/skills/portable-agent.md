@@ -1,5 +1,5 @@
 <!-- docket:skill-pack:start -->
-# Docket Skill Pack (Codex)
+# Docket Skill Pack (Agentic Tooling)
 
 <!-- docket.skill.pack.version: docket.skills/v1 -->
 <!-- docket.contract.hash: 4215e96e76b073e7c5b58adccdafa2958d65153bd2e869b3255f7560e863f2e0 -->

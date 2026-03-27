@@ -20,5 +20,5 @@ Generated files in this directory are for local tool import.
 ## Setup
 
 1. Run `ship agent:setup` to sync generated artifacts.
-2. Import `codex-prefixes.txt`, `claude-prefixes.txt`, and `gemini-prefixes.txt` into each local tool's command-permission settings.
+2. Import `agent-prefixes.txt` into your local agent tool's command-permission settings.
 3. Run `ship agent:check` in CI/pre-commit to enforce parity.

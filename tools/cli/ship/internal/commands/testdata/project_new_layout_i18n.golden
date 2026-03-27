@@ -87,6 +87,4 @@ tools/agent-policy/allowed-commands.yaml
 tools/agent-policy/generated/
 tools/agent-policy/generated/INSTALL.md
 tools/agent-policy/generated/allowed-prefixes.json
-tools/agent-policy/generated/claude-prefixes.txt
-tools/agent-policy/generated/codex-prefixes.txt
-tools/agent-policy/generated/gemini-prefixes.txt
+tools/agent-policy/generated/agent-prefixes.txt

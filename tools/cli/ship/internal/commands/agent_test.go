@@ -73,7 +73,7 @@ func TestAgentPolicyCheckDetectsDrift(t *testing.T) {
 	if code := policies.RunPolicySetup(&bytes.Buffer{}, &bytes.Buffer{}, root); code != 0 {
 		t.Fatalf("setup failed")
 	}
-	if err := os.WriteFile(filepath.Join(root, "tools", "agent-policy", "generated", "codex-prefixes.txt"), []byte("stale\n"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(root, "tools", "agent-policy", "generated", "agent-prefixes.txt"), []byte("stale\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -105,7 +105,7 @@ func TestAgentStatus(t *testing.T) {
 	}
 
 	t.Run("in-sync when config contains all prefixes", func(t *testing.T) {
-		cfg := filepath.Join(root, "codex-local.txt")
+		cfg := filepath.Join(root, "agent-local.txt")
 		content := "go test\nship doctor\n"
 		if err := os.WriteFile(cfg, []byte(content), 0o644); err != nil {
 			t.Fatal(err)
@@ -113,17 +113,17 @@ func TestAgentStatus(t *testing.T) {
 
 		out := &bytes.Buffer{}
 		errOut := &bytes.Buffer{}
-		code := RunAgent([]string{"status", "--codex-file", cfg}, AgentDeps{Out: out, Err: errOut, FindGoModule: findGoModuleTest})
+		code := RunAgent([]string{"status", "--tool-file", cfg}, AgentDeps{Out: out, Err: errOut, FindGoModule: findGoModuleTest})
 		if code != 0 {
 			t.Fatalf("status code=%d stderr=%s", code, errOut.String())
 		}
-		if !strings.Contains(out.String(), "- codex: in-sync") {
+		if !strings.Contains(out.String(), "- agent-tool: in-sync") {
 			t.Fatalf("unexpected status output: %s", out.String())
 		}
 	})
 
 	t.Run("drifted when config has subset", func(t *testing.T) {
-		cfg := filepath.Join(root, "codex-drifted.txt")
+		cfg := filepath.Join(root, "agent-drifted.txt")
 		content := "go test\n"
 		if err := os.WriteFile(cfg, []byte(content), 0o644); err != nil {
 			t.Fatal(err)
@@ -131,11 +131,11 @@ func TestAgentStatus(t *testing.T) {
 
 		out := &bytes.Buffer{}
 		errOut := &bytes.Buffer{}
-		code := RunAgent([]string{"status", "--codex-file", cfg}, AgentDeps{Out: out, Err: errOut, FindGoModule: findGoModuleTest})
+		code := RunAgent([]string{"status", "--tool-file", cfg}, AgentDeps{Out: out, Err: errOut, FindGoModule: findGoModuleTest})
 		if code != 0 {
 			t.Fatalf("status code=%d stderr=%s", code, errOut.String())
 		}
-		if !strings.Contains(out.String(), "- codex: drifted") {
+		if !strings.Contains(out.String(), "- agent-tool: drifted") {
 			t.Fatalf("unexpected status output: %s", out.String())
 		}
 	})

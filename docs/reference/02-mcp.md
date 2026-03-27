@@ -84,25 +84,11 @@ Use an absolute docs path:
 export SHIP_MCP_DOCS_ROOT=/Users/leoaudibert/Workspace/pagoda-based/goship/docs
 ```
 
-Register in Codex:
+Register in your MCP-compatible agent CLI:
 
 ```bash
-codex mcp add ship --env SHIP_MCP_DOCS_ROOT=/Users/leoaudibert/Workspace/pagoda-based/goship/docs -- ~/.local/bin/ship-mcp
-codex mcp list
-```
-
-Register in Claude Code:
-
-```bash
-claude mcp add --scope user -e SHIP_MCP_DOCS_ROOT=/Users/leoaudibert/Workspace/pagoda-based/goship/docs ship -- ~/.local/bin/ship-mcp
-claude mcp list
-```
-
-Register in Gemini CLI:
-
-```bash
-gemini mcp add --scope user -e SHIP_MCP_DOCS_ROOT=/Users/leoaudibert/Workspace/pagoda-based/goship/docs ship ~/.local/bin/ship-mcp
-gemini mcp list
+<agent-cli> mcp add --scope user -e SHIP_MCP_DOCS_ROOT=/Users/leoaudibert/Workspace/pagoda-based/goship/docs ship -- ~/.local/bin/ship-mcp
+<agent-cli> mcp list
 ```
 
 Notes:

@@ -6,7 +6,7 @@ This guide is for code agents making changes in this repository.
 
 1. Read `docs/architecture/01-architecture.md`, `docs/architecture/02-structure-and-boundaries.md`, and `docs/architecture/06-known-gaps-and-risks.md`.
 2. Read root seam files before changing runtime behavior: `container.go`, `router.go`, and `schedules.go`.
-3. Read scoped `CLAUDE.md` files in the directory you are editing.
+3. Read scoped `AGENTS.md` files in the directory you are editing.
 4. If no scoped guide exists, fall back to this guide.
 
 ## Framework-First Runtime Seams

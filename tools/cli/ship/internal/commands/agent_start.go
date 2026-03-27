@@ -89,13 +89,13 @@ func runAgentStart(args []string, d AgentDeps) int {
 		return 1
 	}
 
-	claudeFiles, err := collectClaudeFiles(root)
+	agentFiles, err := collectAgentFiles(root)
 	if err != nil {
-		fmt.Fprintf(d.Err, "failed to load CLAUDE context: %v\n", err)
+		fmt.Fprintf(d.Err, "failed to load AGENTS context: %v\n", err)
 		return 1
 	}
 
-	taskContent := buildTaskFileContent(identifier, desc, describeOutput, claudeFiles)
+	taskContent := buildTaskFileContent(identifier, desc, describeOutput, agentFiles)
 	taskPath := filepath.Join(worktreePath, "TASK.md")
 	if err := os.WriteFile(taskPath, []byte(taskContent), 0o644); err != nil {
 		fmt.Fprintf(d.Err, "failed to write TASK.md: %v\n", err)
@@ -180,13 +180,13 @@ func defaultDescribeJSON(root string) (string, error) {
 	return out.String(), nil
 }
 
-type claudeFile struct {
+type agentFile struct {
 	Path    string
 	Content string
 }
 
-func collectClaudeFiles(root string) ([]claudeFile, error) {
-	files := make([]claudeFile, 0)
+func collectAgentFiles(root string) ([]agentFile, error) {
+	files := make([]agentFile, 0)
 	if err := filepath.WalkDir(root, func(path string, d os.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -195,7 +195,7 @@ func collectClaudeFiles(root string) ([]claudeFile, error) {
 			return nil
 		}
 		name := d.Name()
-		if name != "CLAUDE.md" && name != "CLAUDE.md.template" {
+		if name != "AGENTS.md" && name != "AGENTS.md.template" {
 			return nil
 		}
 		rel, err := filepath.Rel(root, path)
@@ -206,7 +206,7 @@ func collectClaudeFiles(root string) ([]claudeFile, error) {
 		if err != nil {
 			return err
 		}
-		files = append(files, claudeFile{Path: filepath.ToSlash(rel), Content: string(content)})
+		files = append(files, agentFile{Path: filepath.ToSlash(rel), Content: string(content)})
 		return nil
 	}); err != nil {
 		return nil, err
@@ -215,7 +215,7 @@ func collectClaudeFiles(root string) ([]claudeFile, error) {
 	return files, nil
 }
 
-func buildTaskFileContent(id, description, describeJSON string, claudeFiles []claudeFile) string {
+func buildTaskFileContent(id, description, describeJSON string, agentFiles []agentFile) string {
 	var b strings.Builder
 	fmt.Fprintf(&b, "# TASK %s\n\n", id)
 	b.WriteString("## Task\n\n")
@@ -225,12 +225,12 @@ func buildTaskFileContent(id, description, describeJSON string, claudeFiles []cl
 	b.WriteString("```json\n")
 	b.WriteString(strings.TrimSpace(describeJSON))
 	b.WriteString("\n```\n\n")
-	b.WriteString("## CLAUDE Context\n\n")
-	if len(claudeFiles) == 0 {
-		b.WriteString("_No CLAUDE.md documents found in this repo._\n")
+	b.WriteString("## AGENTS Context\n\n")
+	if len(agentFiles) == 0 {
+		b.WriteString("_No AGENTS.md documents found in this repo._\n")
 		return b.String()
 	}
-	for _, f := range claudeFiles {
+	for _, f := range agentFiles {
 		fmt.Fprintf(&b, "### %s\n\n", f.Path)
 		b.WriteString("```\n")
 		b.WriteString(strings.TrimSpace(f.Content))

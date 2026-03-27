@@ -414,16 +414,16 @@ step failed and its output without human intervention.
 
 ---
 
-## Group N — Hierarchical CLAUDE.md Context Files
+## Group N — Hierarchical AGENTS.md Context Files
 
 > Scoped context files allow agents to load only the context relevant to their current task.
 > This reduces token usage and improves accuracy for module-level work.
 
-### N01 — Create framework CLAUDE.md
+### N01 — Create framework AGENTS.md
 
 **Status:** `[ ] todo`
 **Depends on:** nothing (parallel)
-**Files:** `framework/CLAUDE.md` (new)
+**Files:** `framework/AGENTS.md` (new)
 
 **Context:** When an agent works in `framework/`, it needs to know the framework's contracts and
 what is off-limits. Without a scoped guide, it reads the whole repo and makes framework changes
@@ -441,18 +441,18 @@ that break app compatibility.
 6. Testing: every exported function in `framework/` must have a test.
 7. Run `ship verify` after every change.
 
-**Done when:** `framework/CLAUDE.md` exists with the above sections. An agent reading only this
+**Done when:** `framework/AGENTS.md` exists with the above sections. An agent reading only this
 file has enough context to safely modify the framework.
 
 ---
 
-### N02 — Create module-level CLAUDE.md template
+### N02 — Create module-level AGENTS.md template
 
 **Status:** `[ ] todo`
 **Depends on:** nothing (parallel)
-**Files:** `modules/CLAUDE.md.template` (new), `docs/guides/01-ai-agent-guide.md` (update)
+**Files:** `modules/AGENTS.md.template` (new), `docs/guides/01-ai-agent-guide.md` (update)
 
-**Context:** Each module needs a CLAUDE.md that tells agents: what the module does, which files
+**Context:** Each module needs a AGENTS.md that tells agents: what the module does, which files
 to touch, which interfaces it implements, and which other modules it depends on. This template
 is used when `ship module:add` scaffolds a new module (M03 C03).
 
@@ -489,19 +489,19 @@ is used when `ship module:add` scaffolds a new module (M03 C03).
 ```
 
 **What to do:**
-1. Create `modules/CLAUDE.md.template` with the above content.
-2. Update `docs/guides/01-ai-agent-guide.md` to mention that each module has a CLAUDE.md
+1. Create `modules/AGENTS.md.template` with the above content.
+2. Update `docs/guides/01-ai-agent-guide.md` to mention that each module has a AGENTS.md
    and that agents should read it before modifying a module.
 
 **Done when:** Template exists. Agent guide references it. The template is referenced in `ship module:add` implementation (M03 C03).
 
 ---
 
-### N03 — Create app-layer CLAUDE.md
+### N03 — Create app-layer AGENTS.md
 
 **Status:** `[ ] todo`
 **Depends on:** nothing (parallel)
-**Files:** `app/CLAUDE.md` (new)
+**Files:** `app/AGENTS.md` (new)
 
 **Context:** `app/` is the application layer — it wires framework + modules together. Agents
 working here must know: where things go, what's app-specific vs module-owned, and how to avoid
@@ -517,7 +517,7 @@ creating framework-level code in the app layer.
 7. No SQL in controllers — all DB goes through repository pattern.
 8. Run `ship verify` after every change.
 
-**Done when:** `app/CLAUDE.md` exists. Covers all placement rules and anti-patterns.
+**Done when:** `app/AGENTS.md` exists. Covers all placement rules and anti-patterns.
 
 ---
 
@@ -720,7 +720,7 @@ Description: imperative present tense, lowercase, no period
 **Depends on:** L05 (ship describe), L04 (ship verify)
 **Files:** `tools/cli/ship/internal/commands/agent_start.go`, `tools/cli/ship/internal/cli/cli.go`
 
-> **NOTE:** `tools/cli/ship/internal/commands/agent_start.go` **already exists**. Read it first — it may be a stub or partially implemented. Check which of the described steps (git worktree creation, TASK.md generation, ship describe output, CLAUDE.md injection) are done vs missing. The CLI dispatch in `cli.go → c.runAgent()` is already wired. Do NOT recreate the file.
+> **NOTE:** `tools/cli/ship/internal/commands/agent_start.go` **already exists**. Read it first — it may be a stub or partially implemented. Check which of the described steps (git worktree creation, TASK.md generation, ship describe output, AGENTS.md injection) are done vs missing. The CLI dispatch in `cli.go → c.runAgent()` is already wired. Do NOT recreate the file.
 
 **Context:** Agents working on tasks benefit from isolation — a separate git worktree where their
 changes don't interfere with in-progress human work, and a context document scoped to the task.
@@ -731,7 +731,7 @@ changes don't interfere with in-progress human work, and a context document scop
 2. Generates a context document at `.worktrees/<task-id>/TASK.md` containing:
    - The task description (passed as `--task` flag or read from stdin)
    - Output of `ship describe --json` (routes, modules, viewmodels)
-   - Relevant CLAUDE.md files (based on which directories the task is likely to touch)
+   - Relevant AGENTS.md files (based on which directories the task is likely to touch)
 3. Prints the worktree path and branch name so the agent can `cd` there.
 
 **Command signature:**
@@ -914,7 +914,7 @@ When all tasks in this document are complete, the following workflow is fully op
 ```
 1. Human creates task: ship agent:start --task "Add rate limiting to auth routes" --id T042
 2. Agent reads TASK.md (task brief + codebase map)
-3. Agent reads app/CLAUDE.md and app/web/controllers/CLAUDE.md
+3. Agent reads app/AGENTS.md and app/web/controllers/AGENTS.md
 4. Agent calls ship_routes MCP tool → knows existing auth routes
 5. Agent calls ship_modules MCP tool → knows installed modules
 6. Agent implements the change

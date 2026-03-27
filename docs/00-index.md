@@ -68,7 +68,7 @@ Last updated: 2026-03-25
 2. `M02` - `roadmap/02-architecture-evolution.md`: architectural direction — islands JS, module extraction, app split, MCP expansion.
 3. `M03` - `roadmap/03-atomic-tasks.md`: atomic task list for implementing M02, pickup-ready for any LLM agent.
 4. `M04` - `roadmap/04-pagoda-and-dx-improvements.md`: ideas from Pagoda and Rails/Laravel — single binary mode, Backlite, Otter, admin panel, and more.
-5. `M05` - `roadmap/05-llm-dx-agent-friendly.md`: convention-over-configuration enforcement, ship verify, ship describe, hierarchical CLAUDE.md, route contracts, test-first scaffolding, agent worktree workflow, MCP tool expansion.
+5. `M05` - `roadmap/05-llm-dx-agent-friendly.md`: convention-over-configuration enforcement, ship verify, ship describe, hierarchical AGENTS.md, route contracts, test-first scaffolding, agent worktree workflow, MCP tool expansion.
 6. `M06` - `roadmap/06-dx-and-infrastructure.md`: ship dev unified command, GitHub Actions CI/CD, SQLite multi-process safety, slog structured logging, security headers, health checks, email system (mailer interface, templ templates, dev previews), cron scheduling, app-level CLI commands.
 7. `M07` - `roadmap/07-modules-and-capabilities.md`: OAuth/social login, 2FA/TOTP, AI module (Anthropic + OpenAI + OpenRouter + streaming), domain events, soft deletes, feature flags, audit log, SSE, JSON API pattern, test data factories, HTTP test helpers, i18n.
 8. `M08` - `roadmap/08-ui-agent-context.md`: work order for applying UI agent convention (data-* attributes, templ comments, route annotations) across this repo.

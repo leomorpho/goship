@@ -1,7 +1,7 @@
 
 
 <!-- docket:skill-pack:start -->
-# Docket Skill Pack (Codex)
+# Docket Skill Pack (Agentic Tooling)
 
 <!-- docket.skill.pack.version: docket.skills/v1 -->
 <!-- docket.contract.hash: 4215e96e76b073e7c5b58adccdafa2958d65153bd2e869b3255f7560e863f2e0 -->
@@ -9,6 +9,14 @@
 <!-- docket.skill.names: ticket-discovery,ticket-authoring-apply,context-optimize,learning-replay,wrap-up-readiness -->
 
 Use `docket start` to pick up prioritized ticket work.
+
+## Docket Workflow
+
+- Use `docket list --state open --format context` to pick work.
+- Use `docket show TKT-NNN --format context` before coding.
+- Use `docket update TKT-NNN --state in-progress` when moving a ticket into active work.
+- Use `docket ac add` / `docket ac complete` for acceptance tracking.
+- Add `Ticket: TKT-NNN` trailer to commit messages.
 
 ### Skills
 - `ticket-discovery` (required)
@@ -42,6 +50,96 @@ Use `docket start` to pick up prioritized ticket work.
   - triggers: session_end, pre_review, handoff
   - summary: Run wrap-up readiness checks for AC completion, handoff quality, blockers, and review transition readiness.
 <!-- docket:skill-pack:end -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

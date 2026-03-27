@@ -186,7 +186,7 @@ func TestPrintAgentHelp_SubcommandsIncludeDescriptions(t *testing.T) {
 		"  ship agent:start --task \"Add feature\" [--id ID]":          "Create a scoped git worktree for an agent task",
 		"  ship agent:finish --id TASK --message \"feat(...)\" [--pr]": "Verify, commit, optionally open PR, and clean up worktree",
 		"  ship agent:check":                                           "Run policy artifact drift checks",
-		"  ship agent:status [--codex-file <path>] [--claude-file <path>] [--gemini-file <path>]": "Inspect local Codex/Claude/Gemini policy sync state",
+		"  ship agent:status [--tool-file <path>]": "Inspect local agent-tool policy sync state",
 	}
 
 	for prefix, desc := range want {

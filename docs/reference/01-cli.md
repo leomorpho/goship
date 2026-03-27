@@ -212,8 +212,8 @@ Safety matrix:
   - when disabled, CLI prints a follow-up hint that i18n can be enabled/migrated later with `ship i18n:*` + doctor-driven loops
 - `ship agent:setup` -> generate per-agent allowlist artifacts from `tools/agent-policy/allowed-commands.yaml`
 - `ship agent:check` -> fail if generated artifacts drift from canonical allowlist (for pre-commit/CI parity)
-- `ship agent:status` -> show best-effort local Codex/Claude/Gemini install status vs repo policy
-- `ship agent:start --task ... [--id ...]` -> create `.worktrees/<id>` on branch `agent/<id>`, generate `TASK.md` with task text + `ship describe` JSON + discovered `CLAUDE.md` context
+- `ship agent:status [--tool-file <path>]` -> show best-effort local agent-tool install status vs repo policy
+- `ship agent:start --task ... [--id ...]` -> create `.worktrees/<id>` on branch `agent/<id>`, generate `TASK.md` with task text + `ship describe` JSON + discovered `AGENTS.md` context
 - `ship agent:finish --id ... --message ... [--pr]` -> run `ship verify` in worktree, `git add -A`, validate conventional commit message, commit, optional `git push -u origin agent/<id>` + `gh pr create`, then `git worktree remove`
 - `ship doctor --json` -> machine-readable doctor result on stdout, including `upgrade_readiness` (`ready` + `blockers`) for upgrade automation preflight; exit code 0 when there are no blocking errors and upgrade readiness is clear, 1 otherwise
 - `ship runtime:report --json` -> machine-readable runtime capability report covering active profile, adapters, process plan, source-aware `process_topology` (including web/worker realtime roles when enabled), web features, DB runtime metadata, managed-key sources, current framework version, per-module adoption metadata, upgrade readiness metadata, and a versioned handshake envelope; managed-mode `upgrade_readiness` now blocks when control-plane authority or managed hook signing secret configuration is missing; downstream staged rollout and canary orchestration must compose those runtime facts plus the approved `policy_input_version` into `staged-rollout-decision-v1` instead of inventing a second runtime-specific decision payload

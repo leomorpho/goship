@@ -7,34 +7,24 @@ import (
 	"github.com/leomorpho/goship-modules/notifications"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship-modules/storage"
-	twofa "github.com/leomorpho/goship/modules/2fa"
-	"github.com/leomorpho/goship/modules/admin"
 	"github.com/leomorpho/goship/modules/ai"
 	"github.com/leomorpho/goship/modules/auditlog"
-	"github.com/leomorpho/goship/modules/auth"
 	"github.com/leomorpho/goship/modules/flags"
 	"github.com/leomorpho/goship/modules/i18n"
-	profiles "github.com/leomorpho/goship/modules/profile"
-	"github.com/leomorpho/goship/modules/pwa"
 )
 
 func TestCanonicalModuleIDsAreUnique(t *testing.T) {
 	t.Parallel()
 
 	ids := []string{
-		admin.ModuleID,
 		ai.ModuleID,
 		auditlog.ModuleID,
-		auth.ModuleID,
 		flags.ModuleID,
 		i18n.ModuleID,
 		jobs.ModuleID,
 		notifications.ModuleID,
 		paidsubscriptions.ModuleID,
-		profiles.ModuleID,
-		pwa.ModuleID,
 		storage.ModuleID,
-		twofa.ModuleID,
 	}
 
 	seen := make(map[string]struct{}, len(ids))

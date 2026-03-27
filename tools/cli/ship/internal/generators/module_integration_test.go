@@ -100,7 +100,7 @@ func TestRunMakeModule_DryRunExplainsEachFileOwnerContract(t *testing.T) {
 
 	output := out.String()
 	expected := map[string]string{
-		"modules/emailsubscriptions/CLAUDE.md":                               "agent-context",
+		"modules/emailsubscriptions/AGENTS.md":                               "agent-context",
 		"modules/emailsubscriptions/contracts.go":                            "service-contract",
 		"modules/emailsubscriptions/db/bobgen.yaml":                          "db-codegen",
 		"modules/emailsubscriptions/db/gen/.gitkeep":                         "generated-db",

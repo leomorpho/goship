@@ -89,7 +89,7 @@ func moduleScaffoldFiles(moduleDir, moduleName, modulePath string) []moduleScaff
 		{Path: filepath.Join(moduleDir, "db", "migrate", "migrations", ".gitkeep"), Content: "", ContractOwner: "migrations"},
 		{Path: filepath.Join(moduleDir, "db", "queries", ".gitkeep"), Content: "", ContractOwner: "queries"},
 		{Path: filepath.Join(moduleDir, "db", "gen", ".gitkeep"), Content: "", ContractOwner: "generated-db"},
-		{Path: filepath.Join(moduleDir, "CLAUDE.md"), Content: renderModuleClaudeMD(moduleName), ContractOwner: "agent-context"},
+		{Path: filepath.Join(moduleDir, "AGENTS.md"), Content: renderModuleAgentsMD(moduleName), ContractOwner: "agent-context"},
 	}
 	sort.Slice(files, func(i, j int) bool {
 		return files[i].Path < files[j].Path
@@ -384,7 +384,7 @@ output: "%s"
 	)
 }
 
-func renderModuleClaudeMD(moduleName string) string {
+func renderModuleAgentsMD(moduleName string) string {
 	return fmt.Sprintf(`# Module: %s
 
 ## What This Module Does

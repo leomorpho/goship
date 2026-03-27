@@ -50,7 +50,7 @@ func RunPolicySetup(out, errOut io.Writer, root string) int {
 	for path := range artifacts {
 		fmt.Fprintf(out, "- %s\n", path)
 	}
-	fmt.Fprintln(out, "next step: import the generated prefixes into your local Codex/Claude/Gemini permission config.")
+	fmt.Fprintln(out, "next step: import the generated prefixes into your local agent-tool permission config.")
 	return 0
 }
 
@@ -148,9 +148,7 @@ func RenderPolicyArtifacts(policy AgentPolicy) (map[string][]byte, error) {
 
 	return map[string][]byte{
 		filepath.ToSlash(filepath.Join(AgentGeneratedDir, "allowed-prefixes.json")): jsonBytes,
-		filepath.ToSlash(filepath.Join(AgentGeneratedDir, "codex-prefixes.txt")):    []byte(prefixText),
-		filepath.ToSlash(filepath.Join(AgentGeneratedDir, "claude-prefixes.txt")):   []byte(prefixText),
-		filepath.ToSlash(filepath.Join(AgentGeneratedDir, "gemini-prefixes.txt")):   []byte(prefixText),
+		filepath.ToSlash(filepath.Join(AgentGeneratedDir, "agent-prefixes.txt")):    []byte(prefixText),
 		filepath.ToSlash(filepath.Join(AgentGeneratedDir, "INSTALL.md")):            []byte(installDoc),
 	}, nil
 }
@@ -223,7 +221,7 @@ func renderInstallDoc(commands []AgentPolicyCommand) string {
 	}
 	b.WriteString("\n## Setup\n\n")
 	b.WriteString("1. Run `ship agent:setup` to sync generated artifacts.\n")
-	b.WriteString("2. Import `codex-prefixes.txt`, `claude-prefixes.txt`, and `gemini-prefixes.txt` into each local tool's command-permission settings.\n")
+	b.WriteString("2. Import `agent-prefixes.txt` into your local agent tool's command-permission settings.\n")
 	b.WriteString("3. Run `ship agent:check` in CI/pre-commit to enforce parity.\n")
 	return b.String()
 }

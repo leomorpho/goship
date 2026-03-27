@@ -777,7 +777,7 @@ COPY . .
 	t.Run("agent policy artifact drift", func(t *testing.T) {
 		root := t.TempDir()
 		writeDoctorFixture(t, root)
-		if err := os.WriteFile(filepath.Join(root, "tools", "agent-policy", "generated", "codex-prefixes.txt"), []byte("stale\n"), 0o644); err != nil {
+		if err := os.WriteFile(filepath.Join(root, "tools", "agent-policy", "generated", "agent-prefixes.txt"), []byte("stale\n"), 0o644); err != nil {
 			t.Fatal(err)
 		}
 		issues := RunDoctorChecks(root)
@@ -1090,9 +1090,7 @@ type Container struct{}
 			"}",
 			"",
 		}, "\n"),
-		filepath.Join(root, "tools", "agent-policy", "generated", "codex-prefixes.txt"):  "go test\n",
-		filepath.Join(root, "tools", "agent-policy", "generated", "claude-prefixes.txt"): "go test\n",
-		filepath.Join(root, "tools", "agent-policy", "generated", "gemini-prefixes.txt"): "go test\n",
+		filepath.Join(root, "tools", "agent-policy", "generated", "agent-prefixes.txt"): "go test\n",
 		filepath.Join(root, "tools", "agent-policy", "generated", "INSTALL.md"): strings.Join([]string{
 			"# Agent Command Allowlist",
 			"",
@@ -1107,7 +1105,7 @@ type Container struct{}
 			"## Setup",
 			"",
 			"1. Run `ship agent:setup` to sync generated artifacts.",
-			"2. Import `codex-prefixes.txt`, `claude-prefixes.txt`, and `gemini-prefixes.txt` into each local tool's command-permission settings.",
+			"2. Import `agent-prefixes.txt` into your local agent tool's command-permission settings.",
 			"3. Run `ship agent:check` in CI/pre-commit to enforce parity.",
 			"",
 		}, "\n"),

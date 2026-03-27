@@ -24,7 +24,7 @@ modules/<name>/
 ├── routes.go          # Route registration — implements core.RoutableModule (optional)
 ├── views/web/         # Templ templates
 ├── db/migrations/     # SQL migration files
-├── CLAUDE.md          # Agent context for this module
+├── AGENTS.md          # Agent context for this module
 └── *_test.go
 ```
 

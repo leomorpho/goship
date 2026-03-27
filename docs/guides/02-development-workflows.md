@@ -271,9 +271,7 @@ Canonical allowlist:
 
 Generated artifacts (for local tool import):
 
-- `tools/agent-policy/generated/codex-prefixes.txt`
-- `tools/agent-policy/generated/claude-prefixes.txt`
-- `tools/agent-policy/generated/gemini-prefixes.txt`
+- `tools/agent-policy/generated/agent-prefixes.txt`
 - `tools/agent-policy/generated/allowed-prefixes.json`
 
 Commands:

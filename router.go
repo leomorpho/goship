@@ -8,7 +8,6 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/leomorpho/goship-modules/notifications"
-	notificationroutes "github.com/leomorpho/goship-modules/notifications/routes"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	paidsubscriptionroutes "github.com/leomorpho/goship-modules/paidsubscriptions/routes"
 	"github.com/leomorpho/goship/config"
@@ -22,11 +21,6 @@ import (
 	"github.com/leomorpho/goship/framework/web/middleware"
 	routeNames "github.com/leomorpho/goship/framework/web/routenames"
 	"github.com/leomorpho/goship/framework/web/ui"
-	twofamodule "github.com/leomorpho/goship/modules/2fa"
-	adminmodule "github.com/leomorpho/goship/modules/admin"
-	authmodule "github.com/leomorpho/goship/modules/auth"
-	profilemodule "github.com/leomorpho/goship/modules/profile"
-	pwamodule "github.com/leomorpho/goship/modules/pwa"
 )
 
 type RouterModules struct {
@@ -123,6 +117,7 @@ func resolveStartupWebFeatures(c *frameworkbootstrap.Container) (runtimeplan.Pla
 }
 
 func registerPublicRoutes(c *frameworkbootstrap.Container, g *echo.Group, ctr ui.Controller, deps *frameworkweb.RouteDeps) error {
+	_ = deps
 	landingPage := frameworkcontrollers.NewLandingPageRoute(ctr)
 	g.GET("/", landingPage.Get).Name = routeNames.RouteNameLandingPage
 
@@ -132,11 +127,6 @@ func registerPublicRoutes(c *frameworkbootstrap.Container, g *echo.Group, ctr ui
 	g.GET(c.Config.App.TestSentryUrl, func(ctx echo.Context) error {
 		panic("Test error for Sentry")
 	})
-
-	pwaModule := pwamodule.NewModule(pwamodule.NewRouteService(ctr))
-	if err := pwaModule.RegisterRoutes(g); err != nil {
-		return err
-	}
 
 	if ctr.Container.Config.App.Environment != config.EnvProduction {
 		errHandler := frameworkcontrollers.NewErrorHandler(ctr)
@@ -168,101 +158,10 @@ func registerMailPreviewRoutes(g *echo.Group, ctr ui.Controller) {
 }
 
 func registerAuthRoutes(c *frameworkbootstrap.Container, g *echo.Group, ctr ui.Controller, deps *frameworkweb.RouteDeps) error {
-	twoFactorService := twofamodule.NewService(
-		twofamodule.NewSQLStore(c.Database, c.Config.Adapters.DB),
-		string(c.Config.App.Name),
-		c.Config.App.EncryptionKey,
-	)
-	authModule := authmodule.New(authmodule.Deps{
-		Controller:                    ctr,
-		ProfileService:                *deps.ProfileService,
-		SubscriptionsService:          deps.SubscriptionsRepo,
-		NotificationPermissionService: deps.NotificationPermissionService,
-		TwoFactorAuth:                 twoFactorService,
-	})
-	if err := authModule.RegisterRoutes(g); err != nil {
-		return err
-	}
-
-	onboardingGroup := g.Group("/welcome", middleware.RequireAuthentication())
-	preferences := frameworkcontrollers.NewPreferencesRoute(
-		ctr,
-		deps.ProfileService,
-		deps.PwaPushService,
-		deps.NotificationPermissionService,
-		deps.SubscriptionsRepo,
-		deps.SMSSenderService,
-	)
-	onboardingGroup.GET("/preferences", preferences.Get).Name = routeNames.RouteNamePreferences
-	onboardingGroup.GET("/preferences/phone", preferences.GetPhoneComponent).Name = routeNames.RouteNameGetPhone
-	onboardingGroup.GET("/preferences/phone/verification", preferences.GetPhoneVerificationComponent).Name = routeNames.RouteNameGetPhoneVerification
-	onboardingGroup.POST("/preferences/phone/verification", preferences.SubmitPhoneVerificationCode).Name = routeNames.RouteNameSubmitPhoneVerification
-	onboardingGroup.POST("/preferences/phone/save", preferences.SavePhoneInfo).Name = routeNames.RouteNameUpdatePhoneNum
-	onboardingGroup.GET("/preferences/display-name/get", preferences.GetDisplayName).Name = routeNames.RouteNameGetDisplayName
-	onboardingGroup.POST("/preferences/display-name/save", preferences.SaveDisplayName).Name = routeNames.RouteNameUpdateDisplayName
-
-	deleteAccountRoute := frameworkcontrollers.NewDeleteAccountRoute(ctr, deps.ProfileService, deps.SubscriptionsRepo)
-	onboardingGroup.GET("/preferences/delete-account", deleteAccountRoute.DeleteAccountPage).Name = routeNames.RouteNameDeleteAccountPage
-	onboardingGroup.GET("/preferences/delete-account/now", deleteAccountRoute.DeleteAccountRequest).Name = routeNames.RouteNameDeleteAccountRequest
-
-	finishOnboarding := frameworkcontrollers.NewOnboardingRoute(ctr, deps.ProfileService)
-	onboardingGroup.GET("/finish-onboarding", finishOnboarding.Get).Name = routeNames.RouteNameFinishOnboarding
-
-	profilePrefs := frameworkcontrollers.NewProfilePrefsRoute(ctr, deps.ProfileService)
-	onboardingGroup.GET("/profileBio", profilePrefs.GetBio).Name = routeNames.RouteNameGetBio
-	onboardingGroup.POST("/profileBio/update", profilePrefs.UpdateBio).Name = routeNames.RouteNameUpdateBio
-
-	twoFactorModule := twofamodule.NewModule(twofamodule.ModuleDeps{
-		Controller: ctr,
-		Service:    twoFactorService,
-	})
-	if err := twoFactorModule.RegisterRoutes(g); err != nil {
-		return err
-	}
-
-	onboardedGroup := g.Group("/auth", middleware.RequireAuthentication(), middleware.RedirectToOnboardingIfNotComplete())
-
-	homeFeed := frameworkcontrollers.NewHomeFeedRoute(ctr, *deps.ProfileService, &c.Config.App.PageSize)
-	onboardedGroup.GET("/homeFeed", homeFeed.Get, middleware.SetLastSeenOnline(c.Auth)).Name = routeNames.RouteNameHomeFeed
-	onboardedGroup.GET("/homeFeed/buttons", homeFeed.GetHomeButtons).Name = routeNames.RouteNameGetHomeFeedButtons
-
-	profileModule := profilemodule.NewModule(profilemodule.ModuleDeps{
-		Controller:     ctr,
-		ProfileService: deps.ProfileService,
-		MaxFileSizeMB:  c.Config.Storage.PhotosMaxFileSizeMB,
-	})
-	if err := profileModule.RegisterRoutes(onboardedGroup); err != nil {
-		return err
-	}
-
-	notificationsModule := notificationroutes.NewRouteModule(notificationroutes.RouteModuleDeps{
-		Controller:                    ctr,
-		ProfileService:                deps.ProfileService,
-		NotifierService:               deps.NotifierService,
-		PwaPushService:                deps.PwaPushService,
-		FcmPushService:                deps.FcmPushService,
-		NotificationPermissionService: deps.NotificationPermissionService,
-	})
-	if err := notificationsModule.RegisterOnboardingRoutes(onboardingGroup); err != nil {
-		return err
-	}
-	if err := notificationsModule.RegisterRoutes(onboardedGroup); err != nil {
-		return err
-	}
-
-	paymentsModule := paidsubscriptionroutes.NewRouteModule(ctr, deps.SubscriptionsRepo)
-	if err := paymentsModule.RegisterRoutes(onboardedGroup); err != nil {
-		return err
-	}
-	adminPanelModule := adminmodule.New(adminmodule.ModuleDeps{
-		Controller: ctr,
-		DB:         c.Database,
-		AuditLogs:  c.AuditLogs,
-		Flags:      c.Flags,
-	})
-	if err := adminPanelModule.RegisterRoutes(onboardedGroup); err != nil {
-		return err
-	}
+	_ = c
+	_ = g
+	_ = ctr
+	_ = deps
 
 	// ship:routes:auth:start
 	// ship:routes:auth:end
