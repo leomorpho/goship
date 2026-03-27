@@ -35,30 +35,28 @@ func NewController(c *frameworkbootstrap.Container) Controller {
 	}
 }
 
-// TODO: RenderPage is repeated in RenderToHTMLBlob. Combine the two for clarity/succintness.
+func (c *Controller) preparePage(page Page, domain string) (Page, error) {
+	if page.Name == "" {
+		return page, errors.New("page render failed due to missing name")
+	}
+	if page.Component == nil {
+		return page, errors.New("page render failed due to missing component")
+	}
+	if page.AppName == "" {
+		page.AppName = string(c.Container.Config.App.Name)
+	}
+	page.Domain = domain
+	return page, nil
+}
+
 // RenderToHTMLBlob renders a page to HTML without returning any HTTP reponse, unlike RenderPage.
 // It is meant to generate small blobs of HTML, for example for use in SSE events.
 func (c *Controller) RenderToHTMLBlob(ctx ctx.Context, page Page) (string, error) {
 	buf := &bytes.Buffer{}
-	var err error
-
-	// Page name is required
-	if page.Name == "" {
-		return "", errors.New("template name should be set")
+	page, err := c.preparePage(page, c.Container.Config.HTTP.Domain)
+	if err != nil {
+		return "", err
 	}
-
-	// Page component required
-	if page.Component == nil {
-		return "", errors.New("page render failed due to missing component")
-	}
-
-	// Use the app name in configuration if a value was not set
-	if page.AppName == "" {
-		page.AppName = string(c.Container.Config.App.Name)
-
-	}
-
-	page.Domain = c.Container.Config.HTTP.Domain
 
 	// Render the templates only for the content portion of the page
 	renderCtx := templ.WithNonce(ctx, frameworkmiddleware.CSPNonce(page.Context))
@@ -90,27 +88,9 @@ func convertToSingleLineString(blob *bytes.Buffer) string {
 // RenderPage renders a Page as an HTTP response
 func (c *Controller) RenderPage(ctx echo.Context, page Page) error {
 	buf := &bytes.Buffer{}
-	var err error
-
-	// TODO: there is a freaking bug where setting the domain here sets it for the layout (it appears in the navbar),
-	// but it is not set for any components trying to access it in the page. Currently, the only fix is to set it
-	// in the route's page object. I am confused bywhat's happening...
-	page.Domain = c.Container.Config.HTTP.Domain
-
-	// Page name is required
-	if page.Name == "" {
-		return echo.NewHTTPError(http.StatusInternalServerError, "page render failed due to missing name")
-	}
-
-	// Page component required
-	if page.Component == nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "page render failed due to missing component")
-	}
-
-	// Use the app name in configuration if a value was not set
-	if page.AppName == "" {
-		page.AppName = string(c.Container.Config.App.Name)
-
+	page, err := c.preparePage(page, c.Container.Config.HTTP.Domain)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
 	// Check if this is an HTMX non-boosted request which indicates that only partial

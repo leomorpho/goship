@@ -133,8 +133,6 @@ func RequireAuthentication() echo.MiddlewareFunc {
 				// Redirect to login page
 				url := c.Echo().Reverse(routenames.RouteNameLogin)
 				return c.Redirect(http.StatusSeeOther, url)
-				// Note: leaving original code commented out in case there are unforeseen consequences...so I remember this change which may have caused it...
-				// return echo.NewHTTPError(http.StatusUnauthorized)
 			}
 
 			return next(c)
@@ -147,7 +145,7 @@ func RequireNoAuthentication() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			if u := c.Get(appcontext.AuthenticatedUserIDKey); u != nil {
-				url := c.Echo().Reverse("home_feed")
+				url := c.Echo().Reverse(routenames.RouteNameHomeFeed)
 				return c.Redirect(http.StatusSeeOther, url)
 			}
 

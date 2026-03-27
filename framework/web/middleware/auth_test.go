@@ -7,6 +7,10 @@ import (
 
 	"github.com/leomorpho/goship/framework/appcontext"
 	"github.com/leomorpho/goship/framework/tests"
+	"github.com/leomorpho/goship/framework/web/routenames"
+
+	"github.com/labstack/echo-contrib/session"
+	"github.com/labstack/echo/v4"
 
 	"github.com/stretchr/testify/require"
 
@@ -45,14 +49,19 @@ func TestLoadAuthenticatedUser(t *testing.T) {
 }
 
 func TestRequireAuthentication(t *testing.T) {
-	ctx, _ := tests.NewContext(c.Web, "/")
+	e := echo.New()
+	e.GET("/auth/login", func(c echo.Context) error { return nil }).Name = routenames.RouteNameLogin
+	ctx, _ := tests.NewContext(e, "/protected?tab=profile")
 	tests.InitSession(ctx)
 
 	// Not logged in
 	err := tests.ExecuteMiddleware(ctx, RequireAuthentication())
 	require.NoError(t, err)
-	// TODO: not ideal for now. I would like to redirect with a meaningfull code
-	// tests.AssertHTTPErrorCode(t, err, http.StatusUnauthorized)
+	assert.Equal(t, http.StatusSeeOther, ctx.Response().Status)
+	assert.Equal(t, "/auth/login", ctx.Response().Header().Get("Location"))
+	redirectSession, sessionErr := session.Get("session", ctx)
+	require.NoError(t, sessionErr)
+	assert.Equal(t, "/protected?tab=profile", redirectSession.Values["redirectAfterLogin"])
 
 	// Login
 	err = c.Auth.Login(ctx, usr.ID)
@@ -65,7 +74,9 @@ func TestRequireAuthentication(t *testing.T) {
 }
 
 func TestRequireNoAuthentication(t *testing.T) {
-	ctx, _ := tests.NewContext(c.Web, "/")
+	e := echo.New()
+	e.GET("/home", func(c echo.Context) error { return nil }).Name = routenames.RouteNameHomeFeed
+	ctx, _ := tests.NewContext(e, "/")
 	tests.InitSession(ctx)
 
 	// Not logged in
@@ -79,7 +90,9 @@ func TestRequireNoAuthentication(t *testing.T) {
 
 	// Logged in
 	err = tests.ExecuteMiddleware(ctx, RequireNoAuthentication())
-	assert.Nil(t, err)
+	require.NoError(t, err)
+	assert.Equal(t, http.StatusSeeOther, ctx.Response().Status)
+	assert.Equal(t, "/home", ctx.Response().Header().Get("Location"))
 }
 
 func TestLoadValidPasswordToken(t *testing.T) {

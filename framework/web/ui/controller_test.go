@@ -2,17 +2,18 @@ package ui_test
 
 import (
 	"context"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"testing"
 
+	"github.com/a-h/templ"
 	"github.com/leomorpho/goship/config"
 	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
 	"github.com/leomorpho/goship/framework/htmx"
 	"github.com/leomorpho/goship/framework/tests"
-	components "github.com/leomorpho/goship/framework/web/components/gen"
 	layouts "github.com/leomorpho/goship/framework/web/layouts/gen"
 	"github.com/leomorpho/goship/framework/web/middleware"
 	pages "github.com/leomorpho/goship/framework/web/pages/gen"
@@ -118,7 +119,10 @@ func TestController_RenderToHTMLBlob(t *testing.T) {
 
 		p := ui.NewPage(ctx)
 		p.Name = "healthcheck"
-		p.Component = components.ToolTip("", "")
+		p.Component = templ.ComponentFunc(func(_ context.Context, w io.Writer) error {
+			_, err := io.WriteString(w, `<div data-test="blob">ok</div>`)
+			return err
+		})
 		p.Layout = layouts.Main
 		p.Cache.Enabled = false
 

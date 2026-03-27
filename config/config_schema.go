@@ -211,7 +211,7 @@ type (
 		PageSize                         int    `env:"PAGODA_APP_PAGESIZE"`
 		VapidPublicKey                   string `env:"PAGODA_APP_VAPIDPUBLICKEY"`
 		VapidPrivateKey                  string `env:"PAGODA_APP_VAPIDPRIVATEKEY"`
-		SentryDsn                        string `env:"PAGODA_APP_SENTRYDSN"`
+		SentryDsn                        string `env:"PAGODA_APP_SENTRYDSN,SENTRY_DSN"`
 		TestSentryUrl                    string `env:"PAGODA_APP_TESTSENTRYURL"`
 		PublicStripeKey                  string `env:"PAGODA_APP_PUBLICSTRIPEKEY"`
 		PrivateStripeKey                 string `env:"PAGODA_APP_PRIVATESTRIPEKEY"`

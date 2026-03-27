@@ -91,9 +91,7 @@ func (c *AuthClient) Logout(ctx echo.Context) error {
 	// Overwrite session values
 	sess.Values[authSessionKeyAuthenticated] = false
 
-	// TODO: not quite sure why, but resetting the cookie is not needed in the vanilla
-	// starter kit from Pagoda. Not sure which one of my changes broke that.
-	// Set the cookie to expire immediately
+	// Force-expire the auth cookie to make logout semantics explicit across stores.
 	sess.Options = &sessions.Options{
 		Path:     "/",
 		MaxAge:   -1, // Set MaxAge to -1 to delete the session

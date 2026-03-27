@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/getsentry/sentry-go"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/labstack/echo/v4"
 	anthropicdriver "github.com/leomorpho/goship/modules/ai/drivers/anthropic"
@@ -298,39 +299,13 @@ func (c *Container) initValidator() {
 func (c *Container) initWeb() {
 
 	c.Web = echo.New()
-	if c.Config.App.Environment == config.EnvProduction {
-		// TODO: Haven't set up sentry for GoShip yet
-		// sentryDsn := c.Config.App.SentryDsn
-		// if len(sentryDsn) == 0 {
-		// 	log.Fatal().Str("app", string(c.Config.App.Name)).Msg("sentry initialization failed due to empty DSN")
-		// }
-		// // To initialize Sentry's handler, you need to initialize Sentry itself beforehand
-		// if err := sentry.Init(sentry.ClientOptions{
-		// 	Dsn: sentryDsn,
-		// 	BeforeSend: func(event *sentry.Event, hint *sentry.EventHint) *sentry.Event {
-		// 		if event.Level == sentry.LevelError {
-		// 			for _, exception := range event.Exception {
-		// 				if exception.Type == "sentry.usageError" {
-		// 					return nil // Ignore this error
-		// 				}
-		// 			}
-		// 		}
-
-		// 		if event.Message == "CaptureMessage called with empty message" {
-		// 			return nil // Ignore this error
-		// 		}
-
-		// 		return event
-		// 	},
-		// 	// Set TracesSampleRate to 1.0 to capture 100%
-		// 	// of transactions for performance monitoring.
-		// 	// We recommend adjusting this value in production,
-		// 	TracesSampleRate: 0.05, // For dev, because otherwise I use all my sentry errors in days
-		// 	EnableTracing:    true,
-		// 	Release:          "v0.1",
-		// }); err != nil {
-		// 	log.Fatal().Err(err).Msg("sentry initialization failed")
-		// }
+	if sentryDsn := strings.TrimSpace(c.Config.App.SentryDsn); sentryDsn != "" {
+		if err := sentry.Init(sentry.ClientOptions{
+			Dsn:         sentryDsn,
+			Environment: string(c.Config.App.Environment),
+		}); err != nil {
+			panic(fmt.Sprintf("startup sentry initialization failure: %v", err))
+		}
 	}
 
 	// Create an slog logger instance

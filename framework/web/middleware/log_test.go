@@ -1,28 +1,37 @@
 package middleware
 
-// import (
-// 	"bytes"
-// 	"fmt"
-// 	"testing"
+import (
+	"bytes"
+	"fmt"
+	"testing"
 
-// 	"github.com/leomorpho/goship/framework/tests"
+	"github.com/leomorpho/goship/framework/tests"
 
-// 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4"
+	echomw "github.com/labstack/echo/v4/middleware"
+	"github.com/labstack/gommon/log"
 
-// 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
 
-// 	echomw "github.com/labstack/echo/v4/middleware"
-// )
+func TestLogRequestID(t *testing.T) {
+	e := echo.New()
+	ctx, _ := tests.NewContext(e, "/")
+	logger := log.New("test")
+	var buf bytes.Buffer
+	logger.SetOutput(&buf)
+	ctx.SetLogger(logger)
 
-// TODO: unskip and fix this test
-// func TestLogRequestID(t *testing.T) {
-// 	ctx, _ := tests.NewContext(c.Web, "/")
-// 	_ = tests.ExecuteMiddleware(ctx, echomw.RequestID())
-// 	_ = tests.ExecuteMiddleware(ctx, LogRequestID())
+	err := tests.ExecuteMiddleware(ctx, echomw.RequestID())
+	require.NoError(t, err)
 
-// 	var buf bytes.Buffer
-// 	ctx.Logger().SetOutput(&buf)
-// 	ctx.Logger().Info("test")
-// 	rID := ctx.Response().Header().Get(echo.HeaderXRequestID)
-// 	assert.Contains(t, buf.String(), fmt.Sprintf(`id":"%s"`, rID))
-// }
+	err = tests.ExecuteMiddleware(ctx, LogRequestID())
+	require.NoError(t, err)
+
+	ctx.Logger().Info("test")
+
+	rID := ctx.Response().Header().Get(echo.HeaderXRequestID)
+	require.NotEmpty(t, rID)
+	assert.Contains(t, buf.String(), fmt.Sprintf(`"id":"%s"`, rID))
+}

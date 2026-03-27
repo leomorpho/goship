@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/labstack/echo-contrib/session"
 	"github.com/leomorpho/goship/framework/tests"
 	"github.com/leomorpho/goship/modules/authsupport"
 	"github.com/stretchr/testify/require"
@@ -38,6 +39,11 @@ func TestAuthClient_Auth(t *testing.T) {
 
 	err = c.Auth.Logout(ctx)
 	require.NoError(t, err)
+	authSession, err := session.Get("ua", ctx)
+	require.NoError(t, err)
+	assert.Equal(t, false, authSession.Values["authenticated"])
+	require.NotNil(t, authSession.Options)
+	assert.Equal(t, -1, authSession.Options.MaxAge)
 
 	assertNoAuth()
 }

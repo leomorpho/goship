@@ -132,16 +132,24 @@ func commonMiddleware(c *frameworkbootstrap.Container, deps *RouteDeps, sessionS
 	}
 }
 
+func sentryEnabled(c *frameworkbootstrap.Container) bool {
+	return c != nil && c.Config != nil && strings.TrimSpace(c.Config.App.SentryDsn) != ""
+}
+
 func ApplyMainMiddleware(c *frameworkbootstrap.Container, g *echo.Group, logger *slog.Logger, deps *RouteDeps, webFeatures runtimeplan.WebFeatures) {
 	sessionStore := sessions.NewCookieStore([]byte(c.Config.App.EncryptionKey))
 	base := commonMiddleware(c, deps, sessionStore)
 
 	mw := []echo.MiddlewareFunc{
+		webmiddleware.FilterSentryErrors,
 		webmiddleware.RecoverPanics(c.Logger),
 		echomw.Gzip(),
 		slogecho.New(logger),
 		frameworkmiddleware.SecurityHeaders(c.Config.Security, string(c.Config.App.Environment)),
 		echomw.TimeoutWithConfig(echomw.TimeoutConfig{Skipper: sseSkipper, Timeout: c.Config.App.Timeout}),
+	}
+	if !sentryEnabled(c) {
+		mw = mw[1:]
 	}
 	mw = append(mw, base...)
 	mw = append(mw, webmiddleware.SetDeviceTypeToServe())
@@ -158,9 +166,13 @@ func ApplyRealtimeMiddleware(c *frameworkbootstrap.Container, s *echo.Group, log
 	sessionStore := sessions.NewCookieStore([]byte(c.Config.App.EncryptionKey))
 	base := commonMiddleware(c, deps, sessionStore)
 	mw := []echo.MiddlewareFunc{
+		webmiddleware.FilterSentryErrors,
 		webmiddleware.RecoverPanics(c.Logger),
 		slogecho.New(logger),
 		frameworkmiddleware.SecurityHeaders(c.Config.Security, string(c.Config.App.Environment)),
+	}
+	if !sentryEnabled(c) {
+		mw = mw[1:]
 	}
 	mw = append(mw, base...)
 	s.Use(mw...)
@@ -170,11 +182,15 @@ func ApplyExternalMiddleware(c *frameworkbootstrap.Container, e *echo.Group, log
 	sessionStore := sessions.NewCookieStore([]byte(c.Config.App.EncryptionKey))
 	base := commonMiddleware(c, deps, sessionStore)
 	mw := []echo.MiddlewareFunc{
+		webmiddleware.FilterSentryErrors,
 		webmiddleware.RecoverPanics(c.Logger),
 		echomw.Gzip(),
 		slogecho.New(logger),
 		frameworkmiddleware.SecurityHeaders(c.Config.Security, string(c.Config.App.Environment)),
 		echomw.TimeoutWithConfig(echomw.TimeoutConfig{Skipper: sseSkipper, Timeout: c.Config.App.Timeout}),
+	}
+	if !sentryEnabled(c) {
+		mw = mw[1:]
 	}
 	mw = append(mw, base...)
 	e.Use(mw...)

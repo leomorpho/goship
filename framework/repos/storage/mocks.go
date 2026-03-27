@@ -33,6 +33,13 @@ func (msc *MockStorageClient) UploadFile(bucket Bucket, objectName string, fileS
 }
 
 func (msc *MockStorageClient) DeleteFile(bucket Bucket, objectName string) error {
+	for _, call := range msc.ExpectedCalls {
+		if call.Method != "DeleteFile" {
+			continue
+		}
+		args := msc.Called(bucket, objectName)
+		return args.Error(0)
+	}
 	return nil
 }
 

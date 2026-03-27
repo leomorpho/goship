@@ -94,7 +94,7 @@ func defaultConfig() Config {
 			PageSize:                         3,
 			VapidPublicKey:                   "",
 			VapidPrivateKey:                  "",
-			SentryDsn:                        "my-sentry-dsn-in-config",
+			SentryDsn:                        "",
 			TestSentryUrl:                    "jmGg9OAe2dhR8SpUpgvXXgnB81AD1KUjqyVmCGQIMHoWCIHzQ5",
 			PublicStripeKey:                  "pk_...",
 			PrivateStripeKey:                 "sk_...",
