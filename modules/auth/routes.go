@@ -8,9 +8,9 @@ import (
 
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
+	"github.com/leomorpho/goship-modules/notifications"
 	"github.com/leomorpho/goship/framework/appcontext"
 	"github.com/leomorpho/goship/framework/dberrors"
-	"github.com/leomorpho/goship/framework/domain"
 	"github.com/leomorpho/goship/framework/repos/ratelimit"
 	"github.com/leomorpho/goship/framework/repos/uxflashmessages"
 	layouts "github.com/leomorpho/goship/framework/web/layouts/gen"
@@ -230,9 +230,9 @@ func (s *Service) postRegister(ctx echo.Context) error {
 	}
 	ctx.Logger().Infof("user and profile created successfully: %s", registration.UserName)
 
-	for _, perm := range domain.NotificationPermissions.Members() {
+	for _, perm := range notifications.Permissions.Members() {
 		err := s.notificationPermissionService.CreatePermission(
-			ctx.Request().Context(), registration.ProfileID, perm, &domain.NotificationPlatformEmail)
+			ctx.Request().Context(), registration.ProfileID, perm, &notifications.PlatformEmail)
 		if err != nil {
 			slog.Error("failed to create notification permission", "error", err, "profileID", registration.ProfileID)
 		}

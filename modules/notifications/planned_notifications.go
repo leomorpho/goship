@@ -16,7 +16,7 @@ type plannedNotificationCandidate struct {
 }
 
 type plannedNotificationStorage interface {
-	listProfilesForPermission(ctx context.Context, permission domain.NotificationPermissionType, notifType domain.NotificationType) ([]plannedNotificationCandidate, error)
+	listProfilesForPermission(ctx context.Context, permission PermissionType, notifType domain.NotificationType) ([]plannedNotificationCandidate, error)
 	deleteStaleLastSeenBefore(ctx context.Context, deleteBeforeTime time.Time) error
 	listLastSeenForProfile(ctx context.Context, profileID int) ([]time.Time, error)
 	upsertNotificationTime(ctx context.Context, profileID int, notificationType domain.NotificationType, sendMinute int) error
@@ -42,7 +42,7 @@ func NewPlannedNotificationsServiceWithStore(
 func (p *PlannedNotificationsService) CreateNotificationTimeObjects(
 	ctx context.Context,
 	notifType domain.NotificationType,
-	permission domain.NotificationPermissionType,
+	permission PermissionType,
 ) error {
 	profiles, err := p.store.listProfilesForPermission(ctx, permission, notifType)
 	if err != nil {

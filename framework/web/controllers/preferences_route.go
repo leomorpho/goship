@@ -69,19 +69,19 @@ func (p *preferences) Get(ctx echo.Context) error {
 
 	notificationPermissions := viewmodels.NewNotificationPermissionsData()
 	notificationPermissions.VapidPublicKey = p.ctr.Container.Config.App.VapidPublicKey
-	notificationPermissions.PermissionDailyNotif = permissions[domain.NotificationPermissionDailyReminder]
-	notificationPermissions.PermissionPartnerActivity = permissions[domain.NotificationPermissionNewFriendActivity]
+	notificationPermissions.PermissionDailyNotif = permissions[notifications.PermissionDailyReminder]
+	notificationPermissions.PermissionPartnerActivity = permissions[notifications.PermissionNewFriendActivity]
 	notificationPermissions.SubscribedEndpoints = subscribedEndpoints
 	notificationPermissions.PhoneSubscriptionEnabled = profile.PhoneNumberE164 != "" && profile.PhoneVerified
 	notificationPermissions.NotificationTypeQueryParamKey = domain.PermissionNotificationType
-	notificationPermissions.AddPushSubscriptionEndpoint = p.subscriptionEndpoint(ctx, &page, routeNames.RouteNameRegisterSubscription, domain.NotificationPlatformPush.Value)
-	notificationPermissions.DeletePushSubscriptionEndpoint = p.subscriptionEndpoint(ctx, &page, routeNames.RouteNameDeleteSubscription, domain.NotificationPlatformPush.Value)
-	notificationPermissions.AddFCMPushSubscriptionEndpoint = p.subscriptionEndpoint(ctx, &page, routeNames.RouteNameRegisterSubscription, domain.NotificationPlatformFCMPush.Value)
-	notificationPermissions.DeleteFCMPushSubscriptionEndpoint = p.subscriptionEndpoint(ctx, &page, routeNames.RouteNameDeleteSubscription, domain.NotificationPlatformFCMPush.Value)
-	notificationPermissions.AddEmailSubscriptionEndpoint = p.subscriptionEndpoint(ctx, &page, routeNames.RouteNameRegisterSubscription, domain.NotificationPlatformEmail.Value)
-	notificationPermissions.DeleteEmailSubscriptionEndpoint = p.subscriptionEndpoint(ctx, &page, routeNames.RouteNameDeleteSubscription, domain.NotificationPlatformEmail.Value)
-	notificationPermissions.AddSmsSubscriptionEndpoint = p.subscriptionEndpoint(ctx, &page, routeNames.RouteNameRegisterSubscription, domain.NotificationPlatformSMS.Value)
-	notificationPermissions.DeleteSmsSubscriptionEndpoint = p.subscriptionEndpoint(ctx, &page, routeNames.RouteNameDeleteSubscription, domain.NotificationPlatformSMS.Value)
+	notificationPermissions.AddPushSubscriptionEndpoint = p.subscriptionEndpoint(ctx, &page, routeNames.RouteNameRegisterSubscription, notifications.PlatformPWAPush.Value)
+	notificationPermissions.DeletePushSubscriptionEndpoint = p.subscriptionEndpoint(ctx, &page, routeNames.RouteNameDeleteSubscription, notifications.PlatformPWAPush.Value)
+	notificationPermissions.AddFCMPushSubscriptionEndpoint = p.subscriptionEndpoint(ctx, &page, routeNames.RouteNameRegisterSubscription, notifications.PlatformFCMPush.Value)
+	notificationPermissions.DeleteFCMPushSubscriptionEndpoint = p.subscriptionEndpoint(ctx, &page, routeNames.RouteNameDeleteSubscription, notifications.PlatformFCMPush.Value)
+	notificationPermissions.AddEmailSubscriptionEndpoint = p.subscriptionEndpoint(ctx, &page, routeNames.RouteNameRegisterSubscription, notifications.PlatformEmail.Value)
+	notificationPermissions.DeleteEmailSubscriptionEndpoint = p.subscriptionEndpoint(ctx, &page, routeNames.RouteNameDeleteSubscription, notifications.PlatformEmail.Value)
+	notificationPermissions.AddSmsSubscriptionEndpoint = p.subscriptionEndpoint(ctx, &page, routeNames.RouteNameRegisterSubscription, notifications.PlatformSMS.Value)
+	notificationPermissions.DeleteSmsSubscriptionEndpoint = p.subscriptionEndpoint(ctx, &page, routeNames.RouteNameDeleteSubscription, notifications.PlatformSMS.Value)
 
 	data.NotificationPermissionsData = notificationPermissions
 

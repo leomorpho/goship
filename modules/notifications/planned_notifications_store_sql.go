@@ -35,7 +35,7 @@ func newSQLPlannedNotificationStore(db *sql.DB, dialect string) *sqlPlannedNotif
 }
 
 func (s *sqlPlannedNotificationStore) listProfilesForPermission(
-	ctx context.Context, permission domain.NotificationPermissionType, notifType domain.NotificationType,
+	ctx context.Context, permission PermissionType, notifType domain.NotificationType,
 ) ([]plannedNotificationCandidate, error) {
 	query, err := dbqueries.Get("list_profiles_for_permission")
 	if err != nil {

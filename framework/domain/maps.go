@@ -1,19 +1,5 @@
 package domain
 
-// Initialize the map of NotificationPermissionType to NotificationPermission
-var NotificationPermissionMap = map[NotificationPermissionType]NotificationPermission{
-	NotificationPermissionDailyReminder: {
-		Title:      "Daily conversation",
-		Subtitle:   "A reminder to not miss today's question, sent at most once a day.",
-		Permission: NotificationPermissionDailyReminder.Value,
-	},
-	NotificationPermissionNewFriendActivity: {
-		Title:      "Partner activity",
-		Subtitle:   "Answers you missed, sent at most once a day.",
-		Permission: NotificationPermissionNewFriendActivity.Value,
-	},
-}
-
 var NotificationCenterButtonText = map[NotificationType]string{
 	NotificationTypeConnectionEngagedWithQuestion: "Answer",
 }

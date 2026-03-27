@@ -356,11 +356,11 @@ func (r *OutgoingNotificationsRoute) RegisterSubscription(ctx echo.Context) erro
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid profile ID")
 	}
 
-	platform := domain.NotificationPlatforms.Parse(platformStr)
+	platform := notifications.ParsePlatform(platformStr)
 	notificationType := ctx.QueryParam(domain.PermissionNotificationType)
-	var permission *domain.NotificationPermissionType
+	var permission *notifications.PermissionType
 	if notificationType != "" {
-		permission = domain.NotificationPermissions.Parse(notificationType)
+		permission = notifications.Permissions.Parse(notificationType)
 	}
 
 	var req PushSubscriptionRequest
@@ -378,7 +378,7 @@ func (r *OutgoingNotificationsRoute) RegisterSubscription(ctx echo.Context) erro
 			slog.Error("failed to create notification permission", "error", err)
 		}
 	} else {
-		for _, perm := range domain.NotificationPermissions.Members() {
+		for _, perm := range notifications.Permissions.Members() {
 			if err := r.notificationPermissionService.CreatePermission(ctx.Request().Context(), profileID, perm, platform); err != nil {
 				slog.Error("failed to create notification permission", "error", err)
 			}
@@ -386,7 +386,7 @@ func (r *OutgoingNotificationsRoute) RegisterSubscription(ctx echo.Context) erro
 	}
 
 	switch *platform {
-	case domain.NotificationPlatformPush:
+	case notifications.PlatformPWAPush:
 		hasPermissionsAlready, err := r.pwaPushService.HasEndpointRegistered(ctx.Request().Context(), profileID, req.Endpoint)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "error checking if user still has registered endpoints")
@@ -401,7 +401,7 @@ func (r *OutgoingNotificationsRoute) RegisterSubscription(ctx echo.Context) erro
 			}
 		}
 
-	case domain.NotificationPlatformFCMPush:
+	case notifications.PlatformFCMPush:
 		hasPermissionsAlready, err := r.fcmPushService.HasTokenRegistered(ctx.Request().Context(), profileID, req.FCMToken)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "error checking if user still has registered fcm subscriptions")
@@ -426,11 +426,11 @@ func (r *OutgoingNotificationsRoute) DeleteSubscription(ctx echo.Context) error 
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid profile ID")
 	}
 
-	platform := domain.NotificationPlatforms.Parse(platformStr)
+	platform := notifications.ParsePlatform(platformStr)
 	notificationType := ctx.QueryParam(domain.PermissionNotificationType)
-	var permission *domain.NotificationPermissionType
+	var permission *notifications.PermissionType
 	if notificationType != "" {
-		permission = domain.NotificationPermissions.Parse(notificationType)
+		permission = notifications.Permissions.Parse(notificationType)
 	}
 
 	var req PushSubscriptionRequest
@@ -448,7 +448,7 @@ func (r *OutgoingNotificationsRoute) DeleteSubscription(ctx echo.Context) error 
 			slog.Error("failed to delete notification permission", "error", err)
 		}
 	} else {
-		for _, perm := range domain.NotificationPermissions.Members() {
+		for _, perm := range notifications.Permissions.Members() {
 			if err := r.notificationPermissionService.DeletePermission(ctx.Request().Context(), profileID, perm, platform, nil); err != nil {
 				slog.Error("failed to delete notification permission", "error", err)
 			}
@@ -456,7 +456,7 @@ func (r *OutgoingNotificationsRoute) DeleteSubscription(ctx echo.Context) error 
 	}
 
 	switch *platform {
-	case domain.NotificationPlatformPush:
+	case notifications.PlatformPWAPush:
 		hasPermissionsLeft, err := r.pwaPushService.HasEndpointRegistered(ctx.Request().Context(), profileID, req.Endpoint)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "error checking if user still has registered pwa endpoints")
@@ -467,7 +467,7 @@ func (r *OutgoingNotificationsRoute) DeleteSubscription(ctx echo.Context) error 
 			}
 		}
 
-	case domain.NotificationPlatformFCMPush:
+	case notifications.PlatformFCMPush:
 		hasPermissionsLeft, err := r.fcmPushService.HasTokenRegistered(ctx.Request().Context(), profileID, req.FCMToken)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, "error checking if user still has registered fcm registration")
@@ -493,7 +493,7 @@ func (r *OutgoingNotificationsRoute) DeleteEmailSubscription(ctx echo.Context) e
 		return echo.NewHTTPError(http.StatusBadRequest, "Invalid notification type")
 	}
 
-	permission := domain.NotificationPermissions.Parse(notificationType)
+	permission := notifications.Permissions.Parse(notificationType)
 	profileID, err := authenticatedProfileID(ctx)
 	if err != nil {
 		return err
@@ -506,9 +506,9 @@ func (r *OutgoingNotificationsRoute) DeleteEmailSubscription(ctx echo.Context) e
 
 	var notificationName string
 	switch *permission {
-	case domain.NotificationPermissionDailyReminder:
+	case notifications.PermissionDailyReminder:
 		notificationName = "daily updates"
-	case domain.NotificationPermissionNewFriendActivity:
+	case notifications.PermissionNewFriendActivity:
 		notificationName = "partner activity"
 	default:
 		slog.Error("no notification exists with that name", "notifPermission", permission.Value)
@@ -518,7 +518,7 @@ func (r *OutgoingNotificationsRoute) DeleteEmailSubscription(ctx echo.Context) e
 		ctx.Request().Context(),
 		profileID,
 		*permission,
-		&domain.NotificationPlatformEmail,
+		&notifications.PlatformEmail,
 		&token,
 	)
 
@@ -532,7 +532,7 @@ func (r *OutgoingNotificationsRoute) DeleteEmailSubscription(ctx echo.Context) e
 			"error", permissionErr,
 			"profileID", profileData.ID,
 			"notifPermission", permission.Value,
-			"platform", domain.NotificationPlatformEmail.Value,
+			"platform", notifications.PlatformEmail.Value,
 			"token", token,
 		)
 
@@ -576,40 +576,40 @@ func (r *OutgoingNotificationsRoute) createNotificationsPage(
 	addPushSubscriptionEndpoint := fmt.Sprintf(
 		"%s%s",
 		r.controller.Container.Config.HTTP.Domain,
-		ctx.Echo().Reverse(routeNames.RouteNameRegisterSubscription, domain.NotificationPlatformPush.Value),
+		ctx.Echo().Reverse(routeNames.RouteNameRegisterSubscription, notifications.PlatformPWAPush.Value),
 	) + "?csrf=" + page.CSRF
 	deletePushSubscriptionEndpoint := fmt.Sprintf(
 		"%s%s",
 		r.controller.Container.Config.HTTP.Domain,
-		ctx.Echo().Reverse(routeNames.RouteNameDeleteSubscription, domain.NotificationPlatformPush.Value),
+		ctx.Echo().Reverse(routeNames.RouteNameDeleteSubscription, notifications.PlatformPWAPush.Value),
 	) + "?csrf=" + page.CSRF
 
 	addEmailSubscriptionEndpoint := fmt.Sprintf(
 		"%s%s",
 		r.controller.Container.Config.HTTP.Domain,
-		ctx.Echo().Reverse(routeNames.RouteNameRegisterSubscription, domain.NotificationPlatformEmail.Value),
+		ctx.Echo().Reverse(routeNames.RouteNameRegisterSubscription, notifications.PlatformEmail.Value),
 	) + "?csrf=" + page.CSRF
 	deleteEmailSubscriptionEndpoint := fmt.Sprintf(
 		"%s%s",
 		r.controller.Container.Config.HTTP.Domain,
-		ctx.Echo().Reverse(routeNames.RouteNameDeleteSubscription, domain.NotificationPlatformEmail.Value),
+		ctx.Echo().Reverse(routeNames.RouteNameDeleteSubscription, notifications.PlatformEmail.Value),
 	) + "?csrf=" + page.CSRF
 
 	addSMSSubscriptionEndpoint := fmt.Sprintf(
 		"%s%s",
 		r.controller.Container.Config.HTTP.Domain,
-		ctx.Echo().Reverse(routeNames.RouteNameRegisterSubscription, domain.NotificationPlatformSMS.Value),
+		ctx.Echo().Reverse(routeNames.RouteNameRegisterSubscription, notifications.PlatformSMS.Value),
 	) + "?csrf=" + page.CSRF
 	deleteSMSSubscriptionEndpoint := fmt.Sprintf(
 		"%s%s",
 		r.controller.Container.Config.HTTP.Domain,
-		ctx.Echo().Reverse(routeNames.RouteNameDeleteSubscription, domain.NotificationPlatformSMS.Value),
+		ctx.Echo().Reverse(routeNames.RouteNameDeleteSubscription, notifications.PlatformSMS.Value),
 	) + "?csrf=" + page.CSRF
 
 	notificationPermissions := viewmodels.NewNotificationPermissionsData()
 	notificationPermissions.VapidPublicKey = r.controller.Container.Config.App.VapidPublicKey
-	notificationPermissions.PermissionDailyNotif = permissions[domain.NotificationPermissionDailyReminder]
-	notificationPermissions.PermissionPartnerActivity = permissions[domain.NotificationPermissionNewFriendActivity]
+	notificationPermissions.PermissionDailyNotif = permissions[notifications.PermissionDailyReminder]
+	notificationPermissions.PermissionPartnerActivity = permissions[notifications.PermissionNewFriendActivity]
 	notificationPermissions.SubscribedEndpoints = subscribedEndpoints
 	notificationPermissions.PhoneSubscriptionEnabled = phoneNumberE164 != "" && phoneVerified
 	notificationPermissions.NotificationTypeQueryParamKey = domain.PermissionNotificationType

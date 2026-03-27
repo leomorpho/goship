@@ -24,12 +24,12 @@ func TestPlannedNotificationsService_SQLStore_CreateTimesAndSelectCandidates(t *
 		INSERT INTO notification_permissions (created_at, updated_at, permission, platform, profile_id, token)
 		VALUES (?, ?, ?, ?, ?, ?), (?, ?, ?, ?, ?, ?)
 	`,
-		time.Now().UTC(), time.Now().UTC(), domain.NotificationPermissionDailyReminder.Value, domain.NotificationPlatformPush.Value, 1, "tok-1",
-		time.Now().UTC(), time.Now().UTC(), domain.NotificationPermissionDailyReminder.Value, domain.NotificationPlatformPush.Value, 2, "tok-2",
+		time.Now().UTC(), time.Now().UTC(), PermissionDailyReminder.Value, PlatformPWAPush.Value, 1, "tok-1",
+		time.Now().UTC(), time.Now().UTC(), PermissionDailyReminder.Value, PlatformPWAPush.Value, 2, "tok-2",
 	)
 	require.NoError(t, err)
 
-	err = svc.CreateNotificationTimeObjects(ctx, domain.NotificationTypeDailyConversationReminder, domain.NotificationPermissionDailyReminder)
+	err = svc.CreateNotificationTimeObjects(ctx, domain.NotificationTypeDailyConversationReminder, PermissionDailyReminder)
 	require.NoError(t, err)
 
 	var countProfile1 int

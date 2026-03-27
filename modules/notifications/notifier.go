@@ -7,7 +7,9 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/leomorpho/goship/framework/core"
 	"github.com/leomorpho/goship/framework/domain"
+	"github.com/leomorpho/goship/framework/repos/ssepubsub"
 )
 
 /*
@@ -18,6 +20,7 @@ NotifierService manages the full lifecycle of notifications. That includes:
 */
 type NotifierService struct {
 	pubSubClient              PubSub
+	jobs                      core.Jobs
 	notificationStore         NotificationStorage
 	notificationPermissionSvc *NotificationPermissionService
 	pwaPushService            *PwaPushService
@@ -25,14 +28,9 @@ type NotifierService struct {
 	getNumNotifsCount         func(context.Context, int) (int, error)
 }
 
-// SSEEvent is the notifier-level realtime event payload exposed to callers.
-type SSEEvent struct {
-	Type string `json:"type"`
-	Data string `json:"data"`
-}
-
 func NewNotifierService(
 	pubSubClient PubSub,
+	jobs core.Jobs,
 	notificationStore NotificationStorage,
 	notificationPermissionService *NotificationPermissionService,
 	pwaPushService *PwaPushService,
@@ -41,6 +39,7 @@ func NewNotifierService(
 ) *NotifierService {
 	return &NotifierService{
 		pubSubClient:              pubSubClient,
+		jobs:                      jobs,
 		notificationStore:         notificationStore,
 		notificationPermissionSvc: notificationPermissionService,
 		pwaPushService:            pwaPushService,
@@ -74,7 +73,7 @@ func (s *NotifierService) PublishNotification(
 	// TODO: if we re-use the messaging notifications, we'll need to defined the Type of this notif
 	// accordingly. For example we should use NotificationTypeIncrementNumUnseenMessages and NotificationTypeDecrementNumUnseenMessages
 	// for private messages, but NotificationTypeUpdateNumNotifications for general notifications.
-	err := s.publishEvent(ctx, fmt.Sprint(notification.ProfileID), SSEEvent{
+	err := s.publishEvent(ctx, fmt.Sprint(notification.ProfileID), ssepubsub.SSEEvent{
 		Type: domain.NotificationTypeUpdateNumNotifications.Value,
 		Data: "n/a",
 	})
@@ -91,42 +90,33 @@ func (s *NotifierService) PublishNotification(
 		}
 
 		if s.pwaPushService != nil {
-			canSend, err := s.canSendPushForPlatform(ctx, notification.ProfileID, domain.NotificationPlatformPush)
-			if err != nil {
+			if err := s.enqueuePushNotification(ctx, DeliverPushNotificationPayload{
+				ProfileID:   notification.ProfileID,
+				Platform:    PlatformPWAPush.Value,
+				Title:       notification.Title,
+				Message:     notification.Text,
+				UnreadCount: numNotifs,
+				SendSound:   true,
+			}); err != nil {
 				return err
-			}
-			if canSend {
-				err = s.pwaPushService.SendPushNotifications(ctx, notification.ProfileID, notification.Title, notification.Text, numNotifs)
-				if err != nil {
-					return err
-				}
-				slog.Debug("sent pwa push notifications",
-					"profileID", notification.ProfileID,
-					"profileIDWhoCausedNotif", notification.ProfileIDWhoCausedNotif,
-					"notificationType", notification.Type.Value)
 			}
 		}
 		if s.fcmPushService != nil {
-			canSend, err := s.canSendPushForPlatform(ctx, notification.ProfileID, domain.NotificationPlatformFCMPush)
-			if err != nil {
+			if err := s.enqueuePushNotification(ctx, DeliverPushNotificationPayload{
+				ProfileID:   notification.ProfileID,
+				Platform:    PlatformFCMPush.Value,
+				Title:       notification.Title,
+				Message:     notification.Text,
+				UnreadCount: numNotifs,
+				SendSound:   true,
+			}); err != nil {
 				return err
 			}
-			if canSend {
-				err = s.fcmPushService.SendPushNotifications(ctx, notification.ProfileID, notification.Title, notification.Text, numNotifs, true)
-				if err != nil {
-					return err
-				}
-				slog.Debug("sent fcm push notifications",
-					"profileID", notification.ProfileID,
-					"profileIDWhoCausedNotif", notification.ProfileIDWhoCausedNotif,
-					"notificationType", notification.Type.Value)
-			}
 		}
-
 	}
 
 	// Publish the notification to the user-specific topic
-	return s.publishEvent(ctx, fmt.Sprint(notification.ProfileID), SSEEvent{
+	return s.publishEvent(ctx, fmt.Sprint(notification.ProfileID), ssepubsub.SSEEvent{
 		Type: notification.Type.Value,
 		Data: notification.Text,
 	})
@@ -135,7 +125,7 @@ func (s *NotifierService) PublishNotification(
 func (s *NotifierService) canSendPushForPlatform(
 	ctx context.Context,
 	profileID int,
-	platform domain.NotificationPlatform,
+	platform Platform,
 ) (bool, error) {
 	if s.notificationPermissionSvc == nil {
 		return true, nil
@@ -148,7 +138,7 @@ func (s *NotifierService) SendSSEUpdate(
 	ctx context.Context, notification domain.Notification,
 ) error {
 	// Publish the notification to the user-specific topic
-	return s.publishEvent(ctx, fmt.Sprint(notification.ProfileID), SSEEvent{
+	return s.publishEvent(ctx, fmt.Sprint(notification.ProfileID), ssepubsub.SSEEvent{
 		Type: notification.Type.Value,
 		Data: notification.Text,
 	})
@@ -261,11 +251,11 @@ func (s *NotifierService) DeleteNotification(ctx context.Context, notificationID
 // SSESubscribe to a topic to get live notifications from it.
 func (s *NotifierService) SSESubscribe(
 	ctx context.Context, topic string,
-) (<-chan SSEEvent, error) {
+) (<-chan ssepubsub.SSEEvent, error) {
 	subCtx, cancel := context.WithCancel(ctx)
-	out := make(chan SSEEvent)
+	out := make(chan ssepubsub.SSEEvent)
 	sub, err := s.pubSubClient.Subscribe(subCtx, topic, func(hctx context.Context, _ string, payload []byte) error {
-		var event SSEEvent
+		var event ssepubsub.SSEEvent
 		if err := json.Unmarshal(payload, &event); err != nil {
 			return err
 		}
@@ -292,7 +282,7 @@ func (s *NotifierService) SSESubscribe(
 	return out, nil
 }
 
-func (s *NotifierService) publishEvent(ctx context.Context, topic string, event SSEEvent) error {
+func (s *NotifierService) publishEvent(ctx context.Context, topic string, event ssepubsub.SSEEvent) error {
 	payload, err := json.Marshal(event)
 	if err != nil {
 		return err

@@ -7,8 +7,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/leomorpho/goship/framework/domain"
 )
 
 type sqlNotificationPermissionStore struct {
@@ -29,7 +27,7 @@ func newSQLNotificationPermissionStore(db *sql.DB, dialect string) *sqlNotificat
 }
 
 func (s *sqlNotificationPermissionStore) deleteAllPermissions(
-	ctx context.Context, profileID int, platform *domain.NotificationPlatform,
+	ctx context.Context, profileID int, platform *Platform,
 ) error {
 	query, err := dbqueries.Get("delete_permissions_by_profile_base")
 	if err != nil {
@@ -69,7 +67,7 @@ func (s *sqlNotificationPermissionStore) listPermissionsByProfileID(
 }
 
 func (s *sqlNotificationPermissionStore) createPermission(
-	ctx context.Context, profileID int, permission domain.NotificationPermissionType, platform domain.NotificationPlatform, token string,
+	ctx context.Context, profileID int, permission PermissionType, platform Platform, token string,
 ) error {
 	now := time.Now().UTC()
 	query, err := dbqueries.Get("insert_or_upsert_permission")
@@ -83,8 +81,8 @@ func (s *sqlNotificationPermissionStore) createPermission(
 func (s *sqlNotificationPermissionStore) deletePermission(
 	ctx context.Context,
 	profileID int,
-	permission domain.NotificationPermissionType,
-	platform *domain.NotificationPlatform,
+	permission PermissionType,
+	platform *Platform,
 	token *string,
 ) error {
 	query, err := dbqueries.Get("delete_permission_base")
@@ -116,7 +114,7 @@ func (s *sqlNotificationPermissionStore) deletePermission(
 }
 
 func (s *sqlNotificationPermissionStore) countPermissionsForPlatform(
-	ctx context.Context, profileID int, platform domain.NotificationPlatform,
+	ctx context.Context, profileID int, platform Platform,
 ) (int, error) {
 	query, err := dbqueries.Get("count_permissions_for_platform")
 	if err != nil {

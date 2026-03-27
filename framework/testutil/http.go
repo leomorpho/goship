@@ -73,6 +73,7 @@ func NewTestServer(t testing.TB) *TestServer {
 		DB:                                  c.Database,
 		DBDialect:                           c.Config.Adapters.DB,
 		PubSub:                              frameworkbootstrap.AdaptNotificationsPubSub(c.CorePubSub),
+		Jobs:                                c.CoreJobs,
 		SubscriptionService:                 paidSubscriptions,
 		VapidPublicKey:                      c.Config.App.VapidPublicKey,
 		VapidPrivateKey:                     c.Config.App.VapidPrivateKey,

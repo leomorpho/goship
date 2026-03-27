@@ -19,28 +19,28 @@ func TestSQLNotificationPermissionService_Lifecycle(t *testing.T) {
 
 	perms, err := svc.GetPermissions(ctx, profileID)
 	require.NoError(t, err)
-	require.False(t, hasPermissionForPlatform(perms, domain.NotificationPermissionDailyReminder, domain.NotificationPlatformPush))
+	require.False(t, hasPermissionForPlatform(perms, PermissionDailyReminder, PlatformPWAPush))
 
-	err = svc.CreatePermission(ctx, profileID, domain.NotificationPermissionDailyReminder, &domain.NotificationPlatformPush)
+	err = svc.CreatePermission(ctx, profileID, PermissionDailyReminder, &PlatformPWAPush)
 	require.NoError(t, err)
 
 	perms, err = svc.GetPermissions(ctx, profileID)
 	require.NoError(t, err)
-	require.True(t, hasPermissionForPlatform(perms, domain.NotificationPermissionDailyReminder, domain.NotificationPlatformPush))
-	require.False(t, hasPermissionForPlatform(perms, domain.NotificationPermissionDailyReminder, domain.NotificationPlatformEmail))
+	require.True(t, hasPermissionForPlatform(perms, PermissionDailyReminder, PlatformPWAPush))
+	require.False(t, hasPermissionForPlatform(perms, PermissionDailyReminder, PlatformEmail))
 
-	hasAny, err := svc.HasPermissionsForPlatform(ctx, profileID, domain.NotificationPlatformPush)
+	hasAny, err := svc.HasPermissionsForPlatform(ctx, profileID, PlatformPWAPush)
 	require.NoError(t, err)
 	require.True(t, hasAny)
 
-	err = svc.DeletePermission(ctx, profileID, domain.NotificationPermissionDailyReminder, &domain.NotificationPlatformPush, nil)
+	err = svc.DeletePermission(ctx, profileID, PermissionDailyReminder, &PlatformPWAPush, nil)
 	require.NoError(t, err)
 
 	perms, err = svc.GetPermissions(ctx, profileID)
 	require.NoError(t, err)
-	require.False(t, hasPermissionForPlatform(perms, domain.NotificationPermissionDailyReminder, domain.NotificationPlatformPush))
+	require.False(t, hasPermissionForPlatform(perms, PermissionDailyReminder, PlatformPWAPush))
 
-	hasAny, err = svc.HasPermissionsForPlatform(ctx, profileID, domain.NotificationPlatformPush)
+	hasAny, err = svc.HasPermissionsForPlatform(ctx, profileID, PlatformPWAPush)
 	require.NoError(t, err)
 	require.False(t, hasAny)
 }
@@ -51,15 +51,15 @@ func TestSQLNotificationPermissionService_CreateForAllPlatforms(t *testing.T) {
 	ctx := context.Background()
 	profileID := 202
 
-	err := svc.CreatePermission(ctx, profileID, domain.NotificationPermissionNewFriendActivity, nil)
+	err := svc.CreatePermission(ctx, profileID, PermissionNewFriendActivity, nil)
 	require.NoError(t, err)
 
 	perms, err := svc.GetPermissions(ctx, profileID)
 	require.NoError(t, err)
-	require.True(t, hasPermissionForPlatform(perms, domain.NotificationPermissionNewFriendActivity, domain.NotificationPlatformPush))
-	require.True(t, hasPermissionForPlatform(perms, domain.NotificationPermissionNewFriendActivity, domain.NotificationPlatformFCMPush))
-	require.True(t, hasPermissionForPlatform(perms, domain.NotificationPermissionNewFriendActivity, domain.NotificationPlatformEmail))
-	require.True(t, hasPermissionForPlatform(perms, domain.NotificationPermissionNewFriendActivity, domain.NotificationPlatformSMS))
+	require.True(t, hasPermissionForPlatform(perms, PermissionNewFriendActivity, PlatformPWAPush))
+	require.True(t, hasPermissionForPlatform(perms, PermissionNewFriendActivity, PlatformFCMPush))
+	require.True(t, hasPermissionForPlatform(perms, PermissionNewFriendActivity, PlatformEmail))
+	require.True(t, hasPermissionForPlatform(perms, PermissionNewFriendActivity, PlatformSMS))
 }
 
 func openNotificationPermissionTestDB(t *testing.T) *sql.DB {
@@ -74,9 +74,9 @@ func openNotificationPermissionTestDB(t *testing.T) *sql.DB {
 }
 
 func hasPermissionForPlatform(
-	perms map[domain.NotificationPermissionType]domain.NotificationPermission,
-	permission domain.NotificationPermissionType,
-	platform domain.NotificationPlatform,
+	perms map[PermissionType]domain.NotificationPermission,
+	permission PermissionType,
+	platform Platform,
 ) bool {
 	perm, ok := perms[permission]
 	if !ok {

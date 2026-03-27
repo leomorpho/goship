@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
+	"github.com/leomorpho/goship/framework/core"
 )
 
 const ModuleID = "notifications"
@@ -27,6 +28,7 @@ type RuntimeDeps struct {
 	DB                                  *sql.DB
 	DBDialect                           string
 	PubSub                              PubSub
+	Jobs                                core.Jobs
 	SubscriptionService                 *paidsubscriptions.Service
 	VapidPublicKey                      string
 	VapidPrivateKey                     string
@@ -90,6 +92,7 @@ func New(deps RuntimeDeps) (*Services, error) {
 	}
 	notifierService := NewNotifierService(
 		deps.PubSub,
+		deps.Jobs,
 		notificationStore,
 		permissionService,
 		pwaPushService,

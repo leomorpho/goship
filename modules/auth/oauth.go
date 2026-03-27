@@ -315,8 +315,8 @@ func (s *OAuthService) createDefaultNotificationPermissions(ctx context.Context,
 	if s.notificationPermissionService == nil {
 		return nil
 	}
-	for _, perm := range domain.NotificationPermissions.Members() {
-		platform := domain.NotificationPlatformEmail
+	for _, perm := range notifications.Permissions.Members() {
+		platform := notifications.PlatformEmail
 		if err := s.notificationPermissionService.CreatePermission(ctx, profileID, perm, &platform); err != nil {
 			return err
 		}

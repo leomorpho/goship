@@ -29,36 +29,6 @@ var (
 	)
 )
 
-// TODO: move to notifications
-type NotificationPermissionType enum.Member[string]
-
-var (
-	NotificationPermissionDailyReminder     = NotificationPermissionType{"daily_reminder"}
-	NotificationPermissionNewFriendActivity = NotificationPermissionType{"partner_activity"}
-
-	NotificationPermissions = enum.New(
-		NotificationPermissionDailyReminder,
-		NotificationPermissionNewFriendActivity,
-	)
-)
-
-// TODO: move to notifications
-type NotificationPlatform enum.Member[string]
-
-var (
-	NotificationPlatformPush    = NotificationPlatform{"push"} // TODO: this should eventually be rename because it's confusing...it's only for PWA
-	NotificationPlatformFCMPush = NotificationPlatform{"fcm_push"}
-	NotificationPlatformEmail   = NotificationPlatform{"email"}
-	NotificationPlatformSMS     = NotificationPlatform{"sms"}
-
-	NotificationPlatforms = enum.New(
-		NotificationPlatformPush,
-		NotificationPlatformFCMPush,
-		NotificationPlatformEmail,
-		NotificationPlatformSMS,
-	)
-)
-
 type ImageSize enum.Member[string]
 
 var (

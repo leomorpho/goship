@@ -87,6 +87,7 @@ func main() {
 		DB:                                  c.Database,
 		DBDialect:                           c.Config.Adapters.DB,
 		PubSub:                              frameworkbootstrap.AdaptNotificationsPubSub(c.CorePubSub),
+		Jobs:                                c.CoreJobs,
 		SubscriptionService:                 paidSubscriptionsService,
 		VapidPublicKey:                      c.Config.App.VapidPublicKey,
 		VapidPrivateKey:                     c.Config.App.VapidPrivateKey,
@@ -114,6 +115,11 @@ func main() {
 	mux.HandleFunc(events.AsyncJobName, func(ctx context.Context, task *asynq.Task) error {
 		return events.DeliverAsync(ctx, c.EventBus, task.Payload())
 	})
+	if notificationServices != nil && notificationServices.Notifier != nil {
+		mux.HandleFunc(notifications.DeliverPushNotificationJobName, func(ctx context.Context, task *asynq.Task) error {
+			return notificationServices.Notifier.HandleDeliverPushNotificationJob(ctx, task.Payload())
+		})
+	}
 
 	stopScheduler := startWorkerScheduler(c.Scheduler)
 	defer stopScheduler()

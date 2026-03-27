@@ -75,6 +75,7 @@ func main() {
 		DB:                                  c.Database,
 		DBDialect:                           c.Config.Adapters.DB,
 		PubSub:                              frameworkbootstrap.AdaptNotificationsPubSub(c.CorePubSub),
+		Jobs:                                c.CoreJobs,
 		SubscriptionService:                 paidSubscriptionsService,
 		VapidPublicKey:                      c.Config.App.VapidPublicKey,
 		VapidPrivateKey:                     c.Config.App.VapidPrivateKey,
@@ -215,6 +216,11 @@ func startEmbeddedJobsWorker(
 		return events.DeliverAsync(ctx, c.EventBus, payload)
 	}); err != nil {
 		return err
+	}
+	if notificationServices != nil && notificationServices.Notifier != nil {
+		if err := c.CoreJobs.Register(notifications.DeliverPushNotificationJobName, notificationServices.Notifier.HandleDeliverPushNotificationJob); err != nil {
+			return err
+		}
 	}
 
 	go func() {
