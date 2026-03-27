@@ -6,6 +6,7 @@ window.initializeJS = function initializeApp(targetElement) {
   console.log("initialize js");
   // Control zoom based on screen size
   controlZoom();
+  enableModifiedClickNewTabForHTMX();
 
   // Set up PWA service worker
   if ("serviceWorker" in navigator) {
@@ -85,3 +86,42 @@ window.successToast = function successToast(text, timeToShow = 1000) {
 window.errorToast = function errorToast(text, timeToShow = 1000) {
   toast.error(text, { duration: timeToShow });
 };
+
+function enableModifiedClickNewTabForHTMX() {
+  const isHTMXNavigationLink = (anchor) => {
+    if (!anchor) return false;
+    if (
+      anchor.hasAttribute("hx-get") ||
+      anchor.hasAttribute("hx-post") ||
+      anchor.hasAttribute("hx-put") ||
+      anchor.hasAttribute("hx-delete") ||
+      anchor.hasAttribute("data-hx-get") ||
+      anchor.hasAttribute("data-hx-post") ||
+      anchor.hasAttribute("data-hx-put") ||
+      anchor.hasAttribute("data-hx-delete")
+    ) {
+      return true;
+    }
+    return Boolean(
+      anchor.closest('[hx-boost="true"], [data-hx-boost="true"]')
+    );
+  };
+
+  document.addEventListener(
+    "click",
+    (event) => {
+      if (!event.metaKey && !event.ctrlKey) return;
+      const anchor = event.target.closest("a[href]");
+      if (!isHTMXNavigationLink(anchor)) return;
+      if (anchor.target === "_blank" || anchor.hasAttribute("download")) return;
+
+      const href = anchor.getAttribute("href");
+      if (!href || href.startsWith("#")) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      window.open(href, "_blank", "noopener");
+    },
+    true
+  );
+}
