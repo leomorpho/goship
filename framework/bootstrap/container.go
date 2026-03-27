@@ -10,11 +10,9 @@ import (
 	"time"
 
 	"github.com/getsentry/sentry-go"
+	"github.com/go-playground/validator/v10"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/labstack/echo/v4"
-	anthropicdriver "github.com/leomorpho/goship/modules/ai/drivers/anthropic"
-	openaidriver "github.com/leomorpho/goship/modules/ai/drivers/openai"
-	openrouterdriver "github.com/leomorpho/goship/modules/ai/drivers/openrouter"
 	"github.com/robfig/cron/v3"
 	"github.com/stripe/stripe-go/v78"
 	_ "modernc.org/sqlite"
@@ -22,21 +20,17 @@ import (
 	"github.com/leomorpho/goship-modules/notifications"
 	"github.com/leomorpho/goship/config"
 	dbqueries "github.com/leomorpho/goship/db/queries"
+	cacherepo "github.com/leomorpho/goship/framework/cache"
 	"github.com/leomorpho/goship/framework/core"
 	adapters "github.com/leomorpho/goship/framework/core/adapters"
 	"github.com/leomorpho/goship/framework/events"
 	eventtypes "github.com/leomorpho/goship/framework/events/types"
 	"github.com/leomorpho/goship/framework/health"
 	"github.com/leomorpho/goship/framework/logging"
-	cacherepo "github.com/leomorpho/goship/framework/cache"
 	"github.com/leomorpho/goship/framework/mailer"
 	pubsubrepo "github.com/leomorpho/goship/framework/pubsub"
 	"github.com/leomorpho/goship/framework/sse"
-	frameworkvalidation "github.com/leomorpho/goship/framework/web/validation"
-	"github.com/leomorpho/goship/modules/ai"
-	"github.com/leomorpho/goship/modules/auditlog"
 	"github.com/leomorpho/goship/modules/authsupport"
-	"github.com/leomorpho/goship/modules/flags"
 	i18nmodule "github.com/leomorpho/goship/modules/i18n"
 )
 
@@ -44,7 +38,7 @@ import (
 // injection including within tests
 type Container struct {
 	// Validator stores a validator
-	Validator *frameworkvalidation.Validator
+	Validator echo.Validator
 
 	// Web stores the web framework
 	Web *echo.Echo
@@ -66,15 +60,6 @@ type Container struct {
 
 	// Auth stores an authentication client
 	Auth *authsupport.AuthClient
-
-	// AI stores the app-facing AI service.
-	AI *ai.Service
-
-	// AuditLogs stores the app-facing audit log service.
-	AuditLogs *auditlog.Service
-
-	// Flags stores the app-facing feature flag service.
-	Flags *flags.Service
 
 	// I18n stores localized message resolution for request flows.
 	I18n core.I18n
@@ -107,6 +92,21 @@ type Container struct {
 	Adapters adapters.Resolved
 }
 
+type requestValidator struct {
+	validator *validator.Validate
+}
+
+func newRequestValidator() *requestValidator {
+	return &requestValidator{validator: validator.New()}
+}
+
+func (v *requestValidator) Validate(i any) error {
+	if v == nil || v.validator == nil {
+		return nil
+	}
+	return v.validator.Struct(i)
+}
+
 // NewContainer creates and initializes a new runtime container.
 func NewContainer(registerSchedules func(*cron.Cron, func() core.Jobs)) *Container {
 	c := new(Container)
@@ -120,9 +120,6 @@ func NewContainer(registerSchedules func(*cron.Cron, func() core.Jobs)) *Contain
 	c.initSchema()
 	c.initAuth()
 	c.initMail()
-	c.initAI()
-	c.initAuditLogs()
-	c.initFlags()
 	c.initEventBus()
 	c.initPaymentProcessor()
 	c.initScheduler(registerSchedules)
@@ -292,7 +289,7 @@ func (c *Container) initConfig() {
 
 // initValidator initializes the validator
 func (c *Container) initValidator() {
-	c.Validator = frameworkvalidation.NewValidator()
+	c.Validator = newRequestValidator()
 }
 
 // initWeb initializes the web framework
@@ -506,60 +503,6 @@ func (c *Container) resolveMailImplementation() mailer.MailClientInterface {
 	}
 }
 
-func (c *Container) initAI() {
-	var provider ai.Provider
-
-	switch strings.ToLower(strings.TrimSpace(c.Config.AI.Driver)) {
-	case "", "anthropic":
-		if strings.TrimSpace(c.Config.AI.Anthropic.APIKey) == "" {
-			provider = ai.NewUnavailableProvider("missing ANTHROPIC_API_KEY")
-		} else {
-			provider = anthropicdriver.New(c.Config.AI.Anthropic.APIKey, c.Config.AI.Anthropic.DefaultModel)
-		}
-	case "openai":
-		if strings.TrimSpace(c.Config.AI.OpenAI.APIKey) == "" {
-			provider = ai.NewUnavailableProvider("missing OPENAI_API_KEY")
-		} else {
-			provider = openaidriver.New(c.Config.AI.OpenAI.APIKey, c.Config.AI.OpenAI.DefaultModel)
-		}
-	case "openrouter":
-		if strings.TrimSpace(c.Config.AI.OpenRouter.APIKey) == "" {
-			provider = ai.NewUnavailableProvider("missing OPENROUTER_API_KEY")
-		} else {
-			provider = openrouterdriver.New(
-				c.Config.AI.OpenRouter.APIKey,
-				c.Config.AI.OpenRouter.DefaultModel,
-				c.Config.AI.OpenRouter.SiteURL,
-				c.Config.AI.OpenRouter.SiteName,
-			)
-		}
-	default:
-		provider = ai.NewUnavailableProvider(fmt.Sprintf("unsupported AI driver %q", c.Config.AI.Driver))
-	}
-
-	module := ai.NewModule(
-		ai.NewService(provider, logging.NewLogger(c.Config.Log)),
-		ai.NewConversationService(ai.NewConversationSQLStore(c.Database, c.Config.Adapters.DB), provider),
-	)
-	c.AI = module.Service()
-}
-
-func (c *Container) initAuditLogs() {
-	module := auditlog.NewModule(auditlog.NewService(auditlog.NewSQLStore(c.Database)))
-	c.AuditLogs = module.Service()
-}
-
-func (c *Container) initFlags() {
-	store := flags.NewSQLStore(c.Database)
-	service := flags.NewService(store, adapters.NewCoreCacheAdapter(c.Cache))
-	syncer := flags.NewSyncer(store, logging.NewLogger(c.Config.Log))
-	module := flags.NewModule(service, syncer)
-	if err := module.Start(context.Background()); err != nil {
-		panic(fmt.Sprintf("flags startup sync failed: %v", err))
-	}
-	c.Flags = module.Service()
-}
-
 func (c *Container) initEventBus() {
 	c.EventBus = events.NewBus()
 
@@ -576,7 +519,6 @@ func (c *Container) initEventBus() {
 		logger.Info("domain event published", "event", "UserLoggedOut", "user_id", event.UserID)
 		return nil
 	})
-	auditlog.Subscribe(c.EventBus, c.AuditLogs)
 }
 
 func (c *Container) initSSEHub() {

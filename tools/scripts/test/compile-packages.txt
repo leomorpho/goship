@@ -1,9 +1,6 @@
 # Compile-only package set (no Docker, no runtime network binds)
-.
 ./cmd/web
 ./cmd/worker
-./cmd/seed
-./framework/web/ui
-./framework/web/controllers
-./framework/runtimeplan
+./framework/http/ui
+./framework/http/controllers
 ./framework/bootstrap

@@ -1,12 +1,12 @@
 # Temporary exceptions: installable modules that still bind to root app/framework packages.
 # Keep this list short and remove entries immediately once seams are extracted.
 modules/notifications/notification_store_sql.go
+modules/notifications/module.go
 modules/notifications/notifier.go
 modules/notifications/permissions.go
-modules/notifications/permissions_store_sql.go
 modules/notifications/planned_notifications.go
 modules/notifications/planned_notifications_store_sql.go
-modules/notifications/push_notifications_fcm.go
-modules/notifications/push_notifications_pwa.go
+modules/notifications/push_jobs.go
 modules/notifications/routes/routes.go
+modules/notifications/types.go
 modules/paidsubscriptions/routes/routes.go

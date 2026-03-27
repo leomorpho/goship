@@ -3,7 +3,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-TARGET_DIR="$ROOT/framework/web/controllers"
+TARGET_DIR="$ROOT/framework/http/controllers"
 
 if [ ! -d "$TARGET_DIR" ]; then
   echo "controllers directory not found: $TARGET_DIR" >&2
@@ -11,7 +11,7 @@ if [ ! -d "$TARGET_DIR" ]; then
 fi
 
 if rg -n "QueryProfile\(" "$TARGET_DIR" -g '*.go' >/tmp/goship-controller-queryprofile.out; then
-  echo "controller auth boundary violation: direct QueryProfile() usage is not allowed in framework/web/controllers." >&2
+  echo "controller auth boundary violation: direct QueryProfile() usage is not allowed in framework/http/controllers." >&2
   cat /tmp/goship-controller-queryprofile.out >&2
   echo "Use middleware identity context (auth_profile_id/auth_user_id) + service/ORM lookup by id instead." >&2
   rm -f /tmp/goship-controller-queryprofile.out

@@ -22,10 +22,10 @@ Do not reintroduce deleted app-shell guidance in canonical architecture docs.
 
 ## Architectural Conventions
 
-- HTTP handlers live in `framework/web/controllers` and enabled module route packages.
+- HTTP handlers live in `framework/http/controllers` and enabled module route packages.
 - Domain logic should prefer framework/module packages (`framework/*`, `modules/*`) over route-level DB logic.
-- Rendering is done via framework controller/page/viewmodel contracts (`framework/web/ui`, `framework/web/viewmodels`).
-- Templates live under framework-owned templ packages (`framework/web/*`, `framework/views/*`).
+- Rendering is done via framework controller/page/viewmodel contracts (`framework/http/ui`, `framework/http/viewmodels`).
+- Templates live under framework-owned templ packages (`framework/http/*`, `framework/views/*`).
 
 ## Safe Change Workflow
 
@@ -51,8 +51,8 @@ Runtime seams:
 
 Routing and middleware:
 
-- `framework/web/controllers/*.go`
-- `framework/web/middleware/*.go`
+- `framework/http/controllers/*.go`
+- `framework/http/middleware/*.go`
 - `modules/*/routes/*.go`
 
 Data and domain:
@@ -64,9 +64,9 @@ Data and domain:
 
 UI and rendering:
 
-- `framework/web/ui/*.go`
-- `framework/web/viewmodels/*.go`
-- `framework/web/**/*.templ`
+- `framework/http/ui/*.go`
+- `framework/http/viewmodels/*.go`
+- `framework/http/**/*.templ`
 - `framework/views/**/*.templ`
 - `frontend/islands/**/*`
 

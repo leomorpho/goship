@@ -3,10 +3,8 @@ go 1.25.6
 use (
 	.
 	./modules/jobs
-	./modules/storage
 	./tools/cli/ship
 	./tools/mcp/ship
-	./modules/emailsubscriptions
 	./modules/notifications
 	./modules/paidsubscriptions
 )

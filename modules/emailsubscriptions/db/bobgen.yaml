@@ -1,9 +1,0 @@
-# Module-local Bob codegen config for emailsubscriptions.
-# This keeps module DB generation isolated from app core.
-sql:
-  dialect: psql
-  pattern: "modules/emailsubscriptions/db/migrate/migrations/*.sql"
-  queries:
-    - "modules/emailsubscriptions/db/queries"
-
-output: "modules/emailsubscriptions/db/gen"

@@ -76,10 +76,10 @@ Additional route groups apply auth and managed-hook verification gates where req
 
 Rendering is server-first via templ + framework page/viewmodel helpers.
 
-- page/controller primitives: `framework/web/ui/*`
-- controllers: `framework/web/controllers/*`
-- viewmodels: `framework/web/viewmodels/*`
-- templ sources + generated output: `framework/web/*` and `framework/views/*`
+- page/controller primitives: `framework/http/ui/*`
+- controllers: `framework/http/controllers/*`
+- viewmodels: `framework/http/viewmodels/*`
+- templ sources + generated output: `framework/http/*` and `framework/views/*`
 
 ## Data and Async Model
 

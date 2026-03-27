@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/labstack/echo/v4"
-	appctx "github.com/leomorpho/goship/framework/appcontext"
+	"github.com/leomorpho/goship/framework/http/authcontext"
 	"golang.org/x/text/language"
 )
 
@@ -50,7 +50,7 @@ func detectLanguage(c echo.Context, service LanguageService, resolver ProfileLan
 	if langFromQuery != "" {
 		normalized := service.NormalizeLanguage(langFromQuery)
 		if resolver != nil {
-			if userID, ok := c.Get(appctx.AuthenticatedUserIDKey).(int); ok && userID > 0 {
+			if userID, ok := c.Get(authcontext.AuthenticatedUserIDKey).(int); ok && userID > 0 {
 				_ = resolver.SetPreferredLanguage(c.Request().Context(), userID, normalized)
 			}
 		}
@@ -58,7 +58,7 @@ func detectLanguage(c echo.Context, service LanguageService, resolver ProfileLan
 	}
 
 	if resolver != nil {
-		if userID, ok := c.Get(appctx.AuthenticatedUserIDKey).(int); ok && userID > 0 {
+		if userID, ok := c.Get(authcontext.AuthenticatedUserIDKey).(int); ok && userID > 0 {
 			if preferred, exists, err := resolver.PreferredLanguage(c.Request().Context(), userID); err == nil && exists {
 				return service.NormalizeLanguage(preferred), false
 			}

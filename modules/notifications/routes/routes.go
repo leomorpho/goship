@@ -15,17 +15,77 @@ import (
 	"github.com/leomorpho/goship/framework/dberrors"
 	"github.com/leomorpho/goship/framework/domain"
 	"github.com/leomorpho/goship/framework/flash"
-	frameworkauthcontext "github.com/leomorpho/goship/framework/web/authcontext"
-	layouts "github.com/leomorpho/goship/framework/web/layouts/gen"
-	pages "github.com/leomorpho/goship/framework/web/pages/gen"
-	routeNames "github.com/leomorpho/goship/framework/web/routenames"
-	"github.com/leomorpho/goship/framework/web/templates"
-	"github.com/leomorpho/goship/framework/web/ui"
-	"github.com/leomorpho/goship/framework/web/viewmodels"
-	profilesvc "github.com/leomorpho/goship/framework/account"
+	frameworkauthcontext "github.com/leomorpho/goship/framework/http/authcontext"
+	layouts "github.com/leomorpho/goship/framework/http/layouts/gen"
+	pages "github.com/leomorpho/goship/framework/http/pages/gen"
+	"github.com/leomorpho/goship/framework/http/ui"
 )
 
 const notificationQueryParam = "notif"
+
+type notificationItem struct {
+	ID                        int
+	Title                     string
+	Text                      string
+	ButtonText                string
+	Link                      string
+	CreatedAt                 time.Time
+	Read                      bool
+	ReadInNotificationsCenter bool
+}
+
+type normalNotificationsPageData struct {
+	Notifications []notificationItem
+	NextPageURL   string
+}
+
+type notificationPermissionsData struct {
+	PermissionDailyNotif          domain.NotificationPermission
+	PermissionPartnerActivity     domain.NotificationPermission
+	VapidPublicKey                string
+	SubscribedEndpoints           []string
+	PhoneSubscriptionEnabled      bool
+	NotificationTypeQueryParamKey string
+
+	AddPushSubscriptionEndpoint    string
+	DeletePushSubscriptionEndpoint string
+
+	AddFCMPushSubscriptionEndpoint    string
+	DeleteFCMPushSubscriptionEndpoint string
+
+	AddEmailSubscriptionEndpoint    string
+	DeleteEmailSubscriptionEndpoint string
+
+	AddSmsSubscriptionEndpoint    string
+	DeleteSmsSubscriptionEndpoint string
+}
+
+type pushNotificationSubscriptions struct {
+	URLs []string `json:"urls"`
+}
+
+func mapNotificationItems(items []*domain.Notification) []notificationItem {
+	if len(items) == 0 {
+		return []notificationItem{}
+	}
+	out := make([]notificationItem, 0, len(items))
+	for _, item := range items {
+		if item == nil {
+			continue
+		}
+		out = append(out, notificationItem{
+			ID:                        item.ID,
+			Title:                     item.Title,
+			Text:                      item.Text,
+			ButtonText:                item.ButtonText,
+			Link:                      item.Link,
+			CreatedAt:                 item.CreatedAt,
+			Read:                      item.Read,
+			ReadInNotificationsCenter: item.ReadInNotificationsCenter,
+		})
+	}
+	return out
+}
 
 type notificationCountReader interface {
 	GetCountOfUnseenNotifications(ctx stdcontext.Context, profileID int) (int, error)
@@ -33,7 +93,6 @@ type notificationCountReader interface {
 
 type RouteModuleDeps struct {
 	Controller                    ui.Controller
-	ProfileService                *profilesvc.ProfileService
 	NotifierService               *notifications.NotifierService
 	PwaPushService                *notifications.PwaPushService
 	FcmPushService                *notifications.FcmPushService
@@ -42,7 +101,6 @@ type RouteModuleDeps struct {
 
 type RouteModule struct {
 	controller                    ui.Controller
-	profileService                *profilesvc.ProfileService
 	notifierService               *notifications.NotifierService
 	pwaPushService                *notifications.PwaPushService
 	fcmPushService                *notifications.FcmPushService
@@ -52,7 +110,6 @@ type RouteModule struct {
 func NewRouteModule(deps RouteModuleDeps) *RouteModule {
 	return &RouteModule{
 		controller:                    deps.Controller,
-		profileService:                deps.ProfileService,
 		notifierService:               deps.NotifierService,
 		pwaPushService:                deps.PwaPushService,
 		fcmPushService:                deps.FcmPushService,
@@ -70,18 +127,18 @@ func (m *RouteModule) Migrations() fs.FS {
 
 func (m *RouteModule) RegisterRoutes(r core.Router) error {
 	normalNotifications := NewNormalNotificationsRoute(m.controller, m.notifierService)
-	r.GET("/notifications", normalNotifications.Get).Name = routeNames.RouteNameNotifications
-	r.GET("/notifications/mark-all-read", normalNotifications.MarkAllAsRead).Name = routeNames.RouteNameMarkAllNotificationsAsRead
-	r.DELETE("/notifications/:notification_id", normalNotifications.Delete).Name = routeNames.RouteNameDeleteNotification
+	r.GET("/notifications", normalNotifications.Get).Name = "notifications"
+	r.GET("/notifications/mark-all-read", normalNotifications.MarkAllAsRead).Name = "normalNotificationsMarkAllAsRead"
+	r.DELETE("/notifications/:notification_id", normalNotifications.Delete).Name = "notifications.delete"
 
-	normalNotificationsCount := NewNormalNotificationsCountRoute(m.controller, m.profileService)
-	r.GET("/notifications/normalNotificationsCount", normalNotificationsCount.Get).Name = routeNames.RouteNameNormalNotificationsCount
+	normalNotificationsCount := NewNormalNotificationsCountRoute(m.controller, m.notifierService)
+	r.GET("/notifications/normalNotificationsCount", normalNotificationsCount.Get).Name = "normal_notifications_count"
 
 	markRead := NewMarkNormalNotificationReadRoute(m.controller, m.notifierService)
-	r.POST("/notifications/:notification_id/read", markRead.Post).Name = routeNames.RouteNameMarkNotificationsAsRead
+	r.POST("/notifications/:notification_id/read", markRead.Post).Name = "markNormalNotificationRead"
 
 	markUnread := NewMarkNormalNotificationUnreadRoute(m.controller, m.notifierService)
-	r.POST("/notifications/unread", markUnread.Post).Name = routeNames.RouteNameMarkNotificationsAsUnread
+	r.POST("/notifications/unread", markUnread.Post).Name = "notifications.unread"
 
 	return nil
 }
@@ -89,15 +146,15 @@ func (m *RouteModule) RegisterRoutes(r core.Router) error {
 func (m *RouteModule) RegisterOnboardingRoutes(r core.Router) error {
 	outgoingNotifications := NewPushNotifsRoute(
 		m.controller,
-		m.profileService,
 		m.pwaPushService,
 		m.fcmPushService,
+		m.notifierService,
 		m.notificationPermissionService,
 	)
-	r.GET("/subscription/push", outgoingNotifications.GetPushSubscriptions).Name = routeNames.RouteNameGetPushSubscriptions
-	r.POST("/subscription/:platform", outgoingNotifications.RegisterSubscription).Name = routeNames.RouteNameRegisterSubscription
-	r.DELETE("/subscription/:platform", outgoingNotifications.DeleteSubscription).Name = routeNames.RouteNameDeleteSubscription
-	r.GET("/email-subscription/unsubscribe/:permission/:token", outgoingNotifications.DeleteEmailSubscription).Name = routeNames.RouteNameDeleteEmailSubscriptionWithToken
+	r.GET("/subscription/push", outgoingNotifications.GetPushSubscriptions).Name = "push_subscriptions.get"
+	r.POST("/subscription/:platform", outgoingNotifications.RegisterSubscription).Name = "notification_subscriptions.register"
+	r.DELETE("/subscription/:platform", outgoingNotifications.DeleteSubscription).Name = "notification_subscriptions.delete"
+	r.GET("/email-subscription/unsubscribe/:permission/:token", outgoingNotifications.DeleteEmailSubscription).Name = "email_subscriptions.delete_with_token"
 	return nil
 }
 
@@ -155,7 +212,7 @@ func (r *NormalNotificationsRoute) Get(ctx echo.Context) error {
 
 	page := ui.NewPage(ctx)
 	page.Layout = layouts.Main
-	page.Name = templates.PageNotifications
+	page.Name = "notifications"
 	page.Component = pages.NotificationsPage(&page)
 	page.HTMX.Request.Boosted = true
 	page.ShowBottomNavbar = true
@@ -195,11 +252,11 @@ func (r *NormalNotificationsRoute) Get(ctx echo.Context) error {
 	var nextPageURL string
 	if len(notifications) > 0 {
 		oldestTimestamp := notifications[len(notifications)-1].CreatedAt
-		nextPageURL = ctx.Echo().Reverse(routeNames.RouteNameNotifications) + "?timestamp=" + oldestTimestamp.Format(time.RFC3339Nano)
+		nextPageURL = ctx.Echo().Reverse("notifications") + "?timestamp=" + oldestTimestamp.Format(time.RFC3339Nano)
 	}
 
-	data := viewmodels.NewNormalNotificationsPageData()
-	data.Notifications = viewmodels.NotificationItemsFromDomain(notifications)
+	data := normalNotificationsPageData{Notifications: []notificationItem{}}
+	data.Notifications = mapNotificationItems(notifications)
 	data.NextPageURL = nextPageURL
 	page.Data = data
 
@@ -298,29 +355,29 @@ func (r *MarkNormalNotificationUnreadRoute) Post(ctx echo.Context) error {
 		return err
 	}
 
-	return r.controller.Redirect(ctx, routeNames.RouteNameNotifications)
+	return r.controller.Redirect(ctx, "notifications")
 }
 
 type OutgoingNotificationsRoute struct {
 	controller                    ui.Controller
-	profileService                *profilesvc.ProfileService
 	pwaPushService                *notifications.PwaPushService
 	fcmPushService                *notifications.FcmPushService
+	notifierService               notificationCountReader
 	notificationPermissionService *notifications.NotificationPermissionService
 }
 
 func NewPushNotifsRoute(
 	controller ui.Controller,
-	profileService *profilesvc.ProfileService,
 	pwaPushService *notifications.PwaPushService,
 	fcmPushService *notifications.FcmPushService,
+	notifierService notificationCountReader,
 	notificationPermissionService *notifications.NotificationPermissionService,
 ) *OutgoingNotificationsRoute {
 	return &OutgoingNotificationsRoute{
 		controller:                    controller,
-		profileService:                profileService,
 		pwaPushService:                pwaPushService,
 		fcmPushService:                fcmPushService,
+		notifierService:               notifierService,
 		notificationPermissionService: notificationPermissionService,
 	}
 }
@@ -345,7 +402,7 @@ func (r *OutgoingNotificationsRoute) GetPushSubscriptions(ctx echo.Context) erro
 		return echo.NewHTTPError(http.StatusInternalServerError, "Could not fetch subscription endpoints")
 	}
 
-	subscriptions := viewmodels.NewPushNotificationSubscriptions()
+	subscriptions := pushNotificationSubscriptions{URLs: []string{}}
 	subscriptions.URLs = subscribedEndpoints
 	return ctx.JSON(http.StatusOK, subscriptions)
 }
@@ -499,11 +556,6 @@ func (r *OutgoingNotificationsRoute) DeleteEmailSubscription(ctx echo.Context) e
 		return err
 	}
 
-	profileData, err := r.profileService.GetProfileSettingsByID(ctx.Request().Context(), profileID)
-	if err != nil {
-		return err
-	}
-
 	var notificationName string
 	switch *permission {
 	case notifications.PermissionDailyReminder:
@@ -522,7 +574,7 @@ func (r *OutgoingNotificationsRoute) DeleteEmailSubscription(ctx echo.Context) e
 		&token,
 	)
 
-	page, err := r.createNotificationsPage(ctx, profileData.ID, profileData.PhoneNumberE164, profileData.PhoneVerified)
+	page, err := r.createNotificationsPage(ctx, profileID, "", false)
 	if err != nil {
 		return err
 	}
@@ -530,7 +582,7 @@ func (r *OutgoingNotificationsRoute) DeleteEmailSubscription(ctx echo.Context) e
 	if permissionErr != nil {
 		slog.Error("failed to delete email notification permission",
 			"error", permissionErr,
-			"profileID", profileData.ID,
+			"profileID", profileID,
 			"notifPermission", permission.Value,
 			"platform", notifications.PlatformEmail.Value,
 			"token", token,
@@ -576,37 +628,37 @@ func (r *OutgoingNotificationsRoute) createNotificationsPage(
 	addPushSubscriptionEndpoint := fmt.Sprintf(
 		"%s%s",
 		r.controller.Container.Config.HTTP.Domain,
-		ctx.Echo().Reverse(routeNames.RouteNameRegisterSubscription, notifications.PlatformPWAPush.Value),
+		ctx.Echo().Reverse("notification_subscriptions.register", notifications.PlatformPWAPush.Value),
 	) + "?csrf=" + page.CSRF
 	deletePushSubscriptionEndpoint := fmt.Sprintf(
 		"%s%s",
 		r.controller.Container.Config.HTTP.Domain,
-		ctx.Echo().Reverse(routeNames.RouteNameDeleteSubscription, notifications.PlatformPWAPush.Value),
+		ctx.Echo().Reverse("notification_subscriptions.delete", notifications.PlatformPWAPush.Value),
 	) + "?csrf=" + page.CSRF
 
 	addEmailSubscriptionEndpoint := fmt.Sprintf(
 		"%s%s",
 		r.controller.Container.Config.HTTP.Domain,
-		ctx.Echo().Reverse(routeNames.RouteNameRegisterSubscription, notifications.PlatformEmail.Value),
+		ctx.Echo().Reverse("notification_subscriptions.register", notifications.PlatformEmail.Value),
 	) + "?csrf=" + page.CSRF
 	deleteEmailSubscriptionEndpoint := fmt.Sprintf(
 		"%s%s",
 		r.controller.Container.Config.HTTP.Domain,
-		ctx.Echo().Reverse(routeNames.RouteNameDeleteSubscription, notifications.PlatformEmail.Value),
+		ctx.Echo().Reverse("notification_subscriptions.delete", notifications.PlatformEmail.Value),
 	) + "?csrf=" + page.CSRF
 
 	addSMSSubscriptionEndpoint := fmt.Sprintf(
 		"%s%s",
 		r.controller.Container.Config.HTTP.Domain,
-		ctx.Echo().Reverse(routeNames.RouteNameRegisterSubscription, notifications.PlatformSMS.Value),
+		ctx.Echo().Reverse("notification_subscriptions.register", notifications.PlatformSMS.Value),
 	) + "?csrf=" + page.CSRF
 	deleteSMSSubscriptionEndpoint := fmt.Sprintf(
 		"%s%s",
 		r.controller.Container.Config.HTTP.Domain,
-		ctx.Echo().Reverse(routeNames.RouteNameDeleteSubscription, notifications.PlatformSMS.Value),
+		ctx.Echo().Reverse("notification_subscriptions.delete", notifications.PlatformSMS.Value),
 	) + "?csrf=" + page.CSRF
 
-	notificationPermissions := viewmodels.NewNotificationPermissionsData()
+	notificationPermissions := notificationPermissionsData{SubscribedEndpoints: []string{}}
 	notificationPermissions.VapidPublicKey = r.controller.Container.Config.App.VapidPublicKey
 	notificationPermissions.PermissionDailyNotif = permissions[notifications.PermissionDailyReminder]
 	notificationPermissions.PermissionPartnerActivity = permissions[notifications.PermissionNewFriendActivity]
@@ -622,7 +674,7 @@ func (r *OutgoingNotificationsRoute) createNotificationsPage(
 
 	page.Layout = layouts.Main
 	page.Component = pages.NotificationPermissions(&page, notificationPermissions)
-	page.Name = templates.PagePreferences
+	page.Name = "preferences"
 	return &page, nil
 }
 

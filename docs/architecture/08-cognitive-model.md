@@ -18,11 +18,11 @@ The framework has one canonical flow per concern. If a change does not fit these
 `router -> controller -> service/module -> viewmodel -> templ`
 
 - Route registration is declared in `router.go`.
-- HTTP handlers live in `framework/web/controllers` and enabled module route packages.
+- HTTP handlers live in `framework/http/controllers` and enabled module route packages.
 - Domain/business logic lives in framework and module service packages (`framework/*`, `modules/*`).
-- Template payload shapes live in `framework/web/viewmodels`.
-- Rendering helpers live in `framework/web/ui`.
-- Templ sources live in `framework/web/*` and `framework/views/*`.
+- Template payload shapes live in `framework/http/viewmodels`.
+- Rendering helpers live in `framework/http/ui`.
+- Templ sources live in `framework/http/*` and `framework/views/*`.
 
 ## Async Flow (Always)
 

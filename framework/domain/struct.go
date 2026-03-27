@@ -2,8 +2,6 @@ package domain
 
 import (
 	"time"
-
-	"github.com/leomorpho/goship/framework/nullable"
 )
 
 type Question struct {
@@ -245,5 +243,8 @@ func (p *Profile) ContactPhoneNumber() string {
 	if p == nil {
 		return ""
 	}
-	return nullable.StringOr(p.PhoneNumberInternational, p.PhoneNumberE164)
+	if p.PhoneNumberInternational == nil {
+		return p.PhoneNumberE164
+	}
+	return *p.PhoneNumberInternational
 }

@@ -10,13 +10,11 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/leomorpho/goship"
+	shipapp "github.com/leomorpho/goship/app"
 	"github.com/leomorpho/goship-modules/notifications"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
 	"github.com/leomorpho/goship/framework/events"
-	storagerepo "github.com/leomorpho/goship/framework/storage"
-	profilesvc "github.com/leomorpho/goship/framework/account"
 )
 
 func timeoutMiddleware(next http.Handler, writeTimeout time.Duration) http.Handler {
@@ -37,7 +35,7 @@ func timeoutMiddleware(next http.Handler, writeTimeout time.Duration) http.Handl
 
 func main() {
 	// Start a new container
-	c := goship.NewContainer()
+	c := shipapp.NewContainer()
 	defer func() {
 		if err := c.Shutdown(); err != nil {
 			c.Web.Logger.Fatal(err)
@@ -58,15 +56,6 @@ func main() {
 	if err := wireJobsModule(c); err != nil {
 		c.Web.Logger.Fatalf("failed to initialize jobs module: %v", err)
 	}
-	storageClient := storagerepo.NewStorageClient(c.Config, c.Database, c.Config.Adapters.DB)
-	profileService := profilesvc.NewProfileServiceWithDBDeps(
-		c.Database,
-		c.Config.Adapters.DB,
-		storageClient,
-		paidSubscriptionsService,
-		profilesvc.NewBobNotificationCountStore(c.Database, c.Config.Adapters.DB),
-	)
-
 	var firebaseJSONAccessKeys *[]byte
 	if len(c.Config.App.FirebaseJSONAccessKeys) > 0 {
 		firebaseJSONAccessKeys = &c.Config.App.FirebaseJSONAccessKeys
@@ -84,14 +73,13 @@ func main() {
 		SMSRegion:                           c.Config.Phone.Region,
 		SMSSenderID:                         c.Config.Phone.SenderID,
 		SMSValidationCodeExpirationMinutes:  c.Config.Phone.ValidationCodeExpirationMinutes,
-		GetNumNotificationsForProfileByIDFn: profileService.GetCountOfUnseenNotifications,
 	})
 	if err != nil {
 		c.Web.Logger.Fatalf("failed to initialize notifications module: %v", err)
 	}
 
 	// Build the router
-	if err := goship.BuildRouter(c, goship.RouterModules{
+	if err := shipapp.BuildRouter(c, shipapp.RouterModules{
 		PaidSubscriptions: paidSubscriptionsService,
 		Notifications:     notificationServices,
 	}); err != nil {
@@ -190,7 +178,7 @@ func main() {
 	}
 }
 
-func wireJobsModule(c *goship.Container) error {
+func wireJobsModule(c *shipapp.Container) error {
 	runtime, err := frameworkbootstrap.WireJobsRuntime(c.Config, c.Database, frameworkbootstrap.JobsProcessWeb)
 	if err != nil {
 		return err
@@ -202,7 +190,7 @@ func wireJobsModule(c *goship.Container) error {
 
 func startEmbeddedJobsWorker(
 	ctx context.Context,
-	c *goship.Container,
+	c *shipapp.Container,
 	paidSubscriptionsService *paidsubscriptions.Service,
 	notificationServices *notifications.Services,
 ) error {

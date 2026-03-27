@@ -1,5 +1,5 @@
 # Project Scope Analysis
-<!-- FRONTEND_SYNC: Landing capability explorer in framework/web/pages/landing_page.templ links here for Authentication and Authorization, Notifications and Mail, and File Storage. Keep both landing copy and this doc aligned. -->
+<!-- FRONTEND_SYNC: Landing capability explorer in framework/http/pages/landing_page.templ links here for Authentication and Authorization, Notifications and Mail, and File Storage. Keep both landing copy and this doc aligned. -->
 
 ## What This Project Is
 
@@ -67,13 +67,13 @@ can immediately run `ship db:migrate`, `go run ./cmd/web`, and `ship verify --pr
 
 Core flows implemented in routes and services:
 
-- Login/logout (`framework/web/controllers` auth routes)
+- Login/logout (`framework/http/controllers` auth routes)
 - OAuth/social login for enabled GitHub, Google, and Discord providers (`modules/auth`)
 - Optional TOTP-based two-factor authentication with recovery backup codes (`modules/2fa`)
 - Register (`register.go`)
 - Forgot/reset password (`forgot_password.go`, `reset_password.go`)
 - Email verification (`verify_email.go`)
-- Auth middleware and session handling (`framework/web/middleware/auth.go`, framework bootstrap wiring)
+- Auth middleware and session handling (`framework/http/middleware/auth.go`, framework bootstrap wiring)
 
 Key implementation choices:
 
@@ -85,7 +85,7 @@ Key implementation choices:
 
 ## 2) Onboarding, Preferences, and Profile
 
-- Onboarding and preferences mostly in `framework/web/controllers/preferences_*.go`
+- Onboarding and preferences mostly in `framework/http/controllers/preferences_*.go`
 - Profile page in `profile.go`
 - Mark onboarding completion (`/welcome/finish-onboarding`)
 - Profile photo and gallery image routes (`profile_photo.go`, `upload_photo.go`)
@@ -166,7 +166,7 @@ through `core.Jobs`, and the worker runtime starts/stops the scheduler lifecycle
 
 ## 9) Frontend Delivery Model
 
-- Server-rendered pages via Templ (`framework/web/*`, `framework/views/*`, `framework/web/ui`)
+- Server-rendered pages via Templ (`framework/http/*`, `framework/views/*`, `framework/http/ui`)
 - HTMX-enhanced interactions
 - Optional client islands built as per-component JS chunks under `frontend/islands/` and emitted to `static/`
 - `ship make:island <Name>` generates the canonical island pair (`frontend/islands/<Name>.js` plus framework templ mount scaffolding) that the browser runtime mounts through `data-island` / `data-props`
@@ -215,7 +215,7 @@ Reflection-based administrative interface for managing database resources.
 - Controller request DTOs now live with their owning controllers/modules instead of global shared DTO buckets.
 - `ship doctor` (`DX027`) enforces typed request binding patterns and now blocks raw/untyped form parsing patterns in controllers.
 - OpenAPI generation was removed from the core `ship` CLI surface in the minimal runtime cleanup stream.
-- Canonical page ownership is framework-first (`framework/web/ui.Page` + `framework/web/page.Base`).
+- Canonical page ownership is framework-first (`framework/http/ui.Page` + `framework/http/page.Base`).
 
 ## 14) Internationalization Baseline
 

@@ -83,7 +83,7 @@ func (s *NotifierService) PublishNotification(
 
 	// Send push notification
 	if sendPushNotif {
-		numNotifs, err := s.getNumNotifsCount(ctx, notification.ProfileID)
+		numNotifs, err := s.GetCountOfUnseenNotifications(ctx, notification.ProfileID)
 		if err != nil {
 			slog.Error("failed to get number of notifications for profile", "error", err, "profileID", notification.ProfileID)
 			return err
@@ -120,6 +120,13 @@ func (s *NotifierService) PublishNotification(
 		Type: notification.Type.Value,
 		Data: notification.Text,
 	})
+}
+
+func (s *NotifierService) GetCountOfUnseenNotifications(ctx context.Context, profileID int) (int, error) {
+	if s.getNumNotifsCount == nil {
+		return 0, nil
+	}
+	return s.getNumNotifsCount(ctx, profileID)
 }
 
 func (s *NotifierService) canSendPushForPlatform(

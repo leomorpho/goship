@@ -23,7 +23,6 @@ require (
 	github.com/labstack/echo-contrib v0.15.0
 	github.com/labstack/echo/v4 v4.13.3
 	github.com/labstack/gommon v0.4.2
-	github.com/leomorpho/goship-modules/emailsubscriptions v0.0.0
 	github.com/leomorpho/goship-modules/jobs v0.0.0
 	github.com/leomorpho/goship-modules/notifications v0.0.0
 	github.com/leomorpho/goship-modules/paidsubscriptions v0.0.0
@@ -45,8 +44,6 @@ require (
 	golang.org/x/exp v0.0.0-20251023183803-a4bb9ffd2546
 	modernc.org/sqlite v1.46.1
 )
-
-replace github.com/leomorpho/goship-modules/emailsubscriptions => ./modules/emailsubscriptions
 
 replace github.com/leomorpho/goship-modules/jobs => ./modules/jobs
 

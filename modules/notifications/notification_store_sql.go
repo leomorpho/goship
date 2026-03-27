@@ -20,6 +20,7 @@ type SQLNotificationStore struct {
 // NotificationStorage defines storage operations on notifications.
 type NotificationStorage interface {
 	CreateNotification(ctx context.Context, n domain.Notification) (*domain.Notification, error)
+	GetCountOfUnseenNotifications(ctx context.Context, profileID int) (int, error)
 	GetNotificationsByProfileID(ctx context.Context, profileID int, onlyUnread bool, beforeTimestamp *time.Time, pageSize *int) ([]*domain.Notification, error)
 	MarkNotificationAsRead(ctx context.Context, notificationID int, profileID *int) error
 	MarkAllNotificationAsRead(ctx context.Context, profileID int) error
@@ -90,6 +91,17 @@ func (s *SQLNotificationStore) CreateNotification(ctx context.Context, n domain.
 	created.CreatedAt = now
 	created.Read = false
 	return &created, nil
+}
+
+func (s *SQLNotificationStore) GetCountOfUnseenNotifications(ctx context.Context, profileID int) (int, error) {
+	var count int
+	err := s.db.QueryRowContext(
+		ctx,
+		s.bind("SELECT COUNT(*) FROM notifications WHERE profile_id = ? AND read = ?"),
+		profileID,
+		false,
+	).Scan(&count)
+	return count, err
 }
 
 func (s *SQLNotificationStore) GetNotificationsByProfileID(

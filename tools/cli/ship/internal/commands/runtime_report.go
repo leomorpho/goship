@@ -8,7 +8,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/leomorpho/goship/config"
 	"github.com/leomorpho/goship/config/runtimeconfig"

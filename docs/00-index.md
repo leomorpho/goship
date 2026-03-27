@@ -88,7 +88,7 @@ Last updated: 2026-03-25
 - `router.go`
 - `schedules.go`
 - `framework/bootstrap/*.go`
-- `framework/web/controllers/*.go`
+- `framework/http/controllers/*.go`
 - `modules/*/routes/*.go`
 - `framework/repos/**/*.go`
 - `db/queries/*.sql`

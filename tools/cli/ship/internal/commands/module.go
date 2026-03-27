@@ -197,13 +197,13 @@ STRIPE_WEBHOOK_SECRET=
 	}
 	pwaContainerSnippet = `
 	// ship:module:pwa
-	// PWA static assets are served via framework/web.RegisterStaticRoutes -> pwaModule.RegisterStaticRoutes.
+	// PWA static assets are served via framework/http.RegisterStaticRoutes -> pwaModule.RegisterStaticRoutes.
 `
 	pwaInstallContract = moduleInstallContract{
-		Routes:    []string{"modules/pwa/routes.go", "framework/web/wiring.go"},
+		Routes:    []string{"modules/pwa/routes.go", "framework/http/wiring.go"},
 		Assets:    []string{"modules/pwa/static/manifest.json", "modules/pwa/static/service-worker.js"},
 		Templates: []string{"modules/pwa/views/web/pages/gen/install_app_templ.go", "modules/pwa/views/web/components/gen/pwa_install_templ.go"},
-		Tests:     []string{"modules/pwa/module_test.go", "framework/web/controllers/route_smoke_test.go", "tools/cli/ship/internal/commands/doc_sync_contract_test.go"},
+		Tests:     []string{"modules/pwa/module_test.go", "framework/http/controllers/route_smoke_test.go", "tools/cli/ship/internal/commands/doc_sync_contract_test.go"},
 	}
 	pwaRouterSnippets = map[string]string{
 		"public": `
@@ -231,7 +231,7 @@ var moduleCatalog = map[string]moduleInfo{
 				"modules/notifications/planned_notifications_store_sql.go",
 			},
 			Templates: []string{
-				"framework/web/pages/gen/notifications_templ.go",
+				"framework/http/pages/gen/notifications_templ.go",
 			},
 			Tests: []string{
 				"modules/notifications/routes/routes_contract_test.go",

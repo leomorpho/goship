@@ -90,6 +90,10 @@ func New(deps RuntimeDeps) (*Services, error) {
 	if err != nil {
 		return nil, err
 	}
+	getNumNotificationsForProfileByID := deps.GetNumNotificationsForProfileByIDFn
+	if getNumNotificationsForProfileByID == nil {
+		getNumNotificationsForProfileByID = notificationStore.GetCountOfUnseenNotifications
+	}
 	notifierService := NewNotifierService(
 		deps.PubSub,
 		deps.Jobs,
@@ -97,7 +101,7 @@ func New(deps RuntimeDeps) (*Services, error) {
 		permissionService,
 		pwaPushService,
 		fcmPushService,
-		deps.GetNumNotificationsForProfileByIDFn,
+		getNumNotificationsForProfileByID,
 	)
 
 	return &Services{

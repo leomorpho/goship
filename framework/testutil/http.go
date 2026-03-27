@@ -14,13 +14,11 @@ import (
 	"strings"
 	"testing"
 
-	goship "github.com/leomorpho/goship"
+	shipapp "github.com/leomorpho/goship/app"
 	"github.com/leomorpho/goship-modules/notifications"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	"github.com/leomorpho/goship/config"
 	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
-	storagerepo "github.com/leomorpho/goship/framework/storage"
-	profilesvc "github.com/leomorpho/goship/framework/account"
 )
 
 type RequestOpt func(*requestConfig) error
@@ -39,7 +37,7 @@ type MultipartFile struct {
 
 type TestServer struct {
 	Server    *httptest.Server
-	Container *goship.Container
+	Container *shipapp.Container
 	t         testing.TB
 	client    *http.Client
 }
@@ -48,7 +46,7 @@ func NewTestServer(t testing.TB) *TestServer {
 	t.Helper()
 	config.SwitchEnvironment(config.EnvTest)
 
-	c := goship.NewContainer()
+	c := shipapp.NewContainer()
 
 	paidSubscriptions := paidsubscriptions.New(paidsubscriptions.NewSQLStore(
 		c.Database,
@@ -56,15 +54,6 @@ func NewTestServer(t testing.TB) *TestServer {
 		c.Config.App.OperationalConstants.ProTrialTimespanInDays,
 		c.Config.App.OperationalConstants.PaymentFailedGracePeriodInDays,
 	))
-	storageClient := storagerepo.NewStorageClient(c.Config, c.Database, c.Config.Adapters.DB)
-	profileService := profilesvc.NewProfileServiceWithDBDeps(
-		c.Database,
-		c.Config.Adapters.DB,
-		storageClient,
-		paidSubscriptions,
-		profilesvc.NewSQLNotificationCountStore(c.Database, c.Config.Adapters.DB),
-	)
-
 	var firebaseJSONAccessKeys *[]byte
 	if len(c.Config.App.FirebaseJSONAccessKeys) > 0 {
 		firebaseJSONAccessKeys = &c.Config.App.FirebaseJSONAccessKeys
@@ -82,13 +71,12 @@ func NewTestServer(t testing.TB) *TestServer {
 		SMSRegion:                           c.Config.Phone.Region,
 		SMSSenderID:                         c.Config.Phone.SenderID,
 		SMSValidationCodeExpirationMinutes:  c.Config.Phone.ValidationCodeExpirationMinutes,
-		GetNumNotificationsForProfileByIDFn: profileService.GetCountOfUnseenNotifications,
 	})
 	if err != nil {
 		t.Fatalf("build notifications module: %v", err)
 	}
 
-	if err := goship.BuildRouter(c, goship.RouterModules{
+	if err := shipapp.BuildRouter(c, shipapp.RouterModules{
 		PaidSubscriptions: paidSubscriptions,
 		Notifications:     notificationServices,
 	}); err != nil {

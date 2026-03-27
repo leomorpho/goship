@@ -11,16 +11,13 @@ import (
 
 	"github.com/labstack/echo/v4"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
-	customctx "github.com/leomorpho/goship/framework/appcontext"
 	"github.com/leomorpho/goship/framework/core"
 	"github.com/leomorpho/goship/framework/domain"
-	frameworkauthcontext "github.com/leomorpho/goship/framework/web/authcontext"
-	layouts "github.com/leomorpho/goship/framework/web/layouts/gen"
-	pages "github.com/leomorpho/goship/framework/web/pages/gen"
-	routeNames "github.com/leomorpho/goship/framework/web/routenames"
-	"github.com/leomorpho/goship/framework/web/templates"
-	"github.com/leomorpho/goship/framework/web/ui"
-	"github.com/leomorpho/goship/framework/web/viewmodels"
+	frameworkauthcontext "github.com/leomorpho/goship/framework/http/authcontext"
+	layouts "github.com/leomorpho/goship/framework/http/layouts/gen"
+	pages "github.com/leomorpho/goship/framework/http/pages/gen"
+	customctx "github.com/leomorpho/goship/framework/http/requestcontext"
+	"github.com/leomorpho/goship/framework/http/ui"
 	"github.com/stripe/stripe-go/v78"
 	portalsession "github.com/stripe/stripe-go/v78/billingportal/session"
 	"github.com/stripe/stripe-go/v78/checkout/session"
@@ -31,6 +28,36 @@ import (
 type RouteModule struct {
 	controller ui.Controller
 	service    *paidsubscriptions.Service
+}
+
+type paymentProcessorPublicKey struct {
+	Key string `json:"key"`
+}
+
+type createCheckoutSessionForm struct {
+	Submission ui.FormSubmission
+	PriceID    string `form:"price_id" validate:"required"`
+}
+
+type productDescription struct {
+	Name     string
+	Subtitle string
+	Price    string
+	Points   []string
+	PlanKey  string
+}
+
+type pricingPageData struct {
+	ProductProCode        string
+	ProductProPrice       string
+	FreePlanKey           string
+	DefaultPaidPlanKey    string
+	ActivePlanKey         string
+	ActivePlanIsPaid      bool
+	IsTrial               bool
+	HasSubscriptionExpiry bool
+	SubscriptionExpiresOn string
+	ProductDescriptions   []productDescription
 }
 
 func NewRouteModule(controller ui.Controller, service *paidsubscriptions.Service) *RouteModule {
@@ -49,27 +76,27 @@ func (m *RouteModule) Migrations() fs.FS {
 }
 
 func (m *RouteModule) RegisterRoutes(r core.Router) error {
-	r.GET("/payments/get-public-key", m.GetPaymentProcessorPublickey).Name = routeNames.RouteNamePaymentProcessorGetPublicKey
-	r.POST("/payments/create-checkout-session", m.CreateCheckoutSession).Name = routeNames.RouteNameCreateCheckoutSession
-	r.POST("/payments/create-portal-session", m.CreatePortalSession).Name = routeNames.RouteNameCreatePortalSession
-	r.GET("/payments/pricing", m.PricingPage).Name = routeNames.RouteNamePricingPage
-	r.GET("/payments/success", m.SuccessfullySubscribed).Name = routeNames.RouteNamePaymentProcessorSuccess
+	r.GET("/payments/get-public-key", m.GetPaymentProcessorPublickey).Name = "payment_processor.get_public_key"
+	r.POST("/payments/create-checkout-session", m.CreateCheckoutSession).Name = "stripe.create_checkout_session"
+	r.POST("/payments/create-portal-session", m.CreatePortalSession).Name = "stripe.create_portal_session"
+	r.GET("/payments/pricing", m.PricingPage).Name = "pricing_page"
+	r.GET("/payments/success", m.SuccessfullySubscribed).Name = "stripe.success"
 	return nil
 }
 
 func (m *RouteModule) RegisterExternalRoutes(r core.Router, stripeWebhookPath string) error {
-	r.POST(stripeWebhookPath, m.HandleWebhook).Name = routeNames.RouteNamePaymentProcessorWebhook
+	r.POST(stripeWebhookPath, m.HandleWebhook).Name = "stripe.webhook"
 	return nil
 }
 
 func (m *RouteModule) GetPaymentProcessorPublickey(ctx echo.Context) error {
-	key := viewmodels.NewPaymentProcessorPublicKey()
+	key := paymentProcessorPublicKey{}
 	key.Key = m.controller.Container.Config.App.PublicStripeKey
 	return ctx.JSON(http.StatusOK, key)
 }
 
 func (m *RouteModule) CreateCheckoutSession(ctx echo.Context) error {
-	var form viewmodels.CreateCheckoutSessionForm
+	var form createCheckoutSessionForm
 	ctx.Set(customctx.FormKey, &form)
 
 	if err := ctx.Bind(&form); err != nil {
@@ -82,9 +109,9 @@ func (m *RouteModule) CreateCheckoutSession(ctx echo.Context) error {
 		return m.PricingPage(ctx)
 	}
 
-	successURL := ctx.Echo().Reverse(routeNames.RouteNamePaymentProcessorSuccess)
+	successURL := ctx.Echo().Reverse("stripe.success")
 	fullSuccessURL := fmt.Sprintf("%s%s", m.controller.Container.Config.HTTP.Domain, successURL)
-	cancelURL := ctx.Echo().Reverse(routeNames.RouteNamePreferences)
+	cancelURL := ctx.Echo().Reverse("preferences")
 	fullCancelURL := fmt.Sprintf("%s%s", m.controller.Container.Config.HTTP.Domain, cancelURL)
 
 	profileID, err := authenticatedProfileID(ctx)
@@ -138,7 +165,7 @@ func (m *RouteModule) CreatePortalSession(ctx echo.Context) error {
 		return err
 	}
 
-	returnURL := ctx.Echo().Reverse(routeNames.RouteNamePreferences)
+	returnURL := ctx.Echo().Reverse("preferences")
 	fullReturnURL := fmt.Sprintf("%s%s", m.controller.Container.Config.HTTP.Domain, returnURL)
 
 	params := &stripe.BillingPortalSessionParams{
@@ -239,7 +266,7 @@ func (m *RouteModule) HandleWebhook(ctx echo.Context) error {
 			return echo.NewHTTPError(http.StatusInternalServerError)
 		}
 
-		fullURL := ctx.Echo().Reverse(routeNames.RouteNamePreferences)
+		fullURL := ctx.Echo().Reverse("preferences")
 		err = m.controller.Container.Notifier.PublishNotification(
 			ctx.Request().Context(),
 			domain.Notification{
@@ -279,7 +306,7 @@ func (m *RouteModule) PricingPage(ctx echo.Context) error {
 	page := ui.NewPage(ctx)
 	page.Layout = layouts.Main
 	page.Component = pages.PricingPage(&page)
-	page.Name = templates.PagePricing
+	page.Name = "pricing"
 
 	profileID, err := authenticatedProfileID(ctx)
 	if err != nil {
@@ -296,7 +323,7 @@ func (m *RouteModule) PricingPage(ctx echo.Context) error {
 	}
 	activePlanKey := m.activePlanKey(activePlan)
 
-	data := viewmodels.NewPricingPageData()
+	data := pricingPageData{ProductDescriptions: []productDescription{}}
 	data.ProductProCode = m.controller.Container.Config.App.OperationalConstants.ProductProCode
 	data.ProductProPrice = fmt.Sprintf("%.2f", m.controller.Container.Config.App.OperationalConstants.ProductProPrice)
 	data.FreePlanKey = m.service.FreePlanKey()
@@ -305,8 +332,8 @@ func (m *RouteModule) PricingPage(ctx echo.Context) error {
 	data.ActivePlanIsPaid = m.isPaidPlanKey(activePlanKey)
 	data.HasSubscriptionExpiry = subscriptionExpiredOn != nil
 	data.IsTrial = isTrial
-	productDescription := viewmodels.NewProductDescription()
-	data.ProductDescriptions = []viewmodels.ProductDescription{productDescription}
+	description := productDescription{Points: []string{}}
+	data.ProductDescriptions = []productDescription{description}
 	if subscriptionExpiredOn != nil {
 		data.SubscriptionExpiresOn = subscriptionExpiredOn.Format(time.RFC3339Nano)
 	}
@@ -320,7 +347,7 @@ func (m *RouteModule) SuccessfullySubscribed(ctx echo.Context) error {
 	page := ui.NewPage(ctx)
 	page.Layout = layouts.Main
 	page.Component = pages.PaymentSuccess(&page)
-	page.Name = templates.PageSuccessfullySubscribed
+	page.Name = "successfully_subscribed"
 	page.HTMX.Request.Boosted = true
 
 	return m.controller.RenderPage(ctx, page)
