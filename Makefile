@@ -275,6 +275,10 @@ test-fresh-app-ci: ## Verify the fresh-app CI lane (generation, batteries, verif
 test-release-proof: ## Generate release-review proof logs for default and API-only generated apps
 	bash tools/scripts/check-release-proof.sh
 
+.PHONY: test-getting-started
+test-getting-started: ## Execute the documented getting-started path end-to-end
+	bash tools/scripts/check-getting-started.sh
+
 .PHONY: test-agent-evals
 test-agent-evals: ## Run deterministic cold-start agent eval pack and emit score report
 	bash tools/scripts/check-agent-evals.sh

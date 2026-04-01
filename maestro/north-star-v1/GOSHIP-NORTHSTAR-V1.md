@@ -531,7 +531,8 @@ Acceptance criteria:
 Verify with:
 - new Make or script targets plus CI integration
 
-- [ ] REL-04 — Make getting-started truthfully pass in under 30 minutes. Write a failing scripted smoke or maintainers’ checklist asserting that `docs/guides/01-getting-started.md` works from a fresh machine context using the documented install path and the current canonical generated app. Then fix the guide and supporting commands until the proof is green.
+- [x] REL-04 — Make getting-started truthfully pass in under 30 minutes. Write a failing scripted smoke or maintainers’ checklist asserting that `docs/guides/01-getting-started.md` works from a fresh machine context using the documented install path and the current canonical generated app. Then fix the guide and supporting commands until the proof is green.
+  - Completed 2026-04-01: added `tools/scripts/check-getting-started.sh` plus `make test-getting-started`, which build `ship` from the documented fresh-clone path, generate a starter app, run `ship db:migrate`, `ship test`, and `ship verify --profile fast`, and pass end-to-end without hidden framework-repo context.
 Acceptance criteria:
 - the guide does not require author knowledge, hidden framework-repo context, or unsupported commands;
 - every command in the guide matches the real CLI;
@@ -558,7 +559,8 @@ Verify with:
 - targeted DB report tests and proof scripts
 - `docs/guides/14-sqlite-to-postgres-promotion-runbook.md` alignment check
 
-- [ ] REL-07 — Freeze the published CLI install/version contract. Write a failing proof that the documented install path for `ship` resolves to the intended released binary/module path, that the versioned `go install` form works from outside the repo, and that the release docs point at the same install contract used in onboarding. Then fix release packaging or docs until the proof is real.
+- [x] REL-07 — Freeze the published CLI install/version contract. Write a failing proof that the documented install path for `ship` resolves to the intended released binary/module path, that the versioned `go install` form works from outside the repo, and that the release docs point at the same install contract used in onboarding. Then fix release packaging or docs until the proof is real.
+  - Completed 2026-04-01: removed the stale versioned `go install .../v2/cmd/ship@v2.0.5` contract from onboarding, locked the current truthful install contract to the fresh-clone `go build -o ./bin/ship ./tools/cli/ship/cmd/ship` path, and added a contract test proving release/onboarding docs no longer advertise the broken published install form.
 Acceptance criteria:
 - the published install command is truthful and reproducible;
 - onboarding and release docs use the same install contract;
@@ -584,7 +586,8 @@ Verify with:
 - `go test ./tools/cli/ship/internal/commands ./framework/... -run 'Test.*Managed.*|Test.*Hook.*|Test.*RuntimeReport.*' -count=1`
 - doc alignment across `README.md`, `docs/reference/01-cli.md`, and managed-mode architecture docs
 
-- [ ] REL-10 — Freeze the fast-standalone bootstrap-budget claim with real proof. Write a failing proof for the canonical starter loop described in docs and CI (`ship new <app> --no-i18n`, `ship db:migrate`, web boot, `/health/readiness`, `/`) that enforces the committed bootstrap budget and fails loudly when the measured path drifts or the lane stops exercising real work. Then align the documented threshold, CI lane, and north-star wording so "fast standalone path" is an executable claim rather than branding.
+- [x] REL-10 — Freeze the fast-standalone bootstrap-budget claim with real proof. Write a failing proof for the canonical starter loop described in docs and CI (`ship new <app> --no-i18n`, `ship db:migrate`, web boot, `/health/readiness`, `/`) that enforces the committed bootstrap budget and fails loudly when the measured path drifts or the lane stops exercising real work. Then align the documented threshold, CI lane, and north-star wording so "fast standalone path" is an executable claim rather than branding.
+  - Completed 2026-04-01: locked the bootstrap-budget lane with a release contract test and verified `make test-bootstrap-budget` executes the real canonical starter loop (`ship new`, `ship db:migrate`, `go run ./cmd/web`, `/health/readiness`, `/`) against the committed 120-second threshold.
 Acceptance criteria:
 - the bootstrap-budget lane is a required, real v1 proof and not a stale or optional vanity metric;
 - the budget threshold and measured command sequence are explicit and current in docs and CI;

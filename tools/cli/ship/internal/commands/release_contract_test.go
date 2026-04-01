@@ -49,3 +49,42 @@ func TestReleaseProofTargetExists(t *testing.T) {
 		assertContains(t, "tools/scripts/check-release-proof.sh", script, needle)
 	}
 }
+
+func TestGettingStartedProofTargetExists(t *testing.T) {
+	t.Parallel()
+
+	makefile := readRepoFile(t, "Makefile")
+	assertContains(t, "Makefile", makefile, "test-getting-started")
+
+	script := readRepoFile(t, "tools/scripts/check-getting-started.sh")
+	assertContains(t, "tools/scripts/check-getting-started.sh", script, "new myapp --module example.com/myapp --no-i18n")
+	assertContains(t, "tools/scripts/check-getting-started.sh", script, "db:migrate")
+	assertContains(t, "tools/scripts/check-getting-started.sh", script, "test >/dev/null")
+	assertContains(t, "tools/scripts/check-getting-started.sh", script, "verify --profile fast")
+}
+
+func TestPublishedInstallContractMatchesOnboarding(t *testing.T) {
+	t.Parallel()
+
+	gettingStarted := readRepoFile(t, "docs/guides/01-getting-started.md")
+	assertContains(t, "docs/guides/01-getting-started.md", gettingStarted, "go build -o ./bin/ship ./tools/cli/ship/cmd/ship")
+	assertNotContains(t, "docs/guides/01-getting-started.md", gettingStarted, "tools/cli/ship/v2/cmd/ship@v2.0.5")
+
+	readme := readRepoFile(t, "README.md")
+	assertNotContains(t, "README.md", readme, "tools/cli/ship/v2/cmd/ship@v2.0.5")
+}
+
+func TestBootstrapBudgetTargetIsDocumentedAndWired(t *testing.T) {
+	t.Parallel()
+
+	makefile := readRepoFile(t, "Makefile")
+	assertContains(t, "Makefile", makefile, "test-bootstrap-budget")
+
+	script := readRepoFile(t, "tools/scripts/check-bootstrap-budget.sh")
+	assertContains(t, "tools/scripts/check-bootstrap-budget.sh", script, "ship new")
+	assertContains(t, "tools/scripts/check-bootstrap-budget.sh", script, "db:migrate")
+	assertContains(t, "tools/scripts/check-bootstrap-budget.sh", script, "/health/readiness")
+
+	guide := readRepoFile(t, "docs/guides/02-development-workflows.md")
+	assertContains(t, "docs/guides/02-development-workflows.md", guide, "make test-bootstrap-budget")
+}
