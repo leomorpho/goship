@@ -7,7 +7,6 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/leomorpho/goship/framework/core"
 	"github.com/leomorpho/goship/framework/domain"
 	"github.com/leomorpho/goship/framework/pubsub"
 )
@@ -20,7 +19,7 @@ NotifierService manages the full lifecycle of notifications. That includes:
 */
 type NotifierService struct {
 	pubSubClient              PubSub
-	jobs                      core.Jobs
+	jobs                      Jobs
 	notificationStore         NotificationStorage
 	notificationPermissionSvc *NotificationPermissionService
 	pwaPushService            *PwaPushService
@@ -30,7 +29,7 @@ type NotifierService struct {
 
 func NewNotifierService(
 	pubSubClient PubSub,
-	jobs core.Jobs,
+	jobs Jobs,
 	notificationStore NotificationStorage,
 	notificationPermissionService *NotificationPermissionService,
 	pwaPushService *PwaPushService,

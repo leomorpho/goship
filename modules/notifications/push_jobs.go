@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
-
-	"github.com/leomorpho/goship/framework/core"
 )
 
 const DeliverPushNotificationJobName = "notifications.deliver_push"
@@ -29,7 +27,7 @@ func (s *NotifierService) enqueuePushNotification(ctx context.Context, payload D
 	if err != nil {
 		return err
 	}
-	_, err = s.jobs.Enqueue(ctx, DeliverPushNotificationJobName, raw, core.EnqueueOptions{
+	_, err = s.jobs.Enqueue(ctx, DeliverPushNotificationJobName, raw, EnqueueOptions{
 		Queue:      "default",
 		MaxRetries: 3,
 	})

@@ -284,6 +284,13 @@ func (c *Container) initConfig() {
 	if err != nil {
 		panic(fmt.Sprintf("startup configuration failure: could not load config from .env/environment (%v). Check required PAGODA_* settings and secret values.", err))
 	}
+	if issues := config.ValidateConfigSemantics(cfg); len(issues) > 0 {
+		msgs := make([]string, 0, len(issues))
+		for _, issue := range issues {
+			msgs = append(msgs, issue.Error())
+		}
+		panic(fmt.Sprintf("startup configuration failure: %s", strings.Join(msgs, "; ")))
+	}
 	c.Config = &cfg
 }
 

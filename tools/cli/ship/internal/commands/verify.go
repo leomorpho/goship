@@ -445,7 +445,7 @@ func checkModuleCompatibilityPolicy(root string) error {
 		}
 	}
 
-	for _, info := range standaloneModulePolicies() {
+	for _, info := range standaloneModulePolicies(root) {
 		requiredVersion, hasRequire := requiredVersions[info.ModulePath]
 		replacedPath, hasReplace := replacedPaths[info.ModulePath]
 		usePath := filepath.Clean(filepath.Join(".", filepath.FromSlash(info.LocalPath)))
@@ -507,11 +507,16 @@ func checkModuleCompatibilityPolicy(root string) error {
 	return nil
 }
 
-func standaloneModulePolicies() []moduleInfo {
+func standaloneModulePolicies(root string) []moduleInfo {
 	policies := make([]moduleInfo, 0, len(moduleCatalog))
 	for _, info := range moduleCatalog {
 		if strings.TrimSpace(info.ModulePath) == "" || strings.TrimSpace(info.LocalPath) == "" {
 			continue
+		}
+		if root != "" {
+			if _, err := os.Stat(filepath.Join(root, info.LocalPath, "go.mod")); err != nil {
+				continue
+			}
 		}
 		policies = append(policies, info)
 	}

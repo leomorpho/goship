@@ -24,12 +24,16 @@ type ResourceGenerateOptions struct {
 
 type ResourceGenerateResult struct {
 	CreatedFiles       []string
+	UpdatedFiles       []string
 	RouterPath         string
 	RouteSnippet       string
 	RouteInsertSnippet string
 	RouteNamePath      string
 	RouteNameConst     string
 	RouteNameValue     string
+	StarterMode        bool
+	TemplatesPath      string
+	MainPath           string
 }
 
 func RunGenerateResource(args []string, out io.Writer, errOut io.Writer) int {
@@ -63,6 +67,16 @@ func RunGenerateResource(args []string, out io.Writer, errOut io.Writer) int {
 		fmt.Fprintf(errOut, "failed to wire route name constant: %v\n", err)
 		return 1
 	}
+	if parsed.Wire && result.StarterMode {
+		if err := WireStarterPageConstant(result.TemplatesPath, "Page"+NormalizePageName(result.RouteNameConst), result.RouteNameValue, parsed.DryRun); err != nil {
+			fmt.Fprintf(errOut, "failed to wire starter page constant: %v\n", err)
+			return 1
+		}
+		if err := WireStarterComponentForPage(result.MainPath, result.RouteNameValue, "Page"+NormalizePageName(result.RouteNameConst), NormalizePageName(result.RouteNameConst), titleFromRouteName(result.RouteNameConst), parsed.DryRun); err != nil {
+			fmt.Fprintf(errOut, "failed to wire starter component switch: %v\n", err)
+			return 1
+		}
+	}
 
 	updated := []string{result.RouteNamePath}
 	previews := make([]generatorPreview, 0, 2)
@@ -86,6 +100,9 @@ func RunGenerateResource(args []string, out io.Writer, errOut io.Writer) int {
 	})
 	if parsed.DryRun {
 		updated = nil
+	}
+	if !parsed.DryRun && parsed.Wire {
+		updated = append(updated, result.UpdatedFiles...)
 	}
 	writeGeneratorReport(out, "resource", parsed.DryRun, result.CreatedFiles, updated, previews, nil)
 
@@ -178,6 +195,25 @@ func GenerateResourceScaffold(opts ResourceGenerateOptions) (ResourceGenerateRes
 		return result, fmt.Errorf("invalid --domain value: %w", err)
 	}
 
+	if looksLikeStarterResourceWorkspace(opts.Path) {
+		pageFile := filepath.Join(opts.Path, "views", "web", "pages", "gen", norm.Snake+".go")
+		if err := writeFile(pageFile, renderStarterGeneratedPage(norm), opts.DryRun); err != nil {
+			return result, err
+		}
+		result.CreatedFiles = append(result.CreatedFiles, pageFile)
+		result.RouterPath = filepath.Join(opts.Path, "router.go")
+		result.RouteSnippet = renderStarterRouteSnippet(norm, opts.Auth)
+		result.RouteInsertSnippet = renderStarterRouteInsertSnippet(norm, opts.Auth)
+		result.RouteNamePath = filepath.Join(opts.Path, "web", "routenames", "routenames.go")
+		result.RouteNameConst = "RouteName" + norm.Pascal
+		result.RouteNameValue = norm.Snake
+		result.StarterMode = true
+		result.TemplatesPath = filepath.Join(opts.Path, "views", "templates.go")
+		result.MainPath = filepath.Join("cmd", "web", "main.go")
+		result.UpdatedFiles = []string{result.TemplatesPath, result.MainPath}
+		return result, nil
+	}
+
 	handlerDir := filepath.Join(opts.Path, "web", "controllers")
 	handlerFile := filepath.Join(handlerDir, norm.Snake+".go")
 	if err := writeFile(handlerFile, renderResourceHandler(norm, opts.Views, domain, opts.TestFirst), opts.DryRun); err != nil {
@@ -209,6 +245,75 @@ func GenerateResourceScaffold(opts ResourceGenerateOptions) (ResourceGenerateRes
 	result.RouteNameConst = "RouteName" + norm.Pascal
 	result.RouteNameValue = norm.Snake
 	return result, nil
+}
+
+func looksLikeStarterResourceWorkspace(path string) bool {
+	routerPath := filepath.Join(path, "router.go")
+	templatesPath := filepath.Join(path, "views", "templates.go")
+	mainPath := filepath.Join("cmd", "web", "main.go")
+	routerBody, err := os.ReadFile(routerPath)
+	if err != nil {
+		return false
+	}
+	mainBody, err := os.ReadFile(mainPath)
+	if err != nil {
+		return false
+	}
+	if _, err := os.Stat(templatesPath); err != nil {
+		return false
+	}
+	return strings.Contains(string(routerBody), "type Route struct") &&
+		strings.Contains(string(routerBody), "Page templates.Page") &&
+		strings.Contains(string(mainBody), "func componentForPage(page templates.Page)")
+}
+
+func renderStarterGeneratedPage(n NormalizedResourceName) string {
+	return fmt.Sprintf(`package pages
+
+import (
+	"context"
+	"io"
+
+	"github.com/a-h/templ"
+)
+
+func %s() templ.Component {
+	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+		_, err := io.WriteString(w, %q)
+		return err
+	})
+}
+`, n.Pascal, fmt.Sprintf(`<section data-component=%q><div data-slot="status">Scaffold Resource</div><h1>%s</h1><p>Scaffold page for %s. Replace with your real UI.</p></section>`, n.Kebab, n.Pascal, n.Kebab))
+}
+
+func renderStarterRouteSnippet(n NormalizedResourceName, auth string) string {
+	target := "public"
+	if auth == "auth" {
+		target = "auth"
+	}
+	return fmt.Sprintf(`// In starter %s routes:
+%s`, target, strings.TrimSpace(renderStarterRouteInsertSnippet(n, auth)))
+}
+
+func renderStarterRouteInsertSnippet(n NormalizedResourceName, auth string) string {
+	path := "/" + n.Kebab
+	if auth == "auth" {
+		path = "/auth/" + n.Kebab
+	}
+	return fmt.Sprintf(`			// ship:generated:%s
+			{Name: routenames.RouteName%s, Path: %q, Page: templates.Page%s},
+`, n.Snake, n.Pascal, path, n.Pascal)
+}
+
+func NormalizePageName(routeNameConst string) string {
+	return strings.TrimPrefix(strings.TrimSpace(routeNameConst), "RouteName")
+}
+
+func titleFromRouteName(routeNameConst string) string {
+	return NormalizePageName(routeNameConst)
 }
 
 type NormalizedResourceName struct {
@@ -532,13 +637,61 @@ func WireRouteNameConstant(routeNamesPath, constName, constValue string, dryRun 
 	return os.WriteFile(routeNamesPath, []byte(updated), 0o644)
 }
 
+func WireStarterPageConstant(templatesPath, constName, constValue string, dryRun bool) error {
+	b, err := os.ReadFile(templatesPath)
+	if err != nil {
+		return err
+	}
+	content := string(b)
+	if strings.Contains(content, constName+" ") || strings.Contains(content, constName+"\t") {
+		return nil
+	}
+	constStart := strings.Index(content, "const (")
+	if constStart == -1 {
+		return fmt.Errorf("const block not found in %s", templatesPath)
+	}
+	constEnd := strings.LastIndex(content, "\n)")
+	if constEnd == -1 {
+		return fmt.Errorf("const block closing not found in %s", templatesPath)
+	}
+	line := fmt.Sprintf("\t%s Page = %q\n", constName, constValue)
+	updated := content[:constEnd+1] + line + content[constEnd+1:]
+	if dryRun {
+		return nil
+	}
+	return os.WriteFile(templatesPath, []byte(updated), 0o644)
+}
+
+func WireStarterComponentForPage(mainPath, snake, pageConst, pageFunc, title string, dryRun bool) error {
+	b, err := os.ReadFile(mainPath)
+	if err != nil {
+		return err
+	}
+	content := string(b)
+	marker := "\t// ship:generated:" + snake
+	if strings.Contains(content, marker) {
+		return nil
+	}
+	defaultNeedle := "\tdefault:\n"
+	idx := strings.Index(content, defaultNeedle)
+	if idx == -1 {
+		return fmt.Errorf("default case not found in componentForPage switch for %s", mainPath)
+	}
+	snippet := fmt.Sprintf("%s\n\tcase templates.%s:\n\t\treturn pages.%s(), %q\n", marker, pageConst, pageFunc, title)
+	updated := content[:idx] + snippet + content[idx:]
+	if dryRun {
+		return nil
+	}
+	return os.WriteFile(mainPath, []byte(updated), 0o644)
+}
+
 func EnsureRouteNamesImport(routerPath string, dryRun bool) error {
 	b, err := os.ReadFile(routerPath)
 	if err != nil {
 		return err
 	}
 	content := string(b)
-	if strings.Contains(content, `routeNames "github.com/leomorpho/goship/framework/http/routenames"`) {
+	if strings.Contains(content, "routenames\"") || strings.Contains(content, "routeNames ") {
 		return nil
 	}
 

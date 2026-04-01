@@ -137,7 +137,7 @@ func checkModuleSurfaceResetPolicy(root string) error {
 	}
 
 	policiesByID := map[string]moduleInfo{}
-	for _, info := range standaloneModulePolicies() {
+	for _, info := range standaloneModulePolicies(root) {
 		id := strings.TrimSpace(info.ID)
 		if id == "" {
 			continue

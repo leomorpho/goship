@@ -71,9 +71,12 @@ func CheckCanonicalRepoTopLevelPaths(root string) []DoctorIssue {
 
 	issues := make([]DoctorIssue, 0)
 	required := []string{
+		"app",
+		filepath.ToSlash(filepath.Join("app", "container.go")),
+		filepath.ToSlash(filepath.Join("app", "router.go")),
+		filepath.ToSlash(filepath.Join("app", "schedules.go")),
 		"cmd",
 		"config",
-		"container.go",
 		"db",
 		"docs",
 		"framework",
@@ -83,8 +86,6 @@ func CheckCanonicalRepoTopLevelPaths(root string) []DoctorIssue {
 		"infra",
 		"locales",
 		"modules",
-		"router.go",
-		"schedules.go",
 		"static",
 		"styles",
 		"testdata",
@@ -102,10 +103,7 @@ func CheckCanonicalRepoTopLevelPaths(root string) []DoctorIssue {
 		}
 	}
 
-	forbidden := []string{
-		"app",
-		"javascript",
-	}
+	forbidden := []string{"javascript"}
 	for _, rel := range forbidden {
 		if !pathExists(filepath.Join(root, rel)) {
 			continue
@@ -167,7 +165,7 @@ func checkFrameworkCIVerifyGate(root string) []DoctorIssue {
 
 func looksLikeCanonicalFrameworkRepo(root string) bool {
 	return isDir(filepath.Join(root, "tools", "cli", "ship")) ||
-		hasFile(filepath.Join(root, "container.go")) ||
-		hasFile(filepath.Join(root, "router.go")) ||
-		hasFile(filepath.Join(root, "schedules.go"))
+		hasFile(filepath.Join(root, "app", "container.go")) ||
+		hasFile(filepath.Join(root, "app", "router.go")) ||
+		hasFile(filepath.Join(root, "app", "schedules.go"))
 }

@@ -566,6 +566,10 @@ func parseModuleArgs(args []string) (string, bool, error) {
 }
 
 func applyModuleAdd(root string, info moduleInfo, dryRun bool, out io.Writer) error {
+	if looksLikeStarterScaffoldApp(root) {
+		return fmt.Errorf("module:add is not supported on the starter scaffold yet; no files were changed")
+	}
+
 	var changed bool
 
 	if dependencyChanged, err := syncLocalModuleDependency(root, info, dryRun, out); err != nil {

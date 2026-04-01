@@ -103,6 +103,22 @@ func checkConfigEnvSemantics(root string) []DoctorIssue {
 		})
 	}
 
+	if cfg, cfgErr := appconfig.GetConfig(); cfgErr != nil {
+		issues = append(issues, DoctorIssue{
+			Code:    "DX022",
+			Message: "failed to load config for semantic validation",
+			Fix:     cfgErr.Error(),
+		})
+	} else {
+		for _, issue := range appconfig.ValidateConfigSemantics(cfg) {
+			issues = append(issues, DoctorIssue{
+				Code:    "DX022",
+				Message: fmt.Sprintf("invalid config semantics: %s", issue.Error()),
+				Fix:     "set concrete runtime values that satisfy the selected driver/profile requirements",
+			})
+		}
+	}
+
 	return issues
 }
 

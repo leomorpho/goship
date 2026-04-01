@@ -7,9 +7,9 @@ import (
 	"strings"
 
 	"github.com/hibiken/asynq"
-	shipapp "github.com/leomorpho/goship/app"
 	"github.com/leomorpho/goship-modules/notifications"
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
+	shipapp "github.com/leomorpho/goship/app"
 	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
 	"github.com/leomorpho/goship/framework/events"
 )
@@ -73,18 +73,18 @@ func main() {
 		firebaseJSONAccessKeys = &c.Config.App.FirebaseJSONAccessKeys
 	}
 	notificationServices, err := notifications.New(notifications.RuntimeDeps{
-		DB:                                  c.Database,
-		DBDialect:                           c.Config.Adapters.DB,
-		PubSub:                              frameworkbootstrap.AdaptNotificationsPubSub(c.CorePubSub),
-		Jobs:                                c.CoreJobs,
-		SubscriptionService:                 paidSubscriptionsService,
-		VapidPublicKey:                      c.Config.App.VapidPublicKey,
-		VapidPrivateKey:                     c.Config.App.VapidPrivateKey,
-		MailFromAddress:                     c.Config.Mail.FromAddress,
-		FirebaseJSONAccessKeys:              firebaseJSONAccessKeys,
-		SMSRegion:                           c.Config.Phone.Region,
-		SMSSenderID:                         c.Config.Phone.SenderID,
-		SMSValidationCodeExpirationMinutes:  c.Config.Phone.ValidationCodeExpirationMinutes,
+		DB:                                 c.Database,
+		DBDialect:                          c.Config.Adapters.DB,
+		PubSub:                             frameworkbootstrap.AdaptNotificationsPubSub(c.CorePubSub),
+		Jobs:                               frameworkbootstrap.AdaptNotificationsJobs(c.CoreJobs),
+		SubscriptionService:                paidSubscriptionsService,
+		VapidPublicKey:                     c.Config.App.VapidPublicKey,
+		VapidPrivateKey:                    c.Config.App.VapidPrivateKey,
+		MailFromAddress:                    c.Config.Mail.FromAddress,
+		FirebaseJSONAccessKeys:             firebaseJSONAccessKeys,
+		SMSRegion:                          c.Config.Phone.Region,
+		SMSSenderID:                        c.Config.Phone.SenderID,
+		SMSValidationCodeExpirationMinutes: c.Config.Phone.ValidationCodeExpirationMinutes,
 	})
 	if err != nil {
 		log.Fatalf("failed to initialize notifications module: %v", err)

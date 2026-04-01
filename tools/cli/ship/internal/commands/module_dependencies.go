@@ -15,6 +15,20 @@ func syncLocalModuleDependency(root string, info moduleInfo, dryRun bool, out io
 	if strings.TrimSpace(info.ModulePath) == "" || strings.TrimSpace(info.LocalPath) == "" {
 		return false, nil
 	}
+	goWorkPath := filepath.Join(root, "go.work")
+	if _, err := os.Stat(goWorkPath); err != nil {
+		if os.IsNotExist(err) {
+			return false, fmt.Errorf("local standalone module %q requires go.work; no files were changed", info.ID)
+		}
+		return false, fmt.Errorf("stat %s: %w", goWorkPath, err)
+	}
+	localGoModPath := filepath.Join(root, info.LocalPath, "go.mod")
+	if _, err := os.Stat(localGoModPath); err != nil {
+		if os.IsNotExist(err) {
+			return false, fmt.Errorf("local standalone module %q requires %s; no files were changed", info.ID, filepath.ToSlash(filepath.Join(info.LocalPath, "go.mod")))
+		}
+		return false, fmt.Errorf("stat %s: %w", localGoModPath, err)
+	}
 
 	var changed bool
 
@@ -30,7 +44,6 @@ func syncLocalModuleDependency(root string, info moduleInfo, dryRun bool, out io
 		changed = true
 	}
 
-	goWorkPath := filepath.Join(root, "go.work")
 	goWorkChanged, goWorkContent, err := updateGoWorkUse(goWorkPath, info.LocalPath, info.ModulePath, true)
 	if err != nil {
 		return false, err

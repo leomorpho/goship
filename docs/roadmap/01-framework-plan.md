@@ -70,7 +70,7 @@ The public GoShip repo must not contain an internal application shell.
 
 Canonical runtime ownership now lives in:
 
-- repo root for runtime entrypoints
+- `app/` for runtime entrypoints
 - `framework/` for reusable runtime contracts
 - `modules/` for installable capabilities
 - `tools/cli/ship/` for the product surface

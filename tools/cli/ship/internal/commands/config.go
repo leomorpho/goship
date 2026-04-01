@@ -22,6 +22,7 @@ type configValidateJSON struct {
 	OK              bool               `json:"ok"`
 	Variables       []appconfig.EnvVar `json:"variables"`
 	MissingRequired []string           `json:"missing_required,omitempty"`
+	SemanticIssues  []string           `json:"semantic_issues,omitempty"`
 }
 
 func RunConfig(args []string, d ConfigDeps) int {
@@ -93,14 +94,25 @@ func runConfigValidate(args []string, d ConfigDeps) int {
 		fmt.Fprintf(d.Err, "failed to validate required config variables: %v\n", err)
 		return 1
 	}
+	semanticIssues := make([]string, 0)
+	if cfg, cfgErr := appconfig.GetConfig(); cfgErr == nil {
+		for _, issue := range appconfig.ValidateConfigSemantics(cfg) {
+			semanticIssues = append(semanticIssues, issue.Error())
+		}
+	} else {
+		semanticIssues = append(semanticIssues, fmt.Sprintf("failed to load config for semantic validation: %v", cfgErr))
+	}
 
 	if *jsonOutput {
 		payload := configValidateJSON{
-			OK:        len(missing) == 0,
+			OK:        len(missing) == 0 && len(semanticIssues) == 0,
 			Variables: vars,
 		}
 		if len(missing) > 0 {
 			payload.MissingRequired = envVarNames(missing)
+		}
+		if len(semanticIssues) > 0 {
+			payload.SemanticIssues = semanticIssues
 		}
 		enc := json.NewEncoder(d.Out)
 		enc.SetIndent("", "  ")
@@ -134,15 +146,23 @@ func runConfigValidate(args []string, d ConfigDeps) int {
 		return 1
 	}
 
-	if len(missing) == 0 {
+	if len(missing) == 0 && len(semanticIssues) == 0 {
 		fmt.Fprintln(d.Out)
 		fmt.Fprintln(d.Out, "config validation: OK")
 		return 0
 	}
 
-	fmt.Fprintln(d.Err, "missing required environment variables:")
-	for _, name := range envVarNames(missing) {
-		fmt.Fprintf(d.Err, "- %s\n", name)
+	if len(missing) > 0 {
+		fmt.Fprintln(d.Err, "missing required environment variables:")
+		for _, name := range envVarNames(missing) {
+			fmt.Fprintf(d.Err, "- %s\n", name)
+		}
+	}
+	if len(semanticIssues) > 0 {
+		fmt.Fprintln(d.Err, "config semantic issues:")
+		for _, issue := range semanticIssues {
+			fmt.Fprintf(d.Err, "- %s\n", issue)
+		}
 	}
 	return 1
 }

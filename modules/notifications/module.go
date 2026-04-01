@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
-	"github.com/leomorpho/goship/framework/core"
 )
 
 const ModuleID = "notifications"
@@ -28,7 +27,7 @@ type RuntimeDeps struct {
 	DB                                  *sql.DB
 	DBDialect                           string
 	PubSub                              PubSub
-	Jobs                                core.Jobs
+	Jobs                                Jobs
 	SubscriptionService                 *paidsubscriptions.Service
 	VapidPublicKey                      string
 	VapidPrivateKey                     string

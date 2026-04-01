@@ -95,6 +95,55 @@ func runDestroyResource(name string, d DestroyDeps) int {
 			},
 		},
 		{
+			Target: filepath.ToSlash(filepath.Join("app", "views", "templates.go")),
+			Apply: func(absPath string) (string, error) {
+				content, readErr := os.ReadFile(absPath)
+				if readErr != nil {
+					if os.IsNotExist(readErr) {
+						return "skipped (path not found)", nil
+					}
+					return "", readErr
+				}
+				updated, removed := removeStarterPageConstant(string(content), "Page"+norm.Pascal, norm.Snake)
+				if !removed {
+					return "skipped (no generator-managed page constant found)", nil
+				}
+				if err := os.WriteFile(absPath, []byte(updated), 0o644); err != nil {
+					return "", err
+				}
+				return "removed generated page constant", nil
+			},
+		},
+		{
+			Target: filepath.ToSlash(filepath.Join("cmd", "web", "main.go")),
+			Apply: func(absPath string) (string, error) {
+				content, readErr := os.ReadFile(absPath)
+				if readErr != nil {
+					if os.IsNotExist(readErr) {
+						return "skipped (path not found)", nil
+					}
+					return "", readErr
+				}
+				updated, removed := removeGeneratedSwitchCase(string(content), norm.Snake)
+				if !removed {
+					return "skipped (no generator-managed page switch case found)", nil
+				}
+				if err := os.WriteFile(absPath, []byte(updated), 0o644); err != nil {
+					return "", err
+				}
+				return "removed generated page switch case", nil
+			},
+		},
+		{
+			Target: filepath.ToSlash(filepath.Join("app", "views", "web", "pages", "gen", norm.Snake+".go")),
+			Apply: func(absPath string) (string, error) {
+				return removeManagedFile(absPath, []string{
+					"func " + norm.Pascal + "() templ.Component",
+					"Scaffold page for " + norm.Kebab + ". Replace with your real UI.",
+				})
+			},
+		},
+		{
 			Target: filepath.ToSlash(filepath.Join("app", "views", "web", "pages", norm.Snake+".templ")),
 			Apply: func(absPath string) (string, error) {
 				return removeManagedFile(absPath, []string{
@@ -243,6 +292,10 @@ func removeGeneratedRouteBlock(content, snake string) (string, bool) {
 	for i := 0; i < len(lines); i++ {
 		if strings.TrimSpace(lines[i]) == strings.TrimSpace(marker) {
 			removed = true
+			if i+1 < len(lines) && strings.Contains(lines[i+1], "Page: templates.Page") {
+				i++
+				continue
+			}
 			i++
 			for i < len(lines) && strings.TrimSpace(lines[i]) != "" {
 				i++
@@ -274,5 +327,37 @@ func removeRouteNameConstant(content, constName, constValue string) (string, boo
 		out = append(out, line)
 	}
 
+	return strings.Join(out, "\n"), removed
+}
+
+func removeStarterPageConstant(content, constName, constValue string) (string, bool) {
+	lines := strings.Split(content, "\n")
+	out := make([]string, 0, len(lines))
+	needle := constName + " Page = " + fmt.Sprintf("%q", constValue)
+	removed := false
+	for _, line := range lines {
+		if strings.Contains(line, needle) {
+			removed = true
+			continue
+		}
+		out = append(out, line)
+	}
+	return strings.Join(out, "\n"), removed
+}
+
+func removeGeneratedSwitchCase(content, snake string) (string, bool) {
+	lines := strings.Split(content, "\n")
+	marker := "\t// ship:generated:" + snake
+	out := make([]string, 0, len(lines))
+	removed := false
+	for i := 0; i < len(lines); i++ {
+		if strings.TrimSpace(lines[i]) == strings.TrimSpace(marker) {
+			removed = true
+			// Drop marker, case line, and return line.
+			i += 2
+			continue
+		}
+		out = append(out, lines[i])
+	}
 	return strings.Join(out, "\n"), removed
 }

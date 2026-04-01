@@ -89,7 +89,7 @@ func RunNew(args []string, d NewDeps) int {
 	}
 	fmt.Fprintf(d.Out, "GitHub Actions workflows created. Add DEPLOY_KEY secret to enable deployment.\n")
 	printNewI18nStatus(d.Out, opts)
-	fmt.Fprintf(d.Out, "Next: cd %s && ship module:add <module> && make run\n", opts.AppPath)
+	fmt.Fprintf(d.Out, "Next: cd %s && make run\n", opts.AppPath)
 	return 0
 }
 
@@ -234,11 +234,11 @@ func ScaffoldNewProject(opts NewProjectOptions, d NewDeps) error {
 func applyAPIModeScaffold(files map[string]string, opts NewProjectOptions) {
 	relDelete := []string{
 		filepath.Join("app", "views", "web", "pages", "home_feed.templ"),
-		filepath.Join("app", "views", "web", "pages", "home_feed_templ.go"),
+		filepath.Join("app", "views", "web", "pages", "gen", "home_feed_templ.go"),
 		filepath.Join("app", "views", "web", "pages", "landing.templ"),
-		filepath.Join("app", "views", "web", "pages", "landing_templ.go"),
+		filepath.Join("app", "views", "web", "pages", "gen", "landing_templ.go"),
 		filepath.Join("app", "views", "web", "pages", "profile.templ"),
-		filepath.Join("app", "views", "web", "pages", "profile_templ.go"),
+		filepath.Join("app", "views", "web", "pages", "gen", "profile_templ.go"),
 		filepath.Join("app", "views", "web", "layouts", "base.templ"),
 		filepath.Join("static", "styles_bundle.css"),
 		filepath.Join("styles", "styles.css"),

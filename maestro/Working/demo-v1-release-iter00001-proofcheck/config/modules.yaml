@@ -1,0 +1,3 @@
+# Workspace-level module enablement.
+# Modules apply to the monolith as a whole (not per mini-app).
+modules: []

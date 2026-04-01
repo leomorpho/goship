@@ -60,11 +60,11 @@ Common commands:
 
 ## Runtime Seams (Canonical)
 
-Framework runtime ownership is explicit at repo root: `container.go`, `router.go`, `schedules.go`.
+Framework runtime ownership is explicit under `app/`: `app/container.go`, `app/router.go`, `app/schedules.go`.
 
-- `container.go`: runtime container composition seam
-- `router.go`: HTTP route + middleware composition seam
-- `schedules.go`: recurring schedule registration seam
+- `app/container.go`: runtime container composition seam
+- `app/router.go`: HTTP route + middleware composition seam
+- `app/schedules.go`: recurring schedule registration seam
 
 This keeps wiring deterministic for humans, generators, and LLM agents.
 
@@ -98,7 +98,7 @@ See [`docs/guides/08-building-an-api.md`](docs/guides/08-building-an-api.md) and
 
 GoShip is framework-first:
 
-- `container.go`, `router.go`, `schedules.go`: canonical runtime seams
+- `app/container.go`, `app/router.go`, `app/schedules.go`: canonical runtime seams
 - `framework/`: reusable framework runtime contracts and implementations
 - `modules/`: installable capabilities
 - `cmd/`: runtime process entrypoints

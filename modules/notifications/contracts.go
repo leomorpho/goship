@@ -16,3 +16,12 @@ type PubSub interface {
 	Subscribe(ctx context.Context, topic string, handler MessageHandler) (PubSubSubscription, error)
 	Close() error
 }
+
+type EnqueueOptions struct {
+	Queue      string
+	MaxRetries int
+}
+
+type Jobs interface {
+	Enqueue(ctx context.Context, name string, payload []byte, options EnqueueOptions) (string, error)
+}

@@ -11,10 +11,10 @@ This guide walks a Go developer from zero to a production-credible GoShip app.
 
 ## 1. Install the `ship` CLI
 
-From the repository root:
+From anywhere:
 
 ```bash
-go install ./tools/cli/ship/cmd/ship
+go install github.com/leomorpho/goship/tools/cli/ship/v2/cmd/ship@v2.0.5
 ```
 
 Verify install:
@@ -53,12 +53,12 @@ ship dev --web
 ship dev --all
 ```
 
-## 4. Add Auth Hardening
+## 4. Starter Auth Surface
 
-The starter includes core auth routes; integrate `modules/2fa` directly in starter-app auth wiring (not via `ship module:add`):
+The starter includes the landing/auth/home/profile route surface. Installable batteries still target the full framework workspace rather than the minimal starter scaffold, so do not rely on `ship module:add` inside a fresh starter app yet.
 
 ```bash
-# wire modules/2fa routes/services in starter app auth flow
+# build on the starter routes first, then move to the full workspace shape if you need installable batteries
 ```
 
 Re-run verification after module wiring:
@@ -99,5 +99,5 @@ If you are using the default Kamal workflow, continue with the deployment steps 
 - A booting GoShip app created by `ship new`
 - Local DB migrated with `ship db:migrate`
 - Dev loop running via `ship dev`
-- Auth hardening integrated via starter-app auth wiring (`modules/2fa`)
+- Starter landing/auth/home/profile routes available for further app-specific work
 - Test and verification commands passing
