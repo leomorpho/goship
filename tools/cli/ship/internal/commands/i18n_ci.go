@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	policies "github.com/leomorpho/goship/v2/tools/cli/ship/internal/policies"
+	policies "github.com/leomorpho/goship/tools/cli/ship/v2/internal/policies"
 )
 
 func runI18nCI(args []string, d I18nDeps, root string) int {

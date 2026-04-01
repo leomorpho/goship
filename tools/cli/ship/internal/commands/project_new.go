@@ -13,8 +13,8 @@ import (
 	"strings"
 	"unicode"
 
-	policies "github.com/leomorpho/goship/v2/tools/cli/ship/internal/policies"
-	startertemplate "github.com/leomorpho/goship/v2/tools/cli/ship/internal/templates/starter"
+	policies "github.com/leomorpho/goship/tools/cli/ship/v2/internal/policies"
+	startertemplate "github.com/leomorpho/goship/tools/cli/ship/v2/internal/templates/starter"
 )
 
 const starterTemplateRoot = "testdata/scaffold"

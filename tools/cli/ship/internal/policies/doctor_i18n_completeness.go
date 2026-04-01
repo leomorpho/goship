@@ -1,6 +1,6 @@
 package policies
 
-import i18ncheck "github.com/leomorpho/goship/v2/tools/cli/ship/internal/i18ncheck"
+import i18ncheck "github.com/leomorpho/goship/tools/cli/ship/v2/internal/i18ncheck"
 
 type i18nCompletenessIssue = i18ncheck.CompletenessIssue
 

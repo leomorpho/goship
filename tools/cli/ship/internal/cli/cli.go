@@ -8,10 +8,10 @@ import (
 	"strings"
 
 	"github.com/leomorpho/goship/v2/config"
-	cmd "github.com/leomorpho/goship/v2/tools/cli/ship/internal/commands"
-	gen "github.com/leomorpho/goship/v2/tools/cli/ship/internal/generators"
-	policies "github.com/leomorpho/goship/v2/tools/cli/ship/internal/policies"
-	rt "github.com/leomorpho/goship/v2/tools/cli/ship/internal/runtime"
+	cmd "github.com/leomorpho/goship/tools/cli/ship/v2/internal/commands"
+	gen "github.com/leomorpho/goship/tools/cli/ship/v2/internal/generators"
+	policies "github.com/leomorpho/goship/tools/cli/ship/v2/internal/policies"
+	rt "github.com/leomorpho/goship/tools/cli/ship/v2/internal/runtime"
 )
 
 const (

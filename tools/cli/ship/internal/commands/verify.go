@@ -14,7 +14,7 @@ import (
 	"strings"
 	"time"
 
-	policies "github.com/leomorpho/goship/v2/tools/cli/ship/internal/policies"
+	policies "github.com/leomorpho/goship/tools/cli/ship/v2/internal/policies"
 	"golang.org/x/mod/modfile"
 )
 

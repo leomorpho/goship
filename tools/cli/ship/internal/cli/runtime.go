@@ -3,8 +3,8 @@ package ship
 import (
 	"os"
 
-	cmd "github.com/leomorpho/goship/v2/tools/cli/ship/internal/commands"
-	rt "github.com/leomorpho/goship/v2/tools/cli/ship/internal/runtime"
+	cmd "github.com/leomorpho/goship/tools/cli/ship/v2/internal/commands"
+	rt "github.com/leomorpho/goship/tools/cli/ship/v2/internal/runtime"
 )
 
 func findGoModule(start string) (string, string, error) {

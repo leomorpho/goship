@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/leomorpho/goship/v2/config"
-	rt "github.com/leomorpho/goship/v2/tools/cli/ship/internal/runtime"
+	rt "github.com/leomorpho/goship/tools/cli/ship/v2/internal/runtime"
 )
 
 type DBDeps struct {

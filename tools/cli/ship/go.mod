@@ -1,4 +1,4 @@
-module github.com/leomorpho/goship/v2/tools/cli/ship
+module github.com/leomorpho/goship/tools/cli/ship/v2
 
 go 1.23.0
 

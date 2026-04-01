@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/leomorpho/goship/v2/tools/mcp/ship/internal/server"
+	"github.com/leomorpho/goship/tools/mcp/ship/v2/internal/server"
 )
 
 func main() {

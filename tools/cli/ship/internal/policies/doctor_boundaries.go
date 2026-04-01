@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	rt "github.com/leomorpho/goship/v2/tools/cli/ship/internal/runtime"
+	rt "github.com/leomorpho/goship/tools/cli/ship/v2/internal/runtime"
 )
 
 func checkMarkerIntegrity(root string) []DoctorIssue {
