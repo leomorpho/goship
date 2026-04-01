@@ -265,6 +265,7 @@ func baseScaffoldFiles(opts NewProjectOptions) map[string]string {
 		filepath.Join(opts.AppPath, "db", "queries", "user.sql"):                                  renderUserQuerySkeleton(),
 		filepath.Join(opts.AppPath, "db", "gen", ".gitkeep"):                                      "",
 		filepath.Join(opts.AppPath, "db", "migrate", "migrations", ".gitkeep"):                    "",
+		filepath.Join(opts.AppPath, "tmp", ".gitkeep"):                                            "",
 		filepath.Join(opts.AppPath, "app", "web", "controllers", "controllers.go"):                renderControllersSkeleton(),
 		filepath.Join(opts.AppPath, "app", "web", "middleware", "middleware.go"):                  renderMiddlewareSkeleton(),
 		filepath.Join(opts.AppPath, "app", "web", "ui", "ui.go"):                                  renderUISkeleton(),

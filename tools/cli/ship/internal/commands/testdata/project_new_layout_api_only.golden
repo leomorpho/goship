@@ -64,6 +64,8 @@ docs/architecture/08-cognitive-model.md
 docs/architecture/10-extension-zones.md
 go.mod
 go.sum
+tmp/
+tmp/.gitkeep
 tools/
 tools/agent-policy/
 tools/agent-policy/allowed-commands.yaml

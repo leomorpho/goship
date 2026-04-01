@@ -81,6 +81,8 @@ static/
 static/styles_bundle.css
 styles/
 styles/styles.css
+tmp/
+tmp/.gitkeep
 tools/
 tools/agent-policy/
 tools/agent-policy/allowed-commands.yaml

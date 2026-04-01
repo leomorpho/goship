@@ -76,6 +76,7 @@ var canonicalGeneratedProjectFiles = []string{
 	"go.sum",
 	"static/styles_bundle.css",
 	"styles/styles.css",
+	"tmp/.gitkeep",
 	policies.AgentPolicyFilePath,
 }
 
