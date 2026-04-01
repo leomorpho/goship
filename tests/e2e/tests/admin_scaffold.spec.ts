@@ -26,7 +26,7 @@ function adminAuthCookie(email: string, password: string): AuthCookie {
   return JSON.parse(raw) as AuthCookie;
 }
 
-test("admin scaffold: critical surfaces stay behind admin auth", async ({ request }) => {
+test("framework repo admin scaffold: critical surfaces stay behind admin auth", async ({ request }) => {
   test.setTimeout(120000);
 
   const adminEmail = (process.env.PAGODA_ADMIN_EMAILS ?? "admin@goship.test")

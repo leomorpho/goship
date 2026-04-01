@@ -51,6 +51,10 @@ func RunMakeController(args []string, d ControllerDeps) int {
 		fmt.Fprintf(d.Err, "invalid make:controller arguments: %v\n", err)
 		return 1
 	}
+	if looksLikeStarterScaffoldRoot(".") {
+		fmt.Fprintln(d.Err, "make:controller is not supported on the starter scaffold yet; no files were changed")
+		return 1
+	}
 	names, err := NormalizeControllerName(opts.Name)
 	if err != nil {
 		fmt.Fprintf(d.Err, "invalid controller name: %v\n", err)

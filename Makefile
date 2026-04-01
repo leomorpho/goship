@@ -227,6 +227,14 @@ test: ## Run Docker-free unit test package set
 test-module-isolation: ## Ensure extracted modules do not import goship internals
 	bash tools/scripts/check-module-isolation.sh
 
+.PHONY: test-module-matrix
+test-module-matrix: ## Exercise nested first-party module packages directly
+	bash tools/scripts/check-module-matrix.sh
+
+.PHONY: test-sveltekit-contract
+test-sveltekit-contract: ## Prove the blessed SvelteKit contract artifact against a fresh API-only app
+	npm --prefix examples/sveltekit-api-only run test:proof
+
 .PHONY: test-sql-portability
 test-sql-portability: ## Verify sql-core-v1 runtime portability contract
 	bash tools/scripts/check-sql-portability.sh
@@ -262,6 +270,10 @@ test-bootstrap-budget: ## Verify ship new scaffold plus starter boot stays withi
 .PHONY: test-fresh-app-ci
 test-fresh-app-ci: ## Verify the fresh-app CI lane (generation, batteries, verify, smoke) in one pass
 	bash tools/scripts/check-fresh-app-ci.sh
+
+.PHONY: test-release-proof
+test-release-proof: ## Generate release-review proof logs for default and API-only generated apps
+	bash tools/scripts/check-release-proof.sh
 
 .PHONY: test-agent-evals
 test-agent-evals: ## Run deterministic cold-start agent eval pack and emit score report

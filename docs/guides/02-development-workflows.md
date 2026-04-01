@@ -157,6 +157,7 @@ Run commands through `ship`:
 Generate a new command scaffold:
 
 - `go run ./tools/cli/ship/cmd/ship make:command BackfillUserStats`
+- `ship make:command` currently targets the framework workspace and rejects the minimal starter scaffold.
 
 The generator writes `app/commands/<name>.go` and wires registration in `cmd/cli/main.go` between
 `// ship:commands:start` and `// ship:commands:end`.
@@ -183,6 +184,7 @@ Test data factories:
 - `framework/factory` provides generic test builders with `Build` and DB-backed `Create`.
 - `tests/factories/user_factory.go` is the canonical example for user records + traits.
 - Scaffold a new factory with: `go run ./tools/cli/ship/cmd/ship make:factory <Name>`.
+- `ship make:factory` currently targets the framework workspace and rejects the minimal starter scaffold.
 - Typical usage in tests:
   - `user := factories.User.Create(t, db)`
   - `admin := factories.User.Create(t, db, factories.WithAdminRole)`
@@ -214,6 +216,8 @@ E2E tests:
 - `make e2eui`
 
 CI uses the smoke spec only (`tests/e2e/tests/smoke.spec.ts`) to validate startup and basic app serving.
+These browser suites currently target the **framework repo app surface** (`/user/*` login/register plus `/auth/*` protected routes),
+not the minimal starter/API-only generated-app auth surface (`/auth/login`, `/auth/register`).
 The current GoShip golden-flow browser contract lives at `tests/e2e/tests/goship.spec.ts` and is the
 authoritative suite for scaffolded public/auth/islands coverage.
 The admin scaffold lane lives at `tests/e2e/tests/admin_scaffold.spec.ts` and covers the
@@ -229,7 +233,10 @@ Treat `verify_strict`, `startup_smoke`, and `cherie_compatibility_smoke` as the 
 Top-level CI gate lanes summarize the canonical status surface:
 - `top_level_fresh_app` depends on `fresh_app_ci`.
 - `top_level_upgrades` depends on `upgrade_readiness`.
-- `top_level_batteries` depends on `module_isolation`, `sql_portability`, and `generator_contracts`.
+- `top_level_batteries` depends on `module_isolation`, `module_matrix`, `sql_portability`, and `generator_contracts`.
+The `module_matrix` CI job runs `make test-module-matrix` and directly executes the nested first-party module packages (`modules/jobs`, `modules/notifications`, and `modules/paidsubscriptions`) so battery repos are part of required CI instead of hiding behind root `go test ./...`.
+The `split_frontend_contract` CI job runs `make test-sveltekit-contract`, which boots a fresh API-only app and proves the generated SvelteKit contract artifact matches the live `/api/v1/status` backend contract under the blessed same-origin assumptions.
+- `top_level_frontend` depends on `split_frontend_contract`.
 - `top_level_standalone_operations` depends on `bootstrap_budget`, `startup_smoke`, and `cleanroom_bob_verification`.
 The `generator_contracts` CI job runs `make test-generator-contracts` and blocks merges on generator snapshot or idempotency drift.
 Use `make test-generator-idempotency` when only the duplicate-run matrix is relevant and you do not need to touch snapshots.
@@ -242,11 +249,11 @@ The `dead_route_regression` CI job runs `make test-dead-routes` and keeps the ca
 The `bootstrap_budget` CI job runs `make test-bootstrap-budget` and measures the canonical starter flow as `ship new <app> --no-i18n`, `ship db:migrate`, `go run ./cmd/web`, and HTTP checks against `/health/readiness` plus `/` inside the generated scaffold.
 The default budget is 120 seconds via `BOOTSTRAP_BUDGET_SECONDS=120`; keep local reruns on comparable hardware or raise the variable only when investigating runner variance rather than changing the committed CI threshold.
 Use `BOOTSTRAP_BUDGET_SECONDS` only as a local rerun override; the committed CI contract keeps the 120-second threshold.
-The `fresh_app_ci` CI job runs `make test-fresh-app-ci`, which executes the canonical generated-app confidence lane in one pass: generation (`ship templ generate --path app` inside `TestFreshApp`), scaffolded battery compile checks (`go test ./app/...` inside `TestFreshApp`), `ship verify --profile fast`, and starter smoke route checks for `/health/readiness`, `/health`, and `/`.
+The `fresh_app_ci` CI job runs `make test-fresh-app-ci`, which executes the real generated-app proof lane in one pass by running `TestFreshApp` plus `TestFreshAppStartupSmoke` and failing hard if either target returns `[no tests to run]` or `[no test files]`.
 Use `make test-fresh-app-ci` locally when touching starter layout/runtime boot wiring to keep generation, batteries, verify, and smoke evidence coupled in one deterministic lane.
 If the Cherie lane breaks:
 1. Re-run the Playwright spec locally with `npm --prefix tests/e2e run test:cherie-smoke`.
-2. Compare `/up`, `/user/login`, and `/auth/realtime` behavior against the baseline before widening scope.
+2. Compare `/up`, `/user/login`, and `/auth/realtime` behavior against the **framework repo** baseline before widening scope.
 3. Either land a framework fix or document the downstream breakage explicitly before merging.
 The golden suite is intentionally narrow: visual regression coverage and a full optional-module browser
 matrix remain out of scope for now.
@@ -258,6 +265,7 @@ Canonical locale source files live in `locales/*.toml` (`en.toml` is the source 
 Common commands:
 
 - `go run ./tools/cli/ship/cmd/ship make:locale fr` to scaffold `locales/fr.toml` with the same keys and empty values.
+- `ship make:locale` remains starter-safe only when the app already has a locale baseline.
 - `go run ./tools/cli/ship/cmd/ship i18n:migrate` to convert legacy `locales/*.yaml` catalogs to canonical TOML.
 - `go run ./tools/cli/ship/cmd/ship i18n:normalize` to rewrite TOML catalogs into deterministic canonical ordering.
 - `go run ./tools/cli/ship/cmd/ship i18n:missing` to list missing/empty translation keys per locale.

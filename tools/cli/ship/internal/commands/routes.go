@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 	"text/tabwriter"
 )
 
@@ -16,11 +17,15 @@ type RoutesDeps struct {
 }
 
 type routeRow struct {
-	Method  string `json:"method"`
-	Path    string `json:"path"`
-	Auth    string `json:"auth"`
-	Handler string `json:"handler"`
-	File    string `json:"file,omitempty"`
+	Method         string   `json:"method"`
+	Path           string   `json:"path"`
+	Auth           string   `json:"auth"`
+	Handler        string   `json:"handler"`
+	File           string   `json:"file,omitempty"`
+	OperationID    string   `json:"operation_id,omitempty"`
+	RequestContract string  `json:"request_contract,omitempty"`
+	ResponseContract string `json:"response_contract,omitempty"`
+	ErrorContracts []string `json:"error_contracts,omitempty"`
 }
 
 func RunRoutes(args []string, d RoutesDeps) int {
@@ -70,12 +75,17 @@ func RunRoutes(args []string, d RoutesDeps) int {
 
 	rows := make([]routeRow, 0, len(routes))
 	for _, route := range routes {
+		operationID, requestContract, responseContract, errorContracts := routeContractMetadata(route)
 		rows = append(rows, routeRow{
-			Method:  route.Method,
-			Path:    route.Path,
-			Auth:    routeAuthLabel(route.Auth),
-			Handler: route.Handler,
-			File:    route.File,
+			Method:          route.Method,
+			Path:            route.Path,
+			Auth:            routeAuthLabel(route.Auth),
+			Handler:         route.Handler,
+			File:            route.File,
+			OperationID:     operationID,
+			RequestContract: requestContract,
+			ResponseContract: responseContract,
+			ErrorContracts:  errorContracts,
 		})
 	}
 
@@ -112,4 +122,21 @@ func printRoutesTable(w io.Writer, rows []routeRow) {
 		fmt.Fprintf(tw, "%s\t%s\t%s\t%s\n", row.Method, row.Path, row.Auth, row.Handler)
 	}
 	_ = tw.Flush()
+}
+
+func routeContractMetadata(route describeRoute) (string, string, string, []string) {
+	operationID := routeOperationID(route.Method, route.Path)
+	if route.Path == "/api/v1/status" {
+		return operationID, "", "api.status.v1", nil
+	}
+	return operationID, "", "", nil
+}
+
+func routeOperationID(method, path string) string {
+	normalized := strings.Trim(strings.ToLower(path), "/")
+	if normalized == "" {
+		normalized = "root"
+	}
+	replacer := strings.NewReplacer("/", "_", ":", "_", "-", "_")
+	return strings.ToLower(method) + "_" + replacer.Replace(normalized)
 }

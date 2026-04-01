@@ -42,53 +42,22 @@ func main() {
 		}
 	}()
 
-	plansCatalog, err := paidsubscriptions.BuildDefaultCatalog()
+	firstPartyServices, err := frameworkbootstrap.BuildFirstPartyServices(c, frameworkbootstrap.JobsProcessWeb)
 	if err != nil {
-		c.Web.Logger.Fatalf("failed to build subscription plans catalog: %v", err)
-	}
-	paidSubscriptionsService := paidsubscriptions.NewServiceWithCatalog(paidsubscriptions.NewSQLStore(
-		c.Database,
-		c.Config.Adapters.DB,
-		c.Config.App.OperationalConstants.ProTrialTimespanInDays,
-		c.Config.App.OperationalConstants.PaymentFailedGracePeriodInDays,
-	), plansCatalog)
-
-	if err := wireJobsModule(c); err != nil {
-		c.Web.Logger.Fatalf("failed to initialize jobs module: %v", err)
-	}
-	var firebaseJSONAccessKeys *[]byte
-	if len(c.Config.App.FirebaseJSONAccessKeys) > 0 {
-		firebaseJSONAccessKeys = &c.Config.App.FirebaseJSONAccessKeys
-	}
-	notificationServices, err := notifications.New(notifications.RuntimeDeps{
-		DB:                                 c.Database,
-		DBDialect:                          c.Config.Adapters.DB,
-		PubSub:                             frameworkbootstrap.AdaptNotificationsPubSub(c.CorePubSub),
-		Jobs:                               frameworkbootstrap.AdaptNotificationsJobs(c.CoreJobs),
-		SubscriptionService:                paidSubscriptionsService,
-		VapidPublicKey:                     c.Config.App.VapidPublicKey,
-		VapidPrivateKey:                    c.Config.App.VapidPrivateKey,
-		MailFromAddress:                    c.Config.Mail.FromAddress,
-		FirebaseJSONAccessKeys:             firebaseJSONAccessKeys,
-		SMSRegion:                          c.Config.Phone.Region,
-		SMSSenderID:                        c.Config.Phone.SenderID,
-		SMSValidationCodeExpirationMinutes: c.Config.Phone.ValidationCodeExpirationMinutes,
-	})
-	if err != nil {
-		c.Web.Logger.Fatalf("failed to initialize notifications module: %v", err)
+		c.Web.Logger.Fatalf("failed to initialize first-party services: %v", err)
 	}
 
 	// Build the router
 	if err := shipapp.BuildRouter(c, shipapp.RouterModules{
-		PaidSubscriptions: paidSubscriptionsService,
-		Notifications:     notificationServices,
+		PaidSubscriptions: firstPartyServices.PaidSubscriptions,
+		Notifications:     firstPartyServices.Notifications,
 	}); err != nil {
 		c.Web.Logger.Fatalf("failed to build router: %v", err)
 	}
 
 	jobsCtx, jobsCancel := context.WithCancel(context.Background())
 	defer jobsCancel()
-	if err := startEmbeddedJobsWorker(jobsCtx, c, paidSubscriptionsService, notificationServices); err != nil {
+	if err := startEmbeddedJobsWorker(jobsCtx, c, firstPartyServices.PaidSubscriptions, firstPartyServices.Notifications); err != nil {
 		c.Web.Logger.Fatalf("failed to start embedded jobs worker: %v", err)
 	}
 
@@ -177,17 +146,6 @@ func main() {
 		c.Web.Logger.Fatal(err)
 	}
 }
-
-func wireJobsModule(c *shipapp.Container) error {
-	runtime, err := frameworkbootstrap.WireJobsRuntime(c.Config, c.Database, frameworkbootstrap.JobsProcessWeb)
-	if err != nil {
-		return err
-	}
-	c.CoreJobs = runtime.Jobs
-	c.CoreJobsInspector = runtime.Inspector
-	return nil
-}
-
 func startEmbeddedJobsWorker(
 	ctx context.Context,
 	c *shipapp.Container,

@@ -672,11 +672,17 @@ func WireStarterComponentForPage(mainPath, snake, pageConst, pageFunc, title str
 	if strings.Contains(content, marker) {
 		return nil
 	}
+	funcNeedle := "func componentForPage(page templates.Page) (templ.Component, string) {"
+	funcIdx := strings.Index(content, funcNeedle)
+	if funcIdx == -1 {
+		return fmt.Errorf("componentForPage function not found in %s", mainPath)
+	}
 	defaultNeedle := "\tdefault:\n"
-	idx := strings.Index(content, defaultNeedle)
-	if idx == -1 {
+	relIdx := strings.Index(content[funcIdx:], defaultNeedle)
+	if relIdx == -1 {
 		return fmt.Errorf("default case not found in componentForPage switch for %s", mainPath)
 	}
+	idx := funcIdx + relIdx
 	snippet := fmt.Sprintf("%s\n\tcase templates.%s:\n\t\treturn pages.%s(), %q\n", marker, pageConst, pageFunc, title)
 	updated := content[:idx] + snippet + content[idx:]
 	if dryRun {

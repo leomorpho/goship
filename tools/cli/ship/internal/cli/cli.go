@@ -179,6 +179,9 @@ func (c CLI) runNamespaced(args []string) (int, bool) {
 	case "run":
 		return c.runRun(rest), true
 	case "runtime":
+		if sub == "report" {
+			return c.runRuntime(args[1:]), true
+		}
 		return c.runRuntime(rest), true
 	default:
 		fmt.Fprintf(c.Err, "unknown command namespace: %s\n\n", ns)

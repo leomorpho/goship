@@ -35,7 +35,7 @@ Impact:
 
 ## 4) Golden E2E Coverage Stays Intentionally Narrow (Low)
 
-`tests/e2e/tests/goship.spec.ts` now covers the current scaffolded GoShip golden paths: boot
+`tests/e2e/tests/goship.spec.ts` now covers the current **framework repo** golden paths: boot
 health (`/up`), anonymous public/auth entrypoints (`/`, `/user/register`, `/user/login`),
 anonymous redirects at protected seams (`/auth/realtime`, `/auth/admin`), and the framework
 islands runtime contract (`/demo/islands` plus mounted counters for vanilla JS, React, Vue, and

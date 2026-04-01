@@ -221,3 +221,4 @@ bubblewrap
 .docket/runtime/
 .docket/semantic/
 tests/e2e/.tmp/
+.omx

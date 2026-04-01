@@ -110,7 +110,7 @@ func RunDev(args []string, d DevDeps) int {
 		if maybeOpenWhenReady != nil {
 			maybeOpenWhenReady(done)
 		}
-		code := d.RunCmd("air", "-c", ".air.toml")
+		code := runDevWebCommand(d)
 		close(done)
 		return reportExit(code)
 	case "worker":
@@ -131,6 +131,13 @@ func RunDev(args []string, d DevDeps) int {
 		fmt.Fprintf(d.Err, "unknown dev mode: %s\n", mode)
 		return 1
 	}
+}
+
+func runDevWebCommand(d DevDeps) int {
+	if _, err := os.Stat(".air.toml"); err == nil {
+		return d.RunCmd("air", "-c", ".air.toml")
+	}
+	return d.RunCmd("go", "run", "./cmd/web")
 }
 
 func runDevFastPathPreflight(d DevDeps) []policies.DoctorIssue {

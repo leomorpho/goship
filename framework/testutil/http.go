@@ -14,8 +14,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/leomorpho/goship-modules/notifications"
-	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	shipapp "github.com/leomorpho/goship/app"
 	"github.com/leomorpho/goship/config"
 	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
@@ -48,37 +46,14 @@ func NewTestServer(t testing.TB) *TestServer {
 
 	c := shipapp.NewContainer()
 
-	paidSubscriptions := paidsubscriptions.New(paidsubscriptions.NewSQLStore(
-		c.Database,
-		c.Config.Adapters.DB,
-		c.Config.App.OperationalConstants.ProTrialTimespanInDays,
-		c.Config.App.OperationalConstants.PaymentFailedGracePeriodInDays,
-	))
-	var firebaseJSONAccessKeys *[]byte
-	if len(c.Config.App.FirebaseJSONAccessKeys) > 0 {
-		firebaseJSONAccessKeys = &c.Config.App.FirebaseJSONAccessKeys
-	}
-	notificationServices, err := notifications.New(notifications.RuntimeDeps{
-		DB:                                 c.Database,
-		DBDialect:                          c.Config.Adapters.DB,
-		PubSub:                             frameworkbootstrap.AdaptNotificationsPubSub(c.CorePubSub),
-		Jobs:                               frameworkbootstrap.AdaptNotificationsJobs(c.CoreJobs),
-		SubscriptionService:                paidSubscriptions,
-		VapidPublicKey:                     c.Config.App.VapidPublicKey,
-		VapidPrivateKey:                    c.Config.App.VapidPrivateKey,
-		MailFromAddress:                    c.Config.Mail.FromAddress,
-		FirebaseJSONAccessKeys:             firebaseJSONAccessKeys,
-		SMSRegion:                          c.Config.Phone.Region,
-		SMSSenderID:                        c.Config.Phone.SenderID,
-		SMSValidationCodeExpirationMinutes: c.Config.Phone.ValidationCodeExpirationMinutes,
-	})
+	firstPartyServices, err := frameworkbootstrap.BuildFirstPartyServices(c, frameworkbootstrap.JobsProcessWeb)
 	if err != nil {
-		t.Fatalf("build notifications module: %v", err)
+		t.Fatalf("build first-party services: %v", err)
 	}
 
 	if err := shipapp.BuildRouter(c, shipapp.RouterModules{
-		PaidSubscriptions: paidSubscriptions,
-		Notifications:     notificationServices,
+		PaidSubscriptions: firstPartyServices.PaidSubscriptions,
+		Notifications:     firstPartyServices.Notifications,
 	}); err != nil {
 		t.Fatalf("build router: %v", err)
 	}

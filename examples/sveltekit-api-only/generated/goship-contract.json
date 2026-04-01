@@ -1,0 +1,17 @@
+{
+  "browser_contract": {
+    "authMode": "same-origin auth/session",
+    "cookieMode": "include",
+    "csrfHeaderName": "X-CSRF-Token"
+  },
+  "contract_version": "api-only-same-origin-sveltekit-v1",
+  "routes": [
+    {
+      "method": "GET",
+      "path": "/api/v1/status",
+      "operation_id": "get_api_v1_status",
+      "response_contract": "api.status.v1",
+      "error_contracts": null
+    }
+  ]
+}

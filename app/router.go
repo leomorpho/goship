@@ -9,6 +9,7 @@ import (
 	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	paidsubscriptionroutes "github.com/leomorpho/goship-modules/paidsubscriptions/routes"
 	"github.com/leomorpho/goship/config/runtimeplan"
+	frameworkapi "github.com/leomorpho/goship/framework/api"
 	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
 	"github.com/leomorpho/goship/framework/logging"
 	frameworkweb "github.com/leomorpho/goship/framework/http"
@@ -52,7 +53,9 @@ func BuildRouter(c *frameworkbootstrap.Container, modules RouterModules) error {
 	g := c.Web.Group("")
 	e := c.Web.Group("")
 	v1 := e.Group("/api/v1") // ship:routes:api:v1:start
-	_ = v1
+	v1.GET("/status", func(ctx echo.Context) error {
+		return frameworkapi.OK(ctx, map[string]string{"status": "ok"})
+	}).Name = "api_v1_status"
 	// ship:routes:api:v1:end
 
 	if c.Config.HTTP.TLS.Enabled {

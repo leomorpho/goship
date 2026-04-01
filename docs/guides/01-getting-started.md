@@ -11,15 +11,19 @@ This guide walks a Go developer from zero to a production-credible GoShip app.
 
 ## 1. Install the `ship` CLI
 
-From anywhere:
+From a fresh clone of the repo:
 
 ```bash
-go install github.com/leomorpho/goship/tools/cli/ship/v2/cmd/ship@v2.0.5
+git clone https://github.com/leomorpho/goship.git
+cd goship
+go build -o ./bin/ship ./tools/cli/ship/cmd/ship
+./bin/ship --help
 ```
 
-Verify install:
+If you want `ship` on your `PATH` locally:
 
 ```bash
+cp ./bin/ship ~/.local/bin/ship
 ship --help
 ```
 
@@ -50,12 +54,9 @@ ship dev
 ship dev
 ```
 
-Optional explicit modes:
-
-```bash
-ship dev --web
-ship dev --all
-```
+Stay on the default `ship dev` path for the starter happy path.
+Advanced multi-process modes are covered in `docs/guides/02-development-workflows.md`
+once you intentionally move beyond the minimal starter loop.
 
 ## 4. Starter Auth Surface
 
@@ -87,11 +88,11 @@ ship test --integration
 
 ## 6. Deployment Readiness and Deploy Hand-off
 
-Before deploy, validate repo/runtime health:
+Before deploy, validate repo/runtime health with the starter-safe checks:
 
 ```bash
 ship doctor
-ship verify --profile strict
+ship verify --profile fast
 ```
 
 If you are using the default Kamal workflow, continue with the deployment steps documented in:

@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("auth golden flow: register, logout, protected redirect, and login return", async ({ page }) => {
+test("framework repo auth golden flow: register, logout, protected redirect, and login return", async ({ page }) => {
   test.setTimeout(60_000);
 
   const seed = Date.now().toString();

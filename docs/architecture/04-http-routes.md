@@ -8,6 +8,12 @@ Ergonomic routing rule:
 - URL declarations live in one place: `app/router.go`.
 - Handler implementations live in `app/web/controllers/*.go`.
 
+Scope note:
+
+- This document describes the **framework repo app surface** and its current `/user/*` auth entrypoints.
+- The minimal starter and API-only generated-app scaffolds intentionally use `/auth/login` and `/auth/register` today.
+- Treat those generated-app auth routes as a separate product surface until the north-star contract explicitly unifies them.
+
 ## Public/General Routes
 
 - `GET /` starter home page

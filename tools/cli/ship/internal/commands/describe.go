@@ -233,6 +233,23 @@ func collectDescribeModuleAdoption(root string, modules []describeModule) ([]des
 		}
 	}
 
+	enabledModules := map[string]struct{}{}
+	manifestPath := filepath.Join(root, "config", "modules.yaml")
+	if manifest, err := rt.LoadModulesManifest(manifestPath); err == nil {
+		for _, name := range manifest.Modules {
+			enabledModules[strings.TrimSpace(name)] = struct{}{}
+		}
+	}
+
+	for id := range enabledModules {
+		entry, ok := adoptionByID[id]
+		if !ok {
+			continue
+		}
+		entry.Installed = true
+		adoptionByID[id] = entry
+	}
+
 	for _, module := range modules {
 		if !module.Installed {
 			continue
@@ -339,6 +356,7 @@ func collectDescribeRoutes(root string) ([]describeRoute, error) {
 		return nil, err
 	}
 
+	groupPrefixes := collectDescribeGroupPrefixes(fset, file)
 	routes := make([]describeRoute, 0)
 	for _, decl := range file.Decls {
 		fn, ok := decl.(*ast.FuncDecl)
@@ -361,6 +379,7 @@ func collectDescribeRoutes(root string) ([]describeRoute, error) {
 			pathExpr := describeExprString(fset, call.Args, 0)
 			handler := describeExprString(fset, call.Args, 1)
 			receiver := describeExpr(fset, sel.X)
+			pathExpr = withRouteGroupPrefix(pathExpr, receiver, groupPrefixes)
 			line := fset.Position(call.Pos()).Line
 			access := describeRouteAccess(pathExpr, fn.Name.Name, receiver)
 			routes = append(routes, describeRoute{
@@ -375,6 +394,10 @@ func collectDescribeRoutes(root string) ([]describeRoute, error) {
 		})
 	}
 
+	if len(routes) == 0 {
+		routes = append(routes, collectDescribeRouteTableRoutes(fset, file, root, path)...)
+	}
+
 	sort.Slice(routes, func(i, j int) bool {
 		if routes[i].Path == routes[j].Path {
 			if routes[i].Method == routes[j].Method {
@@ -385,6 +408,115 @@ func collectDescribeRoutes(root string) ([]describeRoute, error) {
 		return routes[i].Path < routes[j].Path
 	})
 	return routes, nil
+}
+
+func collectDescribeGroupPrefixes(fset *token.FileSet, file *ast.File) map[string]string {
+	prefixes := map[string]string{
+		"g":  "",
+		"e":  "",
+		"v1": "",
+	}
+	ast.Inspect(file, func(n ast.Node) bool {
+		assign, ok := n.(*ast.AssignStmt)
+		if !ok || len(assign.Lhs) != 1 || len(assign.Rhs) != 1 {
+			return true
+		}
+		lhs, ok := assign.Lhs[0].(*ast.Ident)
+		if !ok {
+			return true
+		}
+		call, ok := assign.Rhs[0].(*ast.CallExpr)
+		if !ok {
+			return true
+		}
+		sel, ok := call.Fun.(*ast.SelectorExpr)
+		if !ok || sel.Sel == nil || sel.Sel.Name != "Group" {
+			return true
+		}
+		base := strings.Trim(strings.TrimSpace(describeExpr(fset, sel.X)), "`\"")
+		prefix := ""
+		if existing, ok := prefixes[base]; ok {
+			prefix = existing
+		}
+		if len(call.Args) > 0 {
+			groupPath := strings.Trim(strings.TrimSpace(describeExpr(fset, call.Args[0])), "`\"")
+			prefix += groupPath
+		}
+		prefixes[lhs.Name] = prefix
+		return true
+	})
+	return prefixes
+}
+
+func withRouteGroupPrefix(pathExpr, receiver string, prefixes map[string]string) string {
+	prefix, ok := prefixes[strings.TrimSpace(receiver)]
+	if !ok || prefix == "" {
+		return pathExpr
+	}
+	path := strings.Trim(strings.TrimSpace(pathExpr), "`\"")
+	if !strings.HasPrefix(path, "/") {
+		return pathExpr
+	}
+	return prefix + path
+}
+
+func collectDescribeRouteTableRoutes(fset *token.FileSet, file *ast.File, root, path string) []describeRoute {
+	routes := make([]describeRoute, 0)
+	ast.Inspect(file, func(n ast.Node) bool {
+		ret, ok := n.(*ast.ReturnStmt)
+		if !ok {
+			return true
+		}
+		for _, result := range ret.Results {
+			lit, ok := result.(*ast.CompositeLit)
+			if !ok {
+				continue
+			}
+			for _, elt := range lit.Elts {
+				routeLit, ok := elt.(*ast.CompositeLit)
+				if !ok {
+					continue
+				}
+				var nameExpr string
+				var pathExpr string
+				for _, field := range routeLit.Elts {
+					kv, ok := field.(*ast.KeyValueExpr)
+					if !ok {
+						continue
+					}
+					key, ok := kv.Key.(*ast.Ident)
+					if !ok {
+						continue
+					}
+					switch key.Name {
+					case "Name":
+						nameExpr = describeExpr(fset, kv.Value)
+					case "Path":
+						pathExpr = describeExpr(fset, kv.Value)
+					}
+				}
+				if pathExpr == "" {
+					continue
+				}
+				line := fset.Position(routeLit.Pos()).Line
+				pathValue := strings.Trim(strings.TrimSpace(pathExpr), "`\"")
+				routeName := strings.Trim(strings.TrimSpace(nameExpr), "`\"")
+				if routeName == "" {
+					routeName = "route_table"
+				}
+				routes = append(routes, describeRoute{
+					Method:  "GET",
+					Path:    pathValue,
+					Handler: routeName,
+					Access:  describeRouteAccess(pathValue, "", ""),
+					Auth:    describeRouteAccess(pathValue, "", "") != "public",
+					File:    fmt.Sprintf("%s:%d", filepath.ToSlash(mustRelPath(root, path)), line),
+				})
+			}
+		}
+		return true
+	})
+	return routes
 }
 
 func collectDescribeModules(root string) ([]describeModule, error) {

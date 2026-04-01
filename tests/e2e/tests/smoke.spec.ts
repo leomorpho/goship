@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("smoke: server starts and serves landing page", async ({ page, request }) => {
+test("framework repo smoke: server starts and serves landing plus framework auth entrypoints", async ({ page, request }) => {
   const health = await request.get("/up");
   expect(health.ok()).toBeTruthy();
 

@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("cherie compatibility: boot, auth, realtime, and admin baseline", async ({ page, request }) => {
+test("framework repo cherie compatibility: boot, auth, realtime, and admin baseline", async ({ page, request }) => {
   const health = await request.get("/up");
   expect(health.ok()).toBeTruthy();
 

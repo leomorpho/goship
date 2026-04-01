@@ -56,6 +56,28 @@ jobs:
       - name: Module isolation
         run: make test-module-isolation
 
+  module_matrix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.x"
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Module matrix
+        run: make test-module-matrix
+
   sql_portability:
     runs-on: ubuntu-latest
     steps:
@@ -77,6 +99,33 @@ jobs:
 
       - name: SQL portability
         run: make test-sql-portability
+
+  split_frontend_contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.x"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: SvelteKit contract proof
+        run: make test-sveltekit-contract
 
   generator_contracts:
     runs-on: ubuntu-latest
@@ -452,14 +501,23 @@ jobs:
 
   top_level_batteries:
     if: ${{ always() }}
-    needs: [module_isolation, sql_portability, generator_contracts]
+    needs: [module_isolation, module_matrix, sql_portability, generator_contracts]
     runs-on: ubuntu-latest
     steps:
       - name: Batteries lane status
         run: |
           test "${{ needs.module_isolation.result }}" = "success"
+          test "${{ needs.module_matrix.result }}" = "success"
           test "${{ needs.sql_portability.result }}" = "success"
           test "${{ needs.generator_contracts.result }}" = "success"
+
+  top_level_frontend:
+    if: ${{ always() }}
+    needs: [split_frontend_contract]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Frontend lane status
+        run: test "${{ needs.split_frontend_contract.result }}" = "success"
 
   top_level_standalone_operations:
     if: ${{ always() }}

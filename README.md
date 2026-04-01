@@ -13,7 +13,7 @@ GoShip is a framework-first repository with one canonical runtime seam set and a
 
 - convention-first project structure and generators (`ship make:*`, `ship destroy`)
 - server-first web stack (Go + Echo + Templ + HTMX)
-- installable modules for auth, profile, notifications, jobs, storage, billing, i18n, and more
+- supported first-party batteries for the current v1 generated-app path: jobs
 - standalone-first runtime with an explicit path to distributed/managed operation
 
 ## Product Status

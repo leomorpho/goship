@@ -2,6 +2,7 @@
 
 GoShip supports dual HTML and JSON responses without duplicating handler logic.
 This guide also defines the one blessed split-frontend integration path.
+This document is the **canonical backend contract** for the v1 GoShip API surface.
 
 ## Blessed External Frontend Contract
 

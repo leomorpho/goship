@@ -26,6 +26,10 @@ For a controller with explicit actions:
 go run ./tools/cli/ship/cmd/ship make:controller Contact --actions index,create --auth public --wire
 ```
 
+Scope note:
+- `make:resource` is the starter-safe generated-app path today.
+- `make:controller` currently targets the framework workspace and rejects the minimal starter scaffold with a clear error.
+
 ## What This Should Change
 
 - `app/web/controllers/*`

@@ -12,7 +12,7 @@ import (
 	startertemplate "github.com/leomorpho/goship/tools/cli/ship/internal/templates/starter"
 )
 
-func TestNewStarterDocsStayAligned(t *testing.T) {
+func TestGettingStartedStarterDocsStayAligned(t *testing.T) {
 	t.Parallel()
 
 	readme := readRepoFile(t, "README.md")
@@ -49,7 +49,7 @@ func TestNewStarterDocsStayAligned(t *testing.T) {
 	assertNotContains(t, "starter/testdata/scaffold/README.md", starterReadme, "go run ./cmd/web")
 }
 
-func TestRunNewPrintsCanonicalStarterNextStep(t *testing.T) {
+func TestNewOutputPrintsCanonicalStarterNextStep(t *testing.T) {
 	wd, err := os.Getwd()
 	if err != nil {
 		t.Fatalf("os.Getwd() error = %v", err)
@@ -80,6 +80,134 @@ func TestRunNewPrintsCanonicalStarterNextStep(t *testing.T) {
 	want := "Next: cd demo && ship db:migrate && ship dev"
 	if !strings.Contains(stdout.String(), want) {
 		t.Fatalf("RunNew() output missing canonical next step %q\nstdout:\n%s", want, stdout.String())
+	}
+}
+
+func TestGettingStartedGuideStaysOnStarterHappyPath(t *testing.T) {
+	t.Parallel()
+
+	gettingStarted := readRepoFile(t, "docs/guides/01-getting-started.md")
+	assertContains(t, "docs/guides/01-getting-started.md", gettingStarted, "ship db:migrate")
+	assertContains(t, "docs/guides/01-getting-started.md", gettingStarted, "ship dev")
+	assertContains(t, "docs/guides/01-getting-started.md", gettingStarted, "ship verify --profile fast")
+	assertNotContains(t, "docs/guides/01-getting-started.md", gettingStarted, "ship dev --all")
+	assertNotContains(t, "docs/guides/01-getting-started.md", gettingStarted, "ship verify --profile strict")
+}
+
+func TestAuthRouteContractSplitIsExplicit(t *testing.T) {
+	t.Parallel()
+
+	httpRoutes := readRepoFile(t, "docs/architecture/04-http-routes.md")
+	apiGuide := readRepoFile(t, "docs/guides/08-building-an-api.md")
+	goldenBrowser := readRepoFile(t, "tests/e2e/tests/auth_golden_flow.spec.ts")
+	starterRouterBytes, err := startertemplate.Files.ReadFile(filepath.ToSlash(filepath.Join(starterTemplateRoot, "app", "router.go")))
+	if err != nil {
+		t.Fatalf("ReadFile(starter router) error = %v", err)
+	}
+	starterRouter := string(starterRouterBytes)
+
+	assertContains(t, "docs/architecture/04-http-routes.md", httpRoutes, "framework repo app surface")
+	assertContains(t, "docs/architecture/04-http-routes.md", httpRoutes, "/user/login")
+	assertContains(t, "docs/architecture/04-http-routes.md", httpRoutes, "/user/register")
+	assertContains(t, "docs/architecture/04-http-routes.md", httpRoutes, "/auth/logout")
+
+	assertContains(t, "docs/guides/08-building-an-api.md", apiGuide, "/auth/login")
+	assertContains(t, "docs/guides/08-building-an-api.md", apiGuide, "/auth/register")
+	assertContains(t, "docs/guides/08-building-an-api.md", apiGuide, "/auth/logout")
+
+	assertContains(t, "starter/testdata/scaffold/app/router.go", starterRouter, "/auth/login")
+	assertContains(t, "starter/testdata/scaffold/app/router.go", starterRouter, "/auth/register")
+	assertNotContains(t, "starter/testdata/scaffold/app/router.go", starterRouter, "/user/login")
+	assertNotContains(t, "starter/testdata/scaffold/app/router.go", starterRouter, "/user/register")
+
+	assertContains(t, "tests/e2e/tests/auth_golden_flow.spec.ts", goldenBrowser, "/user/register")
+	assertContains(t, "tests/e2e/tests/auth_golden_flow.spec.ts", goldenBrowser, "/auth/logout")
+}
+
+func TestFrameworkBrowserSuitesDeclareTheirAuthSurface(t *testing.T) {
+	t.Parallel()
+
+	for _, rel := range []string{
+		"tests/e2e/tests/auth_golden_flow.spec.ts",
+		"tests/e2e/tests/cherie_compatibility.spec.ts",
+		"tests/e2e/tests/goship.spec.ts",
+		"tests/e2e/tests/smoke.spec.ts",
+		"tests/e2e/tests/admin_scaffold.spec.ts",
+	} {
+		content := readRepoFile(t, rel)
+		assertContains(t, rel, content, "framework repo")
+	}
+
+	workflowsGuide := readRepoFile(t, "docs/guides/02-development-workflows.md")
+	assertContains(t, "docs/guides/02-development-workflows.md", workflowsGuide, "framework repo app surface")
+
+	scopeAnalysis := readRepoFile(t, "docs/architecture/03-project-scope-analysis.md")
+	assertContains(t, "docs/architecture/03-project-scope-analysis.md", scopeAnalysis, "framework repo app surface")
+
+	knownGaps := readRepoFile(t, "docs/architecture/06-known-gaps-and-risks.md")
+	assertContains(t, "docs/architecture/06-known-gaps-and-risks.md", knownGaps, "framework repo")
+}
+
+func TestControllerGeneratorDocsMatchStarterRejection(t *testing.T) {
+	t.Parallel()
+
+	cliRef := readRepoFile(t, "docs/reference/01-cli.md")
+	assertContains(t, "docs/reference/01-cli.md", cliRef, "rejects the minimal starter scaffold")
+	assertContains(t, "docs/reference/01-cli.md", cliRef, "framework-workspace surface")
+}
+
+func TestGeneratorSurfaceBoundaryIsExplicit(t *testing.T) {
+	t.Parallel()
+
+	cliRef := readRepoFile(t, "docs/reference/01-cli.md")
+	assertContains(t, "docs/reference/01-cli.md", cliRef, "starter-safe today")
+	assertContains(t, "docs/reference/01-cli.md", cliRef, "`make:resource`, `make:model`, `make:island`")
+	assertContains(t, "docs/reference/01-cli.md", cliRef, "starter-safe when a locale baseline already exists")
+	assertContains(t, "docs/reference/01-cli.md", cliRef, "framework-workspace-only for now")
+	assertContains(t, "docs/reference/01-cli.md", cliRef, "`make:controller`, `make:factory`, `make:job`, `make:mailer`, `make:schedule`, `make:command`, `make:scaffold`")
+	assertContains(t, "docs/reference/01-cli.md", cliRef, "framework authoring only")
+	assertContains(t, "docs/reference/01-cli.md", cliRef, "`make:module`")
+}
+
+func TestSupportedBatterySetIsExplicit(t *testing.T) {
+	t.Parallel()
+
+	readme := readRepoFile(t, "README.md")
+	cliRef := readRepoFile(t, "docs/reference/01-cli.md")
+	moduleWorkflow := readRepoFile(t, "docs/guides/12-add-module-workflow.md")
+	moduleSurface := readRepoFile(t, "docs/architecture/11-module-surface-reset.md")
+
+	for _, content := range []string{cliRef, moduleWorkflow} {
+		for _, battery := range []string{"jobs"} {
+			if !strings.Contains(content, battery) {
+				t.Fatalf("supported battery %q missing from contract surface", battery)
+			}
+		}
+	}
+	for _, unsupported := range []string{"notifications", "paidsubscriptions", "emailsubscriptions", "storage"} {
+		assertContains(t, "docs/architecture/11-module-surface-reset.md", moduleSurface, unsupported)
+	}
+
+	assertContains(t, "README.md", readme, "supported first-party batteries")
+	assertContains(t, "README.md", readme, "jobs")
+	assertNotContains(t, "README.md", readme, "installable modules for auth, profile, notifications, jobs, storage, billing, i18n, and more")
+}
+
+func TestFirstPartyRuntimeUsesSharedCompositionHelper(t *testing.T) {
+	t.Parallel()
+
+	helper := readRepoFile(t, "framework/bootstrap/first_party_runtime.go")
+	assertContains(t, "framework/bootstrap/first_party_runtime.go", helper, "BuildFirstPartyServices")
+
+	for _, rel := range []string{
+		"cmd/web/main.go",
+		"cmd/worker/main.go",
+		"framework/testutil/http.go",
+	} {
+		body := readRepoFile(t, rel)
+		assertContains(t, rel, body, "frameworkbootstrap.BuildFirstPartyServices")
+		assertNotContains(t, rel, body, "paidsubscriptions.BuildDefaultCatalog")
+		assertNotContains(t, rel, body, "notifications.New(")
 	}
 }
 

@@ -37,6 +37,10 @@ func RunMakeSchedule(args []string, d ScheduleDeps) int {
 			return 1
 		}
 	}
+	if looksLikeStarterScaffoldRoot(cwd) {
+		fmt.Fprintln(d.Err, "make:schedule is not supported on the starter scaffold yet; no files were changed")
+		return 1
+	}
 
 	schedulesPath := filepath.Join(cwd, "app", "schedules", "schedules.go")
 	contentBytes, err := os.ReadFile(schedulesPath)

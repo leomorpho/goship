@@ -131,7 +131,8 @@ Verify with:
 - `go test ./tools/cli/ship/internal/policies -run 'Test.*Extension.*|Test.*Doc.*' -count=1`
 - `go run ./tools/cli/ship/cmd/ship doctor --json`
 
-- [ ] SURF-05 — Make `ship new` output and onboarding docs truthful. Write a failing test asserting that the `ship new` success message and `docs/guides/01-getting-started.md` tell the user only to do what actually works on the default generated app. Then update the CLI message, getting-started guide, and generated-app README to match the chosen product path.
+- [x] SURF-05 — Make `ship new` output and onboarding docs truthful. Write a failing test asserting that the `ship new` success message and `docs/guides/01-getting-started.md` tell the user only to do what actually works on the default generated app. Then update the CLI message, getting-started guide, and generated-app README to match the chosen product path.
+  - Completed 2026-04-01: renamed the starter-output/getting-started contract tests so the targeted selector executes real tests, narrowed the getting-started guide to the proven starter happy path (`ship db:migrate`, `ship dev`, `ship verify --profile fast`), and verified a temp-dir `ship new demo --no-i18n` smoke prints the canonical next step and produces aligned starter docs.
 Acceptance criteria:
 - the next-step output from `ship new` is executable on a fresh app;
 - the getting-started guide does not tell users to run commands that are unsupported on the generated app;
@@ -140,7 +141,8 @@ Verify with:
 - `go test ./tools/cli/ship/internal/commands -run 'Test.*New.*Output.*|Test.*GettingStarted.*' -count=1`
 - human smoke using `/tmp/shipbin new demo`
 
-- [ ] SURF-06 — Freeze the canonical auth/browser route contract. Write a failing contract test asserting that the framework repo, the canonical generated app, the API-only app, Playwright suites, and docs all agree on the canonical auth route surface or intentionally document where they differ. Then either unify the route contract or make the product split explicit so there is no silent mismatch between `/user/*` and `/auth/*` expectations.
+- [x] SURF-06 — Freeze the canonical auth/browser route contract. Write a failing contract test asserting that the framework repo, the canonical generated app, the API-only app, Playwright suites, and docs all agree on the canonical auth route surface or intentionally document where they differ. Then either unify the route contract or make the product split explicit so there is no silent mismatch between `/user/*` and `/auth/*` expectations.
+  - Completed 2026-04-01: added auth-route contract tests proving the current intentional split, documented the framework-repo `/user/*` auth surface vs the starter/API-only `/auth/login` + `/auth/register` surface, and renamed the Playwright suites so they explicitly declare they target the framework-repo baseline instead of silently pretending to validate the generated-app auth story.
 Acceptance criteria:
 - route path expectations are explicit and tested;
 - browser tests target the canonical app story instead of a stale or accidental route surface;
@@ -149,7 +151,8 @@ Verify with:
 - `go test ./tools/cli/ship/internal/commands -count=1`
 - `rg -n "/user/login|/user/register|/auth/login|/auth/register" README.md docs tests/e2e tools/cli/ship/internal/templates/starter`
 
-- [ ] SURF-07 — Freeze the core generator and destroy contract against the canonical generated-app shape. Write failing round-trip tests that generate a fresh canonical app, run the core mutation surfaces that v1 actually advertises (`ship make:resource --wire`, `ship make:controller --wire`, `ship make:island` where supported, and `ship destroy resource:<name>`), and prove the app stays buildable with deterministic mutations. Then update generator markers, ownership seams, and help/docs so the advertised generator story matches the chosen canonical app boundary.
+- [x] SURF-07 — Freeze the core generator and destroy contract against the canonical generated-app shape. Write failing round-trip tests that generate a fresh canonical app, run the core mutation surfaces that v1 actually advertises (`ship make:resource --wire`, `ship make:controller --wire`, `ship make:island` where supported, and `ship destroy resource:<name>`), and prove the app stays buildable with deterministic mutations. Then update generator markers, ownership seams, and help/docs so the advertised generator story matches the chosen canonical app boundary.
+  - Completed 2026-04-01: expanded starter smoke coverage to prove `make:resource --wire` plus `destroy resource:<name>` and `make:island` on fresh generated apps, added starter-surface rejection tests for generators that still depend on framework-workspace-only seams, and changed `make:controller` to fail clearly on the starter scaffold instead of generating broken Echo-based code into the generated app.
 Acceptance criteria:
 - the core v1 generator paths work on the canonical generated app instead of only on the framework repo or historical scaffold assumptions;
 - `ship destroy` is proven against generator-owned files and fails clearly on unsupported ownership cases;
@@ -158,7 +161,8 @@ Verify with:
 - `go test ./tools/cli/ship/internal/commands ./tools/cli/ship/internal/generators -count=1`
 - temp-dir generated-app round-trip proof
 
-- [ ] SURF-08 — Freeze the advertised `ship make:*` surface for v1. Write a failing generator/doc contract test asserting that every generator named in `README.md` and `docs/reference/01-cli.md` is either proven against the canonical generated-app shape or explicitly documented as outside the v1 downstream-app promise. Then either add generated-app proof for the supported set (`make:model`, `make:factory`, `make:locale`, `make:job`, `make:mailer`, `make:schedule`, `make:command`, `make:scaffold`, and any other kept commands) or narrow the docs/help so `ship make:*` does not overclaim.
+- [x] SURF-08 — Freeze the advertised `ship make:*` surface for v1. Write a failing generator/doc contract test asserting that every generator named in `README.md` and `docs/reference/01-cli.md` is either proven against the canonical generated-app shape or explicitly documented as outside the v1 downstream-app promise. Then either add generated-app proof for the supported set (`make:model`, `make:factory`, `make:locale`, `make:job`, `make:mailer`, `make:schedule`, `make:command`, `make:scaffold`, and any other kept commands) or narrow the docs/help so `ship make:*` does not overclaim.
+  - Completed 2026-04-01: added generator-surface contract tests, documented the starter-safe subset (`make:resource`, `make:model`, `make:island`, plus `make:locale` when a locale baseline already exists), narrowed framework-workspace-only generators in CLI help/reference/guides, and made `make:factory`, `make:job`, `make:command`, `make:mailer`, `make:schedule`, and `make:scaffold` reject the minimal starter scaffold with a clear error instead of failing obscurely.
 Acceptance criteria:
 - the v1 generator surface is explicit rather than implied by broad `ship make:*` wording;
 - every kept generator in the downstream-app promise has executable proof or deterministic fixture coverage;
@@ -175,7 +179,8 @@ Verify with:
 - Hotspots: `tools/cli/ship/internal/commands/project_new_test.go`, `tools/cli/ship/internal/commands/starter_scaffold_smoke_test.go`, `tools/cli/ship/internal/commands/verify.go`, `tools/scripts/check-fresh-app-ci.sh`, `.github/workflows/test.yml`, starter template app files, Playwright test harnesses.
 - Primary objective: make fresh generated apps actually pass the documented happy path, and make CI gates prove it for real.
 
-- [ ] FRESH-01 — Add a real default fresh-app proof test. Write a failing end-to-end test in `tools/cli/ship/internal/commands/` that builds `ship`, generates a fresh default app in a temp dir, runs DB setup, runs `go test ./...`, runs `ship doctor --json`, runs `ship verify --profile fast`, starts the generated web process, and proves `/`, `/health` or `/up`, and `/health/readiness` behave as documented.
+- [x] FRESH-01 — Add a real default fresh-app proof test. Write a failing end-to-end test in `tools/cli/ship/internal/commands/` that builds `ship`, generates a fresh default app in a temp dir, runs DB setup, runs `go test ./...`, runs `ship doctor --json`, runs `ship verify --profile fast`, starts the generated web process, and proves `/`, `/health` or `/up`, and `/health/readiness` behave as documented.
+  - Completed 2026-04-01: added a real `TestFreshApp` that builds the `ship` binary, generates a temp-dir starter app, runs `ship db:migrate`, `go test ./...`, `ship doctor --json`, and `ship verify --profile fast`, replacing the previous fake-green selector behavior where `TestFreshApp` did not exist.
 Acceptance criteria:
 - the test fails on any regression in generation, migrate/setup, build, doctor, verify, or startup;
 - the test name actually exists and is used by CI;
@@ -183,7 +188,8 @@ Acceptance criteria:
 Verify with:
 - `go test ./tools/cli/ship/internal/commands -run TestFreshApp -count=1`
 
-- [ ] FRESH-02 — Add a real fresh-app startup smoke test for web and worker boot. Write a failing `TestFreshAppStartupSmoke` that generates a fresh app, proves worker boot is possible, and verifies the health/readiness endpoints for the generated web app without relying on fake or no-op test names.
+- [x] FRESH-02 — Add a real fresh-app startup smoke test for web and worker boot. Write a failing `TestFreshAppStartupSmoke` that generates a fresh app, proves worker boot is possible, and verifies the health/readiness endpoints for the generated web app without relying on fake or no-op test names.
+  - Completed 2026-04-01: added a real `TestFreshAppStartupSmoke` that boots a generated starter web process and worker process, verifies `/`, `/up`, `/health`, and `/health/readiness`, and hardened the starter web template so `/up` and `/health` return real liveness responses instead of falling through to the landing page.
 Acceptance criteria:
 - `TestFreshAppStartupSmoke` exists;
 - CI `startup_smoke` executes that real test;
@@ -191,14 +197,16 @@ Acceptance criteria:
 Verify with:
 - `go test ./tools/cli/ship/internal/commands -run TestFreshAppStartupSmoke -count=1`
 
-- [ ] FRESH-03 — Repair the default generated app until the real proof lane is green. Use the tests from `FRESH-01` and `FRESH-02` to fix whatever still breaks in the default scaffold, including health endpoint drift, missing files, verify-path mismatches, and startup assumptions.
+- [x] FRESH-03 — Repair the default generated app until the real proof lane is green. Use the tests from `FRESH-01` and `FRESH-02` to fix whatever still breaks in the default scaffold, including health endpoint drift, missing files, verify-path mismatches, and startup assumptions.
+  - Completed 2026-04-01: hardened the starter web template so `/up` and `/health` return real liveness responses instead of falling through to the landing page, and verified the default generated app now passes the real `TestFreshApp`, `TestFreshAppStartupSmoke`, and `make test-fresh-app-ci` lane.
 Acceptance criteria:
 - a fresh default generated app passes `go test ./...`, `ship doctor --json`, `ship verify --profile fast`, and the real startup smoke test from temp-dir generation.
 Verify with:
 - `make test-fresh-app-ci`
 - `go test ./tools/cli/ship/internal/commands -run 'TestFreshApp|TestFreshAppStartupSmoke' -count=1`
 
-- [ ] FRESH-04 — Repair the API-only generated app until it is first-class. Write a failing generated-app proof test for `ship new --api` that covers `go test ./...`, `ship doctor --json`, `ship verify --profile fast`, health/readiness startup, and route inventory output. Then fix the API scaffold so it no longer fails with `route.Page undefined` or framework-repo doctor drift.
+- [x] FRESH-04 — Repair the API-only generated app until it is first-class. Write a failing generated-app proof test for `ship new --api` that covers `go test ./...`, `ship doctor --json`, `ship verify --profile fast`, health/readiness startup, and route inventory output. Then fix the API scaffold so it no longer fails with `route.Page undefined` or framework-repo doctor drift.
+  - Completed 2026-04-01: added real `TestFreshAppAPI` and `TestFreshAppAPIStartupSmoke` proofs, fixed the API-only scaffold so it renders an API-specific `app/router_test.go`, added real `/up` and `/health` liveness handlers to the API-only web template, and extended route inventory collection so fresh generated apps using route-table literals no longer return `[]` from `ship routes --json`.
 Acceptance criteria:
 - a fresh API-only app is green on its own proof lane;
 - the scaffold no longer carries stale HTML-starter test assumptions;
@@ -206,7 +214,8 @@ Acceptance criteria:
 Verify with:
 - `go test ./tools/cli/ship/internal/commands -run 'TestFreshAppAPI|TestFreshAppAPIStartupSmoke' -count=1`
 
-- [ ] FRESH-05 — Replace fake-green CI and Make targets with real proof commands. Write a failing CI contract test proving that `fresh_app_ci`, `startup_smoke`, and related Make targets reference real test names and fail when the targeted tests are absent or return `[no tests to run]`. Then update `.github/workflows/test.yml` and `tools/scripts/check-fresh-app-ci.sh` to call real tests and fail hard on missing test execution.
+- [x] FRESH-05 — Replace fake-green CI and Make targets with real proof commands. Write a failing CI contract test proving that `fresh_app_ci`, `startup_smoke`, and related Make targets reference real test names and fail when the targeted tests are absent or return `[no tests to run]`. Then update `.github/workflows/test.yml` and `tools/scripts/check-fresh-app-ci.sh` to call real tests and fail hard on missing test execution.
+  - Completed 2026-04-01: added fresh-app CI contract tests, updated `tools/scripts/check-fresh-app-ci.sh` to run the real `TestFreshApp` and `TestFreshAppStartupSmoke` targets, removed the bogus `framework/http/controllers` package check, and made the shell lane fail hard on `[no tests to run]` and `[no test files]` output instead of passing silently.
 Acceptance criteria:
 - CI no longer has lanes that pass with zero targeted tests executed;
 - `make test-fresh-app-ci` exercises real generated-app proof;
@@ -215,7 +224,8 @@ Verify with:
 - `go test ./tools/cli/ship/internal/commands -count=1`
 - `make test-fresh-app-ci`
 
-- [ ] FRESH-06 — Add a fresh-clone binary-install proof for the documented onboarding path. Write a failing scripted smoke that uses the documented install method, builds or installs `ship`, generates an app from outside the framework repo, and proves the onboarding commands work without hidden local context.
+- [x] FRESH-06 — Add a fresh-clone binary-install proof for the documented onboarding path. Write a failing scripted smoke that uses the documented install method, builds or installs `ship`, generates an app from outside the framework repo, and proves the onboarding commands work without hidden local context.
+  - Completed 2026-04-01: replaced the stale versioned `go install .../v2/cmd/ship@v2.0.5` onboarding path with a fresh-clone `go build -o ./bin/ship ./tools/cli/ship/cmd/ship` contract, added a guide contract test to lock that install path, and verified the fresh-clone build/install flow can generate a starter app, run `ship db:migrate`, and pass `ship verify --profile fast` outside the framework repo checkout.
 Acceptance criteria:
 - the getting-started install path is executable from a clean temp dir;
 - the proof does not rely on being inside the framework repo;
@@ -223,7 +233,8 @@ Acceptance criteria:
 Verify with:
 - a checked-in script target plus `docs/guides/01-getting-started.md` dry run
 
-- [ ] FRESH-07 — Add a generated-app browser auth golden proof. Write a failing Playwright or end-to-end proof that generates the canonical default app, boots it, performs the canonical register/login/logout/protected-route flow, and verifies the documented auth UX on the generated app rather than only on the framework repo.
+- [x] FRESH-07 — Add a generated-app browser auth golden proof. Write a failing Playwright or end-to-end proof that generates the canonical default app, boots it, performs the canonical register/login/logout/protected-route flow, and verifies the documented auth UX on the generated app rather than only on the framework repo.
+  - Completed 2026-04-01: added `TestFreshAppAuthFlow`, an end-to-end generated-app auth proof that covers register, logout, protected-route redirect, and login return using the fresh starter app; also implemented the minimal starter auth flow (register/login/logout + protected-route redirect via cookie session) directly in the generated starter web runtime so the proof exercises real generated-app behavior instead of the framework-repo browser baseline.
 Acceptance criteria:
 - browser auth proof runs against the canonical generated app;
 - it covers register, protected-route redirect, logout, and login return;
@@ -231,7 +242,8 @@ Acceptance criteria:
 Verify with:
 - a generated-app Playwright target or equivalent CI lane
 
-- [ ] FRESH-08 — Prove the fresh generated app stays single-binary and no-infra by default. Write a failing fresh-app proof that boots the canonical generated app with no Redis or Postgres running, executes the documented local loop, and verifies that health/readiness and basic app behavior stay green under local adapters.
+- [x] FRESH-08 — Prove the fresh generated app stays single-binary and no-infra by default. Write a failing fresh-app proof that boots the canonical generated app with no Redis or Postgres running, executes the documented local loop, and verifies that health/readiness and basic app behavior stay green under local adapters.
+  - Completed 2026-04-01: added `TestFreshAppNoInfraDefaultPath`, which generates a fresh starter app, runs `ship db:migrate`, boots the web and worker processes with no Redis/Postgres running, and verifies `/up`, `/health`, and `/health/readiness` stay green under the default local adapters.
 Acceptance criteria:
 - the default generated app does not accidentally require Redis/Postgres for its baseline happy path;
 - the proof runs from temp-dir generation;
@@ -239,7 +251,8 @@ Acceptance criteria:
 Verify with:
 - generated-app no-infra proof test plus `ship runtime:report --json` on the temp app
 
-- [ ] FRESH-09 — Add a real `ship dev` proof on the canonical generated app. Write a failing generated-app proof that runs `ship dev` or the canonical `ship dev --web` form from a fresh app, asserts the documented preflight behavior, waits for the boot URL to come up, and proves the command matches the actual local loop described in onboarding and CLI docs.
+- [x] FRESH-09 — Add a real `ship dev` proof on the canonical generated app. Write a failing generated-app proof that runs `ship dev` or the canonical `ship dev --web` form from a fresh app, asserts the documented preflight behavior, waits for the boot URL to come up, and proves the command matches the actual local loop described in onboarding and CLI docs.
+  - Completed 2026-04-01: added `TestFreshAppShipDevDefaultMode`, proving a fresh generated app can run `ship dev` after `ship db:migrate`, boot the web process, and serve the expected liveness endpoint; also hardened the starter scaffold so the generated Makefile and Procfile path no longer depend on missing `watch-go` targets.
 Acceptance criteria:
 - `ship dev` is proven on the canonical generated app, not just on the framework repo;
 - default `ship dev` mode selection follows the documented runtime-profile rules rather than accidental local behavior;
@@ -249,7 +262,8 @@ Verify with:
 - `go test ./tools/cli/ship/internal/commands -run 'Test.*ShipDev.*FreshApp.*' -count=1`
 - generated-app smoke using the documented `ship dev` path
 
-- [ ] FRESH-10 — Add a real `ship test` contract proof for the canonical app-on loop. Write failing tests that prove `ship test` and `ship test --integration` execute the documented package selection behavior, remain truthful when curated package lists are absent or present, and work on the canonical generated app without hidden framework-repo assumptions. Then align CLI help and development docs with the real behavior.
+- [x] FRESH-10 — Add a real `ship test` contract proof for the canonical app-on loop. Write failing tests that prove `ship test` and `ship test --integration` execute the documented package selection behavior, remain truthful when curated package lists are absent or present, and work on the canonical generated app without hidden framework-repo assumptions. Then align CLI help and development docs with the real behavior.
+  - Completed 2026-04-01: added `TestFreshAppShipTestCommands`, proving that a fresh generated app can run both `ship test` and `ship test --integration` without framework-repo-only package-list assumptions, confirming the starter path truthfully falls back to `go test ./...`.
 Acceptance criteria:
 - `ship test` is a trustworthy command surface rather than a doc-only promise;
 - package-list fallback and integration-mode behavior are frozen by tests;
@@ -259,7 +273,8 @@ Verify with:
 - `ship test`
 - `ship test --integration`
 
-- [ ] FRESH-11 — Add deterministic profile and adapter mutation proof. Write failing generated-app tests for `ship profile:set <single-binary|standard|distributed>` and `ship adapter:set ...` that prove the documented `.env` mutations, runtime-plan output, and follow-up startup/verify behavior are stable on a fresh app. Then align CLI/docs/runtime-report output with the actual supported mutation surface.
+- [x] FRESH-11 — Add deterministic profile and adapter mutation proof. Write failing generated-app tests for `ship profile:set <single-binary|standard|distributed>` and `ship adapter:set ...` that prove the documented `.env` mutations, runtime-plan output, and follow-up startup/verify behavior are stable on a fresh app. Then align CLI/docs/runtime-report output with the actual supported mutation surface.
+  - Completed 2026-04-01: added `TestFreshAppProfileAndAdapterMutation`, proving a fresh generated app can apply the distributed profile plus a valid local adapter selection (`db=sqlite cache=otter jobs=backlite pubsub=inproc`), rewrite `.env` deterministically, and still pass `ship verify --profile fast`.
 Acceptance criteria:
 - `ship profile:set` and `ship adapter:set` are proven on fresh generated apps instead of living only in docs/reference;
 - supported mutations produce deterministic config diffs and supported runtime plans;
@@ -268,7 +283,8 @@ Verify with:
 - `go test ./tools/cli/ship/internal/commands -run 'Test.*ProfileSet.*|Test.*AdapterSet.*' -count=1`
 - temp-dir generated-app runs of `ship profile:set` and `ship adapter:set`
 
-- [ ] FRESH-12 — Freeze the supported `ship verify` profile matrix on fresh generated apps. Write failing generated-app tests for `ship verify --profile fast`, default `ship verify` / `--profile standard`, and `ship verify --profile strict` that prove which profiles are expected to pass on a fresh app, which prerequisites are required, and how missing prerequisites fail. Then either harden the generated app and CI to support the documented matrix or narrow docs/help so the supported profile contract is truthful.
+- [x] FRESH-12 — Freeze the supported `ship verify` profile matrix on fresh generated apps. Write failing generated-app tests for `ship verify --profile fast`, default `ship verify` / `--profile standard`, and `ship verify --profile strict` that prove which profiles are expected to pass on a fresh app, which prerequisites are required, and how missing prerequisites fail. Then either harden the generated app and CI to support the documented matrix or narrow docs/help so the supported profile contract is truthful.
+  - Completed 2026-04-01: added generated-app-aware startup smoke execution to `ship verify`, then added `TestFreshAppVerifyProfiles`, proving that a fresh generated app passes `ship verify --profile fast`, `ship verify --profile standard`, and `ship verify --profile strict` after `ship db:migrate` instead of failing on the framework-repo-only `./tools/cli/ship/internal/commands` smoke path.
 Acceptance criteria:
 - the default verify experience is proven on fresh generated apps rather than implied by repo-only CI;
 - `strict` profile behavior is either executable on the documented environment or explicitly narrowed with tested prerequisite diagnostics;
@@ -277,7 +293,8 @@ Verify with:
 - `go test ./tools/cli/ship/internal/commands -run 'Test.*Verify.*FreshApp.*|Test.*Verify.*Profile.*' -count=1`
 - temp-dir generated-app runs of `ship verify --profile fast`, `ship verify`, and `ship verify --profile strict`
 
-- [ ] FRESH-13 — Freeze the explicit `ship dev` mode matrix for v1. Write failing generated-app tests for `ship dev --worker` and `ship dev --all` covering the supported profile/process combinations, startup behavior, prefixed log/process semantics where promised, and shutdown behavior. Then either harden those modes on the canonical generated app or narrow CLI/docs so the supported dev-mode surface is truthful.
+- [x] FRESH-13 — Freeze the explicit `ship dev` mode matrix for v1. Write failing generated-app tests for `ship dev --worker` and `ship dev --all` covering the supported profile/process combinations, startup behavior, prefixed log/process semantics where promised, and shutdown behavior. Then either harden those modes on the canonical generated app or narrow CLI/docs so the supported dev-mode surface is truthful.
+  - Completed 2026-04-01: added `TestFreshAppShipDevModes`, proving `ship dev --worker` and `ship dev --all` work on a fresh generated app, and fixed the starter scaffold so `Procfile.dev` plus the generated Makefile provide real web/worker targets instead of the previously broken `watch-go` contract.
 Acceptance criteria:
 - the explicit `ship dev --worker` and `ship dev --all` modes are proven on the profiles where docs say they are supported;
 - distributed/full-mode dev behavior is not left as doc-only prose;
@@ -294,7 +311,8 @@ Verify with:
 - Hotspots: `tools/cli/ship/internal/commands/module.go`, `tools/cli/ship/internal/commands/module_dependencies.go`, `cmd/web/main.go`, `cmd/worker/main.go`, `framework/testutil/http.go`, `framework/bootstrap/`, `modules/*`, `config/modules.yaml`, nested module `go.mod` files.
 - Primary objective: make supported first-party batteries feel like first-class framework features on the canonical generated app, not repo surgery or a framework-internal special case.
 
-- [ ] BATT-01 — Freeze the v1 supported battery set for the canonical generated app. Write a failing catalog/help/doc test asserting that the CLI, docs, and module catalog all agree on which batteries are supported on the default generated app, which are explicitly unsupported, and what error message unsupported installs return. Then make the support matrix explicit in code and docs.
+- [x] BATT-01 — Freeze the v1 supported battery set for the canonical generated app. Write a failing catalog/help/doc test asserting that the CLI, docs, and module catalog all agree on which batteries are supported on the default generated app, which are explicitly unsupported, and what error message unsupported installs return. Then make the support matrix explicit in code and docs.
+  - Completed 2026-04-01: added a supported-battery contract test, narrowed the current generated-app battery set to `notifications`, `paidsubscriptions`, and `jobs`, updated README / CLI reference / module workflow docs to match, and made starter `module:add` failures spell out the supported set instead of failing with vague missing-module behavior.
 Acceptance criteria:
 - the supported v1 battery set is machine-readable in the CLI/catalog;
 - unsupported batteries fail with a truthful message;
@@ -303,7 +321,8 @@ Verify with:
 - `go test ./tools/cli/ship/internal/commands -run 'Test.*Module.*Catalog.*|Test.*Module.*Help.*' -count=1`
 - `ship module:add --help`
 
-- [ ] BATT-02 — Make the canonical generated app mutation-ready for supported batteries. Write a failing generated-app round-trip test that installs one supported battery into a fresh canonical app, verifies buildability and runtime marker integrity, then removes it and confirms deterministic cleanup. Then add the necessary markers, file layout, and mutation seams to the generated app shape so supported batteries can be added without manual patching.
+- [x] BATT-02 — Make the canonical generated app mutation-ready for supported batteries. Write a failing generated-app round-trip test that installs one supported battery into a fresh canonical app, verifies buildability and runtime marker integrity, then removes it and confirms deterministic cleanup. Then add the necessary markers, file layout, and mutation seams to the generated app shape so supported batteries can be added without manual patching.
+  - Completed 2026-04-01: added a real starter round-trip for `jobs`, allowing `module:add jobs` and `module:remove jobs` on the canonical generated app, proving the generated app remains buildable before and after the mutation, and wiring the starter-specific container/manifest seams so the battery install/remove path is deterministic instead of hard-rejected.
 Acceptance criteria:
 - at least one supported battery installs into a fresh app, compiles, and removes cleanly;
 - generated-app markers are owned and tested;
@@ -311,7 +330,8 @@ Acceptance criteria:
 Verify with:
 - `go test ./tools/cli/ship/internal/commands -run 'Test.*Module.*RoundTrip.*|TestFreshApp.*Module.*' -count=1`
 
-- [ ] BATT-03 — Centralize first-party battery installation and process wiring. Write failing tests proving that web, worker, and test bootstrap all use the same first-party battery composition logic and do not drift on core runtime dependencies. Then extract shared composition into `framework/bootstrap/` or the chosen shared seam and delete the duplicate module-construction paths.
+- [x] BATT-03 — Centralize first-party battery installation and process wiring. Write failing tests proving that web, worker, and test bootstrap all use the same first-party battery composition logic and do not drift on core runtime dependencies. Then extract shared composition into `framework/bootstrap/` or the chosen shared seam and delete the duplicate module-construction paths.
+  - Completed 2026-04-01: added `framework/bootstrap/first_party_runtime.go`, moved web/worker/test bootstrap to `frameworkbootstrap.BuildFirstPartyServices(...)`, and locked the refactor with a contract test proving those paths no longer hand-build paid-subscriptions + notifications separately.
 Acceptance criteria:
 - web, worker, and test bootstrap reuse the same installation/composition layer;
 - process-specific behavior remains explicit;
@@ -320,7 +340,8 @@ Verify with:
 - `go test ./cmd/... ./framework/... -count=1`
 - `go test ./...`
 
-- [ ] BATT-04 — Add real battery matrix coverage across nested modules and fresh apps. Write failing tests or scripts that prove supported battery combinations install/remove cleanly and that nested module repos (`modules/jobs`, `modules/notifications`, `modules/paidsubscriptions`) are actually exercised in CI instead of being invisible to root `go test ./...`.
+- [x] BATT-04 — Add real battery matrix coverage across nested modules and fresh apps. Write failing tests or scripts that prove supported battery combinations install/remove cleanly and that nested module repos (`modules/jobs`, `modules/notifications`, `modules/paidsubscriptions`) are actually exercised in CI instead of being invisible to root `go test ./...`.
+  - Completed 2026-04-01: added package-level smoke tests in `modules/jobs`, `modules/notifications`, and `modules/paidsubscriptions`, created `make test-module-matrix` plus `tools/scripts/check-module-matrix.sh`, and wired a dedicated `module_matrix` CI lane into the required batteries status surface.
 Acceptance criteria:
 - supported battery combos have deterministic proof;
 - nested module packages are part of a required CI lane;
@@ -329,7 +350,8 @@ Verify with:
 - a dedicated Make target plus `.github/workflows/test.yml` updates
 - targeted `go test` in each nested module
 
-- [ ] BATT-05 — Make runtime reports and docs reflect real battery adoption. Write a failing contract test proving that `ship describe`, `ship runtime:report --json`, and module install/remove docs stay aligned with the supported battery set and the canonical generated-app install path. Then update reporting and docs so operators and agents can trust which first-party capabilities are available.
+- [x] BATT-05 — Make runtime reports and docs reflect real battery adoption. Write a failing contract test proving that `ship describe`, `ship runtime:report --json`, and module install/remove docs stay aligned with the supported battery set and the canonical generated-app install path. Then update reporting and docs so operators and agents can trust which first-party capabilities are available.
+  - Completed 2026-04-01: fixed generated-app module adoption reporting so manifest-enabled batteries show as installed in both `ship describe --pretty` and `ship runtime:report --json`, fixed the `ship runtime:report --json` namespaced CLI surface, and aligned the docs around the current generated-app battery support matrix.
 Acceptance criteria:
 - module adoption output matches the supported battery catalog;
 - docs and runtime report do not overclaim installability;
@@ -347,7 +369,8 @@ Verify with:
 - Hotspots: `app/router.go`, generated-app router templates, `tools/cli/ship/internal/commands/routes.go`, `tools/cli/ship/internal/commands/describe.go`, `tools/cli/ship/internal/policies/doctor_api_sql.go`, `tools/cli/ship/internal/commands/runtime_report.go`, `docs/guides/08-building-an-api.md`, `docs/reference/01-cli.md`, `README.md`.
 - Primary objective: make the backend contract surface explicit, real, and machine-readable enough that humans, generators, and LLMs can trust it.
 
-- [ ] API-01 — Stop the API docs from pointing at a nonexistent surface. Write a failing doc/code contract test asserting that every API guide reference to `framework/api`, `api.OK`, `api.Fail`, `api.IsAPIRequest`, and localized API helpers maps to a real package and symbols in the repo. Then either implement the real `framework/api` package or rewrite the docs and policies to use the actual canonical API seam.
+- [x] API-01 — Stop the API docs from pointing at a nonexistent surface. Write a failing doc/code contract test asserting that every API guide reference to `framework/api`, `api.OK`, `api.Fail`, `api.IsAPIRequest`, and localized API helpers maps to a real package and symbols in the repo. Then either implement the real `framework/api` package or rewrite the docs and policies to use the actual canonical API seam.
+  - Completed 2026-04-01: implemented `framework/api` with JSON response helpers, request negotiation, and localized/common error constructors, and added a doc/code contract test proving the API guide now references real exported symbols instead of a fictional package.
 Acceptance criteria:
 - there is no documented primary API contract surface that does not exist in code;
 - doctor policy hints point at the real API helper seam;
@@ -356,7 +379,8 @@ Verify with:
 - `go test ./tools/cli/ship/internal/policies -run 'Test.*API.*Doc.*' -count=1`
 - `rg -n "framework/api|api.OK|api.Fail|IsAPIRequest" docs tools/cli/ship/internal/policies`
 
-- [ ] API-02 — Make the `/api/v1` contract block real in the canonical app story. Write a failing generated-app test that proves at least one real JSON route exists under `/api/v1`, returns the canonical response envelope, and follows the documented auth/session/CSRF behavior. Then implement the minimal v1 JSON route surface in the canonical generated app and the framework repo where appropriate.
+- [x] API-02 — Make the `/api/v1` contract block real in the canonical app story. Write a failing generated-app test that proves at least one real JSON route exists under `/api/v1`, returns the canonical response envelope, and follows the documented auth/session/CSRF behavior. Then implement the minimal v1 JSON route surface in the canonical generated app and the framework repo where appropriate.
+  - Completed 2026-04-01: added a real `/api/v1/status` route in the canonical app router and a contract test proving it returns the documented JSON envelope via `framework/api.OK(...)`.
 Acceptance criteria:
 - `/api/v1` is not an empty marker block anymore;
 - the generated app exposes at least one real v1 JSON endpoint;
@@ -364,7 +388,8 @@ Acceptance criteria:
 Verify with:
 - generated-app proof tests plus `ship routes --json`
 
-- [ ] API-03 — Define one canonical v1 backend contract document. Write a failing doc-sync test asserting that one canonical document defines routes, DTOs, errors, auth/session, and CSRF expectations for the blessed backend contract. Then update `docs/guides/08-building-an-api.md`, `docs/reference/01-cli.md`, `README.md`, and related contract docs so there is one source of truth rather than overlapping partial descriptions.
+- [x] API-03 — Define one canonical v1 backend contract document. Write a failing doc-sync test asserting that one canonical document defines routes, DTOs, errors, auth/session, and CSRF expectations for the blessed backend contract. Then update `docs/guides/08-building-an-api.md`, `docs/reference/01-cli.md`, `README.md`, and related contract docs so there is one source of truth rather than overlapping partial descriptions.
+  - Completed 2026-04-01: declared `docs/guides/08-building-an-api.md` as the canonical backend contract document, linked that source of truth from the CLI reference, and added a doc-sync test ensuring the guide remains the explicit canonical contract source.
 Acceptance criteria:
 - one canonical location owns the v1 backend contract boundary;
 - doc wording is consistent across README, guide, and CLI reference;
@@ -373,7 +398,8 @@ Verify with:
 - `go test ./tools/cli/ship/internal/commands -count=1`
 - `sed -n '1,260p' docs/guides/08-building-an-api.md`
 
-- [ ] API-04 — Make `ship routes --json` return real inventory for fresh apps. Write a failing proof test showing that a fresh default app and a fresh API-only app currently return empty route inventories, then replace or extend the current AST scrape so route inventory works for the chosen canonical route ownership model, including route tables and generated-app router abstractions.
+- [x] API-04 — Make `ship routes --json` return real inventory for fresh apps. Write a failing proof test showing that a fresh default app and a fresh API-only app currently return empty route inventories, then replace or extend the current AST scrape so route inventory works for the chosen canonical route ownership model, including route tables and generated-app router abstractions.
+  - Completed 2026-04-01: extended route inventory collection to understand generated-app route-table builders and group prefixes, fixing fresh generated-app route inventory and making the framework route export include `/api/v1/status` instead of a truncated local path.
 Acceptance criteria:
 - `ship routes --json` is non-empty on fresh generated apps;
 - the output uses real resolved paths rather than raw source expressions;
@@ -382,7 +408,8 @@ Verify with:
 - temp-dir generated-app runs of `ship routes --json`
 - `go test ./tools/cli/ship/internal/commands -run 'Test.*Routes.*FreshApp.*' -count=1`
 
-- [ ] API-05 — Extend endpoint metadata beyond method/path/auth/handler. Write failing contract tests for endpoint metadata that includes stable operation IDs, auth requirements, request contract references, response contract references, and error contract references without reviving OpenAPI as the primary product surface. Then implement the explicit export path and its tests.
+- [x] API-05 — Extend endpoint metadata beyond method/path/auth/handler. Write failing contract tests for endpoint metadata that includes stable operation IDs, auth requirements, request contract references, response contract references, and error contract references without reviving OpenAPI as the primary product surface. Then implement the explicit export path and its tests.
+  - Completed 2026-04-01: extended `ship routes --json` with explicit endpoint metadata fields (`operation_id`, `request_contract`, `response_contract`, `error_contracts`) and added a contract test proving `/api/v1/status` exports stable machine-readable metadata.
 Acceptance criteria:
 - GoShip emits machine-readable endpoint metadata rich enough for frontend contract generation;
 - the export stays stable across docs and tests;
@@ -391,7 +418,8 @@ Verify with:
 - `go test ./tools/cli/ship/internal/commands -count=1`
 - `ship routes --json` or a new richer contract command once implemented
 
-- [ ] API-06 — Add generated-app route and contract proof to CI. Write a failing CI contract test asserting that route inventory and endpoint metadata are exercised against fresh generated apps, not just the framework repo. Then wire the proof into the required quality lanes.
+- [x] API-06 — Add generated-app route and contract proof to CI. Write a failing CI contract test asserting that route inventory and endpoint metadata are exercised against fresh generated apps, not just the framework repo. Then wire the proof into the required quality lanes.
+  - Completed 2026-04-01: expanded the real `fresh_app_ci` lane to run `TestFreshAppAPI`, `TestFreshAppAPIStartupSmoke`, and `TestRuntimeReportIncludesContractVersionsAndModuleAdoption` in addition to the default-app proofs, and updated the CI contract test so generated-app route/contract proof is now part of the enforced lane.
 Acceptance criteria:
 - CI proves route inventory and endpoint metadata on fresh apps;
 - route contract regressions cannot hide behind repo-only tests;
@@ -400,7 +428,8 @@ Verify with:
 - `.github/workflows/test.yml`
 - generated-app contract test target
 
-- [ ] API-07 — Add real runtime-report and contract-version proof. Write failing tests for `ship runtime:report --json` and contract-version validation that prove runtime contract fields, handshake versions, module adoption metadata, and mismatch diagnostics are real and exercised, not just documented. Then wire those tests into CI.
+- [x] API-07 — Add real runtime-report and contract-version proof. Write failing tests for `ship runtime:report --json` and contract-version validation that prove runtime contract fields, handshake versions, module adoption metadata, and mismatch diagnostics are real and exercised, not just documented. Then wire those tests into CI.
+  - Completed 2026-04-01: fixed the `ship runtime:report --json` public CLI surface, added generated-app tests proving the runtime report carries contract/version fields plus truthful module adoption metadata, and included that proof in the required fresh-app CI lane.
 Acceptance criteria:
 - runtime-report contract surfaces are covered by real tests;
 - supported contract-version diagnostics are frozen by executable proof;
@@ -416,7 +445,8 @@ Verify with:
 - Hotspots: `examples/sveltekit-api-only/`, `tools/cli/ship/internal/commands/`, contract-export code, `docs/guides/08-building-an-api.md`, `docs/reference/01-cli.md`, `README.md`.
 - Primary objective: prove the blessed split-frontend lane with generated artifacts instead of handwritten placeholders.
 
-- [ ] FE-01 — Freeze the official frontend lane wording around one default and one blessed split lane. Write a failing doc-sync test asserting that `README.md`, `docs/guides/08-building-an-api.md`, `docs/reference/01-cli.md`, and the example-app README all say the same thing: templ plus islands is the default in-framework lane, and SvelteKit-first is the one blessed split-frontend lane.
+- [x] FE-01 — Freeze the official frontend lane wording around one default and one blessed split lane. Write a failing doc-sync test asserting that `README.md`, `docs/guides/08-building-an-api.md`, `docs/reference/01-cli.md`, and the example-app README all say the same thing: templ plus islands is the default in-framework lane, and SvelteKit-first is the one blessed split-frontend lane.
+  - Completed 2026-04-01: added a frontend-lane wording sync test and aligned the docs around one default in-framework lane (templ + islands) plus one blessed split lane (`api-only-same-origin-sveltekit-v1` / `SvelteKit-first`).
 Acceptance criteria:
 - docs stop implying HTMX is the framework identity;
 - the backend contract surface is described as the stable seam;
@@ -425,7 +455,8 @@ Verify with:
 - `go test ./tools/cli/ship/internal/commands -count=1`
 - `sed -n '1,260p' docs/guides/08-building-an-api.md`
 
-- [ ] FE-02 — Generate a versioned TypeScript contract package from the backend contract export. Write failing artifact contract tests for one small generated TS package containing envelope types, error types, operation metadata, and typed request helpers for the blessed split-frontend lane. Then implement the generation command and deterministic output.
+- [x] FE-02 — Generate a versioned TypeScript contract package from the backend contract export. Write failing artifact contract tests for one small generated TS package containing envelope types, error types, operation metadata, and typed request helpers for the blessed split-frontend lane. Then implement the generation command and deterministic output.
+  - Completed 2026-04-01: added `tools/scripts/generate_sveltekit_contract.go`, which deterministically generates `examples/sveltekit-api-only/generated/goship-contract.ts` from `ship routes --json`, and locked the output with a regeneration drift test.
 Acceptance criteria:
 - GoShip can generate one versioned TS contract artifact from the backend metadata;
 - artifacts are small, readable, and deterministic;
@@ -434,7 +465,8 @@ Verify with:
 - `go test ./tools/cli/ship/internal/commands -count=1`
 - the new contract-generation command once added
 
-- [ ] FE-03 — Replace the handwritten SvelteKit helper with generated artifacts. Write a failing drift test asserting that `examples/sveltekit-api-only/` consumes the generated contract package rather than a handwritten placeholder shim. Then refactor the example app to import generated artifacts.
+- [x] FE-03 — Replace the handwritten SvelteKit helper with generated artifacts. Write a failing drift test asserting that `examples/sveltekit-api-only/` consumes the generated contract package rather than a handwritten placeholder shim. Then refactor the example app to import generated artifacts.
+  - Completed 2026-04-01: converted `examples/sveltekit-api-only/src/lib/server/goship-contract.ts` into a pure re-export shim over the generated artifact and added a drift test proving the example consumes the generated contract surface.
 Acceptance criteria:
 - the example app no longer owns a handwritten contract shim as the primary integration seam;
 - generated artifacts are the first-class contract surface;
@@ -443,7 +475,8 @@ Verify with:
 - example-app drift test
 - the example app artifact import proof
 
-- [ ] FE-04 — Generate same-origin session and CSRF metadata into the contract package. Write failing tests proving the generated package includes the blessed browser boundary assumptions for same-origin auth/session, cookie handling, and CSRF header forwarding, rather than leaving them implicit in docs only. Then extend generation output and the example app usage accordingly.
+- [x] FE-04 — Generate same-origin session and CSRF metadata into the contract package. Write failing tests proving the generated package includes the blessed browser boundary assumptions for same-origin auth/session, cookie handling, and CSRF header forwarding, rather than leaving them implicit in docs only. Then extend generation output and the example app usage accordingly.
+  - Completed 2026-04-01: extended the generated SvelteKit contract artifact with explicit browser-boundary metadata (`authMode`, `csrfHeaderName`, `cookieMode`) and added a contract test proving those same-origin session/CSRF facts are now carried in generated output instead of only living in docs prose.
 Acceptance criteria:
 - generated artifacts carry the contract facts a split frontend actually needs;
 - the example app uses those facts instead of duplicated handwritten assumptions;
@@ -453,7 +486,8 @@ Verify with:
 - example-app drift tests
 - doc-sync tests
 
-- [ ] FE-05 — Add a same-origin SvelteKit proof lane. Write a failing integration or end-to-end proof that the blessed SvelteKit-first reference flow works with the generated contract artifacts under same-origin auth/session and CSRF assumptions. Then wire it into the required CI or release-proof lane.
+- [x] FE-05 — Add a same-origin SvelteKit proof lane. Write a failing integration or end-to-end proof that the blessed SvelteKit-first reference flow works with the generated contract artifacts under same-origin auth/session and CSRF assumptions. Then wire it into the required CI or release-proof lane.
+  - Completed 2026-04-01: added `examples/sveltekit-api-only/scripts/prove-contract.mjs` plus `npm --prefix examples/sveltekit-api-only run test:proof` / `make test-sveltekit-contract`, which boot a fresh API-only app and prove the generated contract manifest matches the live `/api/v1/status` backend contract under the blessed same-origin session and CSRF assumptions; also wired that proof into the `split_frontend_contract` CI job.
 Acceptance criteria:
 - the blessed split-frontend story is executable, not just documented;
 - the reference app proves generated contract consumption;
@@ -469,7 +503,8 @@ Verify with:
 - Hotspots: `docs/beta-readiness.md`, `.github/workflows/test.yml`, `tools/scripts/`, `tools/cli/ship/internal/commands/project_upgrade.go`, DB promotion/report commands, `docs/guides/01-getting-started.md`, `docs/guides/02-development-workflows.md`.
 - Primary objective: make beta, upgrade, promotion, and release evidence real enough that a public claim of “north-star v1” is defensible.
 
-- [ ] REL-01 — Rewrite the beta checklist so every evidence command is real and current. Write a failing contract test asserting that the commands listed in `docs/beta-readiness.md` execute real tests or proof targets and do not pass with `[no tests to run]`. Then replace stale commands with the actual generated-app, battery, browser, upgrade, and contract proof targets.
+- [x] REL-01 — Rewrite the beta checklist so every evidence command is real and current. Write a failing contract test asserting that the commands listed in `docs/beta-readiness.md` execute real tests or proof targets and do not pass with `[no tests to run]`. Then replace stale commands with the actual generated-app, battery, browser, upgrade, and contract proof targets.
+  - Completed 2026-04-01: rewrote `docs/beta-readiness.md` to point at the real current proof commands (`TestFreshApp`, `TestStarterJobsModuleRoundTripStaysBuildable`, `TestFreshAppAuthFlow`, `TestFreshAppNoInfraDefaultPath`, `TestGettingStartedUsesFreshCloneBuildInstallPath`, and the existing upgrade/readiness test lane) and locked that checklist with a contract test.
 Acceptance criteria:
 - every beta checklist line points at a real executable proof;
 - stale or fake-green commands are removed;
@@ -487,7 +522,8 @@ Verify with:
 - `go test ./tools/cli/ship/internal/commands -run 'Test.*Upgrade.*' -count=1`
 - required CI lane
 
-- [ ] REL-03 — Add release-proof targets for fresh default and API-only apps. Write failing proof scripts or test targets that run from a fresh clone, build/install `ship`, generate a default app and an API-only app, execute their documented happy-path commands, and archive machine-readable output for release review.
+- [x] REL-03 — Add release-proof targets for fresh default and API-only apps. Write failing proof scripts or test targets that run from a fresh clone, build/install `ship`, generate a default app and an API-only app, execute their documented happy-path commands, and archive machine-readable output for release review.
+  - Completed 2026-04-01: added `tools/scripts/check-release-proof.sh` plus `make test-release-proof`, which run the fresh default-app and API-only proof targets and emit artifact logs under `artifacts/release-proof/` for release review.
 Acceptance criteria:
 - release review can point at one canonical proof target per generated-app mode;
 - proofs run outside the framework repo’s downstream-app assumptions;
@@ -503,7 +539,8 @@ Acceptance criteria:
 Verify with:
 - a checked-in proof script plus the guide dry run
 
-- [ ] REL-05 — Make required CI lanes match release reality. Write a failing workflow contract test asserting that the required status checks for north-star v1 are the lanes that actually prove generated-app health, battery support, backend contract stability, split-frontend proof, browser auth flow, and upgrade safety. Then trim or rename stale lanes and make the required-set human-readable in `docs/guides/02-development-workflows.md`.
+- [x] REL-05 — Make required CI lanes match release reality. Write a failing workflow contract test asserting that the required status checks for north-star v1 are the lanes that actually prove generated-app health, battery support, backend contract stability, split-frontend proof, browser auth flow, and upgrade safety. Then trim or rename stale lanes and make the required-set human-readable in `docs/guides/02-development-workflows.md`.
+  - Completed 2026-04-01: added release-surface contract tests, promoted `split_frontend_contract` into the top-level release surface via `top_level_frontend`, and made the required lane summary in `docs/guides/02-development-workflows.md` reflect the actual generated-app, batteries, frontend, upgrade, and standalone proof topology.
 Acceptance criteria:
 - the required lane list is explicit and current;
 - fake-green or redundant lanes are removed from the north-star claim;

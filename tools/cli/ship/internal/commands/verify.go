@@ -2,11 +2,14 @@ package commands
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
 	"io"
+	"net"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -274,9 +277,8 @@ func RunVerify(args []string, d VerifyDeps) int {
 			appendStep("startup smoke checks", true, reason, "warning", 0)
 		} else {
 			stepStartedAt = now()
-			code, output, runErr = runStep("go", "test", "./tools/cli/ship/internal/commands", "-run", "TestFreshAppStartupSmoke", "-count=1")
-			smokeOutput := mergeVerifyOutput(output, runErr)
-			if *profile == verifyProfileStrict && (code != 0 || runErr != nil) {
+			smokeOutput, smokeErr := runVerifyStartupSmoke(root, runStep)
+			if *profile == verifyProfileStrict && smokeErr != nil {
 				appendStep(
 					"startup smoke checks",
 					true,
@@ -285,7 +287,7 @@ func RunVerify(args []string, d VerifyDeps) int {
 					elapsedMilliseconds(now().Sub(stepStartedAt)),
 				)
 			} else {
-				appendStep("startup smoke checks", code == 0 && runErr == nil, smokeOutput, "", elapsedMilliseconds(now().Sub(stepStartedAt)))
+				appendStep("startup smoke checks", smokeErr == nil, strings.TrimSpace(smokeOutput), "", elapsedMilliseconds(now().Sub(stepStartedAt)))
 			}
 			if failed != nil {
 				return nil
@@ -353,6 +355,128 @@ func RunVerify(args []string, d VerifyDeps) int {
 
 	fmt.Fprintf(d.Out, "✓ verify passed (%dms)\n", elapsedMS)
 	return 0
+}
+
+func runVerifyStartupSmoke(root string, runStep func(name string, args ...string) (int, string, error)) (string, error) {
+	if isDirPath(filepath.Join(root, "tools", "cli", "ship", "internal", "commands")) {
+		code, output, runErr := runStep("go", "test", "./tools/cli/ship/internal/commands", "-run", "TestFreshAppStartupSmoke", "-count=1")
+		return mergeVerifyOutput(output, runErr), exitCodeErr(code, runErr)
+	}
+	return runGeneratedAppStartupSmoke(root)
+}
+
+func runGeneratedAppStartupSmoke(root string) (string, error) {
+	port, err := verifyReservePort()
+	if err != nil {
+		return "", err
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	web := exec.CommandContext(ctx, "go", "run", "./cmd/web")
+	web.Dir = root
+	web.Env = append(os.Environ(), "PORT="+port)
+	logFile, err := os.CreateTemp("", "goship-verify-startup-*.log")
+	if err != nil {
+		return "", err
+	}
+	defer func() {
+		_ = logFile.Close()
+		_ = os.Remove(logFile.Name())
+	}()
+	web.Stdout = logFile
+	web.Stderr = logFile
+	if err := web.Start(); err != nil {
+		return "", fmt.Errorf("start web: %w", err)
+	}
+	defer func() {
+		cancel()
+		if web.Process != nil {
+			_ = web.Process.Kill()
+		}
+		_ = web.Wait()
+	}()
+
+	baseURL := "http://127.0.0.1:" + port
+	if err := waitForVerifyURL(baseURL + "/"); err != nil {
+		return readVerifyLogFile(logFile.Name()), err
+	}
+	if err := verifyHTTPBodyEquals(baseURL+"/up", "alive"); err != nil {
+		return readVerifyLogFile(logFile.Name()), err
+	}
+	if err := verifyHTTPBodyEquals(baseURL+"/health/readiness", "ready"); err != nil {
+		return readVerifyLogFile(logFile.Name()), err
+	}
+
+	worker := exec.Command("go", "run", "./cmd/worker")
+	worker.Dir = root
+	workerOut, err := worker.CombinedOutput()
+	if err != nil {
+		return readVerifyLogFile(logFile.Name()) + "\n" + string(workerOut), fmt.Errorf("worker boot failed: %w", err)
+	}
+	return strings.TrimSpace(readVerifyLogFile(logFile.Name()) + "\n" + string(workerOut)), nil
+}
+
+func verifyReservePort() (string, error) {
+	l, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		return "", err
+	}
+	defer l.Close()
+	_, port, err := net.SplitHostPort(l.Addr().String())
+	return port, err
+}
+
+func waitForVerifyURL(url string) error {
+	client := &http.Client{Timeout: 500 * time.Millisecond}
+	deadline := time.Now().Add(10 * time.Second)
+	for time.Now().Before(deadline) {
+		resp, err := client.Get(url)
+		if err == nil {
+			_ = resp.Body.Close()
+			if resp.StatusCode == http.StatusOK {
+				return nil
+			}
+		}
+		time.Sleep(200 * time.Millisecond)
+	}
+	return fmt.Errorf("timed out waiting for %s", url)
+}
+
+func verifyHTTPBodyEquals(url, want string) error {
+	client := &http.Client{Timeout: 2 * time.Second}
+	resp, err := client.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	got := strings.TrimSpace(string(body))
+	if got != want {
+		return fmt.Errorf("%s body = %q, want %q", url, got, want)
+	}
+	return nil
+}
+
+func readVerifyLogFile(path string) string {
+	body, err := os.ReadFile(path)
+	if err != nil {
+		return ""
+	}
+	return string(body)
+}
+
+func exitCodeErr(code int, runErr error) error {
+	if code == 0 && runErr == nil {
+		return nil
+	}
+	if runErr != nil {
+		return runErr
+	}
+	return fmt.Errorf("exit code %d", code)
 }
 
 func PrintVerifyHelp(w io.Writer) {

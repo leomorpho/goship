@@ -8,7 +8,6 @@ import (
 
 	"github.com/hibiken/asynq"
 	"github.com/leomorpho/goship-modules/notifications"
-	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
 	shipapp "github.com/leomorpho/goship/app"
 	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
 	"github.com/leomorpho/goship/framework/events"
@@ -55,45 +54,15 @@ func main() {
 		},
 	)
 
-	plansCatalog, err := paidsubscriptions.BuildDefaultCatalog()
+	firstPartyServices, err := frameworkbootstrap.BuildFirstPartyServices(c, frameworkbootstrap.JobsProcessWorker)
 	if err != nil {
-		log.Fatalf("failed to build subscription plans catalog: %v", err)
-	}
-	paidSubscriptionsService := paidsubscriptions.NewServiceWithCatalog(paidsubscriptions.NewSQLStore(
-		c.Database,
-		c.Config.Adapters.DB,
-		c.Config.App.OperationalConstants.ProTrialTimespanInDays,
-		c.Config.App.OperationalConstants.PaymentFailedGracePeriodInDays,
-	), plansCatalog)
-	if err := wireJobsModule(c); err != nil {
-		log.Fatalf("failed to initialize jobs module: %v", err)
-	}
-	var firebaseJSONAccessKeys *[]byte
-	if len(c.Config.App.FirebaseJSONAccessKeys) > 0 {
-		firebaseJSONAccessKeys = &c.Config.App.FirebaseJSONAccessKeys
-	}
-	notificationServices, err := notifications.New(notifications.RuntimeDeps{
-		DB:                                 c.Database,
-		DBDialect:                          c.Config.Adapters.DB,
-		PubSub:                             frameworkbootstrap.AdaptNotificationsPubSub(c.CorePubSub),
-		Jobs:                               frameworkbootstrap.AdaptNotificationsJobs(c.CoreJobs),
-		SubscriptionService:                paidSubscriptionsService,
-		VapidPublicKey:                     c.Config.App.VapidPublicKey,
-		VapidPrivateKey:                    c.Config.App.VapidPrivateKey,
-		MailFromAddress:                    c.Config.Mail.FromAddress,
-		FirebaseJSONAccessKeys:             firebaseJSONAccessKeys,
-		SMSRegion:                          c.Config.Phone.Region,
-		SMSSenderID:                        c.Config.Phone.SenderID,
-		SMSValidationCodeExpirationMinutes: c.Config.Phone.ValidationCodeExpirationMinutes,
-	})
-	if err != nil {
-		log.Fatalf("failed to initialize notifications module: %v", err)
+		log.Fatalf("failed to initialize first-party services: %v", err)
 	}
 
 	// Build the router, which is needed to get the reverse of routes by name in some tasks.
 	if err := shipapp.BuildRouter(c, shipapp.RouterModules{
-		PaidSubscriptions: paidSubscriptionsService,
-		Notifications:     notificationServices,
+		PaidSubscriptions: firstPartyServices.PaidSubscriptions,
+		Notifications:     firstPartyServices.Notifications,
 	}); err != nil {
 		c.Web.Logger.Fatalf("failed to build router: %v", err)
 	}
@@ -103,9 +72,9 @@ func main() {
 	mux.HandleFunc(events.AsyncJobName, func(ctx context.Context, task *asynq.Task) error {
 		return events.DeliverAsync(ctx, c.EventBus, task.Payload())
 	})
-	if notificationServices != nil && notificationServices.Notifier != nil {
+	if firstPartyServices.Notifications != nil && firstPartyServices.Notifications.Notifier != nil {
 		mux.HandleFunc(notifications.DeliverPushNotificationJobName, func(ctx context.Context, task *asynq.Task) error {
-			return notificationServices.Notifier.HandleDeliverPushNotificationJob(ctx, task.Payload())
+			return firstPartyServices.Notifications.Notifier.HandleDeliverPushNotificationJob(ctx, task.Payload())
 		})
 	}
 
@@ -116,14 +85,4 @@ func main() {
 	if err := srv.Run(mux); err != nil {
 		log.Fatalf("could not run worker server: %v", err)
 	}
-}
-
-func wireJobsModule(c *shipapp.Container) error {
-	runtime, err := frameworkbootstrap.WireJobsRuntime(c.Config, c.Database, frameworkbootstrap.JobsProcessWorker)
-	if err != nil {
-		return err
-	}
-	c.CoreJobs = runtime.Jobs
-	c.CoreJobsInspector = runtime.Inspector
-	return nil
 }

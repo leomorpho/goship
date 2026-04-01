@@ -43,6 +43,10 @@ func RunMakeFactory(args []string, d FactoryDeps) int {
 			return 1
 		}
 	}
+	if looksLikeStarterScaffoldRoot(cwd) {
+		fmt.Fprintln(d.Err, "make:factory is not supported on the starter scaffold yet; no files were changed")
+		return 1
+	}
 
 	tokens := splitWords(opts.Name)
 	if len(tokens) == 0 {

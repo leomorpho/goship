@@ -389,6 +389,10 @@ var moduleCatalog = map[string]moduleInfo{
 	},
 }
 
+var supportedGeneratedAppBatteryIDs = []string{
+	"jobs",
+}
+
 func canonicalReferenceBatteryIDs() []string {
 	return []string{
 		"jobs",
@@ -567,7 +571,10 @@ func parseModuleArgs(args []string) (string, bool, error) {
 
 func applyModuleAdd(root string, info moduleInfo, dryRun bool, out io.Writer) error {
 	if looksLikeStarterScaffoldApp(root) {
-		return fmt.Errorf("module:add is not supported on the starter scaffold yet; no files were changed")
+		if !isSupportedGeneratedAppBattery(info.ID) {
+			return fmt.Errorf("module:add %q is not supported on the starter scaffold yet; supported batteries are: %s; no files were changed", info.ID, strings.Join(supportedGeneratedAppBatteryIDs, ", "))
+		}
+		return applyStarterModuleAdd(root, info, dryRun, out)
 	}
 
 	var changed bool
@@ -641,6 +648,65 @@ func applyModuleAdd(root string, info moduleInfo, dryRun bool, out io.Writer) er
 	if envChanged, err := appendModuleEnvExample(root, info, dryRun, out); err != nil {
 		return err
 	} else if envChanged {
+		changed = true
+	}
+
+	if !changed {
+		fmt.Fprintln(out, "Module already wired; no changes needed.")
+	}
+	return nil
+}
+
+func isSupportedGeneratedAppBattery(id string) bool {
+	for _, candidate := range supportedGeneratedAppBatteryIDs {
+		if candidate == id {
+			return true
+		}
+	}
+	return false
+}
+
+func applyStarterModuleAdd(root string, info moduleInfo, dryRun bool, out io.Writer) error {
+	if info.ID != "jobs" {
+		return fmt.Errorf("module:add %q is not supported on the starter scaffold yet; supported batteries are: %s; no files were changed", info.ID, strings.Join(supportedGeneratedAppBatteryIDs, ", "))
+	}
+
+	var changed bool
+
+	manifestPath := filepath.Join(root, "config", "modules.yaml")
+	manifestChanged, manifestContent, err := buildModulesManifest(manifestPath, info.ID)
+	if err != nil {
+		return err
+	}
+	if manifestChanged {
+		if err := writeOrDiff(manifestPath, manifestContent, dryRun, out); err != nil {
+			return err
+		}
+		changed = true
+	}
+
+	containerPath := filepath.Join(root, "app", "foundation", "container.go")
+	containerContent, err := os.ReadFile(containerPath)
+	if err != nil {
+		return fmt.Errorf("read container: %w", err)
+	}
+	snippet := `
+	// ship:module:jobs
+	c.EnabledModules = append(c.EnabledModules, "jobs")
+`
+	containerUpdated, containerChanged, err := insertBetweenMarkers(
+		string(containerContent),
+		"// ship:container:start",
+		"// ship:container:end",
+		snippet,
+	)
+	if err != nil {
+		return fmt.Errorf("update starter container: %w", err)
+	}
+	if containerChanged {
+		if err := writeOrDiff(containerPath, containerUpdated, dryRun, out); err != nil {
+			return err
+		}
 		changed = true
 	}
 
@@ -743,6 +809,10 @@ func readDotEnvKeys(path string) (map[string]struct{}, error) {
 }
 
 func applyModuleRemove(root string, info moduleInfo, dryRun bool, out io.Writer) error {
+	if looksLikeStarterScaffoldApp(root) && isSupportedGeneratedAppBattery(info.ID) {
+		return applyStarterModuleRemove(root, info, dryRun, out)
+	}
+
 	var changed bool
 
 	blockers, err := findModuleRemovalBlockers(root, info)
@@ -814,6 +884,49 @@ func applyModuleRemove(root string, info moduleInfo, dryRun bool, out io.Writer)
 	if envChanged, err := removeModuleEnvExample(root, info, dryRun, out); err != nil {
 		return err
 	} else if envChanged {
+		changed = true
+	}
+
+	if !changed {
+		fmt.Fprintln(out, "Module was not wired; no changes needed.")
+	}
+	return nil
+}
+
+func applyStarterModuleRemove(root string, info moduleInfo, dryRun bool, out io.Writer) error {
+	if info.ID != "jobs" {
+		return fmt.Errorf("module:remove %q is not supported on the starter scaffold yet; supported batteries are: %s; no files were changed", info.ID, strings.Join(supportedGeneratedAppBatteryIDs, ", "))
+	}
+
+	var changed bool
+
+	manifestPath := filepath.Join(root, "config", "modules.yaml")
+	removed, manifestContent, err := removeModuleFromManifest(manifestPath, info.ID)
+	if err != nil {
+		return err
+	}
+	if removed {
+		if err := writeOrDiff(manifestPath, manifestContent, dryRun, out); err != nil {
+			return err
+		}
+		changed = true
+	}
+
+	containerPath := filepath.Join(root, "app", "foundation", "container.go")
+	containerContent, err := os.ReadFile(containerPath)
+	if err != nil {
+		return fmt.Errorf("read container: %w", err)
+	}
+	snippet := `
+	// ship:module:jobs
+	c.EnabledModules = append(c.EnabledModules, "jobs")
+`
+	containerUpdated, removedSnippet := removeSnippetFromContent(string(containerContent), snippet)
+	containerUpdated = normalizeEmptyMarkerGap(containerUpdated, "// ship:container:start", "// ship:container:end")
+	if removedSnippet {
+		if err := writeOrDiff(containerPath, containerUpdated, dryRun, out); err != nil {
+			return err
+		}
 		changed = true
 	}
 

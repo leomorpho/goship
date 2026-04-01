@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"strings"
 )
 
@@ -34,6 +35,10 @@ func RunMakeScaffold(args []string, d ScaffoldDeps) int {
 	opts, err := ParseMakeScaffoldArgs(args)
 	if err != nil {
 		fmt.Fprintf(d.Err, "invalid make:scaffold arguments: %v\n", err)
+		return 1
+	}
+	if wd, wdErr := os.Getwd(); wdErr == nil && looksLikeStarterScaffoldRoot(wd) {
+		fmt.Fprintln(d.Err, "make:scaffold is not supported on the starter scaffold yet; no files were changed")
 		return 1
 	}
 

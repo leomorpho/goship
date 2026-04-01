@@ -1,0 +1,8 @@
+{
+  "name": "goship-sveltekit-api-only-proof",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:proof": "node ./scripts/prove-contract.mjs"
+  }
+}

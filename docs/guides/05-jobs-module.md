@@ -46,8 +46,8 @@ Rules:
 
 CLI support:
 
-- `ship make:job <Name>` scaffolds `app/jobs/<name>.go` and `app/jobs/<name>_test.go` with `core.Jobs` / `core.JobHandler` registration helpers.
-- `ship make:schedule <Name> --cron "<expr>"` inserts a schedule entry at the marker block.
+- `ship make:job <Name>` scaffolds `app/jobs/<name>.go` and `app/jobs/<name>_test.go` with `core.Jobs` / `core.JobHandler` registration helpers; this currently targets the framework workspace and rejects the minimal starter scaffold.
+- `ship make:schedule <Name> --cron "<expr>"` inserts a schedule entry at the marker block; this currently targets the framework workspace and rejects the minimal starter scaffold.
 
 ## Backend Selection Rules
 

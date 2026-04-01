@@ -26,11 +26,19 @@ The backend keeps standard auth/session endpoints such as `/auth/login` and `/au
 
 ## Frontend Contract
 
-Use [`src/lib/server/goship-contract.ts`](src/lib/server/goship-contract.ts) as the stable TypeScript-facing contract surface for:
+Use the generated contract package as the canonical TypeScript-facing contract surface for:
 
 - response envelope typing
 - API error typing
 - session-aware fetch with CSRF header forwarding (`X-CSRF-Token`)
+
+The current checked-in `src/lib/server/goship-contract.ts` file is a temporary handwritten shim and should be replaced by generated artifacts.
+
+Proof lane:
+
+```bash
+npm --prefix examples/sveltekit-api-only run test:proof
+```
 
 ## Local Dev Topology
 

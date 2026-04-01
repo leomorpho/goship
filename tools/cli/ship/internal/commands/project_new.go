@@ -247,6 +247,7 @@ func applyAPIModeScaffold(files map[string]string, opts NewProjectOptions) {
 		delete(files, filepath.Join(opts.AppPath, rel))
 	}
 	files[filepath.Join(opts.AppPath, "app", "router.go")] = renderAPIOnlyStarterRouter(opts.Module)
+	files[filepath.Join(opts.AppPath, "app", "router_test.go")] = renderAPIOnlyStarterRouterTest(opts.Module)
 	files[filepath.Join(opts.AppPath, "cmd", "web", "main.go")] = renderAPIOnlyStarterWebMain(opts.Module)
 }
 
@@ -409,19 +410,25 @@ github.com/a-h/templ v0.3.1001/go.mod h1:oCZcnKRf5jjsGpf2yELzQfodLphd2mwecwG4Crk
 }
 
 func renderModulesManifestSkeleton() string {
-	return `# Workspace-level module enablement.
-# Modules apply to the monolith as a whole (not per mini-app).
-modules: []
+	return `# Workspace-level module enablement for the monolith.
+# Modules are installed globally for the app workspace, not per mini-app.
+modules:
 `
 }
 
 func renderStarterMakefile() string {
-	return `.PHONY: migrate run
+	return `.PHONY: migrate run watch-go worker
 migrate:
 	ship db:migrate
 
 run:
 	go run ./cmd/web
+
+watch-go:
+	go run ./cmd/web
+
+worker:
+	go run ./cmd/worker
 `
 }
 
@@ -481,6 +488,7 @@ watch-go-worker: make worker
 
 func renderProcfileDev() string {
 	return `watch-go: make watch-go
+watch-go-worker: make worker
 `
 }
 
@@ -562,6 +570,7 @@ func BuildRouter(c *foundation.Container) []Route {
 		{Name: routenames.RouteNameLandingPage, Path: "/"},
 		// ship:routes:public:start
 		// ship:routes:public:end
+		{Name: routenames.RouteNameAPIStatus, Path: "/api/v1/status"},
 		{Name: routenames.RouteNameLogin, Path: "/auth/login"},
 		{Name: routenames.RouteNameRegister, Path: "/auth/register"},
 		// ship:routes:auth:start
@@ -570,6 +579,45 @@ func BuildRouter(c *foundation.Container) []Route {
 		{Name: routenames.RouteNameProfile, Path: "/auth/profile"},
 		// ship:routes:external:start
 		// ship:routes:external:end
+	}
+}
+`
+}
+
+func renderAPIOnlyStarterRouterTest(module string) string {
+	return `package goship
+
+import (
+	"testing"
+
+	"` + module + `/app/web/routenames"
+)
+
+func TestBuildRouterIncludesDefaultRoutes(t *testing.T) {
+	routes := BuildRouter(nil)
+	if len(routes) != 6 {
+		t.Fatalf("expected 6 starter routes, got %d", len(routes))
+	}
+
+	want := []struct {
+		name string
+		path string
+	}{
+		{name: routenames.RouteNameLandingPage, path: "/"},
+		{name: routenames.RouteNameAPIStatus, path: "/api/v1/status"},
+		{name: routenames.RouteNameLogin, path: "/auth/login"},
+		{name: routenames.RouteNameRegister, path: "/auth/register"},
+		{name: routenames.RouteNameHomeFeed, path: "/auth/homeFeed"},
+		{name: routenames.RouteNameProfile, path: "/auth/profile"},
+	}
+
+	for i, route := range routes {
+		if route.Name != want[i].name {
+			t.Fatalf("route %d name = %q, want %q", i, route.Name, want[i].name)
+		}
+		if route.Path != want[i].path {
+			t.Fatalf("route %d path = %q, want %q", i, route.Path, want[i].path)
+		}
 	}
 }
 `
@@ -589,8 +637,14 @@ import (
 
 func main() {
 	mux := http.NewServeMux()
+	mux.HandleFunc("/up", func(w http.ResponseWriter, _ *http.Request) {
+		writeText(w, http.StatusOK, "alive")
+	})
+	mux.HandleFunc("/health", func(w http.ResponseWriter, _ *http.Request) {
+		writeText(w, http.StatusOK, "alive")
+	})
 	mux.HandleFunc("/health/liveness", func(w http.ResponseWriter, _ *http.Request) {
-		writeJSON(w, http.StatusOK, map[string]string{"status": "alive"})
+		writeText(w, http.StatusOK, "alive")
 	})
 	mux.HandleFunc("/health/readiness", func(w http.ResponseWriter, _ *http.Request) {
 		writeJSON(w, http.StatusOK, map[string]string{"status": "ready"})
@@ -599,6 +653,12 @@ func main() {
 	for _, route := range goship.BuildRouter(nil) {
 		route := route
 		mux.HandleFunc(route.Path, func(w http.ResponseWriter, _ *http.Request) {
+			if route.Path == "/api/v1/status" {
+				writeJSON(w, http.StatusOK, map[string]any{
+					"data": map[string]string{"status": "ok"},
+				})
+				return
+			}
 			writeJSON(w, http.StatusOK, map[string]string{"route": route.Name, "path": route.Path})
 		})
 	}
@@ -621,6 +681,12 @@ func writeJSON(w http.ResponseWriter, status int, payload any) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(status)
 	_ = json.NewEncoder(w).Encode(payload)
+}
+
+func writeText(w http.ResponseWriter, status int, body string) {
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.WriteHeader(status)
+	_, _ = w.Write([]byte(body))
 }
 `
 }

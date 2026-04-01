@@ -99,7 +99,7 @@ async function expectCounterIsland(page: Page, islandName: string, mountedCompon
   );
 }
 
-test("goship golden flows: public and auth entrypoints match the scaffold", async ({
+test("framework repo golden flows: public and auth entrypoints match the framework surface", async ({
   page,
   request,
 }) => {
@@ -111,14 +111,14 @@ test("goship golden flows: public and auth entrypoints match the scaffold", asyn
   await expectLoginPage(page);
 });
 
-test("goship golden flows: anonymous users are redirected at protected seams", async ({
+test("framework repo golden flows: anonymous users are redirected at protected seams", async ({
   request,
 }) => {
   await expectAnonymousRedirect(request, "/auth/realtime", "/user/login", "realtime seam");
   await expectAnonymousRedirect(request, "/auth/admin", "/user/login", "admin seam");
 });
 
-test("goship golden flows: islands demo proves the runtime mount contract", async ({
+test("framework repo golden flows: islands demo proves the runtime mount contract", async ({
   page,
   request,
 }) => {

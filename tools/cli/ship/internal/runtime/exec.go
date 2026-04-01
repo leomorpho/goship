@@ -95,21 +95,18 @@ func RunDevAll(out io.Writer, errOut io.Writer) int {
 
 	processes := []struct {
 		name string
+		bin  string
 		args []string
 	}{
-		{name: "web", args: []string{"-c", ".air.toml"}},
-		{name: "worker", args: []string{"run", "./cmd/worker"}},
+		{name: "web", bin: devAllWebBinary(), args: devAllWebArgs()},
+		{name: "worker", bin: "go", args: []string{"run", "./cmd/worker"}},
 	}
 
 	cmds := make([]*exec.Cmd, 0, len(processes))
 	exitCh := make(chan devProcessExit, len(processes))
 
 	for _, proc := range processes {
-		bin := "go"
-		if proc.name == "web" {
-			bin = "air"
-		}
-		command := exec.CommandContext(ctx, bin, proc.args...)
+		command := exec.CommandContext(ctx, proc.bin, proc.args...)
 		command.Stdout = newPrefixedWriter(out, proc.name)
 		command.Stderr = newPrefixedWriter(errOut, proc.name)
 		command.Stdin = os.Stdin
@@ -163,6 +160,20 @@ func RunDevAll(out io.Writer, errOut io.Writer) int {
 		return 130
 	}
 	return 0
+}
+
+func devAllWebBinary() string {
+	if _, err := os.Stat(".air.toml"); err == nil {
+		return "air"
+	}
+	return "go"
+}
+
+func devAllWebArgs() []string {
+	if _, err := os.Stat(".air.toml"); err == nil {
+		return []string{"-c", ".air.toml"}
+	}
+	return []string{"run", "./cmd/web"}
 }
 
 type prefixedWriter struct {

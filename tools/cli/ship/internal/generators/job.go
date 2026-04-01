@@ -35,6 +35,10 @@ func RunMakeJob(args []string, d MakeJobDeps) int {
 			return 1
 		}
 	}
+	if looksLikeStarterScaffoldRoot(cwd) {
+		fmt.Fprintln(d.Err, "make:job is not supported on the starter scaffold yet; no files were changed")
+		return 1
+	}
 
 	tokens := splitWords(opts.Name)
 	if len(tokens) == 0 {

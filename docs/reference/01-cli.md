@@ -38,6 +38,7 @@ External frontend contract note:
 - blessed split-frontend identifier: `api-only-same-origin-sveltekit-v1`
 - browser boundary: `same-origin auth/session` with `cookie/CSRF` preserved
 - supported custom frontend scope: `SvelteKit-first`
+- canonical backend contract document: `docs/guides/08-building-an-api.md`
 
 ## Minimal V1 Command Set
 
@@ -109,6 +110,13 @@ Generation:
 - `ship make:command <Name>`
 - `ship make:scaffold <Name> [fields...] [--path app] [--views templ|none] [--auth public|auth] [--api] [--migrate] [--dry-run] [--force]`
 - `ship make:module <Name> [--path modules] [--module-base github.com/leomorpho/goship-modules] [--dry-run] [--force]`
+
+Current generated-app support boundary for `ship make:*`:
+
+- **starter-safe today:** `make:resource`, `make:model`, `make:island`
+- **starter-safe when a locale baseline already exists:** `make:locale`
+- **framework-workspace-only for now:** `make:controller`, `make:factory`, `make:job`, `make:mailer`, `make:schedule`, `make:command`, `make:scaffold`
+- **framework authoring only:** `make:module`
 - `ship destroy resource:<name>`
 
 Command grammar policy:
@@ -125,7 +133,7 @@ Command grammar policy:
 2. `ship dev` and `ship test` must never auto-upgrade toolchain versions.
 3. `ship doctor` reports version drift and prints explicit fix commands.
 4. `ship doctor --json` emits `{"ok","issues":[{"type","file","detail","severity"}]}` for agent tooling.
-5. `ship routes --json` emits a JSON array of route objects (`method`, `path`, `auth`, `handler`, `file`).
+5. `ship routes --json` emits a JSON array of route objects (`method`, `path`, `auth`, `handler`, `file`) and may include richer endpoint metadata such as `operation_id`, `request_contract`, `response_contract`, and `error_contracts` when the backend contract defines them.
 6. Installable standalone batteries use `v0.0.0` plus a local `replace` and `go.work use` entry during in-repo development.
 7. Released consumers such as Cherie should consume tagged module versions instead of committing local-path replaces downstream.
 8. Only `ship upgrade` may intentionally bump pinned versions.
@@ -244,25 +252,26 @@ Safety matrix:
 - `ship make:resource` path ownership is canonical: `--path` must resolve to `app`; values that escape or diverge from `app` fail fast
 - `ship make:model <Name>` -> scaffold a model query file at `db/queries/<model>.sql` with Bob-friendly named-query placeholders
 - `ship make:model <Name> [fields...]` -> include typed field comments in the query scaffold and print next DB steps (`db:make`, `db:migrate`, `db:generate`)
-- `ship make:factory <Name>` -> scaffold `tests/factories/<name>_factory.go` with a typed `Record` struct + `factory.New(...)` baseline
-- `ship make:locale <code>` -> scaffold `locales/<code>.toml` from `locales/en.toml` (or legacy `en.yaml`) with matching keys and empty values
+- `ship make:factory <Name>` -> scaffold `tests/factories/<name>_factory.go` with a typed `Record` struct + `factory.New(...)` baseline; currently reject the minimal starter scaffold with a clear error and treat this as a framework-workspace surface
+- `ship make:locale <code>` -> scaffold `locales/<code>.toml` from `locales/en.toml` (or legacy `en.yaml`) with matching keys and empty values; this stays starter-safe only when the app already has a locale baseline
 - `ship make:controller <Name>` -> generate controller/handler scaffold in `app/web/controllers`
 - `ship make:controller <Name> --domain <name>` -> generate domain-aware constructor slot (`domainService any`) and route wiring using `nil` placeholder
 - `ship make:controller <Name> --actions ... --wire` -> wire generated routes into `app/router.go` markers
 - `ship make:controller` path ownership is canonical: `--path` must resolve to `app`; values that escape or diverge from `app` fail fast
+- `ship make:controller` currently rejects the minimal starter scaffold with a clear error instead of generating broken Echo-based code into the generated app; treat it as a framework-workspace surface until the downstream-app contract is explicitly widened
 - `ship make:island <Name>` -> Generate a frontend island scaffold: the canonical pair `frontend/islands/<Name>.js` with an exported `mount(el, props)` seam and `app/views/web/components/<name>_island.templ` with the matching `data-island` / `data-props` mount target; follow-up remains explicit: run `ship templ generate --file app/views/web/components/<name>_island.templ`, run `make build-js`, then render `@components.<Name>Island(...)` from the page/component that should host the island
-- `ship make:job <Name>` -> Generate a background job scaffold at `app/jobs/<name>.go` plus `app/jobs/<name>_test.go` around `core.Jobs` / `core.JobHandler` registration helpers
-- `ship make:mailer <Name>` -> Generate a mailer scaffold at `app/views/emails/<name>.templ` and wire a `/dev/mail/<name>` preview into the existing mail preview controller and route surface
-- `ship make:schedule <Name> --cron "<expr>"` -> insert a named cron entry into `app/schedules.go` between `ship:schedules` markers
-- `ship make:command <Name>` -> scaffold `app/commands/<name>.go` and register it in `cmd/cli/main.go` at `ship:commands` markers
-- `ship make:scaffold <Name> ...` -> orchestration command that composes `make:model`, `db:make`, `make:controller --domain <plural_model> --wire`, and optionally `make:resource --domain <plural_model>` / `db:migrate`
+- `ship make:job <Name>` -> Generate a background job scaffold at `app/jobs/<name>.go` plus `app/jobs/<name>_test.go` around `core.Jobs` / `core.JobHandler` registration helpers; currently reject the minimal starter scaffold with a clear error and treat this as a framework-workspace surface
+- `ship make:mailer <Name>` -> Generate a mailer scaffold at `app/views/emails/<name>.templ` and wire a `/dev/mail/<name>` preview into the existing mail preview controller and route surface; currently reject the minimal starter scaffold with a clear error and treat this as a framework-workspace surface
+- `ship make:schedule <Name> --cron "<expr>"` -> insert a named cron entry into `app/schedules.go` between `ship:schedules` markers; currently reject the minimal starter scaffold with a clear error and treat this as a framework-workspace surface
+- `ship make:command <Name>` -> scaffold `app/commands/<name>.go` and register it in `cmd/cli/main.go` at `ship:commands` markers; currently reject the minimal starter scaffold with a clear error and treat this as a framework-workspace surface
+- `ship make:scaffold <Name> ...` -> orchestration command that composes `make:model`, `db:make`, `make:controller --domain <plural_model> --wire`, and optionally `make:resource --domain <plural_model>` / `db:migrate`; currently reject the minimal starter scaffold with a clear error and treat this as a framework-workspace surface
 - `ship make:module <Name>` -> generate isolated module scaffold in `modules/<name>` with its own `go.mod`, module-facing types/contracts, and service tests
 - generated `modules/<name>/module.go` now includes a battery install-contract scaffold (`Contract()`) with explicit sections for `routes`, `config`, `assets`, `jobs`, `templates`, and `migrations`
 - `ship make:module <Name> --dry-run` now includes explain output for each emitted scaffold file (`- file: <path> -> owner: <battery-contract-owner>`) so generator ownership is explicit during review
 - `ship make:module` path ownership is canonical: `--path` must resolve to `modules`; values that escape or diverge from `modules` fail fast
 - `ship destroy resource:<name>` -> remove generator-managed resource scaffold targets in deterministic order (router marker block, route-name constant, templ page, optional scaffold test, controller); paths without recognized ownership signals are skipped with explicit reasons and the command exits non-zero when nothing is safely removable
-- canonical first-class installable batteries are `notifications`, `paidsubscriptions`, `emailsubscriptions`, `jobs`, and `storage`; this baseline is authored in `config/module-surface.yaml` and verified against `docs/architecture/11-module-surface-reset.md`
-- canonical reference-set batteries for install-contract examples are `jobs`, `storage`, `emailsubscriptions`, and `paidsubscriptions`
+- canonical first-class installable batteries on the current generated-app v1 path are `jobs`; this baseline is authored in `config/module-surface.yaml` and verified against `docs/architecture/11-module-surface-reset.md`
+- broader reference-set batteries for module-surface reset work remain `jobs`, `storage`, `emailsubscriptions`, and `paidsubscriptions`, but `notifications`, `paidsubscriptions`, `emailsubscriptions`, and `storage` are not yet installable on the canonical generated-app path
 - `ship upgrade --to <version>` -> runs readiness preflight and prints the deterministic rewrite plan without writing files
 - `ship upgrade apply --to <version>` -> applies the deterministic rewrite plan to the pinned Goose CLI go-run fallback version (`gooseGoRunRef` in `tools/cli/ship/internal/cli/cli.go`) and canonicalizes legacy Goose command paths when present
 - upgrade apply writes include post-write verification and automatic rollback to the previous file content when verification fails in failure paths
