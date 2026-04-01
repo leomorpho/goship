@@ -7,11 +7,11 @@ The framework has one canonical flow per concern. If a change does not fit these
 
 ## Runtime Seam Rule (Always)
 
-`container.go -> router.go -> schedules.go`
+`app/container.go` -> `app/router.go` -> `app/schedules.go`
 
-- `container.go` is the framework-first composition seam.
-- `router.go` is the framework-first HTTP route + middleware seam.
-- `schedules.go` is the framework-first recurring-work seam.
+- `app/container.go` is the framework-first composition seam.
+- `app/router.go` is the framework-first HTTP route + middleware seam.
+- `app/schedules.go` is the framework-first recurring-work seam.
 
 ## Request Flow (Always)
 
@@ -36,7 +36,7 @@ The framework has one canonical flow per concern. If a change does not fit these
 
 `container -> adapters -> modules -> router`
 
-- Composition root is `container.go`.
+- Composition root is `app/container.go`.
 - Runtime wiring is explicit and deterministic.
 - Installable module construction is injected into router/container seams instead of ad-hoc package globals.
 
@@ -52,7 +52,7 @@ Use `ship` as the single mutation interface for scaffolding and diagnostics.
 
 ## Non-Negotiable Conventions
 
-- One framework-first runtime seam set at repo root: `container.go`, `router.go`, `schedules.go`.
+- One framework-first runtime seam set under `app/`: `app/container.go`, `app/router.go`, `app/schedules.go`.
 - No deleted app-shell paths in canonical runtime guidance.
 - Optional capabilities belong in `modules/*` and wire through explicit seam contracts.
-- Route/schedule/container markers in root seam files are preserved for deterministic generator wiring.
+- Route/schedule/container markers in those `app/` seam files are preserved for deterministic generator wiring.

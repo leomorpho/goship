@@ -121,7 +121,8 @@ Acceptance criteria:
 Verify with:
 - `go test ./tools/cli/ship/internal/policies ./tools/cli/ship/internal/commands -count=1`
 
-- [ ] SURF-04 — Align extension-zone and canonical-layout docs with the chosen product boundary. Write a failing doc test around `docs/architecture/10-extension-zones.md`, `docs/roadmap/01-framework-plan.md`, and any repo-shape help text that still describes stale paths or the wrong ownership model. Then update the docs to match the actual chosen generated-app and framework boundaries.
+- [x] SURF-04 — Align extension-zone and canonical-layout docs with the chosen product boundary. Write a failing doc test around `docs/architecture/10-extension-zones.md`, `docs/roadmap/01-framework-plan.md`, and any repo-shape help text that still describes stale paths or the wrong ownership model. Then update the docs to match the actual chosen generated-app and framework boundaries.
+  - Completed 2026-04-01: added boundary doc/policy coverage for framework-repo vs generated-app seam ownership, rewrote extension-zone and roadmap guidance around `app/container.go` / `app/router.go` / `app/schedules.go` plus generated-app `app/foundation/container.go`, and fixed CLI/help text so `ship doctor --json` now passes without stale seam-token errors.
 Acceptance criteria:
 - extension-zone docs no longer mention stale shell paths;
 - canonical runtime seam docs match actual file ownership;

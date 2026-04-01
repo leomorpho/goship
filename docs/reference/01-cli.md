@@ -150,7 +150,7 @@ These commands are implemented as wrappers over existing workflows:
 - `ship module:add <name>` -> updates `config/modules.yaml`, app marker snippets, root `go.mod` `require`/`replace` directives, and `go.work` `use` entries for standalone batteries with local `go.mod` files
 - `ship module:add <name>` now prints an explicit install contract summary grouped by `routes`, `config`, `assets`, `jobs`, `templates`, `migrations`, and `tests` so install/remove impact is visible before review
 - `ship module:remove <name>` -> removes those managed entries (including module-owned `.env.example` snippets) when safe; fails with exact blocker file paths when the repo still imports the module outside managed wiring points
-- `ship verify` -> rejects standalone-battery drift when root `go.mod` dependencies on installable modules are not the canonical local-dev shape (`v0.0.0` + local `replace` + matching `go.work use`), enforces the canonical GoShip framework repo layout when run in this repo (including required root runtime seams `container.go`, `router.go`, and `schedules.go`, plus failure on a forbidden top-level `app/` shell), validates the extension-zone manifest for those protected seams, and enforces the canonical no-compatibility/no-deprecation wording invariant across the operator-facing docs set
+- `ship verify` -> rejects standalone-battery drift when root `go.mod` dependencies on installable modules are not the canonical local-dev shape (`v0.0.0` + local `replace` + matching `go.work use`), enforces the canonical GoShip framework repo layout when run in this repo (including required runtime seams `app/container.go`, `app/router.go`, and `app/schedules.go`), validates the extension-zone manifest for those protected seams, and enforces the canonical no-compatibility/no-deprecation wording invariant across the operator-facing docs set
 - `ship verify` now runs a generated-app scaffold fast-path gate before `templ generate`/`go build`; when scaffold root-cause checks fail (`DX001`, `DX002`, `DX005`, `DX011`) verify stops immediately and points to `ship doctor --json`
 - `ship verify` now runs `startup smoke checks` in `standard` and `strict` profiles by executing `go test ./tools/cli/ship/internal/commands -run TestFreshAppStartupSmoke -count=1`, which covers generated-app migrations plus web (`/health`, `/health/readiness`) and worker boot startup
 - `ship verify` includes an orchestration contract-mismatch preflight step before deploy/upgrade/promote flows so unsupported runtime combinations fail before orchestration starts, and the preflight stays aligned with the managed-settings access contract used by the runtime report; `--runtime-contract-version` and `--upgrade-contract-version` reject unsupported contract identifiers before the preflight runs
@@ -253,7 +253,7 @@ Safety matrix:
 - `ship make:island <Name>` -> Generate a frontend island scaffold: the canonical pair `frontend/islands/<Name>.js` with an exported `mount(el, props)` seam and `app/views/web/components/<name>_island.templ` with the matching `data-island` / `data-props` mount target; follow-up remains explicit: run `ship templ generate --file app/views/web/components/<name>_island.templ`, run `make build-js`, then render `@components.<Name>Island(...)` from the page/component that should host the island
 - `ship make:job <Name>` -> Generate a background job scaffold at `app/jobs/<name>.go` plus `app/jobs/<name>_test.go` around `core.Jobs` / `core.JobHandler` registration helpers
 - `ship make:mailer <Name>` -> Generate a mailer scaffold at `app/views/emails/<name>.templ` and wire a `/dev/mail/<name>` preview into the existing mail preview controller and route surface
-- `ship make:schedule <Name> --cron "<expr>"` -> insert a named cron entry into `schedules.go` between `ship:schedules` markers
+- `ship make:schedule <Name> --cron "<expr>"` -> insert a named cron entry into `app/schedules.go` between `ship:schedules` markers
 - `ship make:command <Name>` -> scaffold `app/commands/<name>.go` and register it in `cmd/cli/main.go` at `ship:commands` markers
 - `ship make:scaffold <Name> ...` -> orchestration command that composes `make:model`, `db:make`, `make:controller --domain <plural_model> --wire`, and optionally `make:resource --domain <plural_model>` / `db:migrate`
 - `ship make:module <Name>` -> generate isolated module scaffold in `modules/<name>` with its own `go.mod`, module-facing types/contracts, and service tests
@@ -343,7 +343,7 @@ Generator output contract:
 `app/router.go` (with route marker pairs for `--wire`)
 `app/web/routenames/routenames.go`
 `app/views/templates.go`
-`container.go`
+`app/container.go`
 `app/*` (domain skeletons)
 `app/web/{controllers,middleware,ui,viewmodels}`
 `app/jobs/jobs.go`
@@ -410,7 +410,7 @@ CLI owns:
 
 App/framework owns:
 
-- actual runtime behavior in `cmd/*`, `container.go`, `router.go`, `schedules.go`, `framework/*`, and `config/*`.
+- actual runtime behavior in `cmd/*`, `app/container.go`, `app/router.go`, `app/schedules.go`, `framework/*`, and `config/*`.
 
 Rule:
 

@@ -679,8 +679,9 @@ func renderExtensionZonesSkeleton() string {
 
 ## Extension Zones
 
-- ` + "`app/`" + ` for app-specific behavior
-- ` + "`framework/`" + ` for reusable framework evolution that still preserves protected contracts
+- ` + "`app/`" + ` for app-owned behavior, UI composition, and docs
+- ` + "`framework/`" + ` for reusable framework packages consumed by the generated app
+- ` + "`styles/`" + ` and ` + "`static/`" + ` for app-owned assets
 
 ## Protected Contract Zones
 

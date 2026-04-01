@@ -64,7 +64,7 @@ func checkCLIDocsCoverage(root string) []DoctorIssue {
 		}
 	}
 	if looksLikeCanonicalFrameworkRepo(root) {
-		for _, token := range []string{"extension-zone manifest", "`container.go`", "`router.go`", "`schedules.go`"} {
+		for _, token := range []string{"extension-zone manifest", "`app/container.go`", "`app/router.go`", "`app/schedules.go`"} {
 			if strings.Contains(text, token) {
 				continue
 			}
@@ -74,7 +74,7 @@ func checkCLIDocsCoverage(root string) []DoctorIssue {
 				Fix:     "update docs/reference/01-cli.md to describe canonical root-runtime repo enforcement",
 			})
 		}
-		for _, stale := range []string{"`app/foundation/container.go`", "`app/schedules/schedules.go`"} {
+		for _, stale := range []string{"`container.go`", "`router.go`", "`schedules.go`", "`app/schedules/schedules.go`"} {
 			if !strings.Contains(text, stale) {
 				continue
 			}
@@ -121,9 +121,9 @@ func checkExtensionZoneManifest(root string) []DoctorIssue {
 	}
 	if looksLikeCanonicalFrameworkRepo(root) {
 		requiredTokens = append(requiredTokens,
-			"`container.go`",
-			"`router.go`",
-			"`schedules.go`",
+			"`app/container.go`",
+			"`app/router.go`",
+			"`app/schedules.go`",
 		)
 	} else {
 		requiredTokens = append(requiredTokens,
@@ -146,9 +146,10 @@ func checkExtensionZoneManifest(root string) []DoctorIssue {
 
 	if looksLikeCanonicalFrameworkRepo(root) {
 		staleTokens := []string{
-			"`app/`",
-			"`app/router.go`",
-			"`app/foundation/container.go`",
+			"`container.go`",
+			"`router.go`",
+			"`schedules.go`",
+			"`app/schedules/schedules.go`",
 		}
 		for _, token := range staleTokens {
 			if !strings.Contains(text, token) {

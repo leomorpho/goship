@@ -70,12 +70,12 @@ The public GoShip repo must not contain an internal application shell.
 
 Canonical runtime ownership now lives in:
 
-- `app/` for runtime entrypoints
+- `app/` for runtime entrypoints, with framework repo seams in `app/container.go`, `app/router.go`, and `app/schedules.go`
 - `framework/` for reusable runtime contracts
 - `modules/` for installable capabilities
 - `tools/cli/ship/` for the product surface
 
-Starter layout concerns belong in generator templates and downstream apps, not in the framework repo itself.
+Starter layout concerns belong in generator templates and downstream apps, not in the framework repo itself. Downstream generated apps keep their own app-owned container seam in `app/foundation/container.go` while still routing through `app/router.go`.
 
 ### 2. Capability vs Authority
 
