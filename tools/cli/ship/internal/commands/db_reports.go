@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -194,7 +195,7 @@ func buildDBPromoteMutationPlan(md config.DatabaseRuntimeMetadata, dryRun bool) 
 	}
 }
 
-func buildDBExportReport(cfg config.Config) (dbExportReport, error) {
+func buildDBExportReport(cfg config.Config, dbURL string) (dbExportReport, error) {
 	md := cfg.RuntimeMetadata().Database
 	if md.Driver != string(config.DBDriverSQLite) {
 		return dbExportReport{}, fmt.Errorf("db:export requires a sqlite source, got %s", md.Driver)
@@ -203,6 +204,19 @@ func buildDBExportReport(cfg config.Config) (dbExportReport, error) {
 	sqlitePath := strings.TrimSpace(cfg.Backup.SQLitePath)
 	if sqlitePath == "" {
 		sqlitePath = strings.TrimSpace(cfg.Database.Path)
+	}
+	if strings.TrimSpace(dbURL) != "" {
+		resolved, err := sqlitePathFromDBURL(dbURL)
+		if err != nil {
+			return dbExportReport{}, err
+		}
+		if sqlitePath == "" {
+			sqlitePath = resolved
+		} else if _, err := os.Stat(sqlitePath); err != nil {
+			if _, resolvedErr := os.Stat(resolved); resolvedErr == nil {
+				sqlitePath = resolved
+			}
+		}
 	}
 	if sqlitePath == "" {
 		return dbExportReport{}, fmt.Errorf("db:export requires a sqlite source path")
@@ -228,6 +242,18 @@ func buildDBExportReport(cfg config.Config) (dbExportReport, error) {
 		},
 		Note: "planning only; db:export reports manifest checksums and does not mutate runtime state yet",
 	}, nil
+}
+
+func sqlitePathFromDBURL(dbURL string) (string, error) {
+	dbURL = strings.TrimSpace(dbURL)
+	switch {
+	case strings.HasPrefix(dbURL, "sqlite://"):
+		return normalizeSQLitePath(strings.TrimPrefix(dbURL, "sqlite://"))
+	case strings.HasPrefix(dbURL, "sqlite3://"):
+		return normalizeSQLitePath(strings.TrimPrefix(dbURL, "sqlite3://"))
+	default:
+		return "", fmt.Errorf("db:export requires a sqlite source, got %s", dbURL)
+	}
 }
 
 func printDBExportReport(w io.Writer, report dbExportReport) {

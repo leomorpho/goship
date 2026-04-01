@@ -112,3 +112,56 @@ func TestKamalGuideMatchesDistributedDeploymentTopology(t *testing.T) {
 	assertContains(t, "docs/guides/04-deployment-kamal.md", guide, "verify --profile fast")
 	assertContains(t, "docs/guides/04-deployment-kamal.md", guide, "does **not** document the single-binary local path")
 }
+
+func TestManagedInteropClaimIsNarrowAndBackedByRuntimeReportContracts(t *testing.T) {
+	t.Parallel()
+
+	readme := readRepoFile(t, "README.md")
+	assertContains(t, "README.md", readme, "managed path is limited to runtime-report metadata")
+	assertContains(t, "README.md", readme, "Signed `/managed/*` HTTP endpoints")
+
+	architecture := readRepoFile(t, "docs/architecture/09-standalone-and-managed-mode.md")
+	assertContains(t, "docs/architecture/09-standalone-and-managed-mode.md", architecture, "current north-star v1 release claim")
+	assertContains(t, "docs/architecture/09-standalone-and-managed-mode.md", architecture, "ship runtime:report --json")
+	assertContains(t, "docs/architecture/09-standalone-and-managed-mode.md", architecture, "policy_input_version")
+
+	shipbin := buildShipBinary(t)
+	appPath := scaffoldFreshAppViaShip(t, shipbin, false)
+	report := runCmd(t, appPath, shipbin, "runtime:report", "--json")
+	assertContains(t, "runtime report", report, `"managed"`)
+	assertContains(t, "runtime report", report, `"decision_input"`)
+	assertContains(t, "runtime report", report, `"policy_input_version"`)
+	assertContains(t, "runtime report", report, `"runtime_contract_version"`)
+}
+
+func TestManagedHookKeyVersionPolicyIsExplicit(t *testing.T) {
+	t.Parallel()
+
+	result := EvaluateManagedHookKeyVersionPolicy("managed-hook-key-version-v999")
+	if result.OK {
+		t.Fatal("expected unsupported managed hook key version to fail")
+	}
+	if len(result.Blockers) == 0 || result.Blockers[0].ID != BlockerUnsupportedManagedHookKey {
+		t.Fatalf("unexpected blockers: %+v", result.Blockers)
+	}
+}
+
+func TestDBPromotionAndBackupReportsWorkOnFreshApp(t *testing.T) {
+	t.Parallel()
+
+	shipbin := buildShipBinary(t)
+	appPath := scaffoldFreshAppViaShip(t, shipbin, false)
+	runCmd(t, appPath, shipbin, "db:migrate")
+
+	exportJSON := runCmd(t, appPath, shipbin, "db:export", "--json")
+	assertContains(t, "db:export --json", exportJSON, `"version": "backup-manifest-v1"`)
+	assertContains(t, "db:export --json", exportJSON, `"checksum_sha256"`)
+
+	promoteJSON := runCmd(t, appPath, shipbin, "db:promote", "--dry-run", "--json")
+	assertContains(t, "db:promote --json", promoteJSON, `"schema_version": "promotion-state-machine-v1"`)
+	assertContains(t, "db:promote --json", promoteJSON, `"current_state": "sqlite-source-ready"`)
+
+	verifyImportJSON := runCmd(t, appPath, shipbin, "db:verify-import", "--json")
+	assertContains(t, "db:verify-import --json", verifyImportJSON, `"post_import_checks"`)
+	assertContains(t, "db:verify-import --json", verifyImportJSON, `db:verify-import does not mutate files or databases yet`)
+}

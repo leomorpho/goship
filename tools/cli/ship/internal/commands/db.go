@@ -493,8 +493,17 @@ func runExport(args []string, d DBDeps) int {
 		fmt.Fprintf(d.Err, "failed to load config: %v\n", err)
 		return 1
 	}
+	if d.ResolveDBURL == nil {
+		fmt.Fprintln(d.Err, "db:export requires DB URL resolver dependency")
+		return 1
+	}
+	dbURL, err := d.ResolveDBURL()
+	if err != nil {
+		fmt.Fprintf(d.Err, "failed to resolve database URL: %v\n", err)
+		return 1
+	}
 
-	report, err := buildDBExportReport(cfg)
+	report, err := buildDBExportReport(cfg, dbURL)
 	if err != nil {
 		fmt.Fprintf(d.Err, "failed to build db export manifest: %v\n", err)
 		return 1

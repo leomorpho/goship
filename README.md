@@ -86,6 +86,10 @@ GoShip must remain fully usable as standalone software.
 - Upgrade path: profile/adapter promotion to Postgres/Redis/worker separation
 - Managed path: external control plane consumes stable runtime contracts (reports, hooks, upgrade readiness), without becoming a runtime dependency
 
+For the current v1 release claim, the managed path is limited to runtime-report metadata,
+decision-input/version contracts, and related policy checks. Signed `/managed/*` HTTP endpoints
+remain outside the current release claim until they have executable proof.
+
 See [`docs/architecture/09-standalone-and-managed-mode.md`](docs/architecture/09-standalone-and-managed-mode.md).
 
 ## Frontend Story

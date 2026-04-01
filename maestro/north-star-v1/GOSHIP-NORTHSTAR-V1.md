@@ -551,7 +551,8 @@ Verify with:
 - `.github/workflows/test.yml`
 - `sed -n '200,280p' docs/guides/02-development-workflows.md`
 
-- [ ] REL-06 — Add real promotion/backup/restore proof for the clean-upgrade story. Write failing tests or proof scripts for `ship db:promote --json`, `ship db:export --json`, `ship db:verify-import --json`, and the related backup evidence outputs so the documented promotion and recovery contracts are exercised on real fixtures rather than left as mostly doc-driven promises.
+- [x] REL-06 — Add real promotion/backup/restore proof for the clean-upgrade story. Write failing tests or proof scripts for `ship db:promote --json`, `ship db:export --json`, `ship db:verify-import --json`, and the related backup evidence outputs so the documented promotion and recovery contracts are exercised on real fixtures rather than left as mostly doc-driven promises.
+  - Completed 2026-04-01: fixed `db:export --json` to use the resolved SQLite path on fresh generated apps and added a real fresh-app proof test that exercises `ship db:export --json`, `ship db:promote --dry-run --json`, and `ship db:verify-import --json`, locking the promotion-state-machine and backup-manifest evidence surfaces to executable output.
 Acceptance criteria:
 - promotion-state-machine and backup-manifest surfaces are backed by executable proof;
 - release evidence can point at promotion/recovery artifacts without hand-waving;
@@ -579,7 +580,8 @@ Verify with:
 - `sed -n '1,220p' docs/guides/04-deployment-kamal.md`
 - proof script or contract test target covering the documented Kamal path
 
-- [ ] REL-09 — Freeze the minimal managed-interop contract surface with real proof. Write failing tests for the signed managed-runtime surfaces that v1 still claims to support, covering runtime-report managed metadata, decision-input contract fields (`staged-rollout-decision-v1`, `policy_input_version`, promotion/backup schema identifiers), signed `/managed/status` or equivalent managed-status endpoints, backup/restore managed evidence payloads, key-version/signature validation, replay handling, and override/read-only diagnostics. Then trim or harden the code/docs so the remaining managed claim is narrow, explicit, and executable.
+- [x] REL-09 — Freeze the minimal managed-interop contract surface with real proof. Write failing tests for the signed managed-runtime surfaces that v1 still claims to support, covering runtime-report managed metadata, decision-input contract fields (`staged-rollout-decision-v1`, `policy_input_version`, promotion/backup schema identifiers), signed `/managed/status` or equivalent managed-status endpoints, backup/restore managed evidence payloads, key-version/signature validation, replay handling, and override/read-only diagnostics. Then trim or harden the code/docs so the remaining managed claim is narrow, explicit, and executable.
+  - Completed 2026-04-01: narrowed the current v1 managed-interop claim to the surfaces the repo actually proves today — `ship runtime:report --json` managed metadata, `decision_input` contract fields, and managed-hook key version policy evaluation — and updated the docs/tests so signed `/managed/*` endpoints are explicitly treated as design-note scope until executable proof exists.
 Acceptance criteria:
 - the v1 managed-interop claim is reduced to a truthful, tested surface;
 - signature/version/replay diagnostics are frozen by tests instead of prose alone;

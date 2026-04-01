@@ -109,7 +109,16 @@ Rules:
 
 The external control plane should not rely on mutating arbitrary config files in application repos as its normal operating mechanism.
 
-## Signed Managed Hook Contract (v1)
+## Signed Managed Hook Contract (Design Note, Not Current V1 Release Claim)
+
+The signed `/managed/*` endpoint surface described below remains a design target and historical contract note.
+It is **not** part of the current north-star v1 release claim until executable proof is added.
+
+Current v1 managed-interop claim is narrower:
+
+- `ship runtime:report --json` managed metadata
+- `decision_input` contract fields (including `policy_input_version`)
+- contract-version policy evaluation for runtime/upgrade/managed-hook key versions
 
 When managed mode is enabled, GoShip exposes a narrow signed HTTP bridge for control-plane actions:
 
