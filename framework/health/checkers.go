@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/leomorpho/goship/framework/core"
+	"github.com/leomorpho/goship/v2/framework/core"
 )
 
 type DBChecker struct {

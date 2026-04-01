@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/config"
+	"github.com/leomorpho/goship/v2/config"
 )
 
 const cspNonceContextKey = "csp_nonce"

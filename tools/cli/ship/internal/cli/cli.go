@@ -7,11 +7,11 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/leomorpho/goship/config"
-	cmd "github.com/leomorpho/goship/tools/cli/ship/internal/commands"
-	gen "github.com/leomorpho/goship/tools/cli/ship/internal/generators"
-	policies "github.com/leomorpho/goship/tools/cli/ship/internal/policies"
-	rt "github.com/leomorpho/goship/tools/cli/ship/internal/runtime"
+	"github.com/leomorpho/goship/v2/config"
+	cmd "github.com/leomorpho/goship/v2/tools/cli/ship/internal/commands"
+	gen "github.com/leomorpho/goship/v2/tools/cli/ship/internal/generators"
+	policies "github.com/leomorpho/goship/v2/tools/cli/ship/internal/policies"
+	rt "github.com/leomorpho/goship/v2/tools/cli/ship/internal/runtime"
 )
 
 const (

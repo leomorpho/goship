@@ -39,7 +39,7 @@ func RunMakeModule(args []string, d ModuleDeps) int {
 
 	tokens := splitWords(opts.Name)
 	if len(tokens) == 0 {
-		fmt.Fprintln(d.Err, "usage: ship make:module <Name> [--path modules] [--module-base github.com/leomorpho/goship-modules] [--dry-run] [--force]")
+		fmt.Fprintln(d.Err, "usage: ship make:module <Name> [--path modules] [--module-base github.com/leomorpho/goship/v2-modules] [--dry-run] [--force]")
 		return 1
 	}
 	moduleName := strings.Join(tokens, "")
@@ -98,9 +98,9 @@ func moduleScaffoldFiles(moduleDir, moduleName, modulePath string) []moduleScaff
 }
 
 func ParseMakeModuleArgs(args []string) (ModuleMakeOptions, error) {
-	opts := ModuleMakeOptions{Path: "modules", ModuleBase: "github.com/leomorpho/goship-modules"}
+	opts := ModuleMakeOptions{Path: "modules", ModuleBase: "github.com/leomorpho/goship/v2-modules"}
 	if len(args) == 0 {
-		return opts, errors.New("usage: ship make:module <Name> [--path modules] [--module-base github.com/leomorpho/goship-modules] [--dry-run] [--force]")
+		return opts, errors.New("usage: ship make:module <Name> [--path modules] [--module-base github.com/leomorpho/goship/v2-modules] [--dry-run] [--force]")
 	}
 	opts.Name = strings.TrimSpace(args[0])
 	for i := 1; i < len(args); i++ {

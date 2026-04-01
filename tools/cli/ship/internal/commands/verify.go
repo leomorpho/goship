@@ -14,7 +14,7 @@ import (
 	"strings"
 	"time"
 
-	policies "github.com/leomorpho/goship/tools/cli/ship/internal/policies"
+	policies "github.com/leomorpho/goship/v2/tools/cli/ship/internal/policies"
 	"golang.org/x/mod/modfile"
 )
 
@@ -625,8 +625,8 @@ func checkStandaloneExportability(root string) error {
 	}
 
 	forbidden := []string{
-		"github.com/leomorpho/goship/tools/private/control-plane",
-		"github.com/leomorpho/goship/fleet/control-plane",
+		"github.com/leomorpho/goship/v2/tools/private/control-plane",
+		"github.com/leomorpho/goship/v2/fleet/control-plane",
 		"tools/private/control-plane",
 		"fleet/control-plane",
 		"control-plane dependency",

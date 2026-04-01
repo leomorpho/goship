@@ -9,7 +9,7 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	appconfig "github.com/leomorpho/goship/config"
+	appconfig "github.com/leomorpho/goship/v2/config"
 )
 
 type ConfigDeps struct {

@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/framework/logging"
+	"github.com/leomorpho/goship/v2/framework/logging"
 )
 
 const logKeyRequestID = "request_id"

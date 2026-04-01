@@ -65,5 +65,5 @@ func PrintMakeHelp(w io.Writer) {
 	fmt.Fprintln(w, "  ship make:mailer <Name>                                                                                                                      Generate a mailer scaffold")
 	fmt.Fprintln(w, "  ship make:schedule <Name> --cron \"<expr>\"                                                                                                   Insert a scheduled job entry")
 	fmt.Fprintln(w, "  ship make:command <Name>                                                                                                                     Generate an app CLI command")
-	fmt.Fprintln(w, "  ship make:module <Name> [--path modules] [--module-base github.com/leomorpho/goship-modules] [--dry-run] [--force]                     Generate a standalone module scaffold")
+	fmt.Fprintln(w, "  ship make:module <Name> [--path modules] [--module-base github.com/leomorpho/goship/v2-modules] [--dry-run] [--force]                     Generate a standalone module scaffold")
 }

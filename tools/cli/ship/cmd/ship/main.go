@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	shipcli "github.com/leomorpho/goship/tools/cli/ship/internal/cli"
+	shipcli "github.com/leomorpho/goship/v2/tools/cli/ship/internal/cli"
 )
 
 func main() {

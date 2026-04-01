@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/leomorpho/goship/config"
+	"github.com/leomorpho/goship/v2/config"
 )
 
 type ProfileDeps struct {

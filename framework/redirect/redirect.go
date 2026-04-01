@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/framework/htmx"
+	"github.com/leomorpho/goship/v2/framework/htmx"
 )
 
 type Redirect struct {

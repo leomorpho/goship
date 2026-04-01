@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/leomorpho/goship/framework/core"
+	"github.com/leomorpho/goship/v2/framework/core"
 )
 
 var _ core.JobsInspector = (*CoreJobsInspectorAdapter)(nil)

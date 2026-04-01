@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/leomorpho/goship/db/queries"
+	"github.com/leomorpho/goship/v2/db/queries"
 )
 
 type ProfileSettingsRecord struct {

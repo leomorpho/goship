@@ -7,9 +7,9 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/leomorpho/goship/framework/core"
-	"github.com/leomorpho/goship/framework/domain"
-	"github.com/leomorpho/goship/framework/pubsub"
+	"github.com/leomorpho/goship/v2/framework/core"
+	"github.com/leomorpho/goship/v2/framework/domain"
+	"github.com/leomorpho/goship/v2/framework/pubsub"
 )
 
 /*

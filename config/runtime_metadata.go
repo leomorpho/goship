@@ -3,7 +3,7 @@ package config
 import (
 	"strings"
 
-	"github.com/leomorpho/goship/config/runtimeconfig"
+	"github.com/leomorpho/goship/v2/config/runtimeconfig"
 )
 
 const (

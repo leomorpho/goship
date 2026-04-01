@@ -3,7 +3,7 @@ package notifications
 import (
 	"strings"
 
-	"github.com/leomorpho/goship/framework/domain"
+	"github.com/leomorpho/goship/v2/framework/domain"
 	"github.com/orsinium-labs/enum"
 )
 

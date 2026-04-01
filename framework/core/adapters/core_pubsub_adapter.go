@@ -5,8 +5,8 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/leomorpho/goship/framework/core"
-	pubsubrepo "github.com/leomorpho/goship/framework/pubsub"
+	"github.com/leomorpho/goship/v2/framework/core"
+	pubsubrepo "github.com/leomorpho/goship/v2/framework/pubsub"
 )
 
 var _ core.PubSub = (*CorePubSubAdapter)(nil)

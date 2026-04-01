@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/leomorpho/goship/config"
+	"github.com/leomorpho/goship/v2/config"
 )
 
 func validateWorkerConfig(cfg config.Config) error {

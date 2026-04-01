@@ -4,12 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	dbqueries "github.com/leomorpho/goship-modules/notifications/db/queries"
+	dbqueries "github.com/leomorpho/goship/v2-modules/notifications/db/queries"
 	"strings"
 	"time"
 
-	dbmigrate "github.com/leomorpho/goship-modules/notifications/db/migrate"
-	"github.com/leomorpho/goship/framework/domain"
+	dbmigrate "github.com/leomorpho/goship/v2-modules/notifications/db/migrate"
+	"github.com/leomorpho/goship/v2/framework/domain"
 )
 
 type SQLNotificationStore struct {

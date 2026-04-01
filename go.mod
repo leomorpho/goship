@@ -1,4 +1,4 @@
-module github.com/leomorpho/goship
+module github.com/leomorpho/goship/v2
 
 go 1.24.0
 
@@ -23,9 +23,9 @@ require (
 	github.com/labstack/echo-contrib v0.15.0
 	github.com/labstack/echo/v4 v4.13.3
 	github.com/labstack/gommon v0.4.2
-	github.com/leomorpho/goship-modules/jobs v0.0.0
-	github.com/leomorpho/goship-modules/notifications v0.0.0
-	github.com/leomorpho/goship-modules/paidsubscriptions v0.0.0
+	github.com/leomorpho/goship/v2-modules/jobs v0.0.0
+	github.com/leomorpho/goship/v2-modules/notifications v0.0.0
+	github.com/leomorpho/goship/v2-modules/paidsubscriptions v0.0.0
 	github.com/mattn/go-sqlite3 v1.14.28
 	github.com/maypok86/otter v1.2.4
 	github.com/mileusna/useragent v1.3.4
@@ -45,11 +45,11 @@ require (
 	modernc.org/sqlite v1.46.1
 )
 
-replace github.com/leomorpho/goship-modules/jobs => ./modules/jobs
+replace github.com/leomorpho/goship/v2-modules/jobs => ./modules/jobs
 
-replace github.com/leomorpho/goship-modules/notifications => ./modules/notifications
+replace github.com/leomorpho/goship/v2-modules/notifications => ./modules/notifications
 
-replace github.com/leomorpho/goship-modules/paidsubscriptions => ./modules/paidsubscriptions
+replace github.com/leomorpho/goship/v2-modules/paidsubscriptions => ./modules/paidsubscriptions
 
 require (
 	cloud.google.com/go v0.115.0 // indirect

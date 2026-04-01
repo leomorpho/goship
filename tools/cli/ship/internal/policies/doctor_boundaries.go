@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	rt "github.com/leomorpho/goship/tools/cli/ship/internal/runtime"
+	rt "github.com/leomorpho/goship/v2/tools/cli/ship/internal/runtime"
 )
 
 func checkMarkerIntegrity(root string) []DoctorIssue {
@@ -178,7 +178,7 @@ func checkForbiddenCrossBoundaryImports(root string) []DoctorIssue {
 
 	// Controllers must not directly import DB implementation packages.
 	controllerDir := filepath.Join(root, "app", "web", "controllers")
-	issues = append(issues, checkImportPrefixForbidden(controllerDir, "github.com/leomorpho/goship/db/gen", "DX020",
+	issues = append(issues, checkImportPrefixForbidden(controllerDir, "github.com/leomorpho/goship/v2/db/gen", "DX020",
 		"controller db boundary violated: app/web/controllers must not import db/gen directly",
 		"move DB access behind foundation/service seams or auth/profile helpers")...)
 
@@ -192,7 +192,7 @@ func checkForbiddenCrossBoundaryImports(root string) []DoctorIssue {
 		filepath.Join(root, "modules", "jobs", "module.go"),
 		filepath.Join(root, "modules", "jobs", "drivers", "sql", "client.go"),
 	} {
-		issues = append(issues, checkTextForbidden(path, "github.com/leomorpho/goship/db/gen", "DX020",
+		issues = append(issues, checkTextForbidden(path, "github.com/leomorpho/goship/v2/db/gen", "DX020",
 			fmt.Sprintf("jobs SQL boundary violated: db/gen import found in %s", filepath.ToSlash(mustRel(root, path))),
 			"keep jobs SQL path module-local and adapter-agnostic")...)
 	}
@@ -203,7 +203,7 @@ func checkForbiddenCrossBoundaryImports(root string) []DoctorIssue {
 		filepath.Join(root, "modules", "notifications", "notifier.go"),
 		filepath.Join(root, "modules", "notifications", "notifier_test.go"),
 	} {
-		issues = append(issues, checkTextForbidden(path, "github.com/leomorpho/goship/framework/core", "DX020",
+		issues = append(issues, checkTextForbidden(path, "github.com/leomorpho/goship/v2/framework/core", "DX020",
 			fmt.Sprintf("notifications pubsub boundary violated: framework/core import found in %s", filepath.ToSlash(mustRel(root, path))),
 			"use module-local contracts and app-level bridge adapters")...)
 	}
@@ -220,8 +220,8 @@ func checkForbiddenCrossBoundaryImports(root string) []DoctorIssue {
 		filepath.Join(root, "modules"),
 	} {
 		for _, forbiddenPrefix := range []string{
-			"github.com/leomorpho/goship/tools/private/control-plane",
-			"github.com/leomorpho/goship/fleet/control-plane",
+			"github.com/leomorpho/goship/v2/tools/private/control-plane",
+			"github.com/leomorpho/goship/v2/fleet/control-plane",
 		} {
 			issues = append(issues, checkGoImportPrefixForbidden(
 				scanDir,
@@ -516,11 +516,11 @@ func checkModuleSourceIsolation(root string) []DoctorIssue {
 			if doctorAllowsModuleRootImport(rel, string(b)) {
 				return nil
 			}
-			if strings.Contains(string(b), "\"github.com/leomorpho/goship/") {
+			if strings.Contains(string(b), "\"github.com/leomorpho/goship/v2/") {
 				issues = append(issues, DoctorIssue{
 					Code:    "DX020",
 					Message: fmt.Sprintf("module isolation violated: forbidden root import in %s", rel),
-					Fix:     "remove direct github.com/leomorpho/goship/* imports from module runtime code or add a deliberate allowlist entry",
+					Fix:     "remove direct github.com/leomorpho/goship/v2/* imports from module runtime code or add a deliberate allowlist entry",
 				})
 			}
 			return nil
@@ -547,7 +547,7 @@ func readModuleIsolationAllowlist(root string) map[string]struct{} {
 }
 
 func doctorAllowsModuleRootImport(rel string, content string) bool {
-	if rel == "modules/storage/module.go" && strings.Contains(content, "\"github.com/leomorpho/goship/framework/core\"") {
+	if rel == "modules/storage/module.go" && strings.Contains(content, "\"github.com/leomorpho/goship/v2/framework/core\"") {
 		return true
 	}
 	return false

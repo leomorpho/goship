@@ -9,7 +9,7 @@ import (
 	"runtime"
 	"strings"
 
-	dbqueries "github.com/leomorpho/goship/db/queries"
+	dbqueries "github.com/leomorpho/goship/v2/db/queries"
 )
 
 func NormalizeSQLiteDriver(driver string) string {

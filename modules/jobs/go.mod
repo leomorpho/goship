@@ -1,4 +1,4 @@
-module github.com/leomorpho/goship-modules/jobs
+module github.com/leomorpho/goship/v2-modules/jobs
 
 go 1.24.0
 

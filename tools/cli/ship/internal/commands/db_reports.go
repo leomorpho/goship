@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/leomorpho/goship/config"
-	"github.com/leomorpho/goship/framework/backup"
+	"github.com/leomorpho/goship/v2/config"
+	"github.com/leomorpho/goship/v2/framework/backup"
 )
 
 type dbPromoteReport struct {

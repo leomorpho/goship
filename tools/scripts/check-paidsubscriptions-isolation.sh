@@ -16,7 +16,7 @@ if [[ -f "${ALLOWLIST_FILE}" ]]; then
   allowlist_entries="$(grep -vE '^\s*(#|$)' "${ALLOWLIST_FILE}" || true)"
 fi
 
-if rg -n '^\s*"github.com/leomorpho/goship/' "${TARGET_DIR}" --glob '*.go' >/tmp/paidsubscriptions-isolation-violations.txt 2>/dev/null; then
+if rg -n '^\s*"github.com/leomorpho/goship/v2/' "${TARGET_DIR}" --glob '*.go' >/tmp/paidsubscriptions-isolation-violations.txt 2>/dev/null; then
   fail=0
   while IFS= read -r line; do
     file_path="$(echo "$line" | cut -d: -f1)"

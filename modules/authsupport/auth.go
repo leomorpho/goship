@@ -10,9 +10,9 @@ import (
 
 	"github.com/golang-jwt/jwt"
 	"github.com/gorilla/sessions"
-	"github.com/leomorpho/goship/config"
-	"github.com/leomorpho/goship/framework/dberrors"
-	"github.com/leomorpho/goship/framework/http/requestcontext"
+	"github.com/leomorpho/goship/v2/config"
+	"github.com/leomorpho/goship/v2/framework/dberrors"
+	"github.com/leomorpho/goship/v2/framework/http/requestcontext"
 
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"

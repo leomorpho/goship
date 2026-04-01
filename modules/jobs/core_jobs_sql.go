@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	sqldriver "github.com/leomorpho/goship-modules/jobs/drivers/sql"
+	sqldriver "github.com/leomorpho/goship/v2-modules/jobs/drivers/sql"
 )
 
 var _ Jobs = (*sqlCoreJobs)(nil)

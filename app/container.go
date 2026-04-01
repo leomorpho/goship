@@ -1,8 +1,8 @@
 package app
 
 import (
-	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
-	"github.com/leomorpho/goship/framework/core"
+	frameworkbootstrap "github.com/leomorpho/goship/v2/framework/bootstrap"
+	"github.com/leomorpho/goship/v2/framework/core"
 	"github.com/robfig/cron/v3"
 )
 

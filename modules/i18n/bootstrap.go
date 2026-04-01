@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/leomorpho/goship/config"
-	"github.com/leomorpho/goship/framework/core"
+	"github.com/leomorpho/goship/v2/config"
+	"github.com/leomorpho/goship/v2/framework/core"
 )
 
 func New(cfg *config.Config) core.I18n {

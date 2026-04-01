@@ -13,8 +13,8 @@ import (
 	"strings"
 	"unicode"
 
-	policies "github.com/leomorpho/goship/tools/cli/ship/internal/policies"
-	startertemplate "github.com/leomorpho/goship/tools/cli/ship/internal/templates/starter"
+	policies "github.com/leomorpho/goship/v2/tools/cli/ship/internal/policies"
+	startertemplate "github.com/leomorpho/goship/v2/tools/cli/ship/internal/templates/starter"
 )
 
 const starterTemplateRoot = "testdata/scaffold"
@@ -352,7 +352,7 @@ func validateStarterScaffoldLayout(templateFS fs.FS, root string) error {
 }
 
 func rewriteStarterTemplate(content string, opts NewProjectOptions) string {
-	replaced := strings.ReplaceAll(content, "github.com/leomorpho/goship/starter", opts.Module)
+	replaced := strings.ReplaceAll(content, "github.com/leomorpho/goship/v2/starter", opts.Module)
 	replaced = strings.ReplaceAll(replaced, "GoShip Starter", starterDisplayName(opts.Name))
 	return replaced
 }

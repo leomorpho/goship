@@ -3,7 +3,7 @@ package factories
 import (
 	"time"
 
-	"github.com/leomorpho/goship/tests/factory"
+	"github.com/leomorpho/goship/v2/tests/factory"
 )
 
 type UserRecord struct {

@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	dbmigrate "github.com/leomorpho/goship-modules/jobs/db/migrate"
-	dbqueries "github.com/leomorpho/goship-modules/jobs/db/queries"
+	dbmigrate "github.com/leomorpho/goship/v2-modules/jobs/db/migrate"
+	dbqueries "github.com/leomorpho/goship/v2-modules/jobs/db/queries"
 )
 
 type Config struct {

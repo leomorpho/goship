@@ -3,9 +3,9 @@ package jobs
 import (
 	"fmt"
 
-	backlitedriver "github.com/leomorpho/goship-modules/jobs/drivers/backlite"
-	redisdriver "github.com/leomorpho/goship-modules/jobs/drivers/redis"
-	sqldriver "github.com/leomorpho/goship-modules/jobs/drivers/sql"
+	backlitedriver "github.com/leomorpho/goship/v2-modules/jobs/drivers/backlite"
+	redisdriver "github.com/leomorpho/goship/v2-modules/jobs/drivers/redis"
+	sqldriver "github.com/leomorpho/goship/v2-modules/jobs/drivers/sql"
 )
 
 const ModuleID = "jobs"

@@ -3,8 +3,8 @@ package bootstrap
 import (
 	"context"
 
-	notifications "github.com/leomorpho/goship-modules/notifications"
-	"github.com/leomorpho/goship/framework/core"
+	notifications "github.com/leomorpho/goship/v2-modules/notifications"
+	"github.com/leomorpho/goship/v2/framework/core"
 )
 
 type notificationsPubSubAdapter struct {

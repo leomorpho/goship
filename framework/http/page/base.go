@@ -8,10 +8,10 @@ import (
 	"github.com/a-h/templ"
 	"github.com/labstack/echo/v4"
 	echomw "github.com/labstack/echo/v4/middleware"
-	"github.com/leomorpho/goship/framework/flash"
-	"github.com/leomorpho/goship/framework/htmx"
-	"github.com/leomorpho/goship/framework/http/authcontext"
-	"github.com/leomorpho/goship/framework/http/requestcontext"
+	"github.com/leomorpho/goship/v2/framework/flash"
+	"github.com/leomorpho/goship/v2/framework/htmx"
+	"github.com/leomorpho/goship/v2/framework/http/authcontext"
+	"github.com/leomorpho/goship/v2/framework/http/requestcontext"
 )
 
 // Base captures reusable web-page fields and behavior that are app-agnostic.

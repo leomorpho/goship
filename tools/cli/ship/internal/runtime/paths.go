@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/ilyakaznacheev/cleanenv"
-	appconfig "github.com/leomorpho/goship/config"
+	appconfig "github.com/leomorpho/goship/v2/config"
 )
 
 func FindGoModule(start string) (string, string, error) {

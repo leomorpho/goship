@@ -3,7 +3,7 @@ package notifications
 import (
 	"context"
 	"database/sql"
-	dbqueries "github.com/leomorpho/goship-modules/notifications/db/queries"
+	dbqueries "github.com/leomorpho/goship/v2-modules/notifications/db/queries"
 	"strconv"
 	"strings"
 	"time"

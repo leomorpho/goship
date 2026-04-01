@@ -14,7 +14,7 @@ import (
 	"testing"
 	"time"
 
-	dbqueries "github.com/leomorpho/goship/db/queries"
+	dbqueries "github.com/leomorpho/goship/v2/db/queries"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"

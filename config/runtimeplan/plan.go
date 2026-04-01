@@ -3,7 +3,7 @@ package runtimeplan
 import (
 	"fmt"
 
-	"github.com/leomorpho/goship/config"
+	"github.com/leomorpho/goship/v2/config"
 )
 
 // Plan describes the resolved runtime/process topology without mutating startup behavior.

@@ -5,8 +5,8 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/leomorpho/goship/config"
-	"github.com/leomorpho/goship/framework/core"
+	"github.com/leomorpho/goship/v2/config"
+	"github.com/leomorpho/goship/v2/framework/core"
 )
 
 var _ core.Jobs = (*CoreJobsAdapter)(nil)

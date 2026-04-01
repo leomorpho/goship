@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/leomorpho/goship/framework/core"
-	eventtypes "github.com/leomorpho/goship/framework/events/types"
+	"github.com/leomorpho/goship/v2/framework/core"
+	eventtypes "github.com/leomorpho/goship/v2/framework/events/types"
 )
 
 const AsyncJobName = "framework.events.publish"

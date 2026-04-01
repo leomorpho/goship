@@ -6,9 +6,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/leomorpho/goship/config"
-	"github.com/leomorpho/goship/config/runtimeplan"
-	coreadapters "github.com/leomorpho/goship/framework/core/adapters"
+	"github.com/leomorpho/goship/v2/config"
+	"github.com/leomorpho/goship/v2/config/runtimeplan"
+	coreadapters "github.com/leomorpho/goship/v2/framework/core/adapters"
 )
 
 type AdapterDeps struct {

@@ -5,7 +5,7 @@ import (
 	"io"
 
 	"github.com/a-h/templ"
-	"github.com/leomorpho/goship/framework/http/ui"
+	"github.com/leomorpho/goship/v2/framework/http/ui"
 )
 
 func stubComponent() templ.Component {

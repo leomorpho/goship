@@ -305,7 +305,7 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/framework/http/ui"
+	"github.com/leomorpho/goship/v2/framework/http/ui"
 )
 
 type %s struct {
@@ -338,15 +338,15 @@ func renderResourceTemplHandler(n NormalizedResourceName, domain NormalizedDomai
 	if testFirst {
 		imports = `import (
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/framework/http/ui"
+	"github.com/leomorpho/goship/v2/framework/http/ui"
 )`
 	} else {
 		imports = `import (
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/framework/http/templates"
-	layouts "github.com/leomorpho/goship/framework/http/layouts/gen"
-	pages "github.com/leomorpho/goship/framework/http/pages/gen"
-	"github.com/leomorpho/goship/framework/http/ui"
+	"github.com/leomorpho/goship/v2/framework/http/templates"
+	layouts "github.com/leomorpho/goship/v2/framework/http/layouts/gen"
+	pages "github.com/leomorpho/goship/v2/framework/http/pages/gen"
+	"github.com/leomorpho/goship/v2/framework/http/ui"
 )`
 	}
 
@@ -399,7 +399,7 @@ func Test%sRoute_Get(t *testing.T) {
 func renderResourceTempl(n NormalizedResourceName) string {
 	return fmt.Sprintf(`package pages
 
-import "github.com/leomorpho/goship/framework/http/ui"
+import "github.com/leomorpho/goship/v2/framework/http/ui"
 
 templ %sPage(page *ui.Page) {
 	<section>
@@ -538,7 +538,7 @@ func EnsureRouteNamesImport(routerPath string, dryRun bool) error {
 		return err
 	}
 	content := string(b)
-	if strings.Contains(content, `routeNames "github.com/leomorpho/goship/framework/http/routenames"`) {
+	if strings.Contains(content, `routeNames "github.com/leomorpho/goship/v2/framework/http/routenames"`) {
 		return nil
 	}
 
@@ -552,7 +552,7 @@ func EnsureRouteNamesImport(routerPath string, dryRun bool) error {
 	}
 	importEnd += importStart
 
-	line := "\trouteNames \"github.com/leomorpho/goship/framework/http/routenames\"\n"
+	line := "\trouteNames \"github.com/leomorpho/goship/v2/framework/http/routenames\"\n"
 	updated := content[:importEnd] + line + content[importEnd:]
 	if dryRun {
 		return nil

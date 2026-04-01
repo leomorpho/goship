@@ -4,7 +4,7 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/leomorpho/goship/framework/core"
+	"github.com/leomorpho/goship/v2/framework/core"
 	"github.com/robfig/cron/v3"
 )
 

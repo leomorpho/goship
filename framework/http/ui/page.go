@@ -3,10 +3,10 @@ package ui
 import (
 	"github.com/a-h/templ"
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/framework/domain"
-	"github.com/leomorpho/goship/framework/http/authcontext"
-	frameworkpage "github.com/leomorpho/goship/framework/http/page"
-	i18nmodule "github.com/leomorpho/goship/modules/i18n"
+	"github.com/leomorpho/goship/v2/framework/domain"
+	"github.com/leomorpho/goship/v2/framework/http/authcontext"
+	frameworkpage "github.com/leomorpho/goship/v2/framework/http/page"
+	i18nmodule "github.com/leomorpho/goship/v2/modules/i18n"
 )
 
 type (

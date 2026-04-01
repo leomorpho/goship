@@ -1,7 +1,7 @@
 package runtime
 
 import (
-	appconfig "github.com/leomorpho/goship/config"
+	appconfig "github.com/leomorpho/goship/v2/config"
 )
 
 // ResolveDevDefaultMode determines the default `ship dev` execution mode.

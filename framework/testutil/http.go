@@ -14,11 +14,11 @@ import (
 	"strings"
 	"testing"
 
-	shipapp "github.com/leomorpho/goship/app"
-	"github.com/leomorpho/goship-modules/notifications"
-	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
-	"github.com/leomorpho/goship/config"
-	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
+	shipapp "github.com/leomorpho/goship/v2/app"
+	"github.com/leomorpho/goship/v2-modules/notifications"
+	paidsubscriptions "github.com/leomorpho/goship/v2-modules/paidsubscriptions"
+	"github.com/leomorpho/goship/v2/config"
+	frameworkbootstrap "github.com/leomorpho/goship/v2/framework/bootstrap"
 )
 
 type RequestOpt func(*requestConfig) error

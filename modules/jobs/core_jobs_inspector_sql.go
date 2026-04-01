@@ -3,7 +3,7 @@ package jobs
 import (
 	"context"
 
-	sqldriver "github.com/leomorpho/goship-modules/jobs/drivers/sql"
+	sqldriver "github.com/leomorpho/goship/v2-modules/jobs/drivers/sql"
 )
 
 type sqlJobsInspector struct {

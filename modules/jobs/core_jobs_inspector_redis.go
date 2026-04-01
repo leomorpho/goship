@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	redisdriver "github.com/leomorpho/goship-modules/jobs/drivers/redis"
+	redisdriver "github.com/leomorpho/goship/v2-modules/jobs/drivers/redis"
 )
 
 var errRedisInspectorNotImplemented = errors.New("redis jobs inspector is not implemented yet")

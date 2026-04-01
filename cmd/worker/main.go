@@ -7,11 +7,11 @@ import (
 	"strings"
 
 	"github.com/hibiken/asynq"
-	shipapp "github.com/leomorpho/goship/app"
-	"github.com/leomorpho/goship-modules/notifications"
-	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
-	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
-	"github.com/leomorpho/goship/framework/events"
+	shipapp "github.com/leomorpho/goship/v2/app"
+	"github.com/leomorpho/goship/v2-modules/notifications"
+	paidsubscriptions "github.com/leomorpho/goship/v2-modules/paidsubscriptions"
+	frameworkbootstrap "github.com/leomorpho/goship/v2/framework/bootstrap"
+	"github.com/leomorpho/goship/v2/framework/events"
 )
 
 func main() {

@@ -36,35 +36,35 @@
   "module_adoption": [
     {
       "id": "emailsubscriptions",
-      "module_path": "github.com/leomorpho/goship-modules/emailsubscriptions",
+      "module_path": "github.com/leomorpho/goship/v2-modules/emailsubscriptions",
       "version": "v0.0.0",
       "source": "first-party-catalog",
       "installed": false
     },
     {
       "id": "jobs",
-      "module_path": "github.com/leomorpho/goship-modules/jobs",
+      "module_path": "github.com/leomorpho/goship/v2-modules/jobs",
       "version": "v0.0.0",
       "source": "first-party-catalog",
       "installed": false
     },
     {
       "id": "notifications",
-      "module_path": "github.com/leomorpho/goship-modules/notifications",
+      "module_path": "github.com/leomorpho/goship/v2-modules/notifications",
       "version": "v0.0.0",
       "source": "local-replace",
       "installed": true
     },
     {
       "id": "paidsubscriptions",
-      "module_path": "github.com/leomorpho/goship-modules/paidsubscriptions",
+      "module_path": "github.com/leomorpho/goship/v2-modules/paidsubscriptions",
       "version": "v0.0.0",
       "source": "first-party-catalog",
       "installed": false
     },
     {
       "id": "storage",
-      "module_path": "github.com/leomorpho/goship-modules/storage",
+      "module_path": "github.com/leomorpho/goship/v2-modules/storage",
       "version": "v0.0.0",
       "source": "first-party-catalog",
       "installed": false

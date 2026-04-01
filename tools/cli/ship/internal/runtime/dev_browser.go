@@ -8,7 +8,7 @@ import (
 	"runtime"
 	"strings"
 
-	appconfig "github.com/leomorpho/goship/config"
+	appconfig "github.com/leomorpho/goship/v2/config"
 )
 
 func ResolveDevWebURL() (string, error) {

@@ -4,10 +4,10 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo/v4"
-	layouts "github.com/leomorpho/goship/framework/http/layouts/gen"
-	pages "github.com/leomorpho/goship/framework/http/pages/gen"
-	"github.com/leomorpho/goship/framework/http/requestcontext"
-	"github.com/leomorpho/goship/framework/http/ui"
+	layouts "github.com/leomorpho/goship/v2/framework/http/layouts/gen"
+	pages "github.com/leomorpho/goship/v2/framework/http/pages/gen"
+	"github.com/leomorpho/goship/v2/framework/http/requestcontext"
+	"github.com/leomorpho/goship/v2/framework/http/ui"
 )
 
 type ErrorHandler struct {

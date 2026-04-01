@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"github.com/leomorpho/goship/framework/http/requestcontext"
+	"github.com/leomorpho/goship/v2/framework/http/requestcontext"
 
 	"github.com/labstack/echo/v4"
 )

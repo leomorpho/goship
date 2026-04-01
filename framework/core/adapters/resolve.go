@@ -3,8 +3,8 @@ package adapters
 import (
 	"fmt"
 
-	"github.com/leomorpho/goship/config"
-	"github.com/leomorpho/goship/framework/core"
+	"github.com/leomorpho/goship/v2/config"
+	"github.com/leomorpho/goship/v2/framework/core"
 )
 
 // Resolved contains normalized adapter information derived from config.

@@ -14,9 +14,9 @@ import (
 	"strings"
 	"unicode"
 
-	appconfig "github.com/leomorpho/goship/config"
-	"github.com/leomorpho/goship/framework/core/adapters"
-	rt "github.com/leomorpho/goship/tools/cli/ship/internal/runtime"
+	appconfig "github.com/leomorpho/goship/v2/config"
+	"github.com/leomorpho/goship/v2/framework/core/adapters"
+	rt "github.com/leomorpho/goship/v2/tools/cli/ship/internal/runtime"
 )
 
 func checkCanonicalFilePlacement(root string) []DoctorIssue {

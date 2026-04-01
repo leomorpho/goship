@@ -8,7 +8,7 @@ package views
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import i18nmodule "github.com/leomorpho/goship/modules/i18n"
+import i18nmodule "github.com/leomorpho/goship/v2/modules/i18n"
 
 // Route(s): embedded in layout/header where language switching is exposed
 // Renders: language switcher links for locale query parameter toggling

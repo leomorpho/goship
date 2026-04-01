@@ -5,8 +5,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/leomorpho/goship/framework/core"
-	cacherepo "github.com/leomorpho/goship/framework/cache"
+	"github.com/leomorpho/goship/v2/framework/core"
+	cacherepo "github.com/leomorpho/goship/v2/framework/cache"
 )
 
 var _ core.Cache = (*CoreCacheAdapter)(nil)

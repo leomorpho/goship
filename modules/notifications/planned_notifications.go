@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
-	"github.com/leomorpho/goship/framework/domain"
+	paidsubscriptions "github.com/leomorpho/goship/v2-modules/paidsubscriptions"
+	"github.com/leomorpho/goship/v2/framework/domain"
 	"log/slog"
 )
 

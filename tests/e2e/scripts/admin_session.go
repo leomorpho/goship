@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/gorilla/sessions"
-	"github.com/leomorpho/goship/config"
+	"github.com/leomorpho/goship/v2/config"
 	"golang.org/x/crypto/bcrypt"
 	_ "modernc.org/sqlite"
 )

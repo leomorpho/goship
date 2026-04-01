@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/framework/ratelimit"
-	"github.com/leomorpho/goship/framework/http/authcontext"
+	"github.com/leomorpho/goship/v2/framework/ratelimit"
+	"github.com/leomorpho/goship/v2/framework/http/authcontext"
 )
 
 // RateLimit limits requests by route+method and caller identity.

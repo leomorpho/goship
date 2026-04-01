@@ -108,7 +108,7 @@ Generation:
 - `ship make:schedule <Name> --cron "<expr>"`
 - `ship make:command <Name>`
 - `ship make:scaffold <Name> [fields...] [--path app] [--views templ|none] [--auth public|auth] [--api] [--migrate] [--dry-run] [--force]`
-- `ship make:module <Name> [--path modules] [--module-base github.com/leomorpho/goship-modules] [--dry-run] [--force]`
+- `ship make:module <Name> [--path modules] [--module-base github.com/leomorpho/goship/v2-modules] [--dry-run] [--force]`
 - `ship destroy resource:<name>`
 
 Command grammar policy:
@@ -292,7 +292,7 @@ Doctor checks (current):
 - validates required config env vars declared in `config.Config`
 - validates agent allowlist artifacts are in sync with `tools/agent-policy/allowed-commands.yaml`
 - validates enabled modules in `config/modules.yaml` include `db/migrate/migrations` and `db/bobgen.yaml`
-- validates cross-boundary import rules (controller `QueryProfile()` ban, jobs SQL coupling ban, notifications pubsub framework-core coupling ban, module source isolation ban for direct `github.com/leomorpho/goship/*` imports with no runtime allowlist escape hatch)
+- validates cross-boundary import rules (controller `QueryProfile()` ban, jobs SQL coupling ban, notifications pubsub framework-core coupling ban, module source isolation ban for direct `github.com/leomorpho/goship/v2/*` imports with no runtime allowlist escape hatch)
 - treats unpaired generator markers (`DX005`) and raw controller form parsing (`DX027`) as blocking structural errors
 - rejects canonical-doc transition/deprecation wording with file:line diagnostics and optional historical-reference allowlist support via `docs/policies/02-transition-wording-allowlist.txt` (`DX030`)
 - warns when `/api/` routes appear to render HTML directly instead of using the standard JSON API helpers
@@ -318,7 +318,7 @@ run-anywhere verification gate:
 - the gate rejects control-plane dependency drift in standalone runtime/starter surfaces
 - scaffold integration fixtures now prove generated apps boot with managed env vars (`PAGODA_MANAGED_MODE`, `PAGODA_MANAGED_AUTHORITY`, managed hook secret/overrides) without any control-plane source dependency
 - scaffold integration fixtures also prove generated apps boot in pure standalone mode when managed env vars are absent
-- `ship doctor` boundary checks (`DX020`) now fail when runtime/framework source imports control-plane packages (for example `github.com/leomorpho/goship/tools/private/control-plane/*`)
+- `ship doctor` boundary checks (`DX020`) now fail when runtime/framework source imports control-plane packages (for example `github.com/leomorpho/goship/v2/tools/private/control-plane/*`)
 - `ship doctor` boundary checks (`DX020`) also fail when non-test runtime/framework code hardcodes private control-plane path strings (for example `tools/private/control-plane/...`)
 
 Field syntax for `make:model`:

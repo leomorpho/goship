@@ -1,10 +1,10 @@
 package goship
 
 import (
-	"github.com/leomorpho/goship/starter/app/foundation"
-	templates "github.com/leomorpho/goship/starter/app/views"
-	pages "github.com/leomorpho/goship/starter/app/views/web/pages/gen"
-	"github.com/leomorpho/goship/starter/app/web/routenames"
+	"github.com/leomorpho/goship/v2/starter/app/foundation"
+	templates "github.com/leomorpho/goship/v2/starter/app/views"
+	pages "github.com/leomorpho/goship/v2/starter/app/views/web/pages/gen"
+	"github.com/leomorpho/goship/v2/starter/app/web/routenames"
 )
 
 type Route struct {

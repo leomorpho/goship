@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	policies "github.com/leomorpho/goship/tools/cli/ship/internal/policies"
+	policies "github.com/leomorpho/goship/v2/tools/cli/ship/internal/policies"
 )
 
 type AgentDeps struct {

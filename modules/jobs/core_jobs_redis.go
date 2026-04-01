@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/hibiken/asynq"
-	redisdriver "github.com/leomorpho/goship-modules/jobs/drivers/redis"
+	redisdriver "github.com/leomorpho/goship/v2-modules/jobs/drivers/redis"
 )
 
 var _ Jobs = (*redisCoreJobs)(nil)

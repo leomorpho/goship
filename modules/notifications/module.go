@@ -6,8 +6,8 @@ import (
 	"errors"
 	"strings"
 
-	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
-	"github.com/leomorpho/goship/framework/core"
+	paidsubscriptions "github.com/leomorpho/goship/v2-modules/paidsubscriptions"
+	"github.com/leomorpho/goship/v2/framework/core"
 )
 
 const ModuleID = "notifications"

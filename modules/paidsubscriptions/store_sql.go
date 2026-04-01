@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	dbqueries "github.com/leomorpho/goship-modules/paidsubscriptions/db/queries"
+	dbqueries "github.com/leomorpho/goship/v2-modules/paidsubscriptions/db/queries"
 	"strings"
 	"time"
 )

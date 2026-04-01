@@ -1,6 +1,6 @@
 package adapters
 
-import "github.com/leomorpho/goship/config"
+import "github.com/leomorpho/goship/v2/config"
 
 // RequirementsFromConfig derives capability requirements from runtime/process topology.
 func RequirementsFromConfig(cfg *config.Config) Requirements {

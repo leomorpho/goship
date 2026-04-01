@@ -113,7 +113,7 @@ import (
 	"context"
 	"fmt"
 
-	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
+	frameworkbootstrap "github.com/leomorpho/goship/v2/framework/bootstrap"
 )
 
 type %sCommand struct {

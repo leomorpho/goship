@@ -7,7 +7,7 @@ import (
 	"sync"
 
 	"github.com/a-h/templ"
-	"github.com/leomorpho/goship/framework/core"
+	"github.com/leomorpho/goship/v2/framework/core"
 )
 
 type Hub struct {

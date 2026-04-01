@@ -9,10 +9,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/leomorpho/goship/config"
-	"github.com/leomorpho/goship/config/runtimeconfig"
-	"github.com/leomorpho/goship/config/runtimeplan"
-	frameworkbackup "github.com/leomorpho/goship/framework/backup"
+	"github.com/leomorpho/goship/v2/config"
+	"github.com/leomorpho/goship/v2/config/runtimeconfig"
+	"github.com/leomorpho/goship/v2/config/runtimeplan"
+	frameworkbackup "github.com/leomorpho/goship/v2/framework/backup"
 )
 
 type RuntimeReportDeps struct {

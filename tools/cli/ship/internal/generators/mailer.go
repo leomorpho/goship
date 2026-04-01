@@ -111,8 +111,8 @@ func renderMailerTemplateFile(pascal string) string {
 	return fmt.Sprintf(`package emails
 
 import (
-	controller "github.com/leomorpho/goship/framework/http/ui"
-	"github.com/leomorpho/goship/framework/http/viewmodels"
+	controller "github.com/leomorpho/goship/v2/framework/http/ui"
+	"github.com/leomorpho/goship/v2/framework/http/viewmodels"
 )
 
 templ %s(page *controller.Page) {

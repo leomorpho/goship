@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/leomorpho/goship/framework/core"
+	"github.com/leomorpho/goship/v2/framework/core"
 )
 
 const DeliverPushNotificationJobName = "notifications.deliver_push"

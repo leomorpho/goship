@@ -21,7 +21,7 @@ for mod_dir in "$ROOT_DIR"/modules/*; do
   rel="${mod_dir#$ROOT_DIR/}"
   echo "Checking module isolation for $rel..."
 
-  if rg -n '^\s*"github.com/leomorpho/goship/' "$mod_dir" --glob '*.go' --glob '!*_test.go' >/tmp/module-import-violations.txt 2>/dev/null; then
+  if rg -n '^\s*"github.com/leomorpho/goship/v2/' "$mod_dir" --glob '*.go' --glob '!*_test.go' >/tmp/module-import-violations.txt 2>/dev/null; then
     while IFS= read -r line; do
       file_path="$(echo "$line" | cut -d: -f1)"
       rel_file="${file_path#$ROOT_DIR/}"

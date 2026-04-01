@@ -12,7 +12,7 @@ import (
 	"github.com/eko/gocache/v2/marshaler"
 	"github.com/eko/gocache/v2/store"
 	"github.com/go-redis/redis/v8"
-	"github.com/leomorpho/goship/config"
+	"github.com/leomorpho/goship/v2/config"
 )
 
 type (

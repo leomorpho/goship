@@ -1,4 +1,4 @@
-module github.com/leomorpho/goship-modules/paidsubscriptions
+module github.com/leomorpho/goship/v2-modules/paidsubscriptions
 
 go 1.23.0
 

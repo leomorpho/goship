@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/leomorpho/goship/tools/cli/ship/internal/agenteval"
+	"github.com/leomorpho/goship/v2/tools/cli/ship/internal/agenteval"
 )
 
 func main() {

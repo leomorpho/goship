@@ -10,10 +10,10 @@ import (
 
 	"github.com/labstack/echo-contrib/session"
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/framework/dberrors"
-	"github.com/leomorpho/goship/framework/flash"
-	"github.com/leomorpho/goship/framework/http/authcontext"
-	"github.com/leomorpho/goship/modules/authsupport"
+	"github.com/leomorpho/goship/v2/framework/dberrors"
+	"github.com/leomorpho/goship/v2/framework/flash"
+	"github.com/leomorpho/goship/v2/framework/http/authcontext"
+	"github.com/leomorpho/goship/v2/modules/authsupport"
 	"log/slog"
 )
 

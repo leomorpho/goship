@@ -5,15 +5,15 @@ import (
 	"fmt"
 
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship-modules/notifications"
-	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
-	paidsubscriptionroutes "github.com/leomorpho/goship-modules/paidsubscriptions/routes"
-	"github.com/leomorpho/goship/config/runtimeplan"
-	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
-	"github.com/leomorpho/goship/framework/logging"
-	frameworkweb "github.com/leomorpho/goship/framework/http"
-	frameworkcontrollers "github.com/leomorpho/goship/framework/http/controllers"
-	"github.com/leomorpho/goship/framework/http/ui"
+	"github.com/leomorpho/goship/v2-modules/notifications"
+	paidsubscriptions "github.com/leomorpho/goship/v2-modules/paidsubscriptions"
+	paidsubscriptionroutes "github.com/leomorpho/goship/v2-modules/paidsubscriptions/routes"
+	"github.com/leomorpho/goship/v2/config/runtimeplan"
+	frameworkbootstrap "github.com/leomorpho/goship/v2/framework/bootstrap"
+	"github.com/leomorpho/goship/v2/framework/logging"
+	frameworkweb "github.com/leomorpho/goship/v2/framework/http"
+	frameworkcontrollers "github.com/leomorpho/goship/v2/framework/http/controllers"
+	"github.com/leomorpho/goship/v2/framework/http/ui"
 )
 
 type RouterModules struct {

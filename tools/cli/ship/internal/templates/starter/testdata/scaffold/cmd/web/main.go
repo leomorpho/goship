@@ -10,9 +10,9 @@ import (
 	"path/filepath"
 
 	"github.com/a-h/templ"
-	goship "github.com/leomorpho/goship/starter/app"
-	templates "github.com/leomorpho/goship/starter/app/views"
-	pages "github.com/leomorpho/goship/starter/app/views/web/pages/gen"
+	goship "github.com/leomorpho/goship/v2/starter/app"
+	templates "github.com/leomorpho/goship/v2/starter/app/views"
+	pages "github.com/leomorpho/goship/v2/starter/app/views/web/pages/gen"
 )
 
 const defaultDatabasePath = "tmp/starter.db"

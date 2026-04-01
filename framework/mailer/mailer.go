@@ -6,7 +6,7 @@ import (
 
 	"github.com/a-h/templ"
 
-	"github.com/leomorpho/goship/config"
+	"github.com/leomorpho/goship/v2/config"
 )
 
 type (

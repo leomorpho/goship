@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/leomorpho/goship/config"
+	"github.com/leomorpho/goship/v2/config"
 )
 
 func SelectStore(cfg *config.Config, db *sql.DB) authStore {

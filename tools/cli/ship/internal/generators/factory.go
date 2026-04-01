@@ -98,7 +98,7 @@ func renderFactoryFile(pascal, table string) string {
 import (
 	"time"
 
-	"github.com/leomorpho/goship/tests/factory"
+	"github.com/leomorpho/goship/v2/tests/factory"
 )
 
 type %[1]sRecord struct {

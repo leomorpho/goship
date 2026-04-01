@@ -3,8 +3,8 @@ package bootstrap
 import (
 	"context"
 
-	jobsmodule "github.com/leomorpho/goship-modules/jobs"
-	"github.com/leomorpho/goship/framework/core"
+	jobsmodule "github.com/leomorpho/goship/v2-modules/jobs"
+	"github.com/leomorpho/goship/v2/framework/core"
 )
 
 type moduleJobsBridge struct {

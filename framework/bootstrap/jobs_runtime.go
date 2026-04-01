@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 
-	jobsmodule "github.com/leomorpho/goship-modules/jobs"
-	"github.com/leomorpho/goship/config"
-	"github.com/leomorpho/goship/framework/core"
+	jobsmodule "github.com/leomorpho/goship/v2-modules/jobs"
+	"github.com/leomorpho/goship/v2/config"
+	"github.com/leomorpho/goship/v2/framework/core"
 )
 
 type JobsProcess string

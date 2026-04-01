@@ -14,9 +14,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/leomorpho/goship/config"
-	"github.com/leomorpho/goship/framework/domain"
-	storagequeries "github.com/leomorpho/goship/framework/storage/queries"
+	"github.com/leomorpho/goship/v2/config"
+	"github.com/leomorpho/goship/v2/framework/domain"
+	storagequeries "github.com/leomorpho/goship/v2/framework/storage/queries"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/spf13/afero"

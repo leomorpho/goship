@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	backlitedriver "github.com/leomorpho/goship-modules/jobs/drivers/backlite"
+	backlitedriver "github.com/leomorpho/goship/v2-modules/jobs/drivers/backlite"
 	backlite "github.com/mikestefanello/backlite"
 )
 

@@ -10,7 +10,7 @@ import (
 	"sort"
 	"strings"
 
-	rt "github.com/leomorpho/goship/tools/cli/ship/internal/runtime"
+	rt "github.com/leomorpho/goship/v2/tools/cli/ship/internal/runtime"
 )
 
 const modulesManifestHeader = `# Workspace-level module enablement for the monolith.
@@ -220,7 +220,7 @@ STRIPE_WEBHOOK_SECRET=
 var moduleCatalog = map[string]moduleInfo{
 	"notifications": {
 		ID:         "notifications",
-		ModulePath: "github.com/leomorpho/goship-modules/notifications",
+		ModulePath: "github.com/leomorpho/goship/v2-modules/notifications",
 		LocalPath:  filepath.Join("modules", "notifications"),
 		InstallContract: moduleInstallContract{
 			Routes: []string{
@@ -263,7 +263,7 @@ var moduleCatalog = map[string]moduleInfo{
 	},
 	"paidsubscriptions": {
 		ID:                "paidsubscriptions",
-		ModulePath:        "github.com/leomorpho/goship-modules/paidsubscriptions",
+		ModulePath:        "github.com/leomorpho/goship/v2-modules/paidsubscriptions",
 		LocalPath:         filepath.Join("modules", "paidsubscriptions"),
 		InstallContract:   paidSubscriptionsInstallContract,
 		ContainerSnippet:  paidSubscriptionsContainerSnippet,
@@ -273,7 +273,7 @@ var moduleCatalog = map[string]moduleInfo{
 	},
 	"emailsubscriptions": {
 		ID:               "emailsubscriptions",
-		ModulePath:       "github.com/leomorpho/goship-modules/emailsubscriptions",
+		ModulePath:       "github.com/leomorpho/goship/v2-modules/emailsubscriptions",
 		LocalPath:        filepath.Join("modules", "emailsubscriptions"),
 		InstallContract:  emailSubscriptionsInstallContract,
 		ContainerSnippet: emailSubscriptionsContainerSnippet,
@@ -342,7 +342,7 @@ var moduleCatalog = map[string]moduleInfo{
 	},
 	"jobs": {
 		ID:         "jobs",
-		ModulePath: "github.com/leomorpho/goship-modules/jobs",
+		ModulePath: "github.com/leomorpho/goship/v2-modules/jobs",
 		LocalPath:  filepath.Join("modules", "jobs"),
 		InstallContract: moduleInstallContract{
 			Jobs: []string{
@@ -371,7 +371,7 @@ var moduleCatalog = map[string]moduleInfo{
 	},
 	"storage": {
 		ID:         "storage",
-		ModulePath: "github.com/leomorpho/goship-modules/storage",
+		ModulePath: "github.com/leomorpho/goship/v2-modules/storage",
 		LocalPath:  filepath.Join("modules", "storage"),
 		InstallContract: moduleInstallContract{
 			Jobs: []string{

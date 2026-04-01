@@ -109,7 +109,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/leomorpho/goship/framework/core"
+	"github.com/leomorpho/goship/v2/framework/core"
 )
 
 const Type%s = %q
@@ -152,7 +152,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/leomorpho/goship/framework/core"
+	"github.com/leomorpho/goship/v2/framework/core"
 )
 
 type fake%[1]sJobs struct {

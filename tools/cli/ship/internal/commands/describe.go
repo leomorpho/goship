@@ -16,7 +16,7 @@ import (
 	"sort"
 	"strings"
 
-	rt "github.com/leomorpho/goship/tools/cli/ship/internal/runtime"
+	rt "github.com/leomorpho/goship/v2/tools/cli/ship/internal/runtime"
 )
 
 type DescribeDeps struct {
@@ -238,7 +238,7 @@ func collectDescribeModuleAdoption(root string, modules []describeModule) ([]des
 			continue
 		}
 
-		modulePath := fmt.Sprintf("github.com/leomorpho/goship-modules/%s", module.ID)
+		modulePath := fmt.Sprintf("github.com/leomorpho/goship/v2-modules/%s", module.ID)
 		source := "tagged-release"
 		version := "v0.0.0"
 

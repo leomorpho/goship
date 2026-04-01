@@ -3,13 +3,13 @@ package notifications
 import (
 	"context"
 	"database/sql"
-	dbqueries "github.com/leomorpho/goship-modules/notifications/db/queries"
+	dbqueries "github.com/leomorpho/goship/v2-modules/notifications/db/queries"
 	"strconv"
 	"strings"
 	"time"
 
-	paidsubscriptions "github.com/leomorpho/goship-modules/paidsubscriptions"
-	"github.com/leomorpho/goship/framework/domain"
+	paidsubscriptions "github.com/leomorpho/goship/v2-modules/paidsubscriptions"
+	"github.com/leomorpho/goship/v2/framework/domain"
 )
 
 type sqlPlannedNotificationStore struct {

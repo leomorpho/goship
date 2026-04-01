@@ -6,7 +6,7 @@ import (
 	"errors"
 	"time"
 
-	dbgen "github.com/leomorpho/goship/db/gen"
+	dbgen "github.com/leomorpho/goship/v2/db/gen"
 )
 
 var errBobAuthStoreNotImplemented = errors.New("bob auth store not implemented")

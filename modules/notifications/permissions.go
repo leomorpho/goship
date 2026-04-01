@@ -6,7 +6,7 @@ import (
 
 	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/gofrs/uuid"
-	"github.com/leomorpho/goship/framework/domain"
+	"github.com/leomorpho/goship/v2/framework/domain"
 )
 
 type notificationPermissionRecord struct {

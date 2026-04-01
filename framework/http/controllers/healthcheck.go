@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
-	"github.com/leomorpho/goship/framework/health"
-	"github.com/leomorpho/goship/framework/http/ui"
+	"github.com/leomorpho/goship/v2/framework/health"
+	"github.com/leomorpho/goship/v2/framework/http/ui"
 )
 
 type HealthcheckRoute struct {

@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/leomorpho/goship/framework/core"
+	"github.com/leomorpho/goship/v2/framework/core"
 )
 
 // Selection describes configured adapter names for runtime seams.

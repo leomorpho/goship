@@ -5,8 +5,8 @@ import (
 	"io"
 	"time"
 
-	"github.com/leomorpho/goship/framework/domain"
-	ssepubsub "github.com/leomorpho/goship/framework/pubsub"
+	"github.com/leomorpho/goship/v2/framework/domain"
+	ssepubsub "github.com/leomorpho/goship/v2/framework/pubsub"
 	"github.com/stretchr/testify/mock"
 )
 

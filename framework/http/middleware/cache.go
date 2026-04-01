@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"time"
 
-	cacherepo "github.com/leomorpho/goship/framework/cache"
-	"github.com/leomorpho/goship/framework/http/authcontext"
-	"github.com/leomorpho/goship/framework/http/requestcontext"
+	cacherepo "github.com/leomorpho/goship/v2/framework/cache"
+	"github.com/leomorpho/goship/v2/framework/http/authcontext"
+	"github.com/leomorpho/goship/v2/framework/http/requestcontext"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/labstack/echo/v4"

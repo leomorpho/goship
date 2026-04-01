@@ -1,10 +1,10 @@
-module github.com/leomorpho/goship/tools/cli/ship
+module github.com/leomorpho/goship/v2/tools/cli/ship
 
 go 1.23.0
 
 require (
 	github.com/ilyakaznacheev/cleanenv v1.5.0
-	github.com/leomorpho/goship v0.0.0
+	github.com/leomorpho/goship/v2 v2.0.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -14,4 +14,4 @@ require (
 	olympos.io/encoding/edn v0.0.0-20201019073823-d3554ca0b0a3 // indirect
 )
 
-replace github.com/leomorpho/goship => ../../..
+replace github.com/leomorpho/goship/v2 => ../../..

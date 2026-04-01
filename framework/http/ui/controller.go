@@ -11,11 +11,11 @@ import (
 	"strings"
 
 	"github.com/a-h/templ"
-	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
-	frameworkmiddleware "github.com/leomorpho/goship/framework/middleware"
-	redirector "github.com/leomorpho/goship/framework/redirect"
-	webmiddleware "github.com/leomorpho/goship/framework/http/middleware"
-	"github.com/leomorpho/goship/framework/http/requestcontext"
+	frameworkbootstrap "github.com/leomorpho/goship/v2/framework/bootstrap"
+	frameworkmiddleware "github.com/leomorpho/goship/v2/framework/middleware"
+	redirector "github.com/leomorpho/goship/v2/framework/redirect"
+	webmiddleware "github.com/leomorpho/goship/v2/framework/http/middleware"
+	"github.com/leomorpho/goship/v2/framework/http/requestcontext"
 
 	"github.com/labstack/echo/v4"
 )

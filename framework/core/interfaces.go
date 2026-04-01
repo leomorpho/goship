@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
-	backupcontract "github.com/leomorpho/goship/framework/backup"
+	backupcontract "github.com/leomorpho/goship/v2/framework/backup"
 )
 
 // TxFunc is executed inside a store transaction boundary.
