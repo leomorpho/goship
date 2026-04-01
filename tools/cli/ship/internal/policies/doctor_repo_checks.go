@@ -7,6 +7,15 @@ import (
 	"strings"
 )
 
+type workspaceKind string
+
+const (
+	workspaceKindUnknown             workspaceKind = "unknown"
+	workspaceKindGeneratedApp        workspaceKind = "generated-app"
+	workspaceKindGeneratedAPIOnlyApp workspaceKind = "generated-api-only-app"
+	workspaceKindFrameworkRepo       workspaceKind = "framework-repo"
+)
+
 func checkTopLevelDirs(root string) []DoctorIssue {
 	issues := make([]DoctorIssue, 0)
 	entries, err := os.ReadDir(root)
@@ -163,6 +172,73 @@ func checkFrameworkCIVerifyGate(root string) []DoctorIssue {
 	return issues
 }
 
+func detectWorkspaceKind(root string) workspaceKind {
+	if looksLikeCanonicalFrameworkRepo(root) {
+		return workspaceKindFrameworkRepo
+	}
+	if looksLikeGeneratedAPIOnlyWorkspace(root) {
+		return workspaceKindGeneratedAPIOnlyApp
+	}
+	if looksLikeGeneratedAppWorkspace(root) {
+		return workspaceKindGeneratedApp
+	}
+	return workspaceKindUnknown
+}
+
+func checkGeneratedAppRequiredPaths(root string) []DoctorIssue {
+	kind := detectWorkspaceKind(root)
+	if kind != workspaceKindGeneratedApp && kind != workspaceKindGeneratedAPIOnlyApp {
+		return nil
+	}
+
+	issues := make([]DoctorIssue, 0)
+	requiredDirs := []string{
+		filepath.Join("app"),
+		filepath.Join("app", "foundation"),
+		filepath.Join("app", "web", "controllers"),
+		filepath.Join("app", "web", "middleware"),
+		filepath.Join("app", "web", "ui"),
+		filepath.Join("app", "web", "viewmodels"),
+		filepath.Join("app", "jobs"),
+		filepath.Join("db", "queries"),
+		filepath.Join("db", "migrate", "migrations"),
+	}
+	if kind == workspaceKindGeneratedApp {
+		requiredDirs = append(requiredDirs, filepath.Join("app", "views"))
+	}
+	for _, rel := range requiredDirs {
+		if !isDir(filepath.Join(root, rel)) {
+			issues = append(issues, DoctorIssue{
+				Code:    "DX001",
+				Message: fmt.Sprintf("missing required directory: %s", rel),
+				Fix:     fmt.Sprintf("create %s or regenerate the app scaffold with `ship new`", rel),
+			})
+		}
+	}
+
+	requiredFiles := []string{
+		filepath.Join("app", "router.go"),
+		filepath.Join("app", "foundation", "container.go"),
+		filepath.Join("app", "web", "routenames", "routenames.go"),
+		filepath.Join("db", "bobgen.yaml"),
+		filepath.Join("config", "modules.yaml"),
+		filepath.Join("docs", "00-index.md"),
+		filepath.Join("docs", "architecture", "01-architecture.md"),
+		filepath.Join("docs", "architecture", "08-cognitive-model.md"),
+	}
+	for _, rel := range requiredFiles {
+		if !hasFile(filepath.Join(root, rel)) {
+			issues = append(issues, DoctorIssue{
+				Code:    "DX002",
+				Message: fmt.Sprintf("missing required file: %s", rel),
+				Fix:     "restore missing documentation or scaffold files",
+			})
+		}
+	}
+
+	return issues
+}
+
 func looksLikeCanonicalFrameworkRepo(root string) bool {
 	signals := []string{
 		filepath.Join("tools", "cli", "ship"),
@@ -181,4 +257,20 @@ func looksLikeCanonicalFrameworkRepo(root string) bool {
 	}
 
 	return hits >= 2
+}
+
+func looksLikeGeneratedAPIOnlyWorkspace(root string) bool {
+	if !looksLikeGeneratedAppWorkspace(root) {
+		return false
+	}
+
+	webMainPath := filepath.Join(root, "cmd", "web", "main.go")
+	content, err := os.ReadFile(webMainPath)
+	if err != nil {
+		return false
+	}
+
+	text := string(content)
+	return strings.Contains(text, "starter api web listening") &&
+		strings.Contains(text, "writeJSON(w, http.StatusOK")
 }

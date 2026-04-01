@@ -16,6 +16,23 @@ func TestLooksLikeCanonicalFrameworkRepoIgnoresGeneratedAppScaffold(t *testing.T
 	if looksLikeCanonicalFrameworkRepo(root) {
 		t.Fatalf("looksLikeCanonicalFrameworkRepo(%q) = true, want false for generated app workspace", root)
 	}
+	if kind := detectWorkspaceKind(root); kind != workspaceKindGeneratedApp {
+		t.Fatalf("detectWorkspaceKind(%q) = %q, want %q", root, kind, workspaceKindGeneratedApp)
+	}
+}
+
+func TestDetectWorkspaceKindRecognizesAPIOnlyGeneratedApp(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	createAPIOnlyGeneratedAppWorkspace(t, root)
+
+	if kind := detectWorkspaceKind(root); kind != workspaceKindGeneratedAPIOnlyApp {
+		t.Fatalf("detectWorkspaceKind(%q) = %q, want %q", root, kind, workspaceKindGeneratedAPIOnlyApp)
+	}
+	if looksLikeCanonicalFrameworkRepo(root) {
+		t.Fatalf("looksLikeCanonicalFrameworkRepo(%q) = true, want false for API-only generated app workspace", root)
+	}
 }
 
 func TestFrameworkRepoChecksOnlyApplyToFrameworkRepo(t *testing.T) {
@@ -49,6 +66,30 @@ func TestFrameworkRepoChecksOnlyApplyToFrameworkRepo(t *testing.T) {
 	workflowIssues := checkFrameworkCIVerifyGate(frameworkRoot)
 	if !hasDoctorIssueContaining(workflowIssues, "missing CI workflow gate for strict framework verify profile") {
 		t.Fatalf("checkFrameworkCIVerifyGate(framework repo) missing workflow issue\nissues = %#v", workflowIssues)
+	}
+}
+
+func TestGeneratedAppRequiredPathsVaryByWorkspaceKind(t *testing.T) {
+	t.Parallel()
+
+	defaultRoot := t.TempDir()
+	createGeneratedAppWorkspace(t, defaultRoot)
+	if issues := checkGeneratedAppRequiredPaths(defaultRoot); len(issues) != 0 {
+		t.Fatalf("checkGeneratedAppRequiredPaths(default generated app) issues = %#v, want none", issues)
+	}
+
+	apiRoot := t.TempDir()
+	createAPIOnlyGeneratedAppWorkspace(t, apiRoot)
+	if issues := checkGeneratedAppRequiredPaths(apiRoot); len(issues) != 0 {
+		t.Fatalf("checkGeneratedAppRequiredPaths(API-only generated app) issues = %#v, want none", issues)
+	}
+
+	if err := os.RemoveAll(filepath.Join(defaultRoot, "app", "views")); err != nil {
+		t.Fatalf("os.RemoveAll(app/views) error = %v", err)
+	}
+	issues := checkGeneratedAppRequiredPaths(defaultRoot)
+	if !hasDoctorIssueContaining(issues, "missing required directory: app/views") {
+		t.Fatalf("checkGeneratedAppRequiredPaths(default generated app missing views) issues = %#v, want app/views requirement", issues)
 	}
 }
 
@@ -126,6 +167,37 @@ func createFrameworkRepoWorkspace(t *testing.T, root string) {
 	}
 
 	writeTestFile(t, root, "go.work", "go 1.25.6\n")
+}
+
+func createAPIOnlyGeneratedAppWorkspace(t *testing.T, root string) {
+	t.Helper()
+
+	createGeneratedAppWorkspace(t, root)
+	if err := os.RemoveAll(filepath.Join(root, "app", "views")); err != nil {
+		t.Fatalf("os.RemoveAll(app/views) error = %v", err)
+	}
+	writeTestFile(t, root, filepath.Join("cmd", "web", "main.go"), strings.Join([]string{
+		"package main",
+		"",
+		"import (",
+		"\t\"encoding/json\"",
+		"\t\"net/http\"",
+		")",
+		"",
+		"func main() {",
+		"\t_ = json.NewEncoder",
+		"\thttp.HandleFunc(\"/\", func(w http.ResponseWriter, _ *http.Request) {",
+		"\t\twriteJSON(w, http.StatusOK, map[string]string{\"status\": \"ok\"})",
+		"\t})",
+		"\tprintln(\"starter api web listening\")",
+		"}",
+		"",
+		"func writeJSON(w http.ResponseWriter, status int, payload any) {",
+		"\tw.WriteHeader(status)",
+		"\t_ = json.NewEncoder(w).Encode(payload)",
+		"}",
+		"",
+	}, "\n"))
 }
 
 func writeTestFile(t *testing.T, root, rel, content string) {

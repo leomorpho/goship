@@ -112,7 +112,8 @@ Verify with:
 - `go test ./tools/cli/ship/internal/policies -run 'Test.*FrameworkRepo.*|Test.*GeneratedApp.*' -count=1`
 - temp-dir proof using a generated app plus `ship doctor --json`
 
-- [ ] SURF-03 — Split framework-only checks from generated-app checks cleanly. Write failing doctor/verify tests covering default generated apps, API-only generated apps, and the framework repo. Then separate the required file/path/workflow checks so downstream apps are judged by downstream-app rules and the framework repo is judged by framework rules.
+- [x] SURF-03 — Split framework-only checks from generated-app checks cleanly. Write failing doctor/verify tests covering default generated apps, API-only generated apps, and the framework repo. Then separate the required file/path/workflow checks so downstream apps are judged by downstream-app rules and the framework repo is judged by framework rules.
+  - Completed 2026-04-01: added explicit workspace-kind classification for default generated apps, API-only generated apps, and the framework repo; moved downstream scaffold required-path enforcement behind generated-app-only rules so API-only apps no longer inherit `app/views`; and added doctor/verify coverage for all three workspace kinds.
 Acceptance criteria:
 - doctor/verify required-path lists are correct for all supported workspace kinds;
 - no framework-only workflow or top-level path is required in downstream apps;

@@ -252,51 +252,10 @@ type doctorHandlerBody struct {
 
 func RunDoctorChecks(root string) []DoctorIssue {
 	issues := make([]DoctorIssue, 0)
-	isFrameworkRepo := looksLikeCanonicalFrameworkRepo(root)
+	kind := detectWorkspaceKind(root)
+	isFrameworkRepo := kind == workspaceKindFrameworkRepo
 
-	if !isFrameworkRepo {
-		requiredDirs := []string{
-			filepath.Join("app"),
-			filepath.Join("app", "foundation"),
-			filepath.Join("app", "web", "controllers"),
-			filepath.Join("app", "web", "middleware"),
-			filepath.Join("app", "web", "ui"),
-			filepath.Join("app", "web", "viewmodels"),
-			filepath.Join("app", "jobs"),
-			filepath.Join("app", "views"),
-			filepath.Join("db", "queries"),
-			filepath.Join("db", "migrate", "migrations"),
-		}
-		for _, rel := range requiredDirs {
-			if !isDir(filepath.Join(root, rel)) {
-				issues = append(issues, DoctorIssue{
-					Code:    "DX001",
-					Message: fmt.Sprintf("missing required directory: %s", rel),
-					Fix:     fmt.Sprintf("create %s or regenerate the app scaffold with `ship new`", rel),
-				})
-			}
-		}
-
-		requiredFiles := []string{
-			filepath.Join("app", "router.go"),
-			filepath.Join("app", "foundation", "container.go"),
-			filepath.Join("app", "web", "routenames", "routenames.go"),
-			filepath.Join("db", "bobgen.yaml"),
-			filepath.Join("config", "modules.yaml"),
-			filepath.Join("docs", "00-index.md"),
-			filepath.Join("docs", "architecture", "01-architecture.md"),
-			filepath.Join("docs", "architecture", "08-cognitive-model.md"),
-		}
-		for _, rel := range requiredFiles {
-			if !hasFile(filepath.Join(root, rel)) {
-				issues = append(issues, DoctorIssue{
-					Code:    "DX002",
-					Message: fmt.Sprintf("missing required file: %s", rel),
-					Fix:     "restore missing documentation or scaffold files",
-				})
-			}
-		}
-	}
+	issues = append(issues, checkGeneratedAppRequiredPaths(root)...)
 
 	issues = append(issues, doctorCheckAPIRoutes(root)...)
 
@@ -356,11 +315,11 @@ func RunDoctorChecks(root string) []DoctorIssue {
 
 	issues = append(issues, checkMarkerIntegrity(root)...)
 	issues = append(issues, checkRequiredConfigEnv(root)...)
-	if !isFrameworkRepo {
+	if kind == workspaceKindGeneratedApp || kind == workspaceKindGeneratedAPIOnlyApp {
 		issues = append(issues, checkPackageNaming(root, filepath.Join("app", "web", "ui"), "ui")...)
 		issues = append(issues, checkPackageNaming(root, filepath.Join("app", "web", "viewmodels"), "viewmodels")...)
 		issues = append(issues, checkTopLevelDirs(root)...)
-	} else {
+	} else if isFrameworkRepo {
 		issues = append(issues, CheckCanonicalRepoTopLevelPaths(root)...)
 		issues = append(issues, checkFrameworkCIVerifyGate(root)...)
 	}
