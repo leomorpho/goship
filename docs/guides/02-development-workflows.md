@@ -171,7 +171,7 @@ Go tests:
 - `make test` (broader suite; may include Docker-backed packages depending on environment)
 - `make test-generator-contracts` (generator report snapshot + idempotency gate used by CI)
 - `make test-generator-idempotency` (standalone generator duplicate-run matrix without snapshot refresh)
-- `make test-alpha-contracts` (frozen `v0.1.0-alpha` root-help + route-inventory gate used by CI)
+- `make test-alpha-contracts` (legacy frozen `v0.1.0-alpha` root-help + route-inventory gate; not the canonical v1 release-proof lane)
 - `make test-doc-sync` (route/scope documentation guard used by CI)
 - `make test-agent-evals` (cold-start agent eval gate with JSON score report at `artifacts/agent-eval-report.json`)
 - `make test-dead-routes` (route inventory regression guard used by CI)
@@ -241,7 +241,7 @@ The `split_frontend_contract` CI job runs `make test-sveltekit-contract`, which 
 The `generator_contracts` CI job runs `make test-generator-contracts` and blocks merges on generator snapshot or idempotency drift.
 Use `make test-generator-idempotency` when only the duplicate-run matrix is relevant and you do not need to touch snapshots.
 When a generator output change is intentional, refresh the golden file locally with `UPDATE_GENERATOR_SNAPSHOTS=1 make test-generator-contracts` and commit the updated snapshot in the same change.
-The `alpha_contract` CI job runs `make test-alpha-contracts` and freezes the current root CLI help plus route inventory as the `v0.1.0-alpha` public surface.
+The `alpha_contract` CI job runs `make test-alpha-contracts` and freezes the historical `v0.1.0-alpha` root CLI help plus route inventory surface. Treat it as legacy compatibility evidence, not as the primary v1 release-proof lane.
 Only refresh those snapshots when the alpha surface change has approved review before merge, then run `UPDATE_ALPHA_CONTRACTS=1 make test-alpha-contracts` and commit the snapshot update with the contract change.
 The `doc_sync` CI job runs `make test-doc-sync` and keeps the HTTP route map plus project-scope docs aligned with canonical managed/admin/realtime surfaces.
 The `agent_evals` CI job runs `make test-agent-evals`, enforces the cold-start eval success threshold, and uploads `artifacts/agent-eval-report.json` for regression triage.

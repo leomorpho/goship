@@ -8,6 +8,13 @@ Current deploy method covered here:
 
 - Kamal
 
+Current supported topology in this guide:
+
+- web host + separate worker host
+- external Postgres
+- external Redis
+- distributed-style process topology (not the single-binary local path)
+
 ## Required Files
 
 - `infra/deploy/kamal/deploy.yml`
@@ -25,7 +32,8 @@ Before deploying:
 3. Confirm runtime environment variables (DB, cache, app secrets).
 4. Run local checks:
    - `go run ./tools/cli/ship/cmd/ship test`
-   - `go run ./tools/cli/ship/cmd/ship test --integration` (recommended when touching infra-sensitive code)
+   - `go run ./tools/cli/ship/cmd/ship test --integration`
+   - `go run ./tools/cli/ship/cmd/ship verify --profile fast`
 
 ## First Setup
 
@@ -53,6 +61,7 @@ kamal traefik reboot -c infra/deploy/kamal/deploy.yml
 
 ## Notes
 
-- Worker and cache topology depends on your runtime profile.
+- This Kamal path assumes a distributed-style deployment with worker separation and reachable Redis/Postgres services.
+- It does **not** document the single-binary local path as a deployment story.
 - If using Redis-backed async/realtime paths, ensure Redis is reachable from deployed processes.
 - Keep deployment docs in sync with `docs/roadmap/01-framework-plan.md` as runtime modes evolve.

@@ -513,7 +513,8 @@ Verify with:
 - `go test ./tools/cli/ship/internal/commands -count=1`
 - `sed -n '1,200p' docs/beta-readiness.md`
 
-- [ ] REL-02 — Add real upgrade fixture coverage for readiness, planning, and apply. Write failing upgrade tests that generate representative fixture apps or fixture repos, run `ship upgrade --json` and `ship upgrade apply`, and prove the readiness/plan/apply surfaces across supported upgrade steps. Then wire those real tests into CI and the beta checklist.
+- [x] REL-02 — Add real upgrade fixture coverage for readiness, planning, and apply. Write failing upgrade tests that generate representative fixture apps or fixture repos, run `ship upgrade --json` and `ship upgrade apply`, and prove the readiness/plan/apply surfaces across supported upgrade steps. Then wire those real tests into CI and the beta checklist.
+  - Completed 2026-04-01: added real upgrade fixture tests for JSON readiness reports, unsupported contract-version rejection, and deterministic `ship upgrade apply` rewrite behavior against temp fixture files, replacing the previously nonexistent CI-targeted test names.
 Acceptance criteria:
 - upgrade evidence no longer relies on missing test names;
 - plan/apply behavior is proven on real fixtures;
@@ -568,7 +569,8 @@ Acceptance criteria:
 Verify with:
 - fresh-temp-dir install proof using the documented command
 
-- [ ] REL-08 — Add a truthful deployment-path proof for the documented Kamal lane. Write a failing contract test or proof script asserting that `docs/guides/04-deployment-kamal.md`, `infra/deploy/kamal/deploy.yml`, and the current runtime/profile assumptions agree on the supported deployment topology for v1, and that the documented preflight commands are the ones release actually relies on. Then either harden the Kamal path or narrow the docs so deployment claims are honest.
+- [x] REL-08 — Add a truthful deployment-path proof for the documented Kamal lane. Write a failing contract test or proof script asserting that `docs/guides/04-deployment-kamal.md`, `infra/deploy/kamal/deploy.yml`, and the current runtime/profile assumptions agree on the supported deployment topology for v1, and that the documented preflight commands are the ones release actually relies on. Then either harden the Kamal path or narrow the docs so deployment claims are honest.
+  - Completed 2026-04-01: narrowed the Kamal deployment guide to the topology it actually documents today (web host + separate worker host + external Postgres/Redis), added the real preflight `ship verify --profile fast` step, and locked that deployment truth with a contract test instead of leaving the guide as a generic deployment promise.
 Acceptance criteria:
 - the documented deployment lane matches the supported runtime profiles and adapter expectations;
 - deployment docs no longer imply unsupported worker/cache topology assumptions;
@@ -597,7 +599,8 @@ Verify with:
 - `.github/workflows/test.yml`
 - `docs/guides/02-development-workflows.md`
 
-- [ ] REL-11 — Freeze the canonical browser and CLI golden suites for v1. Write failing contract tests asserting that the named browser golden lane (`npm --prefix tests/e2e run test:golden`) and the named CLI public-surface lane (`make test-alpha-contracts` or its v1 replacement) both target the actual v1 product story. Then either harden those suites around the canonical generated-app/framework surface or rename/narrow them so v1 does not inherit stale alpha-only or repo-only coverage.
+- [x] REL-11 — Freeze the canonical browser and CLI golden suites for v1. Write failing contract tests asserting that the named browser golden lane (`npm --prefix tests/e2e run test:golden`) and the named CLI public-surface lane (`make test-alpha-contracts` or its v1 replacement) both target the actual v1 product story. Then either harden those suites around the canonical generated-app/framework surface or rename/narrow them so v1 does not inherit stale alpha-only or repo-only coverage.
+  - Completed 2026-04-01: added a release contract test that distinguishes the real browser golden lane from the legacy `alpha_contract` CLI snapshot lane, and updated the docs so `make test-alpha-contracts` is explicitly treated as historical compatibility evidence rather than the primary v1 release-proof surface.
 Acceptance criteria:
 - the browser golden suite covers the intentional v1 browser contract rather than an accidental framework-demo surface;
 - the CLI golden suite freezes the intended v1 public CLI/help/route-inventory surface or is explicitly replaced by a more truthful contract lane;

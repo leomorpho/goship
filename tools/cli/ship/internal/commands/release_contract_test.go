@@ -88,3 +88,27 @@ func TestBootstrapBudgetTargetIsDocumentedAndWired(t *testing.T) {
 	guide := readRepoFile(t, "docs/guides/02-development-workflows.md")
 	assertContains(t, "docs/guides/02-development-workflows.md", guide, "make test-bootstrap-budget")
 }
+
+func TestGoldenSuiteDocsDistinguishV1FromLegacyAlphaSurface(t *testing.T) {
+	t.Parallel()
+
+	guide := readRepoFile(t, "docs/guides/02-development-workflows.md")
+	assertContains(t, "docs/guides/02-development-workflows.md", guide, "test:golden")
+	assertContains(t, "docs/guides/02-development-workflows.md", guide, "legacy")
+	assertContains(t, "docs/guides/02-development-workflows.md", guide, "not the canonical v1 release-proof lane")
+
+	cliRef := readRepoFile(t, "docs/reference/01-cli.md")
+	assertContains(t, "docs/reference/01-cli.md", cliRef, "legacy CI lane")
+	assertContains(t, "docs/reference/01-cli.md", cliRef, "not as the primary v1 release-proof surface")
+}
+
+func TestKamalGuideMatchesDistributedDeploymentTopology(t *testing.T) {
+	t.Parallel()
+
+	guide := readRepoFile(t, "docs/guides/04-deployment-kamal.md")
+	assertContains(t, "docs/guides/04-deployment-kamal.md", guide, "separate worker host")
+	assertContains(t, "docs/guides/04-deployment-kamal.md", guide, "external Postgres")
+	assertContains(t, "docs/guides/04-deployment-kamal.md", guide, "external Redis")
+	assertContains(t, "docs/guides/04-deployment-kamal.md", guide, "verify --profile fast")
+	assertContains(t, "docs/guides/04-deployment-kamal.md", guide, "does **not** document the single-binary local path")
+}
