@@ -164,8 +164,21 @@ func checkFrameworkCIVerifyGate(root string) []DoctorIssue {
 }
 
 func looksLikeCanonicalFrameworkRepo(root string) bool {
-	return isDir(filepath.Join(root, "tools", "cli", "ship")) ||
-		hasFile(filepath.Join(root, "app", "container.go")) ||
-		hasFile(filepath.Join(root, "app", "router.go")) ||
-		hasFile(filepath.Join(root, "app", "schedules.go"))
+	signals := []string{
+		filepath.Join("tools", "cli", "ship"),
+		filepath.Join("tools", "mcp", "ship"),
+		"framework",
+		"examples",
+		"testdata",
+		"go.work",
+	}
+
+	hits := 0
+	for _, rel := range signals {
+		if pathExists(filepath.Join(root, rel)) {
+			hits++
+		}
+	}
+
+	return hits >= 2
 }

@@ -102,7 +102,8 @@ Verify with:
 - `go test ./tools/cli/ship/internal/commands -run 'Test.*Scaffold.*|Test.*Doc.*New.*' -count=1`
 - `rg -n "module:add|make run|starter" README.md docs/guides/01-getting-started.md tools/cli/ship/internal/templates/starter/testdata/scaffold/README.md`
 
-- [ ] SURF-02 — Fix framework-repo vs generated-app detection in doctor/verify. Write a failing policy test proving that a fresh generated app is not treated as the framework repo, while the GoShip framework repo still receives framework-only checks. Then replace `looksLikeCanonicalFrameworkRepo` and related branching so generated apps with `app/router.go` do not automatically inherit framework-repo requirements like `go.work`, `modules/`, or `.github/workflows/test.yml`.
+- [x] SURF-02 — Fix framework-repo vs generated-app detection in doctor/verify. Write a failing policy test proving that a fresh generated app is not treated as the framework repo, while the GoShip framework repo still receives framework-only checks. Then replace `looksLikeCanonicalFrameworkRepo` and related branching so generated apps with `app/router.go` do not automatically inherit framework-repo requirements like `go.work`, `modules/`, or `.github/workflows/test.yml`.
+  - Completed 2026-04-01: replaced repo-kind detection based on ordinary generated-app files with a framework-only signal set, added policy coverage for generated-app vs framework-repo branching, and verified a temp-dir fresh app returns clean `ship doctor --json` output without framework-only `DX013` drift.
 Acceptance criteria:
 - fresh generated apps no longer emit framework-only `DX013` errors;
 - the framework repo still enforces its canonical repo-shape checks;
