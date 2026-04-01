@@ -25,22 +25,26 @@ ship --help
 
 ## 2. Generate a New App
 
-Create a fresh app scaffold:
+Create a fresh starter app scaffold:
 
 ```bash
 ship new myapp --module example.com/myapp --no-i18n
 cd myapp
 ```
 
-Initialize runtime dependencies and migrate your local DB:
+The default `ship new` output is the minimal starter scaffold, not the full module-capable framework workspace.
+Installable batteries still target the full framework workspace today, so do not rely on `ship module:add` inside a fresh starter app yet.
+
+Run the canonical first-boot sequence:
 
 ```bash
 ship db:migrate
+ship dev
 ```
 
 ## 3. Start Development Mode
 
-Run the canonical local loop:
+`ship dev` is the canonical local loop for the generated starter:
 
 ```bash
 ship dev
@@ -55,7 +59,7 @@ ship dev --all
 
 ## 4. Starter Auth Surface
 
-The starter includes the landing/auth/home/profile route surface. Installable batteries still target the full framework workspace rather than the minimal starter scaffold, so do not rely on `ship module:add` inside a fresh starter app yet.
+The starter includes the landing/auth/home/profile route surface.
 
 ```bash
 # build on the starter routes first, then move to the full workspace shape if you need installable batteries

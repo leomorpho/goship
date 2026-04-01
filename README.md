@@ -58,6 +58,16 @@ Common commands:
 - `go run ./tools/cli/ship/cmd/ship doctor`: project health checks
 - `go run ./tools/cli/ship/cmd/ship verify`: runtime contract checks
 
+## `ship new` Default Story
+
+The default `ship new` output is a minimal starter app, not the full module-capable framework workspace.
+
+- starter route surface: landing, auth, home, and profile
+- installable batteries: `ship module:add` is not supported in a fresh starter app
+- canonical first-boot sequence: `ship db:migrate`, then `ship dev`
+
+Move to the full framework workspace shape if you need installable batteries or framework-authoring surfaces.
+
 ## Runtime Seams (Canonical)
 
 Framework runtime ownership is explicit under `app/`: `app/container.go`, `app/router.go`, `app/schedules.go`.

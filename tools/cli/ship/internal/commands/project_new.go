@@ -89,7 +89,7 @@ func RunNew(args []string, d NewDeps) int {
 	}
 	fmt.Fprintf(d.Out, "GitHub Actions workflows created. Add DEPLOY_KEY secret to enable deployment.\n")
 	printNewI18nStatus(d.Out, opts)
-	fmt.Fprintf(d.Out, "Next: cd %s && make run\n", opts.AppPath)
+	fmt.Fprintf(d.Out, "Next: cd %s && ship db:migrate && ship dev\n", opts.AppPath)
 	return 0
 }
 
