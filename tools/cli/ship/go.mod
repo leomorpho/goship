@@ -4,7 +4,7 @@ go 1.23.0
 
 require (
 	github.com/ilyakaznacheev/cleanenv v1.5.0
-	github.com/leomorpho/goship/v2 v2.0.0
+	github.com/leomorpho/goship/v2 v2.0.2
 	gopkg.in/yaml.v3 v3.0.1
 )
 
