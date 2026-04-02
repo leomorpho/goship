@@ -17,6 +17,8 @@ import (
 	"time"
 )
 
+var starterResetTokenPattern = regexp.MustCompile(`data-reset-token>([^<]+)<`)
+
 func TestFreshApp(t *testing.T) {
 	shipbin := buildShipBinary(t)
 	appPath := scaffoldFreshAppViaShip(t, shipbin, false)
@@ -265,65 +267,16 @@ func TestFreshAppAuthFlow(t *testing.T) {
 	appPath := scaffoldFreshAppViaShip(t, shipbin, false)
 	runCmd(t, appPath, shipbin, "db:migrate")
 
-	port := reserveFreePort(t)
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	webCmd := exec.CommandContext(ctx, "go", "run", "./cmd/web")
-	webCmd.Dir = appPath
-	webCmd.Env = append(os.Environ(), "PORT="+port)
-	logPath := filepath.Join(t.TempDir(), "starter-auth-web.log")
-	logFile, err := os.Create(logPath)
-	if err != nil {
-		t.Fatalf("os.Create(log) error = %v", err)
-	}
-	defer logFile.Close()
-	webCmd.Stdout = logFile
-	webCmd.Stderr = logFile
-	if err := webCmd.Start(); err != nil {
-		t.Fatalf("webCmd.Start() error = %v", err)
-	}
-	defer func() {
-		cancel()
-		if webCmd.Process != nil {
-			_ = webCmd.Process.Kill()
-		}
-		_ = webCmd.Wait()
-	}()
+	baseURL, client, cleanup := startFreshAppWebWithClient(t, appPath)
+	defer cleanup()
 
-	baseURL := "http://127.0.0.1:" + port
-	waitForHTTP200(t, baseURL+"/")
-
-	jar, err := cookiejar.New(nil)
-	if err != nil {
-		t.Fatalf("cookiejar.New() error = %v", err)
-	}
-	client := &http.Client{
-		Jar: jar,
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			return http.ErrUseLastResponse
-		},
-		Timeout: 5 * time.Second,
-	}
-
-	form := url.Values{}
-	form.Set("display_name", "Playwright User")
-	form.Set("email", "starter@example.com")
-	form.Set("password", "Password123!")
-	form.Set("birthdate", "1990-01-01")
-	form.Set("relationship_status", "single")
-
-	resp, err := client.PostForm(baseURL+"/auth/register", form)
-	if err != nil {
-		t.Fatalf("register failed: %v", err)
-	}
+	resp := registerStarterUser(t, client, baseURL, "starter@example.com", "Password123!")
 	_ = resp.Body.Close()
-	if resp.StatusCode != http.StatusSeeOther {
-		t.Fatalf("register status = %d, want 303", resp.StatusCode)
-	}
 	if got := resp.Header.Get("Location"); got != "/auth/profile" {
 		t.Fatalf("register redirect = %q, want %q", got, "/auth/profile")
 	}
 
+	var err error
 	resp, err = client.Get(baseURL + "/auth/logout")
 	if err != nil {
 		t.Fatalf("logout failed: %v", err)
@@ -373,7 +326,8 @@ func TestFreshAppAuthAccountLifecycle(t *testing.T) {
 	baseURL, client, cleanup := startFreshAppWebWithClient(t, appPath)
 	defer cleanup()
 
-	registerStarterUser(t, client, baseURL, "starter@example.com", "Password123!")
+	resp := registerStarterUser(t, client, baseURL, "starter@example.com", "Password123!")
+	_ = resp.Body.Close()
 
 	assertHTTPStatusContainsForClient(t, client, baseURL+"/auth/session", http.StatusOK, "starter@example.com")
 	assertHTTPStatusContainsForClient(t, client, baseURL+"/auth/settings", http.StatusOK, "Account settings")
@@ -403,7 +357,8 @@ func TestFreshAppPasswordResetFlow(t *testing.T) {
 	baseURL, client, cleanup := startFreshAppWebWithClient(t, appPath)
 	defer cleanup()
 
-	registerStarterUser(t, client, baseURL, "starter@example.com", "Password123!")
+	resp := registerStarterUser(t, client, baseURL, "starter@example.com", "Password123!")
+	_ = resp.Body.Close()
 	logoutStarterUser(t, client, baseURL)
 
 	resetRequest := url.Values{}
@@ -448,7 +403,8 @@ func TestFreshAppDeleteAccountFlow(t *testing.T) {
 	baseURL, client, cleanup := startFreshAppWebWithClient(t, appPath)
 	defer cleanup()
 
-	registerStarterUser(t, client, baseURL, "starter@example.com", "Password123!")
+	resp := registerStarterUser(t, client, baseURL, "starter@example.com", "Password123!")
+	_ = resp.Body.Close()
 	assertHTTPStatusContainsForClient(t, client, baseURL+"/auth/delete-account", http.StatusOK, "Delete account")
 
 	deleteForm := url.Values{}
@@ -544,7 +500,7 @@ func startFreshAppWebWithClient(t *testing.T, appPath string) (string, *http.Cli
 	return baseURL, client, cleanup
 }
 
-func registerStarterUser(t *testing.T, client *http.Client, baseURL, email, password string) {
+func registerStarterUser(t *testing.T, client *http.Client, baseURL, email, password string) *http.Response {
 	t.Helper()
 	form := url.Values{}
 	form.Set("display_name", "Starter User")
@@ -557,10 +513,11 @@ func registerStarterUser(t *testing.T, client *http.Client, baseURL, email, pass
 	if err != nil {
 		t.Fatalf("register failed: %v", err)
 	}
-	_ = resp.Body.Close()
 	if resp.StatusCode != http.StatusSeeOther {
+		_ = resp.Body.Close()
 		t.Fatalf("register status = %d, want 303", resp.StatusCode)
 	}
+	return resp
 }
 
 func logoutStarterUser(t *testing.T, client *http.Client, baseURL string) {
@@ -753,7 +710,7 @@ func getHTTPBodyForClient(t *testing.T, client *http.Client, url string) string 
 
 func extractResetToken(t *testing.T, body string) string {
 	t.Helper()
-	match := regexp.MustCompile(`data-reset-token>([^<]+)<`).FindStringSubmatch(body)
+	match := starterResetTokenPattern.FindStringSubmatch(body)
 	if len(match) != 2 {
 		t.Fatalf("reset token marker not found\nbody:\n%s", body)
 	}

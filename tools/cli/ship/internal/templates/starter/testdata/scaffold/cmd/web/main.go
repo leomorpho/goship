@@ -315,6 +315,9 @@ func sessionHandler(w http.ResponseWriter, r *http.Request) error {
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return nil
 	}
+	// Starter note: keep the session surface same-origin and simple. Anonymous
+	// callers follow the same login redirect semantics as other protected pages
+	// instead of receiving a separate unauthenticated JSON contract.
 	email, ok := currentUser(r)
 	if !ok {
 		http.Redirect(w, r, "/auth/login?next="+url.QueryEscape("/auth/session"), http.StatusSeeOther)
@@ -469,5 +472,8 @@ func sessionToken() (string, error) {
 }
 
 func resetTokenForEmail(email string) string {
+	// Starter note: this deterministic token keeps the password-reset proof
+	// no-infra and testable. It is intentionally a starter-only simplification,
+	// not a production-grade reset-token pattern.
 	return "reset-" + hex.EncodeToString([]byte(email))
 }
