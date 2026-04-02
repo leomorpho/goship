@@ -7,11 +7,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"html"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	"github.com/a-h/templ"
@@ -223,17 +225,34 @@ type formField struct {
 	Label string
 	Type  string
 	Value string
+	Error string
 }
 
 func renderSimpleFormPage(w http.ResponseWriter, title, component, action, next, submitLabel string, fields []formField) error {
+	return renderSimpleFormPageStatus(w, http.StatusOK, title, component, action, next, submitLabel, fields)
+}
+
+func renderSimpleFormPageStatus(w http.ResponseWriter, status int, title, component, action, next, submitLabel string, fields []formField) error {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(status)
 	_, err := fmt.Fprintf(w, `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>%s</title><link rel="stylesheet" href="/static/styles_bundle.css"></head><body><div class="starter-shell"><header class="starter-header"><div class="starter-brand">GoShip Starter</div></header><section data-component="%s"><h1>%s</h1><form method="post" action="%s" data-component="%s">`, title, component, title, action, component)
 	if err != nil {
 		return err
 	}
 	for _, field := range fields {
-		if _, err := fmt.Fprintf(w, `<label>%s<input name="%s" type="%s" value="%s"></label>`, field.Label, field.Name, field.Type, field.Value); err != nil {
+		if field.Type == "hidden" {
+			if _, err := fmt.Fprintf(w, `<input name="%s" type="hidden" value="%s">`, html.EscapeString(field.Name), html.EscapeString(field.Value)); err != nil {
+				return err
+			}
+			continue
+		}
+		if _, err := fmt.Fprintf(w, `<label>%s<input name="%s" type="%s" value="%s"></label>`, html.EscapeString(field.Label), html.EscapeString(field.Name), html.EscapeString(field.Type), html.EscapeString(field.Value)); err != nil {
 			return err
+		}
+		if field.Error != "" {
+			if _, err := fmt.Fprintf(w, `<p data-validation-for="%s">%s</p>`, html.EscapeString(field.Name), html.EscapeString(field.Error)); err != nil {
+				return err
+			}
 		}
 	}
 	if _, err := fmt.Fprintf(w, `<input name="next" type="hidden" value="%s"><button type="submit">%s</button></form></section></div></body></html>`, next, submitLabel); err != nil {
@@ -251,6 +270,15 @@ func registerHandler(w http.ResponseWriter, r *http.Request) error {
 		"email":        "email is required",
 		"password":     "password is required",
 	}); len(errs) > 0 {
+		if wantsHTMLValidation(r) {
+			return renderSimpleFormPageStatus(w, http.StatusBadRequest, "Register", "register", "/auth/register", r.FormValue("next"), "Register", []formField{
+				{Name: "display_name", Label: "Display Name", Type: "text", Value: r.FormValue("display_name"), Error: validationMessage(errs, "display_name")},
+				{Name: "email", Label: "Email address", Type: "email", Value: r.FormValue("email"), Error: validationMessage(errs, "email")},
+				{Name: "password", Label: "Password", Type: "password", Value: "", Error: validationMessage(errs, "password")},
+				{Name: "birthdate", Label: "Birthdate (you need to be 18)", Type: "date", Value: r.FormValue("birthdate")},
+				{Name: "relationship_status", Type: "hidden", Value: r.FormValue("relationship_status")},
+			})
+		}
 		writeValidationErrors(w, errs)
 		return nil
 	}
@@ -274,6 +302,12 @@ func loginHandler(w http.ResponseWriter, r *http.Request) error {
 		"email":    "email is required",
 		"password": "password is required",
 	}); len(errs) > 0 {
+		if wantsHTMLValidation(r) {
+			return renderSimpleFormPageStatus(w, http.StatusBadRequest, "Log in", "login", "/auth/login", r.FormValue("next"), "Log in", []formField{
+				{Name: "email", Label: "Email address", Type: "email", Value: r.FormValue("email"), Error: validationMessage(errs, "email")},
+				{Name: "password", Label: "Password", Type: "password", Value: "", Error: validationMessage(errs, "password")},
+			})
+		}
 		writeValidationErrors(w, errs)
 		return nil
 	}
@@ -376,6 +410,11 @@ func settingsHandler(w http.ResponseWriter, r *http.Request) error {
 	if errs := requireFormFields(r, map[string]string{
 		"display_name": "display name is required",
 	}); len(errs) > 0 {
+		if wantsHTMLValidation(r) {
+			return renderSimpleFormPageStatus(w, http.StatusBadRequest, "Account settings", "account-settings", "/auth/settings", "", "Save settings", []formField{
+				{Name: "display_name", Label: "Display Name", Type: "text", Value: r.FormValue("display_name"), Error: validationMessage(errs, "display_name")},
+			})
+		}
 		writeValidationErrors(w, errs)
 		return nil
 	}
@@ -396,6 +435,11 @@ func passwordResetRequestHandler(w http.ResponseWriter, r *http.Request) error {
 	if errs := requireFormFields(r, map[string]string{
 		"email": "email is required",
 	}); len(errs) > 0 {
+		if wantsHTMLValidation(r) {
+			return renderSimpleFormPageStatus(w, http.StatusBadRequest, "Reset password", "password-reset", "/auth/password/reset", "", "Request reset link", []formField{
+				{Name: "email", Label: "Email address", Type: "email", Value: r.FormValue("email"), Error: validationMessage(errs, "email")},
+			})
+		}
 		writeValidationErrors(w, errs)
 		return nil
 	}
@@ -428,6 +472,13 @@ func passwordResetConfirmHandler(w http.ResponseWriter, r *http.Request) error {
 		"token":    "token is required",
 		"password": "password is required",
 	}); len(errs) > 0 {
+		if wantsHTMLValidation(r) {
+			return renderSimpleFormPageStatus(w, http.StatusBadRequest, "Reset password", "password-reset-confirm", "/auth/password/reset/confirm", "", "Reset password", []formField{
+				{Name: "email", Label: "Email address", Type: "email", Value: r.FormValue("email"), Error: validationMessage(errs, "email")},
+				{Name: "token", Label: "Reset token", Type: "text", Value: r.FormValue("token"), Error: validationMessage(errs, "token")},
+				{Name: "password", Label: "New password", Type: "password", Value: "", Error: validationMessage(errs, "password")},
+			})
+		}
 		writeValidationErrors(w, errs)
 		return nil
 	}
@@ -477,11 +528,22 @@ func deleteAccountHandler(w http.ResponseWriter, r *http.Request) error {
 	if errs := requireFormFields(r, map[string]string{
 		"email": "email confirmation is required",
 	}); len(errs) > 0 {
+		if wantsHTMLValidation(r) {
+			return renderSimpleFormPageStatus(w, http.StatusBadRequest, "Delete account", "delete-account", "/auth/delete-account", "", "Delete account now", []formField{
+				{Name: "email", Label: "Email address", Type: "email", Value: r.FormValue("email"), Error: validationMessage(errs, "email")},
+			})
+		}
 		writeValidationErrors(w, errs)
 		return nil
 	}
 	if r.FormValue("email") != email {
-		writeValidationErrors(w, []validationError{validationErr("email", "email confirmation mismatch")})
+		errs := []validationError{validationErr("email", "email confirmation mismatch")}
+		if wantsHTMLValidation(r) {
+			return renderSimpleFormPageStatus(w, http.StatusBadRequest, "Delete account", "delete-account", "/auth/delete-account", "", "Delete account now", []formField{
+				{Name: "email", Label: "Email address", Type: "email", Value: r.FormValue("email"), Error: validationMessage(errs, "email")},
+			})
+		}
+		writeValidationErrors(w, errs)
 		return nil
 	}
 	starterAuth.mu.Lock()
@@ -537,4 +599,18 @@ func writeValidationErrors(w http.ResponseWriter, errs []validationError) {
 	_ = json.NewEncoder(w).Encode(map[string]any{
 		"errors": errs,
 	})
+}
+
+func validationMessage(errs []validationError, field string) string {
+	for _, err := range errs {
+		if err.Field == field {
+			return err.Message
+		}
+	}
+	return ""
+}
+
+func wantsHTMLValidation(r *http.Request) bool {
+	accept := r.Header.Get("Accept")
+	return accept != "" && !strings.Contains(accept, "application/json") && strings.Contains(accept, "text/html")
 }

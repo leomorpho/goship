@@ -522,6 +522,33 @@ func TestFreshAppDeleteAccountValidationFailures(t *testing.T) {
 	assertHTTPStatusContainsForClient(t, client, baseURL+"/auth/session", http.StatusOK, "starter@example.com")
 }
 
+func TestFreshAppInlineValidationUX(t *testing.T) {
+	shipbin := buildShipBinary(t)
+	appPath := scaffoldFreshAppViaShip(t, shipbin, false)
+	runCmd(t, appPath, shipbin, "db:migrate")
+
+	baseURL, client, cleanup := startFreshAppWebWithClient(t, appPath)
+	defer cleanup()
+
+	body := postFormHTML(t, client, baseURL+"/auth/register", url.Values{
+		"display_name":        {""},
+		"email":               {"starter@example.com"},
+		"password":            {""},
+		"birthdate":           {"1990-01-01"},
+		"relationship_status": {"single"},
+	})
+	assertContainsAll(t, body,
+		`data-validation-for="display_name"`,
+		`display name is required`,
+		`data-validation-for="password"`,
+		`password is required`,
+		`value="starter@example.com"`,
+	)
+	if strings.Contains(body, `value="Password123!"`) {
+		t.Fatalf("password field should not be echoed back\nbody:\n%s", body)
+	}
+}
+
 func TestFreshAppAuthRouteInventoryIncludesAccountLifecycle(t *testing.T) {
 	shipbin := buildShipBinary(t)
 	appPath := scaffoldFreshAppViaShip(t, shipbin, false)
@@ -823,6 +850,38 @@ func assertValidationFailure(t *testing.T, client *http.Client, endpoint string,
 	for _, field := range fields {
 		if !strings.Contains(string(body), field) {
 			t.Fatalf("%s body missing field %q\nbody:\n%s", endpoint, field, string(body))
+		}
+	}
+}
+
+func postFormHTML(t *testing.T, client *http.Client, endpoint string, form url.Values) string {
+	t.Helper()
+	req, err := http.NewRequest(http.MethodPost, endpoint, strings.NewReader(form.Encode()))
+	if err != nil {
+		t.Fatalf("http.NewRequest(%s) failed: %v", endpoint, err)
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Accept", "text/html")
+	resp, err := client.Do(req)
+	if err != nil {
+		t.Fatalf("POST %s failed: %v", endpoint, err)
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatalf("reading %s failed: %v", endpoint, err)
+	}
+	if resp.StatusCode != http.StatusBadRequest {
+		t.Fatalf("%s status = %d, want 400\nbody:\n%s", endpoint, resp.StatusCode, string(body))
+	}
+	return string(body)
+}
+
+func assertContainsAll(t *testing.T, body string, needles ...string) {
+	t.Helper()
+	for _, needle := range needles {
+		if !strings.Contains(body, needle) {
+			t.Fatalf("body missing %q\nbody:\n%s", needle, body)
 		}
 	}
 }
