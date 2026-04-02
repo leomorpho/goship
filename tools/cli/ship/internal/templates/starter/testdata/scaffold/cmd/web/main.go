@@ -199,15 +199,15 @@ func handleRoute(w http.ResponseWriter, r *http.Request, route goship.Route, con
 			http.Redirect(w, r, "/auth/login?next="+url.QueryEscape(route.Path), http.StatusSeeOther)
 			return nil
 		}
-		if route.Path == "/auth/profile" && container != nil && container.SupportsModule("storage") {
+		if route.Path == "/auth/profile" && container != nil && (container.SupportsModule("storage") || container.SupportsModule("emailsubscriptions")) {
 			if r.Method == http.MethodPost {
-				return profileStorageUploadHandler(w, r)
+				return profileModuleActionHandler(w, r, container)
 			}
 			if r.Method != http.MethodGet {
 				http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 				return nil
 			}
-			return renderProfilePageWithStorage(w)
+			return renderProfilePageWithModules(w, r, container)
 		}
 		if r.Method != http.MethodGet {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
@@ -226,26 +226,82 @@ func handleRoute(w http.ResponseWriter, r *http.Request, route goship.Route, con
 	}
 }
 
-func renderProfilePageWithStorage(w http.ResponseWriter) error {
+func renderProfilePageWithModules(w http.ResponseWriter, r *http.Request, container *starterfoundation.Container) error {
 	files, err := os.ReadDir(filepath.Join("tmp", "storage"))
 	if err != nil && !os.IsNotExist(err) {
 		return err
 	}
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	_, err = fmt.Fprintf(w, `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Profile</title><link rel="stylesheet" href="/static/styles_bundle.css"></head><body><div class="starter-shell"><header class="starter-header"><div class="starter-brand">GoShip Starter</div></header><section data-component="profile-storage"><h1>Profile</h1><h2>Storage sandbox</h2><form method="post" action="/auth/profile" enctype="multipart/form-data"><label>Upload file<input name="storage_upload" type="file"></label><button type="submit">Upload</button></form><ul>`)
+	email, _ := currentUser(r)
+	subscribed, err := starterEmailSubscriptionStatus(email)
 	if err != nil {
 		return err
 	}
-	for _, file := range files {
-		if file.IsDir() {
-			continue
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	_, err = fmt.Fprintf(w, `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Profile</title><link rel="stylesheet" href="/static/styles_bundle.css"></head><body><div class="starter-shell"><header class="starter-header"><div class="starter-brand">GoShip Starter</div></header><section data-component="profile-storage"><h1>Profile</h1>`)
+	if err != nil {
+		return err
+	}
+	if container.SupportsModule("storage") {
+		if _, err := fmt.Fprint(w, `<h2>Storage sandbox</h2><form method="post" action="/auth/profile" enctype="multipart/form-data"><label>Upload file<input name="storage_upload" type="file"></label><button type="submit">Upload</button></form><ul>`); err != nil {
+			return err
 		}
-		if _, err := fmt.Fprintf(w, `<li>%s</li>`, html.EscapeString(file.Name())); err != nil {
+		for _, file := range files {
+			if file.IsDir() {
+				continue
+			}
+			if _, err := fmt.Fprintf(w, `<li>%s</li>`, html.EscapeString(file.Name())); err != nil {
+				return err
+			}
+		}
+		if _, err := fmt.Fprint(w, `</ul>`); err != nil {
 			return err
 		}
 	}
-	_, err = fmt.Fprint(w, `</ul></section></div></body></html>`)
+	if container.SupportsModule("emailsubscriptions") {
+		label := "Subscribe"
+		action := "subscribe"
+		status := "Not subscribed"
+		if subscribed {
+			label = "Unsubscribe"
+			action = "unsubscribe"
+			status = "Subscribed"
+		}
+		if _, err := fmt.Fprintf(w, `<section data-component="email-subscriptions"><h2>Email subscriptions</h2><p data-subscription-status>%s</p><form method="post" action="/auth/profile"><input type="hidden" name="email_subscription_action" value="%s"><button type="submit">%s</button></form></section>`, html.EscapeString(status), html.EscapeString(action), html.EscapeString(label)); err != nil {
+			return err
+		}
+	}
+	_, err = fmt.Fprint(w, `</section></div></body></html>`)
 	return err
+}
+
+func profileModuleActionHandler(w http.ResponseWriter, r *http.Request, container *starterfoundation.Container) error {
+	if strings.Contains(r.Header.Get("Content-Type"), "multipart/form-data") && container.SupportsModule("storage") {
+		return profileStorageUploadHandler(w, r)
+	}
+	if err := r.ParseForm(); err != nil {
+		return err
+	}
+	if container.SupportsModule("emailsubscriptions") {
+		email, ok := currentUser(r)
+		if !ok {
+			http.Redirect(w, r, "/auth/login?next="+url.QueryEscape("/auth/profile"), http.StatusSeeOther)
+			return nil
+		}
+		action := strings.TrimSpace(r.FormValue("email_subscription_action"))
+		if action == "subscribe" {
+			if err := starterSetEmailSubscription(email, true); err != nil {
+				return err
+			}
+		} else if action == "unsubscribe" {
+			if err := starterSetEmailSubscription(email, false); err != nil {
+				return err
+			}
+		}
+		http.Redirect(w, r, "/auth/profile", http.StatusSeeOther)
+		return nil
+	}
+	http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+	return nil
 }
 
 func profileStorageUploadHandler(w http.ResponseWriter, r *http.Request) error {
@@ -273,6 +329,47 @@ func profileStorageUploadHandler(w http.ResponseWriter, r *http.Request) error {
 	}
 	http.Redirect(w, r, "/auth/profile", http.StatusSeeOther)
 	return nil
+}
+
+func starterEmailSubscriptionStatus(email string) (bool, error) {
+	db, err := starterCRUDDB()
+	if err != nil {
+		return false, err
+	}
+	defer db.Close()
+	if _, err := db.Exec(`CREATE TABLE IF NOT EXISTS starter_email_subscriptions (
+		email TEXT PRIMARY KEY
+	)`); err != nil {
+		return false, err
+	}
+	row := db.QueryRow(`SELECT email FROM starter_email_subscriptions WHERE email = ?`, email)
+	var existing string
+	if err := row.Scan(&existing); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
+}
+
+func starterSetEmailSubscription(email string, subscribed bool) error {
+	db, err := starterCRUDDB()
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+	if _, err := db.Exec(`CREATE TABLE IF NOT EXISTS starter_email_subscriptions (
+		email TEXT PRIMARY KEY
+	)`); err != nil {
+		return err
+	}
+	if subscribed {
+		_, err = db.Exec(`INSERT OR REPLACE INTO starter_email_subscriptions (email) VALUES (?)`, email)
+		return err
+	}
+	_, err = db.Exec(`DELETE FROM starter_email_subscriptions WHERE email = ?`, email)
+	return err
 }
 
 func readMultipartFile(file multipart.File) ([]byte, error) {
