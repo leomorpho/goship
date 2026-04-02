@@ -3,7 +3,7 @@
 set -euo pipefail
 
 echo "== module matrix =="
-for module in jobs notifications paidsubscriptions; do
+for module in jobs notifications paidsubscriptions storage emailsubscriptions; do
   echo "-- modules/${module}"
   (
     cd "modules/${module}"
