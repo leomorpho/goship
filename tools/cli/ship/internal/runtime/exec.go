@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"path/filepath"
 	"strings"
 	"sync"
 	"syscall"
@@ -51,6 +52,11 @@ type devProcessExit struct {
 }
 
 func RunDevAll(out io.Writer, errOut io.Writer) int {
+	if preferInternalDevAllManager() {
+		fmt.Fprintf(out, "Starter workspace detected; using internal dev process manager...\n")
+		return runDevAllInternal(out, errOut)
+	}
+
 	// Check for overmind or goreman
 	if path, err := exec.LookPath("overmind"); err == nil {
 		fmt.Fprintf(out, "Starting dev session with overmind...\n")
@@ -90,6 +96,10 @@ func RunDevAll(out io.Writer, errOut io.Writer) int {
 	fmt.Fprintf(errOut, "Install overmind: brew install overmind (macOS) or see https://github.com/DarthSim/overmind\n")
 	fmt.Fprintf(errOut, "Falling back to internal process manager...\n\n")
 
+	return runDevAllInternal(out, errOut)
+}
+
+func runDevAllInternal(out io.Writer, errOut io.Writer) int {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
@@ -160,6 +170,20 @@ func RunDevAll(out io.Writer, errOut io.Writer) int {
 		return 130
 	}
 	return 0
+}
+
+func preferInternalDevAllManager() bool {
+	routerBody, err := os.ReadFile(filepath.Join("app", "router.go"))
+	if err != nil {
+		return false
+	}
+	workerBody, err := os.ReadFile(filepath.Join("cmd", "worker", "main.go"))
+	if err != nil {
+		return false
+	}
+	return strings.Contains(string(routerBody), "type Route struct") &&
+		strings.Contains(string(routerBody), "func BuildRouter") &&
+		strings.Contains(string(workerBody), "starter worker ready")
 }
 
 func devAllWebBinary() string {
