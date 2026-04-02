@@ -760,6 +760,35 @@ func TestFreshAppMultipleStarterCRUDResourcesStayIsolated(t *testing.T) {
 	}
 }
 
+func TestFreshAppGeneratedResourceFieldsDriveRuntime(t *testing.T) {
+	shipbin := buildShipBinary(t)
+	appPath := scaffoldFreshAppViaShip(t, shipbin, false)
+	runCmd(t, appPath, shipbin, "db:migrate")
+	runCmd(t, appPath, shipbin, "make:resource", "contact", "--wire", "--fields", "name:string,email:email")
+
+	baseURL, client, cleanup := startFreshAppWebWithClient(t, appPath)
+	defer cleanup()
+
+	indexBody := getHTTPBodyForClient(t, client, baseURL+"/contact")
+	assertContainsAll(t, indexBody,
+		`name="name"`,
+		`name="email"`,
+		`type="email"`,
+	)
+
+	resp, err := client.PostForm(baseURL+"/contact", url.Values{
+		"name":  {"Alice"},
+		"email": {"alice@example.com"},
+	})
+	if err != nil {
+		t.Fatalf("create contact failed: %v", err)
+	}
+	_ = resp.Body.Close()
+
+	showBody := getHTTPBodyForClient(t, client, baseURL+"/contact?id=1")
+	assertContainsAll(t, showBody, "Alice", "alice@example.com")
+}
+
 func startFreshAppWebWithClient(t *testing.T, appPath string) (string, *http.Client, func()) {
 	t.Helper()
 

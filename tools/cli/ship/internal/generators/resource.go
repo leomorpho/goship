@@ -16,6 +16,7 @@ type ResourceGenerateOptions struct {
 	Path      string
 	Auth      string
 	Views     string
+	Fields    []ModelField
 	Wire      bool
 	DryRun    bool
 	Domain    string
@@ -43,7 +44,7 @@ func RunGenerateResource(args []string, out io.Writer, errOut io.Writer) int {
 		return 1
 	}
 	if strings.TrimSpace(parsed.Name) == "" {
-		fmt.Fprintln(errOut, "usage: ship make:resource <name> [--path app] [--auth public|auth] [--views templ|none] [--domain <name>] [--wire] [--dry-run]")
+		fmt.Fprintln(errOut, "usage: ship make:resource <name> [--path app] [--auth public|auth] [--views templ|none] [--fields name:type,...] [--domain <name>] [--wire] [--dry-run]")
 		return 1
 	}
 
@@ -139,7 +140,13 @@ func ParseGenerateResourceArgs(args []string) (ResourceGenerateOptions, error) {
 			opts.Views = strings.TrimPrefix(arg, "--views=")
 		case strings.HasPrefix(arg, "--domain="):
 			opts.Domain = strings.TrimPrefix(arg, "--domain=")
-		case arg == "--path" || arg == "--auth" || arg == "--views" || arg == "--domain":
+		case strings.HasPrefix(arg, "--fields="):
+			fields, err := ParseModelFieldList(strings.TrimPrefix(arg, "--fields="))
+			if err != nil {
+				return opts, err
+			}
+			opts.Fields = fields
+		case arg == "--path" || arg == "--auth" || arg == "--views" || arg == "--domain" || arg == "--fields":
 			if i+1 >= len(args) {
 				return opts, fmt.Errorf("missing value for %s", arg)
 			}
@@ -153,6 +160,12 @@ func ParseGenerateResourceArgs(args []string) (ResourceGenerateOptions, error) {
 				opts.Views = args[i]
 			case "--domain":
 				opts.Domain = args[i]
+			case "--fields":
+				fields, err := ParseModelFieldList(args[i])
+				if err != nil {
+					return opts, err
+				}
+				opts.Fields = fields
 			}
 		default:
 			return opts, fmt.Errorf("unknown option: %s", arg)
@@ -197,13 +210,13 @@ func GenerateResourceScaffold(opts ResourceGenerateOptions) (ResourceGenerateRes
 
 	if CapabilityModelForPath(opts.Path).Workspace == GeneratorWorkspaceStarterScaffold {
 		pageFile := filepath.Join(opts.Path, "views", "web", "pages", "gen", norm.Snake+".go")
-		if err := writeFile(pageFile, renderStarterGeneratedPage(norm), opts.DryRun); err != nil {
+		if err := writeFile(pageFile, renderStarterGeneratedPage(norm, opts.Fields), opts.DryRun); err != nil {
 			return result, err
 		}
 		result.CreatedFiles = append(result.CreatedFiles, pageFile)
 		result.RouterPath = filepath.Join(opts.Path, "router.go")
-		result.RouteSnippet = renderStarterRouteSnippet(norm, opts.Auth)
-		result.RouteInsertSnippet = renderStarterRouteInsertSnippet(norm, opts.Auth)
+		result.RouteSnippet = renderStarterRouteSnippet(norm, opts.Auth, opts.Fields)
+		result.RouteInsertSnippet = renderStarterRouteInsertSnippet(norm, opts.Auth, opts.Fields)
 		result.RouteNamePath = filepath.Join(opts.Path, "web", "routenames", "routenames.go")
 		result.RouteNameConst = "RouteName" + norm.Pascal
 		result.RouteNameValue = norm.Snake
@@ -247,7 +260,7 @@ func GenerateResourceScaffold(opts ResourceGenerateOptions) (ResourceGenerateRes
 	return result, nil
 }
 
-func renderStarterGeneratedPage(n NormalizedResourceName) string {
+func renderStarterGeneratedPage(n NormalizedResourceName, fields []ModelField) string {
 	return renderStarterGeneratedPageSpec(StarterGeneratedRouteSpec{
 		OwnershipKind: "resource",
 		Snake:         n.Snake,
@@ -255,19 +268,20 @@ func renderStarterGeneratedPage(n NormalizedResourceName) string {
 		Pascal:        n.Pascal,
 		RoutePath:     "/" + n.Kebab,
 		Actions:       DefaultGeneratorCRUDActionNames(),
+		Fields:        starterRouteFieldsForModelFields(fields),
 		Description:   fmt.Sprintf("Starter CRUD scaffold for %s with list/create/show/edit/delete runtime support.", n.Kebab),
 	})
 }
 
-func renderStarterRouteSnippet(n NormalizedResourceName, auth string) string {
-	return renderStarterRoutePreview(starterGeneratedRouteSpecForResource(n, auth), auth)
+func renderStarterRouteSnippet(n NormalizedResourceName, auth string, fields []ModelField) string {
+	return renderStarterRoutePreview(starterGeneratedRouteSpecForResource(n, auth, fields), auth)
 }
 
-func renderStarterRouteInsertSnippet(n NormalizedResourceName, auth string) string {
-	return renderStarterRouteInsertSnippetForSpec(starterGeneratedRouteSpecForResource(n, auth))
+func renderStarterRouteInsertSnippet(n NormalizedResourceName, auth string, fields []ModelField) string {
+	return renderStarterRouteInsertSnippetForSpec(starterGeneratedRouteSpecForResource(n, auth, fields))
 }
 
-func starterGeneratedRouteSpecForResource(n NormalizedResourceName, auth string) StarterGeneratedRouteSpec {
+func starterGeneratedRouteSpecForResource(n NormalizedResourceName, auth string, fields []ModelField) StarterGeneratedRouteSpec {
 	path := "/" + n.Kebab
 	if auth == "auth" {
 		path = "/auth/" + n.Kebab
@@ -280,6 +294,7 @@ func starterGeneratedRouteSpecForResource(n NormalizedResourceName, auth string)
 		RoutePath:     path,
 		Actions:       DefaultGeneratorCRUDActionNames(),
 		StorageTable:  PluralizeBasic(n.Snake),
+		Fields:        starterRouteFieldsForModelFields(fields),
 		Description:   fmt.Sprintf("Starter CRUD scaffold for %s with list/create/show/edit/delete runtime support.", n.Kebab),
 	}
 }

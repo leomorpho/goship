@@ -47,8 +47,8 @@ type authStore struct {
 }
 
 type starterCRUDRecord struct {
-	ID   int
-	Name string
+	ID     int
+	Values map[string]string
 }
 
 var starterAuth = &authStore{
@@ -656,13 +656,20 @@ func renderStarterCRUDPage(w http.ResponseWriter, r *http.Request, route goship.
 		return err
 	}
 	resourceLabel := strings.ReplaceAll(route.Name, "_", " ")
+	fields := starterRouteFields(route)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	_, err = fmt.Fprintf(w, `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>%s CRUD</title><link rel="stylesheet" href="/static/styles_bundle.css"></head><body><div class="starter-shell"><header class="starter-header"><div class="starter-brand">GoShip Starter</div></header><section data-component="%s-crud"><h1>%s CRUD scaffold</h1>`, route.Name, route.Name, resourceLabel)
 	if err != nil {
 		return err
 	}
 	if starterRouteSupportsAction(route, "create") {
-		if _, err := fmt.Fprintf(w, `<h2>Create %s</h2><form method="post" action="%s"><label>Name<input name="name" type="text" value=""></label><button type="submit">Create %s</button></form>`, resourceLabel, route.Path, resourceLabel); err != nil {
+		if _, err := fmt.Fprintf(w, `<h2>Create %s</h2><form method="post" action="%s">`, resourceLabel, route.Path); err != nil {
+			return err
+		}
+		if err := renderStarterCRUDFields(w, fields, nil); err != nil {
+			return err
+		}
+		if _, err := fmt.Fprintf(w, `<button type="submit">Create %s</button></form>`, resourceLabel); err != nil {
 			return err
 		}
 	}
@@ -671,7 +678,7 @@ func renderStarterCRUDPage(w http.ResponseWriter, r *http.Request, route goship.
 			return err
 		}
 		for _, item := range all {
-			if _, err := fmt.Fprintf(w, `<li><a href="%s?id=%d">%s</a></li>`, route.Path, item.ID, html.EscapeString(item.Name)); err != nil {
+			if _, err := fmt.Fprintf(w, `<li><a href="%s?id=%d">%s</a></li>`, route.Path, item.ID, html.EscapeString(starterCRUDRecordSummary(item, fields))); err != nil {
 				return err
 			}
 		}
@@ -684,12 +691,21 @@ func renderStarterCRUDPage(w http.ResponseWriter, r *http.Request, route goship.
 			return err
 		}
 		if starterRouteSupportsAction(route, "show") {
-			if _, err := fmt.Fprintf(w, `<h2>Show %s</h2><p>%s</p>`, resourceLabel, html.EscapeString(record.Name)); err != nil {
+			if _, err := fmt.Fprintf(w, `<h2>Show %s</h2>`, resourceLabel); err != nil {
+				return err
+			}
+			if err := renderStarterCRUDRecord(w, fields, record); err != nil {
 				return err
 			}
 		}
 		if starterRouteSupportsAction(route, "update") {
-			if _, err := fmt.Fprintf(w, `<h2>Edit %s</h2><form method="post" action="%s?id=%d"><input type="hidden" name="_method" value="PUT"><label>Name<input name="name" type="text" value="%s"></label><button type="submit">Update %s</button></form>`, resourceLabel, route.Path, record.ID, html.EscapeString(record.Name), resourceLabel); err != nil {
+			if _, err := fmt.Fprintf(w, `<h2>Edit %s</h2><form method="post" action="%s?id=%d"><input type="hidden" name="_method" value="PUT">`, resourceLabel, route.Path, record.ID); err != nil {
+				return err
+			}
+			if err := renderStarterCRUDFields(w, fields, record.Values); err != nil {
+				return err
+			}
+			if _, err := fmt.Fprintf(w, `<button type="submit">Update %s</button></form>`, resourceLabel); err != nil {
 				return err
 			}
 		}
@@ -712,6 +728,7 @@ func mutateStarterCRUD(w http.ResponseWriter, r *http.Request, route goship.Rout
 	}
 	id := strings.TrimSpace(r.URL.Query().Get("id"))
 	method := strings.ToUpper(strings.TrimSpace(r.FormValue("_method")))
+	fields := starterRouteFields(route)
 	if method == "DELETE" {
 		if !starterRouteSupportsAction(route, "destroy") {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
@@ -723,16 +740,23 @@ func mutateStarterCRUD(w http.ResponseWriter, r *http.Request, route goship.Rout
 		http.Redirect(w, r, route.Path, http.StatusSeeOther)
 		return nil
 	}
-	name := strings.TrimSpace(r.FormValue("name"))
-	if name == "" {
+	values, errs := starterCRUDValuesFromRequest(r, fields)
+	if len(errs) > 0 {
 		resourceLabel := strings.ReplaceAll(route.Name, "_", " ")
 		if wantsHTMLValidation(r) {
 			w.Header().Set("Content-Type", "text/html; charset=utf-8")
 			w.WriteHeader(http.StatusBadRequest)
-			_, err := fmt.Fprintf(w, `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>%s CRUD</title><link rel="stylesheet" href="/static/styles_bundle.css"></head><body><div class="starter-shell"><section data-component="%s-crud"><h1>%s CRUD scaffold</h1><form method="post" action="%s"><label>Name<input name="name" type="text" value="%s"></label><p data-validation-for="name">name is required</p><button type="submit">Create %s</button></form></section></div></body></html>`, route.Name, route.Name, resourceLabel, route.Path, html.EscapeString(r.FormValue("name")), resourceLabel)
+			_, err := fmt.Fprintf(w, `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>%s CRUD</title><link rel="stylesheet" href="/static/styles_bundle.css"></head><body><div class="starter-shell"><section data-component="%s-crud"><h1>%s CRUD scaffold</h1><form method="post" action="%s">`, route.Name, route.Name, resourceLabel, route.Path)
+			if err != nil {
+				return err
+			}
+			if err := renderStarterCRUDFieldsWithErrors(w, fields, values, errs); err != nil {
+				return err
+			}
+			_, err = fmt.Fprintf(w, `<button type="submit">Create %s</button></form></section></div></body></html>`, resourceLabel)
 			return err
 		}
-		writeValidationErrors(w, []validationError{validationErr("name", "name is required")})
+		writeValidationErrors(w, errs)
 		return nil
 	}
 	switch method {
@@ -741,7 +765,7 @@ func mutateStarterCRUD(w http.ResponseWriter, r *http.Request, route goship.Rout
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return nil
 		}
-		if err := updateStarterCRUD(route, id, name); err != nil {
+		if err := updateStarterCRUD(route, id, values); err != nil {
 			return err
 		}
 		http.Redirect(w, r, route.Path+"?id="+url.QueryEscape(id), http.StatusSeeOther)
@@ -751,7 +775,7 @@ func mutateStarterCRUD(w http.ResponseWriter, r *http.Request, route goship.Rout
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return nil
 		}
-		newID, err := createStarterCRUD(route, name)
+		newID, err := createStarterCRUD(route, values)
 		if err != nil {
 			return err
 		}
@@ -772,7 +796,96 @@ func starterRouteSupportsAction(route goship.Route, action string) bool {
 	return false
 }
 
-func createStarterCRUD(route goship.Route, name string) (string, error) {
+func starterRouteFields(route goship.Route) []goship.RouteField {
+	if len(route.Fields) != 0 {
+		return append([]goship.RouteField(nil), route.Fields...)
+	}
+	return []goship.RouteField{{Name: "name", Type: "string"}}
+}
+
+func starterCRUDValuesFromRequest(r *http.Request, fields []goship.RouteField) (map[string]string, []validationError) {
+	values := make(map[string]string, len(fields))
+	var errs []validationError
+	for _, field := range fields {
+		value := strings.TrimSpace(r.FormValue(field.Name))
+		values[field.Name] = value
+		if value == "" {
+			errs = append(errs, validationErr(field.Name, field.Name+" is required"))
+		}
+	}
+	return values, errs
+}
+
+func renderStarterCRUDFields(w http.ResponseWriter, fields []goship.RouteField, values map[string]string) error {
+	for _, field := range fields {
+		value := ""
+		if values != nil {
+			value = values[field.Name]
+		}
+		if _, err := fmt.Fprintf(w, `<label>%s<input name="%s" type="%s" value="%s"></label>`, html.EscapeString(strings.Title(strings.ReplaceAll(field.Name, "_", " "))), html.EscapeString(field.Name), html.EscapeString(starterCRUDInputType(field.Type)), html.EscapeString(value)); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func renderStarterCRUDFieldsWithErrors(w http.ResponseWriter, fields []goship.RouteField, values map[string]string, errs []validationError) error {
+	for _, field := range fields {
+		value := values[field.Name]
+		if _, err := fmt.Fprintf(w, `<label>%s<input name="%s" type="%s" value="%s"></label>`, html.EscapeString(strings.Title(strings.ReplaceAll(field.Name, "_", " "))), html.EscapeString(field.Name), html.EscapeString(starterCRUDInputType(field.Type)), html.EscapeString(value)); err != nil {
+			return err
+		}
+		if msg := validationMessage(errs, field.Name); msg != "" {
+			if _, err := fmt.Fprintf(w, `<p data-validation-for="%s">%s</p>`, html.EscapeString(field.Name), html.EscapeString(msg)); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func renderStarterCRUDRecord(w http.ResponseWriter, fields []goship.RouteField, record starterCRUDRecord) error {
+	if _, err := fmt.Fprint(w, `<dl>`); err != nil {
+		return err
+	}
+	for _, field := range fields {
+		value := record.Values[field.Name]
+		if _, err := fmt.Fprintf(w, `<dt>%s</dt><dd>%s</dd>`, html.EscapeString(strings.Title(strings.ReplaceAll(field.Name, "_", " "))), html.EscapeString(value)); err != nil {
+			return err
+		}
+	}
+	_, err := fmt.Fprint(w, `</dl>`)
+	return err
+}
+
+func starterCRUDRecordSummary(record starterCRUDRecord, fields []goship.RouteField) string {
+	parts := make([]string, 0, len(fields))
+	for _, field := range fields {
+		value := strings.TrimSpace(record.Values[field.Name])
+		if value != "" {
+			parts = append(parts, value)
+		}
+	}
+	if len(parts) == 0 {
+		return fmt.Sprintf("Record %d", record.ID)
+	}
+	return strings.Join(parts, " · ")
+}
+
+func starterCRUDInputType(fieldType string) string {
+	switch strings.TrimSpace(strings.ToLower(fieldType)) {
+	case "email":
+		return "email"
+	case "url":
+		return "url"
+	case "time":
+		return "datetime-local"
+	default:
+		return "text"
+	}
+}
+
+func createStarterCRUD(route goship.Route, values map[string]string) (string, error) {
 	db, err := starterCRUDDB()
 	if err != nil {
 		return "", err
@@ -782,7 +895,16 @@ func createStarterCRUD(route goship.Route, name string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	res, err := db.Exec(fmt.Sprintf(`INSERT INTO %s (name) VALUES (?)`, table), name)
+	fields := starterRouteFields(route)
+	columns := make([]string, 0, len(fields))
+	placeholders := make([]string, 0, len(fields))
+	args := make([]any, 0, len(fields))
+	for _, field := range fields {
+		columns = append(columns, field.Name)
+		placeholders = append(placeholders, "?")
+		args = append(args, values[field.Name])
+	}
+	res, err := db.Exec(fmt.Sprintf(`INSERT INTO %s (%s) VALUES (%s)`, table, strings.Join(columns, ", "), strings.Join(placeholders, ", ")), args...)
 	if err != nil {
 		return "", err
 	}
@@ -793,7 +915,7 @@ func createStarterCRUD(route goship.Route, name string) (string, error) {
 	return fmt.Sprintf("%d", id), nil
 }
 
-func updateStarterCRUD(route goship.Route, id, name string) error {
+func updateStarterCRUD(route goship.Route, id string, values map[string]string) error {
 	db, err := starterCRUDDB()
 	if err != nil {
 		return err
@@ -803,7 +925,15 @@ func updateStarterCRUD(route goship.Route, id, name string) error {
 	if err != nil {
 		return err
 	}
-	_, err = db.Exec(fmt.Sprintf(`UPDATE %s SET name = ? WHERE record_id = ?`, table), name, id)
+	fields := starterRouteFields(route)
+	assignments := make([]string, 0, len(fields))
+	args := make([]any, 0, len(fields)+1)
+	for _, field := range fields {
+		assignments = append(assignments, field.Name+" = ?")
+		args = append(args, values[field.Name])
+	}
+	args = append(args, id)
+	_, err = db.Exec(fmt.Sprintf(`UPDATE %s SET %s WHERE record_id = ?`, table, strings.Join(assignments, ", ")), args...)
 	return err
 }
 
@@ -834,9 +964,14 @@ func starterCRUDRecordByID(route goship.Route, id string) (starterCRUDRecord, bo
 	if err != nil {
 		return starterCRUDRecord{}, false, err
 	}
-	row := db.QueryRow(fmt.Sprintf(`SELECT record_id, name FROM %s WHERE record_id = ?`, table), id)
-	var record starterCRUDRecord
-	if err := row.Scan(&record.ID, &record.Name); err != nil {
+	fields := starterRouteFields(route)
+	columns := []string{"record_id"}
+	for _, field := range fields {
+		columns = append(columns, field.Name)
+	}
+	row := db.QueryRow(fmt.Sprintf(`SELECT %s FROM %s WHERE record_id = ?`, strings.Join(columns, ", "), table), id)
+	record, err := scanStarterCRUDRecord(row, fields)
+	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return starterCRUDRecord{}, false, nil
 		}
@@ -855,15 +990,20 @@ func starterCRUDRecords(route goship.Route) ([]starterCRUDRecord, error) {
 	if err != nil {
 		return nil, err
 	}
-	rows, err := db.Query(fmt.Sprintf(`SELECT record_id, name FROM %s ORDER BY record_id ASC`, table))
+	fields := starterRouteFields(route)
+	columns := []string{"record_id"}
+	for _, field := range fields {
+		columns = append(columns, field.Name)
+	}
+	rows, err := db.Query(fmt.Sprintf(`SELECT %s FROM %s ORDER BY record_id ASC`, strings.Join(columns, ", "), table))
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 	var out []starterCRUDRecord
 	for rows.Next() {
-		var record starterCRUDRecord
-		if err := rows.Scan(&record.ID, &record.Name); err != nil {
+		record, err := scanStarterCRUDRows(rows, fields)
+		if err != nil {
 			return nil, err
 		}
 		out = append(out, record)
@@ -893,13 +1033,69 @@ func ensureStarterCRUDTable(db *sql.DB, route goship.Route) (string, error) {
 		}
 	}
 	table := "starter_" + tableName
+	columnDefs := make([]string, 0, len(starterRouteFields(route)))
+	for _, field := range starterRouteFields(route) {
+		columnDefs = append(columnDefs, fmt.Sprintf("%s %s NOT NULL", field.Name, starterCRUDSQLiteType(field.Type)))
+	}
 	if _, err := db.Exec(fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s (
 		record_id INTEGER PRIMARY KEY AUTOINCREMENT,
-		name TEXT NOT NULL
-	)`, table)); err != nil {
+		%s
+	)`, table, strings.Join(columnDefs, ",\n\t\t"))); err != nil {
 		return "", err
 	}
 	return table, nil
+}
+
+func scanStarterCRUDRecord(row *sql.Row, fields []goship.RouteField) (starterCRUDRecord, error) {
+	recordID := 0
+	dest, values := starterCRUDScanDest(fields, &recordID)
+	if err := row.Scan(dest...); err != nil {
+		return starterCRUDRecord{}, err
+	}
+	return starterCRUDRecord{ID: recordID, Values: starterCRUDValueMap(fields, values)}, nil
+}
+
+func scanStarterCRUDRows(rows *sql.Rows, fields []goship.RouteField) (starterCRUDRecord, error) {
+	recordID := 0
+	dest, values := starterCRUDScanDest(fields, &recordID)
+	if err := rows.Scan(dest...); err != nil {
+		return starterCRUDRecord{}, err
+	}
+	return starterCRUDRecord{ID: recordID, Values: starterCRUDValueMap(fields, values)}, nil
+}
+
+func starterCRUDScanDest(fields []goship.RouteField, recordID *int) ([]any, map[string]*string) {
+	dest := []any{recordID}
+	values := map[string]*string{}
+	for _, field := range fields {
+		value := ""
+		dest = append(dest, &value)
+		values[field.Name] = &value
+	}
+	return dest, values
+}
+
+func starterCRUDValueMap(fields []goship.RouteField, values map[string]*string) map[string]string {
+	out := make(map[string]string, len(fields))
+	for _, field := range fields {
+		if ptr := values[field.Name]; ptr != nil {
+			out[field.Name] = *ptr
+		}
+	}
+	return out
+}
+
+func starterCRUDSQLiteType(fieldType string) string {
+	switch strings.TrimSpace(strings.ToLower(fieldType)) {
+	case "int":
+		return "INTEGER"
+	case "bool":
+		return "BOOLEAN"
+	case "float":
+		return "REAL"
+	default:
+		return "TEXT"
+	}
 }
 
 func titleize(routeName string) string {

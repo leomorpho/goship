@@ -119,6 +119,26 @@ func parseModelField(token string) (ModelField, error) {
 	}
 }
 
+func ParseModelFieldList(raw string) ([]ModelField, error) {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return nil, nil
+	}
+	var fields []ModelField
+	for _, token := range strings.Split(raw, ",") {
+		token = strings.TrimSpace(token)
+		if token == "" {
+			continue
+		}
+		field, err := parseModelField(token)
+		if err != nil {
+			return nil, err
+		}
+		fields = append(fields, field)
+	}
+	return fields, nil
+}
+
 func RenderModelQueryTemplate(name string, fields []ModelField) string {
 	var b strings.Builder
 	tableName := ModelFileName(name) + "s"

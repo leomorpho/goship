@@ -13,7 +13,13 @@ type StarterGeneratedRouteSpec struct {
 	RoutePath     string
 	Actions       []string
 	StorageTable  string
+	Fields        []StarterGeneratedFieldSpec
 	Description   string
+}
+
+type StarterGeneratedFieldSpec struct {
+	Name string
+	Type string
 }
 
 func renderStarterGeneratedPageSpec(spec StarterGeneratedRouteSpec) string {
@@ -61,7 +67,22 @@ func renderStarterRouteInsertSnippetForSpec(spec StarterGeneratedRouteSpec) stri
 		actionList = append(actionList, fmt.Sprintf("%q", action))
 	}
 	storageTable := strings.TrimSpace(spec.StorageTable)
+	fieldList := make([]string, 0, len(spec.Fields))
+	for _, field := range spec.Fields {
+		fieldList = append(fieldList, fmt.Sprintf(`{Name: %q, Type: %q}`, field.Name, field.Type))
+	}
 	return fmt.Sprintf(`			// ship:generated:%s
-			{Name: routenames.RouteName%s, Path: %q, Page: templates.Page%s, Kind: RouteKindResource, Actions: []string{%s}, StorageTable: %q},
-`, spec.Snake, spec.Pascal, spec.RoutePath, spec.Pascal, strings.Join(actionList, ", "), storageTable)
+			{Name: routenames.RouteName%s, Path: %q, Page: templates.Page%s, Kind: RouteKindResource, Actions: []string{%s}, StorageTable: %q, Fields: []RouteField{%s}},
+`, spec.Snake, spec.Pascal, spec.RoutePath, spec.Pascal, strings.Join(actionList, ", "), storageTable, strings.Join(fieldList, ", "))
+}
+
+func starterRouteFieldsForModelFields(fields []ModelField) []StarterGeneratedFieldSpec {
+	if len(fields) == 0 {
+		return []StarterGeneratedFieldSpec{{Name: "name", Type: "string"}}
+	}
+	out := make([]StarterGeneratedFieldSpec, 0, len(fields))
+	for _, field := range fields {
+		out = append(out, StarterGeneratedFieldSpec{Name: field.Name, Type: field.Type})
+	}
+	return out
 }

@@ -14,6 +14,12 @@ type Route struct {
 	Kind         RouteKind
 	Actions      []string
 	StorageTable string
+	Fields       []RouteField
+}
+
+type RouteField struct {
+	Name string
+	Type string
 }
 
 type RouteKind string
