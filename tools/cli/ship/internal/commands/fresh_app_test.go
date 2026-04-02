@@ -3,14 +3,15 @@ package commands
 import (
 	"context"
 	"encoding/json"
-	"net/http/cookiejar"
-	"net/url"
 	"io"
 	"net"
 	"net/http"
+	"net/http/cookiejar"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -364,6 +365,251 @@ func TestFreshAppAuthFlow(t *testing.T) {
 	}
 }
 
+func TestFreshAppAuthAccountLifecycle(t *testing.T) {
+	shipbin := buildShipBinary(t)
+	appPath := scaffoldFreshAppViaShip(t, shipbin, false)
+	runCmd(t, appPath, shipbin, "db:migrate")
+
+	baseURL, client, cleanup := startFreshAppWebWithClient(t, appPath)
+	defer cleanup()
+
+	registerStarterUser(t, client, baseURL, "starter@example.com", "Password123!")
+
+	assertHTTPStatusContainsForClient(t, client, baseURL+"/auth/session", http.StatusOK, "starter@example.com")
+	assertHTTPStatusContainsForClient(t, client, baseURL+"/auth/settings", http.StatusOK, "Account settings")
+
+	settingsForm := url.Values{}
+	settingsForm.Set("display_name", "Updated Starter User")
+	resp, err := client.PostForm(baseURL+"/auth/settings", settingsForm)
+	if err != nil {
+		t.Fatalf("settings update failed: %v", err)
+	}
+	_ = resp.Body.Close()
+	if resp.StatusCode != http.StatusSeeOther {
+		t.Fatalf("settings update status = %d, want 303", resp.StatusCode)
+	}
+	if got := resp.Header.Get("Location"); got != "/auth/settings" {
+		t.Fatalf("settings update redirect = %q, want %q", got, "/auth/settings")
+	}
+
+	assertHTTPStatusContainsForClient(t, client, baseURL+"/auth/settings", http.StatusOK, "Updated Starter User")
+}
+
+func TestFreshAppPasswordResetFlow(t *testing.T) {
+	shipbin := buildShipBinary(t)
+	appPath := scaffoldFreshAppViaShip(t, shipbin, false)
+	runCmd(t, appPath, shipbin, "db:migrate")
+
+	baseURL, client, cleanup := startFreshAppWebWithClient(t, appPath)
+	defer cleanup()
+
+	registerStarterUser(t, client, baseURL, "starter@example.com", "Password123!")
+	logoutStarterUser(t, client, baseURL)
+
+	resetRequest := url.Values{}
+	resetRequest.Set("email", "starter@example.com")
+	resp, err := client.PostForm(baseURL+"/auth/password/reset", resetRequest)
+	if err != nil {
+		t.Fatalf("password reset request failed: %v", err)
+	}
+	_ = resp.Body.Close()
+	if resp.StatusCode != http.StatusSeeOther {
+		t.Fatalf("password reset request status = %d, want 303", resp.StatusCode)
+	}
+
+	body := getHTTPBodyForClient(t, client, baseURL+"/auth/password/reset/confirm?email=starter@example.com")
+	resetToken := extractResetToken(t, body)
+	if resetToken == "" {
+		t.Fatal("expected deterministic starter reset token payload")
+	}
+
+	resetConfirm := url.Values{}
+	resetConfirm.Set("email", "starter@example.com")
+	resetConfirm.Set("token", resetToken)
+	resetConfirm.Set("password", "NewPassword123!")
+	resp, err = client.PostForm(baseURL+"/auth/password/reset/confirm", resetConfirm)
+	if err != nil {
+		t.Fatalf("password reset confirm failed: %v", err)
+	}
+	_ = resp.Body.Close()
+	if resp.StatusCode != http.StatusSeeOther {
+		t.Fatalf("password reset confirm status = %d, want 303", resp.StatusCode)
+	}
+
+	assertLoginFails(t, client, baseURL, "starter@example.com", "Password123!")
+	assertLoginSucceeds(t, client, baseURL, "starter@example.com", "NewPassword123!", "/auth/profile")
+}
+
+func TestFreshAppDeleteAccountFlow(t *testing.T) {
+	shipbin := buildShipBinary(t)
+	appPath := scaffoldFreshAppViaShip(t, shipbin, false)
+	runCmd(t, appPath, shipbin, "db:migrate")
+
+	baseURL, client, cleanup := startFreshAppWebWithClient(t, appPath)
+	defer cleanup()
+
+	registerStarterUser(t, client, baseURL, "starter@example.com", "Password123!")
+	assertHTTPStatusContainsForClient(t, client, baseURL+"/auth/delete-account", http.StatusOK, "Delete account")
+
+	deleteForm := url.Values{}
+	deleteForm.Set("email", "starter@example.com")
+	resp, err := client.PostForm(baseURL+"/auth/delete-account", deleteForm)
+	if err != nil {
+		t.Fatalf("delete account failed: %v", err)
+	}
+	_ = resp.Body.Close()
+	if resp.StatusCode != http.StatusSeeOther {
+		t.Fatalf("delete account status = %d, want 303", resp.StatusCode)
+	}
+	if got := resp.Header.Get("Location"); got != "/auth/login" {
+		t.Fatalf("delete account redirect = %q, want %q", got, "/auth/login")
+	}
+
+	resp, err = client.Get(baseURL + "/auth/profile")
+	if err != nil {
+		t.Fatalf("protected route after delete failed: %v", err)
+	}
+	_ = resp.Body.Close()
+	if resp.StatusCode != http.StatusSeeOther {
+		t.Fatalf("protected route after delete status = %d, want 303", resp.StatusCode)
+	}
+	if got := resp.Header.Get("Location"); got != "/auth/login?next=%2Fauth%2Fprofile" {
+		t.Fatalf("protected route after delete redirect = %q", got)
+	}
+
+	assertLoginFails(t, client, baseURL, "starter@example.com", "Password123!")
+}
+
+func TestFreshAppAuthRouteInventoryIncludesAccountLifecycle(t *testing.T) {
+	shipbin := buildShipBinary(t)
+	appPath := scaffoldFreshAppViaShip(t, shipbin, false)
+
+	routesJSON := strings.TrimSpace(runCmd(t, appPath, shipbin, "routes", "--json"))
+	for _, want := range []string{
+		`"path":"/auth/session"`,
+		`"path":"/auth/settings"`,
+		`"path":"/auth/password/reset"`,
+		`"path":"/auth/password/reset/confirm"`,
+		`"path":"/auth/delete-account"`,
+	} {
+		if !strings.Contains(routesJSON, want) {
+			t.Fatalf("routes inventory missing %s\n%s", want, routesJSON)
+		}
+	}
+}
+
+func startFreshAppWebWithClient(t *testing.T, appPath string) (string, *http.Client, func()) {
+	t.Helper()
+
+	port := reserveFreePort(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	webCmd := exec.CommandContext(ctx, "go", "run", "./cmd/web")
+	webCmd.Dir = appPath
+	webCmd.Env = append(os.Environ(), "PORT="+port)
+	logPath := filepath.Join(t.TempDir(), "starter-auth-account-web.log")
+	logFile, err := os.Create(logPath)
+	if err != nil {
+		t.Fatalf("os.Create(log) error = %v", err)
+	}
+	webCmd.Stdout = logFile
+	webCmd.Stderr = logFile
+	if err := webCmd.Start(); err != nil {
+		_ = logFile.Close()
+		t.Fatalf("webCmd.Start() error = %v", err)
+	}
+
+	baseURL := "http://127.0.0.1:" + port
+	waitForHTTP200(t, baseURL+"/")
+
+	jar, err := cookiejar.New(nil)
+	if err != nil {
+		t.Fatalf("cookiejar.New() error = %v", err)
+	}
+	client := &http.Client{
+		Jar: jar,
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+		Timeout: 5 * time.Second,
+	}
+
+	cleanup := func() {
+		cancel()
+		if webCmd.Process != nil {
+			_ = webCmd.Process.Kill()
+		}
+		_ = webCmd.Wait()
+		_ = logFile.Close()
+	}
+	return baseURL, client, cleanup
+}
+
+func registerStarterUser(t *testing.T, client *http.Client, baseURL, email, password string) {
+	t.Helper()
+	form := url.Values{}
+	form.Set("display_name", "Starter User")
+	form.Set("email", email)
+	form.Set("password", password)
+	form.Set("birthdate", "1990-01-01")
+	form.Set("relationship_status", "single")
+
+	resp, err := client.PostForm(baseURL+"/auth/register", form)
+	if err != nil {
+		t.Fatalf("register failed: %v", err)
+	}
+	_ = resp.Body.Close()
+	if resp.StatusCode != http.StatusSeeOther {
+		t.Fatalf("register status = %d, want 303", resp.StatusCode)
+	}
+}
+
+func logoutStarterUser(t *testing.T, client *http.Client, baseURL string) {
+	t.Helper()
+	resp, err := client.Get(baseURL + "/auth/logout")
+	if err != nil {
+		t.Fatalf("logout failed: %v", err)
+	}
+	_ = resp.Body.Close()
+	if resp.StatusCode != http.StatusSeeOther {
+		t.Fatalf("logout status = %d, want 303", resp.StatusCode)
+	}
+}
+
+func assertLoginFails(t *testing.T, client *http.Client, baseURL, email, password string) {
+	t.Helper()
+	loginForm := url.Values{}
+	loginForm.Set("email", email)
+	loginForm.Set("password", password)
+	loginForm.Set("next", "/auth/profile")
+	resp, err := client.PostForm(baseURL+"/auth/login", loginForm)
+	if err != nil {
+		t.Fatalf("login request failed: %v", err)
+	}
+	_ = resp.Body.Close()
+	if resp.StatusCode != http.StatusUnauthorized {
+		t.Fatalf("login status = %d, want 401", resp.StatusCode)
+	}
+}
+
+func assertLoginSucceeds(t *testing.T, client *http.Client, baseURL, email, password, next string) {
+	t.Helper()
+	loginForm := url.Values{}
+	loginForm.Set("email", email)
+	loginForm.Set("password", password)
+	loginForm.Set("next", next)
+	resp, err := client.PostForm(baseURL+"/auth/login", loginForm)
+	if err != nil {
+		t.Fatalf("login request failed: %v", err)
+	}
+	_ = resp.Body.Close()
+	if resp.StatusCode != http.StatusSeeOther {
+		t.Fatalf("login status = %d, want 303", resp.StatusCode)
+	}
+	if got := resp.Header.Get("Location"); got != next {
+		t.Fatalf("login redirect = %q, want %q", got, next)
+	}
+}
+
 func buildShipBinary(t *testing.T) string {
 	t.Helper()
 
@@ -457,6 +703,25 @@ func assertHTTPJSONField(t *testing.T, url, want string) {
 	}
 }
 
+func assertHTTPStatusContainsForClient(t *testing.T, client *http.Client, url string, wantStatus int, want string) {
+	t.Helper()
+	resp, err := client.Get(url)
+	if err != nil {
+		t.Fatalf("GET %s failed: %v", url, err)
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatalf("reading %s failed: %v", url, err)
+	}
+	if resp.StatusCode != wantStatus {
+		t.Fatalf("%s status = %d, want %d\nbody:\n%s", url, resp.StatusCode, wantStatus, string(body))
+	}
+	if !strings.Contains(string(body), want) {
+		t.Fatalf("%s body missing %q\nbody:\n%s", url, want, string(body))
+	}
+}
+
 func getHTTPBody(t *testing.T, url string) string {
 	t.Helper()
 	client := &http.Client{Timeout: 2 * time.Second}
@@ -470,6 +735,29 @@ func getHTTPBody(t *testing.T, url string) string {
 		t.Fatalf("reading %s failed: %v", url, err)
 	}
 	return string(body)
+}
+
+func getHTTPBodyForClient(t *testing.T, client *http.Client, url string) string {
+	t.Helper()
+	resp, err := client.Get(url)
+	if err != nil {
+		t.Fatalf("GET %s failed: %v", url, err)
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatalf("reading %s failed: %v", url, err)
+	}
+	return string(body)
+}
+
+func extractResetToken(t *testing.T, body string) string {
+	t.Helper()
+	match := regexp.MustCompile(`data-reset-token>([^<]+)<`).FindStringSubmatch(body)
+	if len(match) != 2 {
+		t.Fatalf("reset token marker not found\nbody:\n%s", body)
+	}
+	return strings.TrimSpace(match[1])
 }
 
 func reserveFreePort(t *testing.T) string {

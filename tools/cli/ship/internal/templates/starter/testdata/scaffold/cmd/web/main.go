@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -22,15 +23,23 @@ import (
 const defaultDatabasePath = "tmp/starter.db"
 const starterSessionCookie = "starter_session"
 
+type starterUser struct {
+	DisplayName string
+	Email       string
+	Password    string
+}
+
 type authStore struct {
 	mu       sync.Mutex
-	users    map[string]string
+	users    map[string]starterUser
 	sessions map[string]string
+	resets   map[string]string
 }
 
 var starterAuth = &authStore{
-	users:    map[string]string{},
+	users:    map[string]starterUser{},
 	sessions: map[string]string{},
+	resets:   map[string]string{},
 }
 
 func main() {
@@ -93,6 +102,54 @@ func handleRoute(w http.ResponseWriter, r *http.Request, route goship.Route) err
 			return nil
 		}
 		return renderAuthPage(w, "Log in", "login", "/auth/login", r.URL.Query().Get("next"), "Log in")
+	case "/auth/password/reset":
+		if r.Method == http.MethodPost {
+			return passwordResetRequestHandler(w, r)
+		}
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return nil
+		}
+		return renderSimpleFormPage(w, "Reset password", "password-reset", "/auth/password/reset", "", "Request reset link", []formField{
+			{Name: "email", Label: "Email address", Type: "email", Value: ""},
+		})
+	case "/auth/password/reset/confirm":
+		if r.Method == http.MethodPost {
+			return passwordResetConfirmHandler(w, r)
+		}
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return nil
+		}
+		return renderPasswordResetConfirmPage(w, r)
+	case "/auth/session":
+		return sessionHandler(w, r)
+	case "/auth/settings":
+		if _, ok := currentUser(r); !ok {
+			http.Redirect(w, r, "/auth/login?next="+url.QueryEscape(route.Path), http.StatusSeeOther)
+			return nil
+		}
+		if r.Method == http.MethodPost {
+			return settingsHandler(w, r)
+		}
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return nil
+		}
+		return renderSettingsPage(w, r)
+	case "/auth/delete-account":
+		if _, ok := currentUser(r); !ok {
+			http.Redirect(w, r, "/auth/login?next="+url.QueryEscape(route.Path), http.StatusSeeOther)
+			return nil
+		}
+		if r.Method == http.MethodPost {
+			return deleteAccountHandler(w, r)
+		}
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return nil
+		}
+		return renderDeleteAccountPage(w, r)
 	case "/auth/homeFeed", "/auth/profile":
 		if _, ok := currentUser(r); !ok {
 			http.Redirect(w, r, "/auth/login?next="+url.QueryEscape(route.Path), http.StatusSeeOther)
@@ -155,6 +212,30 @@ func renderAuthPage(w http.ResponseWriter, title, component, action, next, submi
 	return err
 }
 
+type formField struct {
+	Name  string
+	Label string
+	Type  string
+	Value string
+}
+
+func renderSimpleFormPage(w http.ResponseWriter, title, component, action, next, submitLabel string, fields []formField) error {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	_, err := fmt.Fprintf(w, `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>%s</title><link rel="stylesheet" href="/static/styles_bundle.css"></head><body><div class="starter-shell"><header class="starter-header"><div class="starter-brand">GoShip Starter</div></header><section data-component="%s"><h1>%s</h1><form method="post" action="%s" data-component="%s">`, title, component, title, action, component)
+	if err != nil {
+		return err
+	}
+	for _, field := range fields {
+		if _, err := fmt.Fprintf(w, `<label>%s<input name="%s" type="%s" value="%s"></label>`, field.Label, field.Name, field.Type, field.Value); err != nil {
+			return err
+		}
+	}
+	if _, err := fmt.Fprintf(w, `<input name="next" type="hidden" value="%s"><button type="submit">%s</button></form></section></div></body></html>`, next, submitLabel); err != nil {
+		return err
+	}
+	return nil
+}
+
 func registerHandler(w http.ResponseWriter, r *http.Request) error {
 	if err := r.ParseForm(); err != nil {
 		return err
@@ -166,7 +247,11 @@ func registerHandler(w http.ResponseWriter, r *http.Request) error {
 		return nil
 	}
 	starterAuth.mu.Lock()
-	starterAuth.users[email] = password
+	starterAuth.users[email] = starterUser{
+		DisplayName: r.FormValue("display_name"),
+		Email:       email,
+		Password:    password,
+	}
 	starterAuth.mu.Unlock()
 	return startSessionAndRedirect(w, r, email, "/auth/profile")
 }
@@ -182,9 +267,9 @@ func loginHandler(w http.ResponseWriter, r *http.Request) error {
 		next = "/auth/profile"
 	}
 	starterAuth.mu.Lock()
-	storedPassword, ok := starterAuth.users[email]
+	user, ok := starterAuth.users[email]
 	starterAuth.mu.Unlock()
-	if !ok || storedPassword != password {
+	if !ok || user.Password != password {
 		http.Error(w, "invalid credentials", http.StatusUnauthorized)
 		return nil
 	}
@@ -225,10 +310,164 @@ func currentUser(r *http.Request) (string, bool) {
 	return email, ok
 }
 
+func sessionHandler(w http.ResponseWriter, r *http.Request) error {
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return nil
+	}
+	email, ok := currentUser(r)
+	if !ok {
+		http.Redirect(w, r, "/auth/login?next="+url.QueryEscape("/auth/session"), http.StatusSeeOther)
+		return nil
+	}
+	starterAuth.mu.Lock()
+	user := starterAuth.users[email]
+	starterAuth.mu.Unlock()
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	return json.NewEncoder(w).Encode(map[string]string{
+		"email":        user.Email,
+		"display_name": user.DisplayName,
+	})
+}
+
+func renderSettingsPage(w http.ResponseWriter, r *http.Request) error {
+	email, ok := currentUser(r)
+	if !ok {
+		http.Redirect(w, r, "/auth/login?next="+url.QueryEscape("/auth/settings"), http.StatusSeeOther)
+		return nil
+	}
+	starterAuth.mu.Lock()
+	user := starterAuth.users[email]
+	starterAuth.mu.Unlock()
+	return renderSimpleFormPage(w, "Account settings", "account-settings", "/auth/settings", "", "Save settings", []formField{
+		{Name: "display_name", Label: "Display Name", Type: "text", Value: user.DisplayName},
+	})
+}
+
+func settingsHandler(w http.ResponseWriter, r *http.Request) error {
+	if err := r.ParseForm(); err != nil {
+		return err
+	}
+	email, ok := currentUser(r)
+	if !ok {
+		http.Redirect(w, r, "/auth/login?next="+url.QueryEscape("/auth/settings"), http.StatusSeeOther)
+		return nil
+	}
+	displayName := r.FormValue("display_name")
+	starterAuth.mu.Lock()
+	user := starterAuth.users[email]
+	user.DisplayName = displayName
+	starterAuth.users[email] = user
+	starterAuth.mu.Unlock()
+	http.Redirect(w, r, "/auth/settings", http.StatusSeeOther)
+	return nil
+}
+
+func passwordResetRequestHandler(w http.ResponseWriter, r *http.Request) error {
+	if err := r.ParseForm(); err != nil {
+		return err
+	}
+	email := r.FormValue("email")
+	if email == "" {
+		http.Error(w, "email is required", http.StatusBadRequest)
+		return nil
+	}
+	starterAuth.mu.Lock()
+	if _, ok := starterAuth.users[email]; ok {
+		starterAuth.resets[email] = resetTokenForEmail(email)
+	}
+	starterAuth.mu.Unlock()
+	http.Redirect(w, r, "/auth/password/reset/confirm?email="+url.QueryEscape(email), http.StatusSeeOther)
+	return nil
+}
+
+func renderPasswordResetConfirmPage(w http.ResponseWriter, r *http.Request) error {
+	email := r.URL.Query().Get("email")
+	starterAuth.mu.Lock()
+	token := starterAuth.resets[email]
+	starterAuth.mu.Unlock()
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	_, err := fmt.Fprintf(w, `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Reset password</title><link rel="stylesheet" href="/static/styles_bundle.css"></head><body><div class="starter-shell"><header class="starter-header"><div class="starter-brand">GoShip Starter</div></header><section data-component="password-reset-confirm"><h1>Reset password</h1><p data-reset-token>%s</p><form method="post" action="/auth/password/reset/confirm" data-component="password-reset-confirm"><label>Email address<input name="email" type="email" value="%s"></label><label>Reset token<input name="token" type="text" value="%s"></label><label>New password<input name="password" type="password"></label><button type="submit">Reset password</button></form></section></div></body></html>`, token, email, token)
+	return err
+}
+
+func passwordResetConfirmHandler(w http.ResponseWriter, r *http.Request) error {
+	if err := r.ParseForm(); err != nil {
+		return err
+	}
+	email := r.FormValue("email")
+	token := r.FormValue("token")
+	password := r.FormValue("password")
+	if email == "" || token == "" || password == "" {
+		http.Error(w, "email, token, and password are required", http.StatusBadRequest)
+		return nil
+	}
+	starterAuth.mu.Lock()
+	defer starterAuth.mu.Unlock()
+	expected := starterAuth.resets[email]
+	user, ok := starterAuth.users[email]
+	if !ok || expected == "" || token != expected {
+		http.Error(w, "invalid reset token", http.StatusUnauthorized)
+		return nil
+	}
+	user.Password = password
+	starterAuth.users[email] = user
+	delete(starterAuth.resets, email)
+	for sessionToken, sessionEmail := range starterAuth.sessions {
+		if sessionEmail == email {
+			delete(starterAuth.sessions, sessionToken)
+		}
+	}
+	http.Redirect(w, r, "/auth/login", http.StatusSeeOther)
+	return nil
+}
+
+func renderDeleteAccountPage(w http.ResponseWriter, r *http.Request) error {
+	email, ok := currentUser(r)
+	if !ok {
+		http.Redirect(w, r, "/auth/login?next="+url.QueryEscape("/auth/delete-account"), http.StatusSeeOther)
+		return nil
+	}
+	return renderSimpleFormPage(w, "Delete account", "delete-account", "/auth/delete-account", "", "Delete account now", []formField{
+		{Name: "email", Label: "Email address", Type: "email", Value: email},
+	})
+}
+
+func deleteAccountHandler(w http.ResponseWriter, r *http.Request) error {
+	if err := r.ParseForm(); err != nil {
+		return err
+	}
+	email, ok := currentUser(r)
+	if !ok {
+		http.Redirect(w, r, "/auth/login?next="+url.QueryEscape("/auth/delete-account"), http.StatusSeeOther)
+		return nil
+	}
+	if r.FormValue("email") != email {
+		http.Error(w, "email confirmation mismatch", http.StatusBadRequest)
+		return nil
+	}
+	starterAuth.mu.Lock()
+	delete(starterAuth.users, email)
+	delete(starterAuth.resets, email)
+	for sessionToken, sessionEmail := range starterAuth.sessions {
+		if sessionEmail == email {
+			delete(starterAuth.sessions, sessionToken)
+		}
+	}
+	starterAuth.mu.Unlock()
+	http.SetCookie(w, &http.Cookie{Name: starterSessionCookie, Value: "", Path: "/", MaxAge: -1, HttpOnly: true})
+	http.Redirect(w, r, "/auth/login", http.StatusSeeOther)
+	return nil
+}
+
 func sessionToken() (string, error) {
 	buf := make([]byte, 16)
 	if _, err := rand.Read(buf); err != nil {
 		return "", err
 	}
 	return hex.EncodeToString(buf), nil
+}
+
+func resetTokenForEmail(email string) string {
+	return "reset-" + hex.EncodeToString([]byte(email))
 }

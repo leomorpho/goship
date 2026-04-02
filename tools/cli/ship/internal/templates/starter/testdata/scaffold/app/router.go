@@ -28,8 +28,13 @@ func BuildRouter(c *foundation.Container) []Route {
 		// ship:routes:public:end
 		{Name: routenames.RouteNameLogin, Path: "/auth/login", Page: templates.PageLanding},
 		{Name: routenames.RouteNameRegister, Path: "/auth/register", Page: templates.PageLanding},
+		{Name: routenames.RouteNamePasswordReset, Path: "/auth/password/reset", Page: templates.PageLanding},
+		{Name: routenames.RouteNamePasswordResetConfirm, Path: "/auth/password/reset/confirm", Page: templates.PageLanding},
 		// ship:routes:auth:start
 		// ship:routes:auth:end
+		{Name: routenames.RouteNameSession, Path: "/auth/session", Page: templates.PageLanding},
+		{Name: routenames.RouteNameSettings, Path: "/auth/settings", Page: templates.PageLanding},
+		{Name: routenames.RouteNameDeleteAccount, Path: "/auth/delete-account", Page: templates.PageLanding},
 		{Name: routenames.RouteNameHomeFeed, Path: "/auth/homeFeed", Page: templates.PageHomeFeed},
 		{Name: routenames.RouteNameProfile, Path: "/auth/profile", Page: templates.PageProfile},
 		// ship:routes:external:start
