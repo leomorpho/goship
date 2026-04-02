@@ -27,6 +27,11 @@ run_checked_go_test 'TestFreshApp$'
 run_checked_go_test 'TestFreshAppStartupSmoke$'
 run_checked_go_test 'TestFreshAppAPI$'
 run_checked_go_test 'TestFreshAppAPIStartupSmoke$'
+run_checked_go_test 'TestFreshAppAdminDashboardRequiresAdmin$'
+run_checked_go_test 'TestFreshAppAdminDashboardCanManageGeneratedResource$'
+run_checked_go_test 'TestFreshAppMailerPreviewFlow$'
+run_checked_go_test 'TestFreshAppSupportedBatteryCombinationStaysBuildable$'
+run_checked_go_test 'TestFreshApp(StorageModuleEnablesProfileUpload|EmailSubscriptionsModuleEnablesProfileToggle|PaidSubscriptionsModuleEnablesProfileToggle|NotificationsModuleEnablesHomeFeedInbox)$'
 run_checked_go_test 'TestRuntimeReportIncludesContractVersionsAndModuleAdoption$'
 
 echo "fresh-app CI lane passed"
