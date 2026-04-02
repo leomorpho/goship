@@ -209,6 +209,16 @@ func handleRoute(w http.ResponseWriter, r *http.Request, route goship.Route, con
 			}
 			return renderProfilePageWithModules(w, r, container)
 		}
+		if route.Path == "/auth/homeFeed" && container != nil && container.SupportsModule("notifications") {
+			if r.Method == http.MethodPost {
+				return homeFeedNotificationsActionHandler(w, r)
+			}
+			if r.Method != http.MethodGet {
+				http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+				return nil
+			}
+			return renderHomeFeedWithNotifications(w, r)
+		}
 		if r.Method != http.MethodGet {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return nil
@@ -289,6 +299,51 @@ func renderProfilePageWithModules(w http.ResponseWriter, r *http.Request, contai
 	}
 	_, err = fmt.Fprint(w, `</section></div></body></html>`)
 	return err
+}
+
+func renderHomeFeedWithNotifications(w http.ResponseWriter, r *http.Request) error {
+	email, ok := currentUser(r)
+	if !ok {
+		http.Redirect(w, r, "/auth/login?next="+url.QueryEscape("/auth/homeFeed"), http.StatusSeeOther)
+		return nil
+	}
+	items, err := starterNotificationsForUser(email)
+	if err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	_, err = fmt.Fprint(w, `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Home Feed</title><link rel="stylesheet" href="/static/styles_bundle.css"></head><body><div class="starter-shell"><header class="starter-header"><div class="starter-brand">GoShip Starter</div></header><section data-component="notifications-home-feed"><h1>Home Feed</h1><h2>Notifications inbox</h2><form method="post" action="/auth/homeFeed"><input name="notification_message" type="text" value=""><button type="submit">Add notification</button></form><ul>`)
+	if err != nil {
+		return err
+	}
+	for _, item := range items {
+		if _, err := fmt.Fprintf(w, `<li>%s</li>`, html.EscapeString(item)); err != nil {
+			return err
+		}
+	}
+	_, err = fmt.Fprint(w, `</ul></section></div></body></html>`)
+	return err
+}
+
+func homeFeedNotificationsActionHandler(w http.ResponseWriter, r *http.Request) error {
+	if err := r.ParseForm(); err != nil {
+		return err
+	}
+	email, ok := currentUser(r)
+	if !ok {
+		http.Redirect(w, r, "/auth/login?next="+url.QueryEscape("/auth/homeFeed"), http.StatusSeeOther)
+		return nil
+	}
+	message := strings.TrimSpace(r.FormValue("notification_message"))
+	if message == "" {
+		http.Redirect(w, r, "/auth/homeFeed", http.StatusSeeOther)
+		return nil
+	}
+	if err := starterAddNotification(email, message); err != nil {
+		return err
+	}
+	http.Redirect(w, r, "/auth/homeFeed", http.StatusSeeOther)
+	return nil
 }
 
 func profileModuleActionHandler(w http.ResponseWriter, r *http.Request, container *starterfoundation.Container) error {
@@ -446,6 +501,52 @@ func starterSetPaidSubscription(email string, active bool) error {
 		return err
 	}
 	_, err = db.Exec(`DELETE FROM starter_paid_subscriptions WHERE email = ?`, email)
+	return err
+}
+
+func starterNotificationsForUser(email string) ([]string, error) {
+	db, err := starterCRUDDB()
+	if err != nil {
+		return nil, err
+	}
+	defer db.Close()
+	if _, err := db.Exec(`CREATE TABLE IF NOT EXISTS starter_notifications (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		email TEXT NOT NULL,
+		message TEXT NOT NULL
+	)`); err != nil {
+		return nil, err
+	}
+	rows, err := db.Query(`SELECT message FROM starter_notifications WHERE email = ? ORDER BY id DESC`, email)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []string
+	for rows.Next() {
+		var message string
+		if err := rows.Scan(&message); err != nil {
+			return nil, err
+		}
+		out = append(out, message)
+	}
+	return out, rows.Err()
+}
+
+func starterAddNotification(email, message string) error {
+	db, err := starterCRUDDB()
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+	if _, err := db.Exec(`CREATE TABLE IF NOT EXISTS starter_notifications (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		email TEXT NOT NULL,
+		message TEXT NOT NULL
+	)`); err != nil {
+		return err
+	}
+	_, err = db.Exec(`INSERT INTO starter_notifications (email, message) VALUES (?, ?)`, email, message)
 	return err
 }
 

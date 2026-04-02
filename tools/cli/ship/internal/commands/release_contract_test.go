@@ -12,6 +12,7 @@ func TestBetaReadinessChecklistUsesRealCurrentProofCommands(t *testing.T) {
 		"TestStarterStorageModuleRoundTripStaysBuildable -count=1",
 		"TestStarterEmailSubscriptionsModuleRoundTripStaysBuildable -count=1",
 		"TestStarterPaidSubscriptionsModuleRoundTripStaysBuildable -count=1",
+		"TestStarterNotificationsModuleRoundTripStaysBuildable -count=1",
 		"TestStarterSupportedBatteryCombinationStaysBuildable -count=1",
 		"TestFreshAppAuthFlow -count=1",
 		"TestFreshAppNoInfraDefaultPath -count=1",

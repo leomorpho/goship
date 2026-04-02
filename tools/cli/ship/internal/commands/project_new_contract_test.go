@@ -207,21 +207,20 @@ func TestSupportedBatterySetIsExplicit(t *testing.T) {
 	moduleSurface := readRepoFile(t, "docs/architecture/11-module-surface-reset.md")
 
 	for _, content := range []string{cliRef, moduleWorkflow} {
-		for _, battery := range []string{"jobs", "storage", "emailsubscriptions", "paidsubscriptions"} {
+		for _, battery := range []string{"jobs", "storage", "emailsubscriptions", "paidsubscriptions", "notifications"} {
 			if !strings.Contains(content, battery) {
 				t.Fatalf("supported battery %q missing from contract surface", battery)
 			}
 		}
 	}
-	for _, unsupported := range []string{"notifications"} {
-		assertContains(t, "docs/architecture/11-module-surface-reset.md", moduleSurface, unsupported)
-	}
+	assertContains(t, "docs/architecture/11-module-surface-reset.md", moduleSurface, "notifications")
 
 	assertContains(t, "README.md", readme, "supported first-party batteries")
 	assertContains(t, "README.md", readme, "jobs")
 	assertContains(t, "README.md", readme, "storage")
 	assertContains(t, "README.md", readme, "emailsubscriptions")
 	assertContains(t, "README.md", readme, "paidsubscriptions")
+	assertContains(t, "README.md", readme, "notifications")
 	assertNotContains(t, "README.md", readme, "installable modules for auth, profile, notifications, jobs, storage, billing, i18n, and more")
 }
 

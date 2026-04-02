@@ -1065,6 +1065,34 @@ func TestFreshAppPaidSubscriptionsModuleEnablesProfileToggle(t *testing.T) {
 	assertHTTPStatusContainsForClient(t, client, baseURL+"/auth/profile", http.StatusOK, "Free plan")
 }
 
+func TestFreshAppNotificationsModuleEnablesHomeFeedInbox(t *testing.T) {
+	shipbin := buildShipBinary(t)
+	appPath := scaffoldFreshAppViaShip(t, shipbin, false)
+	runCmd(t, appPath, shipbin, "db:migrate")
+	runCmd(t, appPath, shipbin, "module:add", "notifications")
+
+	baseURL, client, cleanup := startFreshAppWebWithClient(t, appPath)
+	defer cleanup()
+
+	resp := registerStarterUser(t, client, baseURL, "user@example.com", "Password123!")
+	_ = resp.Body.Close()
+
+	assertHTTPStatusContainsForClient(t, client, baseURL+"/auth/homeFeed", http.StatusOK, "Notifications inbox")
+
+	resp, err := client.PostForm(baseURL+"/auth/homeFeed", url.Values{
+		"notification_message": {"Welcome notification"},
+	})
+	if err != nil {
+		t.Fatalf("notification post failed: %v", err)
+	}
+	_ = resp.Body.Close()
+	if resp.StatusCode != http.StatusSeeOther {
+		t.Fatalf("notification post status = %d, want 303", resp.StatusCode)
+	}
+
+	assertHTTPStatusContainsForClient(t, client, baseURL+"/auth/homeFeed", http.StatusOK, "Welcome notification")
+}
+
 func TestFreshAppMailerPreviewFlow(t *testing.T) {
 	shipbin := buildShipBinary(t)
 	appPath := scaffoldFreshAppViaShip(t, shipbin, false)
