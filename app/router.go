@@ -11,10 +11,10 @@ import (
 	"github.com/leomorpho/goship/config/runtimeplan"
 	frameworkapi "github.com/leomorpho/goship/framework/api"
 	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
-	"github.com/leomorpho/goship/framework/logging"
 	frameworkweb "github.com/leomorpho/goship/framework/http"
 	frameworkcontrollers "github.com/leomorpho/goship/framework/http/controllers"
 	"github.com/leomorpho/goship/framework/http/ui"
+	"github.com/leomorpho/goship/framework/logging"
 )
 
 type RouterModules struct {
@@ -117,6 +117,7 @@ func registerPublicRoutes(c *frameworkbootstrap.Container, g *echo.Group, ctr ui
 	})
 
 	// ship:routes:public:start
+
 	// ship:routes:public:end
 
 	return nil

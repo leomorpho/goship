@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"crypto/rand"
+	"database/sql"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -20,6 +21,7 @@ import (
 	goship "github.com/leomorpho/goship/starter/app"
 	templates "github.com/leomorpho/goship/starter/app/views"
 	pages "github.com/leomorpho/goship/starter/app/views/web/pages/gen"
+	_ "modernc.org/sqlite"
 )
 
 const defaultDatabasePath = "tmp/starter.db"
@@ -49,22 +51,10 @@ type starterCRUDRecord struct {
 	Name string
 }
 
-type starterCRUDCollection struct {
-	NextID  int
-	Records []starterCRUDRecord
-}
-
 var starterAuth = &authStore{
 	users:    map[string]starterUser{},
 	sessions: map[string]string{},
 	resets:   map[string]string{},
-}
-
-var starterCRUD = struct {
-	mu          sync.Mutex
-	collections map[string]*starterCRUDCollection
-}{
-	collections: map[string]*starterCRUDCollection{},
 }
 
 func main() {
@@ -657,11 +647,17 @@ func renderStarterCRUDPage(w http.ResponseWriter, r *http.Request, route goship.
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return nil
 	}
-	record, hasRecord := starterCRUDRecordByID(route.Path, id)
-	all := starterCRUDRecords(route.Path)
+	record, hasRecord, err := starterCRUDRecordByID(route.Path, id)
+	if err != nil {
+		return err
+	}
+	all, err := starterCRUDRecords(route.Path)
+	if err != nil {
+		return err
+	}
 	resourceLabel := strings.ReplaceAll(route.Name, "_", " ")
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	_, err := fmt.Fprintf(w, `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>%s CRUD</title><link rel="stylesheet" href="/static/styles_bundle.css"></head><body><div class="starter-shell"><header class="starter-header"><div class="starter-brand">GoShip Starter</div></header><section data-component="%s-crud"><h1>%s CRUD scaffold</h1>`, route.Name, route.Name, resourceLabel)
+	_, err = fmt.Fprintf(w, `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>%s CRUD</title><link rel="stylesheet" href="/static/styles_bundle.css"></head><body><div class="starter-shell"><header class="starter-header"><div class="starter-brand">GoShip Starter</div></header><section data-component="%s-crud"><h1>%s CRUD scaffold</h1>`, route.Name, route.Name, resourceLabel)
 	if err != nil {
 		return err
 	}
@@ -721,7 +717,9 @@ func mutateStarterCRUD(w http.ResponseWriter, r *http.Request, route goship.Rout
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return nil
 		}
-		deleteStarterCRUD(route.Path, id)
+		if err := deleteStarterCRUD(route.Path, id); err != nil {
+			return err
+		}
 		http.Redirect(w, r, route.Path, http.StatusSeeOther)
 		return nil
 	}
@@ -743,7 +741,9 @@ func mutateStarterCRUD(w http.ResponseWriter, r *http.Request, route goship.Rout
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return nil
 		}
-		updateStarterCRUD(route.Path, id, name)
+		if err := updateStarterCRUD(route.Path, id, name); err != nil {
+			return err
+		}
 		http.Redirect(w, r, route.Path+"?id="+url.QueryEscape(id), http.StatusSeeOther)
 		return nil
 	default:
@@ -751,7 +751,10 @@ func mutateStarterCRUD(w http.ResponseWriter, r *http.Request, route goship.Rout
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return nil
 		}
-		newID := createStarterCRUD(route.Path, name)
+		newID, err := createStarterCRUD(route.Path, name)
+		if err != nil {
+			return err
+		}
 		http.Redirect(w, r, route.Path+"?id="+newID, http.StatusSeeOther)
 		return nil
 	}
@@ -769,76 +772,103 @@ func starterRouteSupportsAction(route goship.Route, action string) bool {
 	return false
 }
 
-func createStarterCRUD(path, name string) string {
-	starterCRUD.mu.Lock()
-	defer starterCRUD.mu.Unlock()
-	collection := starterCRUD.collections[path]
-	if collection == nil {
-		collection = &starterCRUDCollection{NextID: 1}
-		starterCRUD.collections[path] = collection
+func createStarterCRUD(path, name string) (string, error) {
+	db, err := starterCRUDDB()
+	if err != nil {
+		return "", err
 	}
-	id := collection.NextID
-	collection.NextID++
-	collection.Records = append(collection.Records, starterCRUDRecord{ID: id, Name: name})
-	return fmt.Sprintf("%d", id)
+	defer db.Close()
+
+	res, err := db.Exec(`INSERT INTO starter_generated_records (route_path, name) VALUES (?, ?)`, path, name)
+	if err != nil {
+		return "", err
+	}
+	id, err := res.LastInsertId()
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%d", id), nil
 }
 
-func updateStarterCRUD(path, id, name string) {
-	starterCRUD.mu.Lock()
-	defer starterCRUD.mu.Unlock()
-	collection := starterCRUD.collections[path]
-	if collection == nil {
-		return
+func updateStarterCRUD(path, id, name string) error {
+	db, err := starterCRUDDB()
+	if err != nil {
+		return err
 	}
-	for i := range collection.Records {
-		if fmt.Sprintf("%d", collection.Records[i].ID) == id {
-			collection.Records[i].Name = name
-			return
+	defer db.Close()
+	_, err = db.Exec(`UPDATE starter_generated_records SET name = ? WHERE route_path = ? AND record_id = ?`, name, path, id)
+	return err
+}
+
+func deleteStarterCRUD(path, id string) error {
+	db, err := starterCRUDDB()
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+	_, err = db.Exec(`DELETE FROM starter_generated_records WHERE route_path = ? AND record_id = ?`, path, id)
+	return err
+}
+
+func starterCRUDRecordByID(path, id string) (starterCRUDRecord, bool, error) {
+	if strings.TrimSpace(id) == "" {
+		return starterCRUDRecord{}, false, nil
+	}
+	db, err := starterCRUDDB()
+	if err != nil {
+		return starterCRUDRecord{}, false, err
+	}
+	defer db.Close()
+	row := db.QueryRow(`SELECT record_id, name FROM starter_generated_records WHERE route_path = ? AND record_id = ?`, path, id)
+	var record starterCRUDRecord
+	if err := row.Scan(&record.ID, &record.Name); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return starterCRUDRecord{}, false, nil
 		}
+		return starterCRUDRecord{}, false, err
 	}
+	return record, true, nil
 }
 
-func deleteStarterCRUD(path, id string) {
-	starterCRUD.mu.Lock()
-	defer starterCRUD.mu.Unlock()
-	collection := starterCRUD.collections[path]
-	if collection == nil {
-		return
+func starterCRUDRecords(path string) ([]starterCRUDRecord, error) {
+	db, err := starterCRUDDB()
+	if err != nil {
+		return nil, err
 	}
-	filtered := collection.Records[:0]
-	for _, record := range collection.Records {
-		if fmt.Sprintf("%d", record.ID) != id {
-			filtered = append(filtered, record)
+	defer db.Close()
+	rows, err := db.Query(`SELECT record_id, name FROM starter_generated_records WHERE route_path = ? ORDER BY record_id ASC`, path)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var out []starterCRUDRecord
+	for rows.Next() {
+		var record starterCRUDRecord
+		if err := rows.Scan(&record.ID, &record.Name); err != nil {
+			return nil, err
 		}
+		out = append(out, record)
 	}
-	collection.Records = filtered
+	return out, rows.Err()
 }
 
-func starterCRUDRecordByID(path, id string) (starterCRUDRecord, bool) {
-	starterCRUD.mu.Lock()
-	defer starterCRUD.mu.Unlock()
-	collection := starterCRUD.collections[path]
-	if collection == nil {
-		return starterCRUDRecord{}, false
+func starterCRUDDB() (*sql.DB, error) {
+	if _, err := os.Stat(defaultDatabasePath); err != nil {
+		return nil, fmt.Errorf("starter CRUD requires %s; run ship db:migrate first", filepath.ToSlash(defaultDatabasePath))
 	}
-	for _, record := range collection.Records {
-		if fmt.Sprintf("%d", record.ID) == id {
-			return record, true
-		}
+	db, err := sql.Open("sqlite", "file:"+filepath.ToSlash(defaultDatabasePath))
+	if err != nil {
+		return nil, err
 	}
-	return starterCRUDRecord{}, false
-}
-
-func starterCRUDRecords(path string) []starterCRUDRecord {
-	starterCRUD.mu.Lock()
-	defer starterCRUD.mu.Unlock()
-	collection := starterCRUD.collections[path]
-	if collection == nil {
-		return nil
+	if _, err := db.Exec(`CREATE TABLE IF NOT EXISTS starter_generated_records (
+		record_id INTEGER PRIMARY KEY AUTOINCREMENT,
+		route_path TEXT NOT NULL,
+		name TEXT NOT NULL
+	)`); err != nil {
+		_ = db.Close()
+		return nil, err
 	}
-	out := make([]starterCRUDRecord, len(collection.Records))
-	copy(out, collection.Records)
-	return out
+	return db, nil
 }
 
 func titleize(routeName string) string {

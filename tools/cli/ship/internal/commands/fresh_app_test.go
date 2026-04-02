@@ -695,6 +695,29 @@ func TestFreshAppStarterControllerHonorsActions(t *testing.T) {
 	}
 }
 
+func TestFreshAppCRUDScaffoldPersistsAcrossRestart(t *testing.T) {
+	shipbin := buildShipBinary(t)
+	appPath := scaffoldFreshAppViaShip(t, shipbin, false)
+	runCmd(t, appPath, shipbin, "db:migrate")
+	runCmd(t, appPath, shipbin, "make:resource", "contact", "--wire")
+
+	baseURL, client, cleanup := startFreshAppWebWithClient(t, appPath)
+	resp, err := client.PostForm(baseURL+"/contact", url.Values{
+		"name": {"Alice"},
+	})
+	if err != nil {
+		t.Fatalf("create contact failed: %v", err)
+	}
+	_ = resp.Body.Close()
+	cleanup()
+
+	baseURL, client, cleanup = startFreshAppWebWithClient(t, appPath)
+	defer cleanup()
+
+	assertHTTPStatusContainsForClient(t, client, baseURL+"/contact", http.StatusOK, "Alice")
+	assertHTTPStatusContainsForClient(t, client, baseURL+"/contact?id=1", http.StatusOK, "Alice")
+}
+
 func startFreshAppWebWithClient(t *testing.T, appPath string) (string, *http.Client, func()) {
 	t.Helper()
 
