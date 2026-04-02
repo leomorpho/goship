@@ -1,9 +1,0 @@
-# Bob SQL generation config.
-# Add SQL files under db/queries and run: ship db:generate
-version: "v1"
-packages:
-  - name: "gen"
-    path: "db/gen"
-    engine: "postgres"
-    queries:
-      - "db/queries/*.sql"

@@ -1,7 +1,7 @@
 {
-  "name": "amie",
+  "name": "goship-frontend",
   "version": "1.0.0",
-  "description": "A collection of tools to make web apps rapidly",
+  "description": "Frontend build toolchain for GoShip",
   "type": "module",
   "scripts": {
     "build": "vite build",
@@ -11,15 +11,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/leomorpho/pagoda.git"
+    "url": "git+https://github.com/leomorpho/GoShip.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/leomorpho/pagoda/issues"
+    "url": "https://github.com/leomorpho/GoShip/issues"
   },
-  "homepage": "https://github.com/leomorpho/pagoda#readme",
+  "homepage": "https://github.com/leomorpho/GoShip#readme",
   "devDependencies": {
     "@faker-js/faker": "^8.4.1",
     "@sveltejs/vite-plugin-svelte": "^3.1.2",

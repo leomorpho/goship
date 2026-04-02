@@ -2,7 +2,6 @@ package web
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -16,19 +15,18 @@ import (
 	"github.com/leomorpho/goship/config"
 	"github.com/leomorpho/goship/config/runtimeplan"
 	frameworkbootstrap "github.com/leomorpho/goship/framework/bootstrap"
-	"github.com/leomorpho/goship/framework/logging"
-	frameworkmiddleware "github.com/leomorpho/goship/framework/middleware"
-	storagerepo "github.com/leomorpho/goship/framework/storage"
 	frameworkcontrollers "github.com/leomorpho/goship/framework/http/controllers"
 	webmiddleware "github.com/leomorpho/goship/framework/http/middleware"
 	"github.com/leomorpho/goship/framework/http/ui"
+	"github.com/leomorpho/goship/framework/logging"
+	frameworkmiddleware "github.com/leomorpho/goship/framework/middleware"
+	storagerepo "github.com/leomorpho/goship/framework/storage"
 	i18nmodule "github.com/leomorpho/goship/modules/i18n"
 	slogecho "github.com/samber/slog-echo"
 )
 
 const (
 	defaultStripeWebhookPath = "/Q2HBfAY7iid59J1SUN8h1Y3WxJcPWA/payments/webhooks"
-	pathAndroidAssetLinks    = "/.well-known/assetlinks.json"
 )
 
 type RouteDeps struct {
@@ -75,11 +73,6 @@ func RegisterStaticRoutes(c *frameworkbootstrap.Container) error {
 	if c.Config.Storage.Driver == config.StorageDriverLocal {
 		c.Web.Static("/uploads", c.Config.Storage.LocalStoragePath)
 	}
-
-	c.Web.GET(pathAndroidAssetLinks, func(ctx echo.Context) error {
-		ctx.Response().Header().Set("Cache-Control", fmt.Sprintf("public, max-age=%d", c.Config.Cache.Expiration.StaticFile))
-		return ctx.File("./pwabuilder-android-wrapper/assetlinks.json")
-	})
 
 	return nil
 }

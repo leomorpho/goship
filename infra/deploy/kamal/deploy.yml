@@ -1,5 +1,3 @@
-# https://www.erikminkel.com/2023/09/29/using-kamal-to-host-multiple-apps-on-a-single-server/
-
 # Name of your application. Used to uniquely configure containers.
 service: goship
 
@@ -13,16 +11,16 @@ image: leomorpho/goship
 servers:
   web:
     hosts:
-      - 111.000.000.00
+      - web-1.example.invalid
     labels:
-      traefik.http.routers.cherie.entrypoints: websecure
-      traefik.http.routers.cherie.rule: Host(`cherie.chatbond.app`)
-      traefik.http.routers.cherie.tls: true
-      traefik.http.routers.cherie.tls.certresolver: letsencrypt
+      traefik.http.routers.goship.entrypoints: websecure
+      traefik.http.routers.goship.rule: Host(`goship.example.com`)
+      traefik.http.routers.goship.tls: true
+      traefik.http.routers.goship.tls.certresolver: letsencrypt
 
   worker:
     hosts:
-      - 100.000.000.00
+      - worker-1.example.invalid
     cmd: worker
 
 # Credentials for your image host.
@@ -41,7 +39,7 @@ env:
   clear:
     PAGODA_APP_PAGESIZE: 15
     PAGODA_HTTP_PORT: 8000
-    PAGODA_HTTP_DOMAIN: "https://cherie.chatbond.app"
+    PAGODA_HTTP_DOMAIN: "https://goship.example.com"
     PAGODA_APP_ENVIRONMENT: "prod"
     PAGODA_APP_OPERATIONALCONSTANTS_USERSIGNUPENABLED: "true"
     PAGODA_APP_OPERATIONALCONSTANTS_PAYMENTSENABLED: "false" 
@@ -49,14 +47,14 @@ env:
     PAGODA_HTTP_HOSTNAME: "0.0.0.0"
     PAGODA_CACHE_HOSTNAME: "FILL"
     PAGODA_CACHE_PORT: 6379
-    PAGODA_CACHE_DATABASE: "0" # Sharing with eclair, which uses 1
+    PAGODA_CACHE_DATABASE: "0"
     PAGODA_DATABASE_PORT: 5432
     PAGODA_MAIL_SMTPPORT: 1025
     PAGODA_STORAGE_APPBUCKETNAME: "FILL"
     PAGODA_CACHE_EXPIRATIONPAGE: "2h"
     PAGODA_CACHE_EXPIRATIONSTATICFILE: "4380h"
-    PAGODA_MAIL_FROMADDRESS: "cherie@chatbond.app"
-    PAGODA_APP_SUPPORTEMAIL: "cherie@chatbond.app"
+    PAGODA_MAIL_FROMADDRESS: "support@example.com"
+    PAGODA_APP_SUPPORTEMAIL: "support@example.com"
 
   secret:
     - PAGODA_APP_ENCRYPTIONKEY
@@ -91,20 +89,18 @@ builder:
 accessories:
   redis:
     image: redis:alpine
-    host: cherie-redis
-    host: 164.00.00.000
+    host: redis-1.example.internal
     port: 6379
     directories:
       - data:/data
 
   asynqmon:
     image: hibiken/asynqmon
-    host: cherie-asynqmon
-    host: 164.00.00.000
+    host: asynqmon-1.example.internal
     port: 8080
     env:
       clear:
-        REDIS_ADDR: "cherie-redis:6379"
+        REDIS_ADDR: "redis-1.example.internal:6379"
         REDIS_DB: 0
 
 # NOTE: for TLS setup, see https://github.com/basecamp/kamal/discussions/112
@@ -124,7 +120,7 @@ traefik:
     entryPoints.web.http.redirections.entryPoint.to: websecure
     entryPoints.web.http.redirections.entryPoint.scheme: https
     entryPoints.web.http.redirections.entrypoint.permanent: true
-    certificatesResolvers.letsencrypt.acme.email: "cherie@chatbond.app"
+    certificatesResolvers.letsencrypt.acme.email: "ops@example.com"
     certificatesResolvers.letsencrypt.acme.storage: "/letsencrypt/acme.json"
     certificatesResolvers.letsencrypt.acme.httpchallenge: true
     certificatesResolvers.letsencrypt.acme.httpchallenge.entrypoint: web

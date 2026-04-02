@@ -21,7 +21,7 @@ GoShip is a framework-first repository with one canonical runtime seam set and a
 
 - convention-first project structure and generators (`ship make:*`, `ship destroy`)
 - server-first web stack (Go + Echo + Templ + HTMX)
-- supported first-party batteries for the current v1 generated-app path: jobs
+- supported first-party batteries for the current v1 generated-app path: jobs, storage, emailsubscriptions, paidsubscriptions, notifications
 - standalone-first runtime with an explicit path to distributed/managed operation
 
 ## Product Status
@@ -93,6 +93,10 @@ GoShip must remain fully usable as standalone software.
 - Default path: single-binary, SQLite-first, no required control plane
 - Upgrade path: profile/adapter promotion to Postgres/Redis/worker separation
 - Managed path: external control plane consumes stable runtime contracts (reports, hooks, upgrade readiness), without becoming a runtime dependency
+
+For the current v1 release claim, the managed path is limited to runtime-report metadata,
+decision-input/version contracts, and related policy checks. Signed `/managed/*` HTTP endpoints
+remain outside the current release claim until they have executable proof.
 
 See [`docs/architecture/09-standalone-and-managed-mode.md`](docs/architecture/09-standalone-and-managed-mode.md).
 
@@ -835,11 +839,6 @@ Email subscription:
 - `GET /emailSubscribe`
 - `POST /emailSubscribe`
 - `GET /email/subscription/:token`
-
-Service worker / app-links:
-
-- `GET /service-worker.js`
-- `GET /.well-known/assetlinks.json`
 
 ## User-Not-Authenticated Group (`/user`)
 
@@ -1969,7 +1968,16 @@ Rules:
 
 The external control plane should not rely on mutating arbitrary config files in application repos as its normal operating mechanism.
 
-## Signed Managed Hook Contract (v1)
+## Signed Managed Hook Contract (Design Note, Not Current V1 Release Claim)
+
+The signed `/managed/*` endpoint surface described below remains a design target and historical contract note.
+It is **not** part of the current north-star v1 release claim until executable proof is added.
+
+Current v1 managed-interop claim is narrower:
+
+- `ship runtime:report --json` managed metadata
+- `decision_input` contract fields (including `policy_input_version`)
+- contract-version policy evaluation for runtime/upgrade/managed-hook key versions
 
 When managed mode is enabled, GoShip exposes a narrow signed HTTP bridge for control-plane actions:
 
@@ -2345,6 +2353,148 @@ Split rule:
 - new behavior lands directly in one of the target split batteries
 
 ---
+FILE: docs/architecture/12-boundary-charter.md
+---
+# Boundary Charter
+
+## Purpose
+
+This document defines the intended ownership boundaries between:
+- `framework/`
+- `modules/`
+- the starter/default generated-app preset
+
+The goal is to keep GoShip honest as it grows into a higher-productivity framework.
+
+## Core rule
+
+- `framework/` owns reusable seams and infrastructure contracts.
+- `modules/` owns installable product capabilities (batteries).
+- the starter preset owns the default app experience and day-one leverage.
+
+## `framework/` ownership
+
+Put something in `framework/` when it is:
+- reusable across many apps
+- a seam or contract rather than a product feature
+- generic enough to survive many batteries plugging into it
+
+Examples:
+- runtime/container/router/schedule seams
+- request/response primitives
+- validation primitives
+- auth/session primitives
+- policy/authorization primitives
+- storage interfaces
+- mailer interfaces
+- jobs interfaces
+- cache/pubsub/db abstractions
+- runtime report / route export / contract machinery
+- framework test helpers for those seams
+
+### Do not put in `framework/`
+Do not put product behavior in core just because module packaging is not finished yet.
+
+Examples that should not be core-owned product features:
+- paid subscription product flows
+- notification center/product inbox behavior
+- email subscription product behavior
+- profile/account product features
+- admin product screens
+- billing product workflows
+
+## `modules/` ownership
+
+Put something in `modules/` when it is:
+- optional
+- product-facing
+- installable/removable
+- expected to plug into core seams
+
+Examples:
+- `jobs`
+- `storage`
+- `paidsubscriptions`
+- `emailsubscriptions`
+- `notifications`
+
+The long-term notifications direction should be split batteries rather than one monolith:
+- `notifications-inbox`
+- `notifications-push`
+- `notifications-email`
+- `notifications-sms`
+- `notifications-schedule`
+
+### Good battery traits
+A first-party installable battery should have:
+- a standalone module boundary
+- one public entrypoint
+- an explicit install contract
+- clean ownership over routes/config/assets/jobs/templates/migrations/tests as needed
+- no leakage of app-domain behavior into framework core
+
+## Starter preset ownership
+
+The starter/default generated-app preset should own:
+- the default app experience
+- starter auth/account UX
+- starter landing/home/profile/admin-ish presets if included by default
+- starter form/page wiring that increases day-one product leverage
+
+Rule:
+- if it exists to make `ship new` useful immediately, it belongs to the starter preset layer
+
+Important:
+- the starter preset may use `framework/` seams
+- the starter preset may later install `modules/`
+- but the starter preset should not become the dumping ground for framework ownership either
+
+## Decision rules
+
+### Put it in `framework/` if:
+- it is a generic seam
+- it reduces duplication across many apps or batteries
+- it has no app-domain opinion baked in
+
+### Put it in `modules/` if:
+- it is optional
+- it expresses product behavior
+- apps should be able to add/remove it
+
+### Put it in starter preset if:
+- it is part of the default generated-app promise
+- it exists to increase immediate app leverage
+
+## Anti-cheating rule
+
+Do not move a real battery into `framework/` just because installability is temporarily weak.
+
+That hides the real architecture problem instead of solving it.
+
+If something is conceptually a battery:
+- keep it conceptually battery-owned
+- improve packaging/installability
+- or narrow the product claim honestly
+
+## Current blunt reading
+
+Architecturally:
+- `paidsubscriptions` should be a module
+- `emailsubscriptions` should be a module
+- `notifications` should be a module (and later split into narrower modules)
+- `storage` should be a module
+- `jobs` should be a module
+
+Core/framework should own only the seams those batteries plug into.
+
+## Relationship to existing policy
+
+This charter is consistent with:
+- `docs/architecture/11-module-surface-reset.md`
+- the current installable-battery direction
+- the broader post-v1 productivity goal of making batteries real downstream capabilities
+
+---
 FILE: docs/beta-readiness.md
 ---
 # GoShip Beta Readiness Checklist
@@ -2616,7 +2766,7 @@ If you are using the default Kamal workflow, continue with the deployment steps 
 - A booting GoShip app created by `ship new`
 - Local DB migrated with `ship db:migrate`
 - Dev loop running via `ship dev`
-- Starter landing/auth/home/profile routes available for further app-specific work
+- Starter landing/auth/account/admin/home/profile routes available for further app-specific work
 - Test and verification commands passing
 
 ---
@@ -2795,7 +2945,7 @@ Go tests:
 - `make test` (broader suite; may include Docker-backed packages depending on environment)
 - `make test-generator-contracts` (generator report snapshot + idempotency gate used by CI)
 - `make test-generator-idempotency` (standalone generator duplicate-run matrix without snapshot refresh)
-- `make test-alpha-contracts` (frozen `v0.1.0-alpha` root-help + route-inventory gate used by CI)
+- `make test-alpha-contracts` (legacy frozen `v0.1.0-alpha` root-help + route-inventory gate; not the canonical v1 release-proof lane)
 - `make test-doc-sync` (route/scope documentation guard used by CI)
 - `make test-agent-evals` (cold-start agent eval gate with JSON score report at `artifacts/agent-eval-report.json`)
 - `make test-dead-routes` (route inventory regression guard used by CI)
@@ -2865,7 +3015,7 @@ The `split_frontend_contract` CI job runs `make test-sveltekit-contract`, which 
 The `generator_contracts` CI job runs `make test-generator-contracts` and blocks merges on generator snapshot or idempotency drift.
 Use `make test-generator-idempotency` when only the duplicate-run matrix is relevant and you do not need to touch snapshots.
 When a generator output change is intentional, refresh the golden file locally with `UPDATE_GENERATOR_SNAPSHOTS=1 make test-generator-contracts` and commit the updated snapshot in the same change.
-The `alpha_contract` CI job runs `make test-alpha-contracts` and freezes the current root CLI help plus route inventory as the `v0.1.0-alpha` public surface.
+The `alpha_contract` CI job runs `make test-alpha-contracts` and freezes the historical `v0.1.0-alpha` root CLI help plus route inventory surface. Treat it as legacy compatibility evidence, not as the primary v1 release-proof lane.
 Only refresh those snapshots when the alpha surface change has approved review before merge, then run `UPDATE_ALPHA_CONTRACTS=1 make test-alpha-contracts` and commit the snapshot update with the contract change.
 The `doc_sync` CI job runs `make test-doc-sync` and keeps the HTTP route map plus project-scope docs aligned with canonical managed/admin/realtime surfaces.
 The `agent_evals` CI job runs `make test-agent-evals`, enforces the cold-start eval success threshold, and uploads `artifacts/agent-eval-report.json` for regression triage.
@@ -3138,6 +3288,13 @@ Current deploy method covered here:
 
 - Kamal
 
+Current supported topology in this guide:
+
+- web host + separate worker host
+- external Postgres
+- external Redis
+- distributed-style process topology (not the single-binary local path)
+
 ## Required Files
 
 - `infra/deploy/kamal/deploy.yml`
@@ -3155,7 +3312,8 @@ Before deploying:
 3. Confirm runtime environment variables (DB, cache, app secrets).
 4. Run local checks:
    - `go run ./tools/cli/ship/cmd/ship test`
-   - `go run ./tools/cli/ship/cmd/ship test --integration` (recommended when touching infra-sensitive code)
+   - `go run ./tools/cli/ship/cmd/ship test --integration`
+   - `go run ./tools/cli/ship/cmd/ship verify --profile fast`
 
 ## First Setup
 
@@ -3183,7 +3341,8 @@ kamal traefik reboot -c infra/deploy/kamal/deploy.yml
 
 ## Notes
 
-- Worker and cache topology depends on your runtime profile.
+- This Kamal path assumes a distributed-style deployment with worker separation and reachable Redis/Postgres services.
+- It does **not** document the single-binary local path as a deployment story.
 - If using Redis-backed async/realtime paths, ensure Redis is reachable from deployed processes.
 - Keep deployment docs in sync with `docs/roadmap/01-framework-plan.md` as runtime modes evolve.
 
@@ -3212,12 +3371,12 @@ Last updated: 2026-03-16
 
 The module is composed in `cmd/*`, not in `app/*`:
 
-- [cmd/web/main.go](/Users/leoaudibert/Workspace/pagoda-based/goship/cmd/web/main.go)
-- [cmd/worker/main.go](/Users/leoaudibert/Workspace/pagoda-based/goship/cmd/worker/main.go)
+- [`cmd/web/main.go`](../../cmd/web/main.go)
+- [`cmd/worker/main.go`](../../cmd/worker/main.go)
 
 Container seam fields:
 
-- [container.go](/Users/leoaudibert/Workspace/pagoda-based/goship/app/foundation/container.go)
+- [`app/container.go`](../../app/container.go)
   - `CoreJobs core.Jobs`
   - `CoreJobsInspector core.JobsInspector`
   - `Scheduler *cron.Cron`
@@ -3250,15 +3409,15 @@ CLI support:
 
 Validation tests:
 
-- [config_test.go](/Users/leoaudibert/Workspace/pagoda-based/goship/modules/jobs/config_test.go)
+- [`modules/jobs/config_test.go`](../../modules/jobs/config_test.go)
 
 ## SQL Backend Baseline
 
 Implemented in:
 
-- [client.go](/Users/leoaudibert/Workspace/pagoda-based/goship/modules/jobs/drivers/sql/client.go)
-- [core_jobs_sql.go](/Users/leoaudibert/Workspace/pagoda-based/goship/modules/jobs/core_jobs_sql.go)
-- [core_jobs_inspector_sql.go](/Users/leoaudibert/Workspace/pagoda-based/goship/modules/jobs/core_jobs_inspector_sql.go)
+- [`modules/jobs/drivers/sql/client.go`](../../modules/jobs/drivers/sql/client.go)
+- [`modules/jobs/core_jobs_sql.go`](../../modules/jobs/core_jobs_sql.go)
+- [`modules/jobs/core_jobs_inspector_sql.go`](../../modules/jobs/core_jobs_inspector_sql.go)
 
 Current behavior:
 
@@ -3272,8 +3431,8 @@ Current behavior:
 
 Implemented in:
 
-- [client.go](/Users/leoaudibert/Workspace/pagoda-based/goship/modules/jobs/drivers/redis/client.go)
-- [core_jobs_redis.go](/Users/leoaudibert/Workspace/pagoda-based/goship/modules/jobs/core_jobs_redis.go)
+- [`modules/jobs/drivers/redis/client.go`](../../modules/jobs/drivers/redis/client.go)
+- [`modules/jobs/core_jobs_redis.go`](../../modules/jobs/core_jobs_redis.go)
 
 Current behavior:
 
@@ -3934,7 +4093,7 @@ go run ./tools/cli/ship/cmd/ship make:controller Contact --actions index,create 
 
 Scope note:
 - `make:resource` is the starter-safe generated-app path today.
-- `make:controller` currently targets the framework workspace and rejects the minimal starter scaffold with a clear error.
+- `make:controller` is now starter-safe too, but on starter apps it uses the generated CRUD/runtime route backend instead of creating Echo controller files.
 
 ## What This Should Change
 
@@ -3984,8 +4143,8 @@ Add a module with deterministic wiring and keep module boundaries isolated from 
 Scope note:
 - this workflow is for the framework workspace / module-authoring path.
 - the minimal starter scaffold generated by default `ship new` still rejects `ship module:add` and does not support `make:module`.
-- the current supported first-party battery set for the v1 generated-app path is: `jobs`.
-- `notifications`, `paidsubscriptions`, `emailsubscriptions`, and `storage` remain part of the broader module-surface reset roadmap, but they are not yet installable on the canonical generated-app path.
+- the current supported first-party battery set for the v1 generated-app path is: `jobs`, `storage`, `emailsubscriptions`, `paidsubscriptions`, and `notifications`.
+- `notifications` remains the temporary bridge battery while the split-battery plan evolves, but it is now installable on the canonical generated-app path.
 
 ## Preferred Path
 
@@ -4361,7 +4520,8 @@ Generation:
 - `ship make:model <Name> [fields...] [--force]`
 - `ship make:factory <Name>`
 - `ship make:locale <code>`
-- `ship make:controller <Name|NameController> [--actions index,show,create,update,destroy] [--auth public|auth] [--domain <name>] [--wire]`
+- `ship make:policy <Name> [--force]`
+- `ship make:controller <Name|NameController> [--actions index,show,create,update,destroy] [--fields name:type,...] [--auth public|auth] [--domain <name>] [--wire]`
 - `ship make:job <Name>`
 - `ship make:mailer <Name>`
 - `ship make:schedule <Name> --cron "<expr>"`
@@ -4371,9 +4531,9 @@ Generation:
 
 Current generated-app support boundary for `ship make:*`:
 
-- **starter-safe today:** `make:resource`, `make:model`, `make:island`
+- **starter-safe today:** `make:resource`, `make:model`, `make:controller`, `make:policy`, `make:mailer`, `make:island`
 - **starter-safe when a locale baseline already exists:** `make:locale`
-- **framework-workspace-only for now:** `make:controller`, `make:factory`, `make:job`, `make:mailer`, `make:schedule`, `make:command`, `make:scaffold`
+- **framework-workspace-only for now:** `make:factory`, `make:job`, `make:schedule`, `make:command`, `make:scaffold`
 - **framework authoring only:** `make:module`
 - `ship destroy resource:<name>`
 
@@ -4426,7 +4586,7 @@ These commands are implemented as wrappers over existing workflows:
 - `make test-sql-portability` -> dedicated CI lane for `sql-core-v1` runtime metadata plus migration/query portability; diagnostics call out missing branch handling and placeholder drift
 - `make test-generator-contracts` -> dedicated CI lane for shared generator-report snapshot and idempotency-matrix drift
 - `make test-generator-idempotency` -> focused local rerun for the duplicate-generation matrix without snapshot refresh
-- `make test-alpha-contracts` -> dedicated CI lane for the frozen `v0.1.0-alpha` root-help and route-inventory contract
+- `make test-alpha-contracts` -> legacy CI lane for the frozen `v0.1.0-alpha` root-help and route-inventory contract; keep it as compatibility evidence, not as the primary v1 release-proof surface
 - `make test-bootstrap-budget` -> dedicated CI lane for the canonical starter bootstrap budget (`ship new` + starter `go run ./cmd/web`)
 - `npm --prefix tests/e2e run test:golden` -> canonical Playwright golden-flow lane for current GoShip scaffold behavior (`/up`, landing/register/login entrypoints, anonymous auth redirects, `/demo/islands` runtime mount contract)
 - `npm --prefix tests/e2e run test:cherie-smoke` -> dedicated CI lane for the Cherie boot/auth/realtime compatibility baseline
@@ -4510,16 +4670,19 @@ Safety matrix:
 - `ship make:resource` path ownership is canonical: `--path` must resolve to `app`; values that escape or diverge from `app` fail fast
 - `ship make:model <Name>` -> scaffold a model query file at `db/queries/<model>.sql` with Bob-friendly named-query placeholders
 - `ship make:model <Name> [fields...]` -> include typed field comments in the query scaffold and print next DB steps (`db:make`, `db:migrate`, `db:generate`)
+- `ship make:policy <Name>` -> scaffold `app/policies/<name>.go` with a generated ownership header, a `PolicyActor` seam, and a starter-safe `Allows(...)` method that defaults to admin-only access until the app wires richer policy behavior
 - `ship make:factory <Name>` -> scaffold `tests/factories/<name>_factory.go` with a typed `Record` struct + `factory.New(...)` baseline; currently reject the minimal starter scaffold with a clear error and treat this as a framework-workspace surface
 - `ship make:locale <code>` -> scaffold `locales/<code>.toml` from `locales/en.toml` (or legacy `en.yaml`) with matching keys and empty values; this stays starter-safe only when the app already has a locale baseline
 - `ship make:controller <Name>` -> generate controller/handler scaffold in `app/web/controllers`
 - `ship make:controller <Name> --domain <name>` -> generate domain-aware constructor slot (`domainService any`) and route wiring using `nil` placeholder
 - `ship make:controller <Name> --actions ... --wire` -> wire generated routes into `app/router.go` markers
+- `ship make:controller <Name> --fields name:type,...` -> on starter apps, preserve generated field metadata for runtime forms/storage; on framework workspaces, field metadata is currently ignored
 - `ship make:controller` path ownership is canonical: `--path` must resolve to `app`; values that escape or diverge from `app` fail fast
-- `ship make:controller` currently rejects the minimal starter scaffold with a clear error instead of generating broken Echo-based code into the generated app; treat it as a framework-workspace surface until the downstream-app contract is explicitly widened
+- `ship make:controller` is starter-safe now: on the minimal starter scaffold it emits a generated page + explicit route capability metadata and uses the starter CRUD/runtime route backend instead of Echo controller files
+- on framework workspaces, `ship make:controller` still emits `app/web/controllers/<name>.go` plus optional wired routes
 - `ship make:island <Name>` -> Generate a frontend island scaffold: the canonical pair `frontend/islands/<Name>.js` with an exported `mount(el, props)` seam and `app/views/web/components/<name>_island.templ` with the matching `data-island` / `data-props` mount target; follow-up remains explicit: run `ship templ generate --file app/views/web/components/<name>_island.templ`, run `make build-js`, then render `@components.<Name>Island(...)` from the page/component that should host the island
 - `ship make:job <Name>` -> Generate a background job scaffold at `app/jobs/<name>.go` plus `app/jobs/<name>_test.go` around `core.Jobs` / `core.JobHandler` registration helpers; currently reject the minimal starter scaffold with a clear error and treat this as a framework-workspace surface
-- `ship make:mailer <Name>` -> Generate a mailer scaffold at `app/views/emails/<name>.templ` and wire a `/dev/mail/<name>` preview into the existing mail preview controller and route surface; currently reject the minimal starter scaffold with a clear error and treat this as a framework-workspace surface
+- `ship make:mailer <Name>` -> on starter apps, generate `app/views/emails/<name>.html` plus preview at `/dev/mail/<name>`; on framework workspaces, generate `app/views/emails/<name>.templ` and wire the framework preview route surface
 - `ship make:schedule <Name> --cron "<expr>"` -> insert a named cron entry into `app/schedules.go` between `ship:schedules` markers; currently reject the minimal starter scaffold with a clear error and treat this as a framework-workspace surface
 - `ship make:command <Name>` -> scaffold `app/commands/<name>.go` and register it in `cmd/cli/main.go` at `ship:commands` markers; currently reject the minimal starter scaffold with a clear error and treat this as a framework-workspace surface
 - `ship make:scaffold <Name> ...` -> orchestration command that composes `make:model`, `db:make`, `make:controller --domain <plural_model> --wire`, and optionally `make:resource --domain <plural_model>` / `db:migrate`; currently reject the minimal starter scaffold with a clear error and treat this as a framework-workspace surface
@@ -4528,8 +4691,8 @@ Safety matrix:
 - `ship make:module <Name> --dry-run` now includes explain output for each emitted scaffold file (`- file: <path> -> owner: <battery-contract-owner>`) so generator ownership is explicit during review
 - `ship make:module` path ownership is canonical: `--path` must resolve to `modules`; values that escape or diverge from `modules` fail fast
 - `ship destroy resource:<name>` -> remove generator-managed resource scaffold targets in deterministic order (router marker block, route-name constant, templ page, optional scaffold test, controller); paths without recognized ownership signals are skipped with explicit reasons and the command exits non-zero when nothing is safely removable
-- canonical first-class installable batteries on the current generated-app v1 path are `jobs`; this baseline is authored in `config/module-surface.yaml` and verified against `docs/architecture/11-module-surface-reset.md`
-- broader reference-set batteries for module-surface reset work remain `jobs`, `storage`, `emailsubscriptions`, and `paidsubscriptions`, but `notifications`, `paidsubscriptions`, `emailsubscriptions`, and `storage` are not yet installable on the canonical generated-app path
+- canonical first-class installable batteries on the current generated-app v1 path are `jobs`, `storage`, `emailsubscriptions`, `paidsubscriptions`, and `notifications`; this baseline is authored in `config/module-surface.yaml` and verified against `docs/architecture/11-module-surface-reset.md`
+- `notifications` remains the bridge battery pending its documented split, but it is installable on the canonical generated-app path today
 - `ship upgrade --to <version>` -> runs readiness preflight and prints the deterministic rewrite plan without writing files
 - `ship upgrade apply --to <version>` -> applies the deterministic rewrite plan to the pinned Goose CLI go-run fallback version (`gooseGoRunRef` in `tools/cli/ship/internal/cli/cli.go`) and canonicalizes legacy Goose command paths when present
 - upgrade apply writes include post-write verification and automatic rollback to the previous file content when verification fails in failure paths
@@ -4775,13 +4938,13 @@ go build -o ~/.local/bin/ship-mcp ./tools/mcp/ship/cmd/ship-mcp
 Use an absolute docs path:
 
 ```bash
-export SHIP_MCP_DOCS_ROOT=/Users/leoaudibert/Workspace/pagoda-based/goship/docs
+export SHIP_MCP_DOCS_ROOT=/path/to/goship/docs
 ```
 
 Register in your MCP-compatible agent CLI:
 
 ```bash
-<agent-cli> mcp add --scope user -e SHIP_MCP_DOCS_ROOT=/Users/leoaudibert/Workspace/pagoda-based/goship/docs ship -- ~/.local/bin/ship-mcp
+<agent-cli> mcp add --scope user -e SHIP_MCP_DOCS_ROOT=/path/to/goship/docs ship -- ~/.local/bin/ship-mcp
 <agent-cli> mcp list
 ```
 
@@ -7997,7 +8160,7 @@ tests remain, so agents know there is unfinished implementation.
 **Depends on:** nothing
 **Files:** `.githooks/commit-msg` (new), `Makefile` (hooks:install target)
 
-> **Makefile target:** The Makefile has a `hooks` / `hooks-install` target already. Check its current content before adding a new one — it may already configure `git config core.hooksPath`. The Makefile is at the repo root (`/Users/leoaudibert/Workspace/2026/pagoda-based/goship/Makefile`).
+> **Makefile target:** The Makefile has a `hooks` / `hooks-install` target already. Check its current content before adding a new one — it may already configure `git config core.hooksPath`. The Makefile is at the repo root (`./Makefile`).
 
 **Context:** Conventional commits (`feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`)
 give agents and humans a consistent vocabulary for change classification. Without enforcement,

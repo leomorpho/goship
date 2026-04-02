@@ -678,7 +678,7 @@ tests remain, so agents know there is unfinished implementation.
 **Depends on:** nothing
 **Files:** `.githooks/commit-msg` (new), `Makefile` (hooks:install target)
 
-> **Makefile target:** The Makefile has a `hooks` / `hooks-install` target already. Check its current content before adding a new one — it may already configure `git config core.hooksPath`. The Makefile is at the repo root (`/Users/leoaudibert/Workspace/2026/pagoda-based/goship/Makefile`).
+> **Makefile target:** The Makefile has a `hooks` / `hooks-install` target already. Check its current content before adding a new one — it may already configure `git config core.hooksPath`. The Makefile is at the repo root (`./Makefile`).
 
 **Context:** Conventional commits (`feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`)
 give agents and humans a consistent vocabulary for change classification. Without enforcement,

@@ -30,11 +30,6 @@ Email subscription:
 - `POST /emailSubscribe`
 - `GET /email/subscription/:token`
 
-Service worker / app-links:
-
-- `GET /service-worker.js`
-- `GET /.well-known/assetlinks.json`
-
 ## User-Not-Authenticated Group (`/user`)
 
 - `GET /user/login`

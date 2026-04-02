@@ -81,13 +81,13 @@ go build -o ~/.local/bin/ship-mcp ./tools/mcp/ship/cmd/ship-mcp
 Use an absolute docs path:
 
 ```bash
-export SHIP_MCP_DOCS_ROOT=/Users/leoaudibert/Workspace/pagoda-based/goship/docs
+export SHIP_MCP_DOCS_ROOT=/path/to/goship/docs
 ```
 
 Register in your MCP-compatible agent CLI:
 
 ```bash
-<agent-cli> mcp add --scope user -e SHIP_MCP_DOCS_ROOT=/Users/leoaudibert/Workspace/pagoda-based/goship/docs ship -- ~/.local/bin/ship-mcp
+<agent-cli> mcp add --scope user -e SHIP_MCP_DOCS_ROOT=/path/to/goship/docs ship -- ~/.local/bin/ship-mcp
 <agent-cli> mcp list
 ```
 

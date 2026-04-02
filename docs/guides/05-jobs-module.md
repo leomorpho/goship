@@ -20,12 +20,12 @@ Last updated: 2026-03-16
 
 The module is composed in `cmd/*`, not in `app/*`:
 
-- [cmd/web/main.go](/Users/leoaudibert/Workspace/pagoda-based/goship/cmd/web/main.go)
-- [cmd/worker/main.go](/Users/leoaudibert/Workspace/pagoda-based/goship/cmd/worker/main.go)
+- [`cmd/web/main.go`](../../cmd/web/main.go)
+- [`cmd/worker/main.go`](../../cmd/worker/main.go)
 
 Container seam fields:
 
-- [container.go](/Users/leoaudibert/Workspace/pagoda-based/goship/app/foundation/container.go)
+- [`app/container.go`](../../app/container.go)
   - `CoreJobs core.Jobs`
   - `CoreJobsInspector core.JobsInspector`
   - `Scheduler *cron.Cron`
@@ -58,15 +58,15 @@ CLI support:
 
 Validation tests:
 
-- [config_test.go](/Users/leoaudibert/Workspace/pagoda-based/goship/modules/jobs/config_test.go)
+- [`modules/jobs/config_test.go`](../../modules/jobs/config_test.go)
 
 ## SQL Backend Baseline
 
 Implemented in:
 
-- [client.go](/Users/leoaudibert/Workspace/pagoda-based/goship/modules/jobs/drivers/sql/client.go)
-- [core_jobs_sql.go](/Users/leoaudibert/Workspace/pagoda-based/goship/modules/jobs/core_jobs_sql.go)
-- [core_jobs_inspector_sql.go](/Users/leoaudibert/Workspace/pagoda-based/goship/modules/jobs/core_jobs_inspector_sql.go)
+- [`modules/jobs/drivers/sql/client.go`](../../modules/jobs/drivers/sql/client.go)
+- [`modules/jobs/core_jobs_sql.go`](../../modules/jobs/core_jobs_sql.go)
+- [`modules/jobs/core_jobs_inspector_sql.go`](../../modules/jobs/core_jobs_inspector_sql.go)
 
 Current behavior:
 
@@ -80,8 +80,8 @@ Current behavior:
 
 Implemented in:
 
-- [client.go](/Users/leoaudibert/Workspace/pagoda-based/goship/modules/jobs/drivers/redis/client.go)
-- [core_jobs_redis.go](/Users/leoaudibert/Workspace/pagoda-based/goship/modules/jobs/core_jobs_redis.go)
+- [`modules/jobs/drivers/redis/client.go`](../../modules/jobs/drivers/redis/client.go)
+- [`modules/jobs/core_jobs_redis.go`](../../modules/jobs/core_jobs_redis.go)
 
 Current behavior:
 

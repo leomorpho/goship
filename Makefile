@@ -332,7 +332,7 @@ tailwind-watch: ## Start a Tailwind watcher
 tailwind-compile: ## Compile and minify your CSS for production
 	$(TAILWIND) --config ./frontend/tailwind.config.js -i styles/styles.css -o static/output.css --minify
 
-.PHONY: deploy-cherie
+.PHONY: deploy-goship
 deploy-goship: ## Deploy new Goship version
 	kamal deploy -c infra/deploy/kamal/deploy.yml
 
