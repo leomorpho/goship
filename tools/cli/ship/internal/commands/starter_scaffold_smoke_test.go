@@ -615,6 +615,32 @@ func TestStarterStorageModuleRoundTripStaysBuildable(t *testing.T) {
 	buildStarterApp(t, appPath, "go build after module:remove storage")
 }
 
+func TestModuleAddDryRunEmitsMachineReadableMetadata(t *testing.T) {
+	appPath := scaffoldStarterApp(t)
+	wd, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("os.Getwd() error = %v", err)
+	}
+	defer func() { _ = os.Chdir(wd) }()
+	if err := os.Chdir(appPath); err != nil {
+		t.Fatalf("os.Chdir(%q) error = %v", appPath, err)
+	}
+
+	var out bytes.Buffer
+	code := RunModule([]string{"add", "storage", "--dry-run"}, ModuleDeps{Out: &out, Err: &out, FindGoModule: func(start string) (string, string, error) {
+		return appPath, "example.com/demo", nil
+	}})
+	if code != 0 {
+		t.Fatalf("RunModule(add storage --dry-run) exit code = %d\n%s", code, out.String())
+	}
+	if !strings.Contains(out.String(), `"module_id":"storage"`) {
+		t.Fatalf("dry-run output missing module_id metadata\n%s", out.String())
+	}
+	if !strings.Contains(out.String(), `"ownership"`) {
+		t.Fatalf("dry-run output missing ownership metadata\n%s", out.String())
+	}
+}
+
 func TestStarterUnsupportedModuleAddFailsWithoutMutatingGoMod(t *testing.T) {
 	appPath := scaffoldStarterApp(t)
 

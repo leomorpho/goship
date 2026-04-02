@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -50,6 +51,13 @@ type moduleInstallContract struct {
 	Templates  []string
 	Migrations []string
 	Tests      []string
+}
+
+type moduleMutationMetadata struct {
+	ModuleID  string                `json:"module_id"`
+	DryRun    bool                  `json:"dry_run"`
+	Contract  moduleInstallContract `json:"contract"`
+	Ownership map[string][]string   `json:"ownership"`
 }
 
 func (c moduleInstallContract) IsEmpty() bool {
@@ -468,6 +476,7 @@ func printModuleInstallContract(out io.Writer, info moduleInfo) {
 	printInstallContractSection(out, "migrations", contract.Migrations)
 	printInstallContractSection(out, "tests", contract.Tests)
 	printInstallContractOwnership(out, contract)
+	printInstallContractMetadata(out, info.ID, contract)
 }
 
 func printInstallContractSection(out io.Writer, label string, values []string) {
@@ -482,6 +491,26 @@ func printInstallContractSection(out io.Writer, label string, values []string) {
 }
 
 func printInstallContractOwnership(out io.Writer, contract moduleInstallContract) {
+	ownership := installContractOwnership(contract)
+	fmt.Fprintln(out, "  ownership:")
+	if len(ownership) == 0 {
+		fmt.Fprintln(out, "    - (none)")
+		return
+	}
+
+	files := make([]string, 0, len(ownership))
+	for file := range ownership {
+		files = append(files, file)
+	}
+	sort.Strings(files)
+	for _, file := range files {
+		owners := ownership[file]
+		sort.Strings(owners)
+		fmt.Fprintf(out, "    - %s -> %s\n", file, strings.Join(owners, ", "))
+	}
+}
+
+func installContractOwnership(contract moduleInstallContract) map[string][]string {
 	ownership := map[string][]string{}
 	appendOwnership := func(owner string, values []string) {
 		for _, value := range values {
@@ -500,23 +529,22 @@ func printInstallContractOwnership(out io.Writer, contract moduleInstallContract
 	appendOwnership("templates", contract.Templates)
 	appendOwnership("migrations", contract.Migrations)
 	appendOwnership("tests", contract.Tests)
+	return ownership
+}
 
-	fmt.Fprintln(out, "  ownership:")
-	if len(ownership) == 0 {
-		fmt.Fprintln(out, "    - (none)")
+func printInstallContractMetadata(out io.Writer, moduleID string, contract moduleInstallContract) {
+	metadata := moduleMutationMetadata{
+		ModuleID:  moduleID,
+		DryRun:    false,
+		Contract:  contract,
+		Ownership: installContractOwnership(contract),
+	}
+	body, err := json.Marshal(metadata)
+	if err != nil {
+		fmt.Fprintf(out, "  metadata_json_error: %v\n", err)
 		return
 	}
-
-	files := make([]string, 0, len(ownership))
-	for file := range ownership {
-		files = append(files, file)
-	}
-	sort.Strings(files)
-	for _, file := range files {
-		owners := ownership[file]
-		sort.Strings(owners)
-		fmt.Fprintf(out, "    - %s -> %s\n", file, strings.Join(owners, ", "))
-	}
+	fmt.Fprintf(out, "  metadata: %s\n", string(body))
 }
 
 func runModuleRemove(args []string, d ModuleDeps) int {
