@@ -50,13 +50,17 @@ func RunMakeController(args []string, d ControllerDeps) int {
 		fmt.Fprintf(d.Err, "invalid make:controller arguments: %v\n", err)
 		return 1
 	}
-	if !CapabilityModelForRoot(".").SupportsControllerGeneration {
-		fmt.Fprintln(d.Err, "make:controller is not supported on the starter scaffold yet; no files were changed")
-		return 1
-	}
 	names, err := NormalizeControllerName(opts.Name)
 	if err != nil {
 		fmt.Fprintf(d.Err, "invalid controller name: %v\n", err)
+		return 1
+	}
+	capabilities := CapabilityModelForRoot(".")
+	if capabilities.Workspace == GeneratorWorkspaceStarterScaffold {
+		return runMakeStarterController(opts, names, d)
+	}
+	if !capabilities.SupportsControllerGeneration {
+		fmt.Fprintln(d.Err, "make:controller is not supported on the starter scaffold yet; no files were changed")
 		return 1
 	}
 
@@ -124,6 +128,73 @@ func RunMakeController(args []string, d ControllerDeps) int {
 		})
 	}
 	writeGeneratorReport(d.Out, "controller", false, created, updated, previews, nil)
+	return 0
+}
+
+func runMakeStarterController(opts ControllerMakeOptions, names ControllerNames, d ControllerDeps) int {
+	routePath := "/" + names.BaseKebab
+	if opts.Auth == "auth" {
+		routePath = "/auth/" + names.BaseKebab
+	}
+	spec := StarterGeneratedRouteSpec{
+		Snake:       names.BaseSnake,
+		Kebab:       names.BaseKebab,
+		Pascal:      names.BaseTitle,
+		RoutePath:   routePath,
+		Actions:     append([]string(nil), opts.Actions...),
+		Description: fmt.Sprintf("Starter controller scaffold for %s with actions: %s.", names.BaseKebab, strings.Join(opts.Actions, ", ")),
+	}
+	pageFile := filepath.Join(opts.Path, "views", "web", "pages", "gen", names.BaseSnake+".go")
+	if err := writeFile(pageFile, renderStarterGeneratedPageSpec(spec), false); err != nil {
+		fmt.Fprintf(d.Err, "failed to write starter controller page: %v\n", err)
+		return 1
+	}
+	routerPath := filepath.Join(opts.Path, "router.go")
+	routeNamePath := filepath.Join(opts.Path, "web", "routenames", "routenames.go")
+	routeNameConst := "RouteName" + names.BaseTitle
+	routeNameValue := names.BaseSnake
+	templatesPath := filepath.Join(opts.Path, "views", "templates.go")
+	mainPath := filepath.Join("cmd", "web", "main.go")
+	if opts.Wire {
+		if err := EnsureRouteNamesImport(routerPath, false); err != nil {
+			fmt.Fprintf(d.Err, "failed to ensure routeNames import: %v\n", err)
+			return 1
+		}
+		if err := WireRouteSnippet(routerPath, opts.Auth, renderStarterRouteInsertSnippetForSpec(spec), false); err != nil {
+			fmt.Fprintf(d.Err, "failed to wire starter controller routes: %v\n", err)
+			return 1
+		}
+	}
+	if err := WireRouteNameConstant(routeNamePath, routeNameConst, routeNameValue, false); err != nil {
+		fmt.Fprintf(d.Err, "failed to wire route name constant: %v\n", err)
+		return 1
+	}
+	if opts.Wire {
+		if err := WireStarterPageConstant(templatesPath, "Page"+NormalizePageName(routeNameConst), routeNameValue, false); err != nil {
+			fmt.Fprintf(d.Err, "failed to wire starter page constant: %v\n", err)
+			return 1
+		}
+		if err := WireStarterComponentForPage(mainPath, routeNameValue, "Page"+NormalizePageName(routeNameConst), NormalizePageName(routeNameConst), titleFromRouteName(routeNameConst), false); err != nil {
+			fmt.Fprintf(d.Err, "failed to wire starter component switch: %v\n", err)
+			return 1
+		}
+	}
+	updated := []string{routeNamePath}
+	if opts.Wire {
+		updated = append(updated, routerPath, templatesPath, mainPath)
+	}
+	writeGeneratorReport(d.Out, "controller", false, []string{pageFile}, updated, []generatorPreview{
+		{
+			Title: "Router snippet for " + routerPath,
+			Body:  renderStarterRoutePreview(spec, opts.Auth),
+		},
+		{
+			Title: "Route name constant for " + routeNamePath,
+			Body:  fmt.Sprintf("%s = %q", routeNameConst, routeNameValue),
+		},
+	}, []string{
+		"Starter controller scaffolds use the starter CRUD/runtime route backend rather than framework Echo controllers.",
+	})
 	return 0
 }
 

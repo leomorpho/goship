@@ -113,9 +113,9 @@ Generation:
 
 Current generated-app support boundary for `ship make:*`:
 
-- **starter-safe today:** `make:resource`, `make:model`, `make:island`
+- **starter-safe today:** `make:resource`, `make:model`, `make:controller`, `make:island`
 - **starter-safe when a locale baseline already exists:** `make:locale`
-- **framework-workspace-only for now:** `make:controller`, `make:factory`, `make:job`, `make:mailer`, `make:schedule`, `make:command`, `make:scaffold`
+- **framework-workspace-only for now:** `make:factory`, `make:job`, `make:mailer`, `make:schedule`, `make:command`, `make:scaffold`
 - **framework authoring only:** `make:module`
 - `ship destroy resource:<name>`
 
@@ -258,7 +258,8 @@ Safety matrix:
 - `ship make:controller <Name> --domain <name>` -> generate domain-aware constructor slot (`domainService any`) and route wiring using `nil` placeholder
 - `ship make:controller <Name> --actions ... --wire` -> wire generated routes into `app/router.go` markers
 - `ship make:controller` path ownership is canonical: `--path` must resolve to `app`; values that escape or diverge from `app` fail fast
-- `ship make:controller` currently rejects the minimal starter scaffold with a clear error instead of generating broken Echo-based code into the generated app; treat it as a framework-workspace surface until the downstream-app contract is explicitly widened
+- `ship make:controller` is starter-safe now: on the minimal starter scaffold it emits a generated page + explicit route capability metadata and uses the starter CRUD/runtime route backend instead of Echo controller files
+- on framework workspaces, `ship make:controller` still emits `app/web/controllers/<name>.go` plus optional wired routes
 - `ship make:island <Name>` -> Generate a frontend island scaffold: the canonical pair `frontend/islands/<Name>.js` with an exported `mount(el, props)` seam and `app/views/web/components/<name>_island.templ` with the matching `data-island` / `data-props` mount target; follow-up remains explicit: run `ship templ generate --file app/views/web/components/<name>_island.templ`, run `make build-js`, then render `@components.<Name>Island(...)` from the page/component that should host the island
 - `ship make:job <Name>` -> Generate a background job scaffold at `app/jobs/<name>.go` plus `app/jobs/<name>_test.go` around `core.Jobs` / `core.JobHandler` registration helpers; currently reject the minimal starter scaffold with a clear error and treat this as a framework-workspace surface
 - `ship make:mailer <Name>` -> Generate a mailer scaffold at `app/views/emails/<name>.templ` and wire a `/dev/mail/<name>` preview into the existing mail preview controller and route surface; currently reject the minimal starter scaffold with a clear error and treat this as a framework-workspace surface

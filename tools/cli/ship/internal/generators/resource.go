@@ -248,44 +248,37 @@ func GenerateResourceScaffold(opts ResourceGenerateOptions) (ResourceGenerateRes
 }
 
 func renderStarterGeneratedPage(n NormalizedResourceName) string {
-	return fmt.Sprintf(`package pages
-
-import (
-	"context"
-	"io"
-
-	"github.com/a-h/templ"
-)
-
-func %s() templ.Component {
-	return templ.ComponentFunc(func(ctx context.Context, w io.Writer) error {
-		if ctx.Err() != nil {
-			return ctx.Err()
-		}
-		_, err := io.WriteString(w, %q)
-		return err
+	return renderStarterGeneratedPageSpec(StarterGeneratedRouteSpec{
+		Snake:       n.Snake,
+		Kebab:       n.Kebab,
+		Pascal:      n.Pascal,
+		RoutePath:   "/" + n.Kebab,
+		Actions:     DefaultGeneratorCRUDActionNames(),
+		Description: fmt.Sprintf("Starter CRUD scaffold for %s with list/create/show/edit/delete runtime support.", n.Kebab),
 	})
-}
-`, n.Pascal, fmt.Sprintf(`<section data-component=%q><div data-slot="status">CRUD scaffold</div><h1>%s</h1><p>Starter CRUD scaffold for %s with list/create/show/edit/delete runtime support.</p></section>`, n.Kebab, n.Pascal, n.Kebab))
 }
 
 func renderStarterRouteSnippet(n NormalizedResourceName, auth string) string {
-	target := "public"
-	if auth == "auth" {
-		target = "auth"
-	}
-	return fmt.Sprintf(`// In starter %s routes:
-%s`, target, strings.TrimSpace(renderStarterRouteInsertSnippet(n, auth)))
+	return renderStarterRoutePreview(starterGeneratedRouteSpecForResource(n, auth), auth)
 }
 
 func renderStarterRouteInsertSnippet(n NormalizedResourceName, auth string) string {
+	return renderStarterRouteInsertSnippetForSpec(starterGeneratedRouteSpecForResource(n, auth))
+}
+
+func starterGeneratedRouteSpecForResource(n NormalizedResourceName, auth string) StarterGeneratedRouteSpec {
 	path := "/" + n.Kebab
 	if auth == "auth" {
 		path = "/auth/" + n.Kebab
 	}
-	return fmt.Sprintf(`			// ship:generated:%s
-			{Name: routenames.RouteName%s, Path: %q, Page: templates.Page%s, Kind: RouteKindResource, Actions: []string{"index", "show", "create", "update", "destroy"}},
-`, n.Snake, n.Pascal, path, n.Pascal)
+	return StarterGeneratedRouteSpec{
+		Snake:       n.Snake,
+		Kebab:       n.Kebab,
+		Pascal:      n.Pascal,
+		RoutePath:   path,
+		Actions:     DefaultGeneratorCRUDActionNames(),
+		Description: fmt.Sprintf("Starter CRUD scaffold for %s with list/create/show/edit/delete runtime support.", n.Kebab),
+	}
 }
 
 func NormalizePageName(routeNameConst string) string {

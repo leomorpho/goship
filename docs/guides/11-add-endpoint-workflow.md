@@ -28,7 +28,7 @@ go run ./tools/cli/ship/cmd/ship make:controller Contact --actions index,create 
 
 Scope note:
 - `make:resource` is the starter-safe generated-app path today.
-- `make:controller` currently targets the framework workspace and rejects the minimal starter scaffold with a clear error.
+- `make:controller` is now starter-safe too, but on starter apps it uses the generated CRUD/runtime route backend instead of creating Echo controller files.
 
 ## What This Should Change
 

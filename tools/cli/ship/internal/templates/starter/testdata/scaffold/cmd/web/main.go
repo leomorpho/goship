@@ -649,24 +649,60 @@ func handleStarterCRUDRoute(w http.ResponseWriter, r *http.Request, route goship
 
 func renderStarterCRUDPage(w http.ResponseWriter, r *http.Request, route goship.Route) error {
 	id := strings.TrimSpace(r.URL.Query().Get("id"))
+	if id != "" && !starterRouteSupportsAction(route, "show") && !starterRouteSupportsAction(route, "update") && !starterRouteSupportsAction(route, "destroy") {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return nil
+	}
+	if id == "" && !starterRouteSupportsAction(route, "index") && !starterRouteSupportsAction(route, "create") {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return nil
+	}
 	record, hasRecord := starterCRUDRecordByID(route.Path, id)
 	all := starterCRUDRecords(route.Path)
 	resourceLabel := strings.ReplaceAll(route.Name, "_", " ")
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	_, err := fmt.Fprintf(w, `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>%s CRUD</title><link rel="stylesheet" href="/static/styles_bundle.css"></head><body><div class="starter-shell"><header class="starter-header"><div class="starter-brand">GoShip Starter</div></header><section data-component="%s-crud"><h1>%s CRUD scaffold</h1><h2>Create %s</h2><form method="post" action="%s"><label>Name<input name="name" type="text" value=""></label><button type="submit">Create %s</button></form><h2>%s list</h2><ul>`, route.Name, route.Name, resourceLabel, resourceLabel, route.Path, resourceLabel, resourceLabel)
+	_, err := fmt.Fprintf(w, `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>%s CRUD</title><link rel="stylesheet" href="/static/styles_bundle.css"></head><body><div class="starter-shell"><header class="starter-header"><div class="starter-brand">GoShip Starter</div></header><section data-component="%s-crud"><h1>%s CRUD scaffold</h1>`, route.Name, route.Name, resourceLabel)
 	if err != nil {
 		return err
 	}
-	for _, item := range all {
-		if _, err := fmt.Fprintf(w, `<li><a href="%s?id=%d">%s</a></li>`, route.Path, item.ID, html.EscapeString(item.Name)); err != nil {
+	if starterRouteSupportsAction(route, "create") {
+		if _, err := fmt.Fprintf(w, `<h2>Create %s</h2><form method="post" action="%s"><label>Name<input name="name" type="text" value=""></label><button type="submit">Create %s</button></form>`, resourceLabel, route.Path, resourceLabel); err != nil {
 			return err
 		}
 	}
-	if _, err := fmt.Fprint(w, `</ul>`); err != nil {
-		return err
+	if starterRouteSupportsAction(route, "index") {
+		if _, err := fmt.Fprintf(w, `<h2>%s list</h2><ul>`, resourceLabel); err != nil {
+			return err
+		}
+		for _, item := range all {
+			if _, err := fmt.Fprintf(w, `<li><a href="%s?id=%d">%s</a></li>`, route.Path, item.ID, html.EscapeString(item.Name)); err != nil {
+				return err
+			}
+		}
+		if _, err := fmt.Fprint(w, `</ul>`); err != nil {
+			return err
+		}
 	}
 	if hasRecord {
-		if _, err := fmt.Fprintf(w, `<section data-crud-show="%d"><h2>Show %s</h2><p>%s</p><h2>Edit %s</h2><form method="post" action="%s?id=%d"><input type="hidden" name="_method" value="PUT"><label>Name<input name="name" type="text" value="%s"></label><button type="submit">Update %s</button></form><form method="post" action="%s?id=%d"><input type="hidden" name="_method" value="DELETE"><button type="submit">Delete %s</button></form></section>`, record.ID, resourceLabel, html.EscapeString(record.Name), resourceLabel, route.Path, record.ID, html.EscapeString(record.Name), resourceLabel, route.Path, record.ID, resourceLabel); err != nil {
+		if _, err := fmt.Fprintf(w, `<section data-crud-show="%d">`, record.ID); err != nil {
+			return err
+		}
+		if starterRouteSupportsAction(route, "show") {
+			if _, err := fmt.Fprintf(w, `<h2>Show %s</h2><p>%s</p>`, resourceLabel, html.EscapeString(record.Name)); err != nil {
+				return err
+			}
+		}
+		if starterRouteSupportsAction(route, "update") {
+			if _, err := fmt.Fprintf(w, `<h2>Edit %s</h2><form method="post" action="%s?id=%d"><input type="hidden" name="_method" value="PUT"><label>Name<input name="name" type="text" value="%s"></label><button type="submit">Update %s</button></form>`, resourceLabel, route.Path, record.ID, html.EscapeString(record.Name), resourceLabel); err != nil {
+				return err
+			}
+		}
+		if starterRouteSupportsAction(route, "destroy") {
+			if _, err := fmt.Fprintf(w, `<form method="post" action="%s?id=%d"><input type="hidden" name="_method" value="DELETE"><button type="submit">Delete %s</button></form>`, route.Path, record.ID, resourceLabel); err != nil {
+				return err
+			}
+		}
+		if _, err := fmt.Fprint(w, `</section>`); err != nil {
 			return err
 		}
 	}
@@ -681,6 +717,10 @@ func mutateStarterCRUD(w http.ResponseWriter, r *http.Request, route goship.Rout
 	id := strings.TrimSpace(r.URL.Query().Get("id"))
 	method := strings.ToUpper(strings.TrimSpace(r.FormValue("_method")))
 	if method == "DELETE" {
+		if !starterRouteSupportsAction(route, "destroy") {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return nil
+		}
 		deleteStarterCRUD(route.Path, id)
 		http.Redirect(w, r, route.Path, http.StatusSeeOther)
 		return nil
@@ -699,14 +739,34 @@ func mutateStarterCRUD(w http.ResponseWriter, r *http.Request, route goship.Rout
 	}
 	switch method {
 	case "PUT":
+		if !starterRouteSupportsAction(route, "update") {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return nil
+		}
 		updateStarterCRUD(route.Path, id, name)
 		http.Redirect(w, r, route.Path+"?id="+url.QueryEscape(id), http.StatusSeeOther)
 		return nil
 	default:
+		if !starterRouteSupportsAction(route, "create") {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return nil
+		}
 		newID := createStarterCRUD(route.Path, name)
 		http.Redirect(w, r, route.Path+"?id="+newID, http.StatusSeeOther)
 		return nil
 	}
+}
+
+func starterRouteSupportsAction(route goship.Route, action string) bool {
+	if len(route.Actions) == 0 {
+		return true
+	}
+	for _, existing := range route.Actions {
+		if strings.EqualFold(strings.TrimSpace(existing), action) {
+			return true
+		}
+	}
+	return false
 }
 
 func createStarterCRUD(path, name string) string {

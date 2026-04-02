@@ -150,7 +150,7 @@ func TestStarterCRUDDestroyFailsCleanlyWhenRepeated(t *testing.T) {
 	buildStarterApp(t, appPath, "go build after repeated destroy refusal")
 }
 
-func TestStarterMakeControllerFailsWithoutMutatingStarter(t *testing.T) {
+func TestStarterMakeControllerUsesStarterCRUDContract(t *testing.T) {
 	appPath := scaffoldStarterApp(t)
 
 	wd, err := os.Getwd()
@@ -160,11 +160,6 @@ func TestStarterMakeControllerFailsWithoutMutatingStarter(t *testing.T) {
 	defer func() { _ = os.Chdir(wd) }()
 	if err := os.Chdir(appPath); err != nil {
 		t.Fatalf("os.Chdir(%q) error = %v", appPath, err)
-	}
-
-	routerBefore, err := os.ReadFile(filepath.Join(appPath, "app", "router.go"))
-	if err != nil {
-		t.Fatalf("os.ReadFile(router.go) error = %v", err)
 	}
 
 	var out bytes.Buffer
@@ -178,22 +173,27 @@ func TestStarterMakeControllerFailsWithoutMutatingStarter(t *testing.T) {
 		EnsureRouteNamesImport: generators.EnsureRouteNamesImport,
 		WireRouteSnippet:       generators.WireRouteSnippet,
 	})
-	if code == 0 {
-		t.Fatalf("RunMakeController() exit code = 0, want non-zero starter rejection\n%s", out.String())
+	if code != 0 {
+		t.Fatalf("RunMakeController() exit code = %d, want success\n%s", code, out.String())
 	}
-	if !strings.Contains(out.String(), "starter scaffold") {
-		t.Fatalf("RunMakeController() output = %q, want starter scaffold rejection", out.String())
+	pagePath := filepath.Join(appPath, "app", "views", "web", "pages", "gen", "contact.go")
+	if _, err := os.Stat(pagePath); err != nil {
+		t.Fatalf("starter controller page missing: %v", err)
 	}
 	if _, err := os.Stat(filepath.Join(appPath, "app", "web", "controllers", "contact.go")); err == nil {
-		t.Fatal("controller file was created despite starter scaffold rejection")
+		t.Fatal("framework controller file should not be created for starter controller generation")
 	}
 	routerAfter, err := os.ReadFile(filepath.Join(appPath, "app", "router.go"))
 	if err != nil {
 		t.Fatalf("os.ReadFile(router.go) after error = %v", err)
 	}
-	if string(routerBefore) != string(routerAfter) {
-		t.Fatalf("router.go mutated on failed make:controller\nbefore:\n%s\nafter:\n%s", routerBefore, routerAfter)
+	if !strings.Contains(string(routerAfter), `Kind: RouteKindResource`) {
+		t.Fatalf("starter controller route should use explicit resource kind\n%s", routerAfter)
 	}
+	if !strings.Contains(string(routerAfter), `Actions: []string{"index", "show"}`) {
+		t.Fatalf("starter controller route should preserve requested actions\n%s", routerAfter)
+	}
+	buildStarterApp(t, appPath, "go build after starter make:controller")
 }
 
 func TestStarterMakeIslandCreatesCanonicalArtifacts(t *testing.T) {

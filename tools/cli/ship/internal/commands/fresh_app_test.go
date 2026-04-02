@@ -637,6 +637,64 @@ func TestFreshAppCRUDScaffoldFlow(t *testing.T) {
 	}
 }
 
+func TestFreshAppStarterControllerHonorsActions(t *testing.T) {
+	shipbin := buildShipBinary(t)
+	appPath := scaffoldFreshAppViaShip(t, shipbin, false)
+	runCmd(t, appPath, shipbin, "db:migrate")
+	runCmd(t, appPath, shipbin, "make:controller", "Contact", "--actions", "index,show,create", "--wire")
+
+	baseURL, client, cleanup := startFreshAppWebWithClient(t, appPath)
+	defer cleanup()
+
+	assertHTTPStatusContainsForClient(t, client, baseURL+"/contact", http.StatusOK, "Create contact")
+
+	resp, err := client.PostForm(baseURL+"/contact", url.Values{
+		"name": {"Alice"},
+	})
+	if err != nil {
+		t.Fatalf("create contact failed: %v", err)
+	}
+	_ = resp.Body.Close()
+	if resp.StatusCode != http.StatusSeeOther {
+		t.Fatalf("create contact status = %d, want 303", resp.StatusCode)
+	}
+
+	assertHTTPStatusContainsForClient(t, client, baseURL+"/contact?id=1", http.StatusOK, "Alice")
+
+	req, err := http.NewRequest(http.MethodPost, baseURL+"/contact?id=1", strings.NewReader(url.Values{
+		"_method": {"PUT"},
+		"name":    {"Alice Updated"},
+	}.Encode()))
+	if err != nil {
+		t.Fatalf("http.NewRequest(update) error = %v", err)
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	resp, err = client.Do(req)
+	if err != nil {
+		t.Fatalf("update contact failed: %v", err)
+	}
+	_ = resp.Body.Close()
+	if resp.StatusCode != http.StatusMethodNotAllowed {
+		t.Fatalf("update contact status = %d, want 405", resp.StatusCode)
+	}
+
+	req, err = http.NewRequest(http.MethodPost, baseURL+"/contact?id=1", strings.NewReader(url.Values{
+		"_method": {"DELETE"},
+	}.Encode()))
+	if err != nil {
+		t.Fatalf("http.NewRequest(delete) error = %v", err)
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	resp, err = client.Do(req)
+	if err != nil {
+		t.Fatalf("delete contact failed: %v", err)
+	}
+	_ = resp.Body.Close()
+	if resp.StatusCode != http.StatusMethodNotAllowed {
+		t.Fatalf("delete contact status = %d, want 405", resp.StatusCode)
+	}
+}
+
 func startFreshAppWebWithClient(t *testing.T, appPath string) (string, *http.Client, func()) {
 	t.Helper()
 

@@ -24,8 +24,8 @@ func TestGettingStartedStarterDocsStayAligned(t *testing.T) {
 	starterReadme := string(starterReadmeBytes)
 
 	for name, content := range map[string]string{
-		"README.md":                                  readme,
-		"docs/guides/01-getting-started.md":          gettingStarted,
+		"README.md":                           readme,
+		"docs/guides/01-getting-started.md":   gettingStarted,
 		"starter/testdata/scaffold/README.md": starterReadme,
 	} {
 		assertContains(t, name, content, "starter")
@@ -35,8 +35,8 @@ func TestGettingStartedStarterDocsStayAligned(t *testing.T) {
 	}
 
 	for name, content := range map[string]string{
-		"README.md":                                  readme,
-		"docs/guides/01-getting-started.md":          gettingStarted,
+		"README.md":                           readme,
+		"docs/guides/01-getting-started.md":   gettingStarted,
 		"starter/testdata/scaffold/README.md": starterReadme,
 	} {
 		assertContainsOneOf(t, name, content,
@@ -166,12 +166,12 @@ func TestFrameworkBrowserSuitesDeclareTheirAuthSurface(t *testing.T) {
 	assertContains(t, "docs/architecture/06-known-gaps-and-risks.md", knownGaps, "framework repo")
 }
 
-func TestControllerGeneratorDocsMatchStarterRejection(t *testing.T) {
+func TestControllerGeneratorDocsMatchStarterSupport(t *testing.T) {
 	t.Parallel()
 
 	cliRef := readRepoFile(t, "docs/reference/01-cli.md")
-	assertContains(t, "docs/reference/01-cli.md", cliRef, "rejects the minimal starter scaffold")
-	assertContains(t, "docs/reference/01-cli.md", cliRef, "framework-workspace surface")
+	assertContains(t, "docs/reference/01-cli.md", cliRef, "starter-safe now")
+	assertContains(t, "docs/reference/01-cli.md", cliRef, "starter CRUD/runtime route backend")
 }
 
 func TestGeneratorSurfaceBoundaryIsExplicit(t *testing.T) {
@@ -179,10 +179,10 @@ func TestGeneratorSurfaceBoundaryIsExplicit(t *testing.T) {
 
 	cliRef := readRepoFile(t, "docs/reference/01-cli.md")
 	assertContains(t, "docs/reference/01-cli.md", cliRef, "starter-safe today")
-	assertContains(t, "docs/reference/01-cli.md", cliRef, "`make:resource`, `make:model`, `make:island`")
+	assertContains(t, "docs/reference/01-cli.md", cliRef, "`make:resource`, `make:model`, `make:controller`, `make:island`")
 	assertContains(t, "docs/reference/01-cli.md", cliRef, "starter-safe when a locale baseline already exists")
 	assertContains(t, "docs/reference/01-cli.md", cliRef, "framework-workspace-only for now")
-	assertContains(t, "docs/reference/01-cli.md", cliRef, "`make:controller`, `make:factory`, `make:job`, `make:mailer`, `make:schedule`, `make:command`, `make:scaffold`")
+	assertContains(t, "docs/reference/01-cli.md", cliRef, "`make:factory`, `make:job`, `make:mailer`, `make:schedule`, `make:command`, `make:scaffold`")
 	assertContains(t, "docs/reference/01-cli.md", cliRef, "framework authoring only")
 	assertContains(t, "docs/reference/01-cli.md", cliRef, "`make:module`")
 }
