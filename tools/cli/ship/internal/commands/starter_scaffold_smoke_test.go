@@ -223,7 +223,7 @@ func TestStarterMakeModelStaysBuildable(t *testing.T) {
 	appPath := scaffoldStarterApp(t)
 
 	var out bytes.Buffer
-	if code := generators.RunGenerateModel([]string{"Post"}, generators.GenerateModelDeps{
+	if code := generators.RunGenerateModel([]string{"Post", "title:string", "published:bool"}, generators.GenerateModelDeps{
 		Out: &out,
 		Err: &out,
 		HasFile: func(path string) bool {
@@ -233,6 +233,23 @@ func TestStarterMakeModelStaysBuildable(t *testing.T) {
 		QueryDir: filepath.Join(appPath, "db", "queries"),
 	}); code != 0 {
 		t.Fatalf("RunGenerateModel() exit code = %d\n%s", code, out.String())
+	}
+	queryBody, err := os.ReadFile(filepath.Join(appPath, "db", "queries", "post.sql"))
+	if err != nil {
+		t.Fatalf("os.ReadFile(generated model query) error = %v", err)
+	}
+	for _, want := range []string{
+		"-- Suggested migration columns:",
+		"-- - title TEXT",
+		"-- - published BOOLEAN",
+		"-- name: CreatePost :one",
+		"-- name: ListPosts :many",
+		"-- name: UpdatePost :one",
+		"-- name: DeletePost :exec",
+	} {
+		if !strings.Contains(string(queryBody), want) {
+			t.Fatalf("generated model query missing %q\n%s", want, queryBody)
+		}
 	}
 
 	out.Reset()

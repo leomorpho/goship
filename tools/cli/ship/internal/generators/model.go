@@ -122,8 +122,11 @@ func parseModelField(token string) (ModelField, error) {
 func RenderModelQueryTemplate(name string, fields []ModelField) string {
 	var b strings.Builder
 	tableName := ModelFileName(name) + "s"
-	insertName := "Insert" + name
+	insertName := "Create" + name
+	listName := "List" + tableNameToPascal(tableName)
 	selectByIDName := "Get" + name + "ByID"
+	updateName := "Update" + name
+	deleteName := "Delete" + name
 
 	b.WriteString("-- Model: ")
 	b.WriteString(name)
@@ -144,24 +147,112 @@ func RenderModelQueryTemplate(name string, fields []ModelField) string {
 		}
 	}
 	b.WriteString("\n")
+	b.WriteString("-- Suggested migration columns:\n")
+	if len(fields) == 0 {
+		b.WriteString("-- - id INTEGER PRIMARY KEY\n")
+	} else {
+		b.WriteString("-- - id INTEGER PRIMARY KEY\n")
+		for _, f := range fields {
+			b.WriteString("-- - ")
+			b.WriteString(f.Name)
+			b.WriteString(" ")
+			b.WriteString(sqlTypeForModelField(f.Type))
+			b.WriteString("\n")
+		}
+	}
+	b.WriteString("\n")
 
 	b.WriteString("-- name: ")
 	b.WriteString(insertName)
 	b.WriteString(" :one\n")
-	b.WriteString("-- TODO: add INSERT columns and values for ")
+	b.WriteString(renderModelInsertSQL(tableName, fields))
+	b.WriteString("\n\n")
+
+	b.WriteString("-- name: ")
+	b.WriteString(listName)
+	b.WriteString(" :many\n")
+	b.WriteString("SELECT * FROM ")
 	b.WriteString(tableName)
-	b.WriteString("\n")
-	b.WriteString("INSERT INTO ")
-	b.WriteString(tableName)
-	b.WriteString(" DEFAULT VALUES RETURNING id;\n\n")
+	b.WriteString(" ORDER BY id DESC;\n\n")
 
 	b.WriteString("-- name: ")
 	b.WriteString(selectByIDName)
 	b.WriteString(" :one\n")
 	b.WriteString("SELECT * FROM ")
 	b.WriteString(tableName)
+	b.WriteString(" WHERE id = ?;\n\n")
+
+	b.WriteString("-- name: ")
+	b.WriteString(updateName)
+	b.WriteString(" :one\n")
+	b.WriteString(renderModelUpdateSQL(tableName, fields))
+	b.WriteString("\n\n")
+
+	b.WriteString("-- name: ")
+	b.WriteString(deleteName)
+	b.WriteString(" :exec\n")
+	b.WriteString("DELETE FROM ")
+	b.WriteString(tableName)
 	b.WriteString(" WHERE id = ?;\n")
 
+	return b.String()
+}
+
+func renderModelInsertSQL(tableName string, fields []ModelField) string {
+	if len(fields) == 0 {
+		return "INSERT INTO " + tableName + " DEFAULT VALUES RETURNING *;"
+	}
+	columns := make([]string, 0, len(fields))
+	placeholders := make([]string, 0, len(fields))
+	for range fields {
+		placeholders = append(placeholders, "?")
+	}
+	for _, field := range fields {
+		columns = append(columns, field.Name)
+	}
+	return fmt.Sprintf("INSERT INTO %s (\n    %s\n) VALUES (\n    %s\n) RETURNING *;", tableName, strings.Join(columns, ",\n    "), strings.Join(placeholders, ",\n    "))
+}
+
+func renderModelUpdateSQL(tableName string, fields []ModelField) string {
+	if len(fields) == 0 {
+		return "UPDATE " + tableName + " SET id = id WHERE id = ? RETURNING *;"
+	}
+	assignments := make([]string, 0, len(fields))
+	for _, field := range fields {
+		assignments = append(assignments, fmt.Sprintf("%s = ?", field.Name))
+	}
+	return fmt.Sprintf("UPDATE %s SET\n    %s\nWHERE id = ? RETURNING *;", tableName, strings.Join(assignments, ",\n    "))
+}
+
+func sqlTypeForModelField(fieldType string) string {
+	switch fieldType {
+	case "string", "text", "email", "url":
+		return "TEXT"
+	case "int":
+		return "INTEGER"
+	case "bool":
+		return "BOOLEAN"
+	case "time":
+		return "TIMESTAMP"
+	case "float":
+		return "REAL"
+	default:
+		return "TEXT"
+	}
+}
+
+func tableNameToPascal(table string) string {
+	parts := strings.Split(table, "_")
+	var b strings.Builder
+	for _, part := range parts {
+		if part == "" {
+			continue
+		}
+		b.WriteString(strings.ToUpper(part[:1]))
+		if len(part) > 1 {
+			b.WriteString(strings.ToLower(part[1:]))
+		}
+	}
 	return b.String()
 }
 
