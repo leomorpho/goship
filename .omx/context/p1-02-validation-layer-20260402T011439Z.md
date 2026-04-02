@@ -1,0 +1,23 @@
+# Context Snapshot — P1-02 First-Class Validation Layer
+
+- task statement: implement P1-02 first-class validation layer on the generated-app path using Ralph and TDD-first execution
+- desired outcome: starter auth/account and upcoming generated resources use structured starter-safe validation defaults instead of ad hoc http.Error strings
+- known facts/evidence:
+  - P1-01 landed richer starter auth/account flows on the generated-app path
+  - current starter validation is ad hoc in `cmd/web/main.go` via `http.Error(...)` and direct required-field checks
+  - current proof primarily checks happy paths, not structured validation failures
+  - `framework/api/errors.go` already contains a small validation error representation on the framework side
+- constraints:
+  - keep generated starter validation lightweight and generated-app-safe
+  - do not unify with the framework-repo /user/* auth surface
+  - preserve same-origin cookie/session behavior
+  - prefer one reusable starter validation shape over repeated handwritten form checks
+- unknowns/open questions:
+  - whether the starter validation surface should be HTML-only or also expose JSON when requested
+  - how much of the future resource/controller generation contract should be pulled into this slice vs deferred to P1-03/P3-01
+  - whether to centralize starter validation errors in a tiny helper or starter-local package
+- likely touchpoints:
+  - `tools/cli/ship/internal/templates/starter/testdata/scaffold/cmd/web/main.go`
+  - `tools/cli/ship/internal/commands/fresh_app_test.go`
+  - starter docs/contract tests if the visible form contract changes
+  - maybe `framework/api/errors.go` only if reuse is clearly beneficial without increasing starter coupling
