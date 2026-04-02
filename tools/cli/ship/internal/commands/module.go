@@ -401,6 +401,7 @@ var supportedGeneratedAppBatteryIDs = []string{
 	"jobs",
 	"storage",
 	"emailsubscriptions",
+	"paidsubscriptions",
 }
 
 func canonicalReferenceBatteryIDs() []string {
@@ -713,7 +714,7 @@ func isSupportedGeneratedAppBattery(id string) bool {
 }
 
 func applyStarterModuleAdd(root string, info moduleInfo, dryRun bool, out io.Writer) error {
-	if info.ID != "jobs" && info.ID != "storage" && info.ID != "emailsubscriptions" {
+	if info.ID != "jobs" && info.ID != "storage" && info.ID != "emailsubscriptions" && info.ID != "paidsubscriptions" {
 		return fmt.Errorf("module:add %q is not supported on the starter scaffold yet; supported batteries are: %s; no files were changed", info.ID, strings.Join(supportedGeneratedAppBatteryIDs, ", "))
 	}
 
@@ -937,7 +938,7 @@ func applyModuleRemove(root string, info moduleInfo, dryRun bool, out io.Writer)
 }
 
 func applyStarterModuleRemove(root string, info moduleInfo, dryRun bool, out io.Writer) error {
-	if info.ID != "jobs" && info.ID != "storage" && info.ID != "emailsubscriptions" {
+	if info.ID != "jobs" && info.ID != "storage" && info.ID != "emailsubscriptions" && info.ID != "paidsubscriptions" {
 		return fmt.Errorf("module:remove %q is not supported on the starter scaffold yet; supported batteries are: %s; no files were changed", info.ID, strings.Join(supportedGeneratedAppBatteryIDs, ", "))
 	}
 
@@ -978,6 +979,11 @@ func applyStarterModuleRemove(root string, info moduleInfo, dryRun bool, out io.
 
 func starterModuleContainerSnippet(id string) string {
 	switch id {
+	case "paidsubscriptions":
+		return `
+	// ship:module:paidsubscriptions
+	c.EnabledModules = append(c.EnabledModules, "paidsubscriptions")
+`
 	case "emailsubscriptions":
 		return `
 	// ship:module:emailsubscriptions

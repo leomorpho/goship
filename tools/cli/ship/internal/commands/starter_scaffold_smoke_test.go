@@ -670,6 +670,61 @@ func TestStarterEmailSubscriptionsModuleRoundTripStaysBuildable(t *testing.T) {
 	buildStarterApp(t, appPath, "go build after module:remove emailsubscriptions")
 }
 
+func TestStarterPaidSubscriptionsModuleRoundTripStaysBuildable(t *testing.T) {
+	appPath := scaffoldStarterApp(t)
+
+	containerPath := filepath.Join(appPath, "app", "foundation", "container.go")
+	manifestPath := filepath.Join(appPath, "config", "modules.yaml")
+
+	beforeContainer, err := os.ReadFile(containerPath)
+	if err != nil {
+		t.Fatalf("os.ReadFile(container.go) error = %v", err)
+	}
+	beforeManifest, err := os.ReadFile(manifestPath)
+	if err != nil {
+		t.Fatalf("os.ReadFile(modules.yaml) error = %v", err)
+	}
+
+	if err := applyModuleAdd(appPath, moduleCatalog["paidsubscriptions"], false, &bytes.Buffer{}); err != nil {
+		t.Fatalf("applyModuleAdd(paidsubscriptions) error = %v", err)
+	}
+
+	afterAddContainer, err := os.ReadFile(containerPath)
+	if err != nil {
+		t.Fatalf("os.ReadFile(container.go) after add error = %v", err)
+	}
+	if !strings.Contains(string(afterAddContainer), `c.EnabledModules = append(c.EnabledModules, "paidsubscriptions")`) {
+		t.Fatalf("container.go missing paidsubscriptions starter snippet\n%s", afterAddContainer)
+	}
+	afterAddManifest, err := os.ReadFile(manifestPath)
+	if err != nil {
+		t.Fatalf("os.ReadFile(modules.yaml) after add error = %v", err)
+	}
+	if !strings.Contains(string(afterAddManifest), "- paidsubscriptions") {
+		t.Fatalf("modules.yaml missing paidsubscriptions entry\n%s", afterAddManifest)
+	}
+	buildStarterApp(t, appPath, "go build after module:add paidsubscriptions")
+
+	if err := applyModuleRemove(appPath, moduleCatalog["paidsubscriptions"], false, &bytes.Buffer{}); err != nil {
+		t.Fatalf("applyModuleRemove(paidsubscriptions) error = %v", err)
+	}
+	afterRemoveContainer, err := os.ReadFile(containerPath)
+	if err != nil {
+		t.Fatalf("os.ReadFile(container.go) after remove error = %v", err)
+	}
+	if string(beforeContainer) != string(afterRemoveContainer) {
+		t.Fatalf("container.go mismatch after remove\nbefore:\n%s\nafter:\n%s", beforeContainer, afterRemoveContainer)
+	}
+	afterRemoveManifest, err := os.ReadFile(manifestPath)
+	if err != nil {
+		t.Fatalf("os.ReadFile(modules.yaml) after remove error = %v", err)
+	}
+	if string(beforeManifest) != string(afterRemoveManifest) {
+		t.Fatalf("modules.yaml mismatch after remove\nbefore:\n%s\nafter:\n%s", beforeManifest, afterRemoveManifest)
+	}
+	buildStarterApp(t, appPath, "go build after module:remove paidsubscriptions")
+}
+
 func TestStarterSupportedBatteryCombinationStaysBuildable(t *testing.T) {
 	appPath := scaffoldStarterApp(t)
 
