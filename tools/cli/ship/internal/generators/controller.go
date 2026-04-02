@@ -8,7 +8,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"slices"
 	"strings"
 )
 
@@ -51,7 +50,7 @@ func RunMakeController(args []string, d ControllerDeps) int {
 		fmt.Fprintf(d.Err, "invalid make:controller arguments: %v\n", err)
 		return 1
 	}
-	if looksLikeStarterScaffoldRoot(".") {
+	if !CapabilityModelForRoot(".").SupportsControllerGeneration {
 		fmt.Fprintln(d.Err, "make:controller is not supported on the starter scaffold yet; no files were changed")
 		return 1
 	}
@@ -218,27 +217,7 @@ func ParseMakeControllerArgs(args []string) (ControllerMakeOptions, error) {
 }
 
 func parseControllerActions(raw string) ([]string, error) {
-	if raw == "" {
-		return nil, errors.New("actions cannot be empty")
-	}
-	allowed := []string{"index", "show", "create", "update", "destroy"}
-	var out []string
-	for _, token := range strings.Split(raw, ",") {
-		action := strings.ToLower(strings.TrimSpace(token))
-		if action == "" {
-			continue
-		}
-		if !slices.Contains(allowed, action) {
-			return nil, fmt.Errorf("unsupported action %q", action)
-		}
-		if !slices.Contains(out, action) {
-			out = append(out, action)
-		}
-	}
-	if len(out) == 0 {
-		return nil, errors.New("actions cannot be empty")
-	}
-	return out, nil
+	return ParseGeneratorCRUDActionNames(raw)
 }
 
 func NormalizeControllerName(raw string) (ControllerNames, error) {

@@ -195,7 +195,7 @@ func GenerateResourceScaffold(opts ResourceGenerateOptions) (ResourceGenerateRes
 		return result, fmt.Errorf("invalid --domain value: %w", err)
 	}
 
-	if looksLikeStarterResourceWorkspace(opts.Path) {
+	if CapabilityModelForPath(opts.Path).Workspace == GeneratorWorkspaceStarterScaffold {
 		pageFile := filepath.Join(opts.Path, "views", "web", "pages", "gen", norm.Snake+".go")
 		if err := writeFile(pageFile, renderStarterGeneratedPage(norm), opts.DryRun); err != nil {
 			return result, err
@@ -245,26 +245,6 @@ func GenerateResourceScaffold(opts ResourceGenerateOptions) (ResourceGenerateRes
 	result.RouteNameConst = "RouteName" + norm.Pascal
 	result.RouteNameValue = norm.Snake
 	return result, nil
-}
-
-func looksLikeStarterResourceWorkspace(path string) bool {
-	routerPath := filepath.Join(path, "router.go")
-	templatesPath := filepath.Join(path, "views", "templates.go")
-	mainPath := filepath.Join("cmd", "web", "main.go")
-	routerBody, err := os.ReadFile(routerPath)
-	if err != nil {
-		return false
-	}
-	mainBody, err := os.ReadFile(mainPath)
-	if err != nil {
-		return false
-	}
-	if _, err := os.Stat(templatesPath); err != nil {
-		return false
-	}
-	return strings.Contains(string(routerBody), "type Route struct") &&
-		strings.Contains(string(routerBody), "Page templates.Page") &&
-		strings.Contains(string(mainBody), "func componentForPage(page templates.Page)")
 }
 
 func renderStarterGeneratedPage(n NormalizedResourceName) string {
