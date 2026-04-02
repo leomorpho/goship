@@ -641,15 +641,17 @@ func TestFreshAppStarterControllerHonorsActions(t *testing.T) {
 	shipbin := buildShipBinary(t)
 	appPath := scaffoldFreshAppViaShip(t, shipbin, false)
 	runCmd(t, appPath, shipbin, "db:migrate")
-	runCmd(t, appPath, shipbin, "make:controller", "Contact", "--actions", "index,show,create", "--wire")
+	runCmd(t, appPath, shipbin, "make:controller", "Contact", "--actions", "index,show,create", "--fields", "name:string,email:email", "--wire")
 
 	baseURL, client, cleanup := startFreshAppWebWithClient(t, appPath)
 	defer cleanup()
 
 	assertHTTPStatusContainsForClient(t, client, baseURL+"/contact", http.StatusOK, "Create contact")
+	assertHTTPStatusContainsForClient(t, client, baseURL+"/contact", http.StatusOK, `name="email"`)
 
 	resp, err := client.PostForm(baseURL+"/contact", url.Values{
-		"name": {"Alice"},
+		"name":  {"Alice"},
+		"email": {"alice@example.com"},
 	})
 	if err != nil {
 		t.Fatalf("create contact failed: %v", err)
@@ -660,10 +662,12 @@ func TestFreshAppStarterControllerHonorsActions(t *testing.T) {
 	}
 
 	assertHTTPStatusContainsForClient(t, client, baseURL+"/contact?id=1", http.StatusOK, "Alice")
+	assertHTTPStatusContainsForClient(t, client, baseURL+"/contact?id=1", http.StatusOK, "alice@example.com")
 
 	req, err := http.NewRequest(http.MethodPost, baseURL+"/contact?id=1", strings.NewReader(url.Values{
 		"_method": {"PUT"},
 		"name":    {"Alice Updated"},
+		"email":   {"alice.updated@example.com"},
 	}.Encode()))
 	if err != nil {
 		t.Fatalf("http.NewRequest(update) error = %v", err)

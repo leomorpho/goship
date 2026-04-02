@@ -103,7 +103,7 @@ Generation:
 - `ship make:model <Name> [fields...] [--force]`
 - `ship make:factory <Name>`
 - `ship make:locale <code>`
-- `ship make:controller <Name|NameController> [--actions index,show,create,update,destroy] [--auth public|auth] [--domain <name>] [--wire]`
+- `ship make:controller <Name|NameController> [--actions index,show,create,update,destroy] [--fields name:type,...] [--auth public|auth] [--domain <name>] [--wire]`
 - `ship make:job <Name>`
 - `ship make:mailer <Name>`
 - `ship make:schedule <Name> --cron "<expr>"`
@@ -257,6 +257,7 @@ Safety matrix:
 - `ship make:controller <Name>` -> generate controller/handler scaffold in `app/web/controllers`
 - `ship make:controller <Name> --domain <name>` -> generate domain-aware constructor slot (`domainService any`) and route wiring using `nil` placeholder
 - `ship make:controller <Name> --actions ... --wire` -> wire generated routes into `app/router.go` markers
+- `ship make:controller <Name> --fields name:type,...` -> on starter apps, preserve generated field metadata for runtime forms/storage; on framework workspaces, field metadata is currently ignored
 - `ship make:controller` path ownership is canonical: `--path` must resolve to `app`; values that escape or diverge from `app` fail fast
 - `ship make:controller` is starter-safe now: on the minimal starter scaffold it emits a generated page + explicit route capability metadata and uses the starter CRUD/runtime route backend instead of Echo controller files
 - on framework workspaces, `ship make:controller` still emits `app/web/controllers/<name>.go` plus optional wired routes

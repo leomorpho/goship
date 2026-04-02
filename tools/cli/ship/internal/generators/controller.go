@@ -15,6 +15,7 @@ type ControllerMakeOptions struct {
 	Name      string
 	Path      string
 	Actions   []string
+	Fields    []ModelField
 	Auth      string
 	Wire      bool
 	Domain    string
@@ -144,6 +145,7 @@ func runMakeStarterController(opts ControllerMakeOptions, names ControllerNames,
 		RoutePath:     routePath,
 		Actions:       append([]string(nil), opts.Actions...),
 		StorageTable:  PluralizeBasic(names.BaseSnake),
+		Fields:        starterRouteFieldsForModelFields(opts.Fields),
 		Description:   fmt.Sprintf("Starter controller scaffold for %s with actions: %s.", names.BaseKebab, strings.Join(opts.Actions, ", ")),
 	}
 	pageFile := filepath.Join(opts.Path, "views", "web", "pages", "gen", names.BaseSnake+".go")
@@ -257,12 +259,28 @@ func ParseMakeControllerArgs(args []string) (ControllerMakeOptions, error) {
 			opts.Actions = actions
 		case strings.HasPrefix(args[i], "--domain="):
 			opts.Domain = strings.TrimSpace(strings.TrimPrefix(args[i], "--domain="))
+		case strings.HasPrefix(args[i], "--fields="):
+			fields, err := ParseModelFieldList(strings.TrimSpace(strings.TrimPrefix(args[i], "--fields=")))
+			if err != nil {
+				return opts, err
+			}
+			opts.Fields = fields
 		case args[i] == "--domain":
 			if i+1 >= len(args) {
 				return opts, errors.New("missing value for --domain")
 			}
 			i++
 			opts.Domain = strings.TrimSpace(args[i])
+		case args[i] == "--fields":
+			if i+1 >= len(args) {
+				return opts, errors.New("missing value for --fields")
+			}
+			i++
+			fields, err := ParseModelFieldList(strings.TrimSpace(args[i]))
+			if err != nil {
+				return opts, err
+			}
+			opts.Fields = fields
 		case args[i] == "--actions":
 			if i+1 >= len(args) {
 				return opts, errors.New("missing value for --actions")

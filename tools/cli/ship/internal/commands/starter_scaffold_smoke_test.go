@@ -207,7 +207,7 @@ func TestStarterMakeControllerUsesStarterCRUDContract(t *testing.T) {
 	}
 
 	var out bytes.Buffer
-	code := generators.RunMakeController([]string{"Contact", "--actions", "index,show", "--wire"}, generators.ControllerDeps{
+	code := generators.RunMakeController([]string{"Contact", "--actions", "index,show", "--fields", "name:string,email:email", "--wire"}, generators.ControllerDeps{
 		Out: &out,
 		Err: &out,
 		HasFile: func(path string) bool {
@@ -243,6 +243,9 @@ func TestStarterMakeControllerUsesStarterCRUDContract(t *testing.T) {
 	}
 	if !strings.Contains(string(routerAfter), `Actions: []string{"index", "show"}`) {
 		t.Fatalf("starter controller route should preserve requested actions\n%s", routerAfter)
+	}
+	if !strings.Contains(string(routerAfter), `Fields: []RouteField{{Name: "name", Type: "string"}, {Name: "email", Type: "email"}}`) {
+		t.Fatalf("starter controller route should preserve requested fields\n%s", routerAfter)
 	}
 	buildStarterApp(t, appPath, "go build after starter make:controller")
 }
