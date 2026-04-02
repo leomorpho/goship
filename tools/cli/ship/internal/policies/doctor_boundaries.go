@@ -12,6 +12,12 @@ import (
 	rt "github.com/leomorpho/goship/tools/cli/ship/internal/runtime"
 )
 
+var supportedGeneratedAppBatteries = map[string]struct{}{
+	"jobs":               {},
+	"storage":            {},
+	"emailsubscriptions": {},
+}
+
 func checkMarkerIntegrity(root string) []DoctorIssue {
 	issues := make([]DoctorIssue, 0)
 	pairs := []doctorMarkerPair{
@@ -143,6 +149,11 @@ func checkEnabledModuleDBArtifacts(root string) []DoctorIssue {
 	for _, name := range manifest.Modules {
 		moduleRoot := filepath.Join(root, "modules", name)
 		if !isDir(moduleRoot) {
+			if isStarterGeneratedApp(root) {
+				if _, ok := supportedGeneratedAppBatteries[name]; ok {
+					continue
+				}
+			}
 			issues = append(issues, DoctorIssue{
 				Code:    "DX019",
 				Message: fmt.Sprintf("enabled module directory missing: modules/%s", name),
@@ -171,6 +182,26 @@ func checkEnabledModuleDBArtifacts(root string) []DoctorIssue {
 	}
 
 	return issues
+}
+
+func isStarterGeneratedApp(root string) bool {
+	routerPath := filepath.Join(root, "app", "router.go")
+	templatesPath := filepath.Join(root, "app", "views", "templates.go")
+	mainPath := filepath.Join(root, "cmd", "web", "main.go")
+	if !hasFile(routerPath) || !hasFile(templatesPath) || !hasFile(mainPath) {
+		return false
+	}
+	routerBody, err := os.ReadFile(routerPath)
+	if err != nil {
+		return false
+	}
+	mainBody, err := os.ReadFile(mainPath)
+	if err != nil {
+		return false
+	}
+	return strings.Contains(string(routerBody), "type Route struct") &&
+		strings.Contains(string(routerBody), "templates.Page") &&
+		strings.Contains(string(mainBody), "func componentForPage(page templates.Page)")
 }
 
 func checkForbiddenCrossBoundaryImports(root string) []DoctorIssue {

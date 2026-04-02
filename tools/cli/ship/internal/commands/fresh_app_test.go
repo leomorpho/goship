@@ -765,6 +765,18 @@ func TestFreshAppMultipleStarterCRUDResourcesStayIsolated(t *testing.T) {
 	}
 }
 
+func TestFreshAppSupportedBatteryCombinationStaysBuildable(t *testing.T) {
+	shipbin := buildShipBinary(t)
+	appPath := scaffoldFreshAppViaShip(t, shipbin, false)
+
+	for _, battery := range []string{"jobs", "storage", "emailsubscriptions"} {
+		runCmd(t, appPath, shipbin, "module:add", battery)
+	}
+
+	runGoTestAll(t, appPath)
+	runCmd(t, appPath, shipbin, "verify", "--profile", "fast")
+}
+
 func TestFreshAppGeneratedResourceFieldsDriveRuntime(t *testing.T) {
 	shipbin := buildShipBinary(t)
 	appPath := scaffoldFreshAppViaShip(t, shipbin, false)
