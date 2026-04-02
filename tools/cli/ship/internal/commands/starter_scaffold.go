@@ -30,6 +30,6 @@ func looksLikeStarterScaffoldApp(root string) bool {
 	}
 
 	return strings.Contains(string(routerBody), "type Route struct") &&
-		strings.Contains(string(routerBody), "Page templates.Page") &&
+		strings.Contains(string(routerBody), "templates.Page") &&
 		strings.Contains(string(mainBody), "func componentForPage(page templates.Page)")
 }

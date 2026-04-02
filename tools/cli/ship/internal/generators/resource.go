@@ -284,7 +284,7 @@ func renderStarterRouteInsertSnippet(n NormalizedResourceName, auth string) stri
 		path = "/auth/" + n.Kebab
 	}
 	return fmt.Sprintf(`			// ship:generated:%s
-			{Name: routenames.RouteName%s, Path: %q, Page: templates.Page%s},
+			{Name: routenames.RouteName%s, Path: %q, Page: templates.Page%s, Kind: RouteKindResource, Actions: []string{"index", "show", "create", "update", "destroy"}},
 `, n.Snake, n.Pascal, path, n.Pascal)
 }
 

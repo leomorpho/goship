@@ -186,7 +186,7 @@ func handleRoute(w http.ResponseWriter, r *http.Request, route goship.Route) err
 		}
 		return renderRoute(w, route.Page)
 	default:
-		if isGeneratedStarterCRUDRoute(route.Name) {
+		if route.Kind == goship.RouteKindResource {
 			return handleStarterCRUDRoute(w, r, route)
 		}
 		if r.Method != http.MethodGet {
@@ -593,15 +593,6 @@ func resetTokenForEmail(email string) string {
 	// no-infra and testable. It is intentionally a starter-only simplification,
 	// not a production-grade reset-token pattern.
 	return "reset-" + hex.EncodeToString([]byte(email))
-}
-
-func isGeneratedStarterCRUDRoute(routeName string) bool {
-	switch routeName {
-	case "landing_page", "api_v1_status", "login", "register", "session", "settings", "password_reset", "password_reset_confirm", "delete_account", "home_feed", "profile":
-		return false
-	default:
-		return routeName != ""
-	}
 }
 
 func requireFormFields(r *http.Request, fields map[string]string) []validationError {

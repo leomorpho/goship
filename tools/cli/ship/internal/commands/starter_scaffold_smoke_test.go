@@ -63,6 +63,16 @@ func TestStarterCRUDScaffoldIsUseful(t *testing.T) {
 	if !strings.Contains(string(pageBody), "CRUD scaffold") {
 		t.Fatalf("generated starter page should describe CRUD scaffold\n%s", pageBody)
 	}
+	routerBody, err := os.ReadFile(filepath.Join(appPath, "app", "router.go"))
+	if err != nil {
+		t.Fatalf("os.ReadFile(router.go) error = %v", err)
+	}
+	if !strings.Contains(string(routerBody), `Kind: RouteKindResource`) {
+		t.Fatalf("generated router should use explicit resource route kind\n%s", routerBody)
+	}
+	if !strings.Contains(string(routerBody), `Actions: []string{"index", "show", "create", "update", "destroy"}`) {
+		t.Fatalf("generated router should include explicit CRUD actions\n%s", routerBody)
+	}
 
 	buildStarterApp(t, appPath, "go build after CRUD make:resource")
 }

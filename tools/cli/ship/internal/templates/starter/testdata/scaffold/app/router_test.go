@@ -38,5 +38,11 @@ func TestBuildRouterIncludesDefaultRoutes(t *testing.T) {
 		if route.Page == "" {
 			t.Fatalf("route %d has empty page", i)
 		}
+		if route.Kind != RouteKindPage {
+			t.Fatalf("route %d kind = %q, want %q", i, route.Kind, RouteKindPage)
+		}
+		if len(route.Actions) != 0 {
+			t.Fatalf("route %d actions = %v, want empty for page routes", i, route.Actions)
+		}
 	}
 }

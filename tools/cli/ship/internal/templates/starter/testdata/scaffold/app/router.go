@@ -8,10 +8,19 @@ import (
 )
 
 type Route struct {
-	Name string
-	Path string
-	Page templates.Page
+	Name    string
+	Path    string
+	Page    templates.Page
+	Kind    RouteKind
+	Actions []string
 }
+
+type RouteKind string
+
+const (
+	RouteKindPage     RouteKind = "page"
+	RouteKindResource RouteKind = "resource"
+)
 
 func BuildRouter(c *foundation.Container) []Route {
 	if c == nil {
@@ -23,20 +32,20 @@ func BuildRouter(c *foundation.Container) []Route {
 	_ = pages.Landing
 
 	return []Route{
-		{Name: routenames.RouteNameLandingPage, Path: "/", Page: templates.PageLanding},
+		{Name: routenames.RouteNameLandingPage, Path: "/", Page: templates.PageLanding, Kind: RouteKindPage},
 		// ship:routes:public:start
 		// ship:routes:public:end
-		{Name: routenames.RouteNameLogin, Path: "/auth/login", Page: templates.PageLanding},
-		{Name: routenames.RouteNameRegister, Path: "/auth/register", Page: templates.PageLanding},
-		{Name: routenames.RouteNamePasswordReset, Path: "/auth/password/reset", Page: templates.PageLanding},
-		{Name: routenames.RouteNamePasswordResetConfirm, Path: "/auth/password/reset/confirm", Page: templates.PageLanding},
+		{Name: routenames.RouteNameLogin, Path: "/auth/login", Page: templates.PageLanding, Kind: RouteKindPage},
+		{Name: routenames.RouteNameRegister, Path: "/auth/register", Page: templates.PageLanding, Kind: RouteKindPage},
+		{Name: routenames.RouteNamePasswordReset, Path: "/auth/password/reset", Page: templates.PageLanding, Kind: RouteKindPage},
+		{Name: routenames.RouteNamePasswordResetConfirm, Path: "/auth/password/reset/confirm", Page: templates.PageLanding, Kind: RouteKindPage},
 		// ship:routes:auth:start
 		// ship:routes:auth:end
-		{Name: routenames.RouteNameSession, Path: "/auth/session", Page: templates.PageLanding},
-		{Name: routenames.RouteNameSettings, Path: "/auth/settings", Page: templates.PageLanding},
-		{Name: routenames.RouteNameDeleteAccount, Path: "/auth/delete-account", Page: templates.PageLanding},
-		{Name: routenames.RouteNameHomeFeed, Path: "/auth/homeFeed", Page: templates.PageHomeFeed},
-		{Name: routenames.RouteNameProfile, Path: "/auth/profile", Page: templates.PageProfile},
+		{Name: routenames.RouteNameSession, Path: "/auth/session", Page: templates.PageLanding, Kind: RouteKindPage},
+		{Name: routenames.RouteNameSettings, Path: "/auth/settings", Page: templates.PageLanding, Kind: RouteKindPage},
+		{Name: routenames.RouteNameDeleteAccount, Path: "/auth/delete-account", Page: templates.PageLanding, Kind: RouteKindPage},
+		{Name: routenames.RouteNameHomeFeed, Path: "/auth/homeFeed", Page: templates.PageHomeFeed, Kind: RouteKindPage},
+		{Name: routenames.RouteNameProfile, Path: "/auth/profile", Page: templates.PageProfile, Kind: RouteKindPage},
 		// ship:routes:external:start
 		// ship:routes:external:end
 	}
