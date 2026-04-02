@@ -557,6 +557,7 @@ func TestFreshAppAuthRouteInventoryIncludesAccountLifecycle(t *testing.T) {
 	for _, want := range []string{
 		`"path":"/auth/session"`,
 		`"path":"/auth/settings"`,
+		`"path":"/auth/admin"`,
 		`"path":"/auth/password/reset"`,
 		`"path":"/auth/password/reset/confirm"`,
 		`"path":"/auth/delete-account"`,
@@ -791,6 +792,33 @@ func TestFreshAppGeneratedResourceFieldsDriveRuntime(t *testing.T) {
 
 	showBody := getHTTPBodyForClient(t, client, baseURL+"/contact?id=1")
 	assertContainsAll(t, showBody, "Alice", "alice@example.com")
+}
+
+func TestFreshAppAdminDashboardRequiresAdmin(t *testing.T) {
+	shipbin := buildShipBinary(t)
+	appPath := scaffoldFreshAppViaShip(t, shipbin, false)
+	runCmd(t, appPath, shipbin, "db:migrate")
+	runCmd(t, appPath, shipbin, "make:resource", "contact", "--wire")
+
+	baseURL, client, cleanup := startFreshAppWebWithClient(t, appPath)
+	defer cleanup()
+
+	resp := registerStarterUser(t, client, baseURL, "admin@example.com", "Password123!")
+	_ = resp.Body.Close()
+	assertHTTPStatusContainsForClient(t, client, baseURL+"/auth/admin", http.StatusOK, "Admin dashboard")
+	assertHTTPStatusContainsForClient(t, client, baseURL+"/auth/admin", http.StatusOK, "contact")
+
+	logoutStarterUser(t, client, baseURL)
+	resp = registerStarterUser(t, client, baseURL, "member@example.com", "Password123!")
+	_ = resp.Body.Close()
+	resp2, err := client.Get(baseURL + "/auth/admin")
+	if err != nil {
+		t.Fatalf("admin page request failed: %v", err)
+	}
+	_ = resp2.Body.Close()
+	if resp2.StatusCode != http.StatusForbidden {
+		t.Fatalf("non-admin admin page status = %d, want 403", resp2.StatusCode)
+	}
 }
 
 func startFreshAppWebWithClient(t *testing.T, appPath string) (string, *http.Client, func()) {

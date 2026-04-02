@@ -50,6 +50,7 @@ func BuildRouter(c *foundation.Container) []Route {
 		// ship:routes:auth:end
 		{Name: routenames.RouteNameSession, Path: "/auth/session", Page: templates.PageLanding, Kind: RouteKindPage},
 		{Name: routenames.RouteNameSettings, Path: "/auth/settings", Page: templates.PageLanding, Kind: RouteKindPage},
+		{Name: routenames.RouteNameAdmin, Path: "/auth/admin", Page: templates.PageLanding, Kind: RouteKindPage},
 		{Name: routenames.RouteNameDeleteAccount, Path: "/auth/delete-account", Page: templates.PageLanding, Kind: RouteKindPage},
 		{Name: routenames.RouteNameHomeFeed, Path: "/auth/homeFeed", Page: templates.PageHomeFeed, Kind: RouteKindPage},
 		{Name: routenames.RouteNameProfile, Path: "/auth/profile", Page: templates.PageProfile, Kind: RouteKindPage},

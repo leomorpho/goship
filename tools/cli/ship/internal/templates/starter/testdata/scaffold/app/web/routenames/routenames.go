@@ -7,6 +7,7 @@ const (
 	RouteNameRegister             = "register"
 	RouteNameSession              = "session"
 	RouteNameSettings             = "settings"
+	RouteNameAdmin                = "admin"
 	RouteNamePasswordReset        = "password_reset"
 	RouteNamePasswordResetConfirm = "password_reset_confirm"
 	RouteNameDeleteAccount        = "delete_account"

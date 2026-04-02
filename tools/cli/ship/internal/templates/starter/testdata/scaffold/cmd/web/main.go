@@ -31,6 +31,7 @@ type starterUser struct {
 	DisplayName string
 	Email       string
 	Password    string
+	IsAdmin     bool
 }
 
 type validationError struct {
@@ -152,6 +153,21 @@ func handleRoute(w http.ResponseWriter, r *http.Request, route goship.Route) err
 			return nil
 		}
 		return renderSettingsPage(w, r)
+	case "/auth/admin":
+		user, ok := currentStarterUser(r)
+		if !ok {
+			http.Redirect(w, r, "/auth/login?next="+url.QueryEscape(route.Path), http.StatusSeeOther)
+			return nil
+		}
+		if !user.IsAdmin {
+			http.Error(w, "forbidden", http.StatusForbidden)
+			return nil
+		}
+		if r.Method != http.MethodGet {
+			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			return nil
+		}
+		return renderAdminPage(w, route)
 	case "/auth/delete-account":
 		if _, ok := currentUser(r); !ok {
 			http.Redirect(w, r, "/auth/login?next="+url.QueryEscape(route.Path), http.StatusSeeOther)
@@ -295,10 +311,12 @@ func registerHandler(w http.ResponseWriter, r *http.Request) error {
 	email := r.FormValue("email")
 	password := r.FormValue("password")
 	starterAuth.mu.Lock()
+	isAdmin := len(starterAuth.users) == 0
 	starterAuth.users[email] = starterUser{
 		DisplayName: r.FormValue("display_name"),
 		Email:       email,
 		Password:    password,
+		IsAdmin:     isAdmin,
 	}
 	starterAuth.mu.Unlock()
 	return startSessionAndRedirect(w, r, email, "/auth/profile")
@@ -369,6 +387,17 @@ func currentUser(r *http.Request) (string, bool) {
 	defer starterAuth.mu.Unlock()
 	email, ok := starterAuth.sessions[cookie.Value]
 	return email, ok
+}
+
+func currentStarterUser(r *http.Request) (starterUser, bool) {
+	email, ok := currentUser(r)
+	if !ok {
+		return starterUser{}, false
+	}
+	starterAuth.mu.Lock()
+	defer starterAuth.mu.Unlock()
+	user, ok := starterAuth.users[email]
+	return user, ok
 }
 
 func sessionHandler(w http.ResponseWriter, r *http.Request) error {
@@ -524,6 +553,28 @@ func renderDeleteAccountPage(w http.ResponseWriter, r *http.Request) error {
 	return renderSimpleFormPage(w, "Delete account", "delete-account", "/auth/delete-account", "", "Delete account now", []formField{
 		{Name: "email", Label: "Email address", Type: "email", Value: email},
 	})
+}
+
+func renderAdminPage(w http.ResponseWriter, route goship.Route) error {
+	routes := goship.BuildRouter(nil)
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	if _, err := fmt.Fprintf(w, `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Admin dashboard</title><link rel="stylesheet" href="/static/styles_bundle.css"></head><body><div class="starter-shell"><header class="starter-header"><div class="starter-brand">GoShip Starter</div></header><section data-component="admin-dashboard"><h1>Admin dashboard</h1><p>Starter backoffice overview for generated resources.</p><ul>`); err != nil {
+		return err
+	}
+	for _, candidate := range routes {
+		if candidate.Kind != goship.RouteKindResource {
+			continue
+		}
+		records, err := starterCRUDRecords(candidate)
+		if err != nil {
+			return err
+		}
+		if _, err := fmt.Fprintf(w, `<li><a href="%s">%s</a> <span data-admin-count="%s">%d</span></li>`, candidate.Path, html.EscapeString(candidate.Name), html.EscapeString(candidate.Name), len(records)); err != nil {
+			return err
+		}
+	}
+	_, err := fmt.Fprintf(w, `</ul><p data-admin-route>%s</p></section></div></body></html>`, html.EscapeString(route.Path))
+	return err
 }
 
 func deleteAccountHandler(w http.ResponseWriter, r *http.Request) error {

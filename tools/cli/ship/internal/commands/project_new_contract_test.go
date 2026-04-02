@@ -138,8 +138,10 @@ func TestStarterAuthDocsMatchExpandedContract(t *testing.T) {
 	}
 	starterReadme := string(starterReadmeBytes)
 
-	assertContains(t, "docs/guides/01-getting-started.md", gettingStarted, "landing/auth/account/home/profile")
+	assertContains(t, "docs/guides/01-getting-started.md", gettingStarted, "landing/auth/account/admin/home/profile")
 	assertContains(t, "starter/testdata/scaffold/README.md", starterReadme, "account routes")
+	assertContains(t, "docs/guides/01-getting-started.md", gettingStarted, "admin")
+	assertContains(t, "starter/testdata/scaffold/README.md", starterReadme, "admin dashboard route")
 }
 
 func TestFrameworkBrowserSuitesDeclareTheirAuthSurface(t *testing.T) {

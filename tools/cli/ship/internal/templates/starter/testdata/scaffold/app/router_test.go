@@ -8,8 +8,8 @@ import (
 
 func TestBuildRouterIncludesDefaultRoutes(t *testing.T) {
 	routes := BuildRouter(nil)
-	if len(routes) != 10 {
-		t.Fatalf("expected 10 starter routes, got %d", len(routes))
+	if len(routes) != 11 {
+		t.Fatalf("expected 11 starter routes, got %d", len(routes))
 	}
 
 	want := []struct {
@@ -23,6 +23,7 @@ func TestBuildRouterIncludesDefaultRoutes(t *testing.T) {
 		{name: routenames.RouteNamePasswordResetConfirm, path: "/auth/password/reset/confirm"},
 		{name: routenames.RouteNameSession, path: "/auth/session"},
 		{name: routenames.RouteNameSettings, path: "/auth/settings"},
+		{name: routenames.RouteNameAdmin, path: "/auth/admin"},
 		{name: routenames.RouteNameDeleteAccount, path: "/auth/delete-account"},
 		{name: routenames.RouteNameHomeFeed, path: "/auth/homeFeed"},
 		{name: routenames.RouteNameProfile, path: "/auth/profile"},
