@@ -1,0 +1,28 @@
+# Context Snapshot — P1-03 Real CRUD Scaffolds
+
+- task statement: define the Ralph-ready execution package for P1-03 real CRUD scaffolds on the generated-app path
+- desired outcome: generated apps can scaffold a genuinely useful CRUD slice with routes, pages, forms, validation, and tests instead of thin placeholders
+- known facts/evidence:
+  - P1-01 auth/account starter is complete
+  - P1-02 validation layer + inline validation UX is complete on starter auth/account flows
+  - `make:resource` is starter-safe today but primarily emits a page/route/controller shell
+  - `make:model` emits a DB query stub plus follow-up instructions, not a full data workflow
+  - `make:scaffold` is still explicitly rejected on the starter scaffold
+  - starter smoke tests currently prove only `make:resource`, `make:model`, and destroy/build safety, not real CRUD leverage
+- constraints:
+  - generated-app truth must stay ahead of framework-internal convenience
+  - avoid widening framework-workspace-only surfaces until starter CRUD is actually proven
+  - use failing generated-app proof first
+  - keep reversibility and destroy safety in scope, not as a later afterthought
+- unknowns/open questions:
+  - whether the first CRUD target should be HTML-only or dual HTML/API from the start
+  - whether starter CRUD should introduce a minimal data persistence seam beyond query stubs in this slice or coordinate tightly with P3-02
+  - how much of `make:scaffold` should be reopened on starter path vs delivered incrementally through upgraded `make:resource` + `make:model`
+- likely touchpoints:
+  - `tools/cli/ship/internal/generators/resource.go`
+  - `tools/cli/ship/internal/generators/model.go`
+  - `tools/cli/ship/internal/generators/scaffold.go`
+  - `tools/cli/ship/internal/commands/starter_scaffold_smoke_test.go`
+  - `tools/cli/ship/internal/commands/fresh_app_test.go`
+  - starter scaffold runtime/pages under `tools/cli/ship/internal/templates/starter/testdata/scaffold/`
+  - CLI reference/help docs that currently mark scaffold/controller as starter-rejected
