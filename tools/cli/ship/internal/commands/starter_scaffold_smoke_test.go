@@ -63,6 +63,9 @@ func TestStarterCRUDScaffoldIsUseful(t *testing.T) {
 	if !strings.Contains(string(pageBody), "CRUD scaffold") {
 		t.Fatalf("generated starter page should describe CRUD scaffold\n%s", pageBody)
 	}
+	if !strings.Contains(string(pageBody), "ship:generated:resource:contact") {
+		t.Fatalf("generated starter page should carry resource ownership header\n%s", pageBody)
+	}
 	routerBody, err := os.ReadFile(filepath.Join(appPath, "app", "router.go"))
 	if err != nil {
 		t.Fatalf("os.ReadFile(router.go) error = %v", err)
@@ -180,6 +183,13 @@ func TestStarterMakeControllerUsesStarterCRUDContract(t *testing.T) {
 	if _, err := os.Stat(pagePath); err != nil {
 		t.Fatalf("starter controller page missing: %v", err)
 	}
+	pageBody, err := os.ReadFile(pagePath)
+	if err != nil {
+		t.Fatalf("os.ReadFile(%q) error = %v", pagePath, err)
+	}
+	if !strings.Contains(string(pageBody), "ship:generated:controller:contact") {
+		t.Fatalf("starter controller page should carry controller ownership header\n%s", pageBody)
+	}
 	if _, err := os.Stat(filepath.Join(appPath, "app", "web", "controllers", "contact.go")); err == nil {
 		t.Fatal("framework controller file should not be created for starter controller generation")
 	}
@@ -239,6 +249,7 @@ func TestStarterMakeModelStaysBuildable(t *testing.T) {
 		t.Fatalf("os.ReadFile(generated model query) error = %v", err)
 	}
 	for _, want := range []string{
+		"-- ship:generated:model:post",
 		"-- Suggested migration columns:",
 		"-- - title TEXT",
 		"-- - published BOOLEAN",

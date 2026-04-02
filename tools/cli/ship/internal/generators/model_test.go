@@ -12,6 +12,7 @@ func TestRenderModelQueryTemplateIncludesCRUDQueriesAndSchemaHints(t *testing.T)
 	})
 
 	for _, want := range []string{
+		"-- ship:generated:model:post",
 		"-- Suggested migration columns:",
 		"-- - title TEXT",
 		"-- - published BOOLEAN",
@@ -36,6 +37,7 @@ func TestRenderModelQueryTemplateIncludesCRUDQueriesAndSchemaHints(t *testing.T)
 func TestRenderModelQueryTemplateWithoutFieldsStillProducesCRUDShape(t *testing.T) {
 	got := RenderModelQueryTemplate("Post", nil)
 	for _, want := range []string{
+		"-- ship:generated:model:post",
 		"INSERT INTO posts DEFAULT VALUES RETURNING *;",
 		"-- name: ListPosts :many",
 		"-- name: UpdatePost :one",

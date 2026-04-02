@@ -137,12 +137,13 @@ func runMakeStarterController(opts ControllerMakeOptions, names ControllerNames,
 		routePath = "/auth/" + names.BaseKebab
 	}
 	spec := StarterGeneratedRouteSpec{
-		Snake:       names.BaseSnake,
-		Kebab:       names.BaseKebab,
-		Pascal:      names.BaseTitle,
-		RoutePath:   routePath,
-		Actions:     append([]string(nil), opts.Actions...),
-		Description: fmt.Sprintf("Starter controller scaffold for %s with actions: %s.", names.BaseKebab, strings.Join(opts.Actions, ", ")),
+		OwnershipKind: "controller",
+		Snake:         names.BaseSnake,
+		Kebab:         names.BaseKebab,
+		Pascal:        names.BaseTitle,
+		RoutePath:     routePath,
+		Actions:       append([]string(nil), opts.Actions...),
+		Description:   fmt.Sprintf("Starter controller scaffold for %s with actions: %s.", names.BaseKebab, strings.Join(opts.Actions, ", ")),
 	}
 	pageFile := filepath.Join(opts.Path, "views", "web", "pages", "gen", names.BaseSnake+".go")
 	if err := writeFile(pageFile, renderStarterGeneratedPageSpec(spec), false); err != nil {
@@ -344,7 +345,7 @@ func RenderControllerFile(names ControllerNames, actions []string, domain Normal
 	if err != nil {
 		return "", err
 	}
-	return string(src), nil
+	return generatedGoFileHeader("controller", names.BaseSnake) + string(src), nil
 }
 
 func RenderControllerRouteSnippet(names ControllerNames, actions []string, auth string, withDomain bool) string {
@@ -430,5 +431,5 @@ func RenderControllerTestFile(names ControllerNames, actions []string) (string, 
 	if err != nil {
 		return "", err
 	}
-	return string(src), nil
+	return generatedGoFileHeader("controller", names.BaseSnake) + string(src), nil
 }

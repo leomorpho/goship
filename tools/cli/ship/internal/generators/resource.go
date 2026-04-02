@@ -249,12 +249,13 @@ func GenerateResourceScaffold(opts ResourceGenerateOptions) (ResourceGenerateRes
 
 func renderStarterGeneratedPage(n NormalizedResourceName) string {
 	return renderStarterGeneratedPageSpec(StarterGeneratedRouteSpec{
-		Snake:       n.Snake,
-		Kebab:       n.Kebab,
-		Pascal:      n.Pascal,
-		RoutePath:   "/" + n.Kebab,
-		Actions:     DefaultGeneratorCRUDActionNames(),
-		Description: fmt.Sprintf("Starter CRUD scaffold for %s with list/create/show/edit/delete runtime support.", n.Kebab),
+		OwnershipKind: "resource",
+		Snake:         n.Snake,
+		Kebab:         n.Kebab,
+		Pascal:        n.Pascal,
+		RoutePath:     "/" + n.Kebab,
+		Actions:       DefaultGeneratorCRUDActionNames(),
+		Description:   fmt.Sprintf("Starter CRUD scaffold for %s with list/create/show/edit/delete runtime support.", n.Kebab),
 	})
 }
 
@@ -272,12 +273,13 @@ func starterGeneratedRouteSpecForResource(n NormalizedResourceName, auth string)
 		path = "/auth/" + n.Kebab
 	}
 	return StarterGeneratedRouteSpec{
-		Snake:       n.Snake,
-		Kebab:       n.Kebab,
-		Pascal:      n.Pascal,
-		RoutePath:   path,
-		Actions:     DefaultGeneratorCRUDActionNames(),
-		Description: fmt.Sprintf("Starter CRUD scaffold for %s with list/create/show/edit/delete runtime support.", n.Kebab),
+		OwnershipKind: "resource",
+		Snake:         n.Snake,
+		Kebab:         n.Kebab,
+		Pascal:        n.Pascal,
+		RoutePath:     path,
+		Actions:       DefaultGeneratorCRUDActionNames(),
+		Description:   fmt.Sprintf("Starter CRUD scaffold for %s with list/create/show/edit/delete runtime support.", n.Kebab),
 	}
 }
 
@@ -377,7 +379,7 @@ func renderResourceBasicHandler(n NormalizedResourceName, domain NormalizedDomai
 		body = fmt.Sprintf("%s\treturn ctx.String(http.StatusOK, \"%s resource\")", domainComment, n.Kebab)
 	}
 
-	return fmt.Sprintf(`package controllers
+	return generatedGoFileHeader("resource", n.Snake) + fmt.Sprintf(`package controllers
 
 import (
 	"net/http"
@@ -442,7 +444,7 @@ func renderResourceTemplHandler(n NormalizedResourceName, domain NormalizedDomai
 	return r.ctr.RenderPage(ctx, page)`, domainComment, n.Kebab, n.Pascal, n.Pascal)
 	}
 
-	return fmt.Sprintf(`package controllers
+	return generatedGoFileHeader("resource", n.Snake) + fmt.Sprintf(`package controllers
 
 %s
 
@@ -461,7 +463,7 @@ func (r *%s) Get(ctx echo.Context) error {
 }
 
 func renderResourceTestFile(n NormalizedResourceName) string {
-	return fmt.Sprintf(`package controllers
+	return generatedGoFileHeader("resource", n.Snake) + fmt.Sprintf(`package controllers
 
 import (
 	"testing"
@@ -475,7 +477,7 @@ func Test%sRoute_Get(t *testing.T) {
 }
 
 func renderResourceTempl(n NormalizedResourceName) string {
-	return fmt.Sprintf(`package pages
+	return generatedGoFileHeader("resource", n.Snake) + fmt.Sprintf(`package pages
 
 import "github.com/leomorpho/goship/framework/http/ui"
 

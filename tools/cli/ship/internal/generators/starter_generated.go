@@ -6,12 +6,13 @@ import (
 )
 
 type StarterGeneratedRouteSpec struct {
-	Snake       string
-	Kebab       string
-	Pascal      string
-	RoutePath   string
-	Actions     []string
-	Description string
+	OwnershipKind string
+	Snake         string
+	Kebab         string
+	Pascal        string
+	RoutePath     string
+	Actions       []string
+	Description   string
 }
 
 func renderStarterGeneratedPageSpec(spec StarterGeneratedRouteSpec) string {
@@ -19,7 +20,11 @@ func renderStarterGeneratedPageSpec(spec StarterGeneratedRouteSpec) string {
 	if description == "" {
 		description = fmt.Sprintf("Starter scaffold for %s with actions: %s.", spec.Kebab, strings.Join(spec.Actions, ", "))
 	}
-	return fmt.Sprintf(`package pages
+	ownershipKind := strings.TrimSpace(spec.OwnershipKind)
+	if ownershipKind == "" {
+		ownershipKind = "resource"
+	}
+	return generatedGoFileHeader(ownershipKind, spec.Snake) + fmt.Sprintf(`package pages
 
 import (
 	"context"

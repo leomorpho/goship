@@ -128,6 +128,7 @@ func RenderModelQueryTemplate(name string, fields []ModelField) string {
 	updateName := "Update" + name
 	deleteName := "Delete" + name
 
+	b.WriteString(generatedSQLFileHeader("model", ModelFileName(name)))
 	b.WriteString("-- Model: ")
 	b.WriteString(name)
 	b.WriteString("\n")

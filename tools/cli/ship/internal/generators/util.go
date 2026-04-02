@@ -52,6 +52,14 @@ func writeGeneratorPathSection(w io.Writer, heading string, values []string) {
 	}
 }
 
+func generatedGoFileHeader(kind, name string) string {
+	return fmt.Sprintf("// ship:generated:%s:%s\n", strings.TrimSpace(kind), strings.TrimSpace(name))
+}
+
+func generatedSQLFileHeader(kind, name string) string {
+	return fmt.Sprintf("-- ship:generated:%s:%s\n", strings.TrimSpace(kind), strings.TrimSpace(name))
+}
+
 func splitWords(input string) []string {
 	clean := strings.TrimSpace(input)
 	if clean == "" {
