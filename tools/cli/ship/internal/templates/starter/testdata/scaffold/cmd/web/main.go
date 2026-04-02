@@ -199,7 +199,7 @@ func handleRoute(w http.ResponseWriter, r *http.Request, route goship.Route, con
 			http.Redirect(w, r, "/auth/login?next="+url.QueryEscape(route.Path), http.StatusSeeOther)
 			return nil
 		}
-		if route.Path == "/auth/profile" && container != nil && (container.SupportsModule("storage") || container.SupportsModule("emailsubscriptions")) {
+		if route.Path == "/auth/profile" && container != nil && (container.SupportsModule("storage") || container.SupportsModule("emailsubscriptions") || container.SupportsModule("paidsubscriptions")) {
 			if r.Method == http.MethodPost {
 				return profileModuleActionHandler(w, r, container)
 			}
@@ -233,6 +233,10 @@ func renderProfilePageWithModules(w http.ResponseWriter, r *http.Request, contai
 	}
 	email, _ := currentUser(r)
 	subscribed, err := starterEmailSubscriptionStatus(email)
+	if err != nil {
+		return err
+	}
+	paidActive, err := starterPaidSubscriptionStatus(email)
 	if err != nil {
 		return err
 	}
@@ -270,6 +274,19 @@ func renderProfilePageWithModules(w http.ResponseWriter, r *http.Request, contai
 			return err
 		}
 	}
+	if container.SupportsModule("paidsubscriptions") {
+		label := "Start subscription"
+		action := "subscribe"
+		status := "Free plan"
+		if paidActive {
+			label = "Cancel subscription"
+			action = "cancel"
+			status = "Pro plan active"
+		}
+		if _, err := fmt.Fprintf(w, `<section data-component="paid-subscriptions"><h2>Paid subscriptions</h2><p data-paid-status>%s</p><form method="post" action="/auth/profile"><input type="hidden" name="paid_subscription_action" value="%s"><button type="submit">%s</button></form></section>`, html.EscapeString(status), html.EscapeString(action), html.EscapeString(label)); err != nil {
+			return err
+		}
+	}
 	_, err = fmt.Fprint(w, `</section></div></body></html>`)
 	return err
 }
@@ -294,6 +311,25 @@ func profileModuleActionHandler(w http.ResponseWriter, r *http.Request, containe
 			}
 		} else if action == "unsubscribe" {
 			if err := starterSetEmailSubscription(email, false); err != nil {
+				return err
+			}
+		}
+		http.Redirect(w, r, "/auth/profile", http.StatusSeeOther)
+		return nil
+	}
+	if container.SupportsModule("paidsubscriptions") {
+		email, ok := currentUser(r)
+		if !ok {
+			http.Redirect(w, r, "/auth/login?next="+url.QueryEscape("/auth/profile"), http.StatusSeeOther)
+			return nil
+		}
+		action := strings.TrimSpace(r.FormValue("paid_subscription_action"))
+		if action == "subscribe" {
+			if err := starterSetPaidSubscription(email, true); err != nil {
+				return err
+			}
+		} else if action == "cancel" {
+			if err := starterSetPaidSubscription(email, false); err != nil {
 				return err
 			}
 		}
@@ -369,6 +405,47 @@ func starterSetEmailSubscription(email string, subscribed bool) error {
 		return err
 	}
 	_, err = db.Exec(`DELETE FROM starter_email_subscriptions WHERE email = ?`, email)
+	return err
+}
+
+func starterPaidSubscriptionStatus(email string) (bool, error) {
+	db, err := starterCRUDDB()
+	if err != nil {
+		return false, err
+	}
+	defer db.Close()
+	if _, err := db.Exec(`CREATE TABLE IF NOT EXISTS starter_paid_subscriptions (
+		email TEXT PRIMARY KEY
+	)`); err != nil {
+		return false, err
+	}
+	row := db.QueryRow(`SELECT email FROM starter_paid_subscriptions WHERE email = ?`, email)
+	var existing string
+	if err := row.Scan(&existing); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return false, nil
+		}
+		return false, err
+	}
+	return true, nil
+}
+
+func starterSetPaidSubscription(email string, active bool) error {
+	db, err := starterCRUDDB()
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+	if _, err := db.Exec(`CREATE TABLE IF NOT EXISTS starter_paid_subscriptions (
+		email TEXT PRIMARY KEY
+	)`); err != nil {
+		return err
+	}
+	if active {
+		_, err = db.Exec(`INSERT OR REPLACE INTO starter_paid_subscriptions (email) VALUES (?)`, email)
+		return err
+	}
+	_, err = db.Exec(`DELETE FROM starter_paid_subscriptions WHERE email = ?`, email)
 	return err
 }
 

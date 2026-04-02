@@ -1025,6 +1025,46 @@ func TestFreshAppEmailSubscriptionsModuleEnablesProfileToggle(t *testing.T) {
 	assertHTTPStatusContainsForClient(t, client, baseURL+"/auth/profile", http.StatusOK, "Not subscribed")
 }
 
+func TestFreshAppPaidSubscriptionsModuleEnablesProfileToggle(t *testing.T) {
+	shipbin := buildShipBinary(t)
+	appPath := scaffoldFreshAppViaShip(t, shipbin, false)
+	runCmd(t, appPath, shipbin, "db:migrate")
+	runCmd(t, appPath, shipbin, "module:add", "paidsubscriptions")
+
+	baseURL, client, cleanup := startFreshAppWebWithClient(t, appPath)
+	defer cleanup()
+
+	resp := registerStarterUser(t, client, baseURL, "user@example.com", "Password123!")
+	_ = resp.Body.Close()
+
+	assertHTTPStatusContainsForClient(t, client, baseURL+"/auth/profile", http.StatusOK, "Paid subscriptions")
+	assertHTTPStatusContainsForClient(t, client, baseURL+"/auth/profile", http.StatusOK, "Free plan")
+
+	resp, err := client.PostForm(baseURL+"/auth/profile", url.Values{
+		"paid_subscription_action": {"subscribe"},
+	})
+	if err != nil {
+		t.Fatalf("paid subscription subscribe failed: %v", err)
+	}
+	_ = resp.Body.Close()
+	if resp.StatusCode != http.StatusSeeOther {
+		t.Fatalf("paid subscribe status = %d, want 303", resp.StatusCode)
+	}
+	assertHTTPStatusContainsForClient(t, client, baseURL+"/auth/profile", http.StatusOK, "Pro plan active")
+
+	resp, err = client.PostForm(baseURL+"/auth/profile", url.Values{
+		"paid_subscription_action": {"cancel"},
+	})
+	if err != nil {
+		t.Fatalf("paid subscription cancel failed: %v", err)
+	}
+	_ = resp.Body.Close()
+	if resp.StatusCode != http.StatusSeeOther {
+		t.Fatalf("paid cancel status = %d, want 303", resp.StatusCode)
+	}
+	assertHTTPStatusContainsForClient(t, client, baseURL+"/auth/profile", http.StatusOK, "Free plan")
+}
+
 func TestFreshAppMailerPreviewFlow(t *testing.T) {
 	shipbin := buildShipBinary(t)
 	appPath := scaffoldFreshAppViaShip(t, shipbin, false)
