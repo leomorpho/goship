@@ -1,9 +1,11 @@
 package commands
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"io"
+	"mime/multipart"
 	"net"
 	"net/http"
 	"net/http/cookiejar"
@@ -937,6 +939,50 @@ func TestFreshAppAdminDashboardCanManageGeneratedResource(t *testing.T) {
 	if strings.Contains(body, "Alice Updated") {
 		t.Fatalf("admin delete should remove updated row\nbody:\n%s", body)
 	}
+}
+
+func TestFreshAppStorageModuleEnablesProfileUpload(t *testing.T) {
+	shipbin := buildShipBinary(t)
+	appPath := scaffoldFreshAppViaShip(t, shipbin, false)
+	runCmd(t, appPath, shipbin, "db:migrate")
+	runCmd(t, appPath, shipbin, "module:add", "storage")
+
+	baseURL, client, cleanup := startFreshAppWebWithClient(t, appPath)
+	defer cleanup()
+
+	resp := registerStarterUser(t, client, baseURL, "admin@example.com", "Password123!")
+	_ = resp.Body.Close()
+
+	assertHTTPStatusContainsForClient(t, client, baseURL+"/auth/profile", http.StatusOK, `name="storage_upload"`)
+
+	var body bytes.Buffer
+	writer := multipart.NewWriter(&body)
+	part, err := writer.CreateFormFile("storage_upload", "avatar.txt")
+	if err != nil {
+		t.Fatalf("CreateFormFile() error = %v", err)
+	}
+	if _, err := part.Write([]byte("hello storage")); err != nil {
+		t.Fatalf("part.Write() error = %v", err)
+	}
+	if err := writer.Close(); err != nil {
+		t.Fatalf("writer.Close() error = %v", err)
+	}
+
+	req, err := http.NewRequest(http.MethodPost, baseURL+"/auth/profile", &body)
+	if err != nil {
+		t.Fatalf("http.NewRequest(upload) error = %v", err)
+	}
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	resp, err = client.Do(req)
+	if err != nil {
+		t.Fatalf("profile upload failed: %v", err)
+	}
+	_ = resp.Body.Close()
+	if resp.StatusCode != http.StatusSeeOther {
+		t.Fatalf("profile upload status = %d, want 303", resp.StatusCode)
+	}
+
+	assertHTTPStatusContainsForClient(t, client, baseURL+"/auth/profile", http.StatusOK, "avatar.txt")
 }
 
 func TestFreshAppMailerPreviewFlow(t *testing.T) {

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"crypto/rand"
 	"database/sql"
@@ -10,6 +11,7 @@ import (
 	"fmt"
 	"html"
 	"log"
+	"mime/multipart"
 	"net/http"
 	"net/url"
 	"os"
@@ -19,6 +21,7 @@ import (
 
 	"github.com/a-h/templ"
 	goship "github.com/leomorpho/goship/starter/app"
+	starterfoundation "github.com/leomorpho/goship/starter/app/foundation"
 	starterpolicies "github.com/leomorpho/goship/starter/app/policies"
 	templates "github.com/leomorpho/goship/starter/app/views"
 	pages "github.com/leomorpho/goship/starter/app/views/web/pages/gen"
@@ -60,6 +63,7 @@ var starterAuth = &authStore{
 }
 
 func main() {
+	container := starterfoundation.NewContainer()
 	mux := http.NewServeMux()
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 	mux.HandleFunc("/dev/mail", mailPreviewIndexHandler)
@@ -77,10 +81,10 @@ func main() {
 	mux.HandleFunc("/health/readiness", readinessHandler)
 	mux.HandleFunc("/auth/logout", logoutHandler)
 
-	for _, route := range goship.BuildRouter(nil) {
+	for _, route := range goship.BuildRouter(container) {
 		route := route
 		mux.HandleFunc(route.Path, func(w http.ResponseWriter, r *http.Request) {
-			if err := handleRoute(w, r, route); err != nil {
+			if err := handleRoute(w, r, route, container); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 			}
 		})
@@ -101,7 +105,7 @@ func readinessHandler(w http.ResponseWriter, _ *http.Request) {
 	writeText(w, http.StatusOK, "ready")
 }
 
-func handleRoute(w http.ResponseWriter, r *http.Request, route goship.Route) error {
+func handleRoute(w http.ResponseWriter, r *http.Request, route goship.Route, container *starterfoundation.Container) error {
 	switch route.Path {
 	case "/auth/register":
 		if r.Method == http.MethodPost {
@@ -195,6 +199,16 @@ func handleRoute(w http.ResponseWriter, r *http.Request, route goship.Route) err
 			http.Redirect(w, r, "/auth/login?next="+url.QueryEscape(route.Path), http.StatusSeeOther)
 			return nil
 		}
+		if route.Path == "/auth/profile" && container != nil && container.SupportsModule("storage") {
+			if r.Method == http.MethodPost {
+				return profileStorageUploadHandler(w, r)
+			}
+			if r.Method != http.MethodGet {
+				http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+				return nil
+			}
+			return renderProfilePageWithStorage(w)
+		}
 		if r.Method != http.MethodGet {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return nil
@@ -210,6 +224,63 @@ func handleRoute(w http.ResponseWriter, r *http.Request, route goship.Route) err
 		}
 		return renderRoute(w, route.Page)
 	}
+}
+
+func renderProfilePageWithStorage(w http.ResponseWriter) error {
+	files, err := os.ReadDir(filepath.Join("tmp", "storage"))
+	if err != nil && !os.IsNotExist(err) {
+		return err
+	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	_, err = fmt.Fprintf(w, `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Profile</title><link rel="stylesheet" href="/static/styles_bundle.css"></head><body><div class="starter-shell"><header class="starter-header"><div class="starter-brand">GoShip Starter</div></header><section data-component="profile-storage"><h1>Profile</h1><h2>Storage sandbox</h2><form method="post" action="/auth/profile" enctype="multipart/form-data"><label>Upload file<input name="storage_upload" type="file"></label><button type="submit">Upload</button></form><ul>`)
+	if err != nil {
+		return err
+	}
+	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
+		if _, err := fmt.Fprintf(w, `<li>%s</li>`, html.EscapeString(file.Name())); err != nil {
+			return err
+		}
+	}
+	_, err = fmt.Fprint(w, `</ul></section></div></body></html>`)
+	return err
+}
+
+func profileStorageUploadHandler(w http.ResponseWriter, r *http.Request) error {
+	if err := r.ParseMultipartForm(8 << 20); err != nil {
+		return err
+	}
+	file, header, err := r.FormFile("storage_upload")
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	name := filepath.Base(strings.TrimSpace(header.Filename))
+	if name == "" || name == "." || name == string(filepath.Separator) {
+		return fmt.Errorf("invalid upload filename")
+	}
+	body, err := readMultipartFile(file)
+	if err != nil {
+		return err
+	}
+	if err := os.MkdirAll(filepath.Join("tmp", "storage"), 0o755); err != nil {
+		return err
+	}
+	if err := os.WriteFile(filepath.Join("tmp", "storage", name), body, 0o644); err != nil {
+		return err
+	}
+	http.Redirect(w, r, "/auth/profile", http.StatusSeeOther)
+	return nil
+}
+
+func readMultipartFile(file multipart.File) ([]byte, error) {
+	var buf bytes.Buffer
+	if _, err := buf.ReadFrom(file); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
 func renderRoute(w http.ResponseWriter, page templates.Page) error {
