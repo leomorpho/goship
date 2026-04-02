@@ -168,6 +168,14 @@ func TestFrameworkBrowserSuitesDeclareTheirAuthSurface(t *testing.T) {
 	assertContains(t, "docs/architecture/06-known-gaps-and-risks.md", knownGaps, "framework repo")
 }
 
+func TestPolicyGeneratorDocsMatchStarterSupport(t *testing.T) {
+	t.Parallel()
+
+	cliRef := readRepoFile(t, "docs/reference/01-cli.md")
+	assertContains(t, "docs/reference/01-cli.md", cliRef, "ship make:policy <Name>")
+	assertContains(t, "docs/reference/01-cli.md", cliRef, "starter-safe")
+}
+
 func TestControllerGeneratorDocsMatchStarterSupport(t *testing.T) {
 	t.Parallel()
 
@@ -181,7 +189,7 @@ func TestGeneratorSurfaceBoundaryIsExplicit(t *testing.T) {
 
 	cliRef := readRepoFile(t, "docs/reference/01-cli.md")
 	assertContains(t, "docs/reference/01-cli.md", cliRef, "starter-safe today")
-	assertContains(t, "docs/reference/01-cli.md", cliRef, "`make:resource`, `make:model`, `make:controller`, `make:island`")
+	assertContains(t, "docs/reference/01-cli.md", cliRef, "`make:resource`, `make:model`, `make:controller`, `make:policy`, `make:island`")
 	assertContains(t, "docs/reference/01-cli.md", cliRef, "starter-safe when a locale baseline already exists")
 	assertContains(t, "docs/reference/01-cli.md", cliRef, "framework-workspace-only for now")
 	assertContains(t, "docs/reference/01-cli.md", cliRef, "`make:factory`, `make:job`, `make:mailer`, `make:schedule`, `make:command`, `make:scaffold`")

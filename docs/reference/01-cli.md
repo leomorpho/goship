@@ -103,6 +103,7 @@ Generation:
 - `ship make:model <Name> [fields...] [--force]`
 - `ship make:factory <Name>`
 - `ship make:locale <code>`
+- `ship make:policy <Name> [--force]`
 - `ship make:controller <Name|NameController> [--actions index,show,create,update,destroy] [--fields name:type,...] [--auth public|auth] [--domain <name>] [--wire]`
 - `ship make:job <Name>`
 - `ship make:mailer <Name>`
@@ -113,7 +114,7 @@ Generation:
 
 Current generated-app support boundary for `ship make:*`:
 
-- **starter-safe today:** `make:resource`, `make:model`, `make:controller`, `make:island`
+- **starter-safe today:** `make:resource`, `make:model`, `make:controller`, `make:policy`, `make:island`
 - **starter-safe when a locale baseline already exists:** `make:locale`
 - **framework-workspace-only for now:** `make:factory`, `make:job`, `make:mailer`, `make:schedule`, `make:command`, `make:scaffold`
 - **framework authoring only:** `make:module`
@@ -252,6 +253,7 @@ Safety matrix:
 - `ship make:resource` path ownership is canonical: `--path` must resolve to `app`; values that escape or diverge from `app` fail fast
 - `ship make:model <Name>` -> scaffold a model query file at `db/queries/<model>.sql` with Bob-friendly named-query placeholders
 - `ship make:model <Name> [fields...]` -> include typed field comments in the query scaffold and print next DB steps (`db:make`, `db:migrate`, `db:generate`)
+- `ship make:policy <Name>` -> scaffold `app/policies/<name>.go` with a generated ownership header, a `PolicyActor` seam, and a starter-safe `Allows(...)` method that defaults to admin-only access until the app wires richer policy behavior
 - `ship make:factory <Name>` -> scaffold `tests/factories/<name>_factory.go` with a typed `Record` struct + `factory.New(...)` baseline; currently reject the minimal starter scaffold with a clear error and treat this as a framework-workspace surface
 - `ship make:locale <code>` -> scaffold `locales/<code>.toml` from `locales/en.toml` (or legacy `en.yaml`) with matching keys and empty values; this stays starter-safe only when the app already has a locale baseline
 - `ship make:controller <Name>` -> generate controller/handler scaffold in `app/web/controllers`

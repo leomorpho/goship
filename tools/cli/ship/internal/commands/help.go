@@ -55,6 +55,7 @@ func PrintMakeHelp(w io.Writer) {
 	fmt.Fprintln(w, "ship make commands:")
 	fmt.Fprintln(w, "  ship make:scaffold <Name> [fields...] [--path app] [--views templ|none] [--auth public|auth] [--api] [--migrate] [--dry-run] [--force]  Generate model + migration + controller/resource wiring (framework workspace only for now)")
 	fmt.Fprintln(w, "  ship make:controller <Name|NameController> [--actions index,show,create,update,destroy] [--fields name:type,...] [--auth public|auth] [--wire]  Generate a controller with optional route wiring (starter-safe with generated CRUD semantics)")
+	fmt.Fprintln(w, "  ship make:policy <Name> [--force]                                                                                                            Generate a policy scaffold (starter-safe)")
 	fmt.Fprintln(w, "  ship make:resource <name> [--path app] [--auth public|auth] [--views templ|none] [--wire] [--dry-run]                                  Generate a route handler and optional page template (starter-safe)")
 	fmt.Fprintln(w, "  ship make:model <Name> [fields...]                                                                                                          Generate a DB query/model scaffold")
 	fmt.Fprintln(w, "  ship make:factory <Name>                                                                                                                     Generate a test data factory (framework workspace only for now)")

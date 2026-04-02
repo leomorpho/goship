@@ -301,6 +301,8 @@ func (c CLI) runMake(args []string) int {
 		return c.runMakeScaffold(args[1:])
 	case "controller":
 		return c.runMakeController(args[1:])
+	case "policy":
+		return c.runMakePolicy(args[1:])
 	case "module":
 		return c.runMakeModule(args[1:])
 	case "model":
@@ -412,6 +414,14 @@ func (c CLI) runMakeController(args []string) int {
 		HasFile:                hasFile,
 		EnsureRouteNamesImport: gen.EnsureRouteNamesImport,
 		WireRouteSnippet:       gen.WireRouteSnippet,
+	})
+}
+
+func (c CLI) runMakePolicy(args []string) int {
+	return gen.RunMakePolicy(args, gen.PolicyDeps{
+		Out:     c.Out,
+		Err:     c.Err,
+		HasFile: hasFile,
 	})
 }
 

@@ -311,6 +311,37 @@ func TestStarterMakeModelStaysBuildable(t *testing.T) {
 	buildStarterApp(t, appPath, "go build after make:model")
 }
 
+func TestStarterMakePolicyStaysBuildable(t *testing.T) {
+	appPath := scaffoldStarterApp(t)
+
+	wd, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("os.Getwd() error = %v", err)
+	}
+	defer func() { _ = os.Chdir(wd) }()
+	if err := os.Chdir(appPath); err != nil {
+		t.Fatalf("os.Chdir(%q) error = %v", appPath, err)
+	}
+
+	var out bytes.Buffer
+	if code := generators.RunMakePolicy([]string{"AdminDashboard"}, generators.PolicyDeps{Out: &out, Err: &out, HasFile: func(path string) bool { _, err := os.Stat(path); return err == nil }}); code != 0 {
+		t.Fatalf("RunMakePolicy() exit code = %d\n%s", code, out.String())
+	}
+
+	policyBody, err := os.ReadFile(filepath.Join(appPath, "app", "policies", "admin_dashboard.go"))
+	if err != nil {
+		t.Fatalf("os.ReadFile(generated policy) error = %v", err)
+	}
+	if !strings.Contains(string(policyBody), "ship:generated:policy:admin_dashboard") {
+		t.Fatalf("generated policy should carry ownership header\n%s", policyBody)
+	}
+	if !strings.Contains(string(policyBody), "Allows(actor PolicyActor) bool") {
+		t.Fatalf("generated policy should expose an Allows seam\n%s", policyBody)
+	}
+
+	buildStarterApp(t, appPath, "go build after make:policy")
+}
+
 func TestStarterMakeLocaleWorksWhenI18nBaselineExists(t *testing.T) {
 	appPath := scaffoldStarterAppWithI18n(t)
 
