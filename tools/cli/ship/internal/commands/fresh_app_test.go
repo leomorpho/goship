@@ -821,6 +821,42 @@ func TestFreshAppAdminDashboardRequiresAdmin(t *testing.T) {
 	}
 }
 
+func TestFreshAppAdminDashboardShowsResourceDrilldown(t *testing.T) {
+	shipbin := buildShipBinary(t)
+	appPath := scaffoldFreshAppViaShip(t, shipbin, false)
+	runCmd(t, appPath, shipbin, "db:migrate")
+	runCmd(t, appPath, shipbin, "make:resource", "contact", "--wire", "--fields", "name:string,email:email")
+	runCmd(t, appPath, shipbin, "make:resource", "lead", "--wire", "--fields", "name:string")
+
+	baseURL, client, cleanup := startFreshAppWebWithClient(t, appPath)
+	defer cleanup()
+
+	resp := registerStarterUser(t, client, baseURL, "admin@example.com", "Password123!")
+	_ = resp.Body.Close()
+	_, err := client.PostForm(baseURL+"/contact", url.Values{
+		"name":  {"Alice"},
+		"email": {"alice@example.com"},
+	})
+	if err != nil {
+		t.Fatalf("create contact failed: %v", err)
+	}
+	_, err = client.PostForm(baseURL+"/lead", url.Values{
+		"name": {"Bob"},
+	})
+	if err != nil {
+		t.Fatalf("create lead failed: %v", err)
+	}
+
+	adminBody := getHTTPBodyForClient(t, client, baseURL+"/auth/admin")
+	assertContainsAll(t, adminBody, `?resource=contact`, `?resource=lead`, `data-admin-count="contact">1<`, `data-admin-count="lead">1<`)
+
+	contactBody := getHTTPBodyForClient(t, client, baseURL+"/auth/admin?resource=contact")
+	assertContainsAll(t, contactBody, "Admin resource: contact", "Alice", "alice@example.com")
+	if strings.Contains(contactBody, "Bob") {
+		t.Fatalf("contact admin drilldown should not include lead data\nbody:\n%s", contactBody)
+	}
+}
+
 func startFreshAppWebWithClient(t *testing.T, appPath string) (string, *http.Client, func()) {
 	t.Helper()
 

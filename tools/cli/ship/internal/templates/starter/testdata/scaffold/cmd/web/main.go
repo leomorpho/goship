@@ -171,7 +171,7 @@ func handleRoute(w http.ResponseWriter, r *http.Request, route goship.Route) err
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return nil
 		}
-		return renderAdminPage(w, route)
+		return renderAdminPage(w, r, route)
 	case "/auth/delete-account":
 		if _, ok := currentUser(r); !ok {
 			http.Redirect(w, r, "/auth/login?next="+url.QueryEscape(route.Path), http.StatusSeeOther)
@@ -559,12 +559,14 @@ func renderDeleteAccountPage(w http.ResponseWriter, r *http.Request) error {
 	})
 }
 
-func renderAdminPage(w http.ResponseWriter, route goship.Route) error {
+func renderAdminPage(w http.ResponseWriter, r *http.Request, route goship.Route) error {
 	routes := goship.BuildRouter(nil)
+	selected := strings.TrimSpace(r.URL.Query().Get("resource"))
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	if _, err := fmt.Fprintf(w, `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Admin dashboard</title><link rel="stylesheet" href="/static/styles_bundle.css"></head><body><div class="starter-shell"><header class="starter-header"><div class="starter-brand">GoShip Starter</div></header><section data-component="admin-dashboard"><h1>Admin dashboard</h1><p>Starter backoffice overview for generated resources.</p><ul>`); err != nil {
 		return err
 	}
+	var selectedRoute *goship.Route
 	for _, candidate := range routes {
 		if candidate.Kind != goship.RouteKindResource {
 			continue
@@ -573,11 +575,52 @@ func renderAdminPage(w http.ResponseWriter, route goship.Route) error {
 		if err != nil {
 			return err
 		}
-		if _, err := fmt.Fprintf(w, `<li><a href="%s">%s</a> <span data-admin-count="%s">%d</span></li>`, candidate.Path, html.EscapeString(candidate.Name), html.EscapeString(candidate.Name), len(records)); err != nil {
+		if candidate.Name == selected {
+			c := candidate
+			selectedRoute = &c
+		}
+		if _, err := fmt.Fprintf(w, `<li><a href="%s?resource=%s">%s</a> <span data-admin-count="%s">%d</span></li>`, route.Path, url.QueryEscape(candidate.Name), html.EscapeString(candidate.Name), html.EscapeString(candidate.Name), len(records)); err != nil {
 			return err
 		}
 	}
-	_, err := fmt.Fprintf(w, `</ul><p data-admin-route>%s</p></section></div></body></html>`, html.EscapeString(route.Path))
+	if _, err := fmt.Fprint(w, `</ul>`); err != nil {
+		return err
+	}
+	if selectedRoute != nil {
+		records, err := starterCRUDRecords(*selectedRoute)
+		if err != nil {
+			return err
+		}
+		fields := starterRouteFields(*selectedRoute)
+		if _, err := fmt.Fprintf(w, `<section data-admin-resource="%s"><h2>Admin resource: %s</h2><table><thead><tr>`, html.EscapeString(selectedRoute.Name), html.EscapeString(selectedRoute.Name)); err != nil {
+			return err
+		}
+		for _, field := range fields {
+			if _, err := fmt.Fprintf(w, `<th>%s</th>`, html.EscapeString(strings.Title(strings.ReplaceAll(field.Name, "_", " ")))); err != nil {
+				return err
+			}
+		}
+		if _, err := fmt.Fprint(w, `</tr></thead><tbody>`); err != nil {
+			return err
+		}
+		for _, record := range records {
+			if _, err := fmt.Fprint(w, `<tr>`); err != nil {
+				return err
+			}
+			for _, field := range fields {
+				if _, err := fmt.Fprintf(w, `<td>%s</td>`, html.EscapeString(record.Values[field.Name])); err != nil {
+					return err
+				}
+			}
+			if _, err := fmt.Fprint(w, `</tr>`); err != nil {
+				return err
+			}
+		}
+		if _, err := fmt.Fprint(w, `</tbody></table></section>`); err != nil {
+			return err
+		}
+	}
+	_, err := fmt.Fprintf(w, `<p data-admin-route>%s</p></section></div></body></html>`, html.EscapeString(route.Path))
 	return err
 }
 
