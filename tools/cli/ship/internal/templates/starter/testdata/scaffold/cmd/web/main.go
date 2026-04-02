@@ -44,10 +44,27 @@ type authStore struct {
 	resets   map[string]string
 }
 
+type starterCRUDRecord struct {
+	ID   int
+	Name string
+}
+
+type starterCRUDCollection struct {
+	NextID  int
+	Records []starterCRUDRecord
+}
+
 var starterAuth = &authStore{
 	users:    map[string]starterUser{},
 	sessions: map[string]string{},
 	resets:   map[string]string{},
+}
+
+var starterCRUD = struct {
+	mu          sync.Mutex
+	collections map[string]*starterCRUDCollection
+}{
+	collections: map[string]*starterCRUDCollection{},
 }
 
 func main() {
@@ -169,6 +186,9 @@ func handleRoute(w http.ResponseWriter, r *http.Request, route goship.Route) err
 		}
 		return renderRoute(w, route.Page)
 	default:
+		if isGeneratedStarterCRUDRoute(route.Name) {
+			return handleStarterCRUDRoute(w, r, route)
+		}
 		if r.Method != http.MethodGet {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return nil
@@ -575,6 +595,15 @@ func resetTokenForEmail(email string) string {
 	return "reset-" + hex.EncodeToString([]byte(email))
 }
 
+func isGeneratedStarterCRUDRoute(routeName string) bool {
+	switch routeName {
+	case "landing_page", "api_v1_status", "login", "register", "session", "settings", "password_reset", "password_reset_confirm", "delete_account", "home_feed", "profile":
+		return false
+	default:
+		return routeName != ""
+	}
+}
+
 func requireFormFields(r *http.Request, fields map[string]string) []validationError {
 	errs := make([]validationError, 0, len(fields))
 	for field, message := range fields {
@@ -613,4 +642,155 @@ func validationMessage(errs []validationError, field string) string {
 func wantsHTMLValidation(r *http.Request) bool {
 	accept := r.Header.Get("Accept")
 	return accept != "" && !strings.Contains(accept, "application/json") && strings.Contains(accept, "text/html")
+}
+
+func handleStarterCRUDRoute(w http.ResponseWriter, r *http.Request, route goship.Route) error {
+	switch r.Method {
+	case http.MethodGet:
+		return renderStarterCRUDPage(w, r, route)
+	case http.MethodPost:
+		return mutateStarterCRUD(w, r, route)
+	default:
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return nil
+	}
+}
+
+func renderStarterCRUDPage(w http.ResponseWriter, r *http.Request, route goship.Route) error {
+	id := strings.TrimSpace(r.URL.Query().Get("id"))
+	record, hasRecord := starterCRUDRecordByID(route.Path, id)
+	all := starterCRUDRecords(route.Path)
+	resourceLabel := strings.ReplaceAll(route.Name, "_", " ")
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	_, err := fmt.Fprintf(w, `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>%s CRUD</title><link rel="stylesheet" href="/static/styles_bundle.css"></head><body><div class="starter-shell"><header class="starter-header"><div class="starter-brand">GoShip Starter</div></header><section data-component="%s-crud"><h1>%s CRUD scaffold</h1><h2>Create %s</h2><form method="post" action="%s"><label>Name<input name="name" type="text" value=""></label><button type="submit">Create %s</button></form><h2>%s list</h2><ul>`, route.Name, route.Name, resourceLabel, resourceLabel, route.Path, resourceLabel, resourceLabel)
+	if err != nil {
+		return err
+	}
+	for _, item := range all {
+		if _, err := fmt.Fprintf(w, `<li><a href="%s?id=%d">%s</a></li>`, route.Path, item.ID, html.EscapeString(item.Name)); err != nil {
+			return err
+		}
+	}
+	if _, err := fmt.Fprint(w, `</ul>`); err != nil {
+		return err
+	}
+	if hasRecord {
+		if _, err := fmt.Fprintf(w, `<section data-crud-show="%d"><h2>Show %s</h2><p>%s</p><h2>Edit %s</h2><form method="post" action="%s?id=%d"><input type="hidden" name="_method" value="PUT"><label>Name<input name="name" type="text" value="%s"></label><button type="submit">Update %s</button></form><form method="post" action="%s?id=%d"><input type="hidden" name="_method" value="DELETE"><button type="submit">Delete %s</button></form></section>`, record.ID, resourceLabel, html.EscapeString(record.Name), resourceLabel, route.Path, record.ID, html.EscapeString(record.Name), resourceLabel, route.Path, record.ID, resourceLabel); err != nil {
+			return err
+		}
+	}
+	_, err = fmt.Fprint(w, `</section></div></body></html>`)
+	return err
+}
+
+func mutateStarterCRUD(w http.ResponseWriter, r *http.Request, route goship.Route) error {
+	if err := r.ParseForm(); err != nil {
+		return err
+	}
+	id := strings.TrimSpace(r.URL.Query().Get("id"))
+	method := strings.ToUpper(strings.TrimSpace(r.FormValue("_method")))
+	if method == "DELETE" {
+		deleteStarterCRUD(route.Path, id)
+		http.Redirect(w, r, route.Path, http.StatusSeeOther)
+		return nil
+	}
+	name := strings.TrimSpace(r.FormValue("name"))
+	if name == "" {
+		resourceLabel := strings.ReplaceAll(route.Name, "_", " ")
+		if wantsHTMLValidation(r) {
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			w.WriteHeader(http.StatusBadRequest)
+			_, err := fmt.Fprintf(w, `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>%s CRUD</title><link rel="stylesheet" href="/static/styles_bundle.css"></head><body><div class="starter-shell"><section data-component="%s-crud"><h1>%s CRUD scaffold</h1><form method="post" action="%s"><label>Name<input name="name" type="text" value="%s"></label><p data-validation-for="name">name is required</p><button type="submit">Create %s</button></form></section></div></body></html>`, route.Name, route.Name, resourceLabel, route.Path, html.EscapeString(r.FormValue("name")), resourceLabel)
+			return err
+		}
+		writeValidationErrors(w, []validationError{validationErr("name", "name is required")})
+		return nil
+	}
+	switch method {
+	case "PUT":
+		updateStarterCRUD(route.Path, id, name)
+		http.Redirect(w, r, route.Path+"?id="+url.QueryEscape(id), http.StatusSeeOther)
+		return nil
+	default:
+		newID := createStarterCRUD(route.Path, name)
+		http.Redirect(w, r, route.Path+"?id="+newID, http.StatusSeeOther)
+		return nil
+	}
+}
+
+func createStarterCRUD(path, name string) string {
+	starterCRUD.mu.Lock()
+	defer starterCRUD.mu.Unlock()
+	collection := starterCRUD.collections[path]
+	if collection == nil {
+		collection = &starterCRUDCollection{NextID: 1}
+		starterCRUD.collections[path] = collection
+	}
+	id := collection.NextID
+	collection.NextID++
+	collection.Records = append(collection.Records, starterCRUDRecord{ID: id, Name: name})
+	return fmt.Sprintf("%d", id)
+}
+
+func updateStarterCRUD(path, id, name string) {
+	starterCRUD.mu.Lock()
+	defer starterCRUD.mu.Unlock()
+	collection := starterCRUD.collections[path]
+	if collection == nil {
+		return
+	}
+	for i := range collection.Records {
+		if fmt.Sprintf("%d", collection.Records[i].ID) == id {
+			collection.Records[i].Name = name
+			return
+		}
+	}
+}
+
+func deleteStarterCRUD(path, id string) {
+	starterCRUD.mu.Lock()
+	defer starterCRUD.mu.Unlock()
+	collection := starterCRUD.collections[path]
+	if collection == nil {
+		return
+	}
+	filtered := collection.Records[:0]
+	for _, record := range collection.Records {
+		if fmt.Sprintf("%d", record.ID) != id {
+			filtered = append(filtered, record)
+		}
+	}
+	collection.Records = filtered
+}
+
+func starterCRUDRecordByID(path, id string) (starterCRUDRecord, bool) {
+	starterCRUD.mu.Lock()
+	defer starterCRUD.mu.Unlock()
+	collection := starterCRUD.collections[path]
+	if collection == nil {
+		return starterCRUDRecord{}, false
+	}
+	for _, record := range collection.Records {
+		if fmt.Sprintf("%d", record.ID) == id {
+			return record, true
+		}
+	}
+	return starterCRUDRecord{}, false
+}
+
+func starterCRUDRecords(path string) []starterCRUDRecord {
+	starterCRUD.mu.Lock()
+	defer starterCRUD.mu.Unlock()
+	collection := starterCRUD.collections[path]
+	if collection == nil {
+		return nil
+	}
+	out := make([]starterCRUDRecord, len(collection.Records))
+	copy(out, collection.Records)
+	return out
+}
+
+func titleize(routeName string) string {
+	name := strings.ReplaceAll(routeName, "_", " ")
+	return strings.Title(name)
 }

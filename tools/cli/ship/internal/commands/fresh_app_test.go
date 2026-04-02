@@ -567,6 +567,76 @@ func TestFreshAppAuthRouteInventoryIncludesAccountLifecycle(t *testing.T) {
 	}
 }
 
+func TestFreshAppCRUDScaffoldFlow(t *testing.T) {
+	shipbin := buildShipBinary(t)
+	appPath := scaffoldFreshAppViaShip(t, shipbin, false)
+	runCmd(t, appPath, shipbin, "db:migrate")
+	runCmd(t, appPath, shipbin, "make:resource", "contact", "--wire")
+
+	baseURL, client, cleanup := startFreshAppWebWithClient(t, appPath)
+	defer cleanup()
+
+	assertHTTPStatusContainsForClient(t, client, baseURL+"/contact", http.StatusOK, "Create contact")
+
+	body := postFormHTML(t, client, baseURL+"/contact", url.Values{
+		"name": {""},
+	})
+	assertContainsAll(t, body, `data-validation-for="name"`, `name is required`)
+
+	resp, err := client.PostForm(baseURL+"/contact", url.Values{
+		"name": {"Alice"},
+	})
+	if err != nil {
+		t.Fatalf("create contact failed: %v", err)
+	}
+	_ = resp.Body.Close()
+	if resp.StatusCode != http.StatusSeeOther {
+		t.Fatalf("create contact status = %d, want 303", resp.StatusCode)
+	}
+	if got := resp.Header.Get("Location"); got != "/contact?id=1" {
+		t.Fatalf("create contact redirect = %q, want %q", got, "/contact?id=1")
+	}
+
+	assertHTTPStatusContainsForClient(t, client, baseURL+"/contact?id=1", http.StatusOK, "Alice")
+	assertHTTPStatusContainsForClient(t, client, baseURL+"/contact", http.StatusOK, "Alice")
+
+	resp, err = client.PostForm(baseURL+"/contact?id=1", url.Values{
+		"_method": {"PUT"},
+		"name":    {"Alice Updated"},
+	})
+	if err != nil {
+		t.Fatalf("update contact failed: %v", err)
+	}
+	_ = resp.Body.Close()
+	if resp.StatusCode != http.StatusSeeOther {
+		t.Fatalf("update contact status = %d, want 303", resp.StatusCode)
+	}
+	if got := resp.Header.Get("Location"); got != "/contact?id=1" {
+		t.Fatalf("update contact redirect = %q, want %q", got, "/contact?id=1")
+	}
+
+	assertHTTPStatusContainsForClient(t, client, baseURL+"/contact?id=1", http.StatusOK, "Alice Updated")
+
+	resp, err = client.PostForm(baseURL+"/contact?id=1", url.Values{
+		"_method": {"DELETE"},
+	})
+	if err != nil {
+		t.Fatalf("delete contact failed: %v", err)
+	}
+	_ = resp.Body.Close()
+	if resp.StatusCode != http.StatusSeeOther {
+		t.Fatalf("delete contact status = %d, want 303", resp.StatusCode)
+	}
+	if got := resp.Header.Get("Location"); got != "/contact" {
+		t.Fatalf("delete contact redirect = %q, want %q", got, "/contact")
+	}
+
+	body = getHTTPBodyForClient(t, client, baseURL+"/contact")
+	if strings.Contains(body, "Alice Updated") {
+		t.Fatalf("deleted contact still present in index\nbody:\n%s", body)
+	}
+}
+
 func startFreshAppWebWithClient(t *testing.T, appPath string) (string, *http.Client, func()) {
 	t.Helper()
 

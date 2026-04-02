@@ -286,7 +286,7 @@ func %s() templ.Component {
 		return err
 	})
 }
-`, n.Pascal, fmt.Sprintf(`<section data-component=%q><div data-slot="status">Scaffold Resource</div><h1>%s</h1><p>Scaffold page for %s. Replace with your real UI.</p></section>`, n.Kebab, n.Pascal, n.Kebab))
+`, n.Pascal, fmt.Sprintf(`<section data-component=%q><div data-slot="status">CRUD scaffold</div><h1>%s</h1><p>Starter CRUD scaffold for %s with list/create/show/edit/delete runtime support.</p></section>`, n.Kebab, n.Pascal, n.Kebab))
 }
 
 func renderStarterRouteSnippet(n NormalizedResourceName, auth string) string {

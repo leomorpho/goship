@@ -39,6 +39,34 @@ func TestStarterMakeResourceAndDestroyStayBuildable(t *testing.T) {
 	buildStarterApp(t, appPath, "go build after destroy")
 }
 
+func TestStarterCRUDScaffoldIsUseful(t *testing.T) {
+	appPath := scaffoldStarterApp(t)
+
+	wd, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("os.Getwd() error = %v", err)
+	}
+	defer func() { _ = os.Chdir(wd) }()
+	if err := os.Chdir(appPath); err != nil {
+		t.Fatalf("os.Chdir(%q) error = %v", appPath, err)
+	}
+
+	var out bytes.Buffer
+	if code := generators.RunGenerateResource([]string{"contact", "--wire"}, &out, &out); code != 0 {
+		t.Fatalf("RunGenerateResource() exit code = %d\n%s", code, out.String())
+	}
+
+	pageBody, err := os.ReadFile(filepath.Join(appPath, "app", "views", "web", "pages", "gen", "contact.go"))
+	if err != nil {
+		t.Fatalf("os.ReadFile(generated page) error = %v", err)
+	}
+	if !strings.Contains(string(pageBody), "CRUD scaffold") {
+		t.Fatalf("generated starter page should describe CRUD scaffold\n%s", pageBody)
+	}
+
+	buildStarterApp(t, appPath, "go build after CRUD make:resource")
+}
+
 func TestStarterMakeControllerFailsWithoutMutatingStarter(t *testing.T) {
 	appPath := scaffoldStarterApp(t)
 
@@ -196,13 +224,13 @@ func TestStarterFrameworkWorkspaceGeneratorsFailWithoutMutatingStarter(t *testin
 				}
 				defer func() { _ = os.Chdir(wd) }()
 				return generators.RunMakeScaffold([]string{"Post", "title:string"}, generators.ScaffoldDeps{
-					Out:  out,
-					Err:  out,
-					RunModel: func(args []string) int { return 0 },
-					RunDBMake: func(args []string) int { return 0 },
-					RunDBMigrate: func(args []string) int { return 0 },
+					Out:           out,
+					Err:           out,
+					RunModel:      func(args []string) int { return 0 },
+					RunDBMake:     func(args []string) int { return 0 },
+					RunDBMigrate:  func(args []string) int { return 0 },
 					RunController: func(args []string) int { return 0 },
-					RunResource: func(args []string) int { return 0 },
+					RunResource:   func(args []string) int { return 0 },
 				})
 			},
 			checkPath: filepath.Join(appPath, "app", "web", "controllers", "posts.go"),
