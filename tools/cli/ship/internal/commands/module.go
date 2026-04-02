@@ -391,6 +391,7 @@ var moduleCatalog = map[string]moduleInfo{
 
 var supportedGeneratedAppBatteryIDs = []string{
 	"jobs",
+	"storage",
 }
 
 func canonicalReferenceBatteryIDs() []string {
@@ -667,7 +668,7 @@ func isSupportedGeneratedAppBattery(id string) bool {
 }
 
 func applyStarterModuleAdd(root string, info moduleInfo, dryRun bool, out io.Writer) error {
-	if info.ID != "jobs" {
+	if info.ID != "jobs" && info.ID != "storage" {
 		return fmt.Errorf("module:add %q is not supported on the starter scaffold yet; supported batteries are: %s; no files were changed", info.ID, strings.Join(supportedGeneratedAppBatteryIDs, ", "))
 	}
 
@@ -690,10 +691,7 @@ func applyStarterModuleAdd(root string, info moduleInfo, dryRun bool, out io.Wri
 	if err != nil {
 		return fmt.Errorf("read container: %w", err)
 	}
-	snippet := `
-	// ship:module:jobs
-	c.EnabledModules = append(c.EnabledModules, "jobs")
-`
+	snippet := starterModuleContainerSnippet(info.ID)
 	containerUpdated, containerChanged, err := insertBetweenMarkers(
 		string(containerContent),
 		"// ship:container:start",
@@ -894,7 +892,7 @@ func applyModuleRemove(root string, info moduleInfo, dryRun bool, out io.Writer)
 }
 
 func applyStarterModuleRemove(root string, info moduleInfo, dryRun bool, out io.Writer) error {
-	if info.ID != "jobs" {
+	if info.ID != "jobs" && info.ID != "storage" {
 		return fmt.Errorf("module:remove %q is not supported on the starter scaffold yet; supported batteries are: %s; no files were changed", info.ID, strings.Join(supportedGeneratedAppBatteryIDs, ", "))
 	}
 
@@ -917,10 +915,7 @@ func applyStarterModuleRemove(root string, info moduleInfo, dryRun bool, out io.
 	if err != nil {
 		return fmt.Errorf("read container: %w", err)
 	}
-	snippet := `
-	// ship:module:jobs
-	c.EnabledModules = append(c.EnabledModules, "jobs")
-`
+	snippet := starterModuleContainerSnippet(info.ID)
 	containerUpdated, removedSnippet := removeSnippetFromContent(string(containerContent), snippet)
 	containerUpdated = normalizeEmptyMarkerGap(containerUpdated, "// ship:container:start", "// ship:container:end")
 	if removedSnippet {
@@ -934,6 +929,21 @@ func applyStarterModuleRemove(root string, info moduleInfo, dryRun bool, out io.
 		fmt.Fprintln(out, "Module was not wired; no changes needed.")
 	}
 	return nil
+}
+
+func starterModuleContainerSnippet(id string) string {
+	switch id {
+	case "storage":
+		return `
+	// ship:module:storage
+	c.EnabledModules = append(c.EnabledModules, "storage")
+`
+	default:
+		return `
+	// ship:module:jobs
+	c.EnabledModules = append(c.EnabledModules, "jobs")
+`
+	}
 }
 
 func buildModulesManifest(path, moduleID string) (bool, string, error) {

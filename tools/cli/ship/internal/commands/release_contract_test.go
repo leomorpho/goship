@@ -9,6 +9,7 @@ func TestBetaReadinessChecklistUsesRealCurrentProofCommands(t *testing.T) {
 	for _, needle := range []string{
 		"TestFreshApp -count=1",
 		"TestStarterJobsModuleRoundTripStaysBuildable -count=1",
+		"TestStarterStorageModuleRoundTripStaysBuildable -count=1",
 		"TestFreshAppAuthFlow -count=1",
 		"TestFreshAppNoInfraDefaultPath -count=1",
 		"TestGettingStartedUsesFreshCloneBuildInstallPath -count=1",
