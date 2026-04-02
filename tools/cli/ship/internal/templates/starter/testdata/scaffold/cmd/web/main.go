@@ -29,6 +29,12 @@ type starterUser struct {
 	Password    string
 }
 
+type validationError struct {
+	Field   string `json:"field,omitempty"`
+	Message string `json:"message"`
+	Code    string `json:"code"`
+}
+
 type authStore struct {
 	mu       sync.Mutex
 	users    map[string]starterUser
@@ -240,12 +246,16 @@ func registerHandler(w http.ResponseWriter, r *http.Request) error {
 	if err := r.ParseForm(); err != nil {
 		return err
 	}
-	email := r.FormValue("email")
-	password := r.FormValue("password")
-	if email == "" || password == "" {
-		http.Error(w, "email and password are required", http.StatusBadRequest)
+	if errs := requireFormFields(r, map[string]string{
+		"display_name": "display name is required",
+		"email":        "email is required",
+		"password":     "password is required",
+	}); len(errs) > 0 {
+		writeValidationErrors(w, errs)
 		return nil
 	}
+	email := r.FormValue("email")
+	password := r.FormValue("password")
 	starterAuth.mu.Lock()
 	starterAuth.users[email] = starterUser{
 		DisplayName: r.FormValue("display_name"),
@@ -259,6 +269,13 @@ func registerHandler(w http.ResponseWriter, r *http.Request) error {
 func loginHandler(w http.ResponseWriter, r *http.Request) error {
 	if err := r.ParseForm(); err != nil {
 		return err
+	}
+	if errs := requireFormFields(r, map[string]string{
+		"email":    "email is required",
+		"password": "password is required",
+	}); len(errs) > 0 {
+		writeValidationErrors(w, errs)
+		return nil
 	}
 	email := r.FormValue("email")
 	password := r.FormValue("password")
@@ -356,6 +373,12 @@ func settingsHandler(w http.ResponseWriter, r *http.Request) error {
 		http.Redirect(w, r, "/auth/login?next="+url.QueryEscape("/auth/settings"), http.StatusSeeOther)
 		return nil
 	}
+	if errs := requireFormFields(r, map[string]string{
+		"display_name": "display name is required",
+	}); len(errs) > 0 {
+		writeValidationErrors(w, errs)
+		return nil
+	}
 	displayName := r.FormValue("display_name")
 	starterAuth.mu.Lock()
 	user := starterAuth.users[email]
@@ -370,11 +393,13 @@ func passwordResetRequestHandler(w http.ResponseWriter, r *http.Request) error {
 	if err := r.ParseForm(); err != nil {
 		return err
 	}
-	email := r.FormValue("email")
-	if email == "" {
-		http.Error(w, "email is required", http.StatusBadRequest)
+	if errs := requireFormFields(r, map[string]string{
+		"email": "email is required",
+	}); len(errs) > 0 {
+		writeValidationErrors(w, errs)
 		return nil
 	}
+	email := r.FormValue("email")
 	starterAuth.mu.Lock()
 	if _, ok := starterAuth.users[email]; ok {
 		starterAuth.resets[email] = resetTokenForEmail(email)
@@ -398,13 +423,17 @@ func passwordResetConfirmHandler(w http.ResponseWriter, r *http.Request) error {
 	if err := r.ParseForm(); err != nil {
 		return err
 	}
+	if errs := requireFormFields(r, map[string]string{
+		"email":    "email is required",
+		"token":    "token is required",
+		"password": "password is required",
+	}); len(errs) > 0 {
+		writeValidationErrors(w, errs)
+		return nil
+	}
 	email := r.FormValue("email")
 	token := r.FormValue("token")
 	password := r.FormValue("password")
-	if email == "" || token == "" || password == "" {
-		http.Error(w, "email, token, and password are required", http.StatusBadRequest)
-		return nil
-	}
 	starterAuth.mu.Lock()
 	defer starterAuth.mu.Unlock()
 	expected := starterAuth.resets[email]
@@ -445,8 +474,14 @@ func deleteAccountHandler(w http.ResponseWriter, r *http.Request) error {
 		http.Redirect(w, r, "/auth/login?next="+url.QueryEscape("/auth/delete-account"), http.StatusSeeOther)
 		return nil
 	}
+	if errs := requireFormFields(r, map[string]string{
+		"email": "email confirmation is required",
+	}); len(errs) > 0 {
+		writeValidationErrors(w, errs)
+		return nil
+	}
 	if r.FormValue("email") != email {
-		http.Error(w, "email confirmation mismatch", http.StatusBadRequest)
+		writeValidationErrors(w, []validationError{validationErr("email", "email confirmation mismatch")})
 		return nil
 	}
 	starterAuth.mu.Lock()
@@ -476,4 +511,30 @@ func resetTokenForEmail(email string) string {
 	// no-infra and testable. It is intentionally a starter-only simplification,
 	// not a production-grade reset-token pattern.
 	return "reset-" + hex.EncodeToString([]byte(email))
+}
+
+func requireFormFields(r *http.Request, fields map[string]string) []validationError {
+	errs := make([]validationError, 0, len(fields))
+	for field, message := range fields {
+		if r.FormValue(field) == "" {
+			errs = append(errs, validationErr(field, message))
+		}
+	}
+	return errs
+}
+
+func validationErr(field, message string) validationError {
+	return validationError{
+		Field:   field,
+		Message: message,
+		Code:    "validation_error",
+	}
+}
+
+func writeValidationErrors(w http.ResponseWriter, errs []validationError) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(http.StatusBadRequest)
+	_ = json.NewEncoder(w).Encode(map[string]any{
+		"errors": errs,
+	})
 }

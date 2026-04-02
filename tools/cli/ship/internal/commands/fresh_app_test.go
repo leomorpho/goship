@@ -436,6 +436,92 @@ func TestFreshAppDeleteAccountFlow(t *testing.T) {
 	assertLoginFails(t, client, baseURL, "starter@example.com", "Password123!")
 }
 
+func TestFreshAppAuthValidationFailures(t *testing.T) {
+	shipbin := buildShipBinary(t)
+	appPath := scaffoldFreshAppViaShip(t, shipbin, false)
+	runCmd(t, appPath, shipbin, "db:migrate")
+
+	baseURL, client, cleanup := startFreshAppWebWithClient(t, appPath)
+	defer cleanup()
+
+	assertValidationFailure(t, client, baseURL+"/auth/register", url.Values{
+		"display_name":        {""},
+		"email":               {"starter@example.com"},
+		"password":            {"Password123!"},
+		"birthdate":           {"1990-01-01"},
+		"relationship_status": {"single"},
+	}, "display_name")
+
+	assertValidationFailure(t, client, baseURL+"/auth/register", url.Values{
+		"display_name":        {"Starter User"},
+		"email":               {""},
+		"password":            {"Password123!"},
+		"birthdate":           {"1990-01-01"},
+		"relationship_status": {"single"},
+	}, "email")
+
+	assertValidationFailure(t, client, baseURL+"/auth/register", url.Values{
+		"display_name":        {"Starter User"},
+		"email":               {"starter@example.com"},
+		"password":            {""},
+		"birthdate":           {"1990-01-01"},
+		"relationship_status": {"single"},
+	}, "password")
+
+	assertValidationFailure(t, client, baseURL+"/auth/login", url.Values{
+		"email":    {""},
+		"password": {""},
+		"next":     {"/auth/profile"},
+	}, "email", "password")
+
+	resp := registerStarterUser(t, client, baseURL, "starter@example.com", "Password123!")
+	_ = resp.Body.Close()
+	assertValidationFailure(t, client, baseURL+"/auth/settings", url.Values{
+		"display_name": {""},
+	}, "display_name")
+}
+
+func TestFreshAppPasswordResetValidationFailures(t *testing.T) {
+	shipbin := buildShipBinary(t)
+	appPath := scaffoldFreshAppViaShip(t, shipbin, false)
+	runCmd(t, appPath, shipbin, "db:migrate")
+
+	baseURL, client, cleanup := startFreshAppWebWithClient(t, appPath)
+	defer cleanup()
+
+	assertValidationFailure(t, client, baseURL+"/auth/password/reset", url.Values{
+		"email": {""},
+	}, "email")
+
+	assertValidationFailure(t, client, baseURL+"/auth/password/reset/confirm", url.Values{
+		"email":    {""},
+		"token":    {""},
+		"password": {""},
+	}, "email", "token", "password")
+}
+
+func TestFreshAppDeleteAccountValidationFailures(t *testing.T) {
+	shipbin := buildShipBinary(t)
+	appPath := scaffoldFreshAppViaShip(t, shipbin, false)
+	runCmd(t, appPath, shipbin, "db:migrate")
+
+	baseURL, client, cleanup := startFreshAppWebWithClient(t, appPath)
+	defer cleanup()
+
+	resp := registerStarterUser(t, client, baseURL, "starter@example.com", "Password123!")
+	_ = resp.Body.Close()
+
+	assertValidationFailure(t, client, baseURL+"/auth/delete-account", url.Values{
+		"email": {""},
+	}, "email")
+
+	assertValidationFailure(t, client, baseURL+"/auth/delete-account", url.Values{
+		"email": {"other@example.com"},
+	}, "email")
+
+	assertHTTPStatusContainsForClient(t, client, baseURL+"/auth/session", http.StatusOK, "starter@example.com")
+}
+
 func TestFreshAppAuthRouteInventoryIncludesAccountLifecycle(t *testing.T) {
 	shipbin := buildShipBinary(t)
 	appPath := scaffoldFreshAppViaShip(t, shipbin, false)
@@ -715,6 +801,30 @@ func extractResetToken(t *testing.T, body string) string {
 		t.Fatalf("reset token marker not found\nbody:\n%s", body)
 	}
 	return strings.TrimSpace(match[1])
+}
+
+func assertValidationFailure(t *testing.T, client *http.Client, endpoint string, form url.Values, fields ...string) {
+	t.Helper()
+	resp, err := client.PostForm(endpoint, form)
+	if err != nil {
+		t.Fatalf("POST %s failed: %v", endpoint, err)
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatalf("reading %s failed: %v", endpoint, err)
+	}
+	if resp.StatusCode != http.StatusBadRequest {
+		t.Fatalf("%s status = %d, want 400\nbody:\n%s", endpoint, resp.StatusCode, string(body))
+	}
+	if !strings.Contains(string(body), "validation_error") {
+		t.Fatalf("%s body missing validation_error marker\nbody:\n%s", endpoint, string(body))
+	}
+	for _, field := range fields {
+		if !strings.Contains(string(body), field) {
+			t.Fatalf("%s body missing field %q\nbody:\n%s", endpoint, field, string(body))
+		}
+	}
 }
 
 func reserveFreePort(t *testing.T) string {
