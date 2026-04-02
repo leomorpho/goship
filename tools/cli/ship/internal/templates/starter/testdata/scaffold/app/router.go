@@ -8,11 +8,12 @@ import (
 )
 
 type Route struct {
-	Name    string
-	Path    string
-	Page    templates.Page
-	Kind    RouteKind
-	Actions []string
+	Name         string
+	Path         string
+	Page         templates.Page
+	Kind         RouteKind
+	Actions      []string
+	StorageTable string
 }
 
 type RouteKind string

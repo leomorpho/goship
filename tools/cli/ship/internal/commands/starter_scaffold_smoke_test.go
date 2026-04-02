@@ -76,6 +76,9 @@ func TestStarterCRUDScaffoldIsUseful(t *testing.T) {
 	if !strings.Contains(string(routerBody), `Actions: []string{"index", "show", "create", "update", "destroy"}`) {
 		t.Fatalf("generated router should include explicit CRUD actions\n%s", routerBody)
 	}
+	if !strings.Contains(string(routerBody), `StorageTable: "contacts"`) {
+		t.Fatalf("generated router should include explicit storage table\n%s", routerBody)
+	}
 
 	buildStarterApp(t, appPath, "go build after CRUD make:resource")
 }

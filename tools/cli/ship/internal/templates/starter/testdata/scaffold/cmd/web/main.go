@@ -647,11 +647,11 @@ func renderStarterCRUDPage(w http.ResponseWriter, r *http.Request, route goship.
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		return nil
 	}
-	record, hasRecord, err := starterCRUDRecordByID(route.Path, id)
+	record, hasRecord, err := starterCRUDRecordByID(route, id)
 	if err != nil {
 		return err
 	}
-	all, err := starterCRUDRecords(route.Path)
+	all, err := starterCRUDRecords(route)
 	if err != nil {
 		return err
 	}
@@ -717,7 +717,7 @@ func mutateStarterCRUD(w http.ResponseWriter, r *http.Request, route goship.Rout
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return nil
 		}
-		if err := deleteStarterCRUD(route.Path, id); err != nil {
+		if err := deleteStarterCRUD(route, id); err != nil {
 			return err
 		}
 		http.Redirect(w, r, route.Path, http.StatusSeeOther)
@@ -741,7 +741,7 @@ func mutateStarterCRUD(w http.ResponseWriter, r *http.Request, route goship.Rout
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return nil
 		}
-		if err := updateStarterCRUD(route.Path, id, name); err != nil {
+		if err := updateStarterCRUD(route, id, name); err != nil {
 			return err
 		}
 		http.Redirect(w, r, route.Path+"?id="+url.QueryEscape(id), http.StatusSeeOther)
@@ -751,7 +751,7 @@ func mutateStarterCRUD(w http.ResponseWriter, r *http.Request, route goship.Rout
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return nil
 		}
-		newID, err := createStarterCRUD(route.Path, name)
+		newID, err := createStarterCRUD(route, name)
 		if err != nil {
 			return err
 		}
@@ -772,14 +772,17 @@ func starterRouteSupportsAction(route goship.Route, action string) bool {
 	return false
 }
 
-func createStarterCRUD(path, name string) (string, error) {
+func createStarterCRUD(route goship.Route, name string) (string, error) {
 	db, err := starterCRUDDB()
 	if err != nil {
 		return "", err
 	}
 	defer db.Close()
-
-	res, err := db.Exec(`INSERT INTO starter_generated_records (route_path, name) VALUES (?, ?)`, path, name)
+	table, err := ensureStarterCRUDTable(db, route)
+	if err != nil {
+		return "", err
+	}
+	res, err := db.Exec(fmt.Sprintf(`INSERT INTO %s (name) VALUES (?)`, table), name)
 	if err != nil {
 		return "", err
 	}
@@ -790,27 +793,35 @@ func createStarterCRUD(path, name string) (string, error) {
 	return fmt.Sprintf("%d", id), nil
 }
 
-func updateStarterCRUD(path, id, name string) error {
+func updateStarterCRUD(route goship.Route, id, name string) error {
 	db, err := starterCRUDDB()
 	if err != nil {
 		return err
 	}
 	defer db.Close()
-	_, err = db.Exec(`UPDATE starter_generated_records SET name = ? WHERE route_path = ? AND record_id = ?`, name, path, id)
+	table, err := ensureStarterCRUDTable(db, route)
+	if err != nil {
+		return err
+	}
+	_, err = db.Exec(fmt.Sprintf(`UPDATE %s SET name = ? WHERE record_id = ?`, table), name, id)
 	return err
 }
 
-func deleteStarterCRUD(path, id string) error {
+func deleteStarterCRUD(route goship.Route, id string) error {
 	db, err := starterCRUDDB()
 	if err != nil {
 		return err
 	}
 	defer db.Close()
-	_, err = db.Exec(`DELETE FROM starter_generated_records WHERE route_path = ? AND record_id = ?`, path, id)
+	table, err := ensureStarterCRUDTable(db, route)
+	if err != nil {
+		return err
+	}
+	_, err = db.Exec(fmt.Sprintf(`DELETE FROM %s WHERE record_id = ?`, table), id)
 	return err
 }
 
-func starterCRUDRecordByID(path, id string) (starterCRUDRecord, bool, error) {
+func starterCRUDRecordByID(route goship.Route, id string) (starterCRUDRecord, bool, error) {
 	if strings.TrimSpace(id) == "" {
 		return starterCRUDRecord{}, false, nil
 	}
@@ -819,7 +830,11 @@ func starterCRUDRecordByID(path, id string) (starterCRUDRecord, bool, error) {
 		return starterCRUDRecord{}, false, err
 	}
 	defer db.Close()
-	row := db.QueryRow(`SELECT record_id, name FROM starter_generated_records WHERE route_path = ? AND record_id = ?`, path, id)
+	table, err := ensureStarterCRUDTable(db, route)
+	if err != nil {
+		return starterCRUDRecord{}, false, err
+	}
+	row := db.QueryRow(fmt.Sprintf(`SELECT record_id, name FROM %s WHERE record_id = ?`, table), id)
 	var record starterCRUDRecord
 	if err := row.Scan(&record.ID, &record.Name); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -830,13 +845,17 @@ func starterCRUDRecordByID(path, id string) (starterCRUDRecord, bool, error) {
 	return record, true, nil
 }
 
-func starterCRUDRecords(path string) ([]starterCRUDRecord, error) {
+func starterCRUDRecords(route goship.Route) ([]starterCRUDRecord, error) {
 	db, err := starterCRUDDB()
 	if err != nil {
 		return nil, err
 	}
 	defer db.Close()
-	rows, err := db.Query(`SELECT record_id, name FROM starter_generated_records WHERE route_path = ? ORDER BY record_id ASC`, path)
+	table, err := ensureStarterCRUDTable(db, route)
+	if err != nil {
+		return nil, err
+	}
+	rows, err := db.Query(fmt.Sprintf(`SELECT record_id, name FROM %s ORDER BY record_id ASC`, table))
 	if err != nil {
 		return nil, err
 	}
@@ -860,15 +879,27 @@ func starterCRUDDB() (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	if _, err := db.Exec(`CREATE TABLE IF NOT EXISTS starter_generated_records (
-		record_id INTEGER PRIMARY KEY AUTOINCREMENT,
-		route_path TEXT NOT NULL,
-		name TEXT NOT NULL
-	)`); err != nil {
-		_ = db.Close()
-		return nil, err
-	}
 	return db, nil
+}
+
+func ensureStarterCRUDTable(db *sql.DB, route goship.Route) (string, error) {
+	tableName := strings.TrimSpace(route.StorageTable)
+	if tableName == "" {
+		return "", fmt.Errorf("starter CRUD route %q is missing storage table metadata", route.Name)
+	}
+	for _, r := range tableName {
+		if !(r == '_' || (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9')) {
+			return "", fmt.Errorf("starter CRUD route %q has invalid storage table %q", route.Name, tableName)
+		}
+	}
+	table := "starter_" + tableName
+	if _, err := db.Exec(fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s (
+		record_id INTEGER PRIMARY KEY AUTOINCREMENT,
+		name TEXT NOT NULL
+	)`, table)); err != nil {
+		return "", err
+	}
+	return table, nil
 }
 
 func titleize(routeName string) string {

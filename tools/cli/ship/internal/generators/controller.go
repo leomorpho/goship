@@ -143,6 +143,7 @@ func runMakeStarterController(opts ControllerMakeOptions, names ControllerNames,
 		Pascal:        names.BaseTitle,
 		RoutePath:     routePath,
 		Actions:       append([]string(nil), opts.Actions...),
+		StorageTable:  PluralizeBasic(names.BaseSnake),
 		Description:   fmt.Sprintf("Starter controller scaffold for %s with actions: %s.", names.BaseKebab, strings.Join(opts.Actions, ", ")),
 	}
 	pageFile := filepath.Join(opts.Path, "views", "web", "pages", "gen", names.BaseSnake+".go")

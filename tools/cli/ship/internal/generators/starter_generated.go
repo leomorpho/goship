@@ -12,6 +12,7 @@ type StarterGeneratedRouteSpec struct {
 	Pascal        string
 	RoutePath     string
 	Actions       []string
+	StorageTable  string
 	Description   string
 }
 
@@ -59,7 +60,8 @@ func renderStarterRouteInsertSnippetForSpec(spec StarterGeneratedRouteSpec) stri
 	for _, action := range spec.Actions {
 		actionList = append(actionList, fmt.Sprintf("%q", action))
 	}
+	storageTable := strings.TrimSpace(spec.StorageTable)
 	return fmt.Sprintf(`			// ship:generated:%s
-			{Name: routenames.RouteName%s, Path: %q, Page: templates.Page%s, Kind: RouteKindResource, Actions: []string{%s}},
-`, spec.Snake, spec.Pascal, spec.RoutePath, spec.Pascal, strings.Join(actionList, ", "))
+			{Name: routenames.RouteName%s, Path: %q, Page: templates.Page%s, Kind: RouteKindResource, Actions: []string{%s}, StorageTable: %q},
+`, spec.Snake, spec.Pascal, spec.RoutePath, spec.Pascal, strings.Join(actionList, ", "), storageTable)
 }

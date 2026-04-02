@@ -279,6 +279,7 @@ func starterGeneratedRouteSpecForResource(n NormalizedResourceName, auth string)
 		Pascal:        n.Pascal,
 		RoutePath:     path,
 		Actions:       DefaultGeneratorCRUDActionNames(),
+		StorageTable:  PluralizeBasic(n.Snake),
 		Description:   fmt.Sprintf("Starter CRUD scaffold for %s with list/create/show/edit/delete runtime support.", n.Kebab),
 	}
 }

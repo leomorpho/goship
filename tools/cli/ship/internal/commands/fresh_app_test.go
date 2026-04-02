@@ -718,6 +718,48 @@ func TestFreshAppCRUDScaffoldPersistsAcrossRestart(t *testing.T) {
 	assertHTTPStatusContainsForClient(t, client, baseURL+"/contact?id=1", http.StatusOK, "Alice")
 }
 
+func TestFreshAppMultipleStarterCRUDResourcesStayIsolated(t *testing.T) {
+	shipbin := buildShipBinary(t)
+	appPath := scaffoldFreshAppViaShip(t, shipbin, false)
+	runCmd(t, appPath, shipbin, "db:migrate")
+	runCmd(t, appPath, shipbin, "make:resource", "contact", "--wire")
+	runCmd(t, appPath, shipbin, "make:resource", "lead", "--wire")
+
+	baseURL, client, cleanup := startFreshAppWebWithClient(t, appPath)
+	defer cleanup()
+
+	resp, err := client.PostForm(baseURL+"/contact", url.Values{
+		"name": {"Alice"},
+	})
+	if err != nil {
+		t.Fatalf("create contact failed: %v", err)
+	}
+	_ = resp.Body.Close()
+	resp, err = client.PostForm(baseURL+"/lead", url.Values{
+		"name": {"Bob"},
+	})
+	if err != nil {
+		t.Fatalf("create lead failed: %v", err)
+	}
+	_ = resp.Body.Close()
+
+	contactBody := getHTTPBodyForClient(t, client, baseURL+"/contact")
+	if !strings.Contains(contactBody, "Alice") {
+		t.Fatalf("contact index missing Alice\nbody:\n%s", contactBody)
+	}
+	if strings.Contains(contactBody, "Bob") {
+		t.Fatalf("contact index should not contain lead data\nbody:\n%s", contactBody)
+	}
+
+	leadBody := getHTTPBodyForClient(t, client, baseURL+"/lead")
+	if !strings.Contains(leadBody, "Bob") {
+		t.Fatalf("lead index missing Bob\nbody:\n%s", leadBody)
+	}
+	if strings.Contains(leadBody, "Alice") {
+		t.Fatalf("lead index should not contain contact data\nbody:\n%s", leadBody)
+	}
+}
+
 func startFreshAppWebWithClient(t *testing.T, appPath string) (string, *http.Client, func()) {
 	t.Helper()
 
