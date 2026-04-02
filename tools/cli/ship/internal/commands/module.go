@@ -715,7 +715,7 @@ func isSupportedGeneratedAppBattery(id string) bool {
 }
 
 func applyStarterModuleAdd(root string, info moduleInfo, dryRun bool, out io.Writer) error {
-	if info.ID != "jobs" && info.ID != "storage" && info.ID != "emailsubscriptions" && info.ID != "paidsubscriptions" && info.ID != "notifications" {
+	if !isSupportedGeneratedAppBattery(info.ID) {
 		return fmt.Errorf("module:add %q is not supported on the starter scaffold yet; supported batteries are: %s; no files were changed", info.ID, strings.Join(supportedGeneratedAppBatteryIDs, ", "))
 	}
 
@@ -939,7 +939,7 @@ func applyModuleRemove(root string, info moduleInfo, dryRun bool, out io.Writer)
 }
 
 func applyStarterModuleRemove(root string, info moduleInfo, dryRun bool, out io.Writer) error {
-	if info.ID != "jobs" && info.ID != "storage" && info.ID != "emailsubscriptions" && info.ID != "paidsubscriptions" && info.ID != "notifications" {
+	if !isSupportedGeneratedAppBattery(info.ID) {
 		return fmt.Errorf("module:remove %q is not supported on the starter scaffold yet; supported batteries are: %s; no files were changed", info.ID, strings.Join(supportedGeneratedAppBatteryIDs, ", "))
 	}
 
