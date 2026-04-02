@@ -69,11 +69,6 @@ func parseMakePolicyArgs(args []string) (string, bool, error) {
 func renderPolicyTemplate(name string) (string, error) {
 	source := generatedGoFileHeader("policy", ModelFileName(name)) + fmt.Sprintf(`package policies
 
-type PolicyActor struct {
-	Email   string
-	IsAdmin bool
-}
-
 type %[1]sPolicy struct{}
 
 func New%[1]sPolicy() %[1]sPolicy {

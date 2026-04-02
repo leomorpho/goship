@@ -857,6 +857,76 @@ func TestFreshAppAdminDashboardShowsResourceDrilldown(t *testing.T) {
 	}
 }
 
+func TestFreshAppAdminDashboardCanManageGeneratedResource(t *testing.T) {
+	shipbin := buildShipBinary(t)
+	appPath := scaffoldFreshAppViaShip(t, shipbin, false)
+	runCmd(t, appPath, shipbin, "db:migrate")
+	runCmd(t, appPath, shipbin, "make:resource", "contact", "--wire", "--fields", "name:string,email:email")
+
+	baseURL, client, cleanup := startFreshAppWebWithClient(t, appPath)
+	defer cleanup()
+
+	resp := registerStarterUser(t, client, baseURL, "admin@example.com", "Password123!")
+	_ = resp.Body.Close()
+
+	resp, err := client.PostForm(baseURL+"/auth/admin?resource=contact", url.Values{
+		"name":  {"Alice"},
+		"email": {"alice@example.com"},
+	})
+	if err != nil {
+		t.Fatalf("admin create failed: %v", err)
+	}
+	_ = resp.Body.Close()
+	if resp.StatusCode != http.StatusSeeOther {
+		t.Fatalf("admin create status = %d, want 303", resp.StatusCode)
+	}
+
+	body := getHTTPBodyForClient(t, client, baseURL+"/auth/admin?resource=contact")
+	assertContainsAll(t, body, "Alice", "alice@example.com")
+
+	updateReq, err := http.NewRequest(http.MethodPost, baseURL+"/auth/admin?resource=contact&id=1", strings.NewReader(url.Values{
+		"_method": {"PUT"},
+		"name":    {"Alice Updated"},
+		"email":   {"alice.updated@example.com"},
+	}.Encode()))
+	if err != nil {
+		t.Fatalf("http.NewRequest(update) error = %v", err)
+	}
+	updateReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	resp, err = client.Do(updateReq)
+	if err != nil {
+		t.Fatalf("admin update failed: %v", err)
+	}
+	_ = resp.Body.Close()
+	if resp.StatusCode != http.StatusSeeOther {
+		t.Fatalf("admin update status = %d, want 303", resp.StatusCode)
+	}
+
+	body = getHTTPBodyForClient(t, client, baseURL+"/auth/admin?resource=contact")
+	assertContainsAll(t, body, "Alice Updated", "alice.updated@example.com")
+
+	deleteReq, err := http.NewRequest(http.MethodPost, baseURL+"/auth/admin?resource=contact&id=1", strings.NewReader(url.Values{
+		"_method": {"DELETE"},
+	}.Encode()))
+	if err != nil {
+		t.Fatalf("http.NewRequest(delete) error = %v", err)
+	}
+	deleteReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	resp, err = client.Do(deleteReq)
+	if err != nil {
+		t.Fatalf("admin delete failed: %v", err)
+	}
+	_ = resp.Body.Close()
+	if resp.StatusCode != http.StatusSeeOther {
+		t.Fatalf("admin delete status = %d, want 303", resp.StatusCode)
+	}
+
+	body = getHTTPBodyForClient(t, client, baseURL+"/auth/admin?resource=contact")
+	if strings.Contains(body, "Alice Updated") {
+		t.Fatalf("admin delete should remove updated row\nbody:\n%s", body)
+	}
+}
+
 func startFreshAppWebWithClient(t *testing.T, appPath string) (string, *http.Client, func()) {
 	t.Helper()
 

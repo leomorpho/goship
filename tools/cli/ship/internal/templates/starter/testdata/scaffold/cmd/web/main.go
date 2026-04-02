@@ -167,6 +167,9 @@ func handleRoute(w http.ResponseWriter, r *http.Request, route goship.Route) err
 			http.Error(w, "forbidden", http.StatusForbidden)
 			return nil
 		}
+		if r.Method == http.MethodPost {
+			return mutateAdminResource(w, r, route)
+		}
 		if r.Method != http.MethodGet {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return nil
@@ -592,6 +595,15 @@ func renderAdminPage(w http.ResponseWriter, r *http.Request, route goship.Route)
 			return err
 		}
 		fields := starterRouteFields(*selectedRoute)
+		if _, err := fmt.Fprintf(w, `<form method="post" action="%s?resource=%s" data-admin-create="%s">`, route.Path, url.QueryEscape(selectedRoute.Name), html.EscapeString(selectedRoute.Name)); err != nil {
+			return err
+		}
+		if err := renderStarterCRUDFields(w, fields, nil); err != nil {
+			return err
+		}
+		if _, err := fmt.Fprint(w, `<button type="submit">Create</button></form>`); err != nil {
+			return err
+		}
 		if _, err := fmt.Fprintf(w, `<section data-admin-resource="%s"><h2>Admin resource: %s</h2><table><thead><tr>`, html.EscapeString(selectedRoute.Name), html.EscapeString(selectedRoute.Name)); err != nil {
 			return err
 		}
@@ -612,6 +624,21 @@ func renderAdminPage(w http.ResponseWriter, r *http.Request, route goship.Route)
 					return err
 				}
 			}
+			if _, err := fmt.Fprintf(w, `<td><form method="post" action="%s?resource=%s&id=%d">`, route.Path, url.QueryEscape(selectedRoute.Name), record.ID); err != nil {
+				return err
+			}
+			if _, err := fmt.Fprint(w, `<input type="hidden" name="_method" value="PUT">`); err != nil {
+				return err
+			}
+			if err := renderStarterCRUDFields(w, fields, record.Values); err != nil {
+				return err
+			}
+			if _, err := fmt.Fprint(w, `<button type="submit">Update</button></form>`); err != nil {
+				return err
+			}
+			if _, err := fmt.Fprintf(w, `<form method="post" action="%s?resource=%s&id=%d"><input type="hidden" name="_method" value="DELETE"><button type="submit">Delete</button></form></td>`, route.Path, url.QueryEscape(selectedRoute.Name), record.ID); err != nil {
+				return err
+			}
 			if _, err := fmt.Fprint(w, `</tr>`); err != nil {
 				return err
 			}
@@ -622,6 +649,52 @@ func renderAdminPage(w http.ResponseWriter, r *http.Request, route goship.Route)
 	}
 	_, err := fmt.Fprintf(w, `<p data-admin-route>%s</p></section></div></body></html>`, html.EscapeString(route.Path))
 	return err
+}
+
+func mutateAdminResource(w http.ResponseWriter, r *http.Request, adminRoute goship.Route) error {
+	resourceName := strings.TrimSpace(r.URL.Query().Get("resource"))
+	resource, ok := findStarterResourceRoute(resourceName)
+	if !ok {
+		http.Error(w, "resource not found", http.StatusNotFound)
+		return nil
+	}
+	if err := r.ParseForm(); err != nil {
+		return err
+	}
+	id := strings.TrimSpace(r.URL.Query().Get("id"))
+	method := strings.ToUpper(strings.TrimSpace(r.FormValue("_method")))
+	if method == "DELETE" {
+		if err := deleteStarterCRUD(resource, id); err != nil {
+			return err
+		}
+		http.Redirect(w, r, adminRoute.Path+"?resource="+url.QueryEscape(resource.Name), http.StatusSeeOther)
+		return nil
+	}
+	values, errs := starterCRUDValuesFromRequest(r, starterRouteFields(resource))
+	if len(errs) > 0 {
+		writeValidationErrors(w, errs)
+		return nil
+	}
+	if method == "PUT" {
+		if err := updateStarterCRUD(resource, id, values); err != nil {
+			return err
+		}
+	} else {
+		if _, err := createStarterCRUD(resource, values); err != nil {
+			return err
+		}
+	}
+	http.Redirect(w, r, adminRoute.Path+"?resource="+url.QueryEscape(resource.Name), http.StatusSeeOther)
+	return nil
+}
+
+func findStarterResourceRoute(name string) (goship.Route, bool) {
+	for _, route := range goship.BuildRouter(nil) {
+		if route.Kind == goship.RouteKindResource && route.Name == name {
+			return route, true
+		}
+	}
+	return goship.Route{}, false
 }
 
 func deleteAccountHandler(w http.ResponseWriter, r *http.Request) error {

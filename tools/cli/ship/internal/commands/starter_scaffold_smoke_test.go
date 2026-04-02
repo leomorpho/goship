@@ -324,15 +324,15 @@ func TestStarterMakePolicyStaysBuildable(t *testing.T) {
 	}
 
 	var out bytes.Buffer
-	if code := generators.RunMakePolicy([]string{"AdminDashboard"}, generators.PolicyDeps{Out: &out, Err: &out, HasFile: func(path string) bool { _, err := os.Stat(path); return err == nil }}); code != 0 {
+	if code := generators.RunMakePolicy([]string{"AdminContacts"}, generators.PolicyDeps{Out: &out, Err: &out, HasFile: func(path string) bool { _, err := os.Stat(path); return err == nil }}); code != 0 {
 		t.Fatalf("RunMakePolicy() exit code = %d\n%s", code, out.String())
 	}
 
-	policyBody, err := os.ReadFile(filepath.Join(appPath, "app", "policies", "admin_dashboard.go"))
+	policyBody, err := os.ReadFile(filepath.Join(appPath, "app", "policies", "admin_contacts.go"))
 	if err != nil {
 		t.Fatalf("os.ReadFile(generated policy) error = %v", err)
 	}
-	if !strings.Contains(string(policyBody), "ship:generated:policy:admin_dashboard") {
+	if !strings.Contains(string(policyBody), "ship:generated:policy:admin_contacts") {
 		t.Fatalf("generated policy should carry ownership header\n%s", policyBody)
 	}
 	if !strings.Contains(string(policyBody), "Allows(actor PolicyActor) bool") {
