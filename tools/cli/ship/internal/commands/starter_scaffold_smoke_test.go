@@ -67,6 +67,79 @@ func TestStarterCRUDScaffoldIsUseful(t *testing.T) {
 	buildStarterApp(t, appPath, "go build after CRUD make:resource")
 }
 
+func TestStarterCRUDResourceGeneratorIsIdempotentByRefusal(t *testing.T) {
+	appPath := scaffoldStarterApp(t)
+
+	wd, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("os.Getwd() error = %v", err)
+	}
+	defer func() { _ = os.Chdir(wd) }()
+	if err := os.Chdir(appPath); err != nil {
+		t.Fatalf("os.Chdir(%q) error = %v", appPath, err)
+	}
+
+	var out bytes.Buffer
+	if code := generators.RunGenerateResource([]string{"contact", "--wire"}, &out, &out); code != 0 {
+		t.Fatalf("RunGenerateResource() first exit code = %d\n%s", code, out.String())
+	}
+
+	pagePath := filepath.Join(appPath, "app", "views", "web", "pages", "gen", "contact.go")
+	before, err := os.ReadFile(pagePath)
+	if err != nil {
+		t.Fatalf("os.ReadFile(%q) error = %v", pagePath, err)
+	}
+
+	out.Reset()
+	if code := generators.RunGenerateResource([]string{"contact", "--wire"}, &out, &out); code == 0 {
+		t.Fatalf("RunGenerateResource() second exit code = 0, want refusal\n%s", out.String())
+	}
+	if !strings.Contains(out.String(), "refusing to overwrite existing file") {
+		t.Fatalf("RunGenerateResource() second output = %q, want overwrite refusal", out.String())
+	}
+
+	after, err := os.ReadFile(pagePath)
+	if err != nil {
+		t.Fatalf("os.ReadFile(%q) after second run error = %v", pagePath, err)
+	}
+	if string(before) != string(after) {
+		t.Fatalf("generated page mutated on refused second make:resource\nbefore:\n%s\nafter:\n%s", before, after)
+	}
+}
+
+func TestStarterCRUDDestroyFailsCleanlyWhenRepeated(t *testing.T) {
+	appPath := scaffoldStarterApp(t)
+
+	wd, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("os.Getwd() error = %v", err)
+	}
+	defer func() { _ = os.Chdir(wd) }()
+	if err := os.Chdir(appPath); err != nil {
+		t.Fatalf("os.Chdir(%q) error = %v", appPath, err)
+	}
+
+	var out bytes.Buffer
+	if code := generators.RunGenerateResource([]string{"contact", "--wire"}, &out, &out); code != 0 {
+		t.Fatalf("RunGenerateResource() exit code = %d\n%s", code, out.String())
+	}
+
+	out.Reset()
+	if code := RunDestroy([]string{"resource:contact"}, DestroyDeps{Out: &out, Err: &out, Cwd: appPath}); code != 0 {
+		t.Fatalf("RunDestroy() first exit code = %d\n%s", code, out.String())
+	}
+
+	out.Reset()
+	if code := RunDestroy([]string{"resource:contact"}, DestroyDeps{Out: &out, Err: &out, Cwd: appPath}); code == 0 {
+		t.Fatalf("RunDestroy() second exit code = 0, want clean refusal\n%s", out.String())
+	}
+	if !strings.Contains(out.String(), "no generator-managed targets matched") {
+		t.Fatalf("RunDestroy() second output = %q, want no-match refusal", out.String())
+	}
+
+	buildStarterApp(t, appPath, "go build after repeated destroy refusal")
+}
+
 func TestStarterMakeControllerFailsWithoutMutatingStarter(t *testing.T) {
 	appPath := scaffoldStarterApp(t)
 
