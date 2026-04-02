@@ -927,6 +927,19 @@ func TestFreshAppAdminDashboardCanManageGeneratedResource(t *testing.T) {
 	}
 }
 
+func TestFreshAppMailerPreviewFlow(t *testing.T) {
+	shipbin := buildShipBinary(t)
+	appPath := scaffoldFreshAppViaShip(t, shipbin, false)
+	runCmd(t, appPath, shipbin, "db:migrate")
+	runCmd(t, appPath, shipbin, "make:mailer", "Welcome")
+
+	baseURL, client, cleanup := startFreshAppWebWithClient(t, appPath)
+	defer cleanup()
+
+	assertHTTPStatusContainsForClient(t, client, baseURL+"/dev/mail", http.StatusOK, "/dev/mail/welcome")
+	assertHTTPStatusContainsForClient(t, client, baseURL+"/dev/mail/welcome", http.StatusOK, "Welcome Email")
+}
+
 func startFreshAppWebWithClient(t *testing.T, appPath string) (string, *http.Client, func()) {
 	t.Helper()
 

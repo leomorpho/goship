@@ -311,6 +311,25 @@ func TestStarterMakeModelStaysBuildable(t *testing.T) {
 	buildStarterApp(t, appPath, "go build after make:model")
 }
 
+func TestStarterMakeMailerStaysBuildable(t *testing.T) {
+	appPath := scaffoldStarterApp(t)
+
+	var out bytes.Buffer
+	if code := generators.RunMakeMailer([]string{"Welcome"}, generators.MakeMailerDeps{Out: &out, Err: &out, Cwd: appPath}); code != 0 {
+		t.Fatalf("RunMakeMailer() exit code = %d\n%s", code, out.String())
+	}
+
+	mailBody, err := os.ReadFile(filepath.Join(appPath, "app", "views", "emails", "welcome.html"))
+	if err != nil {
+		t.Fatalf("os.ReadFile(generated mailer) error = %v", err)
+	}
+	if !strings.Contains(string(mailBody), "ship:generated:mailer:welcome") {
+		t.Fatalf("generated mailer should carry ownership header\n%s", mailBody)
+	}
+
+	buildStarterApp(t, appPath, "go build after make:mailer")
+}
+
 func TestStarterMakePolicyStaysBuildable(t *testing.T) {
 	appPath := scaffoldStarterApp(t)
 

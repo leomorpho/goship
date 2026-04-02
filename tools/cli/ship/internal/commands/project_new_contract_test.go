@@ -190,10 +190,10 @@ func TestGeneratorSurfaceBoundaryIsExplicit(t *testing.T) {
 
 	cliRef := readRepoFile(t, "docs/reference/01-cli.md")
 	assertContains(t, "docs/reference/01-cli.md", cliRef, "starter-safe today")
-	assertContains(t, "docs/reference/01-cli.md", cliRef, "`make:resource`, `make:model`, `make:controller`, `make:policy`, `make:island`")
+	assertContains(t, "docs/reference/01-cli.md", cliRef, "`make:resource`, `make:model`, `make:controller`, `make:policy`, `make:mailer`, `make:island`")
 	assertContains(t, "docs/reference/01-cli.md", cliRef, "starter-safe when a locale baseline already exists")
 	assertContains(t, "docs/reference/01-cli.md", cliRef, "framework-workspace-only for now")
-	assertContains(t, "docs/reference/01-cli.md", cliRef, "`make:factory`, `make:job`, `make:mailer`, `make:schedule`, `make:command`, `make:scaffold`")
+	assertContains(t, "docs/reference/01-cli.md", cliRef, "`make:factory`, `make:job`, `make:schedule`, `make:command`, `make:scaffold`")
 	assertContains(t, "docs/reference/01-cli.md", cliRef, "framework authoring only")
 	assertContains(t, "docs/reference/01-cli.md", cliRef, "`make:module`")
 }

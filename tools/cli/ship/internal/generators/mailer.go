@@ -36,8 +36,7 @@ func RunMakeMailer(args []string, d MakeMailerDeps) int {
 		}
 	}
 	if looksLikeStarterScaffoldRoot(cwd) {
-		fmt.Fprintln(d.Err, "make:mailer is not supported on the starter scaffold yet; no files were changed")
-		return 1
+		return runMakeStarterMailer(opts, d, cwd)
 	}
 
 	tokens := splitWords(opts.Name)
@@ -93,6 +92,43 @@ func RunMakeMailer(args []string, d MakeMailerDeps) int {
 	return 0
 }
 
+func runMakeStarterMailer(opts MakeMailerOptions, d MakeMailerDeps, cwd string) int {
+	tokens := splitWords(opts.Name)
+	if len(tokens) == 0 {
+		fmt.Fprintln(d.Err, "invalid make:mailer arguments: usage: ship make:mailer <Name>")
+		return 1
+	}
+	pascal := toPascalFromParts(tokens)
+	snake := strings.Join(tokens, "_")
+
+	templatePath := filepath.Join(cwd, "app", "views", "emails", snake+".html")
+	if _, err := os.Stat(templatePath); err == nil {
+		fmt.Fprintf(d.Err, "refusing to overwrite existing mailer template: %s\n", templatePath)
+		return 1
+	}
+	if err := os.MkdirAll(filepath.Dir(templatePath), 0o755); err != nil {
+		fmt.Fprintf(d.Err, "failed to create email views directory: %v\n", err)
+		return 1
+	}
+	if err := os.WriteFile(templatePath, []byte(renderStarterMailerTemplateFile(pascal, snake)), 0o644); err != nil {
+		fmt.Fprintf(d.Err, "failed to write starter mailer template: %v\n", err)
+		return 1
+	}
+
+	writeGeneratorReport(
+		d.Out,
+		"mailer",
+		false,
+		[]string{templatePath},
+		nil,
+		nil,
+		[]string{
+			"Preview in starter app at /dev/mail/" + snake,
+		},
+	)
+	return 0
+}
+
 func ParseMakeMailerArgs(args []string) (MakeMailerOptions, error) {
 	opts := MakeMailerOptions{}
 	if len(args) == 0 {
@@ -130,6 +166,17 @@ templ %s(page *controller.Page) {
 	}
 }
 `, pascal, pascal)
+}
+
+func renderStarterMailerTemplateFile(pascal, snake string) string {
+	return fmt.Sprintf(`<!-- ship:generated:mailer:%s -->
+<section data-mailer=%q>
+  <h1>%s Email</h1>
+  <p>Hello from {{app_name}}.</p>
+  <p>Support: {{support_email}}</p>
+  <p>Domain: {{domain}}</p>
+</section>
+`, snake, snake, pascal)
 }
 
 func updateMailerPreviewController(path, pascal, kebab string) error {

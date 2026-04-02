@@ -62,6 +62,8 @@ var starterAuth = &authStore{
 func main() {
 	mux := http.NewServeMux()
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+	mux.HandleFunc("/dev/mail", mailPreviewIndexHandler)
+	mux.HandleFunc("/dev/mail/", mailPreviewShowHandler)
 	mux.HandleFunc("/up", func(w http.ResponseWriter, _ *http.Request) {
 		writeText(w, http.StatusOK, "alive")
 	})
@@ -560,6 +562,54 @@ func renderDeleteAccountPage(w http.ResponseWriter, r *http.Request) error {
 	return renderSimpleFormPage(w, "Delete account", "delete-account", "/auth/delete-account", "", "Delete account now", []formField{
 		{Name: "email", Label: "Email address", Type: "email", Value: email},
 	})
+}
+
+func mailPreviewIndexHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/dev/mail" {
+		http.NotFound(w, r)
+		return
+	}
+	entries, err := os.ReadDir(filepath.Join("app", "views", "emails"))
+	if err != nil && !os.IsNotExist(err) {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	_, _ = fmt.Fprint(w, `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Mail previews</title><link rel="stylesheet" href="/static/styles_bundle.css"></head><body><div class="starter-shell"><section data-component="mail-preview-index"><h1>Mail previews</h1><ul>`)
+	for _, entry := range entries {
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".html") {
+			continue
+		}
+		slug := strings.TrimSuffix(entry.Name(), ".html")
+		_, _ = fmt.Fprintf(w, `<li><a href="/dev/mail/%s">/dev/mail/%s</a></li>`, html.EscapeString(slug), html.EscapeString(slug))
+	}
+	_, _ = fmt.Fprint(w, `</ul></section></div></body></html>`)
+}
+
+func mailPreviewShowHandler(w http.ResponseWriter, r *http.Request) {
+	slug := strings.TrimPrefix(r.URL.Path, "/dev/mail/")
+	slug = strings.TrimSpace(slug)
+	if slug == "" || strings.Contains(slug, "/") {
+		http.NotFound(w, r)
+		return
+	}
+	body, err := os.ReadFile(filepath.Join("app", "views", "emails", slug+".html"))
+	if err != nil {
+		if os.IsNotExist(err) {
+			http.NotFound(w, r)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	content := string(body)
+	content = strings.ReplaceAll(content, "{{app_name}}", "GoShip Starter")
+	content = strings.ReplaceAll(content, "{{support_email}}", "support@example.com")
+	content = strings.ReplaceAll(content, "{{domain}}", "localhost")
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	_, _ = fmt.Fprint(w, `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Mail preview</title><link rel="stylesheet" href="/static/styles_bundle.css"></head><body><div class="starter-shell"><section data-component="mail-preview">`)
+	_, _ = fmt.Fprint(w, content)
+	_, _ = fmt.Fprint(w, `</section></div></body></html>`)
 }
 
 func renderAdminPage(w http.ResponseWriter, r *http.Request, route goship.Route) error {

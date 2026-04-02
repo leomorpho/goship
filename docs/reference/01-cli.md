@@ -114,9 +114,9 @@ Generation:
 
 Current generated-app support boundary for `ship make:*`:
 
-- **starter-safe today:** `make:resource`, `make:model`, `make:controller`, `make:policy`, `make:island`
+- **starter-safe today:** `make:resource`, `make:model`, `make:controller`, `make:policy`, `make:mailer`, `make:island`
 - **starter-safe when a locale baseline already exists:** `make:locale`
-- **framework-workspace-only for now:** `make:factory`, `make:job`, `make:mailer`, `make:schedule`, `make:command`, `make:scaffold`
+- **framework-workspace-only for now:** `make:factory`, `make:job`, `make:schedule`, `make:command`, `make:scaffold`
 - **framework authoring only:** `make:module`
 - `ship destroy resource:<name>`
 
@@ -265,7 +265,7 @@ Safety matrix:
 - on framework workspaces, `ship make:controller` still emits `app/web/controllers/<name>.go` plus optional wired routes
 - `ship make:island <Name>` -> Generate a frontend island scaffold: the canonical pair `frontend/islands/<Name>.js` with an exported `mount(el, props)` seam and `app/views/web/components/<name>_island.templ` with the matching `data-island` / `data-props` mount target; follow-up remains explicit: run `ship templ generate --file app/views/web/components/<name>_island.templ`, run `make build-js`, then render `@components.<Name>Island(...)` from the page/component that should host the island
 - `ship make:job <Name>` -> Generate a background job scaffold at `app/jobs/<name>.go` plus `app/jobs/<name>_test.go` around `core.Jobs` / `core.JobHandler` registration helpers; currently reject the minimal starter scaffold with a clear error and treat this as a framework-workspace surface
-- `ship make:mailer <Name>` -> Generate a mailer scaffold at `app/views/emails/<name>.templ` and wire a `/dev/mail/<name>` preview into the existing mail preview controller and route surface; currently reject the minimal starter scaffold with a clear error and treat this as a framework-workspace surface
+- `ship make:mailer <Name>` -> on starter apps, generate `app/views/emails/<name>.html` plus preview at `/dev/mail/<name>`; on framework workspaces, generate `app/views/emails/<name>.templ` and wire the framework preview route surface
 - `ship make:schedule <Name> --cron "<expr>"` -> insert a named cron entry into `app/schedules.go` between `ship:schedules` markers; currently reject the minimal starter scaffold with a clear error and treat this as a framework-workspace surface
 - `ship make:command <Name>` -> scaffold `app/commands/<name>.go` and register it in `cmd/cli/main.go` at `ship:commands` markers; currently reject the minimal starter scaffold with a clear error and treat this as a framework-workspace surface
 - `ship make:scaffold <Name> ...` -> orchestration command that composes `make:model`, `db:make`, `make:controller --domain <plural_model> --wire`, and optionally `make:resource --domain <plural_model>` / `db:migrate`; currently reject the minimal starter scaffold with a clear error and treat this as a framework-workspace surface
