@@ -153,6 +153,44 @@ func TestStarterCRUDDestroyFailsCleanlyWhenRepeated(t *testing.T) {
 	buildStarterApp(t, appPath, "go build after repeated destroy refusal")
 }
 
+func TestStarterCRUDDestroyUsesOwnershipHeaderAfterUserEdits(t *testing.T) {
+	appPath := scaffoldStarterApp(t)
+
+	wd, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("os.Getwd() error = %v", err)
+	}
+	defer func() { _ = os.Chdir(wd) }()
+	if err := os.Chdir(appPath); err != nil {
+		t.Fatalf("os.Chdir(%q) error = %v", appPath, err)
+	}
+
+	var out bytes.Buffer
+	if code := generators.RunGenerateResource([]string{"contact", "--wire"}, &out, &out); code != 0 {
+		t.Fatalf("RunGenerateResource() exit code = %d\n%s", code, out.String())
+	}
+
+	pagePath := filepath.Join(appPath, "app", "views", "web", "pages", "gen", "contact.go")
+	pageBody, err := os.ReadFile(pagePath)
+	if err != nil {
+		t.Fatalf("os.ReadFile(%q) error = %v", pagePath, err)
+	}
+	customized := strings.Replace(string(pageBody), "Starter CRUD scaffold for contact with list/create/show/edit/delete runtime support.", "Customized starter CRUD copy.", 1)
+	if err := os.WriteFile(pagePath, []byte(customized), 0o644); err != nil {
+		t.Fatalf("os.WriteFile(%q) error = %v", pagePath, err)
+	}
+
+	out.Reset()
+	if code := RunDestroy([]string{"resource:contact"}, DestroyDeps{Out: &out, Err: &out, Cwd: appPath}); code != 0 {
+		t.Fatalf("RunDestroy() exit code = %d\n%s", code, out.String())
+	}
+	if _, err := os.Stat(pagePath); !os.IsNotExist(err) {
+		t.Fatalf("expected generated page to be removed, stat err = %v", err)
+	}
+
+	buildStarterApp(t, appPath, "go build after ownership-header destroy")
+}
+
 func TestStarterMakeControllerUsesStarterCRUDContract(t *testing.T) {
 	appPath := scaffoldStarterApp(t)
 

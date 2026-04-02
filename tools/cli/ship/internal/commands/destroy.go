@@ -138,8 +138,7 @@ func runDestroyResource(name string, d DestroyDeps) int {
 			Target: filepath.ToSlash(filepath.Join("app", "views", "web", "pages", "gen", norm.Snake+".go")),
 			Apply: func(absPath string) (string, error) {
 				return removeManagedFile(absPath, []string{
-					"func " + norm.Pascal + "() templ.Component",
-					"Scaffold page for " + norm.Kebab + ". Replace with your real UI.",
+					"// ship:generated:resource:" + norm.Snake,
 				})
 			},
 		},
@@ -147,8 +146,7 @@ func runDestroyResource(name string, d DestroyDeps) int {
 			Target: filepath.ToSlash(filepath.Join("app", "views", "web", "pages", norm.Snake+".templ")),
 			Apply: func(absPath string) (string, error) {
 				return removeManagedFile(absPath, []string{
-					"templ " + norm.Pascal + "Page(",
-					"Scaffold page for " + norm.Kebab + ". Replace with your real UI.",
+					"// ship:generated:resource:" + norm.Snake,
 				})
 			},
 		},
@@ -156,8 +154,7 @@ func runDestroyResource(name string, d DestroyDeps) int {
 			Target: filepath.ToSlash(filepath.Join("app", "web", "controllers", norm.Snake+"_test.go")),
 			Apply: func(absPath string) (string, error) {
 				return removeManagedFile(absPath, []string{
-					"func Test" + norm.Pascal + "Route_Get",
-					"SCAFFOLD: implement " + norm.Pascal + " show",
+					"// ship:generated:resource:" + norm.Snake,
 				})
 			},
 		},
@@ -165,8 +162,7 @@ func runDestroyResource(name string, d DestroyDeps) int {
 			Target: filepath.ToSlash(filepath.Join("app", "web", "controllers", norm.Snake+".go")),
 			Apply: func(absPath string) (string, error) {
 				return removeManagedFile(absPath, []string{
-					"type " + norm.LowerCamel + " struct {",
-					"func New" + norm.Pascal + "Route(",
+					"// ship:generated:resource:" + norm.Snake,
 				})
 			},
 		},
