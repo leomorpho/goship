@@ -117,11 +117,29 @@ func TestAuthRouteContractSplitIsExplicit(t *testing.T) {
 
 	assertContains(t, "starter/testdata/scaffold/app/router.go", starterRouter, "/auth/login")
 	assertContains(t, "starter/testdata/scaffold/app/router.go", starterRouter, "/auth/register")
+	assertContains(t, "starter/testdata/scaffold/app/router.go", starterRouter, "/auth/session")
+	assertContains(t, "starter/testdata/scaffold/app/router.go", starterRouter, "/auth/settings")
+	assertContains(t, "starter/testdata/scaffold/app/router.go", starterRouter, "/auth/password/reset")
+	assertContains(t, "starter/testdata/scaffold/app/router.go", starterRouter, "/auth/delete-account")
 	assertNotContains(t, "starter/testdata/scaffold/app/router.go", starterRouter, "/user/login")
 	assertNotContains(t, "starter/testdata/scaffold/app/router.go", starterRouter, "/user/register")
 
 	assertContains(t, "tests/e2e/tests/auth_golden_flow.spec.ts", goldenBrowser, "/user/register")
 	assertContains(t, "tests/e2e/tests/auth_golden_flow.spec.ts", goldenBrowser, "/auth/logout")
+}
+
+func TestStarterAuthDocsMatchExpandedContract(t *testing.T) {
+	t.Parallel()
+
+	gettingStarted := readRepoFile(t, "docs/guides/01-getting-started.md")
+	starterReadmeBytes, err := startertemplate.Files.ReadFile(filepath.ToSlash(filepath.Join(starterTemplateRoot, "README.md")))
+	if err != nil {
+		t.Fatalf("ReadFile(starter README) error = %v", err)
+	}
+	starterReadme := string(starterReadmeBytes)
+
+	assertContains(t, "docs/guides/01-getting-started.md", gettingStarted, "landing/auth/account/home/profile")
+	assertContains(t, "starter/testdata/scaffold/README.md", starterReadme, "account routes")
 }
 
 func TestFrameworkBrowserSuitesDeclareTheirAuthSurface(t *testing.T) {

@@ -104,5 +104,5 @@ If you are using the default Kamal workflow, continue with the deployment steps 
 - A booting GoShip app created by `ship new`
 - Local DB migrated with `ship db:migrate`
 - Dev loop running via `ship dev`
-- Starter landing/auth/home/profile routes available for further app-specific work
+- Starter landing/auth/account/home/profile routes available for further app-specific work
 - Test and verification commands passing

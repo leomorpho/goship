@@ -13,6 +13,7 @@ Fresh-app loop:
 
 Included by default:
 - auth routes
+- account routes
 - profile routes
 - landing page
 - home feed page
