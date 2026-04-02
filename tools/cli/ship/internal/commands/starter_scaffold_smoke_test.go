@@ -641,6 +641,35 @@ func TestModuleAddDryRunEmitsMachineReadableMetadata(t *testing.T) {
 	}
 }
 
+func TestModuleRemoveDryRunEmitsMachineReadableMetadata(t *testing.T) {
+	appPath := scaffoldStarterApp(t)
+	wd, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("os.Getwd() error = %v", err)
+	}
+	defer func() { _ = os.Chdir(wd) }()
+	if err := os.Chdir(appPath); err != nil {
+		t.Fatalf("os.Chdir(%q) error = %v", appPath, err)
+	}
+
+	var out bytes.Buffer
+	code := RunModule([]string{"remove", "storage", "--dry-run"}, ModuleDeps{Out: &out, Err: &out, FindGoModule: func(start string) (string, string, error) {
+		return appPath, "example.com/demo", nil
+	}})
+	if code != 0 {
+		t.Fatalf("RunModule(remove storage --dry-run) exit code = %d\n%s", code, out.String())
+	}
+	if !strings.Contains(out.String(), `"module_id":"storage"`) {
+		t.Fatalf("dry-run remove output missing module_id metadata\n%s", out.String())
+	}
+	if !strings.Contains(out.String(), `"ownership"`) {
+		t.Fatalf("dry-run remove output missing ownership metadata\n%s", out.String())
+	}
+	if !strings.Contains(out.String(), "remove_metadata") {
+		t.Fatalf("dry-run remove output missing remove_metadata marker\n%s", out.String())
+	}
+}
+
 func TestStarterUnsupportedModuleAddFailsWithoutMutatingGoMod(t *testing.T) {
 	appPath := scaffoldStarterApp(t)
 

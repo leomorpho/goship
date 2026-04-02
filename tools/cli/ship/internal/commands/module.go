@@ -547,6 +547,21 @@ func printInstallContractMetadata(out io.Writer, moduleID string, contract modul
 	fmt.Fprintf(out, "  metadata: %s\n", string(body))
 }
 
+func printModuleMutationMetadata(out io.Writer, prefix, moduleID string, contract moduleInstallContract, dryRun bool) {
+	metadata := moduleMutationMetadata{
+		ModuleID:  moduleID,
+		DryRun:    dryRun,
+		Contract:  contract,
+		Ownership: installContractOwnership(contract),
+	}
+	body, err := json.Marshal(metadata)
+	if err != nil {
+		fmt.Fprintf(out, "  metadata_json_error: %v\n", err)
+		return
+	}
+	fmt.Fprintf(out, "  %s: %s\n", prefix, string(body))
+}
+
 func runModuleRemove(args []string, d ModuleDeps) int {
 	name, dryRun, err := parseModuleArgs(args)
 	if err != nil {
@@ -568,6 +583,7 @@ func runModuleRemove(args []string, d ModuleDeps) int {
 		fmt.Fprintf(d.Err, "module:remove failed: %v\n", err)
 		return 1
 	}
+	printModuleMutationMetadata(d.Out, "remove_metadata", info.ID, info.installContract(), dryRun)
 	fmt.Fprintln(d.Out, "Reminder: module:remove does not roll back related DB migrations.")
 	if dryRun {
 		fmt.Fprintln(d.Out, "Dry-run mode: no files were written.")
