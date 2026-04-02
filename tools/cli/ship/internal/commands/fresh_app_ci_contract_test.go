@@ -43,14 +43,20 @@ func TestDescribeModuleAdoptionUsesManifestForGeneratedApps(t *testing.T) {
 	shipbin := buildShipBinary(t)
 	appPath := scaffoldFreshAppViaShip(t, shipbin, false)
 	runCmd(t, appPath, shipbin, "module:add", "jobs")
+	runCmd(t, appPath, shipbin, "module:add", "storage")
+	runCmd(t, appPath, shipbin, "module:add", "emailsubscriptions")
 
 	describe := runCmd(t, appPath, shipbin, "describe", "--pretty")
-	if !strings.Contains(describe, `"id": "jobs"`) || !strings.Contains(describe, `"installed": true`) {
-		t.Fatalf("describe output missing installed jobs adoption\n%s", describe)
+	for _, id := range []string{"jobs", "storage", "emailsubscriptions"} {
+		if !strings.Contains(describe, `"id": "`+id+`"`) || !strings.Contains(describe, `"installed": true`) {
+			t.Fatalf("describe output missing installed %s adoption\n%s", id, describe)
+		}
 	}
 
 	runtimeReport := runCmd(t, appPath, shipbin, "runtime:report", "--json")
-	if !strings.Contains(runtimeReport, `"id": "jobs"`) || !strings.Contains(runtimeReport, `"installed": true`) {
-		t.Fatalf("runtime report missing installed jobs adoption\n%s", runtimeReport)
+	for _, id := range []string{"jobs", "storage", "emailsubscriptions"} {
+		if !strings.Contains(runtimeReport, `"id": "`+id+`"`) || !strings.Contains(runtimeReport, `"installed": true`) {
+			t.Fatalf("runtime report missing installed %s adoption\n%s", id, runtimeReport)
+		}
 	}
 }
