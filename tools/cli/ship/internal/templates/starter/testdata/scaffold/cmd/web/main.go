@@ -19,6 +19,7 @@ import (
 
 	"github.com/a-h/templ"
 	goship "github.com/leomorpho/goship/starter/app"
+	starterpolicies "github.com/leomorpho/goship/starter/app/policies"
 	templates "github.com/leomorpho/goship/starter/app/views"
 	pages "github.com/leomorpho/goship/starter/app/views/web/pages/gen"
 	_ "modernc.org/sqlite"
@@ -159,7 +160,10 @@ func handleRoute(w http.ResponseWriter, r *http.Request, route goship.Route) err
 			http.Redirect(w, r, "/auth/login?next="+url.QueryEscape(route.Path), http.StatusSeeOther)
 			return nil
 		}
-		if !user.IsAdmin {
+		if !starterpolicies.AdminDashboardAllows(starterpolicies.PolicyActor{
+			Email:   user.Email,
+			IsAdmin: user.IsAdmin,
+		}) {
 			http.Error(w, "forbidden", http.StatusForbidden)
 			return nil
 		}

@@ -15,6 +15,7 @@ Included by default:
 - auth routes
 - account routes
 - admin dashboard route for the first registered user
+- starter policy seam in `app/policies/admin_dashboard.go`
 - profile routes
 - landing page
 - home feed page
