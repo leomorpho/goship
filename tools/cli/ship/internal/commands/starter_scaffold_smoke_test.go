@@ -670,6 +670,43 @@ func TestStarterEmailSubscriptionsModuleRoundTripStaysBuildable(t *testing.T) {
 	buildStarterApp(t, appPath, "go build after module:remove emailsubscriptions")
 }
 
+func TestStarterSupportedBatteryCombinationStaysBuildable(t *testing.T) {
+	appPath := scaffoldStarterApp(t)
+
+	var out bytes.Buffer
+	for _, id := range []string{"jobs", "storage", "emailsubscriptions"} {
+		if err := applyModuleAdd(appPath, moduleCatalog[id], false, &out); err != nil {
+			t.Fatalf("applyModuleAdd(%s) error = %v\n%s", id, err, out.String())
+		}
+	}
+
+	containerBody, err := os.ReadFile(filepath.Join(appPath, "app", "foundation", "container.go"))
+	if err != nil {
+		t.Fatalf("os.ReadFile(container.go) error = %v", err)
+	}
+	for _, want := range []string{
+		`c.EnabledModules = append(c.EnabledModules, "jobs")`,
+		`c.EnabledModules = append(c.EnabledModules, "storage")`,
+		`c.EnabledModules = append(c.EnabledModules, "emailsubscriptions")`,
+	} {
+		if !strings.Contains(string(containerBody), want) {
+			t.Fatalf("container.go missing %q\n%s", want, containerBody)
+		}
+	}
+
+	manifestBody, err := os.ReadFile(filepath.Join(appPath, "config", "modules.yaml"))
+	if err != nil {
+		t.Fatalf("os.ReadFile(modules.yaml) error = %v", err)
+	}
+	for _, want := range []string{"- jobs", "- storage", "- emailsubscriptions"} {
+		if !strings.Contains(string(manifestBody), want) {
+			t.Fatalf("modules.yaml missing %q\n%s", want, manifestBody)
+		}
+	}
+
+	buildStarterApp(t, appPath, "go build after supported battery combination add")
+}
+
 func TestModuleAddDryRunEmitsMachineReadableMetadata(t *testing.T) {
 	appPath := scaffoldStarterApp(t)
 	wd, err := os.Getwd()
